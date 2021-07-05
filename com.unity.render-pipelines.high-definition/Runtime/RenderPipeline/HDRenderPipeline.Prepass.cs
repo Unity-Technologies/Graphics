@@ -960,7 +960,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.vfxDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(
                     new RendererUtils.RendererListDesc(m_VfxDecalsPassNames, cullingResults, hdCamera.camera)
                     {
-                        sortingCriteria = SortingCriteria.CommonOpaque & ~ SortingCriteria.OptimizeStateChanges,
+                        sortingCriteria = SortingCriteria.CommonOpaque & ~SortingCriteria.OptimizeStateChanges,
                         rendererConfiguration = PerObjectData.None,
                         renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque,
                     }));

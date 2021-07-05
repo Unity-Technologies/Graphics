@@ -147,13 +147,10 @@ namespace UnityEditor.VFX.HDRP
         private int GetRenderQueueOffset()
         {
             var renderQueueType = GetRenderQueueType();
-            int renderQueueOffset;
-
-            if (owner is VFXDecalHDRPOutput)
-                renderQueueOffset = HDRenderQueue.Clamps(HDRenderQueue.k_RenderQueue_AllOpaque, HDRenderQueue.ChangeType(renderQueueType, 0, owner.hasAlphaClipping) + GetMaterialOffset());
-            else
-                renderQueueOffset = HDRenderQueue.ChangeType(renderQueueType, GetMaterialOffset(), owner.hasAlphaClipping);
-            return renderQueueOffset;
+            var materialOffset = GetMaterialOffset();
+            return owner is VFXDecalHDRPOutput ?
+                HDRenderQueue.Clamps(k_RenderQueue_AllOpaque, ChangeType(renderQueueType, 0, owner.hasAlphaClipping) + materialOffset) :
+                ChangeType(renderQueueType, materialOffset, owner.hasAlphaClipping);
         }
 
         private int GetMaterialOffset()

@@ -36,23 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUIUtility.labelWidth *= 0.5f;
 
             serialized.Apply();
-            RefreshVfxErrorsIfNeeded();
-
-        }
-
-        private void RefreshVfxErrorsIfNeeded()
-        {
-            if (needRefreshVfxWarnings)
-            {
-                var vfxWindow = VFXViewWindow.currentWindow;
-                if (vfxWindow != null)
-                {
-                    var vfxGraph = vfxWindow.graphView.controller.graph;
-                    foreach ( var output in vfxGraph.children.OfType<VFXDecalHDRPOutput>())
-                        output.RefreshErrors(vfxGraph);
-                }
-            }
-            needRefreshVfxWarnings = false;
+            VFXHDRPSettingsUtility.RefreshVfxErrorsIfNeeded(ref needRefreshVfxWarnings);
         }
     }
 }

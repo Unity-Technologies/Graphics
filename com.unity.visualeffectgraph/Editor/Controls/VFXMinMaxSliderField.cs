@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.UI
         public VFXMinMaxSliderField()
         {
             AddToClassList("sliderMinMaxField");
-            m_Slider = new MinMaxSlider(1,10, 0, 100);
+            m_Slider = new MinMaxSlider(1, 10, 0, 100);
 
             // m_Slider.AddToClassList("textfield");
             m_Slider.RegisterValueChangedCallback(evt => ValueChanged(evt.newValue));
@@ -90,6 +90,7 @@ namespace UnityEditor.VFX.UI
             Add(m_Slider);
             RegisterCallBack();
         }
+
         protected void RegisterCallBack()
         {
             m_Slider.Children().First().AddManipulator(new StartFinishSliderManipulator());
@@ -110,15 +111,8 @@ namespace UnityEditor.VFX.UI
 
         public Vector2 value
         {
-            get
-            {
-                return m_Value;
-            }
-
-            set
-            {
-                SetValueAndNotify(value);
-            }
+            get => m_Value;
+            set => SetValueAndNotify(value);
         }
 
         private Vector2 m_Range;
@@ -172,6 +166,7 @@ namespace UnityEditor.VFX.UI
             if (!m_IgnoreNotification)
                 SetValueAndNotify(e.newValue);
         }
+
         void ValueChanged(Vector2 newValue)
         {
             SetValueAndNotify(newValue);
@@ -200,12 +195,6 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-        public bool hasFocus
-        {
-            get
-            {
-                return m_Slider.HasFocus();
-            }
-        }
+        public bool hasFocus => m_Slider.HasFocus();
     }
 }

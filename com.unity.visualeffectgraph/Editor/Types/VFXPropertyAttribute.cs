@@ -181,7 +181,7 @@ namespace UnityEditor.VFX
                 }
                 else if (attribute is MinMaxAttribute)
                 {
-                    var minMaxAttribute = (MinMaxAttribute) attribute;
+                    var minMaxAttribute = (MinMaxAttribute)attribute;
                     exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant(minMaxAttribute.min), VFXValue.Constant(minMaxAttribute.max));
                 }
                 else

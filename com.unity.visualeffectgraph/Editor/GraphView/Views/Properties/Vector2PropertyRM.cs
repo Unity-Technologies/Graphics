@@ -1,10 +1,9 @@
-﻿using UnityEditor.UIElements;
+using UnityEditor.UIElements;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.UI
-
 {
     class Vector2PropertyRM : SimpleUIPropertyRM<Vector2, Vector2>
     {
@@ -12,7 +11,7 @@ namespace UnityEditor.VFX.UI
         protected VFXMinMaxSliderField m_Slider;
 
         public Vector2PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
-        { }
+        {}
 
         private void ValueDragStarted()
         {
@@ -51,11 +50,13 @@ namespace UnityEditor.VFX.UI
 
             return result;
         }
+
         void OnFocusLost(BlurEvent e)
         {
             DelayedNotifyValueChange();
             UpdateGUI(true);
         }
+
         void DelayedNotifyValueChange()
         {
             if (isDelayed && hasChangeDelayed)
@@ -70,6 +71,7 @@ namespace UnityEditor.VFX.UI
             if (m_Slider != null)
                 m_Slider.indeterminate = indeterminate;
         }
+
         public override void UpdateGUI(bool force)
         {
             if (m_Slider != null)
@@ -104,12 +106,14 @@ namespace UnityEditor.VFX.UI
                 return m_VectorField.HasFocus();
             return false;
         }
+
         protected INotifyValueChanged<Vector2> CreateSliderField(out VFXMinMaxSliderField slider)
         {
             var field = new VFXLabeledField<VFXMinMaxSliderField, Vector2>(m_Label);
             slider = field.control;
             return field;
         }
+
         protected INotifyValueChanged<Vector2> CreateSimpleField(out VFXVector2Field textField)
         {
             var field = new VFXLabeledField<VFXVector2Field, Vector2>(m_Label);

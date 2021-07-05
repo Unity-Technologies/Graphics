@@ -60,8 +60,6 @@ namespace UnityEditor.VFX.HDRP
         }
 
 
-
-
         public enum BlendSource
         {
             BaseColorMapAlpha,
@@ -124,7 +122,7 @@ namespace UnityEditor.VFX.HDRP
         public class AngleFadeProperty
         {
             [Tooltip("Use the min-max slider to control the fade out range of the decal based on the angle between the Decal backward direction and the vertex normal of the receiving surface." +
-                     " Works only if Decal Layers is enabled both in the HDRP Asset and in the HDRP Settings."), MinMax(0.0f, 180.0f)]
+                " Works only if Decal Layers is enabled both in the HDRP Asset and in the HDRP Settings."), MinMax(0.0f, 180.0f)]
             public Vector2 angleFade = new Vector2(0.0f, 180.0f);
         }
 
@@ -193,7 +191,7 @@ namespace UnityEditor.VFX.HDRP
 
                 var angleFadeExp = slotExpressions.First(o => o.name == "angleFade");
                 yield return new VFXNamedExpression(AngleFadeSimplification(angleFadeExp.exp), "angleFade");
-                yield return new VFXNamedExpression(VFXValue.Constant((uint) decalLayer), "decalLayerMask");
+                yield return new VFXNamedExpression(VFXValue.Constant((uint)decalLayer), "decalLayerMask");
             }
         }
 
@@ -329,7 +327,6 @@ namespace UnityEditor.VFX.HDRP
             return rs;
         }
 
-
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get
@@ -368,7 +365,6 @@ namespace UnityEditor.VFX.HDRP
                     $"The Metallic and Ambient Occlusion parameters won't have any effect, because the 'Metal and AO properties' setting is disabled." +
                     $" Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals. There is a performance cost of enabling this option.");
             }
-
         }
 
         protected override IEnumerable<string> untransferableSettings

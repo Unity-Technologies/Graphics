@@ -76,7 +76,20 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         internal static bool needRefreshVfxErrors = false;
-
+        private void RefreshVfxErrorsIfNeeded()
+        {
+            if (needRefreshVfxErrors)
+            {
+                var vfxWindow = VFXViewWindow.currentWindow;
+                if (vfxWindow != null)
+                {
+                    var vfxGraph = vfxWindow.graphView.controller.graph;
+                    foreach ( var output in vfxGraph.children.OfType<VFXDecalHDRPOutput>())
+                        output.RefreshErrors(vfxGraph);
+                }
+            }
+            needRefreshVfxErrors = false;
+        }
         public void DoGUI(string searchContext)
         {
             // When the asset being serialized has been deleted before its reconstruction
@@ -107,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
                 Inspector.Draw(serializedSettings, null);
                 serializedSettings.serializedObject?.ApplyModifiedProperties();
-                VFXHDRPSettingsUtility.RefreshVfxErrorsIfNeeded(ref needRefreshVfxErrors);
+                RefreshVfxErrorsIfNeeded();
             }
         }
 

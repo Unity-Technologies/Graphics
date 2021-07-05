@@ -416,7 +416,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                 {
                     // Tell VFX
-                    ((HDRenderPipelineEditor) owner).needRefreshVfxWarnings = true;
+                    ((HDRenderPipelineEditor)owner).needRefreshVfxWarnings = true;
                 }
 
                 EditorGUI.BeginChangeCheck();
@@ -429,7 +429,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                 {
                     // Tell VFX
-                    ((HDRenderPipelineEditor) owner).needRefreshVfxWarnings = true;
+                    ((HDRenderPipelineEditor)owner).needRefreshVfxWarnings = true;
                 }
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSurfaceGradient, Styles.supportSurfaceGradientContent);
 

@@ -56,8 +56,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_DBufferVFXDecalStr = "DBufferVFX";
 
 
-
-
         // ShaderPass name
         /// <summary>Empty shader tag id.</summary>
         public static readonly ShaderTagId s_EmptyName = new ShaderTagId(s_EmptyStr);
