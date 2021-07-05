@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Shader/BluePP"
+﻿Shader "Hidden/Shader/AfterPPBlurs"
 {
     HLSLINCLUDE
 
@@ -43,9 +43,9 @@
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
         uint2 positionSS = input.texcoord * _ScreenSize.xy;
-        float2 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xz;
+        float2 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xy;
 
-        return float4(outColor.y, 0, outColor.x, _Intensity);
+        return float4(outColor.x, 0, outColor.y, _Intensity);
     }
 
     ENDHLSL
