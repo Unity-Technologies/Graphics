@@ -1,6 +1,5 @@
 .LayerBatch {
     flex-direction: row;
-    flex-shrink: 0;
 }
 
 .LayerBatch.Header {
@@ -19,16 +18,10 @@
     border-left-width: 10px;
 }
 
-.BatchNameColumn.LayerName {
-    flex-grow: 1;
-}
-
 .BatchColor {
     width: 10px;
 }
 
 #LayerList {
     flex-grow: 1;
-    flex-shrink: 0;
 }
-

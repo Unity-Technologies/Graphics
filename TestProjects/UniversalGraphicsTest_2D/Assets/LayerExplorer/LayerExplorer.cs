@@ -74,7 +74,7 @@ internal class LayerExplorer : EditorWindow
             var layerNames = items[i].LayerNames.Take(Random.Range(1,items[i].LayerNames.Length)).ToList();
             layers.itemsSource = layerNames;
             layers.selectionType = SelectionType.None;
-            // layers.fixedItemHeight = 16;
+            layers.fixedItemHeight = 20;
             layers.makeItem = () => new Label();
             layers.bindItem = (element, index) => (element as Label).text = layerNames[index];
 
@@ -86,6 +86,8 @@ internal class LayerExplorer : EditorWindow
         layerList.itemsSource = items;
         layerList.makeItem = makeItem;
         layerList.bindItem = bindItem;
-        // layerList.selectionType = SelectionType.None;
+
+        var container = layerList.Query<VisualElement>("unity-content-container").First();
+        container.style.height = new StyleLength(StyleKeyword.Auto);
     }
 }
