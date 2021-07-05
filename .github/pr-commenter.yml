@@ -1,5 +1,8 @@
 comment:
   on-update: edit
+  header: |
+    The following job should be run on every PR:
+    https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
 
   snippets:
     - id: HDRP
@@ -10,8 +13,7 @@ comment:
         - TestProjects/HDRP*/**/*
       body: |
         It looks like you're changing an HDRP Package or project
-        Please run the following jobs on your branch before merging your PR:
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
+        Please run the following jobs on your branch before merging your PR:        
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-hdrp.yml%2523PR_HDRP_2021.2
     - id: URP
       files:
@@ -21,7 +23,6 @@ comment:
       body: |
         It looks like you're changing a URP Package or project
         Please run the following jobs on your branch before merging your PR:
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-urp.yml%2523PR_URP_2021.2
     - id: ShaderGraph
       files:
@@ -31,7 +32,6 @@ comment:
       body: |
         It looks like you're changing a Shader Graph Package or project
         Please run the following jobs on your branch before merging your PR:
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-shadergraph.yml%2523PR_ShaderGraph_2021.2
         Depending on the scope of your PR, you may also need to run URP and HDRP jobs. Please ask your lead if you are unsure about what your PR could affect.
     - id: VFX
@@ -42,7 +42,6 @@ comment:
       body: |
         It looks like you're changing a VFX Package or project
         Please run the following jobs on your branch before merging your PR:
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
         https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-vfx.yml%2523PR_VFX_2021.2
         Depending on the scope of your PR, you may also need to run URP and HDRP jobs. Please ask your lead if you are unsure about what your PR could affect.
     - id: Core
