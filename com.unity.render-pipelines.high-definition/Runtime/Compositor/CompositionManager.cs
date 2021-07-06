@@ -755,7 +755,13 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 {
                     if (!layer.ValidateRTSize(m_OutputCamera.pixelWidth, m_OutputCamera.pixelHeight))
                     {
-                        DeleteLayerRTs();
+                        for (int i = m_InputLayers.Count - 1; i >= 0; --i)
+                        {
+                            if (m_InputLayers[i].camera)
+                                m_InputLayers[i].camera.targetTexture = null;
+
+                            m_InputLayers[i].DestroyRT();
+                        }
                         SetupCompositorLayers();
                         // After a resolution change, redraw the internal layer cameras.
                         InternalRender(cntx);

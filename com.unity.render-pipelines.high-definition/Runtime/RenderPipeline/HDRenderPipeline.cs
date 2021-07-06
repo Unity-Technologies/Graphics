@@ -1081,7 +1081,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int newCount = m_FrameCount;
             foreach (var c in cameras)
             {
-                if (c != null && c.cameraType != CameraType.Preview)
+                if (c.cameraType != CameraType.Preview)
                 {
                     newCount++;
                     break;
@@ -1117,7 +1117,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool hasGameViewCamera = false;
                 foreach (var c in cameras)
                 {
-                    if (c != null && c.cameraType == CameraType.Game)
+                    if (c.cameraType == CameraType.Game)
                     {
                         hasGameViewCamera = true;
                         break;
