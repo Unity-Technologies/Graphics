@@ -2,8 +2,13 @@
   "name": "com.unity.render-pipelines.high-definition-config",
   "description": "Configuration files for the High Definition Render Pipeline.",
   "version": "12.0.0",
+<<<<<<< HEAD
   "unity": "2022.1",
   "unityRelease": "0a2",
+=======
+  "unity": "2021.2",
+  "unityRelease": "0b3",
+>>>>>>> master
   "displayName": "High Definition RP Config",
   "dependencies": {
     "com.unity.render-pipelines.core": "12.0.0"

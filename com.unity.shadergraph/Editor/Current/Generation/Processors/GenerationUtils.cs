@@ -149,10 +149,14 @@ namespace UnityEditor.ShaderGraph
 
                 if (fieldIsActive)
                 {
+                    // special case, "UNITY_STEREO_INSTANCING_ENABLED" fields must be packed at the end of the struct because they are system generated semantics
+                    //
+                    if (subscript.HasPreprocessor() && (subscript.preprocessor.Contains("INSTANCING")))
+                        postUnpackedSubscripts.Add(subscript);
                     // special case, "SHADER_STAGE_FRAGMENT" fields must be packed at the end of the struct,
                     // otherwise the vertex output struct will have different semantic ordering than the fragment input struct.
                     //
-                    if (subscript.HasPreprocessor() && (subscript.preprocessor.Contains("SHADER_STAGE_FRAGMENT")))
+                    else if (subscript.HasPreprocessor() && (subscript.preprocessor.Contains("SHADER_STAGE_FRAGMENT")))
                         postUnpackedSubscripts.Add(subscript);
                     else if (subscript.HasSemantic() || subscript.vectorCount == 0)
                         packedSubscripts.Add(subscript);
