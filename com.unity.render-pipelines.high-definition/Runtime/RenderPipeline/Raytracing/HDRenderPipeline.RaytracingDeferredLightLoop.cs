@@ -344,7 +344,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // A really nice tip is to dispatch the rays as a 1D array instead of 2D, the performance difference has been measured.
                             uint dispatchSize = (uint)(bufferSizeX * bufferSizeY);
-                            ctx.cmd.DispatchRays(data.parameters.gBufferRaytracingRT, m_RayGenGBufferBinned, dispatchSize, (uint)data.parameters.viewCount, 1);
+                            ctx.cmd.DispatchRays(data.parameters.gBufferRaytracingRT, m_RayGenGBufferBinned, dispatchSize, 1, (uint)data.parameters.viewCount);
                         }
                         else
                         {
