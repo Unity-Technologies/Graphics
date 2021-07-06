@@ -335,6 +335,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
 
+                if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
+                    continue;
+
                 if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
                 {
                     // Check first if the HDRP shadergraph assigned needs a migration:
@@ -358,10 +361,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         continue;
                     }
                 }
-
-                if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
-                    continue;
-
 
                 void AddDiffusionProfileToSettings(string propName)
                 {

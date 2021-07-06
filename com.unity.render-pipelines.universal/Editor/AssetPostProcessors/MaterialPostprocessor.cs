@@ -6,6 +6,7 @@ using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using static Unity.Rendering.Universal.ShaderUtils;
+using UnityEditor.Rendering.Universal.ShaderGraph;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -25,6 +26,24 @@ namespace UnityEditor.Rendering.Universal
     {
         static bool s_NeedToCheckProjSettingExistence = true;
 
+
+        internal static bool IsURPShader(Shader shader)
+        {
+            if (shader == null)
+                return false;
+
+            if (shader.IsShaderGraphAsset())
+            {
+                return shader.TryGetMetadataOfType<UniversalMetadata>(out _);
+            }
+            else if (ShaderUtils.IsLWShader(shader))
+            {
+                return true;
+            }
+
+            return shader.name.Contains("Universal Render Pipeline");
+        }
+
         static void ReimportAllMaterials()
         {
             string[] guids = AssetDatabase.FindAssets("t:material", null);
@@ -38,6 +57,11 @@ namespace UnityEditor.Rendering.Universal
                 materialIdx++;
                 var path = AssetDatabase.GUIDToAssetPath(asset);
                 EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
+                var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                if (!IsURPShader(material.shader))
+                {
+                    continue;
+                }
                 AssetDatabase.ImportAsset(path);
             }
             EditorUtility.ClearProgressBar();
