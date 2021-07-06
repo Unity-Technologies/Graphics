@@ -488,6 +488,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.renderPipelineSettings.lightLoopSettings.maxLightsPerClusterCell.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxLightsPerClusterCell.intValue, 1, HDRenderPipeline.k_MaxLightsPerClusterCell);
         }
 
+        static bool s_DisplayNvidiaModuleButtonInstall = true;
         static void Drawer_SectionDynamicResolutionSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.enabled, Styles.enabled);
@@ -623,13 +624,13 @@ namespace UnityEditor.Rendering.HighDefinition
             --EditorGUI.indentLevel;
 
 #if ENABLE_NVIDIA && !ENABLE_NVIDIA_MODULE
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.HelpBox(Styles.DLSSPackageLabel, MessageType.Info);
-            if (GUILayout.Button(Styles.DLSSInstallButton, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
+            if (s_DisplayNvidiaModuleButtonInstall)
             {
-                PackageManager.Client.Add("com.unity.modules.nvidia");
+                CoreEditorUtils.DrawFixMeBox(Styles.DLSSPackageLabel, MessageType.Info, () => {
+                    PackageManager.Client.Add("com.unity.modules.nvidia");
+                    s_DisplayNvidiaModuleButtonInstall = false;
+                });
             }
-            EditorGUILayout.EndHorizontal();
 #endif
         }
 
