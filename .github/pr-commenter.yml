@@ -3,7 +3,7 @@ comment:
   header: |
     Hi! This comment will help you figure out which jobs to run before merging your PR. The suggestions are dynamic based on what files you have changed.
     Link to Yamato: https://yamato.cds.internal.unity3d.com/jobs/902-Graphics
-    Search for your PR branch using the sidebar on the left, then add the following segment(s) to the end of the URL (you may need multiple tabs depending on how many package you change)
+    Search for your PR branch using the sidebar on the left, then add the following segment(s) to the end of the URL (you may need multiple tabs depending on how many packages you change)
   footer: |
     Depending on the scope of your PR, you may need to run more jobs than what has been suggested. Please speak to your lead or a Graphics SDET (#devs-graphics-automation) if you are unsure.
 
