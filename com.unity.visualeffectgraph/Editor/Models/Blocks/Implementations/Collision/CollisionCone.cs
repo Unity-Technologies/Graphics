@@ -147,7 +147,8 @@ if (collision)
     {
         n = -capNormal;
         tPos += n * distToCap;
-    }";
+    }
+";
 
                 //Clamp outside/inside cone afterwards (could optional, only relevant with teleport cases)
                 //Alternatively, we can apply several time Position & Normal correction
@@ -176,8 +177,10 @@ if (collision)
                     }
                     else
                     {
+                        //Cone Radius is recomputed after y correction in case of high slope of the cone (no-op with cylinder)
                         Source += @"
     tPos.y = clamp(tPos.y, radiusCorrectionY, cone_height - radiusCorrectionY);
+    cone_radius = lerp(cone_baseRadius, cone_topRadius, tPos.y/cone_height);
     tPos.xz = tPos.xz/dist * min(dist, cone_radius - radiusCorrectionXZ);";
                     }
                 }
