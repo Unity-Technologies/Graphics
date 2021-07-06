@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/Scenes/102_ReflectionsPerfHalfRes.unity
     guid: 5fd2fada5be46b04898ce4c60cd49a90
   - enabled: 1
+    path: Assets/Scenes/103_ReflectionsLOD.unity
+    guid: 4e11e67ddf8db1c4da0cee717b4665cc
+  - enabled: 1
     path: Assets/Scenes/103_ReflectionsQuality.unity
     guid: 7c94f7315cc5f9948836ed2db6950643
   - enabled: 1

@@ -204,19 +204,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     using (new IndentLevelScope(needsIntendation ? 16 : 0))
                     {
+                        PropertyField(m_DensityMultiplier);
                         if (controlMode == VolumetricClouds.CloudControl.Simple)
                         {
                             PropertyField(m_CustomDensityCurve);
-                            PropertyField(m_CustomErosionCurve);
-                            PropertyField(m_CustomAmbientOcclusionCurve);
                         }
-                        PropertyField(m_DensityMultiplier);
                         PropertyField(m_ShapeFactor);
                         PropertyField(m_ShapeScale);
                         PropertyField(m_ShapeOffsetX);
                         PropertyField(m_ShapeOffsetZ);
                         PropertyField(m_ErosionFactor);
                         PropertyField(m_ErosionScale);
+                        if (controlMode == VolumetricClouds.CloudControl.Simple)
+                        {
+                            PropertyField(m_CustomErosionCurve);
+                            PropertyField(m_CustomAmbientOcclusionCurve);
+                        }
                     }
                 }
                 else
@@ -241,13 +244,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_ErosionSpeedMultiplier);
             }
 
-            DrawHeader("Quality");
-            {
-                PropertyField(m_TemporalAccumulationFactor);
-                PropertyField(m_NumPrimarySteps);
-                PropertyField(m_NumLightSteps);
-            }
-
             DrawHeader("Lighting");
             {
                 PropertyField(m_AmbientLightProbeDimmer);
@@ -268,6 +264,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_ShadowPlaneHeightOffset);
                     PropertyField(m_ShadowOpacityFallback);
                 }
+            }
+
+            DrawHeader("Quality");
+            {
+                PropertyField(m_TemporalAccumulationFactor);
+                PropertyField(m_NumPrimarySteps);
+                PropertyField(m_NumLightSteps);
             }
         }
     }
