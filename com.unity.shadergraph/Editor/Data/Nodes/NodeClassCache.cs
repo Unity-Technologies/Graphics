@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph
             bool valid = asset != null && asset.isValid;
             if(m_KnownSubGraphLookupTable.TryGetValue(guid, out SubGraphAsset known))
             {
-                if(valid)
+                if(!valid)
                 {
                     m_KnownSubGraphLookupTable.Remove(guid);
                 }
