@@ -166,15 +166,15 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
         previousMesh = TransformMeshToPreviousElement(previousMesh, inputElement);
 #endif
 
-#if defined(_ADD_PRECOMPUTED_VELOCITY_SG) // For shader graph custom velocity
-        previousMesh.positionOS -= GetPrecomputeVelocitySG(previousMesh);
+#if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
+        previousMesh.positionOS -= GetCustomVelocity(previousMesh);
 #endif
 
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else
 
-#if defined(_ADD_PRECOMPUTED_VELOCITY_SG) // For shader graph custom velocity
-        effectivePositionOS -= GetPrecomputeVelocitySG(inputMesh);
+#if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
+        effectivePositionOS -= GetCustomVelocity(inputMesh);
 #endif
 
         float3 previousPositionRWS = TransformPreviousObjectToWorld(effectivePositionOS);

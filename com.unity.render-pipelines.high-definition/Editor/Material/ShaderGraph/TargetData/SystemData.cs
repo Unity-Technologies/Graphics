@@ -120,11 +120,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         // Custom motion vector
         [SerializeField]
-        bool m_PrecomputedVelocity = false;
-        public bool precomputedVelocity
+        bool m_CustomVelocity = false;
+        public bool customVelocity
         {
-            get => m_PrecomputedVelocity;
-            set => m_PrecomputedVelocity = value;
+            get => m_CustomVelocity;
+            set => m_CustomVelocity = value;
         }
 
 

@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static string name = "VertexDescription";
 
-            public static BlockFieldDescriptor PrecomputedVelocity = new BlockFieldDescriptor(VertexDescription.name, "PrecomputedVelocity", "Precomputed Velocity", "VERTEXDESCRIPTION_PRECOMPUTEDVELOCITY",
+            public static BlockFieldDescriptor CustomVelocity = new BlockFieldDescriptor(VertexDescription.name, "CustomVelocity", "Add Velocity (OS)", "VERTEXDESCRIPTION_CUSTOMVELOCITY",
                 new Vector3Control(new Vector3(0.0f, 0.0f, 0.0f)), ShaderStage.Vertex);
 
             // TODO: In the future we may have proper ShaderStage for tessellation, this will need to be revisit then

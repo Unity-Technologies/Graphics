@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor EmissionOverriden =       new FieldDescriptor(string.Empty, "EmissionOverriden", string.Empty);
 
         // Custom motion vector
-        public static FieldDescriptor PrecomputedVelocity =     new FieldDescriptor(string.Empty, "PrecomputedVelocity", "PRECOMPUTED_VELOCITY 1");
+        public static FieldDescriptor CustomVelocity =     new FieldDescriptor(string.Empty, "CustomVelocity", "CUSTOM_VELOCITY 1");
 
         // Tessellation
         public static FieldDescriptor TessellationFactor =      new FieldDescriptor(string.Empty, "TessellationFactor", "_TESSELLATION_FACTOR 1");

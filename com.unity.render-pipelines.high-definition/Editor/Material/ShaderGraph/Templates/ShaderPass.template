@@ -81,7 +81,7 @@ Pass
     $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
     $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
 
-    $VertexDescription.PrecomputedVelocity: #define _ADD_PRECOMPUTED_VELOCITY_SG
+    $VertexDescription.CustomVelocity: #define _ADD_CUSTOM_VELOCITY
 
     $splice(GraphDefines)
 
