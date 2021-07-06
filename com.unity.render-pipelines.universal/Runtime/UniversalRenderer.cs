@@ -88,13 +88,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal RenderTargetBufferSystem m_ColorBufferSystem;
 
-        RTHandle m_ActiveCameraColorAttachment;
+        internal RTHandle m_ActiveCameraColorAttachment;
         RTHandle m_ColorFrontBuffer;
-        RTHandle m_ActiveCameraDepthAttachment;
-        RTHandle m_CameraDepthAttachment;
+        internal RTHandle m_ActiveCameraDepthAttachment;
+        internal RTHandle m_CameraDepthAttachment;
         RTHandle m_XRTargetHandleAlias;
-        bool m_DepthTextureAlloc;
-        RTHandle m_DepthTexture;
+        internal RTHandle m_DepthTexture;
         RTHandle m_NormalsTexture;
         RTHandle m_OpaqueColor;
         RTHandle m_MotionVectorColor;
@@ -250,8 +249,6 @@ namespace UnityEngine.Rendering.Universal
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorAttachment");
-            m_DepthTexture = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_CameraDepthTexture"), 0, CubemapFace.Unknown, -1), "_CameraDepthTexture");
-            m_DepthTextureAlloc = false;
             m_NormalsTexture = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_CameraNormalsTexture"), 0, CubemapFace.Unknown, -1), "_CameraNormalsTexture");
             m_OpaqueColor = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_CameraOpaqueTexture"), 0, CubemapFace.Unknown, -1), "_CameraOpaqueTexture");
 
@@ -595,12 +592,16 @@ namespace UnityEngine.Rendering.Universal
                 depthDescriptor.depthBufferBits = (int)k_DepthStencilBufferBits;
                 depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
 
+                if (RenderingUtils.RTHandleNeedsReAlloc(m_DepthTexture, depthDescriptor, false))
+                {
+                    m_DepthTexture?.Release();
+                    m_DepthTexture = RTHandles.Alloc(depthDescriptor, filterMode: FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
+                }
+
                 CommandBuffer cmd = CommandBufferPool.Get();
-                cmd.GetTemporaryRT(Shader.PropertyToID(m_DepthTexture.name), depthDescriptor, FilterMode.Point);
+                cmd.SetGlobalTexture(m_DepthTexture.name, m_DepthTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
-
-                m_DepthTextureAlloc = true;
             }
 
             if (requiresDepthPrepass)
@@ -708,7 +709,7 @@ namespace UnityEngine.Rendering.Universal
             // For Base Cameras: Set the depth texture to the far Z if we do not have a depth prepass or copy depth
             if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
             {
-                Shader.SetGlobalTexture(Shader.PropertyToID(m_DepthTexture.name), SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
+                Shader.SetGlobalTexture("_CameraDepthTexture", SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
             }
 
             if (copyColorPass)
@@ -910,13 +911,6 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem.Clear(cmd);
             m_ActiveCameraColorAttachment = null;
             m_ActiveCameraDepthAttachment = null;
-
-            if (m_DepthTextureAlloc)
-            {
-                Debug.Assert(m_DepthTexture.name.Length > 0);
-                cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_DepthTexture.name));
-                m_DepthTextureAlloc = false;
-            }
         }
 
         void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool hasNormalPrepass, bool applyMainShadow, bool applyAdditionalShadow)

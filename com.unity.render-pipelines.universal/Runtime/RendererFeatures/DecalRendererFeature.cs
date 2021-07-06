@@ -474,14 +474,14 @@ namespace UnityEngine.Rendering.Universal
                 if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
                 {
                     m_CopyDepthPass.Setup(
-                        m_DBufferRenderPass.cameraDepthAttachmentIndentifier,
-                        m_DBufferRenderPass.cameraDepthTextureIndentifier
+                        renderer.cameraDepthTargetHandle,
+                        universalRenderer.m_DepthTexture
                     );
                 }
                 else
                 {
                     m_CopyDepthPass.Setup(
-                        m_DBufferRenderPass.cameraDepthTextureIndentifier,
+                        universalRenderer.m_DepthTexture,
                         m_DBufferRenderPass.dBufferDepthIndentifier
                     );
                 }

@@ -399,6 +399,26 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Returns the camera depth target for this renderer.
+        /// It's only valid to call cameraDepthTarget in the scope of <c>ScriptableRenderPass</c>.
+        /// <seealso cref="ScriptableRenderPass"/>.
+        /// </summary>
+        public RTHandle cameraDepthTargetHandle
+        {
+            get
+            {
+                if (!m_IsPipelineExecuting)
+                {
+                    Debug.LogWarning("You can only call cameraDepthTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
+                    // TODO: Ideally we should return an error texture (BuiltinRenderTextureType.None?)
+                    // but this might break some existing content, so we return the pipeline texture in the hope it gives a "soft" upgrade to users.
+                }
+
+                return m_CameraDepthTarget.handle;
+            }
+        }
+
+        /// <summary>
         /// Returns a list of renderer features added to this renderer.
         /// <seealso cref="ScriptableRendererFeature"/>
         /// </summary>
