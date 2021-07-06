@@ -9,7 +9,14 @@
 ---
 
 PR_Smoke_Test_2021.1:
-    name: Smoke_Test PR Job - 2021.1
+    name: PR Smoke_Test on 2021.1
+    variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    triggers:
+        expression: pull_request.target eq "2021.1/staging" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_2021.1
          rerun: on_new_revision
@@ -17,21 +24,33 @@ PR_Smoke_Test_2021.1:
          rerun: on_new_revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_2021.1
          rerun: on_new_revision
-    triggers:
-        expression: pull_request.target eq "2021.1/staging" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+Extra_Smoke_Test_2021.1:
+    name: Extra Smoke_Test on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_Smoke_Test_2021.1:
-    name: Nightly Smoke_Test - 2021.1
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies: []
+Smoke_Test_2021.1:
+    name: Smoke_Test on 2021.1
+    variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-smoke_test.yml#PR_Smoke_Test_2021.1
          rerun: on_new_revision
+      -  path: .yamato/all-smoke_test.yml#Extra_Smoke_Test_2021.1
+         rerun: on_new_revision
+PR_Smoke_Test_CUSTOM-REVISION:
+    name: PR Smoke_Test on CUSTOM-REVISION
     variables:
+        CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-PR_Smoke_Test_CUSTOM-REVISION:
-    name: Smoke_Test PR Job - CUSTOM-REVISION
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -39,16 +58,23 @@ PR_Smoke_Test_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+Extra_Smoke_Test_CUSTOM-REVISION:
+    name: Extra Smoke_Test on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_Smoke_Test_CUSTOM-REVISION:
-    name: Nightly Smoke_Test - CUSTOM-REVISION
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies: []
+Smoke_Test_CUSTOM-REVISION:
+    name: Smoke_Test on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-smoke_test.yml#PR_Smoke_Test_CUSTOM-REVISION
          rerun: on_new_revision
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
+      -  path: .yamato/all-smoke_test.yml#Extra_Smoke_Test_CUSTOM-REVISION
+         rerun: on_new_revision

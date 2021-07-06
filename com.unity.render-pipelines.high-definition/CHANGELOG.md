@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an info box for micro shadow editor (case 1322830).
 - Added support for alpha channel in FXAA (case 1323941).
 - Added support for lighting full screen debug mode in automated tests.
+- Added support of motion vector buffer in custom postprocess
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -189,6 +190,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with history buffer allocation for AOVs when the request does not come in first frame.
 - Fix for wrong cached area light initialization.
 - Fixed an issue where enabling GPU Instancing on a ShaderGraph Material would cause compile failures [1338695].
+- Fixed issue with velocity rejection when using physically-based DoF.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.

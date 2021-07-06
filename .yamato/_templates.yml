@@ -16,8 +16,10 @@ pre_pack_hdrp_template_Win_2021.1:
         flavor: b1.large
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2021_1_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:2021.1:Win
     artifacts:
         primed:
             paths:
@@ -48,10 +50,11 @@ test_hdrp_template_Win_2021.1:
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#pack_hdrp_template_Win_2021.1
+      -  .yamato/_editor_priming.yml#editor:priming:2021.1:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2021_1_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-hd
     artifacts:
         logs:
@@ -64,8 +67,10 @@ pre_pack_hdrp_template_OSX_2021.1:
         image: package-ci/mac:stable
         flavor: m1.mac
     commands:
-      -  unity-downloader-cli -u {{editor_versions.2021_1_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:2021.1:OSX
     artifacts:
         primed:
             paths:
@@ -96,9 +101,10 @@ test_hdrp_template_OSX_2021.1:
         flavor: m1.mac
     dependencies:
       -  .yamato/_templates.yml#pack_hdrp_template_OSX_2021.1
+      -  .yamato/_editor_priming.yml#editor:priming:2021.1:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  unity-downloader-cli -u {{editor_versions.2021_1_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-hd
     artifacts:
         logs:
@@ -290,8 +296,10 @@ pre_pack_universal_template_Win_2021.1:
         flavor: b1.large
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2021_1_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:2021.1:Win
     artifacts:
         primed:
             paths:
@@ -322,10 +330,11 @@ test_universal_template_Win_2021.1:
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#pack_universal_template_Win_2021.1
+      -  .yamato/_editor_priming.yml#editor:priming:2021.1:Win
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2021_1_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci template test -u .\.Editor --project-path com.unity.template-universal
     artifacts:
         logs:
@@ -338,8 +347,10 @@ pre_pack_universal_template_OSX_2021.1:
         image: package-ci/mac:stable
         flavor: m1.mac
     commands:
-      -  unity-downloader-cli -u {{editor_versions.2021_1_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit
+    dependencies:
+      -  .yamato/_editor_priming.yml#editor:priming:2021.1:OSX
     artifacts:
         primed:
             paths:
@@ -370,9 +381,10 @@ test_universal_template_OSX_2021.1:
         flavor: m1.mac
     dependencies:
       -  .yamato/_templates.yml#pack_universal_template_OSX_2021.1
+      -  .yamato/_editor_priming.yml#editor:priming:2021.1:OSX
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  unity-downloader-cli -u {{editor_versions.2021_1_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  upm-ci template test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path com.unity.template-universal
     artifacts:
         logs:
