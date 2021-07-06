@@ -1594,7 +1594,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// If the shadow update mode is set to OnDemand, this parameter controls whether the shadows are rendered the first time without needing an explicit render request. If this properties is false,
         /// the OnDemand shadows will never be rendered unless a render request is performed explicitly.
         /// </summary>
-        public bool onDomandShadowRenderOnPlacement
+        public bool onDemandShadowRenderOnPlacement
         {
             get => m_OnDemandShadowRenderOnPlacement;
             set
@@ -1606,7 +1606,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // This is a bit confusing, but it is an override to ignore the onDomandShadowRenderOnPlacement field when a light is registered for the first time as a consequence of a request for shadow update.
+        // This is a bit confusing, but it is an override to ignore the onDemandShadowRenderOnPlacement field when a light is registered for the first time as a consequence of a request for shadow update.
         internal bool forceRenderOnPlacement = false;
 
         /// <summary>
@@ -2286,7 +2286,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, updateType);
 
-                if (needToUpdateCachedContent)
+                if (needToUpdateCachedContent && (lightType != HDLightType.Directional ||
+                                                  hdCamera.camera.cameraType != CameraType.Reflection))
                 {
                     // Handshake with the cached shadow manager to notify about the rendering.
                     // Technically the rendering has not happened yet, but it is scheduled.
