@@ -432,6 +432,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
+            // Panini projection is done as a fullscreen pass after all depth-based effects are done
+            // and before bloom kicks in
+            if (m_PaniniProjection.IsActive() && !isSceneViewCamera)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
+                {
+                    DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination());
+                    Swap(ref renderer);
+                }
+            }
+
             // Lens Flare
             if (!LensFlareCommonSRP.Instance.IsEmpty())
             {
@@ -454,17 +465,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
                 {
                     DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
-                }
-            }
-
-            // Panini projection is done as a fullscreen pass after all depth-based effects are done
-            // and before bloom kicks in
-            if (m_PaniniProjection.IsActive() && !isSceneViewCamera)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
-                {
-                    DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination());
-                    Swap(ref renderer);
                 }
             }
 
