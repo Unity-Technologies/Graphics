@@ -85,6 +85,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent scaleVariation = EditorGUIUtility.TrTextContent("Scale Variation", "Sets the offset applied to the current scale of the element.");
             static public readonly GUIContent positionCurve = EditorGUIUtility.TrTextContent("Position Variation", "Defines how the multiple elements are placed along the spread using a curve.");
             static public readonly GUIContent scaleCurve = EditorGUIUtility.TrTextContent("Scale", "Defines how the multiple elements are scaled along the spread.");
+            static public readonly GUIContent uniformAngleCurve = EditorGUIUtility.TrTextContent("Rotation", "Defines how the multiple elements are rotated along the spread.");
             static public readonly GUIContent uniformAngle = EditorGUIUtility.TrTextContent("Rotation", "Specify an angle (in degree) which will be used for each element incrementaly.");
 
             static GUIStyle m_BlueFocusedBoldLabel;
@@ -353,8 +354,8 @@ namespace UnityEditor.Rendering
                     line += 1;
                     break;  //UniformAngle
                 case SRPLensFlareDistribution.Curve:
-                    line += 2;
-                    break;  //Position Variation, Scale
+                    line += 3;
+                    break;  //Position Variation, Rotation, Scale
                 case SRPLensFlareDistribution.Random:
                     line += 5;
                     break;  //Seed, Intensity Variation, Position Variation, Rotation Variation, Scale Variation
@@ -1152,12 +1153,16 @@ namespace UnityEditor.Rendering
                     case SRPLensFlareDistribution.Curve:
                         SerializedProperty positionCurve = element.FindPropertyRelative("positionCurve");
                         SerializedProperty scaleCurve = element.FindPropertyRelative("scaleCurve");
+                        SerializedProperty uniformAngleCurve = element.FindPropertyRelative("uniformAngleCurve");
 
                         fieldRect.MoveNext();
                         EditorGUI.PropertyField(fieldRect.Current, colorGradient, Styles.colorGradient);
 
                         fieldRect.MoveNext();
                         EditorGUI.PropertyField(fieldRect.Current, positionCurve, Styles.positionCurve);
+
+                        fieldRect.MoveNext();
+                        EditorGUI.PropertyField(fieldRect.Current, uniformAngleCurve, Styles.uniformAngleCurve);
 
                         fieldRect.MoveNext();
                         EditorGUI.PropertyField(fieldRect.Current, scaleCurve, Styles.scaleCurve);
