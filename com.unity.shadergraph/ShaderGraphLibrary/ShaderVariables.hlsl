@@ -231,6 +231,17 @@ TEXTURE2D_ARRAY(unity_ShadowMasks);
 TEXTURE3D(unity_ProbeVolumeSH);
 SAMPLER(samplerunity_ProbeVolumeSH);
 
+CBUFFER_START(UnityVelocityPass)
+    float4x4 unity_MatrixNonJitteredVP;
+    float4x4 unity_MatrixPreviousVP;
+    float4x4 unity_MatrixPreviousM;
+    float4x4 unity_MatrixPreviousMI;
+    //X : Use last frame positions (right now skinned meshes are the only objects that use this
+    //Y : Force No Motion
+    //Z : Z bias value
+    float4 unity_MotionVectorsParams;
+CBUFFER_END
+
 // ----------------------------------------------------------------------------
 
 // TODO: all affine matrices should be 3x4.
