@@ -28,6 +28,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 public static readonly GUIContent exposureTarget = EditorGUIUtility.TrTextContent("Exposure Target", "The object used as a target for centering the Exposure's Procedural Mask metering mode when target object option is set (See Exposure Volume Component).");
 
                 public static readonly GUIContent allowDynamicResolution = EditorGUIUtility.TrTextContent("Allow Dynamic Resolution", "Whether to support dynamic resolution.");
+                public const string taauInfoBox = "When TAA Upsample is enabled, TAA is run as antialiasing algorithm and uses High Quality as base, to select other anti-aliasing methods please change upscale filter for dynamic resolution.";
+
                 public const string DLSSFeatureDetectedMsg = "Unity detected NVIDIA Deep Learning Super Sampling and will ignore the Fallback Anti Aliasing Method.";
                 public const string DLSSFeatureNotDetectedMsg = "Unity cannot detect NVIDIA Deep Learning Super Sampling and will use the Fallback Anti Aliasing Method instead.";
                 public const string DLSSNotEnabledInQualityAsset = "The quality asset in this project does not have NVIDIA Deep Learning Super Sampling (DLSS) enabled. DLSS will not be running on this camera.";

@@ -15,6 +15,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Rendering = 1 << 5,
             }
             readonly static AdditionalPropertiesState<AdditionalProperties, HDAdditionalCameraData> k_AdditionalPropertiesState = new AdditionalPropertiesState<AdditionalProperties, HDAdditionalCameraData>(0, "HDRP");
+            static bool s_IsRunningTAAU = false;
+
 
             public static readonly CED.IDrawer RenderingDrawer = CED.Group(
                 CED.Group(
@@ -69,6 +71,12 @@ namespace UnityEditor.Rendering.HighDefinition
             static void Drawer_Rendering_AllowDynamicResolution(SerializedHDCamera p, Editor owner)
             {
                 CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner);
+
+                var dynamicResSettings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
+                s_IsRunningTAAU = p.allowDynamicResolution.boolValue && dynamicResSettings.upsampleFilter == UnityEngine.Rendering.DynamicResUpscaleFilter.TAAU && dynamicResSettings.enabled;
+
+                if (s_IsRunningTAAU)
+                    EditorGUILayout.HelpBox(Styles.taauInfoBox, MessageType.Info);
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
                 EditorGUI.indentLevel++;
@@ -158,7 +166,7 @@ namespace UnityEditor.Rendering.HighDefinition
             static CED.IDrawer AntialiasingModeDrawer(HDAdditionalCameraData.AntialiasingMode antialiasingMode, CED.ActionDrawer antialiasingDrawer)
             {
                 return CED.Conditional(
-                    (serialized, owner) => serialized.antialiasing.intValue == (int)antialiasingMode,
+                    (serialized, owner) => (serialized.antialiasing.intValue == (int)antialiasingMode) && (s_IsRunningTAAU ? serialized.antialiasing.intValue == (int)HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing : true),
                     CED.Group(
                         GroupOption.Indent,
                         antialiasingDrawer
@@ -179,6 +187,9 @@ namespace UnityEditor.Rendering.HighDefinition
             static void Drawer_Rendering_Antialiasing_TAA(SerializedHDCamera p, Editor owner)
             {
                 EditorGUILayout.PropertyField(p.taaQualityLevel, Styles.TAAQualityLevel);
+                if (s_IsRunningTAAU)
+                    p.taaQualityLevel.intValue = (int)HDAdditionalCameraData.TAAQualityLevel.High;
+
                 EditorGUILayout.PropertyField(p.taaSharpenStrength, Styles.TAASharpen);
 
                 if (p.taaQualityLevel.intValue > (int)HDAdditionalCameraData.TAAQualityLevel.Low)
