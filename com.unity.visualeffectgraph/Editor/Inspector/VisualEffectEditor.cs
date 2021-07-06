@@ -96,7 +96,9 @@ namespace UnityEditor.VFX
         private void OnSelectionChanged()
         {
             if (m_VisualEffectAsset == null)
+            {
                 this.lastPlayRate = -1f;
+            }
         }
 
         protected void OnEnable()
@@ -124,8 +126,7 @@ namespace UnityEditor.VFX
 
         protected void OnDisable()
         {
-            VisualEffect effect = ((VisualEffect)targets[0]);
-            if (effect != null)
+            foreach (var effect in this.targets.Cast<VisualEffect>())
             {
                 effect.pause = false;
                 effect.playRate = 1.0f;
