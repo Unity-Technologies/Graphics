@@ -24,10 +24,9 @@ namespace UnityEngine.Rendering.Universal
                 id = -2;
             else
                 id = Shader.PropertyToID(rtHandle.name);
-            if (rtHandle.rt == null)
-                rtid = rtHandle.nameID;
-            else
-                rtid = new RenderTargetIdentifier(id, 0, CubemapFace.Unknown, -1);
+            rtid = rtHandle.nameID;
+            if (rtHandle.rt != null && id != rtid)
+                id = -2;
         }
 
         internal static RenderTargetHandle GetCameraTarget(XRPass xr)
