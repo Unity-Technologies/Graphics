@@ -7,6 +7,7 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Decal Layers.</summary>
+    [Flags]
     public enum DecalLayerEnum
     {
         /// <summary>The light will no affect any object.</summary>
