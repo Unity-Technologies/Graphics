@@ -14,3 +14,19 @@
 {
     color: #555;
 }
+
+#lock-auto-attach
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Unlocked-dark.png");
+}
+
+#lock-auto-attach:checked
+{
+    background-color: #505050;
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Locked-dark.png");
+}
+
+#attach-toolbar-button.checked
+{
+    background-color: #505050;
+}

@@ -162,11 +162,6 @@ namespace UnityEditor.VFX
                 OnEditStart();
         }
 
-        protected virtual void OnSelectionChange()
-        {
-            Debug.Log("Selection Changed");
-        }
-
         void OnEditModeEnd(IToolModeOwner owner)
         {
             if (owner == (IToolModeOwner)this)

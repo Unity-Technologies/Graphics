@@ -128,7 +128,7 @@ namespace UnityEditor.VFX.UI
             using (new GUILayout.VerticalScope(GUILayout.Height(120)))
             {
                 var isAttached = this.m_vfxView.attachedComponent != null;
-                if (GUILayout.Button(isAttached ? "Detach" : "Attach to selection", GUILayout.Height(24)))
+                if (GUILayout.Button(isAttached ? VFXView.Contents.detach : VFXView.Contents.attachToSelection, GUILayout.Height(24)))
                 {
                     if (isAttached)
                     {
@@ -140,21 +140,25 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                GUI.enabled = !isAttached;
-                if (GUILayout.Button("Find", GUILayout.Height(24)))
+                GUILayout.FlexibleSpace();
+
+                if (EditorGUILayout.ObjectField(VFXView.Contents.pickATarget, null, typeof(VisualEffect), true) is VisualEffect visualEffect)
                 {
-                    Debug.Log("Browse hierarchy...");
+                    this.m_vfxView.AttachTo(visualEffect);
                 }
 
+                GUI.enabled = isAttached;
                 GUILayout.FlexibleSpace();
-                GUI.enabled = !GUI.enabled;
-                var attachedName = this.m_vfxView.attachedComponent?.name ?? "No selection";
+                var attachedButtonLabel = this.m_vfxView.attachedComponent?.name != null
+                    ? new GUIContent(this.m_vfxView.attachedComponent?.name, VFXView.Contents.clickToSelect.text)
+                    : VFXView.Contents.noSelection;
+
                 using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label("Attached to", GUILayout.Height(24));
+                    GUILayout.Label(VFXView.Contents.attachedTo, GUILayout.Height(24));
                     GUILayout.FlexibleSpace();
                     GUI.enabled = isAttached;
-                    if (GUILayout.Button(new GUIContent(attachedName, isAttached ? "Click to select" : null), GUILayout.Height(24), GUILayout.MinWidth(60)))
+                    if (GUILayout.Button(attachedButtonLabel, GUILayout.Height(24), GUILayout.MinWidth(60)))
                     {
                         Selection.activeObject = this.m_vfxView.attachedComponent;
                     }
@@ -168,6 +172,19 @@ namespace UnityEditor.VFX.UI
 
     class VFXView : GraphView, IControlledElement<VFXViewController>, IControllerListener
     {
+        internal static class Contents
+        {
+            public static readonly GUIContent attach =  EditorGUIUtility.TrTextContent("Attach");
+            public static readonly GUIContent detach =  EditorGUIUtility.TrTextContent("Detach");
+            public static readonly GUIContent attachToSelection =  EditorGUIUtility.TrTextContent("Attach to selection");
+            public static readonly GUIContent clickToUnlock =  EditorGUIUtility.TrTextContent("Click to unlock");
+            public static readonly GUIContent clickToLock =  EditorGUIUtility.TrTextContent("Click to lock");
+            public static readonly GUIContent pickATarget =  EditorGUIUtility.TrTextContent("Pick a target");
+            public static readonly GUIContent noSelection =  EditorGUIUtility.TrTextContent("No selection");
+            public static readonly GUIContent clickToSelect =  EditorGUIUtility.TrTextContent("Click to select");
+            public static readonly GUIContent attachedTo =  EditorGUIUtility.TrTextContent("Attached to");
+        }
+
         public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
         public bool isLocked;
 
@@ -521,13 +538,13 @@ namespace UnityEditor.VFX.UI
 
 
             m_attachPopupContent = new AttachPanel(this);
-            m_AttachDropDownButton = new EditorToolbarDropdown("Attach", OnOpenAttachMenu);
+            m_AttachDropDownButton = new EditorToolbarDropdown(Contents.attach.text, OnOpenAttachMenu);
             m_AttachDropDownButton.name = "attach-toolbar-button";
             m_Toolbar.Add(m_AttachDropDownButton);
 
             m_LockToggle = new ToolbarToggle();
             m_LockToggle.style.unityTextAlign = TextAnchor.MiddleLeft;
-            m_LockToggle.tooltip = this.isLocked ? "Click to unlock" : "Click to lock";
+            m_LockToggle.tooltip = this.isLocked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
             m_LockToggle.name = "lock-auto-attach";
             m_LockToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleLock);
             m_Toolbar.Add(m_LockToggle);
@@ -817,12 +834,15 @@ namespace UnityEditor.VFX.UI
 
         public void AttachToSelection()
         {
-            var selectedAsset = (Selection.activeObject as GameObject)?.GetComponent<VisualEffect>();
-                
+            this.AttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>());
+        }
+
+        public void AttachTo(VisualEffect selectedAsset)
+        {
             if (this.controller.graph.visualEffectResource.asset == selectedAsset?.visualEffectAsset)
             {
                 this.m_ComponentBoard.Attach(selectedAsset);
-                this.m_AttachDropDownButton.style.backgroundColor = new StyleColor(new Color(0.31f, 0.31f, 0.31f));
+                this.m_AttachDropDownButton.AddToClassList("checked");
             }
 
             this.UpdateLockToggleTooltip();
@@ -831,12 +851,12 @@ namespace UnityEditor.VFX.UI
         internal void Detach()
         {
             this.m_ComponentBoard.Detach();
-            this.m_AttachDropDownButton.style.backgroundColor = new StyleColor(StyleKeyword.None);
+            this.m_AttachDropDownButton.RemoveFromClassList("checked");
         }
 
         private void UpdateLockToggleTooltip()
         {
-            this.m_LockToggle.tooltip = this.isLocked ? "Click to unlock" : "Click to lock";
+            this.m_LockToggle.tooltip = this.isLocked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
 
             if (!string.IsNullOrEmpty(this.attachedComponent?.name))
             {
