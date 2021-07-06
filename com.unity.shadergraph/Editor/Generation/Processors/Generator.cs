@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph
             m_GraphData.CollectShaderProperties(shaderProperties, m_Mode);
             m_GraphData.CollectShaderKeywords(shaderKeywords, m_Mode);
 
-            if(m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
+            if (shaderKeywords.permutations.Count > ShaderGraphPreferences.variantLimit)
             {
                 string graphName = "";
                 if(m_GraphData.owner != null)
