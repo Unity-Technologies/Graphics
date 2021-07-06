@@ -135,6 +135,11 @@ Shader "Hidden/HDRP/TemporalAA"
 
 
         float4 _TaaScales;
+        // NOTE: We need to define custom scales instead of using the default ones for several reasons.
+        // 1- This shader is shared by TAA and Temporal Upscaling, having a single scale defined in C# instead helps readability.
+        // 2- Especially with history, when doing temporal upscaling we have an unusal situation in which the history size doesn't match the input size.
+        //    This in turns lead to some rounding issue (final viewport is not rounded, while the render target size is) that cause artifacts.
+        //    To fix said artifacts we recompute manually the scales as we need them.
         #define _RTHandleScaleForTAAHistory _TaaScales.xy
         #define _RTHandleScaleForTAA _TaaScales.zw
 
