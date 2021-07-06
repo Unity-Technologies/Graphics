@@ -12,6 +12,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             Marschner
         }
 
+        public enum GeometryMode
+        {
+            Cards,
+            Strands
+        }
+
         public enum ScatteringMode
         {
             Approximate,
@@ -36,11 +42,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_UseLightFacingNormal = false;
-        public bool useLightFacingNormal
+        GeometryMode m_GeometryMode;
+
+        public GeometryMode geometryMode
         {
-            get => m_UseLightFacingNormal;
-            set => m_UseLightFacingNormal = value;
+            get => m_GeometryMode;
+            set => m_GeometryMode = value;
         }
 
         [SerializeField]

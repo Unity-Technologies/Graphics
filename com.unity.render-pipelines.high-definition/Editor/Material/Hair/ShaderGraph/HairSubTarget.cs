@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(Marschner,                            hairData.materialType == HairData.MaterialType.Marschner);
             context.AddField(HairStrandDirection,                  descs.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection));
             context.AddField(RimTransmissionIntensity,             descs.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
-            context.AddField(UseLightFacingNormal,                 hairData.useLightFacingNormal);
+            context.AddField(UseLightFacingNormal,                 hairData.geometryMode == HairData.GeometryMode.Strands);
             context.AddField(Transmittance,                        descs.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
             context.AddField(UseRoughenedAzimuthalScattering,      hairData.useRoughenedAzimuthalScattering);
             context.AddField(ScatteringDensityVolume,              hairData.scatteringMode == HairData.ScatteringMode.DensityVolume);

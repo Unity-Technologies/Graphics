@@ -27,7 +27,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CreatePropertyGUI()
         {
-            // TODO: Un-hide me when Marschner BSDF is available.
             AddProperty(Styles.materialType, () => hairData.materialType, (newValue) => hairData.materialType = newValue);
 
             base.CreatePropertyGUI();
@@ -38,9 +37,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         class Styles
         {
-            public static GUIContent useLightFacingNormal = new GUIContent("Use Light Facing Normal", "TODO");
-            public static GUIContent useRoughenedAzimuthalScattering = new GUIContent("Allow Radial Smoothness", "");
-            public static GUIContent scatteringMode = new GUIContent("Scattering Mode", "");
+            public static GUIContent geometryMode = new GUIContent("Geometry Mode", "TODO");
+            public static GUIContent scatteringMode = new GUIContent("Scattering Mode", "TODO");
+            public static GUIContent useRoughenedAzimuthalScattering = new GUIContent("Allow Radial Smoothness", "TODO");
         }
 
         HairData hairData;
@@ -52,12 +51,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CreatePropertyGUI();
 
             // Hair specific properties GUI
-            AddProperty(Styles.useLightFacingNormal, () => hairData.useLightFacingNormal, (newValue) => hairData.useLightFacingNormal = newValue);
+            AddProperty(Styles.geometryMode, () => hairData.geometryMode, (newValue) => hairData.geometryMode = newValue);
 
             if (hairData.materialType == HairData.MaterialType.Marschner)
             {
-                AddProperty(Styles.useRoughenedAzimuthalScattering, () => hairData.useRoughenedAzimuthalScattering, (newValue) => hairData.useRoughenedAzimuthalScattering = newValue);
                 AddProperty(Styles.scatteringMode, () => hairData.scatteringMode, (newValue) => hairData.scatteringMode = newValue);
+                AddProperty(Styles.useRoughenedAzimuthalScattering, () => hairData.useRoughenedAzimuthalScattering, (newValue) => hairData.useRoughenedAzimuthalScattering = newValue);
             }
         }
     }
