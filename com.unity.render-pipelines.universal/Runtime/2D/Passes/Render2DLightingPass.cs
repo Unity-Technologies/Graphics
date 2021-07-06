@@ -100,6 +100,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 combinedDrawSettings.sortingSettings = sortSettings;
 
                 const int blendStylesCount = 4;
+                bool[] hasBeenInitialized = new bool[blendStylesCount];
                 for (int i = 0; i < s_SortingLayers.Length; i++)
                 {
 
@@ -122,9 +123,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         uint blendStyleMask = (uint)(1 << blendStyleIndex);
                         bool blendStyleUsed = (lightStats.blendStylesUsed & blendStyleMask) > 0;
 
-                        if (blendStyleUsed && RendererLighting.HasCreatedBlendStyleRenderTexture(blendStyleIndex))
+                        if (blendStyleUsed && !hasBeenInitialized[blendStyleIndex])
                         {
                             RendererLighting.CreateBlendStyleRenderTexture(cmd, blendStyleIndex);
+                            hasBeenInitialized[blendStyleIndex] = true;
                         }
 
                         RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);

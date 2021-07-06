@@ -40,7 +40,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static Light2DBlendStyle[] s_BlendStyles;
         static RenderTargetHandle[] s_LightRenderTargets;
         static bool[] s_LightRenderTargetsDirty;
-        static bool[] s_HasCreatedLightRenderTarget;
         static RenderTargetHandle s_ShadowsRenderTarget;
         static RenderTargetHandle s_NormalsTarget;
         static Texture s_LightLookupTexture;
@@ -67,7 +66,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 s_LightRenderTargets[3].Init("_ShapeLightTexture3");
 
                 s_LightRenderTargetsDirty = new bool[s_BlendStyles.Length];
-                s_HasCreatedLightRenderTarget = new bool[s_BlendStyles.Length];
             }
 
             if (s_NormalsTarget.id == 0)
@@ -114,11 +112,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.GetTemporaryRT(s_NormalsTarget.id, descriptor, FilterMode.Bilinear);
         }
 
-        static public bool HasCreatedBlendStyleRenderTexture(int blendStyleIndex)
-        {
-            return s_HasCreatedLightRenderTarget[blendStyleIndex];
-        }
-
         static public void CreateBlendStyleRenderTexture(CommandBuffer cmd, int blendStyleIndex)
         {
             if (!s_HasSetupRenderTextureFormatToUse)
@@ -145,7 +138,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             cmd.GetTemporaryRT(s_LightRenderTargets[blendStyleIndex].id, descriptor, FilterMode.Bilinear);
             s_LightRenderTargetsDirty[blendStyleIndex] = true;
-            s_HasCreatedLightRenderTarget[blendStyleIndex] = true;
         }
 
         static public void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
@@ -185,7 +177,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
                 cmd.ReleaseTemporaryRT(s_LightRenderTargets[i].id);
-                s_HasCreatedLightRenderTarget[i] = false;
             }
 
             cmd.ReleaseTemporaryRT(s_NormalsTarget.id);
