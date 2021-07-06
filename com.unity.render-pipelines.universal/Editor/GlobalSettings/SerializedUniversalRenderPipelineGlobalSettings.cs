@@ -21,6 +21,8 @@ namespace UnityEditor.Rendering.Universal
 
         public SerializedProperty supportRuntimeDebugDisplay;
 
+        public SerializedProperty staticAnalyseVariantStrip;
+
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
@@ -45,6 +47,8 @@ namespace UnityEditor.Rendering.Universal
             lightLayerName7 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName7);
 
             supportRuntimeDebugDisplay = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.supportRuntimeDebugDisplay);
+
+            staticAnalyseVariantStrip = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.staticAnalyseVariantStrip);
         }
     }
 }

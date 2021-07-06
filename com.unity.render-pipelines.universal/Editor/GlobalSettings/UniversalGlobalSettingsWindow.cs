@@ -207,6 +207,7 @@ namespace UnityEditor.Rendering.Universal
             using (new EditorGUI.IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
+                EditorGUILayout.PropertyField(serialized.staticAnalyseVariantStrip, Styles.staticAnalyseVariantStripLabel);
             }
 
             EditorGUIUtility.labelWidth = oldWidth;
