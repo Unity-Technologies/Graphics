@@ -352,6 +352,10 @@ void ClampRoughness(inout PreLightData preLightData, inout BSDFData bsdfData, fl
 {
     bsdfData.perceptualRoughness = max(RoughnessToPerceptualRoughness(minRoughness), bsdfData.perceptualRoughness);
     bsdfData.secondaryPerceptualRoughness = max(RoughnessToPerceptualRoughness(minRoughness), bsdfData.secondaryPerceptualRoughness);
+
+    bsdfData.roughnessR   = max(minRoughness, bsdfData.roughnessR);
+    bsdfData.roughnessTT  = max(minRoughness, bsdfData.roughnessTT);
+    bsdfData.roughnessTRT = max(minRoughness, bsdfData.roughnessTRT);
 }
 
 // This function is call to precompute heavy calculation before lightloop
