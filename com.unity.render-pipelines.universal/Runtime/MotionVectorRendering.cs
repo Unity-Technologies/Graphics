@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         uint  m_FrameCount;
         float m_LastTime;
         float m_Time;
+        float m_PrevAspectRatio = -1;
 #if ENABLE_VR && ENABLE_XR_MODULE
         int m_PreviousMultiPassId = -1;
 #endif
@@ -98,6 +99,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
             // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed
+            if (motionData.isFirstFrame)
+                m_PrevAspectRatio = cameraData.aspectRatio;
+            
+            bool aspectChanged = m_PrevAspectRatio != cameraData.aspectRatio;
+            bool resetMatrix = motionData.isFirstFrame || aspectChanged;
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
             {
@@ -107,9 +113,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var viewProjStereo = motionData.viewProjectionStereo;
                 if (motionData.lastFrameActive != Time.frameCount)
                 {
-                    bool firstFrame = motionData.isFirstFrame;
-                    motionData.previousViewProjectionStereo[0] = firstFrame ? gpuVP0 : viewProjStereo[0];
-                    motionData.previousViewProjectionStereo[1] = firstFrame ? gpuVP1 : viewProjStereo[1];
+                    motionData.previousViewProjectionStereo[0] = resetMatrix ? gpuVP0 : viewProjStereo[0];
+                    motionData.previousViewProjectionStereo[1] = resetMatrix ? gpuVP1 : viewProjStereo[1];
                     motionData.isFirstFrame = false;
                 }
 
@@ -124,7 +129,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // With multi pass projection changes during the same frame
                 if (m_PreviousMultiPassId != matrixIndex || motionData.lastFrameActive != Time.frameCount)
                 {
-                    motionData.previousViewProjectionStereo[matrixIndex] = motionData.isFirstFrame ?
+                    motionData.previousViewProjectionStereo[matrixIndex] = resetMatrix ?
                         gpuVP : motionData.viewProjectionStereo[matrixIndex];
                     motionData.isFirstFrame = false;
                 }
@@ -139,13 +144,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (motionData.lastFrameActive != Time.frameCount)
                 {
-                    motionData.previousViewProjection = motionData.isFirstFrame ? gpuVP : motionData.viewProjection;
+                    motionData.previousViewProjection = resetMatrix ? gpuVP : motionData.viewProjection;
                     motionData.isFirstFrame = false;
                 }
 
                 motionData.viewProjection = gpuVP;
             }
 
+            m_PrevAspectRatio = cameraData.aspectRatio;
             motionData.lastFrameActive = Time.frameCount;
         }
     }
