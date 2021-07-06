@@ -1020,6 +1020,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
+#if UNITY_2021_1_OR_NEWER
+        // Only for internal use, outside of SRP people can call Camera.Render()
+        internal void InternalRender(ScriptableRenderContext renderContext, List<Camera> cameras)
+        {
+            Render(renderContext, cameras);
+        }
+
+#endif
+
         /// <summary>
         /// RenderPipeline Render implementation.
         /// </summary>
@@ -1072,7 +1081,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int newCount = m_FrameCount;
             foreach (var c in cameras)
             {
-                if (c.cameraType != CameraType.Preview)
+                if (c != null && c.cameraType != CameraType.Preview)
                 {
                     newCount++;
                     break;
@@ -1108,7 +1117,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool hasGameViewCamera = false;
                 foreach (var c in cameras)
                 {
-                    if (c.cameraType == CameraType.Game)
+                    if (c != null && c.cameraType == CameraType.Game)
                     {
                         hasGameViewCamera = true;
                         break;
