@@ -275,7 +275,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed rounding issue when accessing the color buffer in the DoF shader.
 - HD Global Settings can now be unassigned in the Graphics tab if HDRP is not the active pipeline(case 1343570).
 - Fix diffusion profile displayed in the inspector.
-- If not render pipeline is in use, the HDRP Wizard can still be opened from Windows > Rendering.
+- HDRP Wizard can still be opened from Windows > Rendering, if the project is not using a Render Pipeline.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
