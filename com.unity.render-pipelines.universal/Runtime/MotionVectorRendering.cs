@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed
             if (motionData.isFirstFrame)
                 m_PrevAspectRatio = cameraData.aspectRatio;
-            
+
             bool aspectChanged = m_PrevAspectRatio != cameraData.aspectRatio;
             bool resetMatrix = motionData.isFirstFrame || aspectChanged;
 #if ENABLE_VR && ENABLE_XR_MODULE
