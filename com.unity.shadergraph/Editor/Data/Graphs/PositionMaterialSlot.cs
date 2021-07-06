@@ -32,10 +32,5 @@ namespace UnityEditor.ShaderGraph
                 return NeededCoordinateSpace.None;
             return space.ToNeededCoordinateSpace();
         }
-
-        public bool RequiresPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All)
-        {
-            return false;
-        }
     }
 }

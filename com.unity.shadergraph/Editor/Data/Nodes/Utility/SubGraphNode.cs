@@ -703,12 +703,12 @@ namespace UnityEditor.ShaderGraph
             return asset.requirements.requiresPosition;
         }
 
-        public bool RequiresPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        public NeededCoordinateSpace RequiresPositionPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
             if (asset == null)
-                return false;
+                return NeededCoordinateSpace.None;
 
-            return asset.requirements.requiresPredisplacement;
+            return asset.requirements.requiresPositionPredisplacement;
         }
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)

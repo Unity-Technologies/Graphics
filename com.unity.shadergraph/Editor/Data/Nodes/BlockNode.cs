@@ -180,16 +180,16 @@ namespace UnityEditor.ShaderGraph
             return requirements.requiresPosition;
         }
 
-        public bool RequiresPredisplacement(ShaderStageCapability stageCapability)
+        public NeededCoordinateSpace RequiresPositionPredisplacement(ShaderStageCapability stageCapability)
         {
             if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
-                return false;
+                return NeededCoordinateSpace.None;
 
             if (m_Descriptor.control == null)
-                return false;
+                return NeededCoordinateSpace.None;
 
             var requirements = m_Descriptor.control.GetRequirements();
-            return requirements.requiresPredisplacement;
+            return requirements.requiresPositionPredisplacement;
         }
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)

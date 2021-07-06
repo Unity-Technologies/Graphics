@@ -403,11 +403,11 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpacePosition,                         (requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0),
                 new ConditionalField(StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePosition,                   (requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0),
 
-                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpacePositionPredisplacement,           requirements.requiresPredisplacement && (requirements.requiresPosition & NeededCoordinateSpace.Object) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpacePositionPredisplacement,             requirements.requiresPredisplacement && (requirements.requiresPosition & NeededCoordinateSpace.View) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpacePositionPredisplacement,            requirements.requiresPredisplacement && (requirements.requiresPosition & NeededCoordinateSpace.World) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpacePositionPredisplacement,          requirements.requiresPredisplacement && (requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0),
-                new ConditionalField(StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement,    (requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpacePositionPredisplacement,           (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.ViewSpacePositionPredisplacement,             (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.WorldSpacePositionPredisplacement,            (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.TangentSpacePositionPredisplacement,          (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement,    (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.AbsoluteWorld) > 0),
 
                 new ConditionalField(StructFields.VertexDescriptionInputs.uv0,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV0)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.uv1,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV1)),
@@ -459,11 +459,11 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpacePosition,                        (requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.AbsoluteWorldSpacePosition,                  (requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0),
 
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpacePositionPredisplacement,          requirements.requiresPredisplacement && (requirements.requiresPosition & NeededCoordinateSpace.Object) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpacePositionPredisplacement,            requirements.requiresPredisplacement && (requirements.requiresPosition & NeededCoordinateSpace.View) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpacePositionPredisplacement,           requirements.requiresPredisplacement && (requirements.requiresPosition & NeededCoordinateSpace.World) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpacePositionPredisplacement,         requirements.requiresPredisplacement && (requirements.requiresPosition & NeededCoordinateSpace.Tangent) > 0),
-                new ConditionalField(StructFields.SurfaceDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement,   (requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ObjectSpacePositionPredisplacement,          (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.Object) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.ViewSpacePositionPredisplacement,            (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.View) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.WorldSpacePositionPredisplacement,           (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.World) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.TangentSpacePositionPredisplacement,         (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.Tangent) > 0),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement,   (requirements.requiresPositionPredisplacement & NeededCoordinateSpace.AbsoluteWorld) > 0),
 
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.uv0,                                         requirements.requiresMeshUVs.Contains(UVChannel.UV0)),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.uv1,                                         requirements.requiresMeshUVs.Contains(UVChannel.UV1)),

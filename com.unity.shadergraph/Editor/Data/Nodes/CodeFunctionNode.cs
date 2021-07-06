@@ -503,15 +503,15 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public bool RequiresPredisplacement(ShaderStageCapability stageCapability)
+        public NeededCoordinateSpace RequiresPositionPredisplacement(ShaderStageCapability stageCapability)
         {
             using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
                 GetInputSlots(tempSlots);
-                bool required = false;
+                var binding = NeededCoordinateSpace.None;
                 foreach (var slot in tempSlots)
-                    required |= slot.RequiresPredisplacement();
-                return required;
+                    binding |= slot.RequiresPositionPredisplacement();
+                return binding;
             }
         }
 

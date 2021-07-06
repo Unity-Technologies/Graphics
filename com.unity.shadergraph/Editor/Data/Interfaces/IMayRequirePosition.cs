@@ -6,7 +6,6 @@ namespace UnityEditor.ShaderGraph
     interface IMayRequirePosition
     {
         NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All);
-        bool RequiresPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
     static class MayRequirePositionExtensions
@@ -15,12 +14,6 @@ namespace UnityEditor.ShaderGraph
         {
             var mayRequirePosition = slot as IMayRequirePosition;
             return mayRequirePosition != null ? mayRequirePosition.RequiresPosition() : NeededCoordinateSpace.None;
-        }
-
-        public static bool RequiresPredisplacement(this MaterialSlot slot)
-        {
-            var mayRequirePosition = slot as IMayRequirePosition;
-            return mayRequirePosition != null && mayRequirePosition.RequiresPredisplacement();
         }
     }
 }

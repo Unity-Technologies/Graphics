@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
 {
     [FormerName("UnityEngine.MaterialGraph.WorldPosNode")]
     [Title("Input", "Geometry", "Position")]
-    class PositionNode : GeometryNode, IMayRequirePosition
+    class PositionNode : GeometryNode, IMayRequirePosition, IMayRequirePositionPredisplacement
     {
         public override int latestVersion => 1;
         private const int kOutputSlotId = 0;
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
         public override string GetVariableNameForSlot(int slotId)
         {
             var name = string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Position));
-            if (RequiresPredisplacement(ShaderStageCapability.All))
+            if (RequiresPositionPredisplacement(ShaderStageCapability.All) != NeededCoordinateSpace.None)
             {
                 name += TessellationOption.Predisplacement.ToString();
             }
@@ -53,9 +53,9 @@ namespace UnityEditor.ShaderGraph
             return space.ToNeededCoordinateSpace();
         }
 
-        public bool RequiresPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        public NeededCoordinateSpace RequiresPositionPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
-            return m_TessellationOption == TessellationOption.Predisplacement;
+            return m_TessellationOption == TessellationOption.Predisplacement ? space.ToNeededCoordinateSpace() : NeededCoordinateSpace.None;
         }
 
         public override void OnAfterMultiDeserialize(string json)

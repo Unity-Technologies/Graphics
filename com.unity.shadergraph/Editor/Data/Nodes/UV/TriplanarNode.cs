@@ -171,11 +171,6 @@ namespace UnityEditor.ShaderGraph
             return CoordinateSpace.AbsoluteWorld.ToNeededCoordinateSpace() | CoordinateSpace.World.ToNeededCoordinateSpace();
         }
 
-        public bool RequiresPredisplacement(ShaderStageCapability stageCapability)
-        {
-            return false;
-        }
-
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
             return CoordinateSpace.World.ToNeededCoordinateSpace();
