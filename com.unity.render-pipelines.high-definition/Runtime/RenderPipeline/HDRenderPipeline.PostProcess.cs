@@ -269,14 +269,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_EnableAlpha;
         }
 
-        void ReleasePostProcessHistoryBuffers(HDCamera camera)
-        {
-            camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasing);
-            camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.TemporalAntialiasingPostDoF);
-            camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude);
-            camera.ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.DepthOfFieldCoC);
-        }
-
         void CleanupPostProcess()
         {
             RTHandles.Release(m_EmptyExposureTexture);
@@ -453,11 +445,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             renderGraph.BeginProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
 
-            if (hdCamera.needToReleasePostProcessHistory)
-            {
-                ReleasePostProcessHistoryBuffers(hdCamera);
-            }
-
             var source = inputColor;
             var depthBuffer = prepassOutput.resolvedDepthBuffer;
             var depthBufferMipChain = prepassOutput.depthPyramidTexture;
@@ -547,7 +534,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool cameraWasRunningTAA = hdCamera.previousFrameWasTAAUpsampled;
             hdCamera.previousFrameWasTAAUpsampled = currFrameIsTAAUpsampled;
 
-            hdCamera.needToReleasePostProcessHistory = (cameraWasRunningTAA != currFrameIsTAAUpsampled);
+            hdCamera.resetPostProcessingHistory = (cameraWasRunningTAA != currFrameIsTAAUpsampled);
 
             m_PrevFinalViewport = hdCamera.finalViewport;
 
@@ -1451,7 +1438,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void PrepareTAAPassData(RenderGraph renderGraph, RenderGraphBuilder builder, TemporalAntiAliasingData passData, HDCamera camera,
             TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)
         {
-            passData.resetPostProcessingHistory = (camera.resetPostProcessingHistory || camera.needToReleasePostProcessHistory);
+            passData.resetPostProcessingHistory = camera.resetPostProcessingHistory;
 
             float minAntiflicker = 0.0f;
             float maxAntiflicker = 3.5f;
@@ -1460,7 +1447,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // The anti flicker becomes much more aggressive on higher values
             float temporalContrastForMaxAntiFlicker = 0.7f - Mathf.Lerp(0.0f, 0.3f, Mathf.SmoothStep(0.5f, 1.0f, camera.taaAntiFlicker));
 
-            passData.taaParameters = new Vector4(camera.taaHistorySharpening, postDoF ? maxAntiflicker : Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
+            bool TAAU = DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
+
+            passData.taaParameters = new Vector4(TAAU && postDoF ? 0.25f : camera.taaHistorySharpening, postDoF ? maxAntiflicker : Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
 
             // Precompute weights used for the Blackman-Harris filter.
 
@@ -1523,7 +1512,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.temporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION");
             }
 
-            bool TAAU = DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
             passData.runsTAAU = TAAU;
             if (TAAU && !postDoF)
             {
@@ -1562,6 +1550,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             GrabTemporalAntialiasingHistoryTextures(camera, out prevHistory, out nextHistory, historyScale, postDoF);
 
+
             Vector2Int prevViewPort = camera.historyRTHandleProperties.previousViewportSize;
             passData.previousScreenSize = new Vector4(prevViewPort.x, prevViewPort.y, 1.0f / prevViewPort.x, 1.0f / prevViewPort.y);
             if (TAAU)
@@ -1596,17 +1585,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             passData.destination = builder.WriteTexture(dest);
 
-            passData.prevFinalViewport = m_PrevFinalViewport.width < 0 ? camera.finalViewport : m_PrevFinalViewport;
+            bool needToUseCurrFrameSizeForHistory = camera.resetPostProcessingHistory || TAAU != camera.previousFrameWasTAAUpsampled;
+
+            passData.prevFinalViewport = (m_PrevFinalViewport.width < 0 || needToUseCurrFrameSizeForHistory) ? camera.finalViewport : m_PrevFinalViewport;
             var mainRTScales = RTHandles.CalculateRatioAgainstMaxSize(camera.actualWidth, camera.actualHeight);
 
-            var historyRenderingViewport = TAAU ? new Vector2(passData.prevFinalViewport.width, passData.prevFinalViewport.height) : camera.historyRTHandleProperties.previousViewportSize;
+            var historyRenderingViewport = TAAU ? new Vector2(passData.prevFinalViewport.width, passData.prevFinalViewport.height) :
+                (needToUseCurrFrameSizeForHistory ? RTHandles.rtHandleProperties.currentViewportSize : camera.historyRTHandleProperties.previousViewportSize);
+
             if (TAAU && postDoF)
             {
                 // We are already upsampled here.
                 mainRTScales = RTHandles.CalculateRatioAgainstMaxSize((int)camera.finalViewport.width, (int)camera.finalViewport.height);
             }
             Vector4 scales = new Vector4(historyRenderingViewport.x / prevHistory.rt.width, historyRenderingViewport.y / prevHistory.rt.height, mainRTScales.x, mainRTScales.y);
-
             passData.taaScales = scales;
 
             passData.finalViewport = camera.finalViewport;
@@ -1630,15 +1622,27 @@ namespace UnityEngine.Rendering.HighDefinition
                         RTHandle prevHistory = (RTHandle)data.prevHistory;
                         RTHandle nextHistory = (RTHandle)data.nextHistory;
 
+                        const int taaPass = 0;
+                        const int excludeTaaPass = 1;
+                        const int taauPass = 2;
+                        const int copyHistoryPass = 3;
+
                         if (data.resetPostProcessingHistory)
                         {
                             var historyMpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
-                            historyMpb.SetTexture(HDShaderIDs._BlitTexture, source);
-                            var rtScaleSource = source.rtHandleProperties.rtHandleScale;
-                            historyMpb.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(rtScaleSource.x, rtScaleSource.y, 0.0f, 0.0f));
-                            historyMpb.SetFloat(HDShaderIDs._BlitMipLevel, 0);
-                            HDUtils.DrawFullScreen(ctx.cmd, HDUtils.GetBlitMaterial(prevHistory.rt.dimension), data.prevHistory, historyMpb, 0);
-                            HDUtils.DrawFullScreen(ctx.cmd, HDUtils.GetBlitMaterial(nextHistory.rt.dimension), data.nextHistory, historyMpb, 0);
+                            historyMpb.SetTexture(HDShaderIDs._InputTexture, source);
+                            historyMpb.SetVector(HDShaderIDs._TaaScales, data.taaScales);
+                            if (data.runsTAAU)
+                            {
+                                Rect r = data.finalViewport;
+                                HDUtils.DrawFullScreen(ctx.cmd, r, data.temporalAAMaterial, data.prevHistory, historyMpb, copyHistoryPass);
+                                HDUtils.DrawFullScreen(ctx.cmd, r, data.temporalAAMaterial, data.nextHistory, historyMpb, copyHistoryPass);
+                            }
+                            else
+                            {
+                                HDUtils.DrawFullScreen(ctx.cmd, data.temporalAAMaterial, data.prevHistory, historyMpb, copyHistoryPass);
+                                HDUtils.DrawFullScreen(ctx.cmd, data.temporalAAMaterial, data.nextHistory, historyMpb, copyHistoryPass);
+                            }
                         }
 
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
@@ -1683,12 +1687,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.runsTAAU)
                         {
                             rect = data.finalViewport;
-                            HDUtils.DrawFullScreen(ctx.cmd, rect, data.temporalAAMaterial, data.destination, mpb, 2);
+                            HDUtils.DrawFullScreen(ctx.cmd, rect, data.temporalAAMaterial, data.destination, mpb, taauPass);
                         }
                         else
                         {
-                            ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
-                            ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
+                            ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, taaPass, MeshTopology.Triangles, 3, 1, mpb);
+                            ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, excludeTaaPass, MeshTopology.Triangles, 3, 1, mpb);
                         }
                         ctx.cmd.ClearRandomWriteTargets();
                     });

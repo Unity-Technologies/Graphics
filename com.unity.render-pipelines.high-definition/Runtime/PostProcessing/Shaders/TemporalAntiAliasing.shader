@@ -330,6 +330,24 @@ Shader "Hidden/HDRP/TemporalAA"
 
             outColor = Fetch4(_InputTexture, uv, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
         }
+
+        void FragCopyHistory(Varyings input, out CTYPE outColor : SV_Target0)
+        {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+            float2 jitter = _TaaJitterStrength.zw;
+            float2 uv = input.texcoord;
+
+#ifdef TAA_UPSCALE
+            float2 outputPixInInput = input.texcoord * _InputSize.xy - _TaaJitterStrength.xy;
+
+            uv = _InputSize.zw * (0.5f + floor(outputPixInInput));
+#endif
+            CTYPE color = Fetch4(_InputTexture, uv, 0.0, _RTHandleScaleForTAA).CTYPE_SWIZZLE;
+
+            outColor = color;
+        }
+
     ENDHLSL
 
     SubShader
@@ -384,6 +402,16 @@ Shader "Hidden/HDRP/TemporalAA"
             HLSLPROGRAM
                 #pragma vertex Vert
                 #pragma fragment FragTAA
+            ENDHLSL
+        }
+
+        Pass // Copy history
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragCopyHistory
             ENDHLSL
         }
 
