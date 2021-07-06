@@ -144,9 +144,7 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
 #if defined(_ADD_PRECOMPUTED_VELOCITY)
         effectivePositionOS -= inputPass.precomputedVelocity;
 #endif
-#if defined(_ADD_PRECOMPUTED_VELOCITY_SG) // For shader graph custom velocity
-        effectivePositionOS -= GetPrecomputeVelocitySG(inputMesh);
-#endif
+
         
 
     // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the motion vector buffer
@@ -168,8 +166,17 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
         previousMesh = TransformMeshToPreviousElement(previousMesh, inputElement);
 #endif
 
+#if defined(_ADD_PRECOMPUTED_VELOCITY_SG) // For shader graph custom velocity
+        previousMesh.positionOS -= GetPrecomputeVelocitySG(previousMesh);
+#endif
+
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else
+
+#if defined(_ADD_PRECOMPUTED_VELOCITY_SG) // For shader graph custom velocity
+        effectivePositionOS -= GetPrecomputeVelocitySG(inputMesh);
+#endif
+
         float3 previousPositionRWS = TransformPreviousObjectToWorld(effectivePositionOS);
 #endif
 
