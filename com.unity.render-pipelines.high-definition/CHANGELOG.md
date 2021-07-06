@@ -373,6 +373,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Various improvements to the volumetric clouds.
 - Slightly improved TAA flickering.
 - Reduced ringing of TAA sharpening.
+- Improved TAA High quality central color filtering.
 
 ## [11.0.0] - 2020-10-21
 
