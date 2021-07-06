@@ -248,7 +248,6 @@ namespace UnityEngine.Rendering.Universal
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorAttachment");
-            m_CameraDepthAttachment = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_CameraDepthAttachment"), 0, CubemapFace.Unknown, -1), "_CameraDepthAttachment");
             m_DepthTexture = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_CameraDepthTexture"), 0, CubemapFace.Unknown, -1), "_CameraDepthTexture");
             m_DepthTextureAlloc = false;
             m_NormalsTexture = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_CameraNormalsTexture"), 0, CubemapFace.Unknown, -1), "_CameraNormalsTexture");
@@ -516,19 +515,28 @@ namespace UnityEngine.Rendering.Universal
                 // RTHandles do not support combining color and depth in the same texture so we create them separately
                 createDepthTexture = intermediateRenderTexture;
 
-                RenderTargetIdentifier targetId = cameraData.xr.renderTarget;
+                RenderTargetIdentifier targetId;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                    targetId = cameraData.xr.renderTarget;
+                else
+#endif
+                {
+                    targetId = BuiltinRenderTextureType.CameraTarget;
+                }
+
                 if (m_XRTargetHandleAlias == null || m_XRTargetHandleAlias.nameID != targetId)
                 {
                     m_XRTargetHandleAlias?.Release();
                     m_XRTargetHandleAlias = RTHandles.Alloc(targetId);
                 }
 
-                m_ActiveCameraColorAttachment = createColorTexture ? m_ColorBufferSystem.GetBackBuffer() : m_XRTargetHandleAlias;
-                m_ActiveCameraDepthAttachment = createDepthTexture ? m_CameraDepthAttachment : m_XRTargetHandleAlias;
-
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
                 if (intermediateRenderTexture)
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, useDepthPriming);
+
+                m_ActiveCameraColorAttachment = createColorTexture ? m_ColorBufferSystem.GetBackBuffer() : m_XRTargetHandleAlias;
+                m_ActiveCameraDepthAttachment = createDepthTexture ? m_CameraDepthAttachment : m_XRTargetHandleAlias;
             }
             else
             {
@@ -795,7 +803,7 @@ namespace UnityEngine.Rendering.Universal
                     // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
                     (applyPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions) ||
                     // offscreen camera rendering to a texture, we don't need a blit pass to resolve to screen
-                    m_ActiveCameraColorAttachment.nameID == cameraData.xr.renderTarget;
+                    m_ActiveCameraColorAttachment.nameID == m_XRTargetHandleAlias.nameID;
 
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved)
@@ -884,18 +892,8 @@ namespace UnityEngine.Rendering.Universal
         public override void FinishRendering(CommandBuffer cmd)
         {
             m_ColorBufferSystem.Clear(cmd);
-
-            if (m_ActiveCameraColorAttachment != k_CameraTarget.nameID)
-            {
-                m_ActiveCameraColorAttachment = k_CameraTarget;
-            }
-
-            if (m_ActiveCameraDepthAttachment.nameID != k_CameraTarget.nameID)
-            {
-                Debug.Assert(m_ActiveCameraDepthAttachment.name.Length > 0);
-                cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_ActiveCameraDepthAttachment.name));
-                m_ActiveCameraDepthAttachment = k_CameraTarget;
-            }
+            m_ActiveCameraColorAttachment = null;
+            m_ActiveCameraDepthAttachment = null;
 
             if (m_DepthTextureAlloc)
             {
@@ -997,7 +995,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
                 }
 
-                if (m_CameraDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
+                if (m_CameraDepthAttachment == null || m_CameraDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
                 {
                     var depthDescriptor = descriptor;
                     depthDescriptor.useMipMap = false;
@@ -1006,7 +1004,12 @@ namespace UnityEngine.Rendering.Universal
 
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                     depthDescriptor.depthBufferBits = (int)k_DepthStencilBufferBits;
-                    cmd.GetTemporaryRT(Shader.PropertyToID(m_CameraDepthAttachment.name), depthDescriptor, FilterMode.Point);
+                    if (RenderingUtils.RTHandleNeedsReAlloc(m_CameraDepthAttachment, depthDescriptor, false))
+                    {
+                        m_CameraDepthAttachment?.Release();
+                        m_CameraDepthAttachment = RTHandles.Alloc(depthDescriptor, filterMode: FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
+                    }
+                    cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
                 }
             }
 

@@ -1067,8 +1067,12 @@ namespace UnityEngine.Rendering.Universal
                 // if( !renderTargetAlreadySet && cameraTargetDepthIndex != -1 && m_FirstTimeCameraDepthTargetIsBound)
                 // { ...
                 // }
-
-                if (renderPass.depthAttachment == m_CameraDepthTarget.nameID && m_FirstTimeCameraDepthTargetIsBound)
+                var depthTargetID = m_CameraDepthTarget.nameID;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                    depthTargetID = new RenderTargetIdentifier(depthTargetID, 0, CubemapFace.Unknown, -1);
+#endif
+                if (renderPass.depthAttachment == depthTargetID && m_FirstTimeCameraDepthTargetIsBound)
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
                     needCustomCameraDepthClear = (cameraClearFlag & ClearFlag.DepthStencil) != (renderPass.clearFlag & ClearFlag.DepthStencil);
