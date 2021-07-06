@@ -12,6 +12,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class ChangeExposedFlagAction : IGraphDataAction
     {
+        internal ChangeExposedFlagAction(ShaderInput shaderInput, bool newIsExposed)
+        {
+            this.shaderInputReference = shaderInput;
+            this.newIsExposedValue = newIsExposed;
+            this.oldIsExposedValue = shaderInput.generatePropertyBlock;
+        }
+
         void ChangeExposedFlag(GraphData graphData)
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeExposedFlagAction");
@@ -24,11 +31,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Action<GraphData> modifyGraphDataAction => ChangeExposedFlag;
 
         // Reference to the shader input being modified
-        internal ShaderInput shaderInputReference { get; set; }
+        internal ShaderInput shaderInputReference { get; private set; }
 
         // New value of whether the shader input should be exposed to the material inspector
-
-        internal bool newIsExposedValue { get; set; }
+        internal bool newIsExposedValue { get; private set; }
+        internal bool oldIsExposedValue { get; private set; }
     }
 
     class ChangePropertyValueAction : IGraphDataAction
@@ -245,7 +252,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 case ChangeExposedFlagAction changeExposedFlagAction:
                     ViewModel.isInputExposed = Model.generatePropertyBlock;
-                    DirtyNodes(ModificationScope.Graph);
+                    if (changeExposedFlagAction.oldIsExposedValue != changeExposedFlagAction.newIsExposedValue)
+                        DirtyNodes(ModificationScope.Graph);
                     m_SgBlackboardField.UpdateFromViewModel();
                     break;
 
