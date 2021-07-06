@@ -25,7 +25,6 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
     UNITY_TRANSFER_INSTANCE_ID(input0, output);
 
     TESSELLATION_INTERPOLATE_BARY(positionRWS, baryCoords);
-
     TESSELLATION_INTERPOLATE_BARY(normalWS, baryCoords);
 #ifdef VARYINGS_DS_NEED_TANGENT
     // This will interpolate the sign but should be ok in practice as we may expect a triangle to have same sign (? TO CHECK)
