@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.overrideBakedGI = hairMasterNode.m_overrideBakedGI;
 
             hairData.materialType = (HairData.MaterialType)hairMasterNode.m_MaterialType;
-            hairData.geometryMode = hairMasterNode.m_UseLightFacingNormal ? HairData.GeometryMode.Strands : HairData.GeometryMode.Cards;
+            hairData.geometryType = hairMasterNode.m_UseLightFacingNormal ? HairData.GeometryType.Strands : HairData.GeometryType.Cards;
             target.customEditorGUI = hairMasterNode.m_OverrideEnabled ? hairMasterNode.m_ShaderGUIOverride : "";
 
             // Convert SlotMask to BlockMap entries

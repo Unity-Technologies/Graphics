@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             Marschner
         }
 
-        public enum GeometryMode
+        public enum GeometryType
         {
             Cards,
             Strands
@@ -42,12 +42,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        GeometryMode m_GeometryMode;
+        GeometryType m_GeometryType;
 
-        public GeometryMode geometryMode
+        public GeometryType geometryType
         {
-            get => m_GeometryMode;
-            set => m_GeometryMode = value;
+            get => m_GeometryType;
+            set => m_GeometryType = value;
         }
 
         [SerializeField]
