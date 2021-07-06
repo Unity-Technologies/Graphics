@@ -369,6 +369,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hair uses GGX LTC for area light specular.
 - Moved invariants outside of loop for a minor CPU speedup in the light loop code.
 - Various improvements to the volumetric clouds.
+- Moved area light's shadow frustum: light's surface no longer passes through the apex, and instead aligns with the 0-offset near plane.
 
 ## [11.0.0] - 2020-10-21
 
