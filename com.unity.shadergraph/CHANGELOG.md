@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
 
 ### Changed
+- Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
 
 ### Fixed
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
@@ -47,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GPU instancing support in Shadergraph [1319655] (https://issuetracker.unity3d.com/issues/shader-graph-errors-are-thrown-when-a-propertys-shader-declaration-is-set-to-hybrid-per-instance-and-exposed-is-disabled).
 - Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
 - Fixed Procedural Virtual Texture compatibility with SRP Batcher [1329336] (https://issuetracker.unity3d.com/issues/procedural-virtual-texture-node-will-make-a-shadergraph-incompatible-with-srp-batcher)
+- Fixed an issue where SubGraph keywords would not deduplicate before counting towards the permutation limit [1343528] (https://issuetracker.unity3d.com/issues/shader-graph-graph-is-generating-too-many-variants-error-is-thrown-when-using-subgraphs-with-keywords)
 
 ## [10.3.0] - 2020-11-03
 

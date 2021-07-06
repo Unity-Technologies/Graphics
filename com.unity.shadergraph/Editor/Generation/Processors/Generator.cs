@@ -113,9 +113,12 @@ namespace UnityEditor.ShaderGraph
             m_GraphData.CollectShaderProperties(shaderProperties, m_Mode);
             m_GraphData.CollectShaderKeywords(shaderKeywords, m_Mode);
 
-            if (m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
+            if (shaderKeywords.permutations.Count > ShaderGraphPreferences.variantLimit)
             {
-                m_GraphData.AddValidationError(m_OutputNode.objectId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+                if (m_OutputNode != null)
+                    m_GraphData.AddValidationError(m_OutputNode.objectId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+                else
+                    Debug.LogError($"Error in Shader Graph:{ShaderKeyword.kVariantLimitWarning}");
 
                 m_ConfiguredTextures = shaderProperties.GetConfiguredTextures();
                 m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader);
