@@ -189,7 +189,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings.", MessageType.Warning, wide: true);
+                HDEditorUtils.GlobalSettingsHelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings.",
+                    MessageType.Warning, "supportProbeVolumes");
             }
         }
 
@@ -581,13 +582,8 @@ namespace UnityEditor.Rendering.HighDefinition
             --EditorGUI.indentLevel;
 
 #if ENABLE_NVIDIA && !ENABLE_NVIDIA_MODULE
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.HelpBox(Styles.DLSSPackageLabel, MessageType.Info);
-            if (GUILayout.Button(Styles.DLSSInstallButton, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
-            {
+            if (HDEditorUtils.HelpBoxWithButton(Styles.DLSSPackageLabel, MessageType.Info, Styles.DLSSInstallButton))
                 PackageManager.Client.Add("com.unity.modules.nvidia");
-            }
-            EditorGUILayout.EndHorizontal();
 #endif
         }
 

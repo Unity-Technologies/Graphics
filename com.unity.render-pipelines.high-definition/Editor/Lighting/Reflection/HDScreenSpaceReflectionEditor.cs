@@ -186,7 +186,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (tracingMode == RayCastingMode.RayTracing)
                     RayTracingQualityModeGUI();
                 else
-                    EditorGUILayout.HelpBox("The current HDRP Asset does not support the mixed mode which is only available in performance mode.", MessageType.Error, wide: true);
+                    HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support the mixed mode which is only available in performance mode.", MessageType.Error,
+                        HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportedRayTracingMode");
             }
             else
             {
@@ -201,7 +202,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportSSR ?? false)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Screen Space Reflection.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Screen Space Reflection.", MessageType.Error,
+                    HDRenderPipelineUI.Expandable.Reflection, "m_RenderPipelineSettings.supportSSR");
                 return;
             }
 
