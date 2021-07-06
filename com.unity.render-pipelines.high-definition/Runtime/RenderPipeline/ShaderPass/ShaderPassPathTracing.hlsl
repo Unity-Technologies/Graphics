@@ -101,7 +101,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     #ifdef _SURFACE_TYPE_TRANSPARENT
         float3 lightNormal = 0.0;
     #else
-        float3 lightNormal = mtlData.bsdfData.geomNormalWS;
+        float3 lightNormal = mtlData.bsdfData.normalWS;
     #endif
         LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
 
@@ -209,7 +209,8 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     if (builtinData.opacity < 1.0)
     {
         RayDesc rayDescriptor;
-        rayDescriptor.Origin = GetAbsolutePositionWS(fragInput.positionRWS) - fragInput.tangentToWorld[2] * _RaytracingRayBias;
+        float bias = dot(WorldRayDirection(), fragInput.tangentToWorld[2]) > 0.0 ? _RaytracingRayBias : -_RaytracingRayBias;
+        rayDescriptor.Origin = fragInput.positionRWS + bias * fragInput.tangentToWorld[2];
         rayDescriptor.Direction = WorldRayDirection();
         rayDescriptor.TMin = 0.0;
         rayDescriptor.TMax = FLT_INF;

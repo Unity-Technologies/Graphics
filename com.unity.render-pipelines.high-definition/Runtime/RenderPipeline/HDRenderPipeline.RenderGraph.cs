@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             LightingBuffers lightingBuffers = new LightingBuffers();
             lightingBuffers.diffuseLightingBuffer = CreateDiffuseLightingBuffer(m_RenderGraph, msaa);
-            lightingBuffers.sssBuffer = CreateSSSBuffer(m_RenderGraph, msaa);
+            lightingBuffers.sssBuffer = CreateSSSBuffer(m_RenderGraph, hdCamera, msaa);
 
             var prepassOutput = RenderPrepass(m_RenderGraph, colorBuffer, lightingBuffers.sssBuffer, vtFeedbackBuffer, cullingResults, customPassCullingResults, hdCamera, aovRequest, aovBuffers);
 
@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Stop Single Pass is after post process.
                 StartXRSinglePass(m_RenderGraph, hdCamera);
 
-                colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer);
+                colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer);
                 colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
             }
             else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
                 SendGeometryGraphicsBuffers(m_RenderGraph, prepassOutput.normalBuffer, prepassOutput.depthPyramidTexture, hdCamera);
 
-                m_PostProcessSystem.DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer);
+                m_PostProcessSystem.DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects)) // If we don't have opaque objects there is no need to clear.
                 {

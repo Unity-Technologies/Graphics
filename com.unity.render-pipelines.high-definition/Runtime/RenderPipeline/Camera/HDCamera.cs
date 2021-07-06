@@ -84,6 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 volumetricHistoryIsValid = false;
 
         internal int                volumetricValidFrames = 0;
+        internal int                colorPyramidHistoryValidFrames = 0;
 
         /// <summary>Width actually used for rendering after dynamic resolution and XR is applied.</summary>
         public int                  actualWidth { get; private set; }
@@ -99,6 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public VolumeStack          volumeStack { get; private set; }
         /// <summary>Current time for this camera.</summary>
         public float                time; // Take the 'animateMaterials' setting into account.
+
+        internal bool               dofHistoryIsValid = false;  // used to invalidate DoF accumulation history when switching DoF modes
 
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
@@ -133,6 +136,8 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricHistoryIsValid = false;
             volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
+            colorPyramidHistoryValidFrames = 0;
+            dofHistoryIsValid = false;
         }
 
         /// <summary>
@@ -520,10 +525,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (isHistoryColorPyramidRequired) // Superset of case above
                     numColorPyramidBuffersRequired = 2;
 
-                int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
+                bool forceReallocPyramid = false;
+                int colorBufferID = (int)HDCameraFrameHistoryType.ColorBufferMipChain;
+                int numColorPyramidBuffersAllocated = m_HistoryRTSystem.GetNumFramesAllocated(colorBufferID);
 
-                if ((m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired) ||
-                    (m_NumVolumetricBuffersAllocated != numVolumetricBuffersRequired))
+                // Check if we have any AOV requests that require history buffer allocations (the actual allocation happens later in this function)
+                foreach (var aovRequest in aovRequests)
+                {
+                    var aovHistory = GetHistoryRTHandleSystem(aovRequest);
+                    if (aovHistory.GetNumFramesAllocated(colorBufferID) != numColorPyramidBuffersRequired)
+                    {
+                        forceReallocPyramid = true;
+                        break;
+                    }
+                }
+
+                int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
+                if ((numColorPyramidBuffersAllocated != numColorPyramidBuffersRequired) ||
+                    (m_NumVolumetricBuffersAllocated != numVolumetricBuffersRequired) || forceReallocPyramid)
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
@@ -539,7 +558,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (numColorPyramidBuffersRequired != 0)
                     {
                         AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
+
+                        // Handle the AOV history buffers
+                        var cameraHistory = GetHistoryRTHandleSystem();
+                        foreach (var aovRequest in aovRequests)
+                        {
+                            var aovHistory = GetHistoryRTHandleSystem(aovRequest);
+                            BindHistoryRTHandleSystem(aovHistory);
+                            AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
+                        }
+                        BindHistoryRTHandleSystem(cameraHistory);
                     }
+
 
                     if (numVolumetricBuffersRequired != 0)
                     {
@@ -547,7 +577,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // Mark as init.
-                    m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
                     m_NumVolumetricBuffersAllocated   = numVolumetricBuffersRequired;
                 }
             }
@@ -602,6 +631,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RTHandles.SetReferenceSize(actualWidth, actualHeight, msaaSamples);
             m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight, msaaSamples);
+
+            foreach (var aovHistory in m_AOVHistoryRTSystem)
+            {
+                var historySystem = aovHistory.Value;
+                historySystem.SwapAndSetReferenceSize(actualWidth, actualHeight, msaaSamples);
+            }
         }
 
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
@@ -689,6 +724,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (width < currentHistorySize.x || height < currentHistorySize.y)
                 {
                     hdCamera.m_HistoryRTSystem.ResetReferenceSize(width, height);
+
+                    foreach (var aovHistory in hdCamera.m_AOVHistoryRTSystem)
+                    {
+                        var historySystem = aovHistory.Value;
+                        historySystem.ResetReferenceSize(width, height);
+                    }
                 }
             }
         }
@@ -971,10 +1012,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDAdditionalCameraData  m_AdditionalCameraData = null; // Init in Update
         BufferedRTHandleSystem  m_HistoryRTSystem = new BufferedRTHandleSystem();
-        int                     m_NumColorPyramidBuffersAllocated = 0;
         int                     m_NumVolumetricBuffersAllocated   = 0;
         float                   m_AmbientOcclusionResolutionScale = 0.0f; // Factor used to track if history should be reallocated for Ambient Occlusion
         float                   m_ScreenSpaceAccumulationResolutionScale = 0.0f; // Use another scale if AO & SSR don't have the same resolution
+
+        Dictionary<AOVRequestData, BufferedRTHandleSystem> m_AOVHistoryRTSystem = new Dictionary<AOVRequestData, BufferedRTHandleSystem>(new AOVRequestDataComparer());
+
+
         /// <summary>
         /// Store current algorithm which help to know if we trigger to reset history SSR Buffers.
         /// </summary>
@@ -1367,6 +1411,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 planes.top += planeJitter.y;
                 planes.bottom += planeJitter.y;
 
+                // Reconstruct the far plane for the jittered matrix.
+                // For extremely high far clip planes, the decomposed projection zFar evaluates to infinity.
+                if (float.IsInfinity(planes.zFar))
+                    planes.zFar = frustum.planes[5].distance;
+
                 proj = Matrix4x4.Frustum(planes);
             }
 
@@ -1392,14 +1441,24 @@ namespace UnityEngine.Rendering.HighDefinition
         Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
         {
             // In XR mode, use a more generic matrix to account for asymmetry in the projection
-            if (xr.enabled)
-            {
-                var transform = Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f)) * viewConstants.invViewProjMatrix;
-                transform = transform * Matrix4x4.Scale(new Vector3(1.0f, -1.0f, 1.0f));
-                transform = transform * Matrix4x4.Translate(new Vector3(-1.0f, -1.0f, 0.0f));
-                transform = transform * Matrix4x4.Scale(new Vector3(2.0f * resolution.z, 2.0f * resolution.w, 1.0f));
+            var useGenericMatrix = xr.enabled;
 
-                return transform.transpose;
+            // Asymmetry is also possible from a user-provided projection, so we must check for it too.
+            // Note however, that in case of physical camera, the lens shift term is the only source of
+            // asymmetry, and this is accounted for in the optimized path below. Additionally, Unity C++ will
+            // automatically disable physical camera when the projection is overridden by user.
+            useGenericMatrix |= HDUtils.IsProjectionMatrixAsymmetric(viewConstants.projMatrix) && !camera.usePhysicalProperties;
+
+            if (useGenericMatrix)
+            {
+                var viewSpaceRasterTransform = new Matrix4x4(
+                    new Vector4(2.0f * resolution.z, 0.0f, 0.0f, -1.0f),
+                    new Vector4(0.0f, -2.0f * resolution.w, 0.0f, 1.0f),
+                    new Vector4(0.0f, 0.0f, 1.0f, 0.0f),
+                    new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+
+                var transformT = viewConstants.invViewProjMatrix.transpose * Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f));
+                return viewSpaceRasterTransform * transformT;
             }
 
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
@@ -1424,6 +1483,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_HistoryRTSystem = null;
             }
 
+            foreach (var aovHistory in m_AOVHistoryRTSystem)
+            {
+                var historySystem = aovHistory.Value;
+                historySystem.Dispose();
+            }
+            m_AOVHistoryRTSystem.Clear();
+
             if (lightingSky != null && lightingSky != visualSky)
                 lightingSky.Cleanup();
 
@@ -1445,6 +1511,12 @@ namespace UnityEngine.Rendering.HighDefinition
         void ReleaseHistoryBuffer()
         {
             m_HistoryRTSystem.ReleaseAll();
+
+            foreach (var aovHistory in m_AOVHistoryRTSystem)
+            {
+                var historySystem = aovHistory.Value;
+                historySystem.ReleaseAll();
+            }
         }
 
         Rect GetPixelRect()
@@ -1454,6 +1526,30 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 return new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
         }
+        internal BufferedRTHandleSystem GetHistoryRTHandleSystem()
+        {
+            return m_HistoryRTSystem;
+        }
+
+        internal void BindHistoryRTHandleSystem(BufferedRTHandleSystem historyRTSystem)
+        {
+            m_HistoryRTSystem = historyRTSystem;
+        }
+
+        internal BufferedRTHandleSystem GetHistoryRTHandleSystem(AOVRequestData aovRequest)
+        {
+            if (m_AOVHistoryRTSystem.TryGetValue(aovRequest, out var aovHistory))
+            {
+                return aovHistory;
+            }
+            else
+            {
+                var newHistory = new BufferedRTHandleSystem();
+                m_AOVHistoryRTSystem.Add(aovRequest, newHistory);
+                return newHistory;
+            }
+        }
+
         #endregion
     }
 }

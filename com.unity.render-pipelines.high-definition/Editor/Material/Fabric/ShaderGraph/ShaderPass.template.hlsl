@@ -6,7 +6,7 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
     // Always test the normal as we can have decompression artifact
     if (decalSurfaceData.normalWS.w < 1.0)
     {
-        surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+        surfaceData.normalWS.xyz = SafeNormalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
     }
 
 #ifdef DECALS_4RT // only smoothness in 3RT mode
@@ -44,6 +44,9 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     #ifdef _MATERIAL_FEATURE_COTTON_WOOL
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL;
         $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      lerp(0.0, 0.6, surfaceDescription.Smoothness);
+    #else
+        // Initialize the normal to something non-zero to avoid div-zero warnings for anisotropy.
+        surfaceData.normalWS = float3(0, 1, 0);
     #endif
 
     #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING

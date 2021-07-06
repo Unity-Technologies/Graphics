@@ -53,24 +53,29 @@ void AnyHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload, Att
     BuiltinData builtinData;
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, isVisible);
+
+    // If this point is not visible, ignore the hit and force end the shader
+    if (!isVisible)
+    {
+        IgnoreHit();
+        return;
+    }
 #if defined(TRANSPARENT_COLOR_SHADOW) && defined(_SURFACE_TYPE_TRANSPARENT)
     // Compute the velocity of the itnersection
     float3 positionOS = ObjectRayOrigin() + ObjectRayDirection() * rayIntersection.t;
     float3 previousPositionWS = TransformPreviousObjectToWorld(positionOS);
     rayIntersection.velocity = saturate(length(previousPositionWS - fragInput.positionRWS));
-    
+
+    // Adjust the color based on the transmittance or opacity
     #if HAS_REFRACTION
         rayIntersection.color *= lerp(surfaceData.transmittanceColor, float3(0.0, 0.0, 0.0), 1.0 - surfaceData.transmittanceMask);
     #else
         rayIntersection.color *= (1.0 - builtinData.opacity);
     #endif
+
+    // Ignore to move to the following intersections
     IgnoreHit();
 #else
-    // If this fella is not opaque, then we ignore this hit
-    if (!isVisible)
-    {
-        IgnoreHit();
-    }
     else
     {
         // If this fella is opaque, then we need to stop

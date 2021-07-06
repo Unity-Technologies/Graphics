@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, downSamplePassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, downSamplePassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetFloat(HDShaderIDs._SampleCount, sampleCount);
                 propertyBlock.SetFloat(HDShaderIDs._Radius, radius);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, verticalBlurPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, verticalBlurPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 propertyBlock.SetFloat(HDShaderIDs._SampleCount, sampleCount);
                 propertyBlock.SetFloat(HDShaderIDs._Radius, radius);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, horizontalBlurPassIndex, MeshTopology.Quads, 4, 1, propertyBlock);
+                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, horizontalBlurPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -568,7 +568,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // viewport with RT handle scale and scale factor:
             Rect viewport = new Rect();
-            Vector2 destSize = viewport.size = destination.GetScaledSize(destination.rtHandleProperties.currentViewportSize);
+            if (destination.useScaling)
+                viewport.size = destination.GetScaledSize(destination.rtHandleProperties.currentViewportSize);
+            else
+                viewport.size = new Vector2Int(destination.rt.width, destination.rt.height);
+            Vector2 destSize = viewport.size;
             viewport.position = new Vector2(viewport.size.x * destScaleBias.z, viewport.size.y * destScaleBias.w);
             viewport.size *= new Vector2(destScaleBias.x, destScaleBias.y);
 

@@ -1,6 +1,10 @@
 #ifndef UNITY_COMMON_LIGHTING_INCLUDED
 #define UNITY_COMMON_LIGHTING_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 // Ligthing convention
 // Light direction is oriented backward (-Z). i.e in shader code, light direction is -lightData.forward
 
@@ -454,5 +458,9 @@ bool IsMatchingLightLayer(uint lightLayers, uint renderingLayers)
 {
     return (lightLayers & renderingLayers) != 0;
 }
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_COMMON_LIGHTING_INCLUDED

@@ -59,6 +59,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material.HasProperty(kAddPrecomputedVelocity))
                 CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
+
+            if (HDSpeedTree8MaterialUpgrader.IsHDSpeedTree8Material(material))
+                HDSpeedTree8MaterialUpgrader.RestoreHDSpeedTree8Keywords(material);
         }
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);

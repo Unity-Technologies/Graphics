@@ -474,9 +474,23 @@ namespace UnityEditor.VFX
             foreach (var expression in expressionPerSpawnToProcess)
                 CollectParentExpressionRecursively(expression, allExpressions);
 
-            var expressionIndexes = allExpressions.Select(o => graph.GetFlattenedIndex(o)).OrderBy(i => i);
-            var processChunk = new List<ProcessChunk>();
+            var expressionIndexes = allExpressions.
+                Where(o => o.Is(VFXExpression.Flags.PerSpawn)) //Filter only per spawn part of graph
+                .Select(o => graph.GetFlattenedIndex(o))
+                .OrderBy(i => i);
 
+            //Additional verification of appropriate expected expression index
+            //In flatten expression, all common expressions are sorted first, then, we have chunk of additional preprocess
+            //We aren't supposed to happen a chunk which is running common expression here.
+            if (expressionIndexes.Any(i => i < graph.CommonExpressionCount))
+            {
+                var expressionInCommon = allExpressions
+                    .Where(o => graph.GetFlattenedIndex(o) < graph.CommonExpressionCount)
+                    .OrderBy(o => graph.GetFlattenedIndex(o));
+                Debug.LogErrorFormat("Unexpected preprocess expression detected : {0} (count)", expressionInCommon.Count());
+            }
+
+            var processChunk = new List<ProcessChunk>();
             int previousIndex = int.MinValue;
             foreach (var indice in expressionIndexes)
             {

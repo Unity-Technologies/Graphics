@@ -152,6 +152,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
 
+        int m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
+
         static private CompositionManager s_CompositorInstance;
 
         // Built-in Color.black has an alpha of 1, so defien here a fully transparent black 
@@ -802,12 +804,39 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             if (camera.camera.targetTexture)
             {
+                // When rendering to texture (or to camera bridge) we don't need to flip the image.
+                // If this matrix was used for the game view, then the image would appear flipped, hense the name of the variable.
                 m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrixFlipped;
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                 cmd.Blit(null, camera.camera.targetTexture, m_Material, m_Material.FindPass("ForwardOnly"));
+
+                var recorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera.camera);
+                if (recorderCaptureActions != null)
+                {
+                    for (recorderCaptureActions.Reset(); recorderCaptureActions.MoveNext();)
+                    {
+                        recorderCaptureActions.Current(camera.camera.targetTexture, cmd);
+                    }
+                }
             }
             else
             {
+                var recorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera.camera);
+
+                if (recorderCaptureActions != null)
+                {
+                    m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrixFlipped;
+                    ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+                    var format = m_InputLayers[0].GetRenderTarget().format;
+                    cmd.GetTemporaryRT(m_RecorderTempRT, camera.camera.pixelWidth, camera.camera.pixelHeight, 0, FilterMode.Point, format);
+                    cmd.Blit(null, m_RecorderTempRT, m_Material, m_Material.FindPass("ForwardOnly"));
+                    for (recorderCaptureActions.Reset(); recorderCaptureActions.MoveNext();)
+                    {
+                        recorderCaptureActions.Current(m_RecorderTempRT, cmd);
+                    }
+                }
+
+                // When we render directly to game view, we render the image flipped up-side-down, like other HDRP cameras
                 m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrix;
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                 cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_Material, m_Material.FindPass("ForwardOnly"));
