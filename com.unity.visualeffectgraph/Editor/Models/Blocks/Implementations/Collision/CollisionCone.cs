@@ -123,7 +123,7 @@ if (collision)
     float3 capNormal = float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
     float3 n = (float3)0;";
 
-                //Position/Normal correction (there reason behind float3(1,0,1) is the distance which isn't in y dimension
+                //Position/Normal correction, the reason behind float3(1,0,1) is the distToSide which is actually in 2D Plane (XZ)
                 if (mode == Mode.Solid)
                     Source += @"
     if (distToSide < distToCap)
