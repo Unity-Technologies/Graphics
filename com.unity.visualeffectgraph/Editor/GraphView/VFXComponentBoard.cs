@@ -1,17 +1,16 @@
 using System;
-using UnityEditor.UIElements;
+using System.Linq;
+using System.Collections.Generic;
+using System.Globalization;
+
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.SceneManagement;
+using UnityEditor.UIElements;
+
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
-using UnityEditor.VFX;
-using System.Collections.Generic;
-using UnityEditor;
-using System.Linq;
-using System.Text;
-using UnityEditor.SceneManagement;
-using System.Globalization;
-using System.Xml;
+
 using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI

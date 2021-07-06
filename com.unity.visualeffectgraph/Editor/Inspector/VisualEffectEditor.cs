@@ -10,12 +10,8 @@ using UnityEngine.Rendering;
 using UnityEngine.VFX;
 
 using UnityEditor.Overlays;
-using UnityEditor.Experimental;
-using UnityEditor.SceneManagement;
-
-using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
-using EditMode = UnityEditorInternal.EditMode;
+
 using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
@@ -64,9 +60,9 @@ namespace UnityEditor.VFX
         const string kPropertyFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Properties";
 
         bool showGeneralCategory;
-
         bool showRendererCategory;
         bool showPropertyCategory;
+        float lastPlayRate = -1f;
 
         protected SerializedProperty m_VisualEffectAsset;
         SerializedProperty m_ReseedOnPlay;
@@ -79,9 +75,9 @@ namespace UnityEditor.VFX
 
         static SerializedObject s_FakeObjectSerializedCache;
 
-        static List<VisualEffectEditor> s_AllEditors = new List<VisualEffectEditor>();
+        static readonly List<VisualEffectEditor> s_AllEditors = new List<VisualEffectEditor>();
 
-        static public void RepaintAllEditors()
+        public static void RepaintAllEditors()
         {
             foreach (var ed in s_AllEditors)
             {
@@ -99,7 +95,8 @@ namespace UnityEditor.VFX
 
         private void OnSelectionChanged()
         {
-            this.m_lastPlayRate = -1f;
+            if (m_VisualEffectAsset == null)
+                this.lastPlayRate = -1f;
         }
 
         protected void OnEnable()
@@ -109,14 +106,7 @@ namespace UnityEditor.VFX
             showRendererCategory = EditorPrefs.GetBool(kRendererFoldoutStatePreferenceName, true);
             showGeneralCategory = EditorPrefs.GetBool(kGeneralFoldoutStatePreferenceName, true);
 
-            if (targets.Length > 1)
-            {
-                m_OtherSerializedObjects = new SerializedObject[targets.Length - 1];
-                for (int i = 1; i < targets.Length; ++i)
-                {
-                    m_OtherSerializedObjects[i - 1] = new SerializedObject(targets[i]);
-                }
-            }
+            m_OtherSerializedObjects = targets.Skip(1).Select(x => new SerializedObject(x)).ToArray();
             s_AllEditors.Add(this);
             m_RandomSeed = serializedObject.FindProperty("m_StartSeed");
             m_ReseedOnPlay = serializedObject.FindProperty("m_ResetSeedOnPlay");
@@ -140,6 +130,7 @@ namespace UnityEditor.VFX
                 effect.pause = false;
                 effect.playRate = 1.0f;
             }
+
             OnDisableWithoutResetting();
             if (s_EffectUi == this)
                 s_EffectUi = null;
@@ -154,7 +145,7 @@ namespace UnityEditor.VFX
 
         protected const float overrideWidth = 16;
 
-        static private bool GenerateMultipleField(ref VFXParameterInfo parameter, SerializedProperty property)
+        private static bool GenerateMultipleField(ref VFXParameterInfo parameter, SerializedProperty property)
         {
             if (property.propertyType == SerializedPropertyType.Vector4 && parameter.realType != typeof(Color).Name)
             {
@@ -415,7 +406,7 @@ namespace UnityEditor.VFX
             return changed;
         }
 
-        static Gradient s_DefaultGradient = new Gradient();
+        static readonly Gradient s_DefaultGradient = new Gradient();
 
         protected static object GetObjectValue(SerializedProperty prop)
         {
@@ -483,8 +474,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        private float m_lastPlayRate = -1f;
-
         protected virtual void SceneViewGUICallback()
         {
             List<VisualEffect> effects = targets.OfType<VisualEffect>().ToList();
@@ -523,10 +512,10 @@ namespace UnityEditor.VFX
             }
             GUILayout.EndHorizontal();
 
-            float playRate = this.m_lastPlayRate < 0
+            float playRate = this.lastPlayRate < 0
                 ? effects.First().playRate
-                : effects.FirstOrDefault(x => x.playRate != this.m_lastPlayRate)?.playRate ?? effects.First().playRate;
-            this.m_lastPlayRate = playRate;
+                : effects.FirstOrDefault(x => x.playRate != this.lastPlayRate)?.playRate ?? effects.First().playRate;
+            this.lastPlayRate = playRate;
 
             float playRateValue = playRate * VisualEffectControl.playRateToValue;
 
