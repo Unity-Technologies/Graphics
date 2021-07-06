@@ -120,20 +120,34 @@ if (collision)
     float distToSide = colliderSign * (cone_radius - dist);
     float3 tPos = mul(invFieldTransform, float4(position, 1.0f)).xyz;
     float3 sideNormal = normalize(float3(tNextPos.x * sincosSlope.y, sincosSlope.x, tNextPos.z * sincosSlope.y));
-    float3 capNormal = float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);";
-                //N.B: distToSide has been resolved in 2D without considering slope, we probably need an adjustment like this :
-                //distToSide -= colliderSign * (sideNormal.y * distToSide);
-                //Alternatively, we could use another sideNormal (where y = 0) only for correction
+    float3 capNormal = float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
+    float3 n = (float3)0;";
 
-                //Position/Normal correction
+                //Position/Normal correction (there reason behind float3(1,0,1) is the distance which isn't in y dimension
                 if (mode == Mode.Solid)
                     Source += @"
-    float3 n = distToSide < distToCap ? sideNormal : capNormal;
-    tPos += n * min(distToSide, distToCap);";
+    if (distToSide < distToCap)
+    {
+        n = sideNormal;
+        tPos += n * float3(1,0,1) * distToSide;
+    }
+    else
+    {
+        n = capNormal;
+        tPos += n * distToCap;
+    }";
                 else
                     Source += @"
-    float3 n = distToSide > distToCap ? -sideNormal : -capNormal;
-    tPos += n * max(distToSide, distToCap);";
+    if (distToSide > distToCap)
+    {
+        n = -sideNormal;
+        tPos += n * float3(1,0,1) * distToSide;
+    }
+    else
+    {
+        n = -capNormal;
+        tPos += n * distToCap;
+    }";
 
                 //Clamp outside/inside cone afterwards (could optional, only relevant with teleport cases)
                 //Alternatively, we can apply several time Position & Normal correction
