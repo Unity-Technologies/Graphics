@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler setupLights = new ProfilingSampler($"{k_Name}.{nameof(SetupLights)}");
             public static readonly ProfilingSampler setupCamera = new ProfilingSampler($"Setup Camera Parameters");
             public static readonly ProfilingSampler addRenderPasses = new ProfilingSampler($"{k_Name}.{nameof(AddRenderPasses)}");
+            public static readonly ProfilingSampler setupRenderPasses = new ProfilingSampler($"{k_Name}.{nameof(SetupRenderPasses)}");
             public static readonly ProfilingSampler clearRenderingState = new ProfilingSampler($"{k_Name}.{nameof(ClearRenderingState)}");
             public static readonly ProfilingSampler internalStartRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalStartRendering)}");
             public static readonly ProfilingSampler internalFinishRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRendering)}");
@@ -916,6 +917,39 @@ namespace UnityEngine.Rendering.Universal
 
                 rendererFeatures[i].AddRenderPasses(this, ref renderingData);
                 disableNativeRenderPassInFeatures = false;
+            }
+
+            // Remove any null render pass that might have been added by user by mistake
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
+            {
+                if (activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
+            }
+
+            // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
+            if (count > 0 && m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
+                m_UseOptimizedStoreActions = false;
+        }
+
+        /// <summary>
+        /// Calls <c>Setup</c> for each feature added to this renderer.
+        /// <seealso cref="ScriptableRendererFeature.SetupRenderPasses(ScriptableRenderer, in RenderingData)"/>
+        /// </summary>
+        /// <param name="renderingData"></param>
+        protected void SetupRenderPasses(in RenderingData renderingData)
+        {
+            using var profScope = new ProfilingScope(null, Profiling.setupRenderPasses);
+
+            // Add render passes from custom renderer features
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                if (!rendererFeatures[i].isActive)
+                {
+                    continue;
+                }
+
+                rendererFeatures[i].SetupRenderPasses(this, in renderingData);
             }
 
             // Remove any null render pass that might have been added by user by mistake

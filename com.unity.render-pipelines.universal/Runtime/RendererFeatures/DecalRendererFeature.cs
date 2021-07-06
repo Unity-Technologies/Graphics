@@ -459,27 +459,33 @@ namespace UnityEngine.Rendering.Universal
                     renderer.EnqueuePass(m_GBufferRenderPass);
                     break;
                 case DecalTechnique.DBuffer:
-                    var universalRenderer = renderer as UniversalRenderer;
-                    if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
-                    {
-                        m_CopyDepthPass.Setup(
-                            m_DBufferRenderPass.cameraDepthAttachmentIndentifier,
-                            m_DBufferRenderPass.cameraDepthTextureIndentifier
-                        );
-                    }
-                    else
-                    {
-                        m_CopyDepthPass.Setup(
-                            m_DBufferRenderPass.cameraDepthTextureIndentifier,
-                            m_DBufferRenderPass.dBufferDepthIndentifier
-                        );
-                    }
-                    m_CopyDepthPass.MssaSamples = 1;
-
                     renderer.EnqueuePass(m_CopyDepthPass);
                     renderer.EnqueuePass(m_DBufferRenderPass);
                     renderer.EnqueuePass(m_ForwardEmissivePass);
                     break;
+            }
+        }
+
+        public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
+        {
+            if (m_Technique == DecalTechnique.DBuffer)
+            {
+                var universalRenderer = renderer as UniversalRenderer;
+                if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
+                {
+                    m_CopyDepthPass.Setup(
+                        m_DBufferRenderPass.cameraDepthAttachmentIndentifier,
+                        m_DBufferRenderPass.cameraDepthTextureIndentifier
+                    );
+                }
+                else
+                {
+                    m_CopyDepthPass.Setup(
+                        m_DBufferRenderPass.cameraDepthTextureIndentifier,
+                        m_DBufferRenderPass.dBufferDepthIndentifier
+                    );
+                }
+                m_CopyDepthPass.MssaSamples = 1;
             }
         }
 

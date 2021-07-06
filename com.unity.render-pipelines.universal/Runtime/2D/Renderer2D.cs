@@ -208,6 +208,7 @@ namespace UnityEngine.Rendering.Universal
             // Add passes from Renderer Features. - NOTE: This should be reexamined in the future. Please see feedback from this PR https://github.com/Unity-Technologies/Graphics/pull/3147/files
             isCameraColorTargetValid = true;    // This is to make it possible to call ScriptableRenderer.cameraColorTarget in the custom passes.
             AddRenderPasses(ref renderingData);
+            SetupRenderPasses(in renderingData);
             isCameraColorTargetValid = false;
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
