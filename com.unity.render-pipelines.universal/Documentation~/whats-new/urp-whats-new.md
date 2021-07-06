@@ -2,7 +2,7 @@
 
 This section contains information about new features, improvements, and issues fixed in URP 12.
 
-For a complete list of changes made in URP 11, refer to the [Changelog](../../changelog/CHANGELOG.html).
+For a complete list of changes made in URP 12, refer to the [Changelog](../../changelog/CHANGELOG.html).
 
 ## Features
 
@@ -124,4 +124,4 @@ For a complete list of issues resolved in URP 12, see the [Changelog](../../chan
 
 ## Known issues
 
-For information on the known issues in URP 11, see the section [Known issues](../known-issues.md).
+For information on the known issues in URP 12, see the section [Known issues](../known-issues.md).
