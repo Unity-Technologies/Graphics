@@ -627,7 +627,7 @@ namespace UnityEngine.Rendering.HighDefinition
             dilationIterations = 0
         };
 
-        internal struct ProbeVolumeAtlasKey
+        internal struct ProbeVolumeAtlasKey : IEquatable<ProbeVolumeAtlasKey>
         {
             public int id;
             public Quaternion rotation;
@@ -645,18 +645,20 @@ namespace UnityEngine.Rendering.HighDefinition
             };
 
             // Override Equals to manually control when atlas keys are considered equivalent.
-            public override bool Equals(object other)
+            public bool Equals(ProbeVolumeAtlasKey keyOther)
             {
-                if (!(other is ProbeVolumeAtlasKey)) return false;
-
-                ProbeVolumeAtlasKey keyOther = (ProbeVolumeAtlasKey)other;
                 return (this.id == keyOther.id)
                     && (this.width == keyOther.width)
                     && (this.height == keyOther.height)
                     && (this.depth == keyOther.depth)
                     && ComputeQuaternionApproximatelyEqual(this.rotation, keyOther.rotation, 1e-5f);
             }
-
+            
+            public override bool Equals(object other)
+            {
+                return other is ProbeVolumeAtlasKey key && Equals(key);
+            }
+            
             public override int GetHashCode()
             {
                 var hash = id.GetHashCode();
