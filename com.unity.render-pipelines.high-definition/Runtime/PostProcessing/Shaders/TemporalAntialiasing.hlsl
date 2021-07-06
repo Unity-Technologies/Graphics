@@ -798,7 +798,7 @@ CTYPE SharpenColor(NeighbourhoodSamples samples, CTYPE color, float sharpenStren
 float BoxKernelConfidence(float2 inputToOutputVec, float confidenceThreshold)
 {
     // Binary (TODO: Smooth it?)
-    float confidenceScore = dot(inputToOutputVec, inputToOutputVec) < (confidenceThreshold);
+    float confidenceScore = abs(inputToOutputVec.x) <= confidenceThreshold && abs(inputToOutputVec.y) <= confidenceThreshold;
     return confidenceScore;
 }
 
