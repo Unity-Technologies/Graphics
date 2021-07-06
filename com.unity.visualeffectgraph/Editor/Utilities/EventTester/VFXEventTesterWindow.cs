@@ -20,14 +20,6 @@ namespace UnityEditor.VFX
                 Selection.selectionChanged += OnSelectionChanged;
             }
 
-            private void OnSelectionChanged()
-            {
-                m_Effects = Selection.gameObjects
-                    .Select(x => x.GetComponent<VisualEffect>())
-                    .Where(x => x != null)
-                    .ToArray();
-            }
-
             public bool visible => m_Effects?.Length > 0 && VFXEventTesterWindow.visible;
 
 
@@ -35,6 +27,21 @@ namespace UnityEditor.VFX
             {
                 if (visible)
                     WindowGUI();
+            }
+
+            public override void OnWillBeDestroyed()
+            {
+                base.OnWillBeDestroyed();
+
+                Selection.selectionChanged -= OnSelectionChanged;
+            }
+
+            private void OnSelectionChanged()
+            {
+                m_Effects = Selection.gameObjects
+                    .Select(x => x.GetComponent<VisualEffect>())
+                    .Where(x => x != null)
+                    .ToArray();
             }
         }
 
