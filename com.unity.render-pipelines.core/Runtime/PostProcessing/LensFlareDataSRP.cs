@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering
         /// <summary> Uniform angle used with multiple element enabled with Uniform distribution. </summary>
         public float uniformAngle;
 
-        /// <summary> Uniform angle used with multiple element enabled with Curve distribution. </summary>
+        /// <summary> Uniform angle (in degree) used with multiple element enabled with Curve distribution. </summary>
         public AnimationCurve uniformAngleCurve;
     }
 

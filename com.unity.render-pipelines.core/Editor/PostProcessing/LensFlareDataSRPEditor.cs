@@ -85,7 +85,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent scaleVariation = EditorGUIUtility.TrTextContent("Scale Variation", "Sets the offset applied to the current scale of the element.");
             static public readonly GUIContent positionCurve = EditorGUIUtility.TrTextContent("Position Variation", "Defines how the multiple elements are placed along the spread using a curve.");
             static public readonly GUIContent scaleCurve = EditorGUIUtility.TrTextContent("Scale", "Defines how the multiple elements are scaled along the spread.");
-            static public readonly GUIContent uniformAngleCurve = EditorGUIUtility.TrTextContent("Rotation", "Defines how the multiple elements are rotated along the spread.");
+            static public readonly GUIContent uniformAngleCurve = EditorGUIUtility.TrTextContent("Rotation", "Uniform angle (in degree) used with multiple element enabled with Curve distribution.");
             static public readonly GUIContent uniformAngle = EditorGUIUtility.TrTextContent("Rotation", "Specify an angle (in degree) which will be used for each element incrementaly.");
 
             static GUIStyle m_BlueFocusedBoldLabel;

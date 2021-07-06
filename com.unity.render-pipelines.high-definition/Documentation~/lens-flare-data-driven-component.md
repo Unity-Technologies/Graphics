@@ -1,3 +1,5 @@
+[comment]: # (If you modify this fine make sure you modify the copy/paste file: com.unity.render-pipelines.high-definition\Documentation~\Common\lens-flare-data-driven-component.md)
+
 # Lens Flare (SRP) Component
 
 ![](images/LensFlareHeader.png)

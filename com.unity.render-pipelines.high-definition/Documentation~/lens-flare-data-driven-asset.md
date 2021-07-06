@@ -1,3 +1,5 @@
+[comment]: # (If you modify this fine make sure you modify the copy/paste file: com.unity.render-pipelines.core\Documentation~\Common\lens-flare-data-driven-asset.md)
+
 # Lens Flare (SRP) Asset
 
 Unity’s [Scriptable Render Pipeline (SRP)](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html) includes the **Lens Flare Element** asset. You can use this asset to create lens flares in your scene and control their appearance. <br/>To create a Lens Flare Element asset, navigate to **Assets > Create > SRP Lens Flare**. To use this asset, assign it to the **Lens Flare Data** property of an [SRP Lens Flare Override Component](srp-lens-flare-component.md).
@@ -134,6 +136,7 @@ The Lens Flare Element asset has the following properties:
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
 | Colors | The range of colors that this asset applies to the lens flares. |
+| Rotation | Specify an angle (in degree) which will be used for each element incrementaly. |
 
 <a name="Curve"></a>
 
@@ -145,7 +148,8 @@ The Lens Flare Element asset has the following properties:
 | ---------------- | ------------------------------------------------------------ |
 | Colors           | The range of colors that this asset applies to the lens flares. You can use the **Position Spacing** curve to determine how this range affects each lens flare. |
 | Position Spacing | Adjust this curve to change the placement of the lens flare elements in the **Lens Spread**. |
-| Scale Variation  | Adjust this curve to control the size range of the lens flare elements. |
+| Rotation | Uniform angle (in degree) used with multiple element enabled with Curve distribution. |
+| Scale | Adjust this curve to control the size range of the lens flare elements. |
 
 <a name="Random"></a>
 
