@@ -117,10 +117,15 @@ namespace UnityEditor.VFX.UI
             this.m_vfxView = vfxView;
         }
 
+        public override Vector2 GetWindowSize() 
+        {
+            return new Vector2(200, 120);
+        }
+
         public override void OnGUI(Rect rect)
         {
             EditorGUILayout.Space();
-            using (new GUILayout.VerticalScope())
+            using (new GUILayout.VerticalScope(GUILayout.Height(120)))
             {
                 var isAttached = this.m_vfxView.attachedComponent != null;
                 if (GUILayout.Button(isAttached ? "Detach" : "Attach to selection", GUILayout.Height(24)))
@@ -156,7 +161,7 @@ namespace UnityEditor.VFX.UI
                 }
 
                 GUI.enabled = true;
-                EditorGUILayout.Space();
+                EditorGUILayout.Space(12f);
             }
         }
     }
