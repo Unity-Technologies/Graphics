@@ -1103,10 +1103,18 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
             {
-                for (int i = 0; i < Mathf.Min(2, xr.viewCount); i++)
+                if (xr.singlePassEnabled)
                 {
-                    camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)i, xr.GetProjMatrix(i));
-                    camera.SetStereoViewMatrix((Camera.StereoscopicEye)i, xr.GetViewMatrix(i));
+                    for (int i = 0; i < Mathf.Min(2, xr.viewCount); i++)
+                    {
+                        camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)i, xr.GetProjMatrix(i));
+                        camera.SetStereoViewMatrix((Camera.StereoscopicEye)i, xr.GetViewMatrix(i));
+                    }
+                }
+                else
+                {
+                    camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)xr.multipassId, xr.GetProjMatrix(0));
+                    camera.SetStereoViewMatrix((Camera.StereoscopicEye)xr.multipassId, xr.GetViewMatrix(0));
                 }
             }
 #endif
