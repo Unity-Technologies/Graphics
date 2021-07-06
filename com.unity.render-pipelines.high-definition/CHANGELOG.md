@@ -77,6 +77,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for reflection probes as a fallback for ray traced reflections (case 1338644).
 - Added a minimum motion vector length to the motion vector debug view.
 - Added a better support for LODs in the ray tracing acceleration structure.
+- Added Blend factor control for TAA.
+- Added Experimental Temporal Upscaling.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -369,6 +371,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hair uses GGX LTC for area light specular.
 - Moved invariants outside of loop for a minor CPU speedup in the light loop code.
 - Various improvements to the volumetric clouds.
+- Slightly improved TAA flickering.
+- Reduced ringing of TAA sharpening.
 
 ## [11.0.0] - 2020-10-21
 
