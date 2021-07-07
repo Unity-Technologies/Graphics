@@ -110,9 +110,9 @@ namespace UnityEditor.Rendering.Universal
             if (attribute != null)
             {
                 tooltip = attribute.tooltip;
-                return attribute != null;
+                return true;
             }
-            tooltip = "";
+            tooltip = string.Empty;
             return false;
         }
 
