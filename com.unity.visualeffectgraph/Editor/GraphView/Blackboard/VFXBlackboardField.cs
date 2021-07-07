@@ -34,9 +34,15 @@ namespace  UnityEditor.VFX.UI
         void PillBuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Duplicate %d", (a) => Duplicate(), DropdownMenuAction.AlwaysEnabled);
             evt.menu.AppendAction("Delete", (a) => Delete(), DropdownMenuAction.AlwaysEnabled);
 
             evt.StopPropagation();
+        }
+
+        public void Duplicate()
+        {
+            GetFirstAncestorOfType<VFXView>().DuplicateBlackboardFieldSelection();
         }
 
         void Delete()
