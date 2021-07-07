@@ -21,6 +21,12 @@ internal class CaptureMotionVectorsPass : ScriptableRenderPass
         m_intensity = intensity;
     }
 
+    public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+    {        
+        ConfigureTarget(m_CameraColorTarget, m_CameraColorTarget);
+        ConfigureClear(ClearFlag.Color, Color.black);
+    }
+
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
         var camera = renderingData.cameraData.camera;
@@ -35,8 +41,6 @@ internal class CaptureMotionVectorsPass : ScriptableRenderPass
         using (new ProfilingScope(cmd, m_ProfilingSampler))
         {
             m_Material.SetFloat("_Intensity", m_intensity);
-            cmd.SetRenderTarget(m_CameraColorTarget, m_CameraColorTarget);
-            cmd.ClearRenderTarget(false, true, Color.clear);
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material);
         }
         context.ExecuteCommandBuffer(cmd);

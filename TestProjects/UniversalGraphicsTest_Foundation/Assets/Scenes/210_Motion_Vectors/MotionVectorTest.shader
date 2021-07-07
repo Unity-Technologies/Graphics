@@ -1,4 +1,4 @@
-Shader "MotionVecDebug"
+Shader "MotionVectorTestShader"
 {
     SubShader
     {
