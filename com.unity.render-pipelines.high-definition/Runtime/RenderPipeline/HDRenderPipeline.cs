@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderVariablesXR m_ShaderVariablesXRCB = new ShaderVariablesXR();
         ShaderVariablesRaytracing m_ShaderVariablesRayTracingCB = new ShaderVariablesRaytracing();
 
-        internal ref ShaderVariablesGlobal GetShaderVariablesGlobalCB() => ref m_ShaderVariablesGlobalCB;
+        internal ShaderVariablesGlobal GetShaderVariablesGlobalCB() => m_ShaderVariablesGlobalCB;
 
         // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         // s_ForwardEmissiveForDeferredName is only in m_ForwardOnlyPassNames as it match the lit mode deferred, not required in forward
