@@ -595,6 +595,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.taaAntiFlicker = taaAntiFlicker;
             data.taaMotionVectorRejection = taaMotionVectorRejection;
             data.taaAntiHistoryRinging = taaAntiHistoryRinging;
+            data.taaBaseBlendFactor = taaBaseBlendFactor;
             data.flipYMode = flipYMode;
             data.fullscreenPassthrough = fullscreenPassthrough;
             data.allowDynamicResolution = allowDynamicResolution;
