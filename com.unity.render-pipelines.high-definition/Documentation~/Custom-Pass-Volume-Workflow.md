@@ -20,6 +20,8 @@ The image below visualises the outer bounds of the fade radius as a wireframe bo
 
 ![A Custom Pass Volume visualised using a Box Collider, with its fade radius visualised as a wireframe box.](images/CustomPassVolumeBox_Collider.png)
 
+If the **Mode** of your Custom Pass Volume is set to **Camera**, the volume will only be executed for the target camera in parameter. When the target camera is set, the volume ignores the volume layer mask of the camera so that it's always executed for this camera.
+
 ## Using C# to change the fade radius
 
 To change the fade radius in code, you can use the built in `_FadeValue` variable in the shader, and `CustomPass.fadeValue` in your C# script. These variables operate on a 0 - 1 scale that represents how far the Camera is from the collider bounding Volume. To learn more, see [Scripting your own Custom Pass in C#](Custom-Pass-Scripting.md).
