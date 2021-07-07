@@ -162,6 +162,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawCustomPassReorderableList()
         {
+            if (targets.OfType<CustomPassVolume>().Count() > 1)
+            {
+                EditorGUILayout.HelpBox("Custom Pass List UI is not supported with multi-selection", MessageType.Warning, true);
+                return;
+            }
+
             // Sanitize list:
             for (int i = 0; i < m_SerializedPassVolume.customPasses.arraySize; i++)
             {
@@ -171,12 +177,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     serializedObject.ApplyModifiedProperties();
                     i++;
                 }
-            }
-
-            if (targets.OfType<CustomPassVolume>().Count() > 1)
-            {
-                EditorGUILayout.HelpBox("Custom Pass List UI is not supported with multi-selection", MessageType.Warning, true);
-                return;
             }
 
             float customPassListHeight =  m_CustomPassList.GetHeight();
