@@ -12,19 +12,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the dark tones of the render.
         /// </summary>
-        [Tooltip("Controls the dark tones of the render.")]
+        [Tooltip("Use this to control and apply a hue to the dark tones. This has a more exaggerated effect on shadows.")]
         public Vector4Parameter lift = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
         /// <summary>
         /// Controls the mid-range tones of the render with a power function.
         /// </summary>
-        [Tooltip("Controls the mid-range tones of the render with a power function.")]
+        [Tooltip("Use this to control and apply a hue to the mid-range tones with a power function.")]
         public Vector4Parameter gamma = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
         /// <summary>
         /// Controls the highlights of the render.
         /// </summary>
-        [Tooltip("Controls the highlights of the render.")]
+        [Tooltip("Use this to increase and apply a hue to the signal and make highlights brighter.")]
         public Vector4Parameter gain = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
         /// <summary>
