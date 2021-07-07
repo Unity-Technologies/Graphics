@@ -85,54 +85,41 @@ namespace UnityEditor.ShaderGraph
                     break;
                 }
                 case KeywordType.Enum:
+                using (var inputSlots = PooledList<MaterialSlot>.Get())
+                using (var slotIDs = PooledList<int>.Get())
                 {
                     // Get slots
-                    List<MaterialSlot> inputSlots = new List<MaterialSlot>();
                     GetInputSlots(inputSlots);
 
-                    // Store the edges
-                    Dictionary<MaterialSlot, List<IEdge>> edgeDict = new Dictionary<MaterialSlot, List<IEdge>>();
-                    foreach (MaterialSlot slot in inputSlots)
-                        edgeDict.Add(slot, (List<IEdge>)slot.owner.owner.GetEdges(slot.slotReference));
-
-                    // Remove old slots
-                    for (int i = 0; i < inputSlots.Count; i++)
-                    {
-                        RemoveSlot(inputSlots[i].id);
-                    }
 
                     // Add output slot
                     AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
+                    slotIDs.Add(OutputSlotId);
 
                     // Add input slots
-                    int[] slotIds = new int[keyword.entries.Count + 1];
-                    slotIds[keyword.entries.Count] = OutputSlotId;
                     for (int i = 0; i < keyword.entries.Count; i++)
                     {
                         // Get slot based on entry id
-                        MaterialSlot slot = inputSlots.Where(x =>
+                        MaterialSlot slot = inputSlots.Find(x =>
                             x.id == keyword.entries[i].id &&
                             x.RawDisplayName() == keyword.entries[i].displayName &&
-                            x.shaderOutputName == keyword.entries[i].referenceName).FirstOrDefault();
+                            x.shaderOutputName == keyword.entries[i].referenceName);
 
-                        // If slot doesnt exist its new so create it
+                        // If slot doesn't exist, it's new so create it
                         if (slot == null)
                         {
                             slot = new DynamicVectorMaterialSlot(keyword.entries[i].id, keyword.entries[i].displayName, keyword.entries[i].referenceName, SlotType.Input, Vector4.zero);
                         }
 
                         AddSlot(slot);
-                        slotIds[i] = keyword.entries[i].id;
+                        slotIDs.Add(keyword.entries[i].id);
                     }
-                    RemoveSlotsNameNotMatching(slotIds);
-
-                    // Reconnect the edges
-                    foreach (KeyValuePair<MaterialSlot, List<IEdge>> entry in edgeDict)
+                    RemoveSlotsNameNotMatching(slotIDs);
+                    bool orderChanged = SetSlotOrder(slotIDs);
+                    if (orderChanged)
                     {
-                        foreach (IEdge edge in entry.Value)
-                        {
-                            owner.Connect(edge.outputSlot, edge.inputSlot);
-                        }
+                        // unfortunately there is no way to get the view to update slot order other than Topological
+                        Dirty(ModificationScope.Topological);
                     }
                     break;
                 }

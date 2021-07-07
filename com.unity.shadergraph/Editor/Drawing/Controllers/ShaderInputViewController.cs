@@ -251,28 +251,46 @@ namespace UnityEditor.ShaderGraph.Drawing
             switch (changeAction)
             {
                 case ChangeExposedFlagAction changeExposedFlagAction:
-                    ViewModel.isInputExposed = Model.generatePropertyBlock;
-                    if (changeExposedFlagAction.oldIsExposedValue != changeExposedFlagAction.newIsExposedValue)
-                        DirtyNodes(ModificationScope.Graph);
-                    m_SgBlackboardField.UpdateFromViewModel();
+                    // ModelChanged is called overzealously on everything
+                    // but we only care if the action pertains to our Model
+                    if (changeExposedFlagAction.shaderInputReference == Model)
+                    {
+                        ViewModel.isInputExposed = Model.generatePropertyBlock;
+                        if (changeExposedFlagAction.oldIsExposedValue != changeExposedFlagAction.newIsExposedValue)
+                            DirtyNodes(ModificationScope.Graph);
+                        m_SgBlackboardField.UpdateFromViewModel();
+                    }
                     break;
 
                 case ChangePropertyValueAction changePropertyValueAction:
-                    DirtyNodes(ModificationScope.Graph);
-                    m_SgBlackboardField.MarkDirtyRepaint();
+                    if (changePropertyValueAction.shaderInputReference == Model)
+                    {
+                        DirtyNodes(ModificationScope.Graph);
+                        m_SgBlackboardField.MarkDirtyRepaint();
+                    }
                     break;
 
                 case ResetReferenceNameAction resetReferenceNameAction:
-                    DirtyNodes(ModificationScope.Graph);
+                    if (resetReferenceNameAction.shaderInputReference == Model)
+                    {
+                        DirtyNodes(ModificationScope.Graph);
+                    }
                     break;
 
                 case ChangeReferenceNameAction changeReferenceNameAction:
-                    DirtyNodes(ModificationScope.Graph);
+                    if (changeReferenceNameAction.shaderInputReference == Model)
+                    {
+                        DirtyNodes(ModificationScope.Graph);
+                    }
                     break;
+
                 case ChangeDisplayNameAction changeDisplayNameAction:
-                    ViewModel.inputName = Model.displayName;
-                    DirtyNodes(ModificationScope.Topological);
-                    m_SgBlackboardField.UpdateFromViewModel();
+                    if (changeDisplayNameAction.shaderInputReference == Model)
+                    {
+                        ViewModel.inputName = Model.displayName;
+                        DirtyNodes(ModificationScope.Topological);
+                        m_SgBlackboardField.UpdateFromViewModel();
+                    }
                     break;
             }
         }
