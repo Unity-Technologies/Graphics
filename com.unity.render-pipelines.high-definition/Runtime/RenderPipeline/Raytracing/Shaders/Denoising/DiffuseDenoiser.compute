@@ -54,7 +54,7 @@ float ComputeMaxDenoisingRadius(float3 positionRWS)
     // The world space radius for sample picking goes from distance/10.0 to distance/50.0 linearly until reaching 500.0 meters away from the camera
     // and it is always 20.0f (or two pixels if subpixel.
     // TODO: @Anis, I have a bunch of idea how to make this better and less empirical but it's for any other day
-    return distanceToPoint * _DenoiserFilterRadius / lerp(10.0, 50.0, saturate(distanceToPoint / 500.0));
+    return distanceToPoint * _DenoiserFilterRadius / lerp(5.0, 50.0, saturate(distanceToPoint / 500.0));
 }
 
 [numthreads(DIFFUSE_DENOISER_TILE_SIZE, DIFFUSE_DENOISER_TILE_SIZE, 1)]
