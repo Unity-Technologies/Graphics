@@ -65,7 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix unexpected Spawn context execution ordering
 - Fix incorrect buffer type for strips
 - Enabled an optimization for motion vectors, storing projected positions for vertices instead of the transform matrix
-- Move Sanitize from PreProcess to PostProcess to avoid loss of data due to model migration [Case 1344645](https://issuetracker.unity3d.com/product/unity/issues/guid/1344645/)
+- Unexpected operator and block removal during migration [Case 1344645](https://issuetracker.unity3d.com/product/unity/issues/guid/1344645/)
 
 ## [11.0.0] - 2020-10-21
 ### Added

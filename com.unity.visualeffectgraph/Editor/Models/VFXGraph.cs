@@ -37,17 +37,25 @@ namespace UnityEditor.VFX
                     if (graph != null)
                     {
                         bool wasGraphSanitized = graph.sanitized;
-                        graph.SanitizeForImport();
-                        if (!wasGraphSanitized && graph.sanitized)
+
+                        try
                         {
-                            if (assetToReimport == null)
-                                assetToReimport = new List<string>();
-                            assetToReimport.Add(assetPath);
+                            graph.SanitizeForImport();
+                            if (!wasGraphSanitized && graph.sanitized)
+                            {
+                                if (assetToReimport == null)
+                                    assetToReimport = new List<string>();
+                                assetToReimport.Add(assetPath);
+                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            Debug.LogErrorFormat("Exception during sanitization of {0} : {1}", assetPath, exception);
                         }
                     }
                     else
                     {
-                        Debug.LogError("VisualEffectGraphResource without graph");
+                        Debug.LogErrorFormat("VisualEffectGraphResource without graph : {0}", assetPath);
                     }
                 }
             }
@@ -56,7 +64,16 @@ namespace UnityEditor.VFX
             if (assetToReimport != null)
             {
                 foreach (var assetPath in assetToReimport)
-                    AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+                {
+                    try
+                    {
+                        AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.LogErrorFormat("Exception during reimport of {0} : {1}", assetPath, exception);
+                    }
+                }
             }
         }
 
