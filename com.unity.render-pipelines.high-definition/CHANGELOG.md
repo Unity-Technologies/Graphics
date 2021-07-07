@@ -77,6 +77,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for reflection probes as a fallback for ray traced reflections (case 1338644).
 - Added a minimum motion vector length to the motion vector debug view.
 - Added a better support for LODs in the ray tracing acceleration structure.
+- Added a SG node to get the main directional light direction.
+- Added a function to get the main directional light from script.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.

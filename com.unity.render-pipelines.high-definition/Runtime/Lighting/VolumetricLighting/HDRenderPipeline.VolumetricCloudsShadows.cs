@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool HasVolumetricCloudsShadows(HDCamera hdCamera, in VolumetricClouds settings)
         {
             return (HasVolumetricClouds(hdCamera, in settings)
-                && GetCurrentSunLight() != null
+                && GetMainDirectionalLight() != null
                 && settings.shadows.value);
         }
 
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TraceVolumetricCloudShadow(cmd, parameters, currentHandle);
 
             // Grab the current sun light
-            Light sunLight = GetCurrentSunLight();
+            Light sunLight = GetMainDirectionalLight();
 
             // Compute the shadow size
             float groundShadowSize = settings.shadowDistance.value * 2.0f;
