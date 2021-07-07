@@ -53,12 +53,19 @@ namespace UnityEditor
             Both = 0
         }
 
+        public enum QueueControl
+        {
+            Auto = 0,
+            UserOverride = 1
+        }
+
         protected class Styles
         {
             public static readonly string[] surfaceTypeNames = Enum.GetNames(typeof(SurfaceType));
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly string[] renderFaceNames = Enum.GetNames(typeof(RenderFace));
             public static readonly string[] zwriteNames = Enum.GetNames(typeof(UnityEditor.Rendering.Universal.ShaderGraph.ZWriteControl));
+            public static readonly string[] queueControlNames = Enum.GetNames(typeof(QueueControl));
 
             // need to skip the first entry for ztest (ZTestMode.Disabled is not a valid value)
             public static readonly int[] ztestValues = ((int[])Enum.GetValues(typeof(UnityEditor.Rendering.Universal.ShaderGraph.ZTestMode))).Skip(1).ToArray();
@@ -66,7 +73,7 @@ namespace UnityEditor
 
             // Categories
             public static readonly GUIContent SurfaceOptions =
-                EditorGUIUtility.TrTextContent("Surface Options", "Controls how Universal RP renders the Material on a screen.");
+                EditorGUIUtility.TrTextContent("Surface Options", "Controls how URP Renders the material on screen.");
 
             public static readonly GUIContent SurfaceInputs = EditorGUIUtility.TrTextContent("Surface Inputs",
                 "These settings describe the look and feel of the surface itself.");
@@ -105,10 +112,10 @@ namespace UnityEditor
                 "Specifies the base Material and/or Color of the surface. If you’ve selected Transparent or Alpha Clipping under Surface Options, your Material uses the Texture’s alpha channel or color.");
 
             public static readonly GUIContent emissionMap = EditorGUIUtility.TrTextContent("Emission Map",
-                "Sets a Texture map to use for emission. You can also select a color with the color picker. Colors are multiplied over the Texture.");
+                "Determines the color and intensity of light that the surface of the material emits.");
 
             public static readonly GUIContent normalMapText =
-                EditorGUIUtility.TrTextContent("Normal Map", "Assigns a tangent-space normal map.");
+                EditorGUIUtility.TrTextContent("Normal Map", "Designates a Normal Map to create the illusion of bumps and dents on this Material's surface.");
 
             public static readonly GUIContent bumpScaleNotSupported =
                 EditorGUIUtility.TrTextContent("Bump scale is not supported on mobile platforms");
@@ -118,6 +125,9 @@ namespace UnityEditor
 
             public static readonly GUIContent queueSlider = EditorGUIUtility.TrTextContent("Sorting Priority",
                 "Determines the chronological rendering order for a Material. Materials with lower value are rendered first.");
+
+            public static readonly GUIContent queueControl = EditorGUIUtility.TrTextContent("Queue Control",
+                "Controls whether render queue is automatically set based on material surface type, or explicitly set by the user.");
         }
 
         #endregion
@@ -156,6 +166,8 @@ namespace UnityEditor
 
         protected MaterialProperty queueOffsetProp { get; set; }
 
+        protected MaterialProperty queueControlProp { get; set; }
+
         public bool m_FirstTimeApply = true;
 
         // By default, everything is expanded, except advanced
@@ -190,6 +202,7 @@ namespace UnityEditor
 
             // ShaderGraph Lit and Unlit Subtargets only
             castShadowsProp = FindProperty(Property.CastShadows, properties, false);
+            queueControlProp = FindProperty(Property.QueueControl, properties, false);
 
             // ShaderGraph Lit, and Lit.shader
             receiveShadowsProp = FindProperty(Property.ReceiveShadows, properties, false);
@@ -295,8 +308,11 @@ namespace UnityEditor
 
         public virtual void DrawAdvancedOptions(Material material)
         {
+            // Only draw the sorting priority field if queue control is set to "auto"
+            bool autoQueueControl = GetAutomaticQueueControlSetting(material);
+            if (autoQueueControl)
+                DrawQueueOffsetField();
             materialEditor.EnableInstancingField();
-            DrawQueueOffsetField();
         }
 
         protected void DrawQueueOffsetField()
@@ -426,6 +442,49 @@ namespace UnityEditor
             // Receive Shadows
             if (material.HasProperty(Property.ReceiveShadows))
                 CoreUtils.SetKeyword(material, ShaderKeywordStrings._RECEIVE_SHADOWS_OFF, material.GetFloat(Property.ReceiveShadows) == 0.0f);
+        }
+
+        // this function is shared between ShaderGraph and hand-written GUIs
+        internal static void UpdateMaterialRenderQueueControl(Material material)
+        {
+            //
+            // Render Queue Control handling
+            //
+            // Check for a raw render queue (the actual serialized setting - material.renderQueue has already been converted)
+            // setting of -1, indicating that the material property should be inherited from the shader.
+            // If we find this, add a new property "render queue control" set to 0 so we will
+            // always know to follow the surface type of the material (this matches the hand-written behavior)
+            // If we find another value, add the the property set to 1 so we will know that the
+            // user has explicitly selected a render queue and we should not override it.
+            //
+            bool isShaderGraph = material.IsShaderGraph(); // Non-shadergraph materials use automatic behavior
+            int rawRenderQueue = MaterialAccess.ReadMaterialRawRenderQueue(material);
+            if (!isShaderGraph || rawRenderQueue == -1)
+            {
+                material.SetFloat(Property.QueueControl, (float)QueueControl.Auto); // Automatic behavior - surface type override
+            }
+            else
+            {
+                material.SetFloat(Property.QueueControl, (float)QueueControl.UserOverride); // User has selected explicit render queue
+            }
+        }
+
+        internal static bool GetAutomaticQueueControlSetting(Material material)
+        {
+            // If a Shader Graph material doesn't yet have the queue control property,
+            // we should not engage automatic behavior until the shader gets reimported.
+            bool automaticQueueControl = !material.IsShaderGraph();
+            if (material.HasProperty(Property.QueueControl))
+            {
+                var queueControl = material.GetFloat(Property.QueueControl);
+                if (queueControl < 0.0f)
+                {
+                    // The property was added with a negative value, indicating it needs to be validated for this material
+                    UpdateMaterialRenderQueueControl(material);
+                }
+                automaticQueueControl = (material.GetFloat(Property.QueueControl) == (float)QueueControl.Auto);
+            }
+            return automaticQueueControl;
         }
 
         // this is the function used by Lit.shader, Unlit.shader GUIs

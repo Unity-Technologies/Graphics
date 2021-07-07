@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         #endregion
 
         #region Fields
-        // TODO: figure which ones are actually URP only, leaver those here and put others shared/core Fields in Fields.cs
+        // TODO: figure which ones are actually URP only, leave those here and put others shared/core Fields in Fields.cs
         public static FieldDescriptor SurfaceOpaque =         new FieldDescriptor(kSurfaceType, "Opaque",                 "_SURFACE_TYPE_OPAQUE 1");
         public static FieldDescriptor SurfaceTransparent =    new FieldDescriptor(kSurfaceType, "Transparent",            "_SURFACE_TYPE_TRANSPARENT 1");
         public static FieldDescriptor BlendAdd =              new FieldDescriptor(kBlendMode,   "Add",                    "_BLENDMODE_ADD 1");

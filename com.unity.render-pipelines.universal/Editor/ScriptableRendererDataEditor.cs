@@ -222,7 +222,7 @@ namespace UnityEditor.Rendering.Universal
             serializedObject.Update();
 
             ScriptableObject component = CreateInstance((string)type);
-            component.name = $"New{(string)type}";
+            component.name = $"{(string)type}";
             Undo.RegisterCreatedObjectUndo(component, "Add Renderer Feature");
 
             // Store this new effect as a sub-asset so we can reference it safely afterwards
