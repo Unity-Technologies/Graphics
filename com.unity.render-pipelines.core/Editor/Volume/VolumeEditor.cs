@@ -47,8 +47,6 @@ namespace UnityEditor.Rendering
 
         VolumeProfile profileRef => actualTarget.HasInstantiatedProfile() ? actualTarget.profile : actualTarget.sharedProfile;
 
-        readonly GUIContent[] m_Modes = { new GUIContent("Global"), new GUIContent("Local") };
-
         void OnEnable()
         {
             var o = new PropertyFetcher<Volume>(serializedObject);
@@ -84,7 +82,7 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginProperty(lineRect, Styles.mode, m_IsGlobal);
             {
                 EditorGUI.BeginChangeCheck();
-                isGlobal = EditorGUI.Popup(lineRect, Styles.mode, isGlobal, m_Modes);
+                isGlobal = EditorGUI.Popup(lineRect, Styles.mode, isGlobal, Styles.modes);
                 if (EditorGUI.EndChangeCheck())
                     m_IsGlobal.boolValue = isGlobal == 0;
             }
