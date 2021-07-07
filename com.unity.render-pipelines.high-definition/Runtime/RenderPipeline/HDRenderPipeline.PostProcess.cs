@@ -482,6 +482,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
                     {
                         source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: false, "TAA Destination");
+                        RestoreNonjitteredMatrices(renderGraph, hdCamera);
                     }
                     else if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
                     {
@@ -535,6 +536,34 @@ namespace UnityEngine.Rendering.HighDefinition
             return dest;
         }
 
+        class RestoreNonJitteredPassData
+        {
+            public ShaderVariablesGlobal globalCB;
+            public HDCamera hdCamera;
+        }
+
+        void RestoreNonjitteredMatrices(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            using (var builder = renderGraph.AddRenderPass<RestoreNonJitteredPassData>("Restore Non-Jittered Camera Matrices", out var passData))
+            {
+                passData.hdCamera = hdCamera;
+                passData.globalCB = m_ShaderVariablesGlobalCB;
+
+                builder.SetRenderFunc((RestoreNonJitteredPassData data, RenderGraphContext ctx) =>
+                {
+                    // Note about AfterPostProcess and TAA:
+                    // When TAA is enabled rendering is jittered and then resolved during the post processing pass.
+                    // It means that any rendering done after post processing need to disable jittering. This is what we do with hdCamera.UpdateViewConstants(false);
+                    // The issue is that the only available depth buffer is jittered so pixels would wobble around depth tested edges.
+                    // In order to avoid that we decide that objects rendered after Post processes while TAA is active will not benefit from the depth buffer so we disable it.
+                    hdCamera.UpdateAllViewConstants(false);
+                    hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
+
+                    ConstantBuffer.PushGlobal(ctx.cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+                });
+            }
+        }
+
         #region AfterPostProcess
         class AfterPostProcessPassData
         {
@@ -573,14 +602,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (AfterPostProcessPassData data, RenderGraphContext ctx) =>
                     {
-                        // Note about AfterPostProcess and TAA:
-                        // When TAA is enabled rendering is jittered and then resolved during the post processing pass.
-                        // It means that any rendering done after post processing need to disable jittering. This is what we do with hdCamera.UpdateViewConstants(false);
-                        // The issue is that the only available depth buffer is jittered so pixels would wobble around depth tested edges.
-                        // In order to avoid that we decide that objects rendered after Post processes while TAA is active will not benefit from the depth buffer so we disable it.
-                        data.hdCamera.UpdateAllViewConstants(false);
-                        data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB);
-
                         UpdateOffscreenRenderingConstants(ref data.globalCB, true, 1.0f);
                         ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
