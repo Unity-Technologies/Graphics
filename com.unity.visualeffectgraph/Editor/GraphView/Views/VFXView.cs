@@ -143,9 +143,12 @@ namespace UnityEditor.VFX.UI
                 GUILayout.FlexibleSpace();
 
                 EditorGUILayout.PrefixLabel(VFXView.Contents.pickATarget, new GUIStyle { margin = new RectOffset(4, 0, 0, 0) });
-                if (EditorGUILayout.ObjectField(null, typeof(VisualEffect), true, GUILayout.ExpandWidth(true)) is VisualEffect visualEffect)
+                if (EditorGUILayout.ObjectField(this.m_vfxView.attachedComponent, typeof(VisualEffect), true, GUILayout.ExpandWidth(true)) is VisualEffect visualEffect)
                 {
-                    this.m_vfxView.AttachTo(visualEffect);
+                    if (visualEffect != this.m_vfxView.attachedComponent)
+                    {
+                        this.m_vfxView.AttachTo(visualEffect);
+                    }
                 }
 
                 GUI.enabled = isAttached;
