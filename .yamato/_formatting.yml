@@ -4,7 +4,7 @@ formatting:
     name: Formatting
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v1.3.1-719011
         flavor: b1.small
     commands:
       -  "echo -e \"[extensions]\nlargefiles=\n\" > ~/.hgrc"
@@ -24,7 +24,7 @@ formatting_apply:
     name: Formatting (Apply requested changes)
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v1.3.1-719011
         flavor: b1.small
     commands:
       -  git config --global user.name "noreply@unity3d.com"
