@@ -30,7 +30,7 @@ RW_TEXTURE2D_X(float, _OutputTexture);
 void KMainCoCPhysical(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _PostProcessScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
 
     float depth = LoadCameraDepth(FromOutputPosSSToPreupsamplePosSS(dispatchThreadId.xy));
 
