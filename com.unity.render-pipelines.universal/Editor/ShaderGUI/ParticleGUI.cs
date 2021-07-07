@@ -30,6 +30,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public static GUIContent softParticlesEnabled = EditorGUIUtility.TrTextContent("Soft Particles",
                 "Makes particles fade out when they get close to intersecting with the surface of other geometry in the depth buffer.");
 
+            public static GUIContent softParticlesFadeText = EditorGUIUtility.TrTextContent("Surface Fade");
+
             public static GUIContent softParticlesNearFadeDistanceText =
                 EditorGUIUtility.TrTextContent("Near",
                     "The distance from the other surface where the particle is completely transparent.");
@@ -40,6 +42,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             public static GUIContent cameraFadingEnabled = EditorGUIUtility.TrTextContent("Camera Fading",
                 "Makes particles fade out when they get close to the camera.");
+
+            public static GUIContent cameraFadingDistanceText = EditorGUIUtility.TrTextContent("Distance");
 
             public static GUIContent cameraNearFadeDistanceText =
                 EditorGUIUtility.TrTextContent("Near",
@@ -178,7 +182,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                         }
 
                         EditorGUI.indentLevel++;
-                        BaseShaderGUI.TwoFloatSingleLine(EditorGUIUtility.TrTextContent("Surface Fade"),
+                        BaseShaderGUI.TwoFloatSingleLine(Styles.softParticlesFadeText,
                             properties.softParticlesNearFadeDistance,
                             Styles.softParticlesNearFadeDistanceText,
                             properties.softParticlesFarFadeDistance,
@@ -194,7 +198,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     if (properties.cameraFadingEnabled.floatValue >= 0.5f)
                     {
                         EditorGUI.indentLevel++;
-                        BaseShaderGUI.TwoFloatSingleLine(EditorGUIUtility.TrTextContent("Distance"),
+                        BaseShaderGUI.TwoFloatSingleLine(Styles.cameraFadingDistanceText,
                             properties.cameraNearFadeDistance,
                             Styles.cameraNearFadeDistanceText,
                             properties.cameraFarFadeDistance,
