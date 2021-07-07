@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireScreenPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
+        , IMayRequirePositionPredisplacement
         , IMayRequireVertexColor
         , IMayRequireTime
         , IMayRequireFaceSign
