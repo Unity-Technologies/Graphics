@@ -4,7 +4,7 @@
 
 When Unity renders with GPU instancing, it assigns an **Instance ID** to each geometry.
 
-Use this node to capture **Instance ID** values in <code>[Graphics.DrawMeshInstanced](https://docs.unity3d.com/ScriptReference/Graphics.DrawMeshInstanced.html</code> API calls.
+Use this node to capture **Instance ID** values in [`Graphics.DrawMeshInstanced`](https://docs.unity3d.com/ScriptReference/Graphics.DrawMeshInstanced.html) API calls.
 
 When Unity does not render with GPU instancing, this ID is 0.
 

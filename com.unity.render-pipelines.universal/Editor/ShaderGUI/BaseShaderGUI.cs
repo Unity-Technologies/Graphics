@@ -73,7 +73,7 @@ namespace UnityEditor
 
             // Categories
             public static readonly GUIContent SurfaceOptions =
-                EditorGUIUtility.TrTextContent("Surface Options", "Controls how Universal RP renders the Material on a screen.");
+                EditorGUIUtility.TrTextContent("Surface Options", "Controls how URP Renders the material on screen.");
 
             public static readonly GUIContent SurfaceInputs = EditorGUIUtility.TrTextContent("Surface Inputs",
                 "These settings describe the look and feel of the surface itself.");
@@ -112,10 +112,10 @@ namespace UnityEditor
                 "Specifies the base Material and/or Color of the surface. If you’ve selected Transparent or Alpha Clipping under Surface Options, your Material uses the Texture’s alpha channel or color.");
 
             public static readonly GUIContent emissionMap = EditorGUIUtility.TrTextContent("Emission Map",
-                "Sets a Texture map to use for emission. You can also select a color with the color picker. Colors are multiplied over the Texture.");
+                "Determines the color and intensity of light that the surface of the material emits.");
 
             public static readonly GUIContent normalMapText =
-                EditorGUIUtility.TrTextContent("Normal Map", "Assigns a tangent-space normal map.");
+                EditorGUIUtility.TrTextContent("Normal Map", "Designates a Normal Map to create the illusion of bumps and dents on this Material's surface.");
 
             public static readonly GUIContent bumpScaleNotSupported =
                 EditorGUIUtility.TrTextContent("Bump scale is not supported on mobile platforms");
@@ -308,8 +308,11 @@ namespace UnityEditor
 
         public virtual void DrawAdvancedOptions(Material material)
         {
+            // Only draw the sorting priority field if queue control is set to "auto"
+            bool autoQueueControl = GetAutomaticQueueControlSetting(material);
+            if (autoQueueControl)
+                DrawQueueOffsetField();
             materialEditor.EnableInstancingField();
-            DrawQueueOffsetField();
         }
 
         protected void DrawQueueOffsetField()
@@ -464,9 +467,9 @@ namespace UnityEditor
 
         internal static bool GetAutomaticQueueControlSetting(Material material)
         {
-            // If the material doesn't yet have the queue control property, we should not engage automatic behavior until
-            // the shader gets reimported.
-            bool automaticQueueControl = false;
+            // If a Shader Graph material doesn't yet have the queue control property,
+            // we should not engage automatic behavior until the shader gets reimported.
+            bool automaticQueueControl = !material.IsShaderGraph();
             if (material.HasProperty(Property.QueueControl))
             {
                 var queueControl = material.GetFloat(Property.QueueControl);
