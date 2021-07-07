@@ -545,7 +545,10 @@ namespace UnityEngine.Rendering.Universal
                         // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
                         CameraData overlayCameraData = baseCameraData;
                         bool lastCamera = i == lastActiveOverlayCameraIndex;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
                         UpdateCameraStereoMatrices(currCameraData.camera, xrPass);
+#endif
 
                         using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
                         {
