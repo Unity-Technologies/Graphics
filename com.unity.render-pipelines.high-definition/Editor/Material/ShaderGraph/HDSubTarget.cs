@@ -113,6 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             Migrate();
 
+            systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
             var inspector = TargetsVFX() ? VFXHDRPSubTarget.Inspector : customInspector;

@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added `Calculate Level Of Detail Texture 2D` node, for calculating a Texture2D LOD level.
   - Added `Gather Texture 2D` node, for retrieving the four samples (red component only) that would be used for bilinear interpolation when sampling a Texture2D.
   - Added toggle "Disable Global Mip Bias" in Sample Texture 2D and Sample Texture 2D array node. This checkbox disables the runtimes automatic Mip Bias, which for instance can be activated during dynamic resolution scaling.
+  - Added `Sprite` option to Main Preview, which is similar to `Quad` but does not allow rotation. `Sprite` is used as the default preview for URP Sprite shaders.
 
 ### Changed
 - Properties and Keywords are no longer separated by type on the blackboard. Categories allow for any combination of properties and keywords to be grouped together as the user defines.
@@ -45,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added borders to inspector items styling, to better differentiate between separate items
 - Updated Custom Function Node to use new ShaderInclude asset type instead of TextAsset (.hlsl and .cginc softcheck remains).
 - Change BranchOnInputNode to choose NotConnected branch when generating Preview
+- Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
 
 ### Fixed
 - Fixed an issue where fog node density was incorrectly calculated.
@@ -102,7 +104,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a ShaderGraph issue where a material inspector could contain an extra set of render queue, GPU instancing, and double-sided GI controls.
 - Fixed a Shader Graph issue where property auto generated reference names were not consistent across all property types [1336937].
 - Fixed a warning in ShaderGraph about BuiltIn Shader Library assembly having no scripts.
+- Fixed ShaderGraph BuiltIn target not having collapsible foldouts in the material inspector [1339256].
 - Fixed GPU instancing support in Shadergraph [1319655] (https://issuetracker.unity3d.com/issues/shader-graph-errors-are-thrown-when-a-propertys-shader-declaration-is-set-to-hybrid-per-instance-and-exposed-is-disabled).
+- Fixed indent level in shader graph target foldout (case 1339025).
+- Fixed ShaderGraph BuiltIn target shader GUI to allow the same render queue control available on URP with the changes for case 1335795.
+- Fixed ShaderGraph BuiltIn target not to apply emission in the ForwardAdd pass to match surface shader results [1345574]. (https://issuetracker.unity3d.com/product/unity/issues/guid/1345574/)
+- Fixed Procedural Virtual Texture compatibility with SRP Batcher [1329336] (https://issuetracker.unity3d.com/issues/procedural-virtual-texture-node-will-make-a-shadergraph-incompatible-with-srp-batcher)
+- Fixed an issue where SubGraph keywords would not deduplicate before counting towards the permutation limit [1343528] (https://issuetracker.unity3d.com/issues/shader-graph-graph-is-generating-too-many-variants-error-is-thrown-when-using-subgraphs-with-keywords)
 
 ## [11.0.0] - 2020-10-21
 
@@ -135,6 +143,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ParallaxMapping node compile issue on GLES2
 - Fixed a selection bug with block nodes after changing tabs [1312222]
 - Fixed some shader graph compiler errors not being logged [1304162].
+- Fixed an error when using camera direction with sample reflected cube map [1340538].
 
 ## [10.3.0] - 2020-11-03
 

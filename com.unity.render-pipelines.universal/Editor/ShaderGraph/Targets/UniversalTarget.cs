@@ -125,6 +125,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         internal override bool ignoreCustomInterpolators => false;
         internal override int padCustomInterpolatorLimit => 4;
+        internal override bool prefersSpritePreview =>
+            activeSubTarget is UniversalSpriteUnlitSubTarget or UniversalSpriteLitSubTarget or
+                               UniversalSpriteCustomLitSubTarget;
 
         public UniversalTarget()
         {
@@ -1722,6 +1725,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "_CLUSTERED_RENDERING",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor EditorVisualization = new KeywordDescriptor()
+        {
+            displayName = "Editor Visualization",
+            referenceName = "EDITOR_VISUALIZATION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
         };
     }

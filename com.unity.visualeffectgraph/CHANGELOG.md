@@ -66,6 +66,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix incorrect buffer type for strips
 - Enabled an optimization for motion vectors, storing projected positions for vertices instead of the transform matrix
 - Eye dropper in the color fields kept updating after pressing the Esc key
+- Sticky notes can now be deleted through contextual manual menu
+- Blackboard fields can now be duplicated either with a shortcut (Ctrl+D) or with a contextual menu option
+- Properties labels do not overlap anymore
+- VFX Graph operators keep the same width when expanded or collpased so that the button does not change position
+- Fix Soft Particle depth computation when using an orthographic camera [Case 1309961](https://issuetracker.unity3d.com/product/unity/issues/guid/1309961)
 
 ## [11.0.0] - 2020-10-21
 ### Added

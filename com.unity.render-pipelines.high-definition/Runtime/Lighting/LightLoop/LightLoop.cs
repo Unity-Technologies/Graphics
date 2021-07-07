@@ -3228,10 +3228,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 var proj = hdCamera.xr.enabled ? hdCamera.xr.GetProjMatrix(viewIndex) : camera.projectionMatrix;
                 m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
 
+                var tempMatrix = temp * m_LightListProjMatrices[viewIndex];
+                var invTempMatrix = tempMatrix.inverse;
+
                 for (int i = 0; i < 16; ++i)
                 {
-                    var tempMatrix = temp * m_LightListProjMatrices[viewIndex];
-                    var invTempMatrix = tempMatrix.inverse;
                     cb.g_mScrProjectionArr[viewIndex * 16 + i] = tempMatrix[i];
                     cb.g_mInvScrProjectionArr[viewIndex * 16 + i] = invTempMatrix[i];
                 }
@@ -3245,10 +3246,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
                 temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
+                var tempMatrix = temp * m_LightListProjMatrices[viewIndex];
+                var invTempMatrix = tempMatrix.inverse;
+
                 for (int i = 0; i < 16; ++i)
                 {
-                    var tempMatrix = temp * m_LightListProjMatrices[viewIndex];
-                    var invTempMatrix = tempMatrix.inverse;
                     cb.g_mProjectionArr[viewIndex * 16 + i] = tempMatrix[i];
                     cb.g_mInvProjectionArr[viewIndex * 16 + i] = invTempMatrix[i];
                 }
