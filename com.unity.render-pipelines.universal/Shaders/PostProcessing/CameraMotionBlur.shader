@@ -3,7 +3,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
     HLSLINCLUDE
         #pragma exclude_renderers gles
 
-        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+        #pragma multi_compile _ _USE_DRAW_PROCEDURAL _USE_VISIBILITY_MESH
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"

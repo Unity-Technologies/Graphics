@@ -4,7 +4,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
 
         #pragma target 3.5
         #pragma exclude_renderers gles
-        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+        #pragma multi_compile _ _USE_DRAW_PROCEDURAL _USE_VISIBILITY_MESH
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"

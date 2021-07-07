@@ -30,20 +30,42 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+
+Varyings FullTest(Attributes input)
+{
+    Varyings output;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+#if _USE_DRAW_PROCEDURAL
+    output.positionCS = GetQuadVertexPosition(input.vertexID);
+    output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
+    output.uv = GetQuadTexCoord(input.vertexID) * _ScaleBias.xy + _ScaleBias.zw;
+#elif _USE_VISIBILITY_MESH
+    output.positionCS = float4(input.positionOS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), UNITY_NEAR_CLIP_VALUE, 1.0f);
+    output.uv = output.positionCS.xy;
+#else
+    output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+    output.uv = input.uv;
+#endif 
+    return output; 
+}
+
 Varyings FullscreenVert(Attributes input)
 {
     Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
 #if _USE_DRAW_PROCEDURAL
     output.positionCS = GetQuadVertexPosition(input.vertexID);
     output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
     output.uv = GetQuadTexCoord(input.vertexID) * _ScaleBias.xy + _ScaleBias.zw;
+#elif _USE_VISIBILITY_MESH
+    output.positionCS = float4(input.positionOS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), UNITY_NEAR_CLIP_VALUE, 1.0f);
+    output.uv = float2(1.0f, 1.0f);
 #else
     output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
     output.uv = input.uv;
-#endif
+#endif 
 
     return output;
 }
