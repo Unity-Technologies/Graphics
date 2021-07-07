@@ -31,6 +31,10 @@ namespace UnityEngine.Rendering
         }
     }
 
+    /// <summary>
+    /// This attribute allows you to add commands to the <strong>Add Override</strong> popup menu
+    /// on Volumes and specify for which render pipelines will be supported
+    /// </summary>
     public class VolumeComponentMenuForRenderPipeline : VolumeComponentMenu
     {
         /// <summary>
