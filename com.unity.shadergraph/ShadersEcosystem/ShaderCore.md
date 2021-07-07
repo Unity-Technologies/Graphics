@@ -145,3 +145,6 @@ Input {
     // Additionally extra attributes could be used to control the HLSLDeclaration type above, especially [Hidden].
 }
 ```
+
+Open Questions:
+- Can the complications of properties be hidden inside the linker? Can we specify all the extra data with attributes and make the internals know how to unpack textures, etc... into multiple properties?

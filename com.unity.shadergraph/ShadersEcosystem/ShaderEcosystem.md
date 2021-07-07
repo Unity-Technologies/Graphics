@@ -258,7 +258,15 @@ This will reflect what 2.0 will likely be split into in the SRPs and may give a 
 
 The template linker is responsible for building a shader from a template and a collection of blocks. The simple api looks something like:
 ```
-class BlockLinkage
+// Used to handle the input/output name remappings in the template
+class BlockLinkOverride
+{
+    string sourceName;
+    string destName;
+}
+```
+```
+class BlockLink
 {
     string customizationPointName
     BlockDescriptor blockToLink;
@@ -266,12 +274,18 @@ class BlockLinkage
     // Need some way to specify which passes to use this in.
     // Could either be a single pass (and duplicate entries for multiple passes) or a list of passes or some flags
     string passName;
+
+    // This is used to handle how names are remapped within the blocks.
+    // This is not 100% needed for the first pass, but is very useful. In particular because the
+    // input/output names already don't match (e.g. ObjectSpacePosition -> Position).
+    internal List<BlockLinkOverride> inputOverrides;
+    internal List<BlockLinkOverride> outputOverrides;
 }
 ```
 ```
 interface ITemplateLinker
 {
-    virtual void Link(ShaderBuilder builder, Template template, List<BlockLinkage> blockLinks);
+    virtual void Link(ShaderBuilder builder, Template template, List<BlockLink> blockLinks);
 }
 ```
 Note: this constructs a sub-shader, not a shader. This could be changed if we want to take a list of templates.
@@ -287,11 +301,19 @@ class LegacyTemplateLinker : ITemplateLinker
     // As targets can dynamically construct subshaders, this may need to be the generated sub-shader descriptor
     LegacyTemplateLinker(SubShaderDescriptor legacySubShaderDescriptor)
 
-    override void Link(ShaderBuilder builder, Template template, List<BlockLinkage> blockLinks);
+    override void Link(ShaderBuilder builder, Template template, List<BlockLink> blockLinks);
 }
 ```
 
 Some mechanism will be needed to connect the provider and linker together so legacy information can be built. In particular the linkier will need some way to grab information only needed for the legacy pathway such as the splice template file paths.
+
+The legacy linker will need to always generate a wrapper function around the user's actual function. This is important in particular for surface shaders and for the input/output name remappings. This needs to be done inside the linker because:
+- the generated block shouldn't change between linkers (legacy/new)
+- how default fields (required fields) are handled to enable pass-through
+- the special input/output type structs required by legacy
+- this may also allow us to hide or fix some names now if we want.
+
+As an additional note, ShaderGraph may have to change it's generation right now due to how it generates the surface functions since it generates a signature that matches the overload that the linker will want to create.
 
 ----
 Open Questions:
@@ -300,10 +322,12 @@ Open Questions:
 - How are duplicate types handled? Are they deduplicated based on name? Are names shadowed? It's expected several blocks would share the same types (e.g. varyings are shared between vertex/pixel).
 - A lot of structs in a target use generic precision qualifiers, the precision needs to be baked out at some point (in the linking or in the generation step)
 - How are inputs/outputs determined/matched for entry points? Automatically from - blocks? From top level descriptors?
+- Properties need extra metadata about how they're declared (not declared, global, per material, hybrid)
+
+Answered Questions:
 - How are varyings built? These will likely need to be hard-coded into the legacy linker in the same way they are now
 - [Active fields](#active-fields) are fairly complicated and convoluted.
 - Field/keyword/etc... dependencies. Can we bake these out or at least hide them inside the linker. We currently do a lot of stuff like add defines if a field is used e.g. using world space position defines VARYINGS_NEED_POSITION_WS
-- Properties need extra metadata about how they're declared (not declared, global, per material, hybrid)
 
 ---
 ## Shader Generator
@@ -374,11 +398,11 @@ Surface shaders need some way to interact with this whole system. High level the
 
 Something high-level like
 ```
-class TemplateDescription
+class ParsedTemplateDescription
 {
     string templateIdentifier;
     List<Tuple<string, string>> configurationParams;
-    List<BlockLinkage> blocksToLink;
+    List<BlockLink> blocksToLink;
 }
 class ParsedSurfaceShader
 {
@@ -389,17 +413,28 @@ void BuildSurfaceShader(string file)
 {
     var parsedSurfaceShader = Parse(file);
     var builder = new ShaderBuilder();
-    foreach(var templateDesc in parsedSurfaceShader.templateDescriptions)
+    var shaderDesc = new ShaderDescription();
+    foreach(var parsedTemplateDesc in parsedSurfaceShader.templateDescriptions)
     {
-        var templateProvider = FindTemplateProvider(templateDesc.templateIdentifier);
-        foreach(var param in templateDesc.configurationParams)
+        var templateProvider = FindTemplateProvider(parsedTemplateDesc.templateIdentifier);
+        foreach(var param in parsedTemplateDesc.configurationParams)
             templateProvider.ConfigureSettings(param.value0, param.value1);
 
         var templates = templateProvider.GetTemplates();
         foreach(var template in templates)
-            template.linker.Link(builder, template, templateDesc.blocksToLink);
+        {
+            var templateDesc = new SandboxTemplateDescription();
+            templateDesc.template = template;
+            // Build the parsed links into actual links. This might need to reorg some data, add pass specifications, etc...
+            templateDesc.blockLinks.AddRange(BuildBlocks(parsedTemplateDesc.blocksToLink));
+            shaderDesc.templateDescriptions.Add(templateDesc);
+        }
     }
-    var shaderCode = builder.ToCode();
+
+    var shaderBuilder = new ShaderStringBuilder();
+    var generator = new ShaderGenerator();
+    generator.Generate(shaderBuilder, shaderDesc);
+    var shaderCode = shaderBuilder.ToCode();
 }
 ```
 
