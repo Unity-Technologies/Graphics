@@ -36,7 +36,6 @@ Pass
 	${VFXEnd}
 
 
-//TODO : Vertex shader of decal must perform z bias or view bias (BiasType), need to create one
 ${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
 #define SHADERPASS SHADERPASS_VFX_DECAL_FORWARD_EMISSIVE
 ${VFXIncludeRP("VFXDecal.template")}

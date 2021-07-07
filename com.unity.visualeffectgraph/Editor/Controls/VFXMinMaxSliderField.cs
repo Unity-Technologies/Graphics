@@ -77,7 +77,6 @@ namespace UnityEditor.VFX.UI
             AddToClassList("sliderMinMaxField");
             m_Slider = new MinMaxSlider(1, 10, 0, 100);
 
-            // m_Slider.AddToClassList("textfield");
             m_Slider.RegisterValueChangedCallback(evt => ValueChanged(evt.newValue));
             m_IndeterminateLabel = new Label()
             {

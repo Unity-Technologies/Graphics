@@ -133,7 +133,7 @@ if(_EnableDecalLayers)
 
     #if VFX_MASK_BLEND_BASE_COLOR_ALPHA
 	    surfaceData.mask.w = albedoMapBlend;
-    #elif VFX_MASK_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity
+    #elif VFX_MASK_BLEND_MASK_BLUE
 	    surfaceData.mask.w = maskMapBlend;
     #endif
 
@@ -168,7 +168,7 @@ if(_EnableDecalLayers)
 	    surfaceData.normalWS.xyz = normalWS;
 	    #if VFX_NORMAL_BLEND_BASE_COLOR_ALPHA
 	    surfaceData.normalWS.w = albedoMapBlend;
-	    #elif VFX_NORMAL_BLEND_MASK_BLUE // TODO : Careful, not the only two cases, e.g. when using opacity	surfaceData.mask.w = maskMapBlend;
+	    #elif VFX_NORMAL_BLEND_MASK_BLUE
 	    surfaceData.normalWS.w = maskMapBlend;
 	    #endif
 
