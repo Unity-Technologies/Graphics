@@ -142,7 +142,8 @@ namespace UnityEditor.VFX.UI
 
                 GUILayout.FlexibleSpace();
 
-                if (EditorGUILayout.ObjectField(VFXView.Contents.pickATarget, null, typeof(VisualEffect), true) is VisualEffect visualEffect)
+                EditorGUILayout.PrefixLabel(VFXView.Contents.pickATarget, new GUIStyle { margin = new RectOffset(4, 0, 0, 0) });
+                if (EditorGUILayout.ObjectField(null, typeof(VisualEffect), true, GUILayout.ExpandWidth(true)) is VisualEffect visualEffect)
                 {
                     this.m_vfxView.AttachTo(visualEffect);
                 }
@@ -658,7 +659,7 @@ namespace UnityEditor.VFX.UI
 
         private void OnOpenAttachMenu()
         {
-            PopupWindow.Show(this.m_AttachDropDownButton.worldBound, this.m_attachPopupContent);
+            PopupWindow.Show(this.m_AttachDropDownButton.worldBound, this.m_attachPopupContent, null);
         }
 
         void OnRefreshUI(DropdownMenuAction action)
