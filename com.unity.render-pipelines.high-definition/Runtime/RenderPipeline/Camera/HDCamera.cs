@@ -834,7 +834,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // If we change the upscale schedule, refresh the history buffers. We need to do this, because if postprocess is after upscale, the size of some buffers needs to change.
-                if (m_PrevUpsamplerSchedule != DynamicResolutionHandler.instance.upsamplerSchedule)
+                if (m_PrevUpsamplerSchedule != DynamicResolutionHandler.instance.upsamplerSchedule || previousFrameWasTAAUpsampled != IsTAAUEnabled())
                 {
                     forceReallocPyramid = true;
                     m_PrevUpsamplerSchedule = DynamicResolutionHandler.instance.upsamplerSchedule;
