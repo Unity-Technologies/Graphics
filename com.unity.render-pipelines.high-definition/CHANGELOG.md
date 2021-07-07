@@ -273,6 +273,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
 - Fixed rounding issue when accessing the color buffer in the DoF shader.
 - HD Global Settings can now be unassigned in the Graphics tab if HDRP is not the active pipeline(case 1343570).
+- Fixed override camera rendering custom pass API aspect ratio issue when rendering to a render texture.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
