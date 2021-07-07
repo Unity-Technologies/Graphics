@@ -85,44 +85,44 @@ namespace UnityEditor.ShaderGraph
                     break;
                 }
                 case KeywordType.Enum:
-                using (var inputSlots = PooledList<MaterialSlot>.Get())
-                using (var slotIDs = PooledList<int>.Get())
-                {
-                    // Get slots
-                    GetInputSlots(inputSlots);
-
-
-                    // Add output slot
-                    AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
-                    slotIDs.Add(OutputSlotId);
-
-                    // Add input slots
-                    for (int i = 0; i < keyword.entries.Count; i++)
+                    using (var inputSlots = PooledList<MaterialSlot>.Get())
+                    using (var slotIDs = PooledList<int>.Get())
                     {
-                        // Get slot based on entry id
-                        MaterialSlot slot = inputSlots.Find(x =>
-                            x.id == keyword.entries[i].id &&
-                            x.RawDisplayName() == keyword.entries[i].displayName &&
-                            x.shaderOutputName == keyword.entries[i].referenceName);
+                        // Get slots
+                        GetInputSlots(inputSlots);
 
-                        // If slot doesn't exist, it's new so create it
-                        if (slot == null)
+
+                        // Add output slot
+                        AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
+                        slotIDs.Add(OutputSlotId);
+
+                        // Add input slots
+                        for (int i = 0; i < keyword.entries.Count; i++)
                         {
-                            slot = new DynamicVectorMaterialSlot(keyword.entries[i].id, keyword.entries[i].displayName, keyword.entries[i].referenceName, SlotType.Input, Vector4.zero);
-                        }
+                            // Get slot based on entry id
+                            MaterialSlot slot = inputSlots.Find(x =>
+                                x.id == keyword.entries[i].id &&
+                                x.RawDisplayName() == keyword.entries[i].displayName &&
+                                x.shaderOutputName == keyword.entries[i].referenceName);
 
-                        AddSlot(slot);
-                        slotIDs.Add(keyword.entries[i].id);
+                            // If slot doesn't exist, it's new so create it
+                            if (slot == null)
+                            {
+                                slot = new DynamicVectorMaterialSlot(keyword.entries[i].id, keyword.entries[i].displayName, keyword.entries[i].referenceName, SlotType.Input, Vector4.zero);
+                            }
+
+                            AddSlot(slot);
+                            slotIDs.Add(keyword.entries[i].id);
+                        }
+                        RemoveSlotsNameNotMatching(slotIDs);
+                        bool orderChanged = SetSlotOrder(slotIDs);
+                        if (orderChanged)
+                        {
+                            // unfortunately there is no way to get the view to update slot order other than Topological
+                            Dirty(ModificationScope.Topological);
+                        }
+                        break;
                     }
-                    RemoveSlotsNameNotMatching(slotIDs);
-                    bool orderChanged = SetSlotOrder(slotIDs);
-                    if (orderChanged)
-                    {
-                        // unfortunately there is no way to get the view to update slot order other than Topological
-                        Dirty(ModificationScope.Topological);
-                    }
-                    break;
-                }
             }
 
             ValidateNode();
