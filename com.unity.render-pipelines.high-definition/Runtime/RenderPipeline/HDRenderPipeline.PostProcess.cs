@@ -377,8 +377,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
+                // If the history was reset in the previous frame, then the history buffers were actually rendered with a neutral EV100 exposure multiplier
+                var prevExposureTexture = camera.didResetPostProcessingHistoryInLastFrame ? m_EmptyExposureTexture : GetPreviousExposureTexture(camera);
                 cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, GetExposureTexture(camera));
-                cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, GetPreviousExposureTexture(camera));
+                cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, prevExposureTexture);
             }
 
             if (m_DLSSPass != null)
@@ -513,6 +515,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = LensFlareDataDrivenPass(renderGraph, hdCamera, source);
 
                 source = FXAAPass(renderGraph, hdCamera, source);
+
+                hdCamera.didResetPostProcessingHistoryInLastFrame = hdCamera.resetPostProcessingHistory;
 
                 hdCamera.resetPostProcessingHistory = false;
             }

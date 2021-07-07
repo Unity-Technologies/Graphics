@@ -272,6 +272,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed remapping of depth pyramid debug view
 - Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
 - Fixed gbuffer depth debug mode for materials not rendered during the prepass.
+- Fixed white flash with SSR when resetting camera history (case 1335263).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

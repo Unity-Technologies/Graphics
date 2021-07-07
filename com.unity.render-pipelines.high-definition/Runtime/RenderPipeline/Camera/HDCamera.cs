@@ -561,6 +561,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDAdditionalCameraData.TAAQualityLevel TAAQuality { get; private set; } = HDAdditionalCameraData.TAAQualityLevel.Medium;
 
         internal bool resetPostProcessingHistory = true;
+        internal bool didResetPostProcessingHistoryInLastFrame = true;
 
         internal bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
