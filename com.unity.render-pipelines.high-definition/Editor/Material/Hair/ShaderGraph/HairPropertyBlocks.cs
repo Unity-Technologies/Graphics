@@ -37,9 +37,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         class Styles
         {
-            public static GUIContent geometryType = new GUIContent("Geometry Type", "TODO");
+            public static GUIContent geometryType = new GUIContent("Geometry Type", "Indicates the type of geometry being used to represent the hair, allowing the shading model to make informed approximations.");
             public static GUIContent scatteringMode = new GUIContent("Scattering Mode", "TODO");
-            public static GUIContent useRoughenedAzimuthalScattering = new GUIContent("Allow Radial Smoothness", "TODO");
+            public static GUIContent useRoughenedAzimuthalScattering = new GUIContent("Allow Radial Smoothness", "Adds a Radial Smoothness block to the target, controlling the internal scattering of the light paths and absorption that occurs within the fiber.");
         }
 
         HairData hairData;
@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (hairData.materialType == HairData.MaterialType.Marschner)
             {
                 // Note: Un-hide me when the improved multiple scattering approximation is available.
-                AddProperty(Styles.scatteringMode, () => hairData.scatteringMode, (newValue) => hairData.scatteringMode = newValue);
+                // AddProperty(Styles.scatteringMode, () => hairData.scatteringMode, (newValue) => hairData.scatteringMode = newValue);
 
                 AddProperty(Styles.useRoughenedAzimuthalScattering, () => hairData.useRoughenedAzimuthalScattering, (newValue) => hairData.useRoughenedAzimuthalScattering = newValue);
             }
