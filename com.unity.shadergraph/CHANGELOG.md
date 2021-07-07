@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added information about selecting and unselecting items to the Blackboard article.
   - Added View Vector Node documentation
   - Added custom interpolator thresholds on shadergraph project settings page.
+  - Added custom interpolator documentation
   - Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
   - Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
   - Added a new target for the built-in render pipeline, including Lit and Unlit sub-targets.
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added `Use Custom Binding` option to properties. When this option is enabled, a property can be connected to a `Branch On Input Connection` node. The user provides a custom label that will be displayed on the exposed property, when it is disconnected in a graph.
   - Added new dropdown property type for subgraphs, to allow compile time branching that can be controlled from the parent graph, via the subgraph instance node.
   - Added `Dropdown` node per dropdown property, that can be used to configure the desired branch control.
+  - Added selection highlight and picking shader passes for URP target.
   - Added the ability to mark textures / colors as \[MainTexture\] and \[MainColor\].
   - Added the ability to enable tiling and offset controls for a Texture2D input.
   - Added the Split Texture Transform node to allow using/overriding the provided tiling and offset from a texture input.
@@ -39,7 +41,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Asset/Create/Shader/Sub Graph to Asset/Create/Shader Graph/Sub Graph
 - Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
 - Adjusted Blackboard article to clarify multi-select functionality
-=======
 - Limited max number of inspectable items in the Inspector View to 20 items
 - Added borders to inspector items styling, to better differentiate between separate items
 - Updated Custom Function Node to use new ShaderInclude asset type instead of TextAsset (.hlsl and .cginc softcheck remains).
@@ -96,6 +97,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where nested subgraphs with identical SamplerState property settings could cause compile failures [1336089]
 - Fixed an issue where SamplerState properties could not be renamed after creation [1336126]
 - Fixed loading all materials from project when saving a ShaderGraph.
+- Fixed issues with double prompts for "do you want to save" when closing Shader Graph windows [1316104].
+- Fixed a ShaderGraph issue where resize handles on blackboard and graph inspector were too small [1329247] (https://issuetracker.unity3d.com/issues/shadergraph-resize-bounds-for-blackboard-and-graph-inspector-are-too-small)
+- Fixed a ShaderGraph issue where a material inspector could contain an extra set of render queue, GPU instancing, and double-sided GI controls.
+- Fixed a Shader Graph issue where property auto generated reference names were not consistent across all property types [1336937].
+- Fixed a warning in ShaderGraph about BuiltIn Shader Library assembly having no scripts.
+- Fixed ShaderGraph BuiltIn target not having collapsible foldouts in the material inspector [1339256].
+- Fixed GPU instancing support in Shadergraph [1319655] (https://issuetracker.unity3d.com/issues/shader-graph-errors-are-thrown-when-a-propertys-shader-declaration-is-set-to-hybrid-per-instance-and-exposed-is-disabled).
+- Fixed indent level in shader graph target foldout (case 1339025).
 
 ## [11.0.0] - 2020-10-21
 
@@ -265,6 +274,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added `Compute Deformation` Node to read deformed vertex data from Dots Deformations.
 - Added new graph nodes that allow sampling Virtual Textures
 - Shader Graph now uses a new file format that is much friendlier towards version control systems and humans. Existing Shader Graphs and will use the new format next time they are saved.
+- Added 'Allow Material Override' option to the built-in target for shader graph.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.

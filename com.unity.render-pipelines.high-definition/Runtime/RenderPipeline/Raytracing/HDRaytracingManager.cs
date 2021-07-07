@@ -410,7 +410,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDAdditionalReflectionData reflectionProbe = reflectionProbeArray[reflIdx];
                 // Add it to the list if enabled
-                if (reflectionProbe.enabled)
+                // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
+                if (reflectionProbe.enabled
+                    && reflectionProbe.ReflectionProbeIsEnabled()
+                    && reflectionProbe.gameObject.activeSelf
+                    && reflectionProbe.HasValidRenderedData())
                 {
                     m_RayTracingLights.reflectionProbeArray.Add(reflectionProbe);
                 }
@@ -541,7 +545,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaterialsDirty |= (matCount != m_MaterialCRCs.Count);
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
-                m_CurrentRAS.Build(hdCamera.camera.transform.position);
+                m_CurrentRAS.Build(hdCamera.mainViewConstants.worldSpaceCameraPos);
             else
                 m_CurrentRAS.Build();
 

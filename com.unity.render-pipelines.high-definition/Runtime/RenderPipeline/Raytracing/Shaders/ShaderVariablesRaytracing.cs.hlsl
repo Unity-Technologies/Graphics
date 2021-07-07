@@ -18,12 +18,12 @@ GLOBAL_CBUFFER_START(ShaderVariablesRaytracing, b3)
     float _RaytracingPixelSpreadAngle;
     float _RaytracingReflectionMinSmoothness;
     float _RaytracingReflectionSmoothnessFadeStart;
-    int _RaytracingIncludeSky;
     int _RaytracingMinRecursion;
     int _RaytracingMaxRecursion;
     int _RayTracingDiffuseLightingOnly;
     float _DirectionalShadowFallbackIntensity;
     float _RayTracingLodBias;
+    int _RayTracingFallbackHierarchy;
 CBUFFER_END
 
 
