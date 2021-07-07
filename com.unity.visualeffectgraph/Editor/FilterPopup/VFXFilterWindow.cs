@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEditor;
+
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
@@ -438,11 +437,8 @@ namespace UnityEditor.VFX.UI
             List<Element> matchesStart = new List<Element>();
             List<Element> matchesWithin = new List<Element>();
 
-            foreach (Element e in m_Tree)
+            foreach (var e in m_Tree.OfType<Element>())
             {
-                if ((e is GroupElement)) //TODO RF
-                    continue;
-
                 string name = e.name.ToLower().Replace(" ", "");
                 bool didMatchAll = true;
                 bool didMatchStart = false;
@@ -662,34 +658,12 @@ namespace UnityEditor.VFX.UI
 
         private List<Element> GetChildren(Element[] tree, Element parent)
         {
-            List<Element> children = new List<Element>();
-            int level = -1;
-            int i = 0;
-            for (i = 0; i < tree.Length; i++)
-            {
-                if (tree[i] == parent)
-                {
-                    level = parent.level + 1;
-                    i++;
-                    break;
-                }
-            }
-            if (level == -1)
-                return children;
-
-            for (; i < tree.Length; i++)
-            {
-                Element e = tree[i];
-
-                if (e.level < level)
-                    break;
-                if (e.level > level && !hasSearch)
-                    continue;
-
-                children.Add(e);
-            }
-
-            return children;
+            var childrenLevel = parent.level + 1;
+            return tree.SkipWhile(x => x != parent)
+                .Skip(1)
+                .TakeWhile(x => x.level >= childrenLevel)
+                .Where(x => x.level == childrenLevel || (x.level > childrenLevel && hasSearch))
+                .ToList();
         }
     }
 
