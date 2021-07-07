@@ -24,16 +24,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static class Styles
         {
-            public static readonly GUIContent isGlobal = new GUIContent("Mode", "A global volume is applied to the whole scene.");
+            public static readonly GUIContent isGlobal = new GUIContent("Mode", "A global volume is applied to the whole scene. A local volume is applied only when the camera position is inside the volume. A camera volume is applied only for the target camera.");
             public static readonly GUIContent fadeRadius = new GUIContent("Fade Radius", "Radius from where your effect will be rendered, the _FadeValue in shaders will be updated using this radius");
             public static readonly GUIContent injectionPoint = new GUIContent("Injection Point", "Where the pass is going to be executed in the pipeline.");
             public static readonly GUIContent priority = new GUIContent("Priority", "Determine the execution order when multiple Custom Pass Volumes overlap with the same injection point.");
-            public static readonly GUIContent[] modes = { new GUIContent("Global"), new GUIContent("Local") };
+            public static readonly GUIContent targetCamera = new GUIContent("Target Camera", "Determine on which camera this custom pass volume will be applied. If this property is null and the mode is set to camera, the volume is ignored.");
+            public static readonly GUIContent[] modes = { new GUIContent("Global"), new GUIContent("Local"), new GUIContent("Camera") };
         }
 
         class SerializedPassVolume
         {
             public SerializedProperty   isGlobal;
+            public SerializedProperty   useTargetCamera;
+            public SerializedProperty   targetCamera;
             public SerializedProperty   fadeRadius;
             public SerializedProperty   customPasses;
             public SerializedProperty   injectionPoint;
@@ -52,6 +55,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_SerializedPassVolume = new SerializedPassVolume
                 {
                     isGlobal = o.Find(x => x.isGlobal),
+                    useTargetCamera = o.Find(x => x.useTargetCamera),
+                    targetCamera = o.Find(x => x.m_TargetCamera),
                     injectionPoint = o.Find(x => x.injectionPoint),
                     customPasses = o.Find(x => x.customPasses),
                     fadeRadius = o.Find(x => x.fadeRadius),
@@ -142,18 +147,34 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             serializedObject.Update();
 
+            int GetMode() => m_SerializedPassVolume.useTargetCamera.boolValue ? 2 : (m_SerializedPassVolume.isGlobal.boolValue ? 0 : 1);
+            void SetMode(int value)
+            {
+                m_SerializedPassVolume.isGlobal.boolValue = value == 0;
+                m_SerializedPassVolume.useTargetCamera.boolValue = value == 2;
+            }
+
             EditorGUI.BeginChangeCheck();
             {
                 Rect isGlobalRect = EditorGUILayout.GetControlRect();
                 EditorGUI.BeginProperty(isGlobalRect, Styles.isGlobal, m_SerializedPassVolume.isGlobal);
                 {
-                    m_SerializedPassVolume.isGlobal.boolValue = EditorGUI.Popup(isGlobalRect, Styles.isGlobal, m_SerializedPassVolume.isGlobal.boolValue ? 0 : 1, Styles.modes) == 0;
+                    int selectedMode = EditorGUI.Popup(isGlobalRect, Styles.isGlobal, GetMode(), Styles.modes);
+                    SetMode(selectedMode);
                 }
                 EditorGUI.EndProperty();
-                EditorGUILayout.PropertyField(m_SerializedPassVolume.injectionPoint, Styles.injectionPoint);
-                EditorGUILayout.PropertyField(m_SerializedPassVolume.priority, Styles.priority);
-                if (!m_SerializedPassVolume.isGlobal.boolValue)
-                    EditorGUILayout.PropertyField(m_SerializedPassVolume.fadeRadius, Styles.fadeRadius);
+
+                if (m_SerializedPassVolume.useTargetCamera.boolValue)
+                {
+                    EditorGUILayout.PropertyField(m_SerializedPassVolume.targetCamera, Styles.targetCamera);
+                }
+                else
+                {
+                    EditorGUILayout.PropertyField(m_SerializedPassVolume.injectionPoint, Styles.injectionPoint);
+                    EditorGUILayout.PropertyField(m_SerializedPassVolume.priority, Styles.priority);
+                    if (!m_SerializedPassVolume.isGlobal.boolValue)
+                        EditorGUILayout.PropertyField(m_SerializedPassVolume.fadeRadius, Styles.fadeRadius);
+                }
             }
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();
