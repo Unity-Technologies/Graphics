@@ -249,8 +249,11 @@ EditorBuildSettings:
     path: Assets/Scenes/1000_RaytracingQualityKeyword_PathTracer_Default.unity
     guid: e94f1768c0fea4843a93cf691ba136fd
   - enabled: 1
-    path: Assets/Scenes/1001_HalfResolutionThreshold.unity
+    path: Assets/Scenes/1001_HalfResolutionThreshold_RTR.unity
     guid: 00792ceab642d9a4fbff4eb1b6d68993
+  - enabled: 1
+    path: Assets/Scenes/1001_HalfResolutionThreshold_RTGI.unity
+    guid: d72a8275f2fd56346bbc0e64277f06ea
   - enabled: 1
     path: Assets/Scenes/2000_Debug_ScreenSpaceGlobalIllumination.unity
     guid: 8389bea7a4b533e439040027eee5ccf1

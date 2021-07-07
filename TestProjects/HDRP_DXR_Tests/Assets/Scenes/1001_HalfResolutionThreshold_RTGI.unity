@@ -134,7 +134,6 @@ GameObject:
   m_Component:
   - component: {fileID: 237415499}
   - component: {fileID: 237415498}
-  - component: {fileID: 237415497}
   - component: {fileID: 237415496}
   m_Layer: 0
   m_Name: Camera_Native
@@ -266,14 +265,6 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 0
       enableBigTilePrepass: 0
       isFptlEnabled: 0
---- !u!81 &237415497
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 237415495}
-  m_Enabled: 1
 --- !u!20 &237415498
 Camera:
   m_ObjectHideFlags: 0
@@ -307,7 +298,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: de62711ebe513704895cd51963fd9b2c, type: 2}
+  m_TargetTexture: {fileID: 8400000, guid: 268498d984769084697172a9bbc2735c, type: 2}
   m_TargetDisplay: 1
   m_TargetEye: 3
   m_HDR: 0
@@ -324,14 +315,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 237415495}
-  m_LocalRotation: {x: 0.30070576, y: 0, z: 0, w: 0.953717}
-  m_LocalPosition: {x: 0, y: 3.05, z: 2.25}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 35, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &248539595
 GameObject:
   m_ObjectHideFlags: 0
@@ -400,7 +391,7 @@ MeshRenderer:
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 6f0b7016ad8f088449183842143e11cc, type: 2}
+  - {fileID: 2100000, guid: 50c4381f58072974283c48570ffeb655, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -473,7 +464,7 @@ TextMesh:
   m_GameObject: {fileID: 366123277}
   m_Text: 'Native Resolution Camera
 
-    RTR rendered at half resolution'
+    RTGI rendered at half resolution'
   m_OffsetZ: 0
   m_CharacterSize: 0.06
   m_LineSpacing: 1
@@ -539,7 +530,6 @@ GameObject:
   m_Component:
   - component: {fileID: 674304648}
   - component: {fileID: 674304647}
-  - component: {fileID: 674304646}
   - component: {fileID: 674304645}
   m_Layer: 0
   m_Name: Camera_DRS
@@ -671,14 +661,6 @@ MonoBehaviour:
       enableFptlForForwardOpaque: 0
       enableBigTilePrepass: 0
       isFptlEnabled: 0
---- !u!81 &674304646
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 674304644}
-  m_Enabled: 1
 --- !u!20 &674304647
 Camera:
   m_ObjectHideFlags: 0
@@ -712,7 +694,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: de62711ebe513704895cd51963fd9b2c, type: 2}
+  m_TargetTexture: {fileID: 8400000, guid: 268498d984769084697172a9bbc2735c, type: 2}
   m_TargetDisplay: 1
   m_TargetEye: 3
   m_HDR: 0
@@ -729,14 +711,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 674304644}
-  m_LocalRotation: {x: 0.30070576, y: 0, z: 0, w: 0.953717}
-  m_LocalPosition: {x: 0, y: 3.05, z: 2.25}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 35, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &998241053
 GameObject:
   m_ObjectHideFlags: 0
@@ -754,7 +736,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &998241054
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1007,7 +989,7 @@ MeshRenderer:
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 56b39d32a5ee7944b982e35d60ef6a48, type: 2}
+  - {fileID: 2100000, guid: a4a5f690577d33245ae086685fbf7973, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1045,7 +1027,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1061247952}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 4, z: 4.16}
+  m_LocalPosition: {x: 0, y: 4, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1105,7 +1087,7 @@ MeshRenderer:
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b3f75d00585f1b447b689730d5c08aff, type: 2}
+  - {fileID: 2100000, guid: 3edafe283a1d1a94393e1192a21c15b9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1329,7 +1311,7 @@ MonoBehaviour:
   priority: 0
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 11400000, guid: f5e5b74ac2ed70045a75608513d53b7d, type: 2}
+  sharedProfile: {fileID: 11400000, guid: 2aea0547184aa864e879ff2f7d9c1cad, type: 2}
 --- !u!4 &1483252420
 Transform:
   m_ObjectHideFlags: 0
@@ -1386,12 +1368,13 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1844703548}
-  m_Text: 'DRS Screen Percentage
+  m_Text: 'DRS Global Screen Percentage is
 
     Below RT Half Res Threshold
 
-    Same RTR Parameter
-    for both '
+
+    Same
+    RTGI parameters for both '
   m_OffsetZ: 0
   m_CharacterSize: 0.05
   m_LineSpacing: 1
@@ -1490,7 +1473,7 @@ TextMesh:
   m_GameObject: {fileID: 1880923149}
   m_Text: 'Dynamic Resolution Camera
 
-    RTR Forced back at full resolution'
+    RTGI Forced back at full resolution'
   m_OffsetZ: 0
   m_CharacterSize: 0.06
   m_LineSpacing: 1
