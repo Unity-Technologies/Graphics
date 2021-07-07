@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// A generic Volume component holding a <see cref="VolumeProfile"/>.
     /// </summary>
-    [HDRPHelpURLAttribute("Volumes")]
+    [CoreRPHelpURL("Volumes", "com.unity.render-pipelines.high-definition")]
     [ExecuteAlways]
     [AddComponentMenu("Miscellaneous/Volume")]
     public class Volume : MonoBehaviour
