@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.Universal
 
         public SerializedProperty supportRuntimeDebugDisplay;
 
-        public SerializedProperty staticAnalyseVariantStrip;
+        public SerializedProperty supportLightCookies;
 
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
         {
@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Universal
 
             supportRuntimeDebugDisplay = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.supportRuntimeDebugDisplay);
 
-            staticAnalyseVariantStrip = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.staticAnalyseVariantStrip);
+            supportLightCookies = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.supportLightCookies);
         }
     }
 }

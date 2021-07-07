@@ -277,15 +277,18 @@ namespace UnityEditor.Rendering.Universal
             m_LocalClearCoat = new ShaderKeyword(shader, ShaderKeywordStrings._CLEARCOAT);
             m_LocalClearCoatMap = new ShaderKeyword(shader, ShaderKeywordStrings._CLEARCOATMAP);
 
-            if (shader.name == "Universal Render Pipeline/Lit" || 
+            var isUrpShader = shader.name.StartsWith("Universal Render Pipeline/");
+            var isStencilDeferred = shader.name == "Hidden/Universal Render Pipeline/StencilDeferred";
+            /*if (shader.name.StartsWith("Universal Render Pipeline/") || 
                 shader.name == "Universal Render Pipeline/Simple Lit" || 
                 shader.name == "Universal Render Pipeline/Complex Lit" || 
                 shader.name == "Universal Render Pipeline/Baked Lit" || 
                 shader.name == "Unlit/Testy" ||
                 shader.name == "Hidden/Universal Render Pipeline/StencilDeferred" || 
                 m_IsShaderGraph)
-                m_StripDisabledKeywords = true;
-            m_MainLightFragment = shader.name == "Hidden/Universal Render Pipeline/StencilDeferred";
+                m_StripDisabledKeywords = true;*/
+            m_StripDisabledKeywords = isUrpShader | isStencilDeferred;
+            m_MainLightFragment = isStencilDeferred;
 
             m_LocalMainLightShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.MainLightShadows);
             m_LocalMainLightShadowsCascades = TryGetLocalKeyword(shader, ShaderKeywordStrings.MainLightShadowCascades);
@@ -683,8 +686,8 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }
 
-            if (stripTool.StripFragmentFeature(m_LocalLightCookies, globalSettings.staticAnalyseVariantStrip.lightCookiesEnabled))
-                return true;
+            //if (stripTool.StripFragmentFeature(m_LocalLightCookies, globalSettings.supportLightCookies))
+            //    return true;
 
             //bool isSoftShadow = compilerData.shaderKeywordSet.IsEnabled(m_LocalSoftShadows);
             //if (!IsFeatureEnabled(features, ShaderFeatures.SoftShadows) && isSoftShadow)
@@ -754,10 +757,20 @@ namespace UnityEditor.Rendering.Universal
             //bool isPunctualLightShadowCasterPass = (snippetData.passType == PassType.ShadowCaster) && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow);
             //if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isPunctualLightShadowCasterPass)
             //    return true;
-            if (stripTool.StripVertexFeature(m_LocalCastingPunctualLightShadow, ShaderFeatures.MainLightShadows))
-                return true;
-            if (stripTool.StripVertexFeature(m_LocalCastingPunctualLightShadow, ShaderFeatures.AdditionalLightShadows))
-                return true;
+            
+            // Shadow caster punctual light strip
+            if (snippetData.passType == PassType.ShadowCaster && m_ContainedKeywordNames.Contains(m_LocalCastingPunctualLightShadow.name) && snippetData.shaderType == ShaderType.Vertex)
+            {
+                if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
+                    return true;
+
+                bool mainLightShadows = 
+                    !IsFeatureEnabled(features, ShaderFeatures.MainLightShadows) &&
+                    !IsFeatureEnabled(features, ShaderFeatures.MainLightShadowsCascade) &&
+                    !IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceShadows);
+                if (mainLightShadows && !compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
+                    return true;
+            }
 
             // Additional light are shaded per-vertex or per-pixel.
             //bool isFeaturePerPixelLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.AdditionalLights);

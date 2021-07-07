@@ -255,13 +255,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool supportRuntimeDebugDisplay = false;
 
-        [System.Serializable]
-        public struct StaticAnalyseVariantStrip
-        {
-            public bool lightCookiesEnabled;
-        }
-
-        public StaticAnalyseVariantStrip staticAnalyseVariantStrip;
+        /// <summary>
+        /// Controls whether light cookies enabled.
+        /// </summary>
+        public bool supportLightCookies = true;
 
         #endregion
     }
