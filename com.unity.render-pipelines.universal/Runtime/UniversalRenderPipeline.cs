@@ -1028,21 +1028,6 @@ namespace UnityEngine.Rendering.Universal
             lightData.shadeAdditionalLightsPerVertex = settings.additionalLightsRenderingMode == LightRenderingMode.PerVertex;
             lightData.visibleLights = visibleLights;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
-<<<<<<< HEAD
-=======
-            lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
-            lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
-            lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.supportsLightLayers;
-            lightData.originalIndices = new NativeArray<int>(visibleLights.Length, Allocator.Temp);
-            for (var i = 0; i < lightData.originalIndices.Length; i++)
-            {
-                lightData.originalIndices[i] = i;
-            }
-        }
-
-        static void CleanupLightData(ref LightData lightData)
-        {
-            lightData.originalIndices.Dispose();
         }
 
         static void UpdateCameraStereoMatrices(Camera camera, XRPass xr)
@@ -1057,7 +1042,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 #endif
->>>>>>> 36fea48d58... [2021.2] Refactor XRSystem.SetupFrame for XR (#4458)
         }
 
         static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
