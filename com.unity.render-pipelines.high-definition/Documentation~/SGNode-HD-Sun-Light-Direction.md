@@ -3,6 +3,8 @@
 Provides access to the direction of the main directional light used by HDRP.
 The main directional light is the one casting shadows if there is any. Otherwise, it fallbacks to the first non shadow casting directional light.
 
+If no directional light is available, the output is zero.
+
 ### Available Ports
 
 | Name          | Direction | Type           | Description                                               |
