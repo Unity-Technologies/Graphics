@@ -309,11 +309,12 @@ void SampleCone(real2 u, real cosHalfAngle,
     rcpPdf = TWO_PI * (1 - cosHalfAngle);
 }
 
-// Returns ith strata vector for a cone with given apex angle using
+// Returns uniformly distributed sample vectors in a cone using
 // "golden angle spiral method" described here: http://blog.marmakoide.org/?p=1
+// note: the first sample is always [0, 0, 1]
 real3 SampleConeStrata(uint sampleIdx, real rcpSampleCount, real cosHalfApexAngle)
 {
-    real z = 1.0f - ((1.0f - cosHalfApexAngle) * (sampleIdx + 0.5f)) * rcpSampleCount;
+    real z = 1.0f - ((1.0f - cosHalfApexAngle) * sampleIdx) * rcpSampleCount;
     real r = sqrt(1.0f - z * z);
     real a = sampleIdx * 2.3999632297286f; // pi*(3-sqrt(5))
     real sphi = sin(a);

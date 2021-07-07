@@ -538,64 +538,56 @@ real4 IntegrateLD(TEXTURECUBE_PARAM(tex, sampl),
 }
 
 real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
-                         real3 V,
                          real3 N,
                          real roughness,
                          uint sampleCount,
-                         real invOmegaP)
+                         real invFaceCenterTexelSolidAngle)
 {
-    // Local frame for the local to world sample transformation
+    // ensure proper values
+    roughness = max(roughness, 0.001f);
+    sampleCount = max(1, sampleCount);
+
+    // filtered uniform sampling of the hemisphere
     real3x3 localToWorld = GetLocalFrame(N);
-    float NdotV = 1;
-
-    // Cumulative values
-    real3 lightInt = real3(0.0, 0.0, 0.0);
-    real  cbsdfInt = 0.0;
-
+    real3 totalLight = real3(0.0, 0.0, 0.0);
+    real totalWeight = 0.0;
     real rcpNumSamples = rcp(sampleCount);
-    real mipLevel = log2(rcpNumSamples * invOmegaP);
+    real pdf = 1 / (2.0f * PI);
+    real lodBias = roughness;
+    real lodBase = 0.5f * log2((rcpNumSamples * 1.0f / pdf) * invFaceCenterTexelSolidAngle) + lodBias;
     for (uint i = 0; i < sampleCount; ++i)
     {
-        // generate sample using stratified sampling of the hemisphere
-        float3 localL = SampleConeStrata(i, rcpNumSamples, 0.0f);
-        float NdotL = localL.z;
-
-        // Convert it to world space
+        // generate sample on the normal oriented hemisphere (uniform sampling)
+        real3 localL = SampleConeStrata(i, rcpNumSamples, 0.0f);
+        real NdotL = localL.z;
         real3 L = mul(localL, localToWorld);
 
-        // The goal of this function is to use Monte-Carlo integration to find
-        // X = Integral{Radiance(L) * CBSDF(L, N, V) dL} / Integral{CBSDF(L, N, V) dL}.
-        // Note: Integral{CBSDF(L, N, V) dL} is given by the FDG texture.
-        // CBSDF  = F * D * V * NdotL.
-        // PDF    =  1.0 / NdotL
-        // Weight = CBSDF / PDF = F * D * V
-        // Since we perform filtering with the assumption that (V == N),
-        // (LdotH == NdotH) && (NdotV == 1) && (Weight ==  F * D * V)
-        // Therefore, after the Monte Carlo expansion of the integrals,
-        // X = Sum(Radiance(L) * Weight) / Sum(Weight) = Sum(Radiance(L) * F * D * V) / Sum(F * D * V).
-
-        // We are in the supposition that N == V
-        float LdotV, NdotH, LdotH, invLenLV;
-        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
-
-        // BRDF data
-        real F = 1;
+        // evaluate BRDF for the sample (assume V=N)
+        real NdotV = 1.0;
+        real LdotV, NdotH, LdotH, invLenLV;
+        GetBSDFAngle(N, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
         real D = D_Charlie(NdotH, roughness);
-        real Vis = V_Charlie(NdotL, NdotV, roughness);
 
-        // TODO: use a Gaussian-like filter to generate the MIP pyramid.
-        real3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
+        // calculate texture LOD: 0.5*log2(omegaS/omegaP) as descriped in GPU Gems 3 "GPU-Based Importance Sampling" chapter 20.4:
+        //   https://developer.nvidia.com/gpugems/gpugems3/part-iii-rendering/chapter-20-gpu-based-importance-sampling
+        // omegaS = solid angle of the sample (i.e. 2pi/sampleCount for uniform hemisphere sampling)
+        // omegaP = solid angle of the texel in the sample direction. This is calculated by multiplying solid angle
+        // of the face center texel with texel cos(theta), where theta is angle between sample direction
+        // and center of the face, to account diminishing texel solid angles towards the edges of the cube.
+        real3 cubeCoord = L / max(abs(L.x), max(abs(L.y), abs(L.z))); // project sample direction to the cube face
+        real invDu2 = dot(cubeCoord, cubeCoord); // invDu2=1/cos^2(theta) of the sample texel
+        real lod = 0.5f * 0.5f * log2(invDu2) + lodBase; // extra 0.5f for sqrt(invDu2)=1/cos(theta)
+        real3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, lod).rgb;
 
-        // Use the approximation from "Real Shading in Unreal Engine 4": Weight ~ NdotL.
-        float w = F * D * Vis * NdotL;
-        lightInt += val * w;
-        cbsdfInt += w;
+        // accumulate lighting & weights
+        real w = D * NdotL;
+        totalLight += val * w;
+        totalWeight += w;
     }
 
-    float adhocFactor = PI / 2.0f; // todo: this factor is to make close match with the reference model, needs to be investigated why
-    return real4(adhocFactor * lightInt / cbsdfInt, 1.0);
+    real adhocFactor = PI / 2.0f; // todo: this factor is to make close match with the reference model, needs to be investigated why
+    return real4(adhocFactor * totalLight / totalWeight, 1.0);
 }
-
 
 // Searches the row 'j' containing 'n' elements of 'haystack' and
 // returns the index of the first element greater or equal to 'needle'.
