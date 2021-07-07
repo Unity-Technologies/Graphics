@@ -440,7 +440,15 @@ namespace  UnityEditor.VFX.UI
 
         private static IEnumerable<VFXModelDescriptor> GetSortedParameters()
         {
-            return VFXLibrary.GetParameters().OrderBy(o => o.name);
+            foreach (var desc in VFXLibrary.GetParameters().OrderBy(o => o.name))
+            {
+                var type = desc.model.type;
+                var attribute = VFXLibrary.GetAttributeFromSlotType(type);
+                if (attribute != null && attribute.usages.HasFlag(VFXTypeAttribute.Usage.ExcludeFromProperty))
+                    continue;
+
+                yield return desc;
+            }
         }
 
         void OnAddItem(Blackboard bb)
@@ -455,12 +463,6 @@ namespace  UnityEditor.VFX.UI
 
             foreach (var parameter in GetSortedParameters())
             {
-                var model = parameter.model as VFXParameter;
-                var type = model.type;
-                var attribute = VFXLibrary.GetAttributeFromSlotType(model.type);
-                if (attribute != null && attribute.usages.HasFlag(VFXTypeAttribute.Usage.ExcludeFromProperty))
-                    continue;
-
                 menu.AddItem(EditorGUIUtility.TextContent(parameter.name), false, OnAddParameter, parameter);
             }
 
