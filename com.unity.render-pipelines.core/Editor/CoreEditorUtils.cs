@@ -137,6 +137,23 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
+        /// Draws an <see cref="EditorGUI.EnumPopup"/> for the given property
+        /// </summary>
+        /// <typeparam name="TEnum"></typeparam>
+        /// <param name="rect">The rect where the drop down will be drawn</param>
+        /// <param name="label">The label for the drop down</param>
+        /// <param name="serializedProperty">The <see cref="SerializedProperty"/> to modify</param>
+        public static void DrawEnumPopup<TEnum>(Rect rect, GUIContent label, SerializedProperty serializedProperty)
+            where TEnum : Enum
+        {
+            EditorGUI.BeginChangeCheck();
+            var newValue = (TEnum)EditorGUI.EnumPopup(rect, label, serializedProperty.GetEnumValue<TEnum>());
+            if (EditorGUI.EndChangeCheck())
+                serializedProperty.SetEnumValue(newValue);
+            EditorGUI.EndProperty();
+        }
+
+        /// <summary>
         /// Draw a multiple field property
         /// </summary>
         /// <param name="label">Label of the whole</param>

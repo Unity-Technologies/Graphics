@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the center point for the distortion.
         /// </summary>
-        [Tooltip("Sets the center point for the distortion.")]
+        [Tooltip("Distortion center point. 0.5,0.5 is center of the screen.")]
         public Vector2Parameter center = new Vector2Parameter(new Vector2(0.5f, 0.5f));
 
         /// <summary>
