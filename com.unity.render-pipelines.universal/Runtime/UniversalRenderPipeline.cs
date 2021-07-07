@@ -542,8 +542,10 @@ namespace UnityEngine.Rendering.Universal
                         // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
                         CameraData overlayCameraData = baseCameraData;
                         bool lastCamera = i == lastActiveOverlayCameraIndex;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
                         UpdateCameraStereoMatrices(currCameraData.camera, xrPass);
->>>>>>> ed4e49864d... Backport changes from https://github.com/Unity-Technologies/Graphics/pull/4458/
+#endif
 
                         currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var currCameraData);
                         // Camera is overlay and enabled
