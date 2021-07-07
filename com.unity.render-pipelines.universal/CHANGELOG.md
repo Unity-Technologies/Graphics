@@ -140,7 +140,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where shadow artefacts appeared between cascades on Terrain Detail objects.
 - Fixed ShaderGraph materials to select render queue in the same way as handwritten shader materials by default, but allows for a user override for custom behavior. [case 1335795]
 - Fixed sceneview debug mode rendering (case 1211436)
-- Fixed missing property values in a RendererFeature of screen space shadows by hiding them in the inspector, there is no any options yet. [case 1327356]
+- Fixed missing property values in a RendererFeature of screen space shadows by adding tooltip for it instead of showing them. [case 1327356]
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
