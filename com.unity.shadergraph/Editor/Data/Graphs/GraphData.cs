@@ -1609,8 +1609,11 @@ namespace UnityEditor.ShaderGraph
                 if (categoryData.categoryGuid == associatedCategoryGuid && categoryData.IsItemInCategory(itemToMove))
                 {
                     // Validate new index to move the item to
-                    if (newIndex < 0 || newIndex >= categoryData.childCount)
+                    if (newIndex < -1 || newIndex >= categoryData.childCount)
+                    {
+                        AssertHelpers.Fail("Provided invalid index input to MoveItemInCategory.");
                         return;
+                    }
 
                     categoryData.MoveItemInCategory(itemToMove, newIndex);
                     break;
@@ -2828,6 +2831,7 @@ namespace UnityEditor.ShaderGraph
     class InspectorPreviewData
     {
         public SerializableMesh serializedMesh = new SerializableMesh();
+        public bool preventRotation;
 
         [NonSerialized]
         public Quaternion rotation = Quaternion.identity;
