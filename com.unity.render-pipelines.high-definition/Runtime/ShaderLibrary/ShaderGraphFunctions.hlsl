@@ -27,6 +27,19 @@ float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStatic
     return SampleBakedGI(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap);
 }
 
+void shadergraph_HDGetSunLight(out float3 direction, out float3 color)
+{
+    direction = 0.0f;
+    color = 0.0f;
+#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
+    if (_DirectionalLightCount > 0)
+    {
+        direction = -_DirectionalLightDatas[0].forward;
+        color = _DirectionalLightDatas[0].color;
+    }
+#endif
+}
+
 
 // If we already defined the Macro, now we need to redefine them given that HDRP functions are now defined.
 #ifdef SHADERGRAPH_SAMPLE_SCENE_DEPTH
@@ -44,6 +57,12 @@ float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStatic
 #undef SHADERGRAPH_BAKED_GI
 #endif
 #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
+
+
+#ifdef SHADERGRAPH_GET_SUN_LIGHT
+#undef SHADERGRAPH_GET_SUN_LIGHT
+#endif
+#define SHADERGRAPH_GET_SUN_LIGHT shadergraph_HDGetSunLight
 
 
 #endif // UNITY_GRAPHFUNCTIONS_HD_INCLUDED

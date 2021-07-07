@@ -9,6 +9,8 @@
 #define SHADERGRAPH_AMBIENT_SKY unity_AmbientSky
 #define SHADERGRAPH_AMBIENT_EQUATOR unity_AmbientEquator
 #define SHADERGRAPH_AMBIENT_GROUND unity_AmbientGround
+#define SHADERGRAPH_GET_SUN_LIGHT shadergraph_URPGetSunLight
+
 
 #if defined(REQUIRE_DEPTH_TEXTURE)
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
@@ -88,6 +90,13 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
     tangentToWorld[2] = tangentToWorld[2] * renormFactor;       // normalizes the interpolated vertex normal
 
     return tangentToWorld;
+}
+
+void shadergraph_URPGetSunLight(out float3 direction, out float3 color)
+{
+    Light light = GetMainLight();
+    direction = light.direction;
+    color = light.color;
 }
 
 // Always include Shader Graph version
