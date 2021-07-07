@@ -6,10 +6,9 @@ namespace UnityEngine.Rendering.Universal.Internal
     sealed class MotionVectorRenderPass : ScriptableRenderPass
     {
         #region Fields
-        const string kPreviousViewProjectionMatrix = "_PrevViewProjMatrix";
+        const string kPreviousViewProjectionMatrix = "unity_MatrixPrevVP";
         const string kViewProjection = "_ViewProjMatrix";
 #if ENABLE_VR && ENABLE_XR_MODULE
-        const string kPreviousViewProjectionStereo = "_PrevViewProjStereo";
         const string kViewProjectionStereo = "_ViewProjStereo";
 #endif
         const GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
@@ -76,7 +75,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
                 {
-                    Shader.SetGlobalMatrixArray(kPreviousViewProjectionStereo, m_MotionData.previousViewProjectionStereo);
+                    Shader.SetGlobalMatrixArray(kPreviousViewProjectionMatrix, m_MotionData.previousViewProjectionStereo);
                     Shader.SetGlobalMatrixArray(kViewProjectionStereo, m_MotionData.viewProjectionStereo);
                 }
                 else if (cameraData.xr.enabled)

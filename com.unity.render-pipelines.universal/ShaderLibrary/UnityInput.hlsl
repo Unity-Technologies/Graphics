@@ -23,6 +23,7 @@
 #define unity_MatrixInvP              unity_StereoMatrixInvP[unity_StereoEyeIndex]
 #define unity_MatrixVP                unity_StereoMatrixVP[unity_StereoEyeIndex]
 #define unity_MatrixInvVP             unity_StereoMatrixInvVP[unity_StereoEyeIndex]
+#define unity_MatrixPrevVP            unity_StereoMatrixPrevVP[unity_StereoEyeIndex]
 
 // Camera transform (but the same as pass transform for XR).
 #define unity_CameraProjection        unity_StereoCameraProjection[unity_StereoEyeIndex] // Does not go through GL.GetGPUProjectionMatrix()
@@ -160,6 +161,7 @@ float4x4 unity_StereoMatrixV[2];
 float4x4 unity_StereoMatrixInvV[2];
 float4x4 unity_StereoMatrixVP[2];
 float4x4 unity_StereoMatrixInvVP[2];
+float4x4 unity_StereoMatrixPrevVP[2];
 
 float4x4 unity_StereoCameraProjection[2];
 float4x4 unity_StereoCameraInvProjection[2];
@@ -208,6 +210,7 @@ float4x4 unity_MatrixInvV;
 float4x4 unity_MatrixInvP;
 float4x4 unity_MatrixVP;
 float4x4 unity_MatrixInvVP;
+float4x4 unity_MatrixPrevVP;
 float4 unity_StereoScaleOffset;
 int unity_StereoEyeIndex;
 #endif
