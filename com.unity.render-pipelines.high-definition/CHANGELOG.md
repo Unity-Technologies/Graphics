@@ -271,6 +271,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom pass volume not executed in scene view because of the volume culling mask.
 - Fixed remapping of depth pyramid debug view
 - Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
+- Fixed gbuffer depth debug mode for materials not rendered during the prepass.
 - Fix wobbling/tearing-like artifacts with SSAO.
 
 ### Changed
