@@ -94,7 +94,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent RTGIRayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
             public static readonly GUIContent RTGIClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
             public static readonly GUIContent RTGIFullResolution = EditorGUIUtility.TrTextContent("Full Resolution");
-            public static readonly GUIContent RTGIUpScaleRadius = EditorGUIUtility.TrTextContent("Upscale Radius");
             public static readonly GUIContent RTGIRaySteps = EditorGUIUtility.TrTextContent("Ray Steps");
             public static readonly GUIContent RTGIDenoise = EditorGUIUtility.TrTextContent("Denoise");
             public static readonly GUIContent RTGIHalfResDenoise = EditorGUIUtility.TrTextContent("Half Resolution Denoiser");

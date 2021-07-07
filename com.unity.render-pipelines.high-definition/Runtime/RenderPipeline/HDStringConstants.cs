@@ -642,7 +642,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CurrentFrameTexture             = Shader.PropertyToID("_CurrentFrameTexture");
         public static readonly int _AccumulatedFrameTexture         = Shader.PropertyToID("_AccumulatedFrameTexture");
         public static readonly int _TemporalAccumuationWeight       = Shader.PropertyToID("_TemporalAccumuationWeight");
-        public static readonly int _SpatialFilterRadius             = Shader.PropertyToID("_SpatialFilterRadius");
         public static readonly int _RaytracingHitDistanceTexture    = Shader.PropertyToID("_RaytracingHitDistanceTexture");
         public static readonly int _RaytracingVSNormalTexture       = Shader.PropertyToID("_RaytracingVSNormalTexture");
         public static readonly int _RaytracingReflectionTexture     = Shader.PropertyToID("_RaytracingReflectionTexture");
