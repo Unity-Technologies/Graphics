@@ -28,7 +28,11 @@
 //-----------------------------------------------------------------------------
 
 #define BUILTIN_DATA_SHADOW_MASK                    float4(builtinData.shadowMask0, builtinData.shadowMask1, builtinData.shadowMask2, builtinData.shadowMask3)
-#define INITIALIZE_VT_PACKED_FEEDBACK(builtinData)  builtinData.vtPackedFeedback = real4(1.0f, 1.0f, 1.0f, 1.0f)
+#ifdef UNITY_VIRTUAL_TEXTURING
+    #define ZERO_BUILTIN_INITIALIZE(builtinData)    ZERO_INITIALIZE(BuiltinData, builtinData); builtinData.vtPackedFeedback = real4(1.0f, 1.0f, 1.0f, 1.0f)
+#else
+    #define ZERO_BUILTIN_INITIALIZE(builtinData)    ZERO_INITIALIZE(BuiltinData, builtinData)
+#endif
 
 //-----------------------------------------------------------------------------
 // common Encode/Decode functions

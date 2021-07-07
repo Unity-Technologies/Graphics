@@ -51,8 +51,7 @@ Shader "Hidden/HDRP/CustomPassRenderersUtils"
             void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 viewDirection, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
             {
                 // Write back the data to the output structures
-                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
-                INITIALIZE_VT_PACKED_FEEDBACK(builtinData);
+                ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
                 builtinData.opacity = 1;
                 builtinData.emissiveColor = 0;
 
@@ -84,8 +83,7 @@ Shader "Hidden/HDRP/CustomPassRenderersUtils"
             void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 viewDirection, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
             {
                 // Write back the data to the output structures
-                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
-                INITIALIZE_VT_PACKED_FEEDBACK(builtinData);
+                ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
                 builtinData.opacity = 1;
                 builtinData.emissiveColor = 0;
                 surfaceData.color = 0;
@@ -114,8 +112,7 @@ Shader "Hidden/HDRP/CustomPassRenderersUtils"
             void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 viewDirection, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
             {
                 // Write back the data to the output structures
-                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
-                INITIALIZE_VT_PACKED_FEEDBACK(builtinData);
+                ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
                 builtinData.opacity = 1;
                 builtinData.emissiveColor = 0;
                 surfaceData.color = fragInputs.tangentToWorld[2].xyz;
@@ -144,8 +141,7 @@ Shader "Hidden/HDRP/CustomPassRenderersUtils"
             void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 viewDirection, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
             {
                 // Write back the data to the output structures
-                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
-                INITIALIZE_VT_PACKED_FEEDBACK(builtinData);
+                ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
                 builtinData.opacity = 1;
                 builtinData.emissiveColor = 0;
                 surfaceData.color = fragInputs.tangentToWorld[0].xyz;
