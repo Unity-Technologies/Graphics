@@ -213,7 +213,13 @@ Shader "Hidden/HDRP/TemporalAA"
 #if ORTHOGRAPHIC
             float2 closestOffset = 0;
 #else
-            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, int2(input.positionCS.xy));
+            int2 samplePos;
+#ifdef TAA_UPSCALE
+            samplePos = outputPixInInput;
+#else
+            samplePos = input.positionCS.xy;
+#endif
+            float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos);
 #endif
 
             DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_point_clamp_sampler, ClampAndScaleUVForPoint(uv + closestOffset * _InputSize.zw), 0), motionVector);
@@ -293,6 +299,7 @@ Shader "Hidden/HDRP/TemporalAA"
             // --------------- Blend to final value and output ---------------
 
 #if VELOCITY_REJECTION
+            // The 10 multiplier serves a double purpose, it is an empirical scale value used to perform the rejection and it also helps with storing the value itself.
             float lengthMV = motionVectorLength * 10;
             blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory);
 #endif

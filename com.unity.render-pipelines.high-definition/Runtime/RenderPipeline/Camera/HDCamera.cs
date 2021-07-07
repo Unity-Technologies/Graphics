@@ -249,7 +249,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Vector4                screenParams;
         internal int                    volumeLayerMask;
         internal Transform              volumeAnchor;
-        internal Rect                   finalViewport; // This will have the correct viewport position and the size will be full resolution (ie : not taking dynamic rez into account)
+        internal Rect                   finalViewport = new Rect(Vector2.zero, -1.0f * Vector2.one); // This will have the correct viewport position and the size will be full resolution (ie : not taking dynamic rez into account)
+        internal Rect                   prevFinalViewport;
         internal int                    colorPyramidHistoryMipCount = 0;
         internal VBufferParameters[]    vBufferParams;            // Double-buffered; needed even if reprojection is off
         internal RTHandle[]             volumetricHistoryBuffers; // Double-buffered; only used for reprojection
@@ -678,9 +679,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderDLSS;
         }
 
+        internal bool IsTAAUEnabled()
+        {
+            return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
+        }
+
         internal bool UpsampleHappensBeforePost()
         {
-            return IsDLSSEnabled() || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
+            return IsDLSSEnabled() || IsTAAUEnabled();
         }
 
         internal bool allowDeepLearningSuperSampling => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.allowDeepLearningSuperSampling;
@@ -692,7 +698,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool RequiresCameraJitter()
         {
-            return antialiasing == AntialiasingMode.TemporalAntialiasing || IsDLSSEnabled() || (DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU);
+            return antialiasing == AntialiasingMode.TemporalAntialiasing || IsDLSSEnabled() || IsTAAUEnabled();
         }
 
         internal bool IsSSREnabled(bool transparent = false)
@@ -879,6 +885,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Update viewport
             {
+                prevFinalViewport = finalViewport;
+
                 if (xr.enabled)
                 {
                     finalViewport = xr.GetViewport();

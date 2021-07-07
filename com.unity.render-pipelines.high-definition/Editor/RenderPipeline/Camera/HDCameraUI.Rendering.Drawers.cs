@@ -76,7 +76,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 s_IsRunningTAAU = p.allowDynamicResolution.boolValue && dynamicResSettings.upsampleFilter == UnityEngine.Rendering.DynamicResUpscaleFilter.TAAU && dynamicResSettings.enabled;
 
                 if (s_IsRunningTAAU)
+                {
                     EditorGUILayout.HelpBox(Styles.taauInfoBox, MessageType.Info);
+                    p.antialiasing.intValue = (int)HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+                }
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
                 EditorGUI.indentLevel++;
@@ -152,14 +155,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 showAntialiasContentAsFallback = isDLSSEnabled;
 #endif
 
-                Rect antiAliasingRect = EditorGUILayout.GetControlRect();
-                EditorGUI.BeginProperty(antiAliasingRect, Styles.antialiasing, p.antialiasing);
+                using (new EditorGUI.DisabledScope(s_IsRunningTAAU))
                 {
-                    EditorGUI.BeginChangeCheck();
-                    int selectedValue = (int)(HDAdditionalCameraData.AntialiasingMode)EditorGUI.EnumPopup(antiAliasingRect, showAntialiasContentAsFallback ? Styles.antialiasingContentFallback : Styles.antialiasing, (HDAdditionalCameraData.AntialiasingMode)p.antialiasing.intValue);
+                    Rect antiAliasingRect = EditorGUILayout.GetControlRect();
+                    EditorGUI.BeginProperty(antiAliasingRect, Styles.antialiasing, p.antialiasing);
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        int selectedValue = (int)(HDAdditionalCameraData.AntialiasingMode)EditorGUI.EnumPopup(antiAliasingRect, showAntialiasContentAsFallback ? Styles.antialiasingContentFallback : Styles.antialiasing, (HDAdditionalCameraData.AntialiasingMode)p.antialiasing.intValue);
 
-                    if (EditorGUI.EndChangeCheck())
-                        p.antialiasing.intValue = selectedValue;
+                        if (EditorGUI.EndChangeCheck())
+                            p.antialiasing.intValue = selectedValue;
+                    }
                 }
             }
 
@@ -186,7 +192,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             static void Drawer_Rendering_Antialiasing_TAA(SerializedHDCamera p, Editor owner)
             {
-                EditorGUILayout.PropertyField(p.taaQualityLevel, Styles.TAAQualityLevel);
+                using (new EditorGUI.DisabledScope(s_IsRunningTAAU))
+                {
+                    EditorGUILayout.PropertyField(p.taaQualityLevel, Styles.TAAQualityLevel);
+                }
                 if (s_IsRunningTAAU)
                     p.taaQualityLevel.intValue = (int)HDAdditionalCameraData.TAAQualityLevel.High;
 

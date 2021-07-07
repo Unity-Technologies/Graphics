@@ -66,12 +66,8 @@ namespace UnityEngine.Rendering.HighDefinition
         HableCurve m_HableCurve;
 
         //Viewport information
-        Rect m_PrevFinalViewport = new Rect(Vector2.zero, Vector2.one * -1);
         Vector2Int m_AfterDynamicResUpscaleRes = new Vector2Int(1, 1);
         Vector2Int m_BeforeDynamicResUpscaleRes = new Vector2Int(1, 1);
-
-        Dictionary<HDCamera, bool> m_WasRunningTAAU = new Dictionary<HDCamera, bool>();
-        Dictionary<HDCamera, bool> m_WillNeedToClearHistoryBuffers = new Dictionary<HDCamera, bool>();
 
         private enum ResolutionGroup
         {
@@ -482,7 +478,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
                     {
                         source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: false, "TAA Destination");
-                        if (DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU)
+                        if (hdCamera.IsTAAUEnabled())
                         {
                             SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
                         }
@@ -530,13 +526,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, m_BlueNoise, flipYInPostProcess);
 
-            bool currFrameIsTAAUpsampled = DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
+            bool currFrameIsTAAUpsampled = hdCamera.IsTAAUEnabled();
             bool cameraWasRunningTAA = hdCamera.previousFrameWasTAAUpsampled;
             hdCamera.previousFrameWasTAAUpsampled = currFrameIsTAAUpsampled;
 
             hdCamera.resetPostProcessingHistory = (cameraWasRunningTAA != currFrameIsTAAUpsampled);
-
-            m_PrevFinalViewport = hdCamera.finalViewport;
 
             renderGraph.EndProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
 
@@ -1447,7 +1441,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // The anti flicker becomes much more aggressive on higher values
             float temporalContrastForMaxAntiFlicker = 0.7f - Mathf.Lerp(0.0f, 0.3f, Mathf.SmoothStep(0.5f, 1.0f, camera.taaAntiFlicker));
 
-            bool TAAU = DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
+            bool TAAU = camera.IsTAAUEnabled();
 
             passData.taaParameters = new Vector4(TAAU && postDoF ? 0.25f : camera.taaHistorySharpening, postDoF ? maxAntiflicker : Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
 
@@ -1587,7 +1581,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool needToUseCurrFrameSizeForHistory = camera.resetPostProcessingHistory || TAAU != camera.previousFrameWasTAAUpsampled;
 
-            passData.prevFinalViewport = (m_PrevFinalViewport.width < 0 || needToUseCurrFrameSizeForHistory) ? camera.finalViewport : m_PrevFinalViewport;
+            passData.prevFinalViewport = (camera.prevFinalViewport.width < 0 || needToUseCurrFrameSizeForHistory) ? camera.finalViewport : camera.prevFinalViewport;
             var mainRTScales = RTHandles.CalculateRatioAgainstMaxSize(camera.actualWidth, camera.actualHeight);
 
             var historyRenderingViewport = TAAU ? new Vector2(passData.prevFinalViewport.width, passData.prevFinalViewport.height) :
