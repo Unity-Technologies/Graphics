@@ -173,6 +173,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            if (targets.OfType<CustomPassVolume>().Count() > 1)
+            {
+                EditorGUILayout.HelpBox("Custom Pass List UI is not supported with multi-selection", MessageType.Warning, true);
+                return;
+            }
+
             float customPassListHeight =  m_CustomPassList.GetHeight();
             var customPassRect = EditorGUILayout.GetControlRect(false, customPassListHeight);
             EditorGUI.BeginProperty(customPassRect, GUIContent.none, m_SerializedPassVolume.customPasses);
@@ -186,26 +192,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void CreateReorderableList(SerializedProperty passList)
         {
-            m_SupportListMultiEditing = targets.OfType<CustomPassVolume>().Count() == 1;
-
             m_CustomPassList = new ReorderableList(passList.serializedObject, passList);
 
             m_CustomPassList.drawHeaderCallback = (rect) => {
                 EditorGUI.LabelField(rect, k_DefaultListName, EditorStyles.largeLabel);
             };
 
-            m_CustomPassList.displayRemove = m_SupportListMultiEditing;
-            m_CustomPassList.draggable = m_SupportListMultiEditing;
             m_CustomPassList.multiSelect = false;
-
             m_CustomPassList.drawElementCallback = (rect, index, active, focused) => {
-                // Custom pass drawer inside the list doesn't support multi-selection
-                if (!m_SupportListMultiEditing)
-                {
-                    EditorGUI.HelpBox(rect, "Custom Pass UI is not supported with multi-selection", MessageType.Info);
-                    return;
-                }
-
                 EditorGUI.BeginChangeCheck();
 
                 passList.serializedObject.ApplyModifiedProperties();
@@ -222,9 +216,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_CustomPassList.elementHeightCallback = (index) =>
             {
-                if (!m_SupportListMultiEditing)
-                    return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-
                 passList.serializedObject.ApplyModifiedProperties();
                 var customPass = passList.GetArrayElementAtIndex(index);
                 var drawer = GetCustomPassDrawer(customPass, m_Volume.customPasses[index], index);
