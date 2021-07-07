@@ -1411,6 +1411,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 taaJitter = Vector4.zero;
             }
 
+            // If we have TAAU enabled, we need to force TAA to make it work.
+            if (IsTAAUEnabled())
+                antialiasing = AntialiasingMode.TemporalAntialiasing;
+
             // When changing antialiasing mode to TemporalAA we must reset the history, otherwise we get one frame of garbage
             if ((previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
                 || (m_PreviousClearColorMode != clearColorMode))
