@@ -156,16 +156,19 @@ namespace UnityEditor.VFX.UI
             if (m_Label.panel == null) return 40;
 
             VisualElement element = this;
-            while (element != null && element.resolvedStyle.unityFont == null)
+            while (element != null && string.IsNullOrEmpty(element.resolvedStyle.unityFontDefinition.ToString()))
             {
                 element = element.parent;
             }
-            if (element != null)
+
+            if (m_Label.style.unityFont == null && element != null)
             {
-                m_Label.style.unityFont = element.resolvedStyle.unityFont;
-                return m_Label.MeasureTextSize(m_Label.text, -1, MeasureMode.Undefined, m_Label.resolvedStyle.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset;
+                m_Label.style.unityFont = element.resolvedStyle.unityFontDefinition.font;
             }
-            return 40 + m_Provider.depth * depthOffset;
+
+            return m_Label.style.unityFont != null
+                ? m_Label.MeasureTextSize(m_Label.text, -1, MeasureMode.Undefined, m_Label.resolvedStyle.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset
+                : 40 + m_Provider.depth * depthOffset;
         }
 
         public abstract float GetPreferredControlWidth();

@@ -1191,16 +1191,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         out var hdCamera,
                         out var cullingParameters);
 
-                    VFXCameraXRSettings cameraXRSettings;
-                    cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
-                    cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
-                    cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
-
-                    VFXManager.PrepareCamera(camera, cameraXRSettings);
-
                     // Note: In case of a custom render, we have false here and 'TryCull' is not executed
                     if (!skipRequest)
                     {
+                        VFXCameraXRSettings cameraXRSettings;
+                        cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
+                        cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
+                        cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
+
+                        VFXManager.PrepareCamera(camera, cameraXRSettings);
+
                         var needCulling = true;
 
                         // In XR multipass, culling results can be shared if the pass has the same culling id
@@ -1221,6 +1221,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (needCulling)
                             skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, ref cullingResults);
+                    }
+
+                    if (additionalCameraData.hasCustomRender && additionalCameraData.fullscreenPassthrough)
+                    {
+                        Debug.LogWarning("HDRP Camera custom render is not supported when Fullscreen Passthrough is enabled. Please either disable Fullscreen Passthrough in the camera settings or remove all customRender callbacks attached to this camera.");
+                        continue;
                     }
 
                     if (additionalCameraData != null && additionalCameraData.hasCustomRender)

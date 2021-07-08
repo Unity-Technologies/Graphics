@@ -65,6 +65,8 @@ If both assets are already included in your project (in QualitySettings or in Gr
 
 To upgrade these assets manually, include them in your project and build from the command line.
 
+The Runtime Debug Display toggle has moved from the HDRP Asset to HDRP Global Settings Asset. This toggle uses the currently active HDRP Asset as the source.
+
 ## Materials
 
 ### Transparent Surface Type

@@ -53,6 +53,13 @@
     #if SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
         #define ATTRIBUTES_NEED_TEXCOORD1
         #define ATTRIBUTES_NEED_TEXCOORD2
+        #ifdef EDITOR_VISUALIZATION
+        #define ATTRIBUTES_NEED_TEXCOORD3
+        #define VARYINGS_NEED_TEXCOORD0
+        #define VARYINGS_NEED_TEXCOORD1
+        #define VARYINGS_NEED_TEXCOORD2
+        #define VARYINGS_NEED_TEXCOORD3
+        #endif
     #endif
     // Varying - Use for pixel shader
     // This second set of define allow to say which varyings will be output in the vertex (no more tesselation)

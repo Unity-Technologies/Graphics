@@ -77,6 +77,11 @@ namespace UnityEngine.Rendering
             public string displayName { get; set; }
 
             /// <summary>
+            /// Tooltip.
+            /// </summary>
+            public string tooltip { get; set; }
+
+            /// <summary>
             /// Path of the widget.
             /// </summary>
             public string queryPath { get; private set; }
@@ -121,6 +126,27 @@ namespace UnityEngine.Rendering
             public override int GetHashCode()
             {
                 return queryPath.GetHashCode();
+            }
+
+            /// <summary>
+            /// Helper struct to allow more compact initialization of widgets.
+            /// </summary>
+            public struct NameAndTooltip
+            {
+                public string name;
+                public string tooltip;
+            }
+
+            /// <summary>
+            /// Helper setter to allow more compact initialization of widgets.
+            /// </summary>
+            public NameAndTooltip nameAndTooltip
+            {
+                set
+                {
+                    displayName = value.name;
+                    tooltip = value.tooltip;
+                }
             }
         }
 
