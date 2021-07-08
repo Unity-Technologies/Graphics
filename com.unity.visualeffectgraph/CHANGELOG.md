@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Properties labels do not overlap anymore
 - VFX Graph operators keep the same width when expanded or collpased so that the button does not change position
 - Fix Soft Particle depth computation when using an orthographic camera [Case 1309961](https://issuetracker.unity3d.com/product/unity/issues/guid/1309961)
+- When adding a new node/operator in the graph editor and using the search field, the search results are sorted in a smarter way
 
 ## [11.0.0] - 2020-10-21
 ### Added
