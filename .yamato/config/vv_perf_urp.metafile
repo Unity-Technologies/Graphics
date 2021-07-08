@@ -47,7 +47,7 @@ reuse_blocks:
     - [all]: cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
   perf_utr_flags:
     - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
-    - [all]: --extra-editor-arg="-addscenetobuild=Assets/Viking Village/Scenes/The_Viking_Village.unity"
+    - [all]: --extra-editor-arg="-addscenetobuild=Assets/Viking_Village/Scenes/The_Viking_Village.unity"
     - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
     - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
     - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
