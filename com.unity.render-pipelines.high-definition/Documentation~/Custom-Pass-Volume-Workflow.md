@@ -20,7 +20,7 @@ The image below visualises the outer bounds of the fade radius as a wireframe bo
 
 ![A Custom Pass Volume visualised using a Box Collider, with its fade radius visualised as a wireframe box.](images/CustomPassVolumeBox_Collider.png)
 
-If the **Mode** of your Custom Pass Volume is set to **Camera**, the volume will only be executed for the target camera in parameter. When the target camera is set, the volume ignores the volume layer mask of the camera so that it's always executed for this camera.
+When a Custom Pass Volume's **Mode** is set to **Camera**, HDRP only executes the custom pass volume in its **Target Camera**. To make sure HDRP always executes the custom pass volume, it ignores the Camera's volume layer mask when a **Target Camera** is set.
 
 ## Using C# to change the fade radius
 
