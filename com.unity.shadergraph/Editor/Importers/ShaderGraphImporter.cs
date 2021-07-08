@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(121, Extension, -902)]
+    [ScriptedImporter(123, Extension, -902)]
 #else
-    [ScriptedImporter(50, Extension, -902)]
+    [ScriptedImporter(52, Extension, -902)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -231,7 +231,7 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 
-            List<MinimalCategoryData.GraphInputData> inputInspectorDataList = new List<MinimalCategoryData.GraphInputData>();
+            List<GraphInputData> inputInspectorDataList = new List<GraphInputData>();
             foreach (AbstractShaderProperty property in graph.properties)
             {
                 // Don't write out data for non-exposed blackboard items
@@ -242,7 +242,7 @@ Shader ""Hidden/GraphErrorShader2""
                 if (property is VirtualTextureShaderProperty virtualTextureShaderProperty)
                     inputInspectorDataList.Add(MinimalCategoryData.ProcessVirtualTextureProperty(virtualTextureShaderProperty));
                 else
-                    inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = property.referenceName, propertyType = property.propertyType, isKeyword = false});
+                    inputInspectorDataList.Add(new GraphInputData() { referenceName = property.referenceName, propertyType = property.propertyType, isKeyword = false});
             }
             foreach (ShaderKeyword keyword in graph.keywords)
             {
@@ -254,7 +254,7 @@ Shader ""Hidden/GraphErrorShader2""
                 if (keyword.keywordType == KeywordType.Boolean && keyword.referenceName.Contains("_ON"))
                     sanitizedReferenceName = sanitizedReferenceName.Replace("_ON", String.Empty);
 
-                inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true});
+                inputInspectorDataList.Add(new GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true});
             }
 
             sgMetadata.categoryDatas = new List<MinimalCategoryData>();
@@ -267,11 +267,11 @@ Shader ""Hidden/GraphErrorShader2""
                 MinimalCategoryData mcd = new MinimalCategoryData()
                 {
                     categoryName = categoryData.name,
-                    propertyDatas = new List<MinimalCategoryData.GraphInputData>()
+                    propertyDatas = new List<GraphInputData>()
                 };
                 foreach (var input in categoryData.Children)
                 {
-                    MinimalCategoryData.GraphInputData propData;
+                    GraphInputData propData;
                     // Only write out data for exposed blackboard items
                     if (input.isExposed == false)
                         continue;
@@ -290,12 +290,12 @@ Shader ""Hidden/GraphErrorShader2""
                         if (keyword.keywordType == KeywordType.Boolean && keyword.referenceName.Contains("_ON"))
                             sanitizedReferenceName = sanitizedReferenceName.Replace("_ON", String.Empty);
 
-                        propData = new MinimalCategoryData.GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true};
+                        propData = new GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true};
                     }
                     else
                     {
                         var prop = input as AbstractShaderProperty;
-                        propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, propertyType = prop.propertyType, isKeyword = false };
+                        propData = new GraphInputData() { referenceName = input.referenceName, propertyType = prop.propertyType, isKeyword = false };
                     }
 
                     mcd.propertyDatas.Add(propData);

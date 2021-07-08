@@ -82,9 +82,9 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             return o;
         }
 
-        float3 EvalL0L1(float3 L0, float3 L1_R, float3 L1_G, float3 L1_B, float3 N)
+        float3 EvalL1(float3 L0, float3 L1_R, float3 L1_G, float3 L1_B, float3 N)
         {
-            float3 outLighting = L0;
+            float3 outLighting = 0;
             L1_R = DecodeSH(L0.r, L1_R);
             L1_G = DecodeSH(L0.g, L1_G);
             L1_B = DecodeSH(L0.b, L1_B);
@@ -93,7 +93,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             return outLighting;
         }
 
-        float3 EvalL2(float3 L0, float4 L2_R, float4 L2_G, float4 L2_B, float4 L2_C, float3 N)
+        float3 EvalL2(inout float3 L0, float4 L2_R, float4 L2_G, float4 L2_B, float4 L2_C, float3 N)
         {
             DecodeSH_L2(L0, L2_R, L2_G, L2_B, L2_C);
 
@@ -119,7 +119,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
                 float4 L1G_L1Ry = apvRes.L1G_L1Ry[texLoc].rgba;
                 float4 L1B_L1Rz = apvRes.L1B_L1Rz[texLoc].rgba;
 
-                bakeDiffuseLighting = EvalL0L1(L0, float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w), L1G_L1Ry.xyz, L1B_L1Rz.xyz, normal);
+                bakeDiffuseLighting = EvalL1(L0, float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w), L1G_L1Ry.xyz, L1B_L1Rz.xyz, normal);
 
                 float4 L2_R = apvRes.L2_0[texLoc].rgba;
                 float4 L2_G = apvRes.L2_1[texLoc].rgba;
@@ -127,6 +127,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
                 float4 L2_C = apvRes.L2_3[texLoc].rgba;
 
                 bakeDiffuseLighting += EvalL2(L0, L2_R, L2_G, L2_B, L2_C, normal);
+                bakeDiffuseLighting += L0;
                 return float4(bakeDiffuseLighting * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
             }
             else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY)
