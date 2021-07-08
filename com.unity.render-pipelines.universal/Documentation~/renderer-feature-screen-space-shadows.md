@@ -20,15 +20,15 @@ It provides the Screen Space Shadows as Renderer Feature.
 To resolve main light shadows with screen space:
 
 1. In the Project window, select the Renderer that URP asset is using.
-![Select Renderer](Images\ssshadows\ssshadows-select-renderer.png)
+![Select Renderer](Images/ssshadows/ssshadows-select-renderer.png)
 
 The inspector window shows the Renderer properties.
 
 2. In the Inspector window, select Add Renderer Feature. In the list, select Screen Space Shadows.
-![Select Renderer Feature](Images\ssshadows\ssshadows-select-renderer-feature.png)
+![Select Renderer Feature](Images/ssshadows/ssshadows-select-renderer-feature.png)
 
 Unity adds the Screen Space Shadow to the Renderer.
-![Add Screen Space Shadows Renderer Feature](Images\ssshadows\ssshadows-renderer-feature-added.png)
+![Add Screen Space Shadows Renderer Feature](Images/ssshadows/ssshadows-renderer-feature-added.png)
 
 ## No Properties
 
