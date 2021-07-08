@@ -410,7 +410,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Output" }));
                 passData.outputDistanceSignal = distanceBased ? builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Distance output" })) : new TextureHandle();
-                
+
 
                 builder.SetRenderFunc(
                     (TemporalFilterArrayPassData data, RenderGraphContext ctx) =>
