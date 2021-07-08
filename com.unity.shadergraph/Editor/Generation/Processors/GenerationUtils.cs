@@ -733,6 +733,7 @@ namespace UnityEditor.ShaderGraph
                 GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, sb);
                 GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, sb);
                 GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, sb);
+                GenerateSpaceTranslationSurfaceInputs(requirements.requiresPositionPredisplacement, InterpolatorType.PositionPredisplacement, sb);
 
                 if (requirements.requiresVertexColor)
                     sb.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
@@ -773,6 +774,7 @@ namespace UnityEditor.ShaderGraph
             GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, sb, $"{variableName}.{{0}} = IN.{{0}};");
             GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, sb, $"{variableName}.{{0}} = IN.{{0}};");
             GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, sb, $"{variableName}.{{0}} = IN.{{0}};");
+            GenerateSpaceTranslationSurfaceInputs(requirements.requiresPositionPredisplacement, InterpolatorType.PositionPredisplacement, sb, $"{variableName}.{{0}} = IN.{{0}};");
 
             if (requirements.requiresVertexColor)
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.VertexColor} = IN.{ShaderGeneratorNames.VertexColor};");
