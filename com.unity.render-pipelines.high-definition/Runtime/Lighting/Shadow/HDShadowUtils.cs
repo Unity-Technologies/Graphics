@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // calculate projection
             proj = ExtractSpotLightProjectionMatrix(vl.range - forwardOffset, spotAngle, nearPlane - forwardOffset, aspectRatio, guardAngle);
-            
+
             // and the compound (deviceProj will potentially inverse-Z)
             deviceProj = GL.GetGPUProjectionMatrix(proj, false);
             deviceProjYFlip = GL.GetGPUProjectionMatrix(proj, true);
