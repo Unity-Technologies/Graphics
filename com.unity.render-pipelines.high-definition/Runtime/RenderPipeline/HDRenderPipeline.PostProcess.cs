@@ -782,7 +782,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle GetPreviousExposureTexture(HDCamera camera)
         {
             // If the history was reset in the previous frame, then the history buffers were actually rendered with a neutral EV100 exposure multiplier
-            return camera.didResetPostProcessingHistoryInLastFrame ? m_EmptyExposureTexture : GetExposureTextureHandle(camera.currentExposureTextures.previous);
+            return (camera.didResetPostProcessingHistoryInLastFrame && !IsExposureFixed(camera)) ?
+                m_EmptyExposureTexture : GetExposureTextureHandle(camera.currentExposureTextures.previous);
         }
 
         RTHandle GetExposureDebugData()
