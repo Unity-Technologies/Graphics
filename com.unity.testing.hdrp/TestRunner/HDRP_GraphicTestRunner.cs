@@ -171,13 +171,14 @@ public class HDRP_GraphicTestRunner
             else if (sgFail) Assert.Fail("Shader Graph Objects failed.");
             else if (biFail) Assert.Fail("Non-Shader Graph Objects failed to match Shader Graph objects.");
         }
-    }
-    void SetViewSize(int width, int height)
-    {
+
 #if UNITY_EDITOR
-        GameViewUtils.SetGameViewSize(width, height);
-#else
-        Screen.SetResolution(width, height, Screen.fullScreenMode);
+        // HACK
+        // Not all tests use back buffer capture and unfortunately, a lot of test result depends on the previous resolution rendering (due to temporal effects)
+        // So we need to force back the resolution to 1080p to not alter other tests results (this resolution seems to be the one working for our current tests).
+        // This is clearly not a long term solution. To solve that properly we need to switch all tests to backbuffer capture and properly force the resolution for all of them.
+        if (useBackBuffer)
+            GameViewUtils.SetGameViewSize(1920, 1080);
 #endif
     }
 
