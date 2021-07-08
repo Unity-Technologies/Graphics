@@ -117,7 +117,7 @@ namespace UnityEditor.VFX.UI
             this.m_vfxView = vfxView;
         }
 
-        public override Vector2 GetWindowSize() 
+        public override Vector2 GetWindowSize()
         {
             return new Vector2(200, 120);
         }

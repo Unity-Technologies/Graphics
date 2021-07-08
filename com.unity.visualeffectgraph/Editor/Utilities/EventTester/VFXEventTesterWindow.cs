@@ -277,7 +277,6 @@ namespace UnityEditor.VFX
             if ((m_Effects?.Length).GetValueOrDefault(0) == 0) return;
             foreach (var visualEffect in m_Effects)
             {
-
                 var attrib = visualEffect.CreateVFXEventAttribute();
                 if (attrib == null) return;
 
