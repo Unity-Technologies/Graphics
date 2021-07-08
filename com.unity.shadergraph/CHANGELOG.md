@@ -108,8 +108,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed indent level in shader graph target foldout (case 1339025).
 - Fixed ShaderGraph BuiltIn target shader GUI to allow the same render queue control available on URP with the changes for case 1335795.
 - Fixed ShaderGraph BuiltIn target not to apply emission in the ForwardAdd pass to match surface shader results [1345574]. (https://issuetracker.unity3d.com/product/unity/issues/guid/1345574/)
-- Fixed Procedural Virtual Texture compatibility with SRP Batcher [1329336] (https://issuetracker.unity3d.com/issues/procedural-virtual-texture-node-will-make-a-shadergraph-incompatible-with-srp-batcher)
-- Parallax Occlusion Mapping node has more inputs to handle non uniformly scaled UVs like HDRP/Lit POM [1347008]
+- Fixed Procedural Virtual Texture compatibility with SRP Batcher [1329336]. (https://issuetracker.unity3d.com/issues/procedural-virtual-texture-node-will-make-a-shadergraph-incompatible-with-srp-batcher)
+- Added more inputs to the Parallax Occlusion Mapping node to handle non-uniformly scaled UVs such as HDRP/Lit POM [1347008].
 
 ## [11.0.0] - 2020-10-21
 
