@@ -256,8 +256,7 @@ namespace UnityEditor.VFX.UI
                         break;
 
                     // Try to find a child of the same name as we had before
-                    List<Element> children = GetChildren(activeTree, match);
-                    Element childMatch = children.FirstOrDefault(c => c.name == m_Stack[level].name);
+                    Element childMatch = GetChildren(activeTree, match).FirstOrDefault(c => c.name == m_Stack[level].name);
                     if (childMatch != null && childMatch is GroupElement)
                     {
                         match = childMatch as GroupElement;
@@ -367,7 +366,7 @@ namespace UnityEditor.VFX.UI
                     if (evt.keyCode == KeyCode.DownArrow)
                     {
                         activeParent.selectedIndex++;
-                        activeParent.selectedIndex = Mathf.Min(activeParent.selectedIndex, GetChildren(activeTree, activeParent).Count - 1);
+                        activeParent.selectedIndex = Mathf.Min(activeParent.selectedIndex, GetChildren(activeTree, activeParent).Count() - 1);
                         m_ScrollToSelected = true;
                         evt.Use();
                     }
@@ -449,7 +448,7 @@ namespace UnityEditor.VFX.UI
 
             // Always select the first search result when search is changed (e.g. a character was typed in or deleted),
             // because it's usually the best match.
-            if (GetChildren(activeTree, activeParent).Count >= 1)
+            if (GetChildren(activeTree, activeParent).Any())
                 activeParent.selectedIndex = 0;
             else
                 activeParent.selectedIndex = -1;
@@ -564,13 +563,13 @@ namespace UnityEditor.VFX.UI
 
             EditorGUIUtility.SetIconSize(new Vector2(16, 16));
 
-            List<Element> children = GetChildren(tree, parent);
+            Element[] children = GetChildren(tree, parent).ToArray();
 
             Rect selectedRect = new Rect();
 
 
             // Iterate through the children
-            for (int i = 0; i < children.Count; i++)
+            for (int i = 0; i < children.Length; i++)
             {
                 Element e = children[i];
                 Rect r = GUILayoutUtility.GetRect(16, 20, GUILayout.ExpandWidth(true));
@@ -635,23 +634,18 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private List<Element> GetChildren(Element[] tree, Element parent)
+        private IEnumerable<Element> GetChildren(Element[] tree, Element parent)
         {
             var childrenLevel = parent.level + 1;
             return tree.SkipWhile(x => x != parent)
                 .Skip(1)
                 .TakeWhile(x => x.level >= childrenLevel)
-                .Where(x => x.level == childrenLevel || (x.level > childrenLevel && hasSearch))
-                .ToList();
+                .Where(x => x.level == childrenLevel || (x.level > childrenLevel && hasSearch));
         }
 
         private Element GetChildAt(Element[] tree, Element parent, int childIndex)
         {
-            var childrenLevel = parent.level + 1;
-            return tree.SkipWhile(x => x != parent)
-                .Skip(1)
-                .TakeWhile(x => x.level >= childrenLevel)
-                .Where(x => x.level == childrenLevel || (x.level > childrenLevel && hasSearch))
+            return this.GetChildren(tree, parent)
                 .Skip(childIndex)
                 .FirstOrDefault();
         }
