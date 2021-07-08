@@ -2,6 +2,16 @@
 
 This page contains information on known issues you may encounter when using URP.
 
+## When importing the URP package samples, Unity does not set the necessary URP asset in Quality > Render Pipeline Asset<a name="urp-samples-known-issue-1"></a>
+
+When importing the URP package samples, Unity does not set the necessary URP asset in **Quality** > **Render Pipeline Asset**, and certain sample rendering effects do not work.
+
+To fix this issue:
+
+In **Project Settings** > **Quality** > **Render Pipeline Asset**, select `SamplesPipelineAsset`.
+
+![In Project Settings > Quality > Render Pipeline Asset, select SamplesPipelineAsset](Images/known-issues/urp-12-package-samples.png)
+
 ## Renaming a URP Renderer asset to a name matching one of the Renderer Feature names causes erroneous behavior
 
 If a URP Renderer asset has any Renderer Features assigned, renaming the Renderer asset to a name matching one of the Renderer Feature names causes erroneous behavior: the URP Renderer and the Renderer Feature switch places.
