@@ -294,9 +294,6 @@ namespace UnityEngine.Rendering
 
         /// <summary> Inverse the gradient direction. </summary>
         public bool inverseSDF;
-
-        /// <summary> Uniform angle used with multiple element enabled with Uniform distribution. </summary>
-        public float uniformAngle;
     }
 
     /// <summary> LensFlareDataSRP defines a Lens Flare with a set of LensFlareDataElementSRP </summary>

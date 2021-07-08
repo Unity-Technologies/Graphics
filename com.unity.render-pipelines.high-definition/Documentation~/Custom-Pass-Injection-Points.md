@@ -2,17 +2,15 @@
 
 To determine when Unity executes a Custom Pass Volume, select an **Injection Point** in the [Custom Pass Volume](Custom-Pass-Creating.md#Custom-Pass-Volume) component.
 
-Each injection point affects the way Custom Passes appear in your scene. There are six injection points in the HDRP render loop. Unity can only execute one Custom Pass Volume in each injection point.
+Each injection point affects the way Custom Passes appear in your scene. There are six injection points in the High Definition Render Pipeline (HDRP). If there are multiple Custom Pass volumes assigned to one Injection Point, HDRP executes them in order of priority. For more information see [Custom Pass Volume workflow](#Custom-Pass-Volume-Workflow.md)
 
-Injection points give the Custom Pass Volume component access to a selection of buffers. Each available buffer has different read or write access at each **injection point**. Each buffer contains a subset of objects rendered before your pass.
+Injection points give a Custom Pass Volume component access to a selection of buffers. Each available buffer has different read or write access at each injection point. Each buffer contains a subset of objects rendered before your pass. HDRP creates a color pyramid and depth pyramid at specific points in the rendering pipeline. For more information, see [Custom Pass buffers and pyramids](Custom-Pass-buffers-pyramids.md).
 
 In a **DrawRenderers Custom Pass** you can only use certain materials at specific injection points. For a full list of compatible materials, see [Material and injection point compatibility](Custom-Pass-Creating.md#Material-Injection-Point-Compatibility).
 
 To analyse the actions Unity performs in a render loop and see where Unity executes your Custom Pass, use the [frame debugger](https://docs.unity3d.com/Manual/FrameDebugger.html).
 
 Unity triggers the following injection points in a frame, in order from top to bottom:
-
-
 
 | **Injection point**       | **Available buffers**                                        | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |

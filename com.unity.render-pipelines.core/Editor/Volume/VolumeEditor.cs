@@ -9,6 +9,32 @@ namespace UnityEditor.Rendering
     [CustomEditor(typeof(Volume))]
     sealed class VolumeEditor : Editor
     {
+        static class Styles
+        {
+            public static readonly GUIContent mode = EditorGUIUtility.TrTextContent("Mode", "This property defines whether the Volume is Global or Local. Global: Volumes affect the Camera everywhere in the Scene. Local: Volumes affect the Camera if the Camera is within the bounds of the Collider.");
+            public static readonly GUIContent[] modes =
+            {
+                EditorGUIUtility.TrTextContent("Global"),
+                EditorGUIUtility.TrTextContent("Local")
+            };
+
+            public static readonly GUIContent addBoxCollider = EditorGUIUtility.TrTextContent("Add a Box Collider");
+            public static readonly GUIContent sphereBoxCollider = EditorGUIUtility.TrTextContent("Add a Sphere Collider");
+            public static readonly GUIContent capsuleBoxCollider = EditorGUIUtility.TrTextContent("Add a Capsule Collider");
+            public static readonly GUIContent meshBoxCollider = EditorGUIUtility.TrTextContent("Add a Mesh Collider");
+
+            public static readonly GUIContent addColliderFixMessage = EditorGUIUtility.TrTextContentWithIcon("Add a Collider to this GameObject to set boundaries for the local Volume.", CoreEditorStyles.iconWarn);
+            public static readonly GUIContent disableColliderFixMessage = EditorGUIUtility.TrTextContentWithIcon("Global Volumes do not need a collider. Disable or remove the collider.", CoreEditorStyles.iconWarn);
+            public static readonly GUIContent enableColliderFixMessage = EditorGUIUtility.TrTextContentWithIcon("Local Volumes need a collider enabled. Enable the collider.", CoreEditorStyles.iconWarn);
+
+            public static readonly GUIContent profileInstance = EditorGUIUtility.TrTextContent("Profile (Instance)", "A Volume Profile is a Scriptable Object which contains properties that Volumes use to determine how to render the Scene environment for Cameras they affect.");
+            public static readonly GUIContent profile = EditorGUIUtility.TrTextContent("Profile", "A Volume Profile is a Scriptable Object which contains properties that Volumes use to determine how to render the Scene environment for Cameras they affect.");
+
+            public static readonly GUIContent newLabel = EditorGUIUtility.TrTextContent("New", "Create a new profile.");
+            public static readonly GUIContent saveLabel = EditorGUIUtility.TrTextContent("Save", "Save the instantiated profile");
+            public static readonly GUIContent cloneLabel = EditorGUIUtility.TrTextContent("Clone", "Create a new profile and copy the content of the currently assigned profile.");
+        }
+
         SerializedProperty m_IsGlobal;
         SerializedProperty m_BlendRadius;
         SerializedProperty m_Weight;
@@ -20,8 +46,6 @@ namespace UnityEditor.Rendering
         Volume actualTarget => target as Volume;
 
         VolumeProfile profileRef => actualTarget.HasInstantiatedProfile() ? actualTarget.profile : actualTarget.sharedProfile;
-
-        readonly GUIContent[] m_Modes = { new GUIContent("Global"), new GUIContent("Local") };
 
         void OnEnable()
         {
@@ -53,13 +77,12 @@ namespace UnityEditor.Rendering
         {
             serializedObject.Update();
 
-            GUIContent label = EditorGUIUtility.TrTextContent("Mode", "A global volume is applied to the whole scene.");
             Rect lineRect = EditorGUILayout.GetControlRect();
             int isGlobal = m_IsGlobal.boolValue ? 0 : 1;
-            EditorGUI.BeginProperty(lineRect, label, m_IsGlobal);
+            EditorGUI.BeginProperty(lineRect, Styles.mode, m_IsGlobal);
             {
                 EditorGUI.BeginChangeCheck();
-                isGlobal = EditorGUI.Popup(lineRect, label, isGlobal, m_Modes);
+                isGlobal = EditorGUI.Popup(lineRect, Styles.mode, isGlobal, Styles.modes);
                 if (EditorGUI.EndChangeCheck())
                     m_IsGlobal.boolValue = isGlobal == 0;
             }
@@ -105,9 +128,9 @@ namespace UnityEditor.Rendering
 
             GUIContent guiContent;
             if (actualTarget.HasInstantiatedProfile())
-                guiContent = EditorGUIUtility.TrTextContent("Profile (Instance)", "A copy of a profile asset.");
+                guiContent = Styles.profileInstance;
             else
-                guiContent = EditorGUIUtility.TrTextContent("Profile", "A reference to a profile asset.");
+                guiContent = Styles.profile;
             EditorGUI.PrefixLabel(labelRect, guiContent);
 
             using (var scope = new EditorGUI.ChangeCheckScope())
@@ -135,7 +158,7 @@ namespace UnityEditor.Rendering
 
             using (new EditorGUI.DisabledScope(multiEdit))
             {
-                if (GUI.Button(buttonNewRect, EditorGUIUtility.TrTextContent("New", "Create a new profile."), showCopy ? EditorStyles.miniButtonLeft : EditorStyles.miniButton))
+                if (GUI.Button(buttonNewRect, Styles.newLabel, showCopy ? EditorStyles.miniButtonLeft : EditorStyles.miniButton))
                 {
                     // By default, try to put assets in a folder next to the currently active
                     // scene file. If the user isn't a scene, put them in root instead.
@@ -148,9 +171,9 @@ namespace UnityEditor.Rendering
                 }
 
                 if (actualTarget.HasInstantiatedProfile())
-                    guiContent = EditorGUIUtility.TrTextContent("Save", "Save the instantiated profile");
+                    guiContent = Styles.saveLabel;
                 else
-                    guiContent = EditorGUIUtility.TrTextContent("Clone", "Create a new profile and copy the content of the currently assigned profile.");
+                    guiContent = Styles.cloneLabel;
                 if (showCopy && GUI.Button(buttonCopyRect, guiContent, EditorStyles.miniButtonRight))
                 {
                     // Duplicate the currently assigned profile and save it as a new profile
