@@ -277,6 +277,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - HD Global Settings can now be unassigned in the Graphics tab if HDRP is not the active pipeline(case 1343570).
 - Fix diffusion profile displayed in the inspector.
 - Fixed override camera rendering custom pass API aspect ratio issue when rendering to a render texture.
+- Fixed the incorrect value written to the VT feedback buffer when VT is not used.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
