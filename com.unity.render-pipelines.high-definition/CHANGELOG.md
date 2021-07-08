@@ -76,6 +76,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added tooltips for content inside the Rendering Debugger window.
 - Added support for reflection probes as a fallback for ray traced reflections (case 1338644).
 - Added a minimum motion vector length to the motion vector debug view.
+- Added a better support for LODs in the ray tracing acceleration structure.
 - Added the possibility to hide custom pass from the create menu with the HideInInspector attribute.
 - Added support of multi-editing on custom pass volumes.
 
@@ -105,6 +106,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the mipmap generation internal format after rendering format change.
 - Fixed multiple any hit occuring on transparent objects (case 1294927).
 - Cleanup Shader UI.
+- Indentation of the HDRenderPipelineAsset inspector UI for quality
 - Spacing on LayerListMaterialUIBlock
 - Generating a GUIContent with an Icon instead of making MaterialHeaderScopes drawing a Rect every time
 - Fixed sub-shadow rendering for cached shadow maps.
@@ -273,6 +275,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom pass volume not executed in scene view because of the volume culling mask.
 - Fixed remapping of depth pyramid debug view
 - Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
+- Fixed rounding issue when accessing the color buffer in the DoF shader.
+- HD Global Settings can now be unassigned in the Graphics tab if HDRP is not the active pipeline(case 1343570).
+- Fix diffusion profile displayed in the inspector.
+- Fixed override camera rendering custom pass API aspect ratio issue when rendering to a render texture.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -365,6 +371,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - TAA jitter is disabled while using Frame Debugger now.
 - Depth of field at half or quarter resolution is now computed consistently with the full resolution option (case 1335687).
 - Hair uses GGX LTC for area light specular.
+- Moved invariants outside of loop for a minor CPU speedup in the light loop code.
+- Various improvements to the volumetric clouds.
 
 ## [11.0.0] - 2020-10-21
 
