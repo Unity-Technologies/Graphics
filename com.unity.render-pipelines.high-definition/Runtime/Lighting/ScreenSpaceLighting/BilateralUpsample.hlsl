@@ -23,7 +23,7 @@ float3 BilUpColor3_Uniform(float HiDepth, float4 LowDepths, float3 lowValue0, fl
                         + lowValue3 * weights.w
                         + _NoiseFilterStrength;
     return WeightedSum / TotalWeight;
-} 
+}
 
 // THe bilateral upscale function (2x2 neighborhood, color3 version)
 float3 BilUpColor3(float HiDepth, float4 LowDepths, float3 lowValue0, float3 lowValue1, float3 lowValue2, float3 lowValue3)

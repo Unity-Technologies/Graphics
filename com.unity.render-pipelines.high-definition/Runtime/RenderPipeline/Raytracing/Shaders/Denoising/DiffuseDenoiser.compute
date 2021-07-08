@@ -47,7 +47,7 @@ int _JitterFramePeriod;
 int _HalfResolutionFilter;
 
 float ComputeMaxDenoisingRadius(float3 positionRWS)
-{   
+{
     // Compute the distance to the pixel
     float distanceToPoint = length(positionRWS);
     // This is purely empirical, values were obtained  while experimenting with various scenes and these valuesgive good visual results.
