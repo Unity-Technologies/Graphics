@@ -374,7 +374,7 @@ float GetReflectionProbeNormalizationFactor(float3 lightingInReflDir, float3 sam
     float refProbeNormalization = GetReflProbeNormalizationFactor(sampleDir, reflProbeSHL0L1, reflProbeSHL2_1, reflProbeSHL2_2);
     float localNormalization = Luminance(lightingInReflDir);
 
-    return localNormalization / refProbeNormalization;
+    return SafeDiv(localNormalization, refProbeNormalization);
 }
 
 #endif // __PROBEVOLUME_HLSL__

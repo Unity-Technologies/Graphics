@@ -548,6 +548,23 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        private void ClearSHBaking()
+        {
+            // Lighting data was cleared - clear out any stale SH data.
+            m_HasValidSHForNormalization = false;
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 0, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 1, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 2, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 3, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 4, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 5, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 6, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 7, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 8, Vector3.zero);
+
+            QueueSHBaking();
+        }
+
         // Return luma of coefficients
         internal bool GetSHForNormalization(out Vector4 outL0L1, out Vector4 outL2_1, out float outL2_2)
         {
@@ -602,15 +619,26 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
+        private Vector3 ComputeCapturePositionWS()
+        {
+            var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(this, null);
+            HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(
+                this.settings, probePositionSettings,
+                out _, out var cameraPositionSettings, 0
+            );
+            return cameraPositionSettings.position;
+        }
+
         private void QueueSHBaking()
         {
+            Vector3 capturePositionWS = ComputeCapturePositionWS();
             if (m_SHRequestID < 0)
             {
-                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.EnqueueRequest(transform.position);
+                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.EnqueueRequest(capturePositionWS);
             }
             else
             {
-                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, transform.position);
+                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, capturePositionWS);
             }
         }
 
@@ -639,7 +667,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             // Moving the garbage outside of the render loop:
             UnityEditor.EditorApplication.hierarchyChanged += UpdateProbeName;
-            UnityEditor.Lightmapping.lightingDataCleared += QueueSHBaking;
+            UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
+            UnityEditor.Lightmapping.lightingDataCleared += ClearSHBaking;
             QueueSHBaking();
 #endif
         }
@@ -662,7 +691,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDProbeSystem.RegisterProbe(this);
 
 #if UNITY_EDITOR
-                UnityEditor.Lightmapping.lightingDataCleared -= QueueSHBaking;
+                UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
                 QueueSHBaking();
 #endif
             }
