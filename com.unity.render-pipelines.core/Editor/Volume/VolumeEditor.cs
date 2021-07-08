@@ -236,7 +236,7 @@ namespace UnityEditor.Rendering
             serializedObject.ApplyModifiedProperties();
 
             if (m_Profile.objectReferenceValue == null)
-                EditorGUILayout.HelpBox(Styles.noVolumeMessage, MessageType.Warning);
+                EditorGUILayout.HelpBox(Styles.noVolumeMessage, MessageType.Info);
         }
 
         static bool IsAssetInReadOnlyPackage(string path)
