@@ -276,7 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeFloatParam(data.temporalFilterCS, HDShaderIDs._EnableExposureControl, data.exposureControl);
 
                         // Bind the output buffer
-                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._DenoiseOutputTextureRW, data.outputBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._AccumulationOutputTextureRW, data.outputBuffer);
 
                         // Combine signal with history
                         ctx.cmd.DispatchCompute(data.temporalFilterCS, data.temporalAccKernel, numTilesX, numTilesY, data.viewCount);
@@ -424,7 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._OccluderMotionRejection, 1);
 
                         // Bind the output buffer
-                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._DenoiseOutputTextureRW, data.outputBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._AccumulationOutputTextureRW, data.outputBuffer);
 
                         // Combine with the history
                         ctx.cmd.DispatchCompute(data.temporalFilterCS, data.temporalAccKernel, numTilesX, numTilesY, data.viewCount);
@@ -453,7 +453,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeVectorParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistoryMask, data.distanceChannelMask);
 
                             // Bind the output buffers
-                            ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccSingleKernel, HDShaderIDs._DenoiseOutputTextureRW, data.outputDistanceSignal);
+                            ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccSingleKernel, HDShaderIDs._AccumulationOutputTextureRW, data.outputDistanceSignal);
 
                             // Dispatch the temporal accumulation
                             ctx.cmd.DispatchCompute(data.temporalFilterCS, data.temporalAccSingleKernel, numTilesX, numTilesY, data.viewCount);

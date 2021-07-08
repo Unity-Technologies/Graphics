@@ -156,7 +156,7 @@ TEXTURE2D_X(_DenoiseInputTexture);
     float4 _DenoisingHistoryMask;
 #endif
 // Generic output buffer for our kernels
-RW_TEXTURE2D_ARRAY(float4, _DenoiseOutputTextureRW);
+RW_TEXTURE2D_X(float4, _AccumulationOutputTextureRW);
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -170,7 +170,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     if (depth == UNITY_RAW_FAR_CLIP_VALUE)
     {
-        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, 0.0, 0);
+        _AccumulationOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, 0.0, 0);
         return;
     }
 
@@ -237,15 +237,19 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 
     // Store our accumulated value
     #if SINGLE_CHANNEL
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * (1.0 - accumulationFactor) + history.x * accumulationFactor, sampleCount, 0.0, 1.0);
+    _AccumulationOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * (1.0 - accumulationFactor) + history.x * accumulationFactor, sampleCount, 0.0, 1.0);
     #else
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * (1.0 - accumulationFactor) + history.xyz * accumulationFactor, sampleCount);
+    _AccumulationOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * (1.0 - accumulationFactor) + history.xyz * accumulationFactor, sampleCount);
     #endif
 }
 
 #if defined(OUTPUT_IS_ARRAY) && !defined(NO_VALIDITY)
     // This is an additional history texture that holds the validity of the currently accumulated signal
     RW_TEXTURE2D_ARRAY(float4, _ValidityOutputTextureRW);
+        // Generic output buffer for our kernels
+    RW_TEXTURE2D_ARRAY(float4, _DenoiseOutputTextureRW);
+#else
+    RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 #endif
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
