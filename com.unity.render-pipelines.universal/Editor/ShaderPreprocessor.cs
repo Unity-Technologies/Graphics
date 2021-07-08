@@ -463,11 +463,7 @@ namespace UnityEditor.Rendering.Universal
                         keywords[j] = shaderKeywords[j].name;
                     }
 
-                    if (ShaderVariantIsValid(shader, snippetData.passType, keywords))
-                    {
-                        var variant = new ShaderVariantCollection.ShaderVariant(shader, snippetData.passType, keywords);
-                        removeInput = !m_ShaderVariantCollection.Contains(variant);
-                    }
+                    removeInput = !(ShaderVariantIsValid(shader, snippetData.passType, keywords) && m_ShaderVariantCollection.Contains(new ShaderVariantCollection.ShaderVariant(shader, snippetData.passType, keywords)));
                 }
 
                 // Remove at swap back
