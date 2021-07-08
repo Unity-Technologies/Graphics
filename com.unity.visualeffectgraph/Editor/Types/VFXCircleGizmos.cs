@@ -7,7 +7,6 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    //TODO : Replace with TCircle & TArcCircle
     [VFXGizmo(typeof(TCircle))]
     class VFXCircleGizmo : VFXSpaceableGizmo<TCircle>
     {
