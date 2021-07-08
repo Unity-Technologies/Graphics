@@ -136,7 +136,7 @@ The Lens Flare Element asset has the following properties:
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
 | Colors | The range of colors that this asset applies to the lens flares. |
-| Rotation | Specify an angle (in degree) which will be used for each element incrementaly. |
+| Rotation | The angle of rotation (in degrees) applied to each element incrementally. |
 
 <a name="Curve"></a>
 
@@ -148,7 +148,7 @@ The Lens Flare Element asset has the following properties:
 | ---------------- | ------------------------------------------------------------ |
 | Colors           | The range of colors that this asset applies to the lens flares. You can use the **Position Spacing** curve to determine how this range affects each lens flare. |
 | Position Spacing | Adjust this curve to change the placement of the lens flare elements in the **Lens Spread**. |
-| Rotation | Uniform angle (in degree) used with multiple element enabled with Curve distribution. |
+| Rotation | The uniform angle of rotation (in degrees) applied to each element distributed along the curve. |
 | Scale | Adjust this curve to control the size range of the lens flare elements. |
 
 <a name="Random"></a>
