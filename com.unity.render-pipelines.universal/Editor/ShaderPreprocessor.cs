@@ -288,6 +288,7 @@ namespace UnityEditor.Rendering.Universal
                 m_IsShaderGraph)
                 m_StripDisabledKeywords = true;*/
             m_StripDisabledKeywords = isUrpShader | isStencilDeferred;
+            //m_StripDisabledKeywords= false;
             m_MainLightFragment = isStencilDeferred;
 
             m_LocalMainLightShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.MainLightShadows);
@@ -376,6 +377,8 @@ namespace UnityEditor.Rendering.Universal
             bool m_StripDisabledKeywords;
             bool m_IsShaderGraph;
 
+            bool m_CachedStripDisabledKeywords;
+
             public StripTool(HashSet<string> containedLocalKeywords, bool stripDisabledKeywords, bool isShaderGraph, ShaderFeatures features, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet)
             {
                 m_ContainedLocalKeywords = containedLocalKeywords;
@@ -384,6 +387,7 @@ namespace UnityEditor.Rendering.Universal
                 this.keywordSet = keywordSet;
                 m_StripDisabledKeywords = stripDisabledKeywords;
                 m_IsShaderGraph = isShaderGraph;
+                m_CachedStripDisabledKeywords = false;
             }
 
             bool ContainsKeyword(in LocalKeyword kw)
@@ -494,6 +498,17 @@ namespace UnityEditor.Rendering.Universal
                         return true;
                 }
                 return false;
+            }
+
+            public void DisableOffStrip()
+            {
+                m_CachedStripDisabledKeywords = m_StripDisabledKeywords;
+                m_StripDisabledKeywords = false;
+            }
+
+            public void EnableOffStrip()
+            {
+                m_StripDisabledKeywords = m_CachedStripDisabledKeywords;
             }
         }
 
@@ -668,7 +683,8 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }*/
             
-
+            stripTool.DisableOffStrip();
+            
             if (m_MainLightFragment)
             {
                 if (stripTool.StripFragmentFeature(
@@ -685,6 +701,8 @@ namespace UnityEditor.Rendering.Universal
                     m_LocalMainLightShadowsScreen, ShaderFeatures.ScreenSpaceShadows))
                     return true;
             }
+stripTool.EnableOffStrip();
+
 
             //if (stripTool.StripFragmentFeature(m_LocalLightCookies, globalSettings.supportLightCookies))
             //    return true;
@@ -704,6 +722,7 @@ namespace UnityEditor.Rendering.Universal
             }*/
             if (stripTool.StripFragmentFeature(m_LocalSoftShadows, ShaderFeatures.SoftShadows))
                 return true;
+                
 
             // Left for backward compatibility
             if (compilerData.shaderKeywordSet.IsEnabled(m_MixedLightingSubtractive) &&
@@ -734,6 +753,7 @@ namespace UnityEditor.Rendering.Universal
             //    return true;
             if (stripTool.StripFragmentFeature(m_LocalRenderPassEnabled, ShaderFeatures.RenderPassEnabled))
                 return true;
+                
 
             // No additional light shadows
             //bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
