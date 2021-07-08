@@ -328,7 +328,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal XRPass xr { get; private set; }
 
         internal float globalMipBias { set; get; } = 0.0f;
-        
+
         // Flag to track if a history buffer clear was requested
         private bool m_ClearHistoryRequest;
 
