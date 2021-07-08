@@ -242,14 +242,15 @@ namespace UnityEngine.Rendering
             float rotation = angleDeg;
 
             rotation += 180.0f;
-            if (!autoRotate)
-            {
-                rotation = Mathf.Abs(rotation) < 1e-4f ? -360.0f : -rotation;
-            }
-            else
+            //if (!autoRotate)
+            //{
+            //    //rotation = Mathf.Abs(rotation) < 1e-4f ? 360.0f : rotation;
+            //}
+            //else
+            if (autoRotate)
             {
                 Vector2 pos = (rayOff.normalized * vLocalScreenRatio) * translationScale;
-                rotation -= Mathf.Rad2Deg * Mathf.Atan2(pos.y, pos.x);
+                rotation += -Mathf.Rad2Deg * Mathf.Atan2(pos.y, pos.x);
             }
             rotation *= Mathf.Deg2Rad;
             float localCos0 = Mathf.Cos(-rotation);
@@ -601,7 +602,7 @@ namespace UnityEngine.Rendering
                             Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
                             localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
                         }
-                        Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
+                        Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
 
                         cmd.SetGlobalVector(_FlareData0, flareData0);
                         cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
@@ -630,7 +631,7 @@ namespace UnityEngine.Rendering
 
                                 Color col = element.colorGradient.Evaluate(timeScale);
 
-                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, element.rotation + uniformAngle, position, element.angularOffset, element.positionOffset, element.autoRotate);
+                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation + uniformAngle, position, element.angularOffset, element.positionOffset, element.autoRotate);
                                 cmd.SetGlobalVector(_FlareData0, flareData0);
                                 cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
                                 cmd.SetGlobalVector(_FlareColorValue, curColor * col);
@@ -669,7 +670,7 @@ namespace UnityEngine.Rendering
 
                                 Vector2 localPositionOffset = element.positionOffset + RandomRange(-1.0f, 1.0f) * side;
 
-                                float localRotation = element.rotation + RandomRange(-Mathf.PI, Mathf.PI) * element.rotationVariation;
+                                float localRotation = rotation + RandomRange(-Mathf.PI, Mathf.PI) * element.rotationVariation;
 
                                 if (localIntensity > 0.0f)
                                 {
@@ -708,8 +709,9 @@ namespace UnityEngine.Rendering
                                 localSize *= sizeCurveValue;
 
                                 float angleFromCurve = element.uniformAngleCurve.Evaluate(timeScale);
+                                //float angleFromCurve = element.uniformAngleCurve.Evaluate(timeScale) * (180.0f - (180.0f / element.count));
 
-                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, element.rotation + angleFromCurve, localPos, element.angularOffset, element.positionOffset, element.autoRotate);
+                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation + angleFromCurve, localPos, element.angularOffset, element.positionOffset, element.autoRotate);
                                 cmd.SetGlobalVector(_FlareData0, flareData0);
                                 cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
                                 cmd.SetGlobalVector(_FlareColorValue, curColor * col);

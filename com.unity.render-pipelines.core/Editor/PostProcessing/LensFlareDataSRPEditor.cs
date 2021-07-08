@@ -79,14 +79,14 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent lengthSpread = EditorGUIUtility.TrTextContent("Length Spread", "Sets the length lens flare elements are spread across in screen space.");
             static public readonly GUIContent seed = EditorGUIUtility.TrTextContent("Seed", "Sets the seed value used to define randomness.");
             static public readonly GUIContent intensityVariation = EditorGUIUtility.TrTextContent("Intensity Variation", "Controls the offset of the intensities. A value of 0 means no variations, a value of 1 means variations between 0 and 1.");
-            static public readonly GUIContent colorGradient = EditorGUIUtility.TrTextContent("Color Gradient", "Specifies the gradient applied across all the elements.");
+            static public readonly GUIContent colorGradient = EditorGUIUtility.TrTextContent("Colors", "Specifies the gradient applied across all the elements.");
             static public readonly GUIContent positionVariation = EditorGUIUtility.TrTextContent("Position Variation", "Sets the offset applied to the current position of the element.");
             static public readonly GUIContent rotationVariation = EditorGUIUtility.TrTextContent("Rotation Variation", "Sets the offset applied to the current element rotation.");
             static public readonly GUIContent scaleVariation = EditorGUIUtility.TrTextContent("Scale Variation", "Sets the offset applied to the current scale of the element.");
             static public readonly GUIContent positionCurve = EditorGUIUtility.TrTextContent("Position Variation", "Defines how the multiple elements are placed along the spread using a curve.");
             static public readonly GUIContent scaleCurve = EditorGUIUtility.TrTextContent("Scale", "Defines how the multiple elements are scaled along the spread.");
-            static public readonly GUIContent uniformAngleCurve = EditorGUIUtility.TrTextContent("Rotation", "Uniform angle (in degree) used with multiple element enabled with Curve distribution.");
-            static public readonly GUIContent uniformAngle = EditorGUIUtility.TrTextContent("Rotation", "Specify an angle (in degree) which will be used for each element incrementaly.");
+            static public readonly GUIContent uniformAngleCurve = EditorGUIUtility.TrTextContent("Rotation", "The uniform angle of rotation (in degrees) applied to each element distributed along the curve.");
+            static public readonly GUIContent uniformAngle = EditorGUIUtility.TrTextContent("Rotation", "The angle of rotation (in degrees) applied to each element incrementally.");
 
             static GUIStyle m_BlueFocusedBoldLabel;
             public static GUIStyle blueFocusedBoldLabel
@@ -347,7 +347,7 @@ namespace UnityEditor.Rendering
             if (!enabled.boolValue)
                 return 1;   //[Enable]
 
-            int line = 5;   //[Enable], Count, Distribution, Length Spread, Color Gradient
+            int line = 5;   //[Enable], Count, Distribution, Length Spread, Colors
             switch (GetEnum<SRPLensFlareDistribution>(distribution))
             {
                 case SRPLensFlareDistribution.Uniform:
