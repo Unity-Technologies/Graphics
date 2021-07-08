@@ -1,14 +1,19 @@
 #define USE_EXIT_WORKAROUND_FOGBUGZ_1062258
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.VersionControl;
 using UnityEngine;
-using UnityEngine.UIElements;
 using UnityEngine.VFX;
+using UnityEditor.VFX;
+using UnityEngine.UIElements;
+using System.Collections.Generic;
+using UnityEditor;
+using UnityObject = UnityEngine.Object;
+using System.IO;
+using UnityEditor.VersionControl;
 
-namespace UnityEditor.VFX.UI
+namespace  UnityEditor.VFX.UI
 {
     [Serializable]
     class VFXViewWindow : EditorWindow
@@ -38,9 +43,11 @@ namespace UnityEditor.VFX.UI
 
         public static VFXViewWindow currentWindow;
 
-        [MenuItem("Window/VFX/VFX Graph", false, 3011)]
+        [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3011)]
         public static void ShowWindow()
         {
+            VFXLibrary.LogUnsupportedSRP();
+
             GetWindow<VFXViewWindow>();
         }
 
@@ -50,6 +57,8 @@ namespace UnityEditor.VFX.UI
         }
         public void LoadAsset(VisualEffectAsset asset, VisualEffect effectToAttach)
         {
+            VFXLibrary.LogUnsupportedSRP();
+
             string assetPath = AssetDatabase.GetAssetPath(asset);
 
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -230,7 +239,13 @@ namespace UnityEditor.VFX.UI
                 graphView.OnFocus();
         }
 
-        public bool autoCompile {get; set; }
+        public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> componentChanged)
+        {
+            if (graphView != null)
+                graphView.OnVisualEffectComponentChanged(componentChanged);
+        }
+
+        public bool autoCompile { get; set; }
 
         void Update()
         {
@@ -254,7 +269,7 @@ namespace UnityEditor.VFX.UI
                     {
                         filename = controller.name;
 
-                        if (!graph.saved)
+                        if (EditorUtility.IsDirty(graph))
                         {
                             filename += "*";
                         }
@@ -273,7 +288,16 @@ namespace UnityEditor.VFX.UI
                         else
                             graph.RecompileIfNeeded(true, true);
 
+                        bool wasDirty = graph.IsExpressionGraphDirty();
+
                         controller.RecompileExpressionGraphIfNeeded();
+
+                        // Hack to avoid infinite recompilation due to UI triggering a recompile TODO: Fix problematic cases that trigger that error
+                        if (!wasDirty && graph.IsExpressionGraphDirty())
+                        {
+                            Debug.LogError("Expression graph was marked as dirty after compiling context for UI. Discard to avoid infinite compilation loop.");
+                            graph.SetExpressionGraphDirty(false);
+                        }
                     }
                 }
             }

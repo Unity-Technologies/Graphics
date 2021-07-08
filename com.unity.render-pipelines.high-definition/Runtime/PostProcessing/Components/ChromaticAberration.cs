@@ -7,7 +7,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Chromatic Aberration effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Chromatic Aberration")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Chromatic-Aberration" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Post-Processing-Chromatic-Aberration")]
+
     public sealed class ChromaticAberration : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>
@@ -19,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the strength of the chromatic aberration effect.
         /// </summary>
-        [Tooltip("Controls the strength of the chromatic aberration effect.")]
+        [Tooltip("Use the slider to set the strength of the Chromatic Aberration effect.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
 
         /// <summary>

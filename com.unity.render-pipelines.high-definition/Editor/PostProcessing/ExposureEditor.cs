@@ -39,6 +39,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static LightUnitSliderUIDrawer k_LightUnitSlider;
 
+        int m_RepaintsAfterChange = 0;
+        int m_SettingsForDoubleRefreshHash = 0;
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Exposure>(serializedObject);
@@ -118,15 +121,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_ProceduralCenter, centerLabel);
                     var radiiValue = m_ProceduralRadii.value.vector2Value;
                     m_ProceduralRadii.value.vector2Value = new Vector2(Mathf.Clamp01(radiiValue.x), Mathf.Clamp01(radiiValue.y));
-                    PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radii", "Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
+                    PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radius", "Sets the radiuses of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
                     PropertyField(m_ProceduralSoftness, EditorGUIUtility.TrTextContent("Softness", "Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask"));
-
-                    if (BeginAdditionalPropertiesScope())
-                    {
-                        PropertyField(m_ProceduralMinIntensity);
-                        PropertyField(m_ProceduralMaxIntensity);
-                    }
-                    EndAdditionalPropertiesScope();
+                    PropertyField(m_ProceduralMinIntensity);
+                    PropertyField(m_ProceduralMaxIntensity);
 
                     EditorGUILayout.Space();
                 }
@@ -171,44 +169,62 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_AdaptationSpeedLightToDark, EditorGUIUtility.TrTextContent("Speed Light to Dark"));
                 }
 
-                if (BeginAdditionalPropertiesScope())
+                PropertyField(m_TargetMidGray, EditorGUIUtility.TrTextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance)."));
+            }
+
+            // Since automatic exposure works on 2 frames (automatic exposure is computed from previous frame data), we need to trigger the scene repaint twice if
+            // some of the changes that will lead to different results are changed.
+            int automaticCurrSettingHash = m_LimitMin.value.floatValue.GetHashCode() +
+                17 * m_LimitMax.value.floatValue.GetHashCode() +
+                17 * m_Compensation.value.floatValue.GetHashCode();
+
+            if (mode == (int)ExposureMode.Automatic || mode == (int)ExposureMode.AutomaticHistogram)
+            {
+                if (automaticCurrSettingHash != m_SettingsForDoubleRefreshHash)
                 {
-                    PropertyField(m_TargetMidGray, EditorGUIUtility.TrTextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance)."));
+                    m_RepaintsAfterChange = 2;
                 }
-                EndAdditionalPropertiesScope();
+                else
+                {
+                    m_RepaintsAfterChange = Mathf.Max(0, m_RepaintsAfterChange - 1);
+                }
+                m_SettingsForDoubleRefreshHash = automaticCurrSettingHash;
+
+                if (m_RepaintsAfterChange > 0)
+                {
+                    SceneView.RepaintAll();
+                }
             }
         }
 
         // TODO: See if this can be refactored into a custom VolumeParameterDrawer
         void DoExposurePropertyField(SerializedDataParameter exposureProperty)
         {
-            using (new EditorGUILayout.HorizontalScope())
+            using (var scope = new OverridablePropertyScope(exposureProperty, exposureProperty.displayName, this))
             {
-                DrawOverrideCheckbox(exposureProperty);
+                if (!scope.displayed)
+                    return;
 
-                using (new EditorGUI.DisabledScope(!exposureProperty.overrideState.boolValue))
+                using (new EditorGUILayout.VerticalScope())
                 {
-                    using (new EditorGUILayout.VerticalScope())
-                    {
-                        EditorGUILayout.LabelField(exposureProperty.displayName);
+                    EditorGUILayout.LabelField(scope.label);
 
-                        var xOffset = EditorGUIUtility.labelWidth;
+                    var xOffset = EditorGUIUtility.labelWidth + 2;
 
-                        var lineRect = EditorGUILayout.GetControlRect();
-                        lineRect.x += xOffset;
-                        lineRect.width -= xOffset;
+                    var lineRect = EditorGUILayout.GetControlRect();
+                    lineRect.x += xOffset;
+                    lineRect.width -= xOffset;
 
-                        var sliderRect = lineRect;
-                        sliderRect.y -= EditorGUIUtility.singleLineHeight;
-                        k_LightUnitSlider.SetSerializedObject(serializedObject);
-                        k_LightUnitSlider.DrawExposureSlider(exposureProperty.value, sliderRect);
+                    var sliderRect = lineRect;
+                    sliderRect.y -= EditorGUIUtility.singleLineHeight;
+                    k_LightUnitSlider.SetSerializedObject(serializedObject);
+                    k_LightUnitSlider.DrawExposureSlider(exposureProperty.value, sliderRect);
 
-                        // GUIContent.none disables horizontal scrolling, use TrTextContent and adjust the rect to make it work.
-                        lineRect.x -= EditorGUIUtility.labelWidth + 2;
-                        lineRect.y += EditorGUIUtility.standardVerticalSpacing;
-                        lineRect.width += EditorGUIUtility.labelWidth + 2;
-                        EditorGUI.PropertyField(lineRect, exposureProperty.value, EditorGUIUtility.TrTextContent(" "));
-                    }
+                    // GUIContent.none disables horizontal scrolling, use TrTextContent and adjust the rect to make it work.
+                    lineRect.x -= EditorGUIUtility.labelWidth + 2;
+                    lineRect.y += EditorGUIUtility.standardVerticalSpacing;
+                    lineRect.width += EditorGUIUtility.labelWidth + 2;
+                    EditorGUI.PropertyField(lineRect, exposureProperty.value, EditorGUIUtility.TrTextContent(" "));
                 }
             }
         }

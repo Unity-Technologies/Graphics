@@ -9,11 +9,13 @@ namespace UnityEngine.Rendering.Tests
 {
     public class VolumeComponentEditorTests
     {
+        [HideInInspector]
         class VolumeComponentNoAdditionalAttributes : VolumeComponent
         {
             public MinFloatParameter parameter = new MinFloatParameter(0f, 0f);
         }
 
+        [HideInInspector]
         class VolumeComponentAllAdditionalAttributes : VolumeComponent
         {
             [AdditionalProperty]
@@ -23,6 +25,7 @@ namespace UnityEngine.Rendering.Tests
             public FloatParameter parameter2 = new MinFloatParameter(0f, 0f);
         }
 
+        [HideInInspector]
         class VolumeComponentMixedAdditionalAttributes : VolumeComponent
         {
             public MinFloatParameter parameter1 = new MinFloatParameter(0f, 0f);
@@ -108,6 +111,7 @@ namespace UnityEngine.Rendering.Tests
 
         #region Decorators Handling Test
 
+        [HideInInspector]
         class VolumeComponentDecorators : VolumeComponent
         {
             [Tooltip("Increase to make the noise texture appear bigger and less")]

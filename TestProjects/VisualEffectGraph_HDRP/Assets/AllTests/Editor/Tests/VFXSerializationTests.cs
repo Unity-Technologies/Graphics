@@ -11,6 +11,8 @@ using UnityEditor.VFX;
 
 using Object = UnityEngine.Object;
 using System.IO;
+using UnityEngine.TestTools;
+using System.Collections;
 
 namespace UnityEditor.VFX.Test
 {
@@ -427,6 +429,107 @@ namespace UnityEditor.VFX.Test
             };
             InnerSaveAndReloadTest("AttributeParameter", write, read);
         }
+
+        //Cover unexpected behavior : 1307562
+        [UnityTest]
+        public IEnumerable Verify_Orphan_Dependencies_Are_Correctly_Cleared()
+        {
+            string path = null;
+            {
+                var graph = VFXTestCommon.MakeTemporaryGraph();
+                path = AssetDatabase.GetAssetPath(graph);
+
+                var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+                var blockConstantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
+                var slotCount = blockConstantRate.GetInputSlot(0);
+
+                var basicInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+                var quadOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+                quadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Additive);
+
+                var setPosition = ScriptableObject.CreateInstance<Block.SetAttribute>();
+                setPosition.SetSettingValue("attribute", "position");
+                setPosition.inputSlots[0].value = VFX.Position.defaultValue;
+                basicInitialize.AddChild(setPosition);
+
+                slotCount.value = 1.0f;
+
+                spawnerContext.AddChild(blockConstantRate);
+                graph.AddChild(spawnerContext);
+                graph.AddChild(basicInitialize);
+                graph.AddChild(quadOutput);
+
+                basicInitialize.LinkFrom(spawnerContext);
+                quadOutput.LinkFrom(basicInitialize);
+            }
+
+            var recordedSize = new List<long>();
+            for (uint i = 0; i < 16; ++i)
+            {
+                AssetDatabase.ImportAsset(path);
+                var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
+                var graph = asset.GetResource().GetOrCreateGraph();
+                graph.GetResource().WriteAsset();
+
+                recordedSize.Add(new FileInfo(path).Length);
+
+                var quadOutput = graph.children.OfType<VFXPlanarPrimitiveOutput>().FirstOrDefault();
+
+                quadOutput.UnlinkAll();
+                graph.RemoveChild(quadOutput);
+
+                var newQuadOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+                newQuadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Additive);
+
+                graph.AddChild(newQuadOutput);
+                var basicInitialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
+                newQuadOutput.LinkFrom(basicInitialize);
+            }
+
+            Assert.AreEqual(1, recordedSize.GroupBy(o => o).Count());
+            Assert.AreNotEqual(0u, recordedSize[0]);
+            yield return null;
+        }
+
+        //Cover regression test : 1315191
+        [UnityTest]
+        public IEnumerator Save_Then_Modify_Something_Check_The_Content_Isnt_Reverted()
+        {
+            string path = null;
+            uint baseValue = 100;
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            {
+                path = AssetDatabase.GetAssetPath(graph);
+
+                var unsigned = ScriptableObject.CreateInstance<VFXInlineOperator>();
+                unsigned.SetSettingValue("m_Type", (SerializableType)typeof(uint));
+                unsigned.inputSlots[0].value = baseValue;
+                graph.AddChild(unsigned);
+
+                AssetDatabase.ImportAsset(path);
+            }
+            yield return null;
+
+            for (uint i = 0; i < 3; ++i)
+            {
+                var inlineOperator = graph.children.OfType<VFXInlineOperator>().FirstOrDefault();
+                Assert.IsNotNull(inlineOperator);
+                Assert.AreEqual(baseValue + i, (uint)inlineOperator.inputSlots[0].value, "Failing at iteration : " + i);
+                graph.GetResource().WriteAsset();
+
+                inlineOperator.inputSlots[0].value = baseValue + i + 1; //Update for next iteration
+                Assert.AreEqual(baseValue + i + 1, (uint)inlineOperator.inputSlots[0].value);
+                AssetDatabase.ImportAsset(path);
+                yield return null;
+            }
+        }
+
+        [OneTimeTearDown]
+        public void CleanUp()
+        {
+            VFXTestCommon.DeleteAllTemporaryGraph();
+        }
+
     }
 }
 #endif

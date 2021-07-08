@@ -6,25 +6,25 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Shadows, Midtones, Highlights effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Shadows, Midtones, Highlights")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Shadows-Midtones-Highlights" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Post-Processing-Shadows-Midtones-Highlights")]
     public sealed class ShadowsMidtonesHighlights : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
         /// Controls the darkest portions of the render.
         /// </summary>
-        [Tooltip("Controls the darkest portions of the render.")]
+        [Tooltip("Use this to control and apply a hue to the shadows.")]
         public Vector4Parameter shadows = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
         /// <summary>
         /// Controls the power function that handles mid-range tones.
         /// </summary>
-        [Tooltip("Controls the power function that handles mid-range tones.")]
+        [Tooltip("Use this to control and apply a hue to the midtones.")]
         public Vector4Parameter midtones = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
         /// <summary>
         /// Controls the lightest portions of the render.
         /// </summary>
-        [Tooltip("Controls the lightest portions of the render.")]
+        [Tooltip("Use this to control and apply a hue to the highlights.")]
         public Vector4Parameter highlights = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
         /// <summary>

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.PackageManager;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
@@ -280,6 +281,39 @@ namespace UnityEditor.VFX
                 if (m_DefaultMesh == null)
                     m_DefaultMesh = Resources.GetBuiltinResource<Mesh>("New-Capsule.fbx");
                 return m_DefaultMesh;
+            }
+        }
+
+        private static ComputeShader m_SdfNormalsComputeShader;
+        public static ComputeShader sdfNormalsComputeShader
+        {
+            get
+            {
+                if (m_SdfNormalsComputeShader == null)
+                    m_SdfNormalsComputeShader = SafeLoadAssetAtPath<ComputeShader>(defaultPath + "Shaders/SDFBaker/GenSdfNormals.compute");
+                return m_SdfNormalsComputeShader;
+            }
+        }
+
+        private static ComputeShader m_SdfRayMapComputeShader;
+        public static ComputeShader sdfRayMapComputeShader
+        {
+            get
+            {
+                if (m_SdfRayMapComputeShader == null)
+                    m_SdfRayMapComputeShader = SafeLoadAssetAtPath<ComputeShader>(defaultPath + "Shaders/SDFBaker/GenSdfRayMap.compute");
+                return m_SdfRayMapComputeShader;
+            }
+        }
+
+        private static Shader m_RayMapVoxelizeShader;
+        public static Shader rayMapVoxelizeShader
+        {
+            get
+            {
+                if (m_RayMapVoxelizeShader == null)
+                    m_RayMapVoxelizeShader = SafeLoadAssetAtPath<Shader>(defaultPath + "Shaders/SDFBaker/RayMapVoxelize.shader");
+                return m_RayMapVoxelizeShader;
             }
         }
 

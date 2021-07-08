@@ -6,7 +6,7 @@ The **Set Spawn Time** Block allows following Initialize Contexts to use the tim
 
 ![img](Images/Block-SetSpawnTimeExample.gif)
 
-In this example, the left system uses source spawnTime, which resets for each start event of the previous spawn context. The right system uses VFX total time which is simply the accumulation of deltaTime since Visual Effect component activation.
+In this example, the left system uses source spawnTime, which resets for each start event of the previous spawn Context. The right system uses VFX total time which is simply the accumulation of deltaTime since Visual Effect component activation.
 
 ## Block compatibility
 

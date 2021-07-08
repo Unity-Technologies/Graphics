@@ -75,7 +75,11 @@ namespace UnityEditor.ShaderGraph
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
-                action(new HLSLProperty(HLSLType._CUSTOM, referenceName, HLSLDeclaration.UnityPerMaterial, concretePrecision)
+                HLSLDeclaration decl = HLSLDeclaration.UnityPerMaterial;
+                if (value.procedural)
+                    decl = GetDefaultHLSLDeclaration();
+
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_CBDecl", decl, concretePrecision)
                 {
                     customDeclaration = (ssb) =>
                     {
@@ -132,7 +136,7 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendNewLine();
                 };
 
-                action(new HLSLProperty(HLSLType._CUSTOM, referenceName, HLSLDeclaration.Global, concretePrecision)
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_Global", HLSLDeclaration.Global, concretePrecision)
                 {
                     customDeclaration = customDecl
                 });
@@ -184,11 +188,13 @@ namespace UnityEditor.ShaderGraph
             {
                 string layerRefName = value.layers[layer].layerRefName;
                 var layerTexture = value.layers[layer].layerTexture;
+                var texture = layerTexture != null ? layerTexture.texture : null;
 
                 var textureInfo = new PropertyCollector.TextureInfo
                 {
                     name = layerRefName,
-                    textureId = (layerTexture != null && layerTexture.texture != null) ? layerTexture.texture.GetInstanceID() : 0,
+                    textureId = texture != null ? texture.GetInstanceID() : 0,
+                    dimension = texture != null ? texture.dimension : UnityEngine.Rendering.TextureDimension.Any,
                     modifiable = true
                 };
                 infos.Add(textureInfo);
@@ -196,6 +202,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         internal override bool isAlwaysExposed => true;
+        internal override bool isCustomSlotAllowed => false;
 
         public override void OnAfterDeserialize(string json)
         {

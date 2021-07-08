@@ -1,11 +1,11 @@
-﻿Shader "FullScreen/BeforeOpaqueDepthAndNormal"
+Shader "FullScreen/BeforeOpaqueDepthAndNormal"
 {
     HLSLINCLUDE
 
     #pragma vertex Vert
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
 

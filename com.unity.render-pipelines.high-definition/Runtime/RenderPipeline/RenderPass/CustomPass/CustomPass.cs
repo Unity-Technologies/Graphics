@@ -66,8 +66,6 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPassVolume    owner;
         HDCamera            currentHDCamera;
 
-        MaterialPropertyBlock userMaterialPropertyBlock;
-
         // TODO RENDERGRAPH: Remove this when we move things to render graph completely.
         MaterialPropertyBlock m_MSAAResolveMPB = null;
         void Awake()
@@ -140,8 +138,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Lazy<RTHandle> customColorBuffer;
             public Lazy<RTHandle> customDepthBuffer;
 
-            // Render graph specific
-            // TODO RENDERGRAPH cleanup the other ones when we only have the render graph path.
             public TextureHandle colorBufferRG;
             public TextureHandle nonMSAAColorBufferRG;
             public TextureHandle depthBufferRG;
@@ -242,9 +238,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             customPass.Setup(ctx.renderContext, ctx.cmd);
                             customPass.isSetup = true;
-                            // TODO RENDERGRAPH: We still need to allocate this otherwise it would be null when switching off render graph (because isSetup stays true).
-                            // We can remove the member altogether when we remove the non render graph code path.
-                            customPass.userMaterialPropertyBlock = new MaterialPropertyBlock();
                         }
 
                         customPass.SetCustomPassTarget(ctx.cmd);
@@ -294,7 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool IsMSAAEnabled(HDCamera hdCamera)
         {
             // if MSAA is enabled and the current injection point is before transparent.
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool msaa = hdCamera.msaaEnabled;
             msaa &= injectionPoint == CustomPassInjectionPoint.BeforePreRefraction
                 || injectionPoint == CustomPassInjectionPoint.BeforeTransparent
                 || injectionPoint == CustomPassInjectionPoint.AfterOpaqueDepthAndNormal;

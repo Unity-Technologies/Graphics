@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
@@ -41,12 +42,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
     class RenderGraphLogger
     {
-        StringBuilder   m_Builder = new StringBuilder();
+        Dictionary<string, StringBuilder> m_LogMap = new Dictionary<string, StringBuilder>(); // Can log multiple instances before flush everything.
+        StringBuilder   m_CurrentBuilder;
         int             m_CurrentIndentation;
 
-        public void Initialize()
+        public void Initialize(string logName)
         {
-            m_Builder.Clear();
+            if (!m_LogMap.TryGetValue(logName, out var stringBuilder))
+            {
+                stringBuilder = new StringBuilder();
+                m_LogMap.Add(logName, stringBuilder);
+            }
+
+            m_CurrentBuilder = stringBuilder;
+            m_CurrentBuilder.Clear();
             m_CurrentIndentation = 0;
         }
 
@@ -63,14 +72,33 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void LogLine(string format, params object[] args)
         {
             for (int i = 0; i < m_CurrentIndentation; ++i)
-                m_Builder.Append('\t');
-            m_Builder.AppendFormat(format, args);
-            m_Builder.AppendLine();
+                m_CurrentBuilder.Append('\t');
+            m_CurrentBuilder.AppendFormat(format, args);
+            m_CurrentBuilder.AppendLine();
         }
 
-        public string GetLog()
+        public string GetLog(string logName)
         {
-            return m_Builder.ToString();
+            if (m_LogMap.TryGetValue(logName, out var builder))
+            {
+                return builder.ToString();
+            }
+
+            return "";
+        }
+
+        public string GetAllLogs()
+        {
+            string result = "";
+            foreach (var kvp in m_LogMap)
+            {
+                var builder = kvp.Value;
+                builder.AppendLine();
+
+                result += builder.ToString();
+            }
+
+            return result;
         }
     }
 }

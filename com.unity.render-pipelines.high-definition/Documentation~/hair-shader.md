@@ -58,7 +58,3 @@ New Materials in HDRP use the [Lit shader](Lit-Shader.md) by default. To create 
 | **Transmission Rim**              | Set the intensity of back lit hair around the edge of the hair. Set this to 0 to completely remove the transmission effect. |
 
 [!include[](snippets/shader-properties/advanced-options/lit-advanced-options.md)]
-
-## Limitations
-
-[!include[](snippets/area-light-material-support-disclaimer.md)]

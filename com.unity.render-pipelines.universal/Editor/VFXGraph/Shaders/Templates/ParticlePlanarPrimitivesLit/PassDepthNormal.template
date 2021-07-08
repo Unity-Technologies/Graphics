@@ -1,0 +1,14 @@
+Pass
+{
+    Tags { "LightMode"="DepthNormals" }
+
+    ZWrite On
+    Blend Off
+    
+    HLSLPROGRAM
+    #define VFX_PASSDEPTH VFX_PASSDEPTH_ACTUAL
+    #define WRITE_NORMAL_BUFFER
+    ${VFXIncludeRP("Templates/ParticlePlanarPrimitivesLit/PassDepthOrMV.template")}
+
+    ENDHLSL
+}

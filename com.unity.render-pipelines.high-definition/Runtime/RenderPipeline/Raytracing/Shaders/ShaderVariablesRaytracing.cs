@@ -24,7 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Ray traced reflection Data
         public float _RaytracingReflectionMinSmoothness;
         public float _RaytracingReflectionSmoothnessFadeStart;
-        public int _RaytracingIncludeSky;
         // Path tracing parameters
         public int _RaytracingMinRecursion;
         public int _RaytracingMaxRecursion;
@@ -32,5 +31,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _RayTracingDiffuseLightingOnly;
         // Shadow value to be used when the point to shade is not inside of the cascades
         public float _DirectionalShadowFallbackIntensity;
+        // Gloabal bias applied to texture reading for various reasons.
+        public float _RayTracingLodBias;
+        // Bit mask that defines which fallbacks to use when a ray misses.
+        public int _RayTracingFallbackHierarchy;
     }
 }

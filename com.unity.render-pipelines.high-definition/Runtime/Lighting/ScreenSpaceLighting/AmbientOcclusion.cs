@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Serialization;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -8,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the ambient occlusion.
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Ambient-Occlusion" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Override-Ambient-Occlusion")]
     public sealed class AmbientOcclusion : VolumeComponentWithQuality
     {
         /// <summary>
@@ -195,6 +196,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_DirectionCount.value = value; }
         }
+
+        /// <summary>
+        /// When enabled, the occluder's movement should be considered a valid rejection condition.
+        /// </summary>
+        [AdditionalProperty]
+        public BoolParameter occluderMotionRejection = new BoolParameter(true);
+
+        /// <summary>
+        /// When enabled, the receiver's movement should be considered a valid rejection condition.
+        /// </summary>
+        [AdditionalProperty]
+        public BoolParameter receiverMotionRejection = new BoolParameter(true);
 
         // SSAO
         [SerializeField, FormerlySerializedAs("stepCount")]

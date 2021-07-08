@@ -1,11 +1,10 @@
-using UnityEngine.Rendering.Universal;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal static class Light2DLookupTexture
     {
         private static Texture2D s_PointLightLookupTexture;
-        private static Texture2D s_FalloffLookupTexture;
 
         public static Texture GetLightLookupTexture()
         {
@@ -67,6 +66,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return texture;
         }
 
+//        private static Texture2D s_FalloffLookupTexture;
 //#if UNITY_EDITOR
 //        [MenuItem("Light2D Debugging/Write Light Texture")]
 //        static public void WriteLightTexture()

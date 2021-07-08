@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -130,8 +130,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (s_ComponentTypes == null)
                 {
-                    s_ComponentTypes = VolumeManager.instance.baseComponentTypes
-                        .Where(t => !t.IsDefined(typeof(VolumeComponentDeprecated), false))
+                    s_ComponentTypes = VolumeManager.instance.baseComponentTypeArray
+                        .Where(t => !t.IsDefined(typeof(HideInInspector), false))
+                        .Where(t => !t.IsDefined(typeof(ObsoleteAttribute), false))
                         .OrderBy(t => ComponentDisplayName(t))
                         .ToList();
                 }

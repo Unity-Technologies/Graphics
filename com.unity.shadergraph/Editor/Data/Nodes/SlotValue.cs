@@ -24,7 +24,8 @@ namespace UnityEditor.ShaderGraph
         Vector1,
         Dynamic,
         Boolean,
-        VirtualTexture
+        VirtualTexture,
+        PropertyConnectionState,
     }
 
     enum ConcreteSlotValueType
@@ -43,7 +44,8 @@ namespace UnityEditor.ShaderGraph
         Vector2,
         Vector1,
         Boolean,
-        VirtualTexture
+        VirtualTexture,
+        PropertyConnectionState
     }
 
     // This enum must match ConcreteSlotValueType enum and is used to give friendly name in the enum popup used for custom function
@@ -64,6 +66,7 @@ namespace UnityEditor.ShaderGraph
         Float = ConcreteSlotValueType.Vector1, // This is currently the only renaming we need - rename Vector1 to Float
         Boolean = ConcreteSlotValueType.Boolean,
         VirtualTexture = ConcreteSlotValueType.VirtualTexture,
+        PropertyConnectionState = ConcreteSlotValueType.PropertyConnectionState,
 
         // These allow the user to choose 'bare' types for custom function nodes
         // they are treated specially in the conversion functions below
@@ -184,7 +187,7 @@ namespace UnityEditor.ShaderGraph
 
         static Dictionary<ConcreteSlotValueType, List<SlotValueType>> s_ValidConversions;
         static List<SlotValueType> s_ValidSlotTypes;
-        public static bool AreCompatible(SlotValueType inputType, ConcreteSlotValueType outputType)
+        public static bool AreCompatible(SlotValueType inputType, ConcreteSlotValueType outputType, bool outputTypeIsConnectionTestable = false)
         {
             if (s_ValidConversions == null)
             {
@@ -213,8 +216,13 @@ namespace UnityEditor.ShaderGraph
                     {ConcreteSlotValueType.Cubemap, new List<SlotValueType>() {SlotValueType.Cubemap}},
                     {ConcreteSlotValueType.SamplerState, new List<SlotValueType>() {SlotValueType.SamplerState}},
                     {ConcreteSlotValueType.Gradient, new List<SlotValueType>() {SlotValueType.Gradient}},
-                    {ConcreteSlotValueType.VirtualTexture, new List<SlotValueType>() {SlotValueType.VirtualTexture}}
+                    {ConcreteSlotValueType.VirtualTexture, new List<SlotValueType>() {SlotValueType.VirtualTexture}},
                 };
+            }
+
+            if (inputType == SlotValueType.PropertyConnectionState)
+            {
+                return outputTypeIsConnectionTestable;
             }
 
             if (s_ValidConversions.TryGetValue(outputType, out s_ValidSlotTypes))

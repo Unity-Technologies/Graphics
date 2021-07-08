@@ -96,6 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>Light Layers.</summary>
+    [Flags]
     public enum LightLayerEnum
     {
         /// <summary>The light will no affect any object.</summary>
@@ -322,6 +323,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 legacyLight.type = LightType.Disc;
 #if UNITY_EDITOR
                 legacyLight.lightmapBakeType = LightmapBakeType.Baked;
+#endif
+            }
+            else if (areaLightShape == AreaLightShape.Tube)
+            {
+#if UNITY_EDITOR
+                legacyLight.lightmapBakeType = LightmapBakeType.Realtime;
 #endif
             }
             else

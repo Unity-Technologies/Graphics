@@ -66,6 +66,7 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | **Property** | **Description**                                       |
 | ------------ | ----------------------------------------------------- |
 | Enable       | Indicates whether to render volumetric clouds or not. |
+| Local Clouds | Indicates whether the clouds are part of the scene or rendered into the skybox. When enabled, clouds are part of the scene and you can interact with them. This means for example, you can move around the clouds, clouds can appear between the Camera and other GameObjects, and the Camera's clipping planes affects the clouds. When disabled, the clouds are part of the skybox. This mean the clouds and their shadows appear relative to the Camera and always appear behind geometry. |
 
 ### Shape
 
@@ -73,6 +74,9 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | --------------------------------- | ------------------------------------------------------------ |
 | **Cloud Control**                 | Specifies the mode to control volumetric cloud properties. The options are:<br/>&#8226; **Simple**: Uses sliders and input fields to customize volumetric cloud shape properties. This mode generates a cloud map from the various properties and uses HDRP's internal cloud lookup table.<br/>&#8226; **Advanced**: Uses separate textures to specify each cloud type and their coverage. This mode generates a cloud map from the various textures and uses HDRP's internal cloud lookup table.<br/>&#8226; **Manual**: Uses the cloud map and lookup table you supply to render the clouds. For more information on the cloud map and cloud lookup table, see [Cloud map and cloud lookup table](#cloud-map-and-cloud-lookup-table). |
 | - **Cloud Preset**                | Specifies the preset to apply to the **Simple** mode properties. The options are: <br/>&#8226; **Sparse**: Smaller clouds that are spread apart.<br/>&#8226; **Cloudy**: Medium-sized clouds that partially cover the sky.<br/>&#8226; **Overcast**: A light layer of cloud that covers the entire sky. Some areas are less dense and let more light through, whereas other areas are more dense and appear darker.<br/>&#8226; **Storm Clouds**: Large dark clouds that cover most of the sky.<br/>&#8226; **Custom**: Exposes properties that control the shape of the clouds. <br/><br/>This property only appears if you set **Cloud Control** to **Simple**. |
+| - **Custom Density Curve**        |  Controls the density (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume. <br/><br/>This property only appears if you set **Cloud Control** to **Simple** and then set **Cloud Preset** to **Custom**.|
+| - **Custom Erosion Curve**        |  Controls the erosion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume. <br/><br/>This property only appears if you set **Cloud Control** to **Simple** and then set **Cloud Preset** to **Custom**.|
+| - **Custom Ambient Occlusion Curve**        |  Controls the ambient occlusion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume. <br/><br/>This property only appears if you set **Cloud Control** to **Simple** and then set **Cloud Preset** to **Custom**.|
 | - **Cumulus Map**                 | Specifies a texture that defines the distribution of clouds in the lower layer. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced**. |
 | - **Cumulus Map Multiplier**      | The multiplier for the clouds specified in the **Cumulus Map**. A value of **0** completely hides the cumulus clouds. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced**. |
 | - **Alto Stratus Map**            | Specifies a texture that defines the distribution of clouds in the higher layer. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced**. |
@@ -88,6 +92,8 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | - **Density Multiplier**          | The global density of the volumetric clouds. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**, or if you set it to **Simple** and then set **Cloud Preset** to **Custom**. |
 | - **Shape Factor**                | Controls the amount of shaping to apply to the cloud volume. A higher value produces less cloud coverage and smaller clouds. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**, or if you set it to **Simple** and then set **Cloud Preset** to **Custom**. |
 | - **Shape Scale**                 | Controls the size of the noise HDRP uses in the shaping stage to generate the general cloud shapes. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**, or if you set it to **Simple** and then set **Cloud Preset** to **Custom**. |
+| - **Shape Offset X**              | Controls the offset (world X-axis) applied when evaluating the larger noise passing through the cloud coverage. The values "0", "-1" and "1" will give the same result. |
+| - **Shape Offset Z**              | Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage. The values "0", "-1" and "1" will give the same result. |
 | - **Erosion Factor**              | Controls the amount of erosion to apply on the edge of the clouds. A higher value erodes clouds more significantly. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**, or if you set it to **Simple** and then set **Cloud Preset** to **Custom**. |
 | - **Erosion Scale**               | Controls the size of the noise HDRP uses in the erosion stage to add local details to the cloud edges. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**, or if you set it to **Simple** and then set **Cloud Preset** to **Custom**. |
 | **Earth Curvature**               | The curvature of the cloud volume. This defines the distance at which the clouds intersect with the horizon. |
@@ -117,7 +123,7 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
 | **Ambient Light Probe Dimmer** | Controls the influence of light probes on the cloud volume. A lower value suppresses the ambient light and produces darker clouds overall. |
-| **Scattering Direction**       | The direction of light scattering. A value of **0** produces backward scattering and a value of **1** produces forward scattering. |
+| **Erosion Occlusion**          | Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes. |
 | **Scattering Tint**            | The color to tint the clouds.                                |
 | **Powder Effect Intensity**    | Controls the amount of local scattering in the clouds. When clouds have a lot of local details due to erosion, a value of **1** provides a more powdery aspect. |
 | **Multi Scattering**           | Controls the amount of multi-scattering inside the cloud. Higher values make lighting look more diffuse within the cloud. |
@@ -137,7 +143,7 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 
 This section lists any limitations that HDRP's volumetric clouds have:
 
-- Volumetric clouds do not appear in [Reflection Probes](Reflection-Probe.md) or [Planar Reflection Probes](Planar-Reflection-Probe.md).
+- Volumetric clouds do not appear in [Reflection Probes](Reflection-Probe.md).
 - HDRP uses the [main Camera](https://docs.unity3d.com/ScriptReference/Camera-main.html) to generate the shadow cookie for volumetric clouds. This means that volumetric cloud shadows do not look correct from the point of view of other Cameras.
 - Volumetric clouds do not appear in ray-traced effects.
 - Volumetric clouds currently do not work on Metal.

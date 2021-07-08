@@ -38,7 +38,7 @@ Depending on the attributes present in the system, this Context performs extra b
 
 - **Reaping**: If bot Age and Lifetime attributes are in the system, this Context kills a particle (sets its alive attribute to false) if the particle's lifetime exceeds its age using the equation:`alive = (age <= lifetime)`
 
-All implicit behaviors are enabled by default and can be disabled in the context’s inspector.
+All implicit behaviors are enabled by default and can be disabled in the Context’s inspector.
 
 All implicit behaviors happen after the execution of all the Update Context's Blocks.
 

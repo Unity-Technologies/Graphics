@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="categoryHeader" pickingMode="Ignore">
+        <ui:Foldout name="categoryTitleFoldout" pickingMode="Ignore" text=""/>
+        <ui:Label name="categoryTitleLabel" pickingMode="Ignore" text="Text"/>
+        <ui:TextField name="textField" text="" />
+    </ui:VisualElement>
+    <ui:VisualElement name="rowsContainer" pickingMode="Ignore" />
+        <ui:VisualElement name="dragIndicator" pickingMode="Ignore" />
+</UXML>

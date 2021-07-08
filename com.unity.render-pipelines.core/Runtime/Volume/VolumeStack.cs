@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering
         {
         }
 
-        internal void Reload(IEnumerable<Type> baseTypes)
+        internal void Reload(Type[] baseTypes)
         {
             if (components == null)
                 components = new Dictionary<Type, VolumeComponent>();

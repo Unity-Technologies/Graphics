@@ -25,12 +25,22 @@ namespace UnityEngine.Rendering
         /// A reference to the main <see cref="VolumeStack"/>.
         /// </summary>
         /// <seealso cref="VolumeStack"/>
-        public VolumeStack stack { get; private set; }
+        public VolumeStack stack { get; set; }
 
         /// <summary>
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
         /// </summary>
-        public IEnumerable<Type> baseComponentTypes { get; private set; }
+        [Obsolete("Please use baseComponentTypeArray instead.")]
+        public IEnumerable<Type> baseComponentTypes
+        {
+            get => baseComponentTypeArray;
+            private set => baseComponentTypeArray = value.ToArray();
+        }
+
+        /// <summary>
+        /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
+        /// </summary>
+        public Type[] baseComponentTypeArray { get; private set; }
 
         // Max amount of layers available in Unity
         const int k_MaxLayerCount = 32;
@@ -52,6 +62,11 @@ namespace UnityEngine.Rendering
         // Recycled list used for volume traversal
         readonly List<Collider> m_TempColliders;
 
+        // The default stack the volume manager uses.
+        // We cache this as users able to change the stack through code and
+        // we want to be able to switch to the default one through the ResetMainStack() function.
+        VolumeStack m_DefaultStack = null;
+
         VolumeManager()
         {
             m_SortedVolumes = new Dictionary<int, List<Volume>>();
@@ -62,7 +77,8 @@ namespace UnityEngine.Rendering
 
             ReloadBaseTypes();
 
-            stack = CreateStack();
+            m_DefaultStack = CreateStack();
+            stack = m_DefaultStack;
         }
 
         /// <summary>
@@ -75,8 +91,17 @@ namespace UnityEngine.Rendering
         public VolumeStack CreateStack()
         {
             var stack = new VolumeStack();
-            stack.Reload(baseComponentTypes);
+            stack.Reload(baseComponentTypeArray);
             return stack;
+        }
+
+        /// <summary>
+        /// Resets the main stack to be the default one.
+        /// Call this function if you've assigned the main stack to something other than the default one.
+        /// </summary>
+        public void ResetMainStack()
+        {
+            stack = m_DefaultStack;
         }
 
         /// <summary>
@@ -95,13 +120,13 @@ namespace UnityEngine.Rendering
             m_ComponentsDefaultState.Clear();
 
             // Grab all the component types we can find
-            baseComponentTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
-                .Where(t => !t.IsAbstract);
+            baseComponentTypeArray = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
+                .Where(t => !t.IsAbstract).ToArray();
 
             var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
             // Keep an instance of each type to be used in a virtual lowest priority global volume
             // so that we have a default state to fallback to when exiting volumes
-            foreach (var type in baseComponentTypes)
+            foreach (var type in baseComponentTypeArray)
             {
                 type.GetMethod("Init", flags)?.Invoke(null, null);
                 var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
@@ -262,7 +287,7 @@ namespace UnityEngine.Rendering
 
             if (components == null)
             {
-                stack.Reload(baseComponentTypes);
+                stack.Reload(baseComponentTypeArray);
                 return;
             }
 
@@ -270,7 +295,7 @@ namespace UnityEngine.Rendering
             {
                 if (kvp.Key == null || kvp.Value == null)
                 {
-                    stack.Reload(baseComponentTypes);
+                    stack.Reload(baseComponentTypeArray);
                     return;
                 }
             }

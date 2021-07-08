@@ -14,7 +14,7 @@ The Mesh Index Count Operator allows you to retrieve the number of indices in th
 | ------------ | -------- | ------------------------------------------------------------ |
 | **Source**   | Enum     | **(Inspector)** Specifies the kind of geometry to sample from. The options are:<br/>&#8226; **Mesh**: Samples from a mesh asset.<br/>&#8226; **Skinned Mesh Renderer**: Samples from a [Skinned Mesh Renderer](https://docs.unity3d.com/Manual/class-SkinnedMeshRenderer.html). |
 
-### Operator Properties
+### Operator properties
 
 | **Input**                 | **Type**              | **Description**                                              |
 | ------------------------- | --------------------- | ------------------------------------------------------------ |

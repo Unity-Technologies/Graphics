@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering
 
         #region Volumes Gizmo Color
 
-        static Color s_VolumeGizmoColorDefault = new Color(0.2f, 0.8f, 0.1f, 0.5f);
+        static Color s_VolumeGizmoColorDefault = new Color(0.2f, 0.8f, 0.1f, 0.125f);
         private static Func<Color> GetColorPrefVolumeGizmoColor;
 
         public static Color volumeGizmoColor => GetColorPrefVolumeGizmoColor();
