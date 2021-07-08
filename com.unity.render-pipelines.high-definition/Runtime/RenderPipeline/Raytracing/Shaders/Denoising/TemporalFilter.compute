@@ -242,23 +242,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     #endif
 }
 
-// Output is array textures
-TEXTURE2D_ARRAY(_DenoiseInputArrayTexture);
-RW_TEXTURE2D_X(float4, _IntermediateDenoiseOutputTextureRW);
-TEXTURE2D_X(_IntermediateDenoiseOutputTexture);
-
-#if !defined(NO_VALIDITY)
-    TEXTURE2D_ARRAY(_ValidityInputArrayTexture);
-    RW_TEXTURE2D_X(float4, _IntermediateValidityOutputTextureRW);
-    TEXTURE2D_X(_IntermediateValidityOutputTexture);
-    RW_TEXTURE2D_ARRAY(float4, _ValidityOutputTextureRW);
-#endif
-
-#if defined(OUTPUT_IS_ARRAY)
-RW_TEXTURE2D_ARRAY(float4, _DenoiseOutputTextureRW);
-#else
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
-#endif
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -270,6 +254,19 @@ void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy);
 }
+
+// Output is array textures
+TEXTURE2D_ARRAY(_DenoiseInputArrayTexture);
+RW_TEXTURE2D_X(float4, _IntermediateDenoiseOutputTextureRW);
+TEXTURE2D_X(_IntermediateDenoiseOutputTexture);
+RW_TEXTURE2D_ARRAY(float4, _DenoiseOutputArrayTextureRW);
+
+#if !defined(NO_VALIDITY)
+    TEXTURE2D_ARRAY(_ValidityInputArrayTexture);
+    RW_TEXTURE2D_X(float4, _IntermediateValidityOutputTextureRW);
+    TEXTURE2D_X(_IntermediateValidityOutputTexture);
+    RW_TEXTURE2D_ARRAY(float4, _ValidityOutputTextureRW);
+#endif
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void BLEND_HISTORY_ARRAY(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -316,7 +313,7 @@ void OutputHistoryArray(uint3 dispatchThreadId : SV_DispatchThreadID)
     uint3 targetPixel = uint3(dispatchThreadId.xy, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice));
 
     // If this is a color data, it means we need to override the first three channels
-    _DenoiseOutputTextureRW[targetPixel] = LOAD_TEXTURE2D_X(_IntermediateDenoiseOutputTexture, dispatchThreadId.xy);
+    _DenoiseOutputArrayTextureRW[targetPixel] = LOAD_TEXTURE2D_X(_IntermediateDenoiseOutputTexture, dispatchThreadId.xy);
     #if !defined(NO_VALIDITY)
     _ValidityOutputTextureRW[targetPixel] = LOAD_TEXTURE2D_X(_IntermediateValidityOutputTexture, dispatchThreadId.xy);
     #endif
