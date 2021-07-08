@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((displayedFields.camera & cullingFields) != 0)
             {
-                PropertyFieldWithoutToggle(CameraSettingsFields.cullingUseOcclusionCulling, serialized.cullingUseOcclusionCulling, EditorGUIUtility.TrTextContent("Use Occlusion Culling"), displayedFields.camera);
+                PropertyFieldWithoutToggle(CameraSettingsFields.cullingUseOcclusionCulling, serialized.cullingUseOcclusionCulling, EditorGUIUtility.TrTextContent("Occlusion Culling"), displayedFields.camera);
                 PropertyFieldWithoutToggle(CameraSettingsFields.cullingCullingMask, serialized.cullingCullingMask, EditorGUIUtility.TrTextContent("Culling Mask"), displayedFields.camera);
                 PropertyFieldWithoutToggle(CameraSettingsFields.cullingInvertFaceCulling, serialized.cullingCullingMask, EditorGUIUtility.TrTextContent("Invert Backface Culling"), displayedFields.camera);
                 EditorGUILayout.Space();
