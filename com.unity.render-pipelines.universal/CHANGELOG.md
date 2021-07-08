@@ -142,6 +142,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ShaderGraph materials to select render queue in the same way as handwritten shader materials by default, but allows for a user override for custom behavior. [case 1335795]
 - Fixed sceneview debug mode rendering (case 1211436).
 - URP Global Settings can now be unassigned in the Graphics tab (case 1343570).
+- Fixed issue where motion vectors were not enabled on XR.
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
