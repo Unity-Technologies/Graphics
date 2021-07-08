@@ -15,8 +15,8 @@ VikingVillage_BuiltIn_trunk:
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
+        VV_BUILTIN_BRANCH: testing/built-in-performance
+        VV_BUILTIN_REVISION: 45df1b7643b3ccf366e908bbbf9641f558080fed
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/vikingvillage_builtin-win-dx11.yml#VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_trunk
@@ -45,8 +45,8 @@ VikingVillage_BuiltIn_2021.2:
         CUSTOM_REVISION: '{{2021_2.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
+        VV_BUILTIN_BRANCH: testing/built-in-performance
+        VV_BUILTIN_REVISION: 45df1b7643b3ccf366e908bbbf9641f558080fed
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/vikingvillage_builtin-win-dx11.yml#VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_2021.2
@@ -75,8 +75,8 @@ VikingVillage_BuiltIn_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: c61a43cd7ad4ef36f38a0219730d53e8f6e281de
+        VV_BUILTIN_BRANCH: testing/built-in-performance
+        VV_BUILTIN_REVISION: 45df1b7643b3ccf366e908bbbf9641f558080fed
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/vikingvillage_builtin-win-dx11.yml#VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
