@@ -1166,7 +1166,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
 
-                var aoAlloc = new AmbientOcclusionAllocator(scaleFactor);
+                var aoAlloc = new CustomHistoryAllocator(new Vector2(scaleFactor, scaleFactor), GraphicsFormat.R32_UInt, "AO Packed history");
                 AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion, aoAlloc.Allocator, 2);
 
                 m_AmbientOcclusionResolutionScale = scaleFactor;
@@ -1182,27 +1182,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation);
 
-                var ssrAlloc = new ScreenSpaceAccumulationAllocator(scaleFactor);
+                var ssrAlloc = new CustomHistoryAllocator(new Vector2(scaleFactor, scaleFactor), GraphicsFormat.R16G16B16A16_SFloat, "SSR_Accum Packed history");
                 AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation, ssrAlloc.Allocator, 2);
 
                 m_ScreenSpaceAccumulationResolutionScale = scaleFactor;
             }
         }
-
-        #region Private API
-        // Workaround for the Allocator callback so it doesn't allocate memory because of the capture of scaleFactor.
-        struct ScreenSpaceAllocator
-        {
-            float scaleFactor;
-
-            public ScreenSpaceAllocator(float scaleFactor) => this.scaleFactor = scaleFactor;
-
-            public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-            {
-                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_ScreenSpaceReflection history_{1}", id, frameIndex));
-            }
-        }
-        #endregion
 
         internal void ReleaseHistoryFrameRT(int id)
         {
@@ -1301,33 +1286,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void OverridePixelRect(Rect newPixelRect) => m_OverridePixelRect = newPixelRect;
         internal void ResetPixelRect() => m_OverridePixelRect = null;
+
+        // Workaround for the Allocator callback so it doesn't allocate memory because of the capture of scaleFactor.
+        internal struct CustomHistoryAllocator
+        {
+            Vector2 scaleFactor;
+            GraphicsFormat format;
+            string name;
+
+            public CustomHistoryAllocator(Vector2 scaleFactor, GraphicsFormat format, string name)
+            {
+                this.scaleFactor = scaleFactor;
+                this.format = format;
+                this.name = name;
+            }
+
+            public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            {
+                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: format, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_{1}_{2}", id, name, frameIndex));
+            }
+        }
         #endregion
 
+
         #region Private API
-        // Workaround for the Allocator callback so it doesn't allocate memory because of the capture of scaleFactor.
-        struct AmbientOcclusionAllocator
-        {
-            float scaleFactor;
 
-            public AmbientOcclusionAllocator(float scaleFactor) => this.scaleFactor = scaleFactor;
-
-            public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-            {
-                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_AO Packed history_{1}", id, frameIndex));
-            }
-        }
-
-        struct ScreenSpaceAccumulationAllocator
-        {
-            float scaleFactor;
-
-            public ScreenSpaceAccumulationAllocator(float scaleFactor) => this.scaleFactor = scaleFactor;
-
-            public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-            {
-                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_SSR_Accum Packed history_{1}", id, frameIndex));
-            }
-        }
 
         static Dictionary<(Camera, int), HDCamera> s_Cameras = new Dictionary<(Camera, int), HDCamera>();
         static List<(Camera, int)> s_Cleanup = new List<(Camera, int)>(); // Recycled to reduce GC pressure

@@ -69,6 +69,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector2Int m_AfterDynamicResUpscaleRes = new Vector2Int(1, 1);
         Vector2Int m_BeforeDynamicResUpscaleRes = new Vector2Int(1, 1);
 
+        // TAA
+        float[] taaSampleWeights = new float[9];
+
         private enum ResolutionGroup
         {
             BeforeDynamicResUpscale,
@@ -1360,36 +1363,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next, Vector2 customScale, bool postDoF = false)
         {
-            RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-            {
-                return rtHandleSystem.Alloc(
-                    Vector2.one * customScale, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
-                    filterMode: FilterMode.Bilinear, colorFormat: GetPostprocessTextureFormat(),
-                    enableRandomWrite: true, useDynamicScale: true, name: $"{id} TAA History"
-                );
-            }
-
             int historyType = (int)(postDoF ?
                 HDCameraFrameHistoryType.TemporalAntialiasingPostDoF : HDCameraFrameHistoryType.TemporalAntialiasing);
 
+            var taaAllocator = new HDCamera.CustomHistoryAllocator(customScale, GetPostprocessTextureFormat(), "TAA History");
+
             next = camera.GetCurrentFrameRT(historyType)
-                ?? camera.AllocHistoryFrameRT(historyType, Allocator, 2);
+                ?? camera.AllocHistoryFrameRT(historyType, taaAllocator.Allocator, 2);
             previous = camera.GetPreviousFrameRT(historyType);
         }
 
         void GrabVelocityMagnitudeHistoryTextures(HDCamera camera, Vector2 customScale, out RTHandle previous, out RTHandle next)
         {
-            RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-            {
-                return rtHandleSystem.Alloc(
-                    Vector2.one * customScale, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
-                    filterMode: FilterMode.Bilinear, colorFormat: GraphicsFormat.R16_SFloat,
-                    enableRandomWrite: true, useDynamicScale: true, name: $"{id} Velocity magnitude"
-                );
-            }
+            var taaAllocator = new HDCamera.CustomHistoryAllocator(customScale, GraphicsFormat.R16_SFloat, "Velocity magnitude");
 
             next = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude)
-                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude, Allocator, 2);
+                ?? camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude, taaAllocator.Allocator, 2);
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.TAAMotionVectorMagnitude);
         }
 
@@ -1429,6 +1418,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle nextMVLen;
         }
 
+        static readonly Vector2Int[] TAASampleOffsets = new Vector2Int[]
+        {
+            new Vector2Int(0, 0),
+            new Vector2Int(0, 1),
+            new Vector2Int(1, 0),
+            new Vector2Int(-1, 0),
+            new Vector2Int(0, -1),
+            new Vector2Int(-1, 1),
+            new Vector2Int(1, -1),
+            new Vector2Int(1, 1),
+            new Vector2Int(-1, -1)
+        };
+
         void PrepareTAAPassData(RenderGraph renderGraph, RenderGraphBuilder builder, TemporalAntiAliasingData passData, HDCamera camera,
             TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)
         {
@@ -1446,41 +1448,25 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.taaParameters = new Vector4(TAAU && postDoF ? 0.25f : camera.taaHistorySharpening, postDoF ? maxAntiflicker : Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
 
             // Precompute weights used for the Blackman-Harris filter.
-
-            Vector2Int[] offsets = new Vector2Int[]
-            {
-                new Vector2Int(0, 0),
-                new Vector2Int(0, 1),
-                new Vector2Int(1, 0),
-                new Vector2Int(-1, 0),
-                new Vector2Int(0, -1),
-                new Vector2Int(-1, 1),
-                new Vector2Int(1, -1),
-                new Vector2Int(1, 1),
-                new Vector2Int(-1, -1)
-            };
-
-
-            float[] weights = new float[9];
             float totalWeight = 0;
             for (int i = 0; i < 9; ++i)
             {
-                float x = offsets[i].x - camera.taaJitter.x;
-                float y = offsets[i].y - camera.taaJitter.y;
+                float x = TAASampleOffsets[i].x - camera.taaJitter.x;
+                float y = TAASampleOffsets[i].y - camera.taaJitter.y;
                 float d = (x * x + y * y);
 
-                weights[i] = Mathf.Exp((-0.5f / (0.22f)) * d);
-                totalWeight += weights[i];
+                taaSampleWeights[i] = Mathf.Exp((-0.5f / (0.22f)) * d);
+                totalWeight += taaSampleWeights[i];
             }
 
             for (int i = 0; i < 9; ++i)
             {
-                weights[i] /= totalWeight;
+                taaSampleWeights[i] /= totalWeight;
             }
 
-            passData.taaParameters1 = new Vector4(1.0f - camera.taaBaseBlendFactor, weights[0], 0, 0);
-            passData.taaFilterWeights = new Vector4(weights[1], weights[2], weights[3], weights[4]);
-            passData.taaFilterWeights1 = new Vector4(weights[5], weights[6], weights[7], weights[8]);
+            passData.taaParameters1 = new Vector4(1.0f - camera.taaBaseBlendFactor, taaSampleWeights[0], 0, 0);
+            passData.taaFilterWeights = new Vector4(taaSampleWeights[1], taaSampleWeights[2], taaSampleWeights[3], taaSampleWeights[4]);
+            passData.taaFilterWeights1 = new Vector4(taaSampleWeights[5], taaSampleWeights[6], taaSampleWeights[7], taaSampleWeights[8]);
 
             passData.temporalAAMaterial = m_TemporalAAMaterial;
             passData.temporalAAMaterial.shaderKeywords = null;
