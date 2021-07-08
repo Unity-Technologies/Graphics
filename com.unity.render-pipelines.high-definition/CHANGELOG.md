@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed an issue where bloom filtering was wrong when using multiple cameras
 - Improved a bit the area cookie behavior for higher smoothness values to reduce artifacts.
+- Fixed the incorrect value written to the VT feedback buffer when VT is not used.
 
 ## [10.6.0] - 2021-04-29
 
