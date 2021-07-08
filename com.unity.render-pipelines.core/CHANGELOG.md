@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Skip wind calculations for Speed Tree 8 when wind vector is zero (case 1343002)
 - Fixed memory leak when changing SRP pipeline settings, and having the player in pause mode.
 - Fixed alignment in Volume Components
+- Fixed rotation issue now all flare rotate on positive direction (1348570)
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
