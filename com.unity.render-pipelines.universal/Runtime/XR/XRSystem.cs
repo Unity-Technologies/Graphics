@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.XR;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -161,7 +162,7 @@ namespace UnityEngine.Rendering.Universal
             bool xrSupported = isGameCamera && camera.targetTexture == null && enableXRRendering;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running && isGameCamera && LayoutSinglePassTestMode(cameraData, new XRLayout() { camera = camera, xrSystem = this }))
+            if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running && isGameCamera && LayoutSinglePassTestMode(new XRLayout() { camera = camera, xrSystem = this }))
             {
                 // test layout in used
             }
@@ -458,7 +459,7 @@ namespace UnityEngine.Rendering.Universal
 
         static XRPass.CustomMirrorView testMirrorView = copyToTestRenderTexture;
 
-        bool LayoutSinglePassTestMode(CameraData cameraData, XRLayout frameLayout)
+        bool LayoutSinglePassTestMode(XRLayout frameLayout)
         {
             Camera camera = frameLayout.camera;
 
@@ -473,23 +474,13 @@ namespace UnityEngine.Rendering.Universal
                 // Allocate temp target to render test scene with single-pass
                 // And copy the last view to the actual render texture used to compare image in test framework
                 {
-                    RenderTextureDescriptor rtDesc = cameraData.cameraTargetDescriptor;
+                    RenderTextureDescriptor rtDesc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+                    rtDesc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+                    rtDesc.depthBufferBits = 32;
+                    rtDesc.msaaSamples = GetMSAALevel();
+                    rtDesc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
                     rtDesc.dimension = TextureDimension.Tex2DArray;
                     rtDesc.volumeDepth = 2;
-                    // If camera renders to subrect, we adjust size to match back buffer/target texture
-                    if (!cameraData.isDefaultViewport)
-                    {
-                        if (cameraData.targetTexture == null)
-                        {
-                            rtDesc.width = (int)(rtDesc.width / cameraData.camera.rect.width);
-                            rtDesc.height = (int)(rtDesc.height / cameraData.camera.rect.height);
-                        }
-                        else
-                        {
-                            rtDesc.width = (int)(cameraData.targetTexture.width);
-                            rtDesc.height = (int)(cameraData.targetTexture.height);
-                        }
-                    }
                     testRenderTexture = RenderTexture.GetTemporary(rtDesc);
 
                     testMirrorViewMaterial = mirrorViewMaterial;
