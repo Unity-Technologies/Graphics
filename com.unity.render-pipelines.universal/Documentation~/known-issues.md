@@ -18,12 +18,12 @@ If a URP Renderer asset has any Renderer Features assigned, renaming the Rendere
 
 The following scenario shows how the error occurs:
 
-* Let's assume that the URP Renderer in your project is called `ForwardRenderer`.
+* Let's assume that the URP Renderer in your project is called `UniversalRenderer`.
 * The Renderer has a Renderer Feature called `NewRenderObjects` assigned.
 
-    ![ForwardRenderer with Renderer Feature assigned to it.](Images/known-issues/urp-10-renaming-renderer.png)
+    ![UniversalRenderer with Renderer Feature assigned to it.](Images/known-issues/urp-10-renaming-renderer.png)
 
-* Renaming `ForwardRenderer` to `NewRenderObjects` causes erroneous behavior:<br/>The Renderer switches places with the Renderer Feature and does not behave correctly.
+* Renaming `UniversalRenderer` to `NewRenderObjects` causes erroneous behavior:<br/>The Renderer switches places with the Renderer Feature and does not behave correctly.
 
 To avoid the issue, do not give the URP Renderer asset the same name as the Renderer Feature asset.
 
