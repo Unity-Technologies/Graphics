@@ -431,60 +431,24 @@ namespace UnityEditor.VFX.UI
             }
 
             // Support multiple search words separated by spaces.
-            string[] searchWords = m_Search.ToLower().Split(' ');
+            var lowerSearch = m_Search.ToLower();
+            var searchWords = lowerSearch.Split(' ');
 
-            // We keep two lists. Matches that matches the start of an item always get first priority.
-            List<Element> matchesStart = new List<Element>();
-            List<Element> matchesWithin = new List<Element>();
-
-            foreach (var e in m_Tree.OfType<Element>())
+            List<Element> searchResults = new List<Element>();
+            foreach (var e in m_Tree.Where(x => x is not GroupElement))
             {
-                string name = e.name.ToLower().Replace(" ", "");
-                bool didMatchAll = true;
-                bool didMatchStart = false;
+                string lowerName = e.name.ToLower();
 
-                // See if we match ALL the seaarch words.
-                for (int w = 0; w < searchWords.Length; w++)
+                if (lowerName.Contains(lowerSearch) || searchWords.All(x => lowerName.Contains(x)))
                 {
-                    string search = searchWords[w];
-                    if (name.Contains(search))
-                    {
-                        // If the start of the item matches the first search word, make a note of that.
-                        if (w == 0 && name.StartsWith(search))
-                            didMatchStart = true;
-                    }
-                    else
-                    {
-                        // As soon as any word is not matched, we disregard this item.
-                        didMatchAll = false;
-                        break;
-                    }
-                }
-                // We always need to match all search words.
-                // If we ALSO matched the start, this item gets priority.
-                if (didMatchAll)
-                {
-                    if (didMatchStart)
-                        matchesStart.Add(e);
-                    else
-                        matchesWithin.Add(e);
+                    searchResults.Add(e);
                 }
             }
 
-            matchesStart.Sort();
-            matchesWithin.Sort();
-
-            // Create search tree
-            List<Element> tree = new List<Element>();
-            // Add parent
-            tree.Add(new GroupElement(0, kSearchHeader));
-            // Add search results
-            tree.AddRange(matchesStart);
-            tree.AddRange(matchesWithin);
-            // Add the new script element
-            //tree.Add(m_Tree[m_Tree.Length - 1]);
             // Create search result tree
-            m_SearchResultTree = tree.ToArray();
+            m_SearchResultTree = new Element[] {new GroupElement(0, kSearchHeader)}
+                .Union(searchResults.OrderBy(x => this.GetSearchResultRelevancy(x.name.ToLower(), lowerSearch)))
+                .ToArray();
             m_Stack.Clear();
             m_Stack.Add(m_SearchResultTree[0] as GroupElement);
 
@@ -494,6 +458,26 @@ namespace UnityEditor.VFX.UI
                 activeParent.selectedIndex = 0;
             else
                 activeParent.selectedIndex = -1;
+        }
+
+        private int GetSearchResultRelevancy(string elementName, string search)
+        {
+            // Minimum score means best result
+            // There are three cases:
+            // - Equality
+            // - Exact match => short is better
+            // - Contains all chunks (of course because that's mandatory to be in the search results)
+            //   => short is better
+            var score = -10_000;
+
+            if (elementName != search)
+            {
+                score = elementName.Contains(search)
+                    ? -1_000
+                    : 2;
+            }
+
+            return score + elementName.Length;
         }
 
         private GroupElement GetElementRelative(int rel)
