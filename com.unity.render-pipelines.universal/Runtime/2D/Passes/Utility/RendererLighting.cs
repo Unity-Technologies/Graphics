@@ -522,6 +522,16 @@ namespace UnityEngine.Rendering.Universal
 
         public static void RenderLights(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, ref LayerBatch layerBatch, ref RenderTextureDescriptor rtDesc)
         {
+            // Before rendering the lights cache some values that are expensive to get/calculate
+            var culledLights = pass.rendererData.lightCullResult.visibleLights;
+            for (var i=0; i < culledLights.Count; i++)
+            {
+                culledLights[i].CacheValues();
+            }
+
+            ShadowCasterGroup2DManager.CacheValues();
+
+
             var blendStyles = pass.rendererData.lightBlendStyles;
 
             for (var i = 0; i < blendStyles.Length; ++i)
