@@ -759,8 +759,10 @@ stripTool.EnableOffStrip();
             //bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
             //if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
             //    return true;
+            stripTool.DisableOffStrip();
             if (stripTool.StripFragmentFeature(m_LocalAdditionalLightShadows, ShaderFeatures.AdditionalLightShadows))
                 return true;
+            stripTool.EnableOffStrip();
 
             //bool isReflectionProbeBlending = compilerData.shaderKeywordSet.IsEnabled(m_ReflectionProbeBlending);
             //if (!IsFeatureEnabled(features, ShaderFeatures.ReflectionProbeBlending) && isReflectionProbeBlending)
