@@ -2,6 +2,7 @@
 
 With the Screen Space Shadows Renderer Feature, Unity can resolve main light shadows in screen space before drawing objects. It needs one more additional render target, but can prevent from multiple accesses to cascade shadow maps in forward rendering.
 ![Show screen space shadows](Images/ssshadows/ssshadows-result.png)<br/>*Screen Space Shadows in URP Template Scene*
+
 ![Show screen space shadows texture](Images/ssshadows/ssshadows-shadow-texture.png)<br/>*Screen Space Shadows TextureOnly*
 
 After enabling this renderer feature, you can check this pass in frame debugger.
