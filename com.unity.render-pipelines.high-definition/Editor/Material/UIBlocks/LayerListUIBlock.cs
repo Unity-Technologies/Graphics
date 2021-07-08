@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
             float resetButtonWidth = 43;
             float padding = 4f;
             float endOffset = 2f;
-            float labelWidth = 100f;
+            float labelWidth = EditorGUIUtility.labelWidth;
             float height = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
             EditorGUIUtility.labelWidth = labelWidth;
