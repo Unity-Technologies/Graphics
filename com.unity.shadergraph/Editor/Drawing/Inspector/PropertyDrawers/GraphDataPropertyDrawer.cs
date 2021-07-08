@@ -121,6 +121,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     "Add a Universal or HDRP target instead, and enable 'Support VFX Graph' in the Graph Inspector.");
 
                 vfxWarningLabel.style.color = new StyleColor(Color.white);
+                vfxWarningLabel.style.whiteSpace = WhiteSpace.Normal;
 
                 vfxWarning.Add(vfxWarningLabel);
                 element.Add(vfxWarning);
