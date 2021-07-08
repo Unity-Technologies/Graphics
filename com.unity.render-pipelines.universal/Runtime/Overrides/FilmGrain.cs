@@ -17,9 +17,14 @@ namespace UnityEngine.Rendering.Universal
         Custom
     }
 
-    [Serializable, VolumeComponentMenu("Post-processing/FilmGrain")]
+    [Serializable, VolumeComponentMenu("Post-processing/Film Grain (URP)")]
     public sealed class FilmGrain : VolumeComponent, IPostProcessComponent
     {
+        FilmGrain()
+        {
+            displayName = "Film Grain (URP)";
+        }
+
         [Tooltip("The type of grain to use. You can select a preset or provide your own texture by selecting Custom.")]
         public FilmGrainLookupParameter type = new FilmGrainLookupParameter(FilmGrainLookup.Thin1);
 
