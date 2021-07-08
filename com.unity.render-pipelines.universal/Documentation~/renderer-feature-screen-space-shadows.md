@@ -3,7 +3,7 @@
 With the Screen Space Shadows Renderer Feature, Unity can resolve main light shadows in screen space before drawing objects. It needs one more additional render target, but can prevent from multiple accesses to cascade shadow maps in forward rendering.
 ![Show screen space shadows](Images/ssshadows/ssshadows-result.png)<br/>*Screen Space Shadows in URP Template Scene*
 
-![Show screen space shadows texture](Images/ssshadows/ssshadows-shadow-texture.png)<br/>*Screen Space Shadows TextureOnly*
+![Show screen space shadows texture](Images/ssshadows/ssshadows-shadow-texture.png)<br/>*Screen Space Shadows Texture*
 
 After enabling this renderer feature, you can check this pass in frame debugger.
 ![Show main light shadows in frame debugger](Images/ssshadows/ssshadows-framedebugger.png)<br/>*Screen Space Shadows pass in frame debugger*
@@ -33,9 +33,9 @@ To resolve main light shadows with screen space:
 
 ## Implementation details
 
-The Screen Space Shadows Renderer Feature needs depth texture before drawing opaque objects, and will invoke depth prepass.
+The Screen Space Shadows Renderer Feature needs **Depth Texture** before drawing opaque objects, and will invoke depth prepass.
 It resolves main light shadows in screen space prior to 'DrawOpaqueObjects' pass and works on only opaque objects.
 
-If you added this renderer feature and used transparent objects, **Only Opaque Objects** would be shadowed with screen space shadows, but
+If you added this renderer feature and also used transparent objects, **Only Opaque Objects** would be shadowed with screen space shadows, but
 **Transparent Objects** would be shadowed by cascade shadow maps.
-![Won't cast shadows on transparent from screen space shadow texture](Images/ssshadows/ssshadows-cast-shadow-totransparent.png)
+![Won't cast shadows on transparent from screen space shadow texture](Images/ssshadows/ssshadows-cast-shadow-totransparent.png)<br/>*Transparent Objects are shadowed from cascade shadow map while Opaque Objects were by screen space shadows*
