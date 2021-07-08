@@ -44,13 +44,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the extent of the veiling effect.
         /// </summary>
-        [Tooltip("Controls the extent of the veiling effect.")]
+        [Tooltip("Set the radius of the bloom effect")]
         public ClampedFloatParameter scatter = new ClampedFloatParameter(0.7f, 0f, 1f);
 
         /// <summary>
         /// Specifies the tint of the bloom filter.
         /// </summary>
-        [Tooltip("Specifies the tint of the bloom filter.")]
+        [Tooltip("Use the color picker to select a color for the Bloom effect to tint to.")]
         public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
 
         /// <summary>
