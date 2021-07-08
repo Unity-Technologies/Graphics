@@ -23,15 +23,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // The set of required kernels
         int m_ValidateHistoryKernel;
+
         int m_TemporalAccumulationSingleKernel;
         int m_TemporalAccumulationColorKernel;
-        int m_CopyHistorySingleKernel;
-        int m_CopyHistoryColorKernel;
+        int m_CopyHistoryKernel;
+
         int m_TemporalAccumulationSingleArrayKernel;
         int m_TemporalAccumulationColorArrayKernel;
-        int m_CopyHistorySingleArrayKernel;
-        int m_CopyHistoryColorArrayKernel;
-        int m_CopyHistorySingleArrayNoValidityKernel;
+        int m_BlendHistorySingleArrayKernel;
+        int m_BlendHistoryColorArrayKernel;
+        int m_BlendHistorySingleArrayNoValidityKernel;
+        int m_OutputHistoryArrayKernel;
 
         public HDTemporalFilter()
         {
@@ -42,20 +44,18 @@ namespace UnityEngine.Rendering.HighDefinition
             // Keep track of the resources
             m_TemporalFilterCS = rpResources.shaders.temporalFilterCS;
 
-            // Grab all the kernels we'll eventually need
             m_ValidateHistoryKernel = m_TemporalFilterCS.FindKernel("ValidateHistory");
+
             m_TemporalAccumulationSingleKernel = m_TemporalFilterCS.FindKernel("TemporalAccumulationSingle");
             m_TemporalAccumulationColorKernel = m_TemporalFilterCS.FindKernel("TemporalAccumulationColor");
-            m_CopyHistorySingleKernel = m_TemporalFilterCS.FindKernel("CopyHistorySingle");
-            m_CopyHistoryColorKernel = m_TemporalFilterCS.FindKernel("CopyHistoryColor");
+            m_CopyHistoryKernel = m_TemporalFilterCS.FindKernel("CopyHistory");
 
             m_TemporalAccumulationSingleArrayKernel = m_TemporalFilterCS.FindKernel("TemporalAccumulationSingleArray");
             m_TemporalAccumulationColorArrayKernel = m_TemporalFilterCS.FindKernel("TemporalAccumulationColorArray");
-
-            m_CopyHistorySingleArrayKernel = m_TemporalFilterCS.FindKernel("CopyHistorySingleArray");
-            m_CopyHistoryColorArrayKernel = m_TemporalFilterCS.FindKernel("CopyHistoryColorArray");
-
-            m_CopyHistorySingleArrayNoValidityKernel = m_TemporalFilterCS.FindKernel("CopyHistorySingleArrayNoValidity");
+            m_BlendHistorySingleArrayKernel = m_TemporalFilterCS.FindKernel("BlendHistorySingleArray");
+            m_BlendHistoryColorArrayKernel = m_TemporalFilterCS.FindKernel("BlendHistoryColorArray");
+            m_BlendHistorySingleArrayNoValidityKernel = m_TemporalFilterCS.FindKernel("BlendHistorySingleArrayNoValidity");
+            m_OutputHistoryArrayKernel = m_TemporalFilterCS.FindKernel("OutputHistoryArray");
         }
 
         public void Release()
@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Kernels
                 passData.temporalAccKernel = filterParams.singleChannel ? m_TemporalAccumulationSingleKernel : m_TemporalAccumulationColorKernel;
-                passData.copyHistoryKernel = filterParams.singleChannel ? m_CopyHistorySingleKernel : m_CopyHistoryColorKernel;
+                passData.copyHistoryKernel = m_CopyHistoryKernel;
 
                 // Other parameters
                 passData.temporalFilterCS = m_TemporalFilterCS;
@@ -313,9 +313,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Kernels
             public int temporalAccKernel;
-            public int copyHistoryKernel;
+            public int blendHistoryKernel;
             public int temporalAccSingleKernel;
-            public int copyHistoryNoValidityKernel;
+            public int blendHistoryNoValidityKernel;
+            public int outputHistoryKernel;
 
             // Other parameters
             public ComputeShader temporalFilterCS;
@@ -335,6 +336,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle historyBuffer;
             public TextureHandle validationHistoryBuffer;
             public TextureHandle distanceHistorySignal;
+
+            // Intermediate buffers
+            public TextureHandle intermediateSignalOutput;
+            public TextureHandle intermediateValidityOutput;
 
             // Output buffers
             public TextureHandle outputBuffer;
@@ -371,9 +376,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Kernels
                 passData.temporalAccKernel = singleChannel ? m_TemporalAccumulationSingleArrayKernel : m_TemporalAccumulationColorArrayKernel;
-                passData.copyHistoryKernel = singleChannel ? m_CopyHistorySingleArrayKernel : m_CopyHistoryColorArrayKernel;
+                passData.blendHistoryKernel = singleChannel ? m_BlendHistorySingleArrayKernel : m_BlendHistoryColorArrayKernel;
                 passData.temporalAccSingleKernel = m_TemporalAccumulationSingleArrayKernel;
-                passData.copyHistoryNoValidityKernel = m_CopyHistorySingleArrayNoValidityKernel;
+                passData.blendHistoryNoValidityKernel = m_BlendHistorySingleArrayNoValidityKernel;
+                passData.outputHistoryKernel = m_OutputHistoryArrayKernel;
 
                 // Other parameters
                 passData.temporalFilterCS = m_TemporalFilterCS;
@@ -393,11 +399,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.validationHistoryBuffer = builder.ReadWriteTexture(renderGraph.ImportTexture(validationHistoryBuffer));
                 passData.distanceHistorySignal = distanceBased ? builder.ReadWriteTexture(renderGraph.ImportTexture(distanceHistorySignal)) : renderGraph.defaultResources.blackTextureXR;
 
+                // Intermediate buffers
+                passData.intermediateSignalOutput = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate Filter Output" });
+                passData.intermediateValidityOutput = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate Validity output" });
+
                 // Output textures
                 passData.outputBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Output" }));
                 passData.outputDistanceSignal = distanceBased ? builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporal Filter Distance output" })) : new TextureHandle();
+                
 
                 builder.SetRenderFunc(
                     (TemporalFilterArrayPassData data, RenderGraphContext ctx) =>
@@ -429,13 +442,23 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Combine with the history
                         ctx.cmd.DispatchCompute(data.temporalFilterCS, data.temporalAccKernel, numTilesX, numTilesY, data.viewCount);
 
-                        // Make sure to copy the new-accumulated signal in our history buffer
-                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.copyHistoryKernel, HDShaderIDs._DenoiseInputTexture, data.outputBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.copyHistoryKernel, HDShaderIDs._DenoiseOutputTextureRW, data.historyBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.copyHistoryKernel, HDShaderIDs._ValidityOutputTextureRW, data.validationHistoryBuffer);
+                        // Combine with the history buffer
                         ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistorySlice, data.sliceIndex);
                         ctx.cmd.SetComputeVectorParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistoryMask, data.channelMask);
-                        ctx.cmd.DispatchCompute(data.temporalFilterCS, data.copyHistoryKernel, numTilesX, numTilesY, data.viewCount);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryKernel, HDShaderIDs._DenoiseInputTexture, data.outputBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryKernel, HDShaderIDs._DenoiseInputArrayTexture, data.historyBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryKernel, HDShaderIDs._ValidityInputArrayTexture, data.validationHistoryBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryKernel, HDShaderIDs._IntermediateDenoiseOutputTextureRW, data.intermediateSignalOutput);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryKernel, HDShaderIDs._IntermediateValidityOutputTextureRW, data.intermediateValidityOutput);
+                        ctx.cmd.DispatchCompute(data.temporalFilterCS, data.blendHistoryKernel, numTilesX, numTilesY, data.viewCount);
+
+                        // Output the combination to the history buffer
+                        ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistorySlice, data.sliceIndex);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._IntermediateDenoiseOutputTexture, data.intermediateSignalOutput);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._IntermediateValidityOutputTexture, data.intermediateValidityOutput);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._DenoiseOutputTextureRW, data.historyBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._ValidityOutputTextureRW, data.validationHistoryBuffer);
+                        ctx.cmd.DispatchCompute(data.temporalFilterCS, data.outputHistoryKernel, numTilesX, numTilesY, data.viewCount);
 
                         if (data.distanceBasedDenoiser)
                         {
@@ -459,11 +482,18 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.DispatchCompute(data.temporalFilterCS, data.temporalAccSingleKernel, numTilesX, numTilesY, data.viewCount);
 
                             // Make sure to copy the new-accumulated signal in our history buffer
-                            ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.copyHistoryNoValidityKernel, HDShaderIDs._DenoiseInputTexture, data.outputDistanceSignal);
-                            ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.copyHistoryNoValidityKernel, HDShaderIDs._DenoiseOutputTextureRW, data.distanceHistorySignal);
                             ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistorySlice, data.sliceIndex);
                             ctx.cmd.SetComputeVectorParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistoryMask, data.distanceChannelMask);
-                            ctx.cmd.DispatchCompute(data.temporalFilterCS, data.copyHistoryNoValidityKernel, numTilesX, numTilesY, data.viewCount);
+                            ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryNoValidityKernel, HDShaderIDs._DenoiseInputTexture, data.outputDistanceSignal);
+                            ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryNoValidityKernel, HDShaderIDs._DenoiseInputArrayTexture, data.distanceHistorySignal);
+                            ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.blendHistoryNoValidityKernel, HDShaderIDs._IntermediateDenoiseOutputTextureRW, data.intermediateSignalOutput);
+                            ctx.cmd.DispatchCompute(data.temporalFilterCS, data.blendHistoryNoValidityKernel, numTilesX, numTilesY, data.viewCount);
+
+                            // Output the combination to the history buffer
+                            ctx.cmd.SetComputeIntParam(data.temporalFilterCS, HDShaderIDs._DenoisingHistorySlice, data.sliceIndex);
+                            ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._IntermediateDenoiseOutputTexture, data.intermediateSignalOutput);
+                            ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.outputHistoryKernel, HDShaderIDs._DenoiseOutputTextureRW, data.intermediateSignalOutput);
+                            ctx.cmd.DispatchCompute(data.temporalFilterCS, data.outputHistoryKernel, numTilesX, numTilesY, data.viewCount);
                         }
                     });
 

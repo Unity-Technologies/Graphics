@@ -624,6 +624,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AffectSmoothSurfaces            = Shader.PropertyToID("_AffectSmoothSurfaces");
         public static readonly int _ObjectMotionStencilBit          = Shader.PropertyToID("_ObjectMotionStencilBit");
 
+        public static readonly int _DenoiseInputArrayTexture                = Shader.PropertyToID("_DenoiseInputArrayTexture");
+        public static readonly int _ValidityInputArrayTexture               = Shader.PropertyToID("_ValidityInputArrayTexture");
+        public static readonly int _IntermediateDenoiseOutputTexture        = Shader.PropertyToID("_IntermediateDenoiseOutputTexture");
+        public static readonly int _IntermediateValidityOutputTexture       = Shader.PropertyToID("_IntermediateValidityOutputTexture");
+        public static readonly int _IntermediateDenoiseOutputTextureRW      = Shader.PropertyToID("_IntermediateDenoiseOutputTextureRW");
+        public static readonly int _IntermediateValidityOutputTextureRW     = Shader.PropertyToID("_IntermediateValidityOutputTextureRW");
+
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");
         public static readonly int _CurrentFrameTexture             = Shader.PropertyToID("_CurrentFrameTexture");
