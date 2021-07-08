@@ -75,3 +75,21 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: 
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 99da9ba2c3d1f4b1d92f851028bb7d0a, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: 
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 2390977fa927ed74cadd2a62016007cb, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: 
