@@ -19,10 +19,10 @@ namespace UnityEditor.VFX.UI
             ctx.ConvertToSubgraphContext(sourceView, controllers, rect, path);
         }
 
-        public static void ConvertToSubgraphOperator(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect)
+        public static void ConvertToSubgraphOperator(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect, string path = null)
         {
             var ctx = new Context();
-            ctx.ConvertToSubgraphOperator(sourceView, controllers, rect);
+            ctx.ConvertToSubgraphOperator(sourceView, controllers, rect, path);
         }
 
         public static void ConvertToSubgraphBlock(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect)
@@ -251,12 +251,22 @@ namespace UnityEditor.VFX.UI
                 UninitSmart();
             }
 
-            public void ConvertToSubgraphOperator(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect)
+            public void ConvertToSubgraphOperator(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect, string path)
             {
                 this.m_Rect = rect;
                 Init(sourceView, controllers);
-                if (!CreateUniqueSubgraph("SubgraphOperator", VisualEffectSubgraphOperator.Extension, VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>))
-                    return;
+                if (path == null)
+                {
+                    if (!CreateUniqueSubgraph("SubgraphOperator", VisualEffectSubgraphOperator.Extension, VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>))
+                        return;
+                }
+                else
+                {
+                    m_TargetSubgraph = VisualEffectAssetEditorUtility.CreateNew<VisualEffectSubgraphOperator>(path);
+                    m_TargetController = VFXViewController.GetController(m_TargetSubgraph.GetResource());
+                    m_TargetController.useCount++;
+                    m_TargetControllers = new List<VFXNodeController>();
+                }
                 CopyPasteNodes();
                 m_SourceNode = ScriptableObject.CreateInstance<VFXSubgraphOperator>();
                 PostSetupNode();

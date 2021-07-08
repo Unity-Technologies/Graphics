@@ -11,6 +11,7 @@ using UnityEditor.VFX.UI;
 using System.IO;
 using UnityEditor.VFX.Block.Test;
 using UnityEngine.UIElements;
+using UnityEngine.TestTools;
 
 namespace UnityEditor.VFX.Test
 {
@@ -22,6 +23,7 @@ namespace UnityEditor.VFX.Test
         const string testAssetName = "Assets/TmpTests/VFXGraph1.vfx";
         const string testSubgraphAssetName = "Assets/TmpTests/VFXGraphSub.vfx";
         const string testSubgraphSubAssetName = "Assets/TmpTests/VFXGraphSub_Subgraph.vfx";
+        const string testSubgraphSubOperatorAssetName = "Assets/TmpTests/VFXGraphSub_Subgraph.vfxoperator";
 
         private int m_StartUndoGroupId;
 
@@ -53,7 +55,9 @@ namespace UnityEditor.VFX.Test
             m_ViewController.useCount--;
             Undo.RevertAllDownToGroup(m_StartUndoGroupId);
             AssetDatabase.DeleteAsset(testAssetName);
-            AssetDatabase.DeleteAsset(testAssetName);
+            AssetDatabase.DeleteAsset(testSubgraphAssetName);
+            AssetDatabase.DeleteAsset(testSubgraphSubAssetName);
+            AssetDatabase.DeleteAsset(testSubgraphSubOperatorAssetName);
         }
 
         #pragma warning disable 0414
@@ -979,6 +983,67 @@ namespace UnityEditor.VFX.Test
 
             window.graphView.controller = null;
         }
+
+
+        //Regression test for case 1345426
+        [UnityTest]
+        public IEnumerator ToSubGraphOperator()
+        {
+            var window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            window.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetName), null);
+
+            var graph = m_ViewController.graph;
+            var add_A = ScriptableObject.CreateInstance<Operator.Add>();
+            graph.AddChild(add_A);
+            var add_B = ScriptableObject.CreateInstance<Operator.Add>();
+            graph.AddChild(add_B);
+            Assert.IsTrue(add_A.outputSlots[0].Link(add_B.inputSlots[1]));
+
+            //Simple compilable system
+            {
+                var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+
+                var spawnerInit = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+                var spawnerOutput = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+
+                var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(Block.SetAttribute));
+                var blockAttribute = blockAttributeDesc.CreateInstance();
+                blockAttribute.SetSettingValue("attribute", "position");
+                spawnerInit.AddChild(blockAttribute);
+
+                graph.AddChild(spawnerContext);
+                graph.AddChild(spawnerInit);
+                graph.AddChild(spawnerOutput);
+
+                spawnerInit.LinkFrom(spawnerContext);
+                spawnerOutput.LinkFrom(spawnerInit);
+            }
+
+            var initialize = m_ViewController.graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
+            Assert.IsNotNull(initialize);
+            Assert.IsTrue(initialize.children.Any());
+
+            var allSlot = initialize.children.SelectMany(o => o.inputSlots);
+            var firstVector3 = allSlot.FirstOrDefault(o => o.property.type == typeof(Position));
+            Assert.IsNotNull(firstVector3);
+            Assert.IsTrue(add_B.outputSlots[0].Link(firstVector3[0][0]));
+            Assert.IsTrue(firstVector3.HasLink(true));
+            m_ViewController.LightApplyChanges();
+
+            yield return null;
+
+            var controller = window.graphView.Query<VFXOperatorUI>().ToList().Where(t => t.controller.model is Operator.Add).Select(o => o.controller).Cast<Controller>();
+            Assert.AreEqual(2, controller.Count());
+            VFXConvertSubgraph.ConvertToSubgraphOperator(window.graphView, controller, Rect.zero, testSubgraphSubOperatorAssetName);
+
+            for (int i = 0; i < 32; ++i)
+                yield return null;
+
+            //If we reach here without any error or crash, the bug has been fixed
+
+            window.graphView.controller = null;
+        }
+
     }
 }
 #endif
