@@ -279,6 +279,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed override camera rendering custom pass API aspect ratio issue when rendering to a render texture.
 - Fixed gbuffer depth debug mode for materials not rendered during the prepass.
 - Fixed Vertex Color Mode documentation for layered lit shader.
+- Fixed wobbling/tearing-like artifacts with SSAO.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
