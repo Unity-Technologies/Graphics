@@ -126,7 +126,7 @@ The SRP settings workflow improvements are a series of UI/UX improvements intend
 
 ### More optimal handling of the depth buffer with MSAA enabled
 
-Previously, with MSAA enabled, Unity executed an extra depth prepass to populate the depth buffer. 
+Previously, with MSAA enabled, Unity executed an extra depth prepass to populate the depth buffer.
 In this release, Unity doesn't execute the extra depth prepass and reuses the  depth texture from the opaque pass instead.
 
 ### URP 2D Renderer improvements

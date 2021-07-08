@@ -1,4 +1,4 @@
-﻿Shader "Renderers/Renderers_Test"
+Shader "Renderers/Renderers_Test"
 {
     Properties
     {
@@ -44,7 +44,7 @@
 
             // Toggle fog on transparent
             #define _ENABLE_FOG_ON_TRANSPARENT
-            
+
             // List all the attributes needed in your shader (will be passed to the vertex shader)
             // you can see the complete list of these attributes in VaryingMesh.hlsl
             #define ATTRIBUTES_NEED_TEXCOORD0
@@ -54,7 +54,7 @@
             // List all the varyings needed in your fragment shader
             #define VARYINGS_NEED_TEXCOORD0
             #define VARYINGS_NEED_TANGENT_TO_WORLD
-            
+
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassRenderers.hlsl"
 
             TEXTURE2D(_ColorMap);
