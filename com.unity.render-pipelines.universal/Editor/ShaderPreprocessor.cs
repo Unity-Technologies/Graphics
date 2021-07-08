@@ -720,8 +720,10 @@ stripTool.EnableOffStrip();
                 if (stripTool.StripFragmentFeature(m_LocalSoftShadows, ShaderFeatures.SoftShadows))
                     return true;
             }*/
+            stripTool.DisableOffStrip();
             if (stripTool.StripFragmentFeature(m_LocalSoftShadows, ShaderFeatures.SoftShadows))
                 return true;
+                stripTool.EnableOffStrip();
                 
 
             // Left for backward compatibility
@@ -756,13 +758,13 @@ stripTool.EnableOffStrip();
                 
 
             // No additional light shadows
-            //bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
-            //if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
-            //    return true;
-            stripTool.DisableOffStrip();
-            if (stripTool.StripFragmentFeature(m_LocalAdditionalLightShadows, ShaderFeatures.AdditionalLightShadows))
+            bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
+            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
                 return true;
-            stripTool.EnableOffStrip();
+            //stripTool.DisableOffStrip();
+            //if (stripTool.StripFragmentFeature(m_LocalAdditionalLightShadows, ShaderFeatures.AdditionalLightShadows))
+            //    return true;
+            //stripTool.EnableOffStrip();
 
             //bool isReflectionProbeBlending = compilerData.shaderKeywordSet.IsEnabled(m_ReflectionProbeBlending);
             //if (!IsFeatureEnabled(features, ShaderFeatures.ReflectionProbeBlending) && isReflectionProbeBlending)
@@ -811,9 +813,11 @@ stripTool.EnableOffStrip();
             //if (!isFeaturePerVertexLightingEnabled && isAdditionalLightPerVertex)
             //    return true;
 
+stripTool.DisableOffStrip();
             if (stripTool.StripFeature(m_LocalAdditionalLightsVertex, ShaderFeatures.VertexLighting,
                 m_LocalAdditionalLightsPixel, ShaderFeatures.AdditionalLights))
                 return true;
+stripTool.EnableOffStrip();
 
             if (!clusteredRendering && compilerData.shaderKeywordSet.IsEnabled(m_ClusteredRendering))
                 return true;
