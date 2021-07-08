@@ -36,6 +36,6 @@ To resolve main light shadows with screen space:
 The Screen Space Shadows Renderer Feature needs depth texture before drawing opaque objects, and will invoke depth prepass.
 It resolves main light shadows in screen space prior to 'DrawOpaqueObjects' pass and works on only opaque objects.
 
-If you added this renderer feature and used transparent objects, **only opaque objects** would be shadowed with screen space shadows, but
-**transparent objects** would be shadowed by cascade shadow maps.
+If you added this renderer feature and used transparent objects, **Only Opaque Objects** would be shadowed with screen space shadows, but
+**Transparent Objects** would be shadowed by cascade shadow maps.
 ![Won't cast shadows on transparent from screen space shadow texture](Images/ssshadows/ssshadows-cast-shadow-totransparent.png)
