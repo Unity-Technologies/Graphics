@@ -22,7 +22,7 @@ internal class CaptureMotionVectorsPass : ScriptableRenderPass
     }
 
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-    {        
+    {
         ConfigureTarget(m_CameraColorTarget, m_CameraColorTarget);
         ConfigureClear(ClearFlag.Color, Color.black);
     }
