@@ -26,6 +26,45 @@ struct APVResources
     Texture3D L2_3;
 };
 
+struct APVSample
+{
+    float3 L0;
+    float3 L1_R;
+    float3 L1_G;
+    float3 L1_B;
+#ifdef PROBE_VOLUMES_L2
+    float4 L2_R;
+    float4 L2_G;
+    float4 L2_B;
+    float3 L2_C;
+#endif
+
+#define APV_SAMPLE_STATUS_INVALID -1
+#define APV_SAMPLE_STATUS_ENCODED 0
+#define APV_SAMPLE_STATUS_DECODED 1
+
+    int status;
+
+    // Note: at the moment this is called at the moment the struct is built, but it is kept as a separate step
+    // as ideally should be called as far as possible from sample to allow for latency hiding.
+    void Decode()
+    {
+        if (status == APV_SAMPLE_STATUS_ENCODED)
+        {
+            L1_R = DecodeSH(L0.r, L1_R);
+            L1_G = DecodeSH(L0.g, L1_G);
+            L1_B = DecodeSH(L0.b, L1_B);
+#ifdef PROBE_VOLUMES_L2
+            float4 outL2_C = float4(L2_C, 0.0f);
+            DecodeSH_L2(L0, L2_R, L2_G, L2_B, outL2_C);
+            L2_C = outL2_C.xyz;
+#endif
+
+            status = APV_SAMPLE_STATUS_DECODED;
+        }
+    }
+};
+
 // Resources required for APV
 StructuredBuffer<int> _APVResIndex;
 
@@ -39,50 +78,29 @@ TEXTURE3D(_APVResL2_1);
 TEXTURE3D(_APVResL2_2);
 TEXTURE3D(_APVResL2_3);
 
-// We split the evaluation in several steps to make variants with different bands easier.
-float3 EvaluateAPVL0(APVResources apvRes, float3 uvw, out float L1Rx)
+
+// -------------------------------------------------------------
+// Loading functions
+// -------------------------------------------------------------
+APVResources FillAPVResources()
 {
-    float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgba;
-    L1Rx = L0_L1Rx.w;
+    APVResources apvRes;
+    apvRes.index = _APVResIndex;
 
-    return L0_L1Rx.xyz;
-}
+    apvRes.L0_L1Rx = _APVResL0_L1Rx;
 
-void EvaluateAPVL1(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
-{
-    float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_linear_clamp_sampler, uvw, 0).rgba;
+    apvRes.L1G_L1Ry = _APVResL1G_L1Ry;
+    apvRes.L1B_L1Rz = _APVResL1B_L1Rz;
 
-    float3 l1_R = float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w);
-    float3 l1_G = L1G_L1Ry.xyz;
-    float3 l1_B = L1B_L1Rz.xyz;
+    apvRes.L2_0 = _APVResL2_0;
+    apvRes.L2_1 = _APVResL2_1;
+    apvRes.L2_2 = _APVResL2_2;
+    apvRes.L2_3 = _APVResL2_3;
 
-    // decode the L1 coefficients
-    l1_R = DecodeSH(L0.r, l1_R);
-    l1_G = DecodeSH(L0.g, l1_G);
-    l1_B = DecodeSH(L0.b, l1_B);
-
-    diffuseLighting = SHEvalLinearL1(N, l1_R, l1_G, l1_B);
-    backDiffuseLighting = SHEvalLinearL1(backN, l1_R, l1_G, l1_B);
+    return apvRes;
 }
 
 
-#ifdef PROBE_VOLUMES_L2
-void EvaluateAPVL1L2(APVResources apvRes, inout float3 L0, float L1Rx, float3 N, float3 backN, float3 uvw, out float3 diffuseLighting, out float3 backDiffuseLighting)
-{
-    EvaluateAPVL1(apvRes, L0, L1Rx, N, backN, uvw, diffuseLighting, backDiffuseLighting);
-
-    float4 l2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 l2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 l2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 l2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgba;
-
-    DecodeSH_L2(L0, l2_R, l2_G, l2_B, l2_C);
-
-    diffuseLighting += SHEvalLinearL2(N, l2_R, l2_G, l2_B, l2_C);
-    backDiffuseLighting += SHEvalLinearL2(backN, l2_R, l2_G, l2_B, l2_C);
-}
-#endif
 
 bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv)
 {
@@ -92,7 +110,7 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
 
     // transform into APV space
     float3 posRS = mul(_WStoRS, float4(posWS + normalWS * _NormalBias
-                                             + viewDirWS * _ViewBias, 1.0)).xyz;
+        + viewDirWS * _ViewBias, 1.0)).xyz;
 
     uint3 indexDim = (uint3)_IndexDim;
     uint3 poolDim = (uint3)_PoolDim;
@@ -145,26 +163,97 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, float3 
     return TryToGetPoolUVWAndSubdiv(apvRes, posWS, normalWS, viewDir, uvw, unusedSubdiv);
 }
 
-void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 viewDir, in APVResources apvRes,
-    out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
+
+APVSample SampleAPV(APVResources apvRes, float3 uvw)
 {
-    bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
-    backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+    APVSample apvSample;
+    float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_linear_clamp_sampler, uvw, 0).rgba;
 
-    float3 pool_uvw;
-    if (TryToGetPoolUVW(apvRes, posWS, normalWS, viewDir, pool_uvw))
-    {
-        float L1Rx;
-        float3 L0 = EvaluateAPVL0(apvRes, pool_uvw, L1Rx);
+    apvSample.L0 = L0_L1Rx.xyz;
+    apvSample.L1_R = float3(L0_L1Rx.w, L1G_L1Ry.w, L1B_L1Rz.w);
+    apvSample.L1_G = L1G_L1Ry.xyz;
+    apvSample.L1_B = L1B_L1Rz.xyz;
 
-#ifdef PROBE_VOLUMES_L1
-        EvaluateAPVL1(apvRes, L0, L1Rx, normalWS, backNormalWS, pool_uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
-#elif PROBE_VOLUMES_L2
-        EvaluateAPVL1L2(apvRes, L0, L1Rx, normalWS, backNormalWS, pool_uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
+#ifdef PROBE_VOLUMES_L2
+    apvSample.L2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_linear_clamp_sampler, uvw, 0).rgba;
+    apvSample.L2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba;
+    apvSample.L2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
+    apvSample.L2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgb;
 #endif
 
-        bakeDiffuseLighting += L0;
-        backBakeDiffuseLighting += L0;
+    apvSample.status = APV_SAMPLE_STATUS_ENCODED;
+
+    return apvSample;
+}
+
+APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, float3 viewDir)
+{
+    APVSample outSample;
+
+    float3 pool_uvw;
+    if (TryToGetPoolUVW(apvRes, posWS, biasNormalWS, viewDir, pool_uvw))
+    {
+        outSample = SampleAPV(apvRes, pool_uvw);
+    }
+    else
+    {
+        ZERO_INITIALIZE(APVSample, outSample);
+        outSample.status = APV_SAMPLE_STATUS_INVALID;
+    }
+
+    return outSample;
+}
+
+
+APVSample SampleAPV(float3 posWS, float3 biasNormalWS, float3 viewDir)
+{
+    APVResources apvRes = FillAPVResources();
+    return SampleAPV(apvRes, posWS, biasNormalWS, viewDir);
+}
+
+// -------------------------------------------------------------
+// Internal Evaluation functions (avoid usage in caller code outside this file)
+// -------------------------------------------------------------
+float3 EvaluateAPVL0(APVSample apvSample)
+{
+    return apvSample.L0;
+}
+
+void EvaluateAPVL1(APVSample apvSample, float3 N, out float3 diffuseLighting)
+{
+    diffuseLighting = SHEvalLinearL1(N, apvSample.L1_R, apvSample.L1_G, apvSample.L1_B);
+}
+
+#ifdef PROBE_VOLUMES_L2
+void EvaluateAPVL1L2(APVSample apvSample, float3 N, out float3 diffuseLighting)
+{
+    EvaluateAPVL1(apvSample, N, diffuseLighting);
+    diffuseLighting += SHEvalLinearL2(N, apvSample.L2_R, apvSample.L2_G, apvSample.L2_B, float4(apvSample.L2_C, 0.0f));
+}
+#endif
+
+
+// -------------------------------------------------------------
+// "Public" Evaluation functions, the one that callers outside this file should use
+// -------------------------------------------------------------
+void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 backNormalWS, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
+{
+    if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
+    {
+        apvSample.Decode();
+
+#ifdef PROBE_VOLUMES_L1
+        EvaluateAPVL1(apvSample, normalWS, bakeDiffuseLighting);
+        EvaluateAPVL1(apvSample, backNormalWS, backBakeDiffuseLighting);
+#elif PROBE_VOLUMES_L2
+        EvaluateAPVL1L2(apvSample, normalWS, bakeDiffuseLighting);
+        EvaluateAPVL1L2(apvSample, backNormalWS, backBakeDiffuseLighting);
+#endif
+
+        bakeDiffuseLighting += apvSample.L0;
+        backBakeDiffuseLighting += apvSample.L0;
     }
     else
     {
@@ -174,73 +263,41 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
     }
 }
 
-float3 EvaluateAdaptiveProbeVolumeL0(in float3 posWS, in float3 normalWS, in float3 viewDir, in APVResources apvRes)
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 viewDir,
+    in float2 positionSS, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
 {
-    float3 bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+    bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+    backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
-    float3 pool_uvw;
-    if (TryToGetPoolUVW(apvRes, posWS, normalWS, viewDir, pool_uvw))
-    {
-        float unused;
-        float3 L0 = EvaluateAPVL0(apvRes, pool_uvw, unused);
-        bakeDiffuseLighting = L0;
-    }
-    else
-    {
-        // no valid brick, fallback to ambient probe
-        bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
-    }
-
-    return bakeDiffuseLighting;
-}
-
-APVResources FillAPVResources()
-{
-    APVResources apvRes;
-    apvRes.index = _APVResIndex;
-
-    apvRes.L0_L1Rx = _APVResL0_L1Rx;
-
-    apvRes.L1G_L1Ry = _APVResL1G_L1Ry;
-    apvRes.L1B_L1Rz = _APVResL1B_L1Rz;
-
-    apvRes.L2_0 = _APVResL2_0;
-    apvRes.L2_1 = _APVResL2_1;
-    apvRes.L2_2 = _APVResL2_2;
-    apvRes.L2_3 = _APVResL2_3;
-
-    return apvRes;
-}
-
-void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 viewDir, in float2 positionSS,
-    out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
-{
-    APVResources apvRes = FillAPVResources();
-
-    // Bit of an hack to apply noise at sampling location to hide seams. Ideally we should run this only when there is a seam, but detecting that would be costly.
-    if (_PVSamplingNoise > 0)
-    {
-        float3x3 orthoBasis = GetLocalFrame(normalWS);
-
-        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
-        float noise1D_1 = (InterleavedGradientNoise(positionSS, 1) * 2.0f - 1.0f) * _PVSamplingNoise;
-        posWS += orthoBasis[0] * noise1D_1 + noise1D_0 * orthoBasis[1];
-    }
-
-    EvaluateAdaptiveProbeVolume(posWS, normalWS, backNormalWS, viewDir, apvRes,
-        bakeDiffuseLighting, backBakeDiffuseLighting);
-}
-
-void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out float3 bakeDiffuseLighting)
-{
     if (_PVSamplingNoise > 0)
     {
         float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
         posWS += noise1D_0;
     }
 
+    APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
+    EvaluateAdaptiveProbeVolume(apvSample, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
+}
+
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out float3 bakeDiffuseLighting)
+{
     APVResources apvRes = FillAPVResources();
-    bakeDiffuseLighting = EvaluateAdaptiveProbeVolumeL0(posWS, float3(0.0f, 0.0f, 0.0f), float3(0.0f, 0.0f, 0.0f), apvRes);
+
+    if (_PVSamplingNoise > 0)
+    {
+        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
+        posWS += noise1D_0;
+    }
+
+    float3 uvw;
+    if (TryToGetPoolUVW(apvRes, posWS, 0, 0, uvw))
+    {
+        bakeDiffuseLighting = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgb;
+    }
+    else
+    {
+        bakeDiffuseLighting = EvaluateAmbientProbe(0);
+    }
 }
 
 #endif // __PROBEVOLUME_HLSL__

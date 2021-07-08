@@ -4,6 +4,7 @@ using UnityEngine.Serialization;
 using UnityEditor;
 #endif
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
