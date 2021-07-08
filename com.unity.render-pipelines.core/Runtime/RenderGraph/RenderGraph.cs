@@ -5,6 +5,9 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.RendererUtils;
 using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
+// Typedef for the in-engine RendererList API (to avoid conflicts with the experimental version)
+using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
+
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
     /// <summary>
@@ -515,7 +518,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="desc">Renderer List descriptor.</param>
         /// <returns>A new TextureHandle.</returns>
-        public RendererListHandle CreateRendererList(in RendererListDesc desc)
+        public RendererListHandle CreateRendererList(in CoreRendererListDesc desc)
         {
             return m_Resources.CreateRendererList(desc);
         }

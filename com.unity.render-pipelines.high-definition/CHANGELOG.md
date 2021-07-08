@@ -276,6 +276,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed rounding issue when accessing the color buffer in the DoF shader.
 - HD Global Settings can now be unassigned in the Graphics tab if HDRP is not the active pipeline(case 1343570).
 - Fix diffusion profile displayed in the inspector.
+- Fixed override camera rendering custom pass API aspect ratio issue when rendering to a render texture.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -370,6 +371,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hair uses GGX LTC for area light specular.
 - Moved invariants outside of loop for a minor CPU speedup in the light loop code.
 - Various improvements to the volumetric clouds.
+- Restore old version of the RendererList structs/api for compatibility.
 
 ## [11.0.0] - 2020-10-21
 
