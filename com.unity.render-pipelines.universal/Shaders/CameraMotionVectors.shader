@@ -21,14 +21,8 @@ Shader "Hidden/kMotion/CameraMotionVectors"
             // Includes
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
 
-#if defined(USING_STEREO_MATRICES)
-                float4x4 _ViewProjStereo[2];
-
-                #define  _ViewProjM      _ViewProjStereo[unity_StereoEyeIndex]
-#else
-                #define  _ViewProjM     _ViewProjMatrix
-#endif
 
             // -------------------------------------
             // Structs
@@ -72,8 +66,8 @@ Shader "Hidden/kMotion/CameraMotionVectors"
                 wpos.xyz *= rcp(wpos.w);
 
                 // Multiply with projection
-                float4 previousPositionVP = mul(unity_MatrixPrevVP, float4(wpos.xyz, 1.0));
-                float4 positionVP = mul(_ViewProjM, float4(wpos.xyz, 1.0));
+                float4 previousPositionVP = mul(_PrevViewProjMatrix, float4(wpos.xyz, 1.0));
+                float4 positionVP = mul(_ViewProjMatrix, float4(wpos.xyz, 1.0));
 
                 previousPositionVP.xy *= rcp(previousPositionVP.w);
                 positionVP.xy *= rcp(positionVP.w);

@@ -23,7 +23,6 @@
 #define unity_MatrixInvP              unity_StereoMatrixInvP[unity_StereoEyeIndex]
 #define unity_MatrixVP                unity_StereoMatrixVP[unity_StereoEyeIndex]
 #define unity_MatrixInvVP             unity_StereoMatrixInvVP[unity_StereoEyeIndex]
-#define unity_MatrixPrevVP            unity_StereoMatrixPrevVP[unity_StereoEyeIndex]
 
 // Camera transform (but the same as pass transform for XR).
 #define unity_CameraProjection        unity_StereoCameraProjection[unity_StereoEyeIndex] // Does not go through GL.GetGPUProjectionMatrix()
@@ -161,7 +160,6 @@ float4x4 unity_StereoMatrixV[2];
 float4x4 unity_StereoMatrixInvV[2];
 float4x4 unity_StereoMatrixVP[2];
 float4x4 unity_StereoMatrixInvVP[2];
-float4x4 unity_StereoMatrixPrevVP[2];
 
 float4x4 unity_StereoCameraProjection[2];
 float4x4 unity_StereoCameraInvProjection[2];
@@ -210,7 +208,6 @@ float4x4 unity_MatrixInvV;
 float4x4 unity_MatrixInvP;
 float4x4 unity_MatrixVP;
 float4x4 unity_MatrixInvVP;
-float4x4 unity_MatrixPrevVP;
 float4 unity_StereoScaleOffset;
 int unity_StereoEyeIndex;
 #endif
@@ -253,8 +250,16 @@ SAMPLER(samplerunity_ShadowMasks);
 // TODO: all affine matrices should be 3x4.
 // TODO: sort these vars by the frequency of use (descending), and put commonly used vars together.
 // Note: please use UNITY_MATRIX_X macros instead of referencing matrix variables directly.
-float4x4 _PrevViewProjMatrix;
-float4x4 _ViewProjMatrix;
+#if defined(USING_STEREO_MATRICES)
+    float4x4 _PrevViewProjMatrixStereo[2];
+    float4x4 _ViewProjMatrixStereo[2];
+    #define  _PrevViewProjMatrix  _PrevViewProjMatrixStereo[unity_StereoEyeIndex]
+    #define  _ViewProjMatrix      _ViewProjMatrixStereo[unity_StereoEyeIndex]
+#else
+    float4x4 _PrevViewProjMatrix;
+    float4x4 _ViewProjMatrix;
+#endif
+
 float4x4 _NonJitteredViewProjMatrix;
 float4x4 _ViewMatrix;
 float4x4 _ProjMatrix;

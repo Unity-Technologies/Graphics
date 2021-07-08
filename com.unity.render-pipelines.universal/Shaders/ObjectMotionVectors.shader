@@ -23,14 +23,7 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
             // -------------------------------------
             // Includes
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
-
-#if defined(USING_STEREO_MATRICES)
-            float4x4 _ViewProjStereo[2];
-            #define _ViewProjM      _ViewProjStereo[unity_StereoEyeIndex]
-#else
-            #define _ViewProjM     unity_MatrixVP
-#endif
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
 
             // -------------------------------------
             // Structs
@@ -70,10 +63,10 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
                     output.positionCS.z += unity_MotionVectorsParams.z * output.positionCS.w;
                 #endif
 
-                output.positionVP = mul(_ViewProjM, mul(UNITY_MATRIX_M, input.position));
+                output.positionVP = mul(_ViewProjMatrix, mul(UNITY_MATRIX_M, input.position));
 
                 const float4 prevPos = (unity_MotionVectorsParams.x == 1) ? float4(input.positionOld, 1) : input.position;
-                output.previousPositionVP = mul(unity_MatrixPrevVP, mul(unity_MatrixPreviousM, prevPos));
+                output.previousPositionVP = mul(_PrevViewProjMatrix, mul(unity_MatrixPreviousM, prevPos));
 
                 return output;
             }

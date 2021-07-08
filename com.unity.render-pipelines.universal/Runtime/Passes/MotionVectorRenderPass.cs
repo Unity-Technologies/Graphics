@@ -6,10 +6,11 @@ namespace UnityEngine.Rendering.Universal.Internal
     sealed class MotionVectorRenderPass : ScriptableRenderPass
     {
         #region Fields
-        const string kPreviousViewProjectionMatrix = "unity_MatrixPrevVP";
+        const string kPreviousViewProjectionMatrix = "_PrevViewProjMatrix";
         const string kViewProjection = "_ViewProjMatrix";
 #if ENABLE_VR && ENABLE_XR_MODULE
-        const string kViewProjectionStereo = "_ViewProjStereo";
+        const string kPreviousViewProjectionStereo = "_PrevViewProjMatrixStereo";
+        const string kViewProjectionStereo = "_ViewProjMatrixStereo";
 #endif
         const GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
 
@@ -75,20 +76,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
                 {
-                    Shader.SetGlobalMatrixArray(kPreviousViewProjectionMatrix, m_MotionData.previousViewProjectionStereo);
-                    Shader.SetGlobalMatrixArray(kViewProjectionStereo, m_MotionData.viewProjectionStereo);
+                    cmd.SetGlobalMatrixArray(kPreviousViewProjectionStereo, m_MotionData.previousViewProjectionStereo);
+                    cmd.SetGlobalMatrixArray(kViewProjectionStereo, m_MotionData.viewProjectionStereo);
                 }
                 else if (cameraData.xr.enabled)
                 {
                     int passID = cameraData.xr.multipassId;
-                    Shader.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousViewProjectionStereo[passID]);
-                    Shader.SetGlobalMatrix(kViewProjection, m_MotionData.viewProjectionStereo[passID]);
+                    cmd.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousViewProjectionStereo[passID]);
+                    cmd.SetGlobalMatrix(kViewProjection, m_MotionData.viewProjectionStereo[passID]);
                 }
                 else
 #endif
                 {
-                    Shader.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousViewProjection);
-                    Shader.SetGlobalMatrix(kViewProjection, m_MotionData.viewProjection);
+                    cmd.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousViewProjection);
+                    cmd.SetGlobalMatrix(kViewProjection, m_MotionData.viewProjection);
                 }
 
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
