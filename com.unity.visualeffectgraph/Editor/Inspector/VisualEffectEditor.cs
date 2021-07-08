@@ -59,6 +59,8 @@ namespace UnityEditor.VFX
         const string kRendererFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Renderer";
         const string kPropertyFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Properties";
 
+        private readonly List<VisualEffect> selectedVisualEffects = new List<VisualEffect>();
+
         bool showGeneralCategory;
         bool showRendererCategory;
         bool showPropertyCategory;
@@ -95,6 +97,16 @@ namespace UnityEditor.VFX
 
         private void OnSelectionChanged()
         {
+            var newSelection = Selection.gameObjects
+                .Select(x => x.GetComponent<VisualEffect>())
+                .Where(x => x != null)
+                .ToArray();
+
+            // Reset play rate for unselected visual effects
+            this.selectedVisualEffects.Except(newSelection).ToList().ForEach(x => x.playRate = 1f);
+            this.selectedVisualEffects.Clear();
+            this.selectedVisualEffects.AddRange(newSelection);
+
             if (m_VisualEffectAsset == null)
             {
                 this.lastPlayRate = -1f;
