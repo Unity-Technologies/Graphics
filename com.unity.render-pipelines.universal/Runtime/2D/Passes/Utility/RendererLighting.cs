@@ -314,7 +314,9 @@ namespace UnityEngine.Rendering.Universal
                 while (batchedLights < remainingLights && shadowLightCount < maxShadowLightCount)
                 {
                     var light = lights[lightIndex + batchedLights];
-                    if (light.renderVolumetricShadows)
+
+                    var topMostLayerValue = light.GetTopMostLitLayer();
+                    if (light.renderVolumetricShadows && endLayerValue == topMostLayerValue)
                     {
                         ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowVolumeIntensity);
                         shadowLightCount++;
