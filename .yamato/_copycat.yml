@@ -41,5 +41,5 @@ vendor:
     - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git ../gfx-sdet-tools
     - git -C ../gfx-sdet-tools checkout test-refs-updater/try-fix
     - python3 ../gfx-sdet-tools/scripts/srp_test_references_updater.py --srp-version $SRP_VERSION --destination-folder ../destination
-    - copycat ono "../destination/$MANIFEST" ../diff.patch
+    - copycat ono --no-reviewers "../destination/$MANIFEST" ../diff.patch
     - copycat katana "../destination/$MANIFEST"
