@@ -263,6 +263,45 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 ba
     }
 }
 
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 reflDir, in float3 viewDir,
+    in float2 positionSS, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting, out float3 lightingInReflDir)
+{
+    APVResources apvRes = FillAPVResources();
+
+    if (_PVSamplingNoise > 0)
+    {
+        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
+        posWS += noise1D_0;
+    }
+
+    APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
+
+    if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
+    {
+        apvSample.Decode();
+
+#ifdef PROBE_VOLUMES_L1
+        EvaluateAPVL1(apvSample, normalWS, bakeDiffuseLighting);
+        EvaluateAPVL1(apvSample, backNormalWS, backBakeDiffuseLighting);
+        EvaluateAPVL1(apvSample, reflDir, lightingInReflDir);
+#elif PROBE_VOLUMES_L2
+        EvaluateAPVL1L2(apvSample, normalWS, bakeDiffuseLighting);
+        EvaluateAPVL1L2(apvSample, backNormalWS, backBakeDiffuseLighting);
+        EvaluateAPVL1L2(apvSample, reflDir, lightingInReflDir);
+#endif
+
+        bakeDiffuseLighting += apvSample.L0;
+        backBakeDiffuseLighting += apvSample.L0;
+        lightingInReflDir += apvSample.L0;
+    }
+    else
+    {
+        bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
+        backBakeDiffuseLighting = EvaluateAmbientProbe(backNormalWS);
+        lightingInReflDir = -1;
+    }
+}
+
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 viewDir,
     in float2 positionSS, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
 {
@@ -298,6 +337,44 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out floa
     {
         bakeDiffuseLighting = EvaluateAmbientProbe(0);
     }
+}
+
+// -------------------------------------------------------------
+// Reflection Probe Normalization functions
+// -------------------------------------------------------------
+
+
+// Same idea as in Rendering of COD:IW [Drobot 2017]
+float GetReflProbeNormalizationFactor(float3 sampleDir, float4 reflProbeSHL0L1, float4 reflProbeSHL2_1, float reflProbeSHL2_2)
+{
+    float outFactor = 0;
+    float L0 = reflProbeSHL0L1.x;
+    float L1 = dot(reflProbeSHL0L1.yzw, sampleDir);
+
+    outFactor = L0 + L1;
+
+#ifdef PROBE_VOLUMES_L2
+
+    // IMPORTANT: The encoding is unravelled C# side before being sent
+
+    float4 vB = sampleDir.xyzz * sampleDir.yzzx;
+    // First 4 coeff.
+    float L2 = dot(reflProbeSHL2_1, vB);
+    float vC = sampleDir.x * sampleDir.x - sampleDir.y * sampleDir.y;
+    L2 += reflProbeSHL2_2 * vC;
+
+    outFactor += L2;
+#endif
+
+    return outFactor;
+}
+
+float GetReflectionProbeNormalizationFactor(float3 lightingInReflDir, float3 sampleDir, float4 reflProbeSHL0L1, float4 reflProbeSHL2_1, float reflProbeSHL2_2)
+{
+    float refProbeNormalization = GetReflProbeNormalizationFactor(sampleDir, reflProbeSHL0L1, reflProbeSHL2_1, reflProbeSHL2_2);
+    float localNormalization = Luminance(lightingInReflDir);
+
+    return localNormalization / refProbeNormalization;
 }
 
 #endif // __PROBEVOLUME_HLSL__

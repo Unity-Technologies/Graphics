@@ -13,13 +13,16 @@ using UnityEditor;
 namespace UnityEngine.Experimental.Rendering
 {
 #if UNITY_EDITOR
+
     /// <summary>
     /// A manager to enqueue extra probe rendering outside of probe volumes.
     /// </summary>
     public class AdditionalGIBakeRequestsManager
     {
         // The baking ID for the extra requests
-        private static int s_BakingID = 912345678;
+        // TODO: Need to ensure this never conflicts with bake IDs from others interacting with the API.
+        // In our project, this is ProbeVolumes.
+        internal static readonly int s_BakingID = 912345678;
 
         private static AdditionalGIBakeRequestsManager s_Instance = new AdditionalGIBakeRequestsManager();
         /// <summary>
@@ -28,10 +31,20 @@ namespace UnityEngine.Experimental.Rendering
         public static AdditionalGIBakeRequestsManager instance { get { return s_Instance; } }
 
         private AdditionalGIBakeRequestsManager()
-        {}
+        {
+            SubscribeOnBakeStarted();
+        }
+
+        ~AdditionalGIBakeRequestsManager()
+        {
+            UnsubscribeOnBakeStarted();
+        }
 
         private static List<SphericalHarmonicsL2> m_SHCoefficients = new List<SphericalHarmonicsL2>();
         private static List<Vector3> m_RequestPositions = new List<Vector3>();
+        private static int m_FreelistHead = -1;
+
+        private static readonly Vector2 s_FreelistSentinel = new Vector2(float.MaxValue, float.MaxValue);
 
         /// <summary>
         /// Enqueue a request for probe rendering at the specified location.
@@ -40,9 +53,64 @@ namespace UnityEngine.Experimental.Rendering
         /// <returns>An ID that can be used to retrieve the data once it has been computed</returns>
         public int EnqueueRequest(Vector3 capturePosition)
         {
-            int requestID = m_RequestPositions.Count;
-            m_RequestPositions.Add(capturePosition);
-            return requestID;
+            Debug.Assert(ComputeCapturePositionIsValid(capturePosition));
+
+            if (m_FreelistHead >= 0)
+            {
+                int requestID = m_FreelistHead;
+                Debug.Assert(requestID < m_RequestPositions.Count);
+                m_FreelistHead = ComputeFreelistNext(m_RequestPositions[requestID]);
+                m_RequestPositions[requestID] = capturePosition;
+                m_SHCoefficients[requestID] = new SphericalHarmonicsL2();
+                return requestID;
+            }
+            else
+            {
+                int requestID = m_RequestPositions.Count;
+                m_RequestPositions.Add(capturePosition);
+                m_SHCoefficients.Add(new SphericalHarmonicsL2());
+                return requestID;
+            }
+        }
+
+        /// <summary>
+        /// Enqueue a request for probe rendering at the specified location.
+        /// </summary>
+        /// <param name ="requestID"> An ID that can be used to retrieve the data once it has been computed</param>
+        /// <returns>An ID that can be used to retrieve the data once it has been computed</returns>
+        public void DequeueRequest(int requestID)
+        {
+            Debug.Assert(requestID >= 0 && requestID < m_RequestPositions.Count);
+
+            m_RequestPositions[requestID] = new Vector3(s_FreelistSentinel.x, s_FreelistSentinel.y, m_FreelistHead);
+            m_SHCoefficients[requestID] = new SphericalHarmonicsL2();
+            m_FreelistHead = requestID;
+        }
+
+        private bool ComputeCapturePositionIsValid(Vector3 capturePosition)
+        {
+            return !((capturePosition.x == s_FreelistSentinel.x) && (capturePosition.y == s_FreelistSentinel.y));
+        }
+
+        private int ComputeFreelistNext(Vector3 capturePosition)
+        {
+            Debug.Assert(ComputeRequestIsFree(capturePosition));
+
+            int freelistNext = (int)capturePosition.z;
+            Debug.Assert(freelistNext >= -1 && freelistNext < m_RequestPositions.Count);
+            return freelistNext;
+        }
+
+        private bool ComputeRequestIsFree(int requestID)
+        {
+            Debug.Assert(requestID >= 0 && requestID < m_RequestPositions.Count);
+            Vector3 requestPosition = m_RequestPositions[requestID];
+            return ComputeRequestIsFree(requestPosition);
+        }
+
+        private bool ComputeRequestIsFree(Vector3 capturePosition)
+        {
+            return (capturePosition.x == s_FreelistSentinel.x) && (capturePosition.y == s_FreelistSentinel.y);
         }
 
         /// <summary>
@@ -53,7 +121,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <returns>Whether the request for light probe rendering has been fulfilled and sh is valid.</returns>
         public bool RetrieveProbeSH(int requestID, out SphericalHarmonicsL2 sh)
         {
-            if (requestID < m_SHCoefficients.Count)
+            if (requestID >= 0 && requestID < m_SHCoefficients.Count
+                && ComputeCapturePositionIsValid(m_RequestPositions[requestID]))
             {
                 sh = m_SHCoefficients[requestID];
                 return true;
@@ -72,9 +141,11 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name ="newPositionnewPosition"> The position at which a probe is baked.</param>
         public int UpdatePositionForRequest(int requestID, Vector3 newPosition)
         {
-            if (requestID < m_RequestPositions.Count)
+            if (requestID >= 0 && requestID < m_RequestPositions.Count)
             {
+                Debug.Assert(ComputeCapturePositionIsValid(m_RequestPositions[requestID]));
                 m_RequestPositions[requestID] = newPosition;
+                m_SHCoefficients[requestID] = new SphericalHarmonicsL2();
                 return requestID;
             }
             else
@@ -83,13 +154,32 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        private void SubscribeOnBakeStarted()
+        {
+            UnsubscribeOnBakeStarted();
+            Lightmapping.bakeStarted += AddRequestsToLightmapper;
+        }
+
+        private void UnsubscribeOnBakeStarted()
+        {
+            Lightmapping.bakeStarted -= AddRequestsToLightmapper;
+            RemoveRequestsFromLightmapper();
+        }
+
         internal void AddRequestsToLightmapper()
         {
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, m_RequestPositions.ToArray());
+
+            Lightmapping.bakeCompleted -= OnAdditionalProbesBakeCompleted;
             Lightmapping.bakeCompleted += OnAdditionalProbesBakeCompleted;
         }
 
-        private static void OnAdditionalProbesBakeCompleted()
+        private void RemoveRequestsFromLightmapper()
+        {
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, null);
+        }
+
+        private void OnAdditionalProbesBakeCompleted()
         {
             Lightmapping.bakeCompleted -= OnAdditionalProbesBakeCompleted;
 
@@ -99,16 +189,21 @@ namespace UnityEngine.Experimental.Rendering
 
             UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(s_BakingID, sh, validity, bakedProbeOctahedralDepth);
 
-            m_SHCoefficients.AddRange(sh.ToArray());
+            SetSHCoefficients(sh);
+            ProbeReferenceVolume.instance.retrieveExtraDataAction?.Invoke(new ProbeReferenceVolume.ExtraDataActionInput());
+
+            sh.Dispose();
+            validity.Dispose();
+            bakedProbeOctahedralDepth.Dispose();
         }
 
-        /// <summary>
-        /// Clear all requests.
-        /// </summary>
-        public void Clear()
+        private void SetSHCoefficients(NativeArray<SphericalHarmonicsL2> sh)
         {
-            m_SHCoefficients.Clear();
-            m_RequestPositions.Clear();
+            Debug.Assert(sh.Length == m_SHCoefficients.Count);
+            for (int i = 0; i < sh.Length; ++i)
+            {
+                m_SHCoefficients[i] = sh[i];
+            }
         }
     }
 #endif
@@ -405,6 +500,19 @@ namespace UnityEngine.Experimental.Rendering
         Dictionary<int, CellChunkInfo> m_ChunkInfo = new Dictionary<int, CellChunkInfo>();
 
         internal ProbeVolumeSceneBounds sceneBounds;
+
+
+        /// <summary>
+        ///  The input to the retrieveExtraDataAction action.
+        /// </summary>
+        public struct ExtraDataActionInput
+        {
+            // Empty, but defined to make this future proof without having to change public API
+        }
+        /// <summary>
+        ///  An action that is used by the SRP to retrieve extra data that was baked together with the bake
+        /// </summary>
+        public Action<ExtraDataActionInput> retrieveExtraDataAction;
 
 
         bool m_BricksLoaded = false;
