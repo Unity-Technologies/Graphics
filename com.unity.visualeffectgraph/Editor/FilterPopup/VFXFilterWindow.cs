@@ -124,7 +124,7 @@ namespace UnityEditor.VFX.UI
 
         private Element[] m_Tree;
         private Element[] m_SearchResultTree;
-        private List<GroupElement> m_Stack = new List<GroupElement>();
+        private readonly List<GroupElement> m_Stack = new List<GroupElement>();
 
         private float m_Anim = 1;
         private int m_AnimTarget = 1;
@@ -142,14 +142,9 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                if (activeTree == null)
-                    return null;
-
-                List<Element> children = GetChildren(activeTree, activeParent);
-                if (children.Count == 0)
-                    return null;
-
-                return children[activeParent.selectedIndex];
+                return activeTree != null
+                    ? GetChildAt(activeTree, activeParent, activeParent.selectedIndex)
+                    : null;
             }
         }
         private bool isAnimating { get { return m_Anim != m_AnimTarget; } }
@@ -648,6 +643,17 @@ namespace UnityEditor.VFX.UI
                 .TakeWhile(x => x.level >= childrenLevel)
                 .Where(x => x.level == childrenLevel || (x.level > childrenLevel && hasSearch))
                 .ToList();
+        }
+
+        private Element GetChildAt(Element[] tree, Element parent, int childIndex)
+        {
+            var childrenLevel = parent.level + 1;
+            return tree.SkipWhile(x => x != parent)
+                .Skip(1)
+                .TakeWhile(x => x.level >= childrenLevel)
+                .Where(x => x.level == childrenLevel || (x.level > childrenLevel && hasSearch))
+                .Skip(childIndex)
+                .FirstOrDefault();
         }
     }
 
