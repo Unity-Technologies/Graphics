@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Cache Shader Graph lookup data so we don't continually keep reloading graphs from disk.
             // TODO: Should really be able to answer the questions "is shader graph" and "uses HDLitMasterNode" without
             //       hitting disk on every invoke.
-            if (shader.IsShaderGraph())
+            if (shader.IsShaderGraphAsset())
             {
                 if (shader.TryGetMetadataOfType<HDMetadata>(out var obj))
                 {

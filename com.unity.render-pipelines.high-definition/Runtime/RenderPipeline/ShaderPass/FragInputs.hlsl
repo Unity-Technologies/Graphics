@@ -35,6 +35,11 @@ struct FragInputs
     #if defined(USE_CUSTOMINTERP_SUBSTRUCT)
         CustomInterpolators customInterpolators;
     #endif
+
+    // Append an additional substruct for VFX interpolators. Eventually, we should merge this with custom interpolators.
+    #if defined(HAVE_VFX_MODIFICATION)
+        FragInputsVFX vfx;
+    #endif
 };
 
 void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, inout bool needLinearToSRGB)

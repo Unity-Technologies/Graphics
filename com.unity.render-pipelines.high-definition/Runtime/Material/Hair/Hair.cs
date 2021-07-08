@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public enum MaterialFeatureFlags
         {
             HairKajiyaKay = 1 << 0,
+            HairMarschner = 1 << 1
         };
 
         //-----------------------------------------------------------------------------
@@ -70,6 +71,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [SurfaceDataAttributes("Secondary Specular Shift")]
             public float secondarySpecularShift;
+
+            // Marschner
+            [SurfaceDataAttributes("Longitudinal Roughness")]
+            public float roughnessLongitudinal;
+            [SurfaceDataAttributes("Azimuthal Roughness")]
+            public float roughnessAzimuthal;
+            [SurfaceDataAttributes("Primary Reflection Roughness")]
+            public float roughnessPrimaryReflection;
+            [SurfaceDataAttributes("Refraction Index")]
+            public float ior;
+            [SurfaceDataAttributes("Cuticle Angle")]
+            public float cuticleAngle;
         };
 
         //-----------------------------------------------------------------------------
@@ -113,6 +126,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public float secondarySpecularExponent;
             public float specularShift;
             public float secondarySpecularShift;
+
+            // Marschner
+            // TODO
         };
 
 
@@ -122,27 +138,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Hair() {}
 
-        public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
+        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Build();
+            PreIntegratedAzimuthalScattering.instance.Build();
         }
 
         public override void Cleanup()
         {
             PreIntegratedFGD.instance.Cleanup(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Cleanup();
+            PreIntegratedAzimuthalScattering.instance.Cleanup();
         }
 
         public override void RenderInit(CommandBuffer cmd)
         {
             PreIntegratedFGD.instance.RenderInit(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse, cmd);
+            PreIntegratedAzimuthalScattering.instance.RenderInit(cmd);
         }
 
         public override void Bind(CommandBuffer cmd)
         {
             PreIntegratedFGD.instance.Bind(cmd, PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Bind(cmd);
+            PreIntegratedAzimuthalScattering.instance.Bind(cmd);
         }
     }
 }

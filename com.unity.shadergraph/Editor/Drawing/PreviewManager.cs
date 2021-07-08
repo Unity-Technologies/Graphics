@@ -587,8 +587,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                         masterRenderData.texture = masterRenderData.renderTexture;
                         m_NewMasterPreviewSize = null;
                     }
-                    var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh : m_SceneResources.sphere;
-                    var previewTransform = Matrix4x4.Rotate(m_Graph.previewData.rotation);
+                    var mesh = m_Graph.previewData.serializedMesh.mesh;
+                    var preventRotation = m_Graph.previewData.preventRotation;
+                    if (!mesh)
+                    {
+                        var useSpritePreview =
+                            m_Graph.activeTargets.LastOrDefault(t => t.IsActive())?.prefersSpritePreview ?? false;
+                        mesh = useSpritePreview ? m_SceneResources.quad : m_SceneResources.sphere;
+                        preventRotation = useSpritePreview;
+                    }
+
+                    var previewTransform = preventRotation ? Matrix4x4.identity : Matrix4x4.Rotate(m_Graph.previewData.rotation);
                     var scale = m_Graph.previewData.scale;
                     previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
                     previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
@@ -674,19 +683,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     CheckForErrors(renderData.shaderData);
 
                     previewsCompiled.Add(renderData);
-
-                    if (renderData == m_MasterRenderData)
-                    {
-                        // TODO: this may be a good thing to do BEFORE requesting shader compilation
-                        // Process preview materials
-                        foreach (var target in m_Graph.activeTargets)
-                        {
-                            if (target.IsActive())
-                            {
-                                target.ProcessPreviewMaterial(renderData.shaderData.mat);
-                            }
-                        }
-                    }
                 }
 
                 // removed compiled nodes from compiling list
@@ -838,12 +834,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                     ShaderUtil.UpdateShaderAsset(shaderData.shader, shaderStr, false);
                 }
 
+                // Set up the material we use for the preview
                 // Due to case 1259744, we have to re-create the material to update the preview material keywords
                 Object.DestroyImmediate(shaderData.mat);
-
-                if (shaderData.mat == null)
                 {
                     shaderData.mat = new Material(shaderData.shader) { hideFlags = HideFlags.HideAndDontSave };
+                    if (renderData == m_MasterRenderData)
+                    {
+                        // apply active target settings to the Material
+                        foreach (var target in m_Graph.activeTargets)
+                        {
+                            if (target.IsActive())
+                                target.ProcessPreviewMaterial(renderData.shaderData.mat);
+                        }
+                    }
                 }
 
                 int materialPassCount = shaderData.mat.passCount;

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Scene", "Camera")]
-    class CameraNode : AbstractMaterialNode
+    class CameraNode : AbstractMaterialNode, IMayRequireTransform
     {
         const string kOutputSlotName = "Position";
         const string kOutputSlot1Name = "Direction";
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
             switch (slotId)
             {
                 case OutputSlot1Id:
-                    return "-1 * mul((float3x3)UNITY_MATRIX_M, transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V)) [2].xyz)";
+                    return "(-1 * mul((float3x3)UNITY_MATRIX_M, transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V)) [2].xyz))";
                 case OutputSlot2Id:
                     return "unity_OrthoParams.w";
                 case OutputSlot3Id:
@@ -64,6 +64,15 @@ namespace UnityEditor.ShaderGraph
                 default:
                     return "_WorldSpaceCameraPos";
             }
+        }
+
+        public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            return new[]
+            {
+                NeededTransform.ObjectToWorld,
+                NeededTransform.WorldToObject
+            };
         }
     }
 }

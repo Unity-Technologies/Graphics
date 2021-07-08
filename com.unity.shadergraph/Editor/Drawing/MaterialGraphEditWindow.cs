@@ -51,6 +51,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_HasError;
         [NonSerialized]
         bool m_ProTheme;
+        [NonSerialized]
+        int m_customInterpWarn;
+        [NonSerialized]
+        int m_customInterpErr;
 
         [SerializeField]
         bool m_AssetMaybeChangedOnDisk;
@@ -217,6 +221,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            bool revalidate = false;
+            if (m_customInterpWarn != ShaderGraphProjectSettings.instance.customInterpolatorWarningThreshold)
+            {
+                m_customInterpWarn = ShaderGraphProjectSettings.instance.customInterpolatorWarningThreshold;
+                revalidate = true;
+            }
+            if (m_customInterpErr != ShaderGraphProjectSettings.instance.customInterpolatorErrorThreshold)
+            {
+                m_customInterpErr = ShaderGraphProjectSettings.instance.customInterpolatorErrorThreshold;
+                revalidate = true;
+            }
+            if (revalidate)
+            {
+                graphEditorView?.graphView?.graph?.ValidateGraph();
+            }
+
             if (m_AssetMaybeChangedOnDisk)
             {
                 m_AssetMaybeChangedOnDisk = false;
@@ -299,6 +319,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         // No Keywords may indicate removal and this may have now made the Graph valid again
                         // Need to validate Graph to clear errors in this case
                         materialGraph.OnKeywordChanged();
+
+                        UpdateDropdownEntries();
+                        materialGraph.OnDropdownChanged();
                     }
                     foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
                     {
@@ -356,6 +379,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var changedFileGUID in changedFileGUIDs)
             {
                 m_ChangedFileDependencyGUIDs.Add(changedFileGUID);
+            }
+        }
+
+        void UpdateDropdownEntries()
+        {
+            var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
+            foreach (var subGraphNode in subGraphNodes)
+            {
+                var nodeView = graphEditorView.graphView.nodes.ToList().OfType<IShaderNodeView>()
+                    .FirstOrDefault(p => p.node != null && p.node == subGraphNode);
+                if (nodeView != null)
+                {
+                    nodeView.UpdateDropdownEntries();
+                }
             }
         }
 
@@ -457,9 +494,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDestroy()
         {
-            // Prompting the user if they want to close is mostly handled via the EditorWindow's system (hasSavedChanges).
+            // Prompting the user if they want to close is mostly handled via the EditorWindow's system (hasUnsavedChanges).
             // There's unfortunately a code path (Reload Window) that doesn't go through this path. The old logic is left
-            // here as a fallback to catch this. This does unfortunately produce a double prompt right now on "Discard" though.
+            // here as a fallback to catch this. This has one edge case with "Reload Window" -> "Cancel" which will produce
+            // two shader graph windows: one unmodified (that the editor opens) and one modified (that we open below).
 
             // we are closing the shadergraph window
             MaterialGraphEditWindow newWindow = null;
@@ -693,7 +731,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             bounds.center = Vector2.zero;
 
             // Collect graph inputs
-            var graphInputs = graphView.selection.OfType<BlackboardPropertyView>().Select(x => x.userData as ShaderInput);
+            var graphInputs = graphView.selection.OfType<SGBlackboardField>().Select(x => x.userData as ShaderInput);
+            var categories = graphView.selection.OfType<SGBlackboardCategory>().Select(x => x.userData as CategoryData);
 
             // Collect the property nodes and get the corresponding properties
             var propertyNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is PropertyNode)).Select(x => ((PropertyNode)x.node).property);
@@ -701,14 +740,19 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Collect the keyword nodes and get the corresponding keywords
             var keywordNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is KeywordNode)).Select(x => ((KeywordNode)x.node).keyword);
+            var dropdownNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is DropdownNode)).Select(x => ((DropdownNode)x.node).dropdown);
+
             var metaKeywords = graphView.graph.keywords.Where(x => keywordNodes.Contains(x));
+            var metaDropdowns = graphView.graph.dropdowns.Where(x => dropdownNodes.Contains(x));
 
             var copyPasteGraph = new CopyPasteGraph(graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
                 nodes,
                 graphView.selection.OfType<Edge>().Select(x => x.userData as Graphing.Edge),
                 graphInputs,
+                categories,
                 metaProperties,
                 metaKeywords,
+                metaDropdowns,
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData),
                 true,
                 false);
@@ -740,6 +784,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     node.owner = graphView.graph;
                     node.keyword = copiedInput;
+                }
+            }
+
+            // Always copy deserialized dropdown inputs
+            foreach (ShaderDropdown dropdown in deserialized.metaDropdowns)
+            {
+                var copiedInput = (ShaderDropdown)subGraph.AddCopyOfShaderInput(dropdown);
+
+                // Update the dropdown nodes that depends on the copied dropdown
+                var dependentDropdownNodes = deserialized.GetNodes<DropdownNode>().Where(x => x.dropdown == dropdown);
+                foreach (var node in dependentDropdownNodes)
+                {
+                    node.owner = graphView.graph;
+                    node.dropdown = copiedInput;
                 }
             }
 
@@ -1195,8 +1253,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (!AssetFileExists())
                     return DisplayDeletedFromDiskDialog(false);
 
-                // if there are unsaved modifications, ask the user what to do
-                if (GraphHasChangedSinceLastSerialization())
+                // If there are unsaved modifications, ask the user what to do.
+                // If the editor has already handled this check we'll no longer have unsaved changes
+                // (either they saved or they discarded, both of which will set hasUnsavedChanges to false).
+                if (hasUnsavedChanges)
                 {
                     int option = EditorUtility.DisplayDialogComplex(
                         "Shader Graph Has Been Modified",

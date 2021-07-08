@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
     [CanEditMultipleObjects]
 #endif
-    [AddComponentMenu("Rendering/Decal Projector")]
+    [AddComponentMenu("Rendering/HDRP Decal Projector")]
     public partial class DecalProjector : MonoBehaviour
     {
         internal static readonly Quaternion k_MinusYtoZRotation = Quaternion.Euler(-90, 0, 0);
@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        DecalLayerEnum m_DecalLayerMask = DecalLayerEnum.LightLayerDefault;
+        DecalLayerEnum m_DecalLayerMask = DecalLayerEnum.DecalLayerDefault;
         /// <summary>
         /// The layer of the decal.
         /// </summary>
@@ -532,8 +532,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
 #if UNITY_EDITOR
-            var hdrp = HDRenderPipeline.defaultAsset;
-            if ((hdrp != null) && (m_Material == hdrp.GetDefaultDecalMaterial()))
+            if (!HDRenderPipeline.isReady || m_Material == HDRenderPipeline.currentAsset.GetDefaultDecalMaterial())
                 return false;
 #endif
 

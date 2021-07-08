@@ -24,4 +24,4 @@ This translates to a Load() call on the texture in High-Level Shading Language (
 
 ## Limitations
 
-This is a GPU only operator and therefore does not work when plugged into **Spawn Context** ports.
+This is a GPU only Operator and therefore does not work when plugged into **Spawn Context** ports.

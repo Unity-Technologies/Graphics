@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-            context.AddSubShader(SubShaders.SpriteUnlit);
+            context.AddSubShader(SubShaders.SpriteUnlit(target));
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -72,19 +72,25 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor SpriteUnlit = new SubShaderDescriptor()
+            public static SubShaderDescriptor SpriteUnlit(UniversalTarget target)
             {
-                pipelineTag = UniversalTarget.kPipelineTag,
-                customTags = UniversalTarget.kUnlitMaterialTypeTag,
-                renderType = $"{RenderType.Transparent}",
-                renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
-                generatesPreview = true,
-                passes = new PassCollection
+                SubShaderDescriptor result = new SubShaderDescriptor()
                 {
-                    { SpriteUnlitPasses.Unlit },
-                    { SpriteUnlitPasses.Forward },
-                },
-            };
+                    pipelineTag = UniversalTarget.kPipelineTag,
+                    customTags = UniversalTarget.kUnlitMaterialTypeTag,
+                    renderType = $"{RenderType.Transparent}",
+                    renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
+                    generatesPreview = true,
+                    passes = new PassCollection
+                    {
+                        { SpriteUnlitPasses.Unlit },
+                        { SpriteUnlitPasses.Forward },
+                        { CorePasses._2DSceneSelection(target) },
+                        { CorePasses._2DScenePicking(target) },
+                    },
+                };
+                return result;
+            }
         }
         #endregion
 
@@ -99,7 +105,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 lightMode = "Universal2D",
                 useInPreview = true,
 
-
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
@@ -116,6 +121,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
+                keywords = SpriteUnlitKeywords.Unlit,
                 includes = SpriteUnlitIncludes.Unlit,
 
                 // Custom Interpolator Support
@@ -130,7 +136,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 lightMode = "UniversalForward",
                 useInPreview = true,
 
-
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
@@ -147,6 +152,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
+                keywords = SpriteUnlitKeywords.Unlit,
                 includes = SpriteUnlitIncludes.Unlit,
 
                 // Custom Interpolator Support
@@ -174,8 +180,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 StructFields.Attributes.color,
                 StructFields.Attributes.uv0,
+                StructFields.Varyings.positionWS,
                 StructFields.Varyings.color,
                 StructFields.Varyings.texCoord0,
+            };
+        }
+        #endregion
+
+        #region Keywords
+        static class SpriteUnlitKeywords
+        {
+            public static KeywordCollection Unlit = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.DebugDisplay },
             };
         }
         #endregion

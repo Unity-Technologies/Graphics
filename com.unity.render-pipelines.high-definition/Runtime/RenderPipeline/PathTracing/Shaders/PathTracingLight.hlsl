@@ -109,7 +109,7 @@ bool IsDistantLightActive(DirectionalLightData lightData, float3 normal)
     return dot(normal, lightData.forward) <= sin(lightData.angularDiameter * 0.5);
 }
 
-LightList CreateLightList(float3 position, float3 normal, uint lightLayers, bool withLocal = true, bool withDistant = true)
+LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEFAULT_LIGHT_LAYERS, bool withLocal = true, bool withDistant = true)
 {
     LightList list;
     uint i;
@@ -300,6 +300,7 @@ bool SampleLights(LightList lightList,
                   float3 inputSample,
                   float3 position,
                   float3 normal,
+                  bool isVolume,
               out float3 outgoingDir,
               out float3 value,
               out float pdf,
@@ -308,8 +309,8 @@ bool SampleLights(LightList lightList,
     if (!GetLightCount(lightList))
         return false;
 
-    // Are we lighting a volume or a surface?
-    bool isVolume = !any(normal);
+    // Are we lighting a spherical (e.g. volume) or a hemi-spherical distribution (e.g. opaque surface)?
+    bool isSpherical = isVolume || !any(normal);
 
     if (PickLocalLights(lightList, inputSample.z))
     {
@@ -330,7 +331,7 @@ bool SampleLights(LightList lightList,
             dist = sqrt(sqDist);
             outgoingDir /= dist;
 
-            if (!isVolume && dot(normal, outgoingDir) < 0.001)
+            if (!isSpherical && dot(normal, outgoingDir) < 0.001)
                 return false;
 
             float cosTheta = -dot(outgoingDir, lightData.forward);
@@ -364,7 +365,7 @@ bool SampleLights(LightList lightList,
                 pdf = DELTA_PDF;
             }
 
-            if (!isVolume && dot(normal, outgoingDir) < 0.001)
+            if (!isSpherical && dot(normal, outgoingDir) < 0.001)
                 return false;
 
             value = GetPunctualEmission(lightData, outgoingDir, dist) * pdf;
@@ -400,7 +401,7 @@ bool SampleLights(LightList lightList,
             outgoingDir = -lightData.forward;
         }
 
-        if (!isVolume && (dot(normal, outgoingDir) < 0.001))
+        if (!isSpherical && (dot(normal, outgoingDir) < 0.001))
             return false;
 
         dist = FLT_INF;
@@ -691,7 +692,7 @@ float GetLocalLightsInterval(float3 rayOrigin, float3 rayDirection, out float tM
 
 LightList CreateLightList(float3 position, bool sampleLocalLights)
 {
-    return CreateLightList(position, 0.0, ~0, sampleLocalLights, !sampleLocalLights);
+    return CreateLightList(position, 0.0, DEFAULT_LIGHT_LAYERS, sampleLocalLights, !sampleLocalLights);
 }
 
 #endif // UNITY_PATH_TRACING_LIGHT_INCLUDED

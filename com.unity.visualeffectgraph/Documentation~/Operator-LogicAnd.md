@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Logic > And**
 
-The **And** Operator takes two inputs and outputs the result of a logical *and* operation between them. The result of A **And** B is `true` if both A and B are `true`. This operator is equivalent to the C# `&&` operator.
+The **And** Operator takes two inputs and outputs the result of a logical *and* operation between them. The result of A **And** B is `true` if both A and B are `true`. This Operator is equivalent to the C# `&&` operator.
 
 ## Operator properties
 

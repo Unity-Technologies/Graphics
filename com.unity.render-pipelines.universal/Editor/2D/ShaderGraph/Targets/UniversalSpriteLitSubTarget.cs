@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-            context.AddSubShader(SubShaders.SpriteLit);
+            context.AddSubShader(SubShaders.SpriteLit(target));
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -76,20 +76,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
+            public static SubShaderDescriptor SpriteLit(UniversalTarget target)
             {
-                pipelineTag = UniversalTarget.kPipelineTag,
-                customTags = UniversalTarget.kLitMaterialTypeTag,
-                renderType = $"{RenderType.Transparent}",
-                renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
-                generatesPreview = true,
-                passes = new PassCollection
+                SubShaderDescriptor result = new SubShaderDescriptor()
                 {
-                    { SpriteLitPasses.Lit },
-                    { SpriteLitPasses.Normal },
-                    { SpriteLitPasses.Forward },
-                },
-            };
+                    pipelineTag = UniversalTarget.kPipelineTag,
+                    customTags = UniversalTarget.kLitMaterialTypeTag,
+                    renderType = $"{RenderType.Transparent}",
+                    renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
+                    generatesPreview = true,
+                    passes = new PassCollection
+                    {
+                        { SpriteLitPasses.Lit },
+                        { SpriteLitPasses.Normal },
+                        { SpriteLitPasses.Forward },
+                        { CorePasses._2DSceneSelection(target) },
+                        { CorePasses._2DScenePicking(target) },
+                    },
+                };
+                return result;
+            }
         }
         #endregion
 
@@ -176,6 +182,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Fields
                 structs = CoreStructCollections.Default,
                 requiredFields = SpriteLitRequiredFields.Forward,
+                keywords = SpriteLitKeywords.Forward,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
@@ -216,6 +223,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static FieldCollection Lit = new FieldCollection()
             {
                 StructFields.Varyings.color,
+                StructFields.Varyings.positionWS,
                 StructFields.Varyings.texCoord0,
                 StructFields.Varyings.screenPosition,
             };
@@ -229,6 +237,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static FieldCollection Forward = new FieldCollection()
             {
                 StructFields.Varyings.color,
+                StructFields.Varyings.positionWS,
                 StructFields.Varyings.texCoord0,
             };
         }
@@ -243,6 +252,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShapeLightType1 },
                 { CoreKeywordDescriptors.ShapeLightType2 },
                 { CoreKeywordDescriptors.ShapeLightType3 },
+                { CoreKeywordDescriptors.DebugDisplay },
+            };
+
+            public static KeywordCollection Forward = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.DebugDisplay },
             };
         }
         #endregion

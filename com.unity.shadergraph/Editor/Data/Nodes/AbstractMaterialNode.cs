@@ -13,7 +13,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class AbstractMaterialNode : JsonObject, IGroupItem
+    abstract class AbstractMaterialNode : JsonObject, IGroupItem, IRectInterface
     {
         [SerializeField]
         JsonRef<GroupData> m_Group = null;
@@ -91,6 +91,17 @@ namespace UnityEditor.ShaderGraph
             {
                 m_DrawState = value;
                 Dirty(ModificationScope.Layout);
+            }
+        }
+
+        Rect IRectInterface.rect
+        {
+            get => drawState.position;
+            set
+            {
+                var state = drawState;
+                state.position = value;
+                drawState = state;
             }
         }
 
@@ -746,6 +757,11 @@ namespace UnityEditor.ShaderGraph
             return string.Format("_{0}_{1}_{2}", GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(slot.shaderOutputName), unchecked((uint)slotId));
         }
 
+        public string GetConnnectionStateVariableNameForSlot(int slotId)
+        {
+            return ShaderInput.GetConnectionStateVariableName(GetVariableNameForSlot(slotId));
+        }
+
         public virtual string GetVariableNameForNode()
         {
             return defaultVariableName;
@@ -834,8 +850,9 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void SetSlotOrder(List<int> desiredOrderSlotIds)
+        public bool SetSlotOrder(List<int> desiredOrderSlotIds)
         {
+            bool changed = false;
             int writeIndex = 0;
             for (int orderIndex = 0; orderIndex < desiredOrderSlotIds.Count; orderIndex++)
             {
@@ -853,10 +870,12 @@ namespace UnityEditor.ShaderGraph
                         var slot = m_Slots[matchIndex];
                         m_Slots[matchIndex] = m_Slots[writeIndex];
                         m_Slots[writeIndex] = slot;
+                        changed = true;
                     }
                     writeIndex++;
                 }
             }
+            return changed;
         }
 
         public SlotReference GetSlotReference(int slotId)

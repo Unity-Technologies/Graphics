@@ -2,7 +2,7 @@
 
 ![The 2D Renderer Data Asset property settings](Images/2D/2dRendererData_properties.png)
 
-The __2D Renderer Data__ asset contains the settings that affect the way __2D Lights__ are applied to lit Sprites. You can set the way Lights emulate HDR lighting with the [HDR Emulation Scale](HDREmulationScale), or customize your own [Light Blend Styles](LightBlendStyles). Refer to their respective pages for more information about their properties and options.
+The __2D Renderer Data__ Asset contains the settings that affect the way __2D Lights__ are applied to lit Sprites. You can set the way Lights emulate HDR lighting with the [HDR Emulation Scale](HDREmulationScale.md), or customize your own [Light Blend Styles](LightBlendStyles.md). Refer to their respective pages for more information about their properties and options.
 
 ## Default Material Type
 
@@ -26,12 +26,12 @@ This option is enabled by default. Clear this option to disable the Depth/[Stenc
 
 The __2D Renderer Data__ can specify how to supply the shader variable _CameraSortingLayerTexture for use in custom shaders.
 
-### Bound
-All layers captured for use in the supplied texture will be drawn from the very back layer until and including the layer specified by __Bound__
+### Foremost Sorting Layer
+All Layers captured for use in the supplied Texture will be drawn from the very back Layer until and including the Layer specified by __Foremost Sorting Layer__
 
 ### Downsampling Method
 Downsampling will reduce the texture resolution used by _CameraSortingLayerTexture_. The options are: __None__, __2x Bilinear__, __4x Box__, __4x Bilinear__
 
 ## Renderer Features
 
-The 2D Renderer supports [URP Renderer Features](urp-renderer-features). The setup for the features are called before any of the 2D built-in passes are queued. Refer to the [URP Renderer Features](urp-renderer-features) documentation for more information.
+The 2D Renderer supports [URP Renderer Features](urp-renderer-feature.md). The setup for the features are called before any of the 2D built-in passes are queued. Refer to the [URP Renderer Features](urp-renderer-feature.md) documentation for more information.
