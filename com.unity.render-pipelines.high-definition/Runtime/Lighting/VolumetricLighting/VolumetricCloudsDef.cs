@@ -92,8 +92,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Index for which of the 4 local pixels should be evaluated
         public int _SubPixelIndex;
 
-        [HLSLArray(7, typeof(Vector4))]
-        public fixed float _AmbientProbeCoeffs[7 * 4];  // 3 bands of SH, packed, rescaled and convolved with the phase function
+        // Current ambient probe evaluated for both directions of the vertical axis
+        public Vector4 _AmbientProbeTop;
+        public Vector4 _AmbientProbeBottom;
 
         // Right direction of the sun
         public Vector4 _SunRight;

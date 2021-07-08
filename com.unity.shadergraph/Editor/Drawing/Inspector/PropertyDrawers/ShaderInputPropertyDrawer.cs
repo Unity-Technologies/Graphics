@@ -96,9 +96,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             this._exposedFieldChangedCallback = newValue =>
             {
-                var changeExposedFlagAction = new ChangeExposedFlagAction();
-                changeExposedFlagAction.shaderInputReference = shaderInput;
-                changeExposedFlagAction.newIsExposedValue = newValue;
+                var changeExposedFlagAction = new ChangeExposedFlagAction(shaderInput, newValue);
                 ViewModel.requestModelChangeAction(changeExposedFlagAction);
             };
 

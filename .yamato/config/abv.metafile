@@ -25,6 +25,8 @@ jobs:
         recurring:
           -  branch: master
              frequency: 1 * * ?
+        allow_on:
+          - 2021.2
 
   - name: General Checks
     # triggers:

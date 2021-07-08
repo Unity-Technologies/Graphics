@@ -44,7 +44,8 @@ CBUFFER_START(ShaderVariablesClouds)
     float2 _ShapeNoiseOffset;
     int _AccumulationFrameIndex;
     int _SubPixelIndex;
-    float4 _AmbientProbeCoeffs[7];
+    float4 _AmbientProbeTop;
+    float4 _AmbientProbeBottom;
     float4 _SunRight;
     float4 _SunUp;
     float _ShadowIntensity;

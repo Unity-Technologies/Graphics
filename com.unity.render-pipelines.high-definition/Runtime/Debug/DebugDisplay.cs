@@ -1392,9 +1392,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             enumType = typeof(DebugLightLayersMask)
                         };
 
-                        var asset = (RenderPipelineManager.currentPipeline as HDRenderPipeline).asset;
                         for (int i = 0; i < 8; i++)
-                            field.enumNames[i + 1].text = asset.renderingLayerMaskNames[i];
+                            field.enumNames[i + 1].text = HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerMaskNames[i];
                         container.children.Add(field);
                     }
 
@@ -1402,10 +1401,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int i = 0; i < 8; i++)
                     {
                         int index = i;
-                        var asset = (RenderPipelineManager.currentPipeline as HDRenderPipeline).asset;
                         layersColor.children.Add(new DebugUI.ColorField
                         {
-                            displayName = asset.renderingLayerMaskNames[i],
+                            displayName = HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerMaskNames[i],
                             flags = DebugUI.Flags.EditorOnly,
                             getter = () => data.lightingDebugSettings.debugRenderingLayersColors[index],
                             setter = value => data.lightingDebugSettings.debugRenderingLayersColors[index] = value
