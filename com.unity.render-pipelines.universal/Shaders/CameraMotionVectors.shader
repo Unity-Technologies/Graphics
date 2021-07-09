@@ -55,15 +55,16 @@ Shader "Hidden/kMotion/CameraMotionVectors"
             half4 frag(Varyings input, out float outDepth : SV_Depth) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                // Calculate PositionInputs
-                half depth = LoadSceneDepth(input.position.xy).x;
+
+                float2 uv = input.position.xy / _ScaledScreenParams.xy;
+            #if UNITY_REVERSED_Z
+                half depth = SampleSceneDepth(uv).x;
+            #else
+                half depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(uv).x);
+            #endif
                 outDepth = depth;
 
-                // Transform to world space
-                float2 ndcpos = input.position.xy *= _ScreenSize.zw;
-                float4 cspos = ComputeClipSpacePosition(ndcpos, depth);
-                float4 wpos = mul(UNITY_MATRIX_I_VP, cspos);
-                wpos.xyz *= rcp(wpos.w);
+                float3 wpos = ComputeWorldSpacePosition(uv, depth, UNITY_MATRIX_I_VP);
 
                 // Multiply with projection
                 float4 previousPositionVP = mul(_PrevViewProjMatrix, float4(wpos.xyz, 1.0));
@@ -74,9 +75,9 @@ Shader "Hidden/kMotion/CameraMotionVectors"
 
                 // Calculate velocity
                 float2 velocity = (positionVP.xy - previousPositionVP.xy);
-                #if UNITY_UV_STARTS_AT_TOP
+            #if UNITY_UV_STARTS_AT_TOP
                     velocity.y = -velocity.y;
-                #endif
+            #endif
 
                 // Convert velocity from Clip space (-1..1) to NDC 0..1 space
                 // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.
