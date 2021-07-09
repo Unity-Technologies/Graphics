@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.UIElements;
@@ -11,7 +12,7 @@ using UnityEditor.ShaderGraph.Drawing.Inspector;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [SGPropertyDrawer(typeof(DiffusionProfileSettings))]
-    class DiffusionProfilePropertyDrawer : IPropertyDrawer
+    class ShaderGraphDiffusionProfilePropertyDrawer : IPropertyDrawer
     {
         internal delegate void ValueChangedCallback(DiffusionProfileSettings newValue);
 
@@ -47,6 +48,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 (DiffusionProfileSettings)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
+        }
+    }
+
+    [CustomPropertyDrawer(typeof(DiffusionProfileSettings))]
+    class UIDiffusionProfilePropertyDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            EditorGUI.PropertyField(position, property, label);
+            DiffusionProfileMaterialUI.DrawDiffusionProfileWarning(property.objectReferenceValue as DiffusionProfileSettings);
         }
     }
 }

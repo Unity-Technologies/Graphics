@@ -258,7 +258,6 @@ HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support VFX and Terrain.
 - Does not have accurate culling for shadows, you may experience missing shadows in the ray traced effects.
 - Does not support MSAA.
-- For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
 - Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
 - Ray tracing is not supported when rendering [Reflection Probes](Reflection-Probe.md).
 - HDRP does not support [orthographic projection](HDRP-Camera.md). If you enable orthographic projection mode, you might experience rendering problems for Transparent Materials, volumetrics and planar reflections.

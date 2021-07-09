@@ -75,6 +75,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the blend mode in Sprite-Lit-Default shader causing alpha to overwrite the framebuffer. [case 1331392](https://issuetracker.unity3d.com/product/unity/issues/guid/1331392/)
 - Fixed pixel perfect camera rect not being correctly initialized. [case 1312646](https://issuetracker.unity3d.com/product/unity/issues/guid/1312646/)
 - Camera Inspector Stack list edition fixes.
+- Fixed additional camera data help url
+- Fixed additional light data help url
 - Fixed Opacity as Density blending artifacts on Terrain that that caused Terrain to have modified splat weights of zero in some areas and greater than one in others. [case 1283124](https://issuetracker.unity3d.com/product/unity/issues/guid/1283124/)
 - Fixed an issue where ShadowCaster2D was generating garbage when running in the editor. [case 1304158](https://issuetracker.unity3d.com/product/unity/issues/guid/1304158/)
 - Fixed an issue where 2D lighting was incorrectly calculated when using a perspective camera.
@@ -142,6 +144,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ShaderGraph materials to select render queue in the same way as handwritten shader materials by default, but allows for a user override for custom behavior. [case 1335795]
 - Fixed sceneview debug mode rendering (case 1211436).
 - URP Global Settings can now be unassigned in the Graphics tab (case 1343570).
+- VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
+- VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
 - Fixed issue where motion vectors were not enabled on XR.
 
 ### Changed
