@@ -10,7 +10,6 @@ path-ignore=<<EOT
 |artifacts
 |imgs
 |com\.unity\.testing\.graphics-performance
-|com\.unity\.testing\.hdrp
 |com\.unity\.testing\.visualeffectgraph
 )(/|$)
 |
