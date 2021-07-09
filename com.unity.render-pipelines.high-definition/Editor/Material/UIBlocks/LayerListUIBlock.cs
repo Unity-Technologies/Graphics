@@ -74,14 +74,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUIUtility.labelWidth = labelWidth;
 
-            Rect headerLineRect = GUILayoutUtility.GetRect(1, height);
-            Rect headerLabelRect = new Rect(headerLineRect.x, headerLineRect.y, EditorGUIUtility.labelWidth - indentOffset + 15f, height);
-            Rect headerUVRect = new Rect(headerLineRect.x + headerLineRect.width - 37f - resetButtonWidth - endOffset, headerLineRect.y, UVWidth + 5, height);
-            Rect headerMaterialDropRect = new Rect(headerLineRect.x + headerLabelRect.width - 20f, headerLineRect.y, headerLineRect.width - headerLabelRect.width - headerUVRect.width, height);
+            Rect headerLineRect = GUILayoutUtility.GetRect(1, 15);
+            Rect headerLabelRect = new Rect(headerLineRect.x, headerLineRect.y, EditorGUIUtility.labelWidth - indentOffset + 15, height);
+            Rect headerUVRect = new Rect(headerLineRect.x + headerLineRect.width - 37 - resetButtonWidth - endOffset, headerLineRect.y, UVWidth + 5, height);
+            Rect headerMaterialDropRect = new Rect(headerLineRect.x + headerLabelRect.width - 15 + 2, headerLineRect.y, headerLineRect.width - headerLabelRect.width - headerUVRect.width, height);
 
-            EditorGUI.LabelField(headerLabelRect, Styles.layerNameHeader, EditorStyles.centeredGreyMiniLabel);
-            EditorGUI.LabelField(headerMaterialDropRect, Styles.layerMaterialHeader, EditorStyles.centeredGreyMiniLabel);
-            EditorGUI.LabelField(headerUVRect, Styles.uvHeader, EditorStyles.centeredGreyMiniLabel);
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUI.LabelField(headerLabelRect, Styles.layerNameHeader, EditorStyles.miniLabel);
+                EditorGUI.LabelField(headerMaterialDropRect, Styles.layerMaterialHeader, EditorStyles.miniLabel);
+                EditorGUI.LabelField(headerUVRect, Styles.uvHeader, EditorStyles.miniLabel);
+            }
 
             for (int layerIndex = 0; layerIndex < numLayer; ++layerIndex)
             {
