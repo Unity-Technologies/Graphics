@@ -41,10 +41,6 @@ ${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}
 ${VFXIncludeRP("VFXDecal.template")}
 
 
-
-
-//EndTODO
-
 	#pragma fragment frag
 	void frag(ps_input i, out float4 outEmissive : SV_Target0)
 	{
