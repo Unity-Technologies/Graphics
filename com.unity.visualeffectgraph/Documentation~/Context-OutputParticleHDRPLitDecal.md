@@ -34,7 +34,7 @@ Below is a list of settings and properties specific to the Output Particle HDRP 
 
 | **Input**             | **Type** | **Description**                                              |
 | --------------------- | -------- | ------------------------------------------------------------ |
-| **Fade Factor**       |          | Change this value to fade the decal in and out. A value of 0 makes the decal fully transparent, and a value of 1 does not change the overall opacity. |
+| **Fade Factor**       | Float    | Change this value to fade the decal in and out. A value of 0 makes the decal fully transparent, and a value of 1 does not change the overall opacity. |
 | **Angle Fade**        | Vector2  | Use the min-max slider to control the fade out range of the decal (in degrees) based on the angle between the Decal backward direction and the vertex normal of the receiving surface.  This property is only available when the [Decal Layers](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/manual/Decal.html) feature is enabled. This value is clamped between 0 and 180 degrees. |
 | **Ambient Occlusion** | Float    | Use the slider to set the strength of the ambient occlusion effect of the decal. This property only has an effect when you enable the **Metal and Ambient Occlusion properties** checkbox in your [HDRP Asset](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/manual/HDRP-Asset.html#Decals). |
 
