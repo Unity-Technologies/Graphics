@@ -277,7 +277,7 @@ Pass
         #else
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
 
-        ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+        ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
         builtinData.opacity = surfaceDescription.Alpha;
 
         #if defined(DEBUG_DISPLAY)
@@ -306,7 +306,9 @@ Pass
         // Note this will not fully work on transparent surfaces (can check with _SURFACE_TYPE_TRANSPARENT define)
         // We will always overwrite vt feeback with the nearest. So behind transparent surfaces vt will not be resolved
         // This is a limitation of the current MRT approach.
+        #ifdef UNITY_VIRTUAL_TEXTURING
         $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
+        #endif
 
         #if _DEPTHOFFSET_ON
         builtinData.depthOffset = surfaceDescription.DepthOffset;
