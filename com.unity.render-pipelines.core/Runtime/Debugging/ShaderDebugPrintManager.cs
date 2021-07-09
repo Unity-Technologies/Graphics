@@ -305,9 +305,9 @@ namespace UnityEngine.Rendering
             var r = new ShaderDebugPrintInput();
 #if ENABLE_LEGACY_INPUT_MANAGER
             r.Pos = Input.mousePosition;
-            r.LeftDown = Input.GetAxis("Fire1") > 0.5f;
-            r.RightDown = Input.GetAxis("Fire2") > 0.5f;
-            r.MiddleDown = Input.GetAxis("Fire3") > 0.5f;
+            r.LeftDown = Input.GetMouseButton(0);
+            r.RightDown = Input.GetMouseButton(1);
+            r.MiddleDown = Input.GetMouseButton(2);
 #endif
 #if ENABLE_INPUT_SYSTEM
             // NOTE: needs Unity.InputSystem asmdef reference.
