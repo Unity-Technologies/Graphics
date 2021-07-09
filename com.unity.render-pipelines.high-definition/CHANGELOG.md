@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for reflection probes as a fallback for ray traced reflections (case 1338644).
 - Added a minimum motion vector length to the motion vector debug view.
 - Added a better support for LODs in the ray tracing acceleration structure.
+- Added a property on the HDRP asset to allow users to avoid ray tracing effects running at too low percentages (case 1342588).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
