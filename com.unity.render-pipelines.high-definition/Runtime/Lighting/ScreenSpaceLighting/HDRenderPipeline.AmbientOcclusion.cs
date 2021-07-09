@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.AmbientOcclusion)))
                 {
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
-                        return RenderRTAO(renderGraph, hdCamera, depthBuffer, normalBuffer, motionVectors, historyValidityBuffer, rayCountTexture, shaderVariablesRaytracing);
+                        result = RenderRTAO(renderGraph, hdCamera, depthBuffer, normalBuffer, motionVectors, historyValidityBuffer, rayCountTexture, shaderVariablesRaytracing);
                     else
                     {
                         m_AOHistoryReady = !hdCamera.AllocateAmbientOcclusionHistoryBuffer(settings.fullResolution ? 1.0f : 0.5f);

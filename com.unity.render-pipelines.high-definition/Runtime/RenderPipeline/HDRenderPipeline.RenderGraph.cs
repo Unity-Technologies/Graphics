@@ -5,6 +5,10 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.VFX;
 using UnityEngine.Rendering.RendererUtils;
 
+// Resove the ambiguity in the RendererList name (pick the in-engine version)
+using RendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using RendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
@@ -150,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Evaluate the clear coat mask texture based on the lit shader mode
                     var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
                     lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph, hdCamera, ref prepassOutput, clearCoatMask, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), transparent: false);
-                    lightingBuffers.ssgiLightingBuffer = RenderScreenSpaceIndirectDiffuse(hdCamera, prepassOutput, rayCountTexture, historyValidationTexture);
+                    lightingBuffers.ssgiLightingBuffer = RenderScreenSpaceIndirectDiffuse(hdCamera, prepassOutput, rayCountTexture, historyValidationTexture, gpuLightListOutput.lightList);
 
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingClusterState())
                     {
@@ -1194,7 +1198,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Figure out which client systems need which buffers
             // Only VFX systems for now
             parameters.neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);
-            parameters.needNormalBuffer |= ((parameters.neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Normal) != 0);
+            parameters.needNormalBuffer |= ((parameters.neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Normal) != 0 || GetIndirectDiffuseMode(hdCamera) == IndirectDiffuseMode.ScreenSpace);
             parameters.needDepthBuffer |= ((parameters.neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Depth) != 0 || GetIndirectDiffuseMode(hdCamera) == IndirectDiffuseMode.ScreenSpace);
 
             // Raytracing require both normal and depth from previous frame.
