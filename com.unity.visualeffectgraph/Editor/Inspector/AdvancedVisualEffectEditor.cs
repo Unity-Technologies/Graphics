@@ -746,7 +746,7 @@ namespace UnityEditor.VFX
             if (EditorWindow.HasOpenInstances<VFXViewWindow>())
             {
                 VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-                if (!window.graphView.isLocked)
+                if (window.graphView?.isLocked == false)
                 {
                     window.graphView.AttachToSelection();
                 }
