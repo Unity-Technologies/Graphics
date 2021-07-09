@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     internal class CapturePass : ScriptableRenderPass
     {
-        RenderTargetHandle m_CameraColorHandle;
+        RTHandle m_CameraColorHandle;
         const string m_ProfilerTag = "Capture Pass";
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
         public CapturePass(RenderPassEvent evt)
@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="actions"></param>
         public void Setup(RTHandle colorHandle)
         {
-            m_CameraColorHandle = new RenderTargetHandle(colorHandle);
+            m_CameraColorHandle = colorHandle;
         }
 
         /// <inheritdoc/>
@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmdBuf = CommandBufferPool.Get();
             using (new ProfilingScope(cmdBuf, m_ProfilingSampler))
             {
-                var colorAttachmentIdentifier = m_CameraColorHandle.Identifier();
+                var colorAttachmentIdentifier = m_CameraColorHandle.nameID;
                 var captureActions = renderingData.cameraData.captureActions;
                 for (captureActions.Reset(); captureActions.MoveNext();)
                     captureActions.Current(colorAttachmentIdentifier, cmdBuf);
