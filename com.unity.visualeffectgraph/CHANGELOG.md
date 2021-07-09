@@ -73,6 +73,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix IsFrontFace shader graph node for VFX.
 - Fix crash when loading SDF Baker settings holding a mesh prefab [Case 1343898](https://issuetracker.unity3d.com/product/unity/issues/guid/1343898/)
 - Exception using gizmo on exposed properties [Case 1340818](https://issuetracker.unity3d.com/product/unity/issues/guid/1340818/)
+- GPU hang on some initialize dispatch during dichotomy (platform specific)
 
 ## [11.0.0] - 2020-10-21
 ### Added
