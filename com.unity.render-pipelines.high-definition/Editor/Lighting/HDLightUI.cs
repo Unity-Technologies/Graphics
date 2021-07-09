@@ -1055,9 +1055,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         var additionalLightData = editor.GetAdditionalDataForTargetIndex(0);
                         if (!HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(additionalLightData))
                         {
-                            // TODO: Print atlas resolution ?
                             string warningMessage = "The shadow for this light doesn't fit the cached shadow atlas and therefore won't be rendered. Please ensure you have enough space in the cached shadow atlas. Consult HDRP Shadow documentation for more information about cached shadow management.";
-                            // TODO Add a button to check what resolution would fit.
                             // Loop backward in "tile" size to check
                             const int slotSize = HDCachedShadowManager.k_MinSlotSize;
 
@@ -1083,8 +1081,8 @@ namespace UnityEditor.Rendering.HighDefinition
                                     var scalableSetting = ScalableSettings.ShadowResolution(lightType, hdrp);
                                     int res = additionalLightData.GetResolutionFromSettings(lightType, hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams);
                                     int foundResFit = -1;
-                                    // Round up to multiple of 64
-                                    res = (res / slotSize) * slotSize + ((res % slotSize) == 0 ? 0 : slotSize);
+                                    // Round up to multiple of slotSize
+                                    res = HDUtils.DivRoundUp(res, slotSize) * slotSize;
                                     for (int testRes = res; testRes >= slotSize; testRes -= slotSize)
                                     {
                                         if (HDCachedShadowManager.instance.WouldFitInAtlas(Mathf.Max(testRes, slotSize), lightType))
