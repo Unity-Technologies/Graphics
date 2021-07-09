@@ -129,6 +129,14 @@ The SRP settings workflow improvements are a series of UI/UX improvements intend
 Previously, with MSAA enabled, Unity executed an extra depth prepass to populate the depth buffer.
 In this release, with MSAA enabled, Unity doesn't execute the extra depth prepass and reuses the  depth texture from the opaque pass instead (**Note**: this is valid for all but GLES3 platforms).
 
+### SwapBuffer
+
+In this release, Universal Renderer can manage and operate on multiple Camera color buffers in the backend.
+
+You can now use the new [ScriptableRenderPass.Blit](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/api/UnityEngine.Rendering.Universal.ScriptableRenderPass.html) method in your Scriptable Renderer Feature to apply effects to the color buffer without managing and handling Camera color buffers yourself. You can use the method to write effects that read and write to the Camera color buffer.
+
+See also: [UniversalRenderer.SwapColorBuffer](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/api/UnityEngine.Rendering.Universal.UniversalRenderer.html).
+
 ### URP 2D Renderer improvements
 
 This release contains multiple URP 2D Renderer improvements:
