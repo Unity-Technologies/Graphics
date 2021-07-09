@@ -521,27 +521,31 @@ namespace UnityEngine.Rendering.Universal
                     xrActive = true;
                     UpdateCameraStereoMatrices(baseCamera, xrPass);
                 }
+#endif
 
-                using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
-                {
-                    BeginCameraRendering(context, baseCamera);
-                }
-                // Update volumeframework before initializing additional camera data
-                UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
-                InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
-                RenderTextureDescriptor originalTargetDesc = baseCameraData.cameraTargetDescriptor;
+            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+            {
+                BeginCameraRendering(context, baseCamera);
+            }
+            // Update volumeframework before initializing additional camera data
+            UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
+            InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
+            RenderTextureDescriptor originalTargetDesc = baseCameraData.cameraTargetDescriptor;
 
-                if (xrPass.enabled)
-                {
-                    baseCameraData.xr = xrPass;
-                    // XRTODO: remove isStereoEnabled in 2021.x
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xrPass.enabled)
+            {
+                baseCameraData.xr = xrPass;
+                // XRTODO: remove isStereoEnabled in 2021.x
 #pragma warning disable 0618
-                    baseCameraData.isStereoEnabled = xrPass.enabled;
+                baseCameraData.isStereoEnabled = xrPass.enabled;
 #pragma warning restore 0618
 
-                    // Helper function for updating cameraData with xrPass Data
-                    m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
-                }
+                // Helper function for updating cameraData with xrPass Data
+                m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
+
+                m_XRSystem.BeginLateLatching(baseCamera, xrPass);
+            }
 #endif
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
@@ -557,6 +561,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 EndCameraRendering(context, baseCamera);
             }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            m_XRSystem.EndLateLatching(baseCamera, xrPass);
+#endif
 
             if (isStackedRendering)
             {
@@ -574,7 +582,9 @@ namespace UnityEngine.Rendering.Universal
                         CameraData overlayCameraData = baseCameraData;
                         bool lastCamera = i == lastActiveOverlayCameraIndex;
 
+#if ENABLE_VR && ENABLE_XR_MODULE
                         UpdateCameraStereoMatrices(currCameraData.camera, xrPass);
+#endif
 
                         using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
                         {
@@ -634,9 +644,9 @@ namespace UnityEngine.Rendering.Universal
             bool shouldUpdate = camera.cameraType == CameraType.SceneView;
             shouldUpdate |= additionalCameraData != null && additionalCameraData.requiresVolumeFrameworkUpdate;
 
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             shouldUpdate |= Application.isPlaying == false;
-            #endif
+#endif
 
             // When we have volume updates per-frame disabled...
             if (!shouldUpdate && additionalCameraData)
@@ -1032,6 +1042,10 @@ namespace UnityEngine.Rendering.Universal
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
             shadowData.supportsSoftShadows = settings.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
             shadowData.shadowmapDepthBufferBits = 16;
+
+            // This will be setup in AdditionalLightsShadowCasterPass.
+            shadowData.isKeywordAdditionalLightShadowsEnabled = false;
+            shadowData.isKeywordSoftShadowsEnabled = false;
         }
 
         static void InitializePostProcessingData(UniversalRenderPipelineAsset settings, out PostProcessingData postProcessingData)

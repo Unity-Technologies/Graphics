@@ -99,13 +99,14 @@ namespace UnityEditor.Rendering.Universal
                     ),
                 PostProcessingWarningDrawer,
                 CED.Group(
-                    DrawerRenderingClearDepth
+                    DrawerRenderingClearDepth,
+                    DrawerRenderingRenderShadows
                 )
             );
 
             public static readonly CED.IDrawer Drawer = CED.FoldoutGroup(
                 CameraUI.Rendering.Styles.header,
-                CameraUI.Expandable.Rendering,
+                Expandable.Rendering,
                 k_ExpandedState,
                 FoldoutOption.Indent,
                 PostProcessingWarningInit,
@@ -115,7 +116,6 @@ namespace UnityEditor.Rendering.Universal
                 BaseCameraRenderTypeDrawer,
                 OverlayCameraRenderTypeDrawer,
                 CED.Group(
-                    DrawerRenderingRenderShadows,
                     CameraUI.Rendering.Drawer_Rendering_CullingMask,
                     CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
                 )

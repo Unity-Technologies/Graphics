@@ -31,7 +31,7 @@ void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input)
 {
 #if IS_TRANSPARENT_PARTICLE && defined(VFX_VARYING_POSCS)
     // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
-    input.VFX_VARYING_POSCS.xy = _OffScreenRendering > 0 ? (input.VFX_VARYING_POSCS.xy * _OffScreenDownsampleFactor) : input.VFX_VARYING_POSCS.xy;
+    input.VFX_VARYING_POSCS.xy = _OffScreenRendering > 0 ? (uint2)round(input.VFX_VARYING_POSCS.xy * _OffScreenDownsampleFactor) : input.VFX_VARYING_POSCS.xy;
 #endif
 }
 #endif
@@ -142,11 +142,6 @@ float3 GetWorldStereoOffset()
 float VFXSampleDepth(float4 posSS)
 {
     return LoadCameraDepth(posSS.xy);
-}
-
-float VFXLinearEyeDepth(float depth)
-{
-    return LinearEyeDepth(depth,_ZBufferParams);
 }
 
 void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS, float3 normalWS)

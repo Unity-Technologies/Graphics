@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/Scenes/102_ReflectionsPerfHalfRes.unity
     guid: 5fd2fada5be46b04898ce4c60cd49a90
   - enabled: 1
+    path: Assets/Scenes/103_ReflectionsLOD.unity
+    guid: 4e11e67ddf8db1c4da0cee717b4665cc
+  - enabled: 1
     path: Assets/Scenes/103_ReflectionsQuality.unity
     guid: 7c94f7315cc5f9948836ed2db6950643
   - enabled: 1
@@ -41,8 +44,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/108_ReflectionsHybridHalfRes.unity
     guid: 4a71d9b31d3fb4e40a56b5be93a15b8d
-    path: Assets/Scenes/108_ReflectionEmissive_Perf_Exposure_0.unity
-    guid: 84d0d38a16a53224e9a6612392dafaa7
   - enabled: 1
     path: Assets/Scenes/108_ReflectionEmissive_Perf_Exposure_12.unity
     guid: 9256657e1a6d16c4ba20bef7ab633c92
@@ -52,6 +53,18 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/108_ReflectionEmissive_Quality_Exposure_12.unity
     guid: b458f5a4df209624aa568bb522890c6a
+  - enabled: 1
+    path: Assets/Scenes/109_ReflectionFallbackBoth.unity
+    guid: 7dd9ef30d1f9f704a9dbcc3e68cc4475
+  - enabled: 1
+    path: Assets/Scenes/109_ReflectionFallbackNone.unity
+    guid: 05a8727ee9005474faced212351902f4
+  - enabled: 1
+    path: Assets/Scenes/109_ReflectionFallbackRefl.unity
+    guid: fa361ef20ae4ea941870b11ab5834255
+  - enabled: 1
+    path: Assets/Scenes/109_ReflectionFallbackSky.unity
+    guid: 826118918d11f6a4c8900c5d29a4c6b4
   - enabled: 1
     path: Assets/Scenes/201_LargeAmbientOcclusion.unity
     guid: 41a04a0db6c8e4e4eb54296e4521c3e5
@@ -307,6 +320,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/5010_PathTracingAlpha.unity
     guid: 99680d74d8a49be44bd19065fae3d569
+  - enabled: 1
+    path: Assets/Scenes/5011_PathTracing_ShadowMatte.unity
+    guid: a2a018bd807332e419183347eebc8a0c
   - enabled: 1
     path: Assets/Scenes/6000_VertexFormats.unity
     guid: 6788ab4459664394f96537c7ad864afb
