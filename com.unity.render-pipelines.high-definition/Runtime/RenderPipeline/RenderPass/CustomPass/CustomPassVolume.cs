@@ -136,8 +136,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 #endif
 
-            if (useTargetCamera && targetCamera == hdCamera.camera)
-                return true;
+            if (useTargetCamera)
+                return targetCamera == hdCamera.camera;
 
             // We never execute volume if the layer is not within the culling layers of the camera
             // Special case for the scene view: we can't easily change it's volume later mask, so by default we show all custom passes
@@ -204,9 +204,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!volume.IsVisible(camera))
                     continue;
 
-                if (volume.useTargetCamera && volume.targetCamera == camera.camera)
+                if (volume.useTargetCamera)
                 {
-                    m_OverlappingPassVolumes.Add(volume);
+                    if (volume.targetCamera == camera.camera)
+                        m_OverlappingPassVolumes.Add(volume);
                     continue;
                 }
 

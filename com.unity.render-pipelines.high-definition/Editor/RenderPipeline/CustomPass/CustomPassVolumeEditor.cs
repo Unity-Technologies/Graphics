@@ -159,8 +159,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 Rect isGlobalRect = EditorGUILayout.GetControlRect();
                 EditorGUI.BeginProperty(isGlobalRect, Styles.isGlobal, m_SerializedPassVolume.isGlobal);
                 {
+                    EditorGUI.BeginChangeCheck();
                     int selectedMode = EditorGUI.Popup(isGlobalRect, Styles.isGlobal, GetMode(), Styles.modes);
-                    SetMode(selectedMode);
+                    if (EditorGUI.EndChangeCheck())
+                        SetMode(selectedMode);
                 }
                 EditorGUI.EndProperty();
 
