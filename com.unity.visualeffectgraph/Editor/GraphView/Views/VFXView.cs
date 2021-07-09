@@ -181,9 +181,9 @@ namespace UnityEditor.VFX.UI
             public static readonly GUIContent attach =  EditorGUIUtility.TrTextContent("Attach");
             public static readonly GUIContent detach =  EditorGUIUtility.TrTextContent("Detach");
             public static readonly GUIContent attachToSelection =  EditorGUIUtility.TrTextContent("Attach to selection");
-            public static readonly GUIContent clickToUnlock =  EditorGUIUtility.TrTextContent("Click to unlock");
-            public static readonly GUIContent clickToLock =  EditorGUIUtility.TrTextContent("Click to lock");
-            public static readonly GUIContent pickATarget =  EditorGUIUtility.TrTextContent("Pick a target");
+            public static readonly GUIContent clickToUnlock =  EditorGUIUtility.TrTextContent("Click to enable auto-attachment to selection");
+            public static readonly GUIContent clickToLock =  EditorGUIUtility.TrTextContent("Click to disable auto-attachment to selection");
+            public static readonly GUIContent pickATarget =  EditorGUIUtility.TrTextContent("Select a target GameObject");
             public static readonly GUIContent noSelection =  EditorGUIUtility.TrTextContent("No selection");
             public static readonly GUIContent clickToSelect =  EditorGUIUtility.TrTextContent("Click to select");
             public static readonly GUIContent attachedTo =  EditorGUIUtility.TrTextContent("Attached to");
