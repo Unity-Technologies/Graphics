@@ -35,7 +35,7 @@ namespace UnityEditor.VFX.HDRP
                         features |= VFXOutputUpdate.Features.LOD;
                     if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
                     {
-                        if (IsPerCamera(sortCriterion))
+                        if (VFXSortingUtility.IsPerCamera(sortCriterion))
                             features |= VFXOutputUpdate.Features.CameraSort;
                         else
                             features |= VFXOutputUpdate.Features.Sort;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static UnityEditor.VFX.VFXSortingUtility;
 
 namespace UnityEditor.VFX
 {
@@ -17,7 +18,7 @@ namespace UnityEditor.VFX
             MultiMesh       = 1 << 3 | Culling,
             LOD             = 1 << 4 | Culling,
             Sort            = 1 << 5 | Culling,
-            CameraSort      = 1 << 6 | IndirectDraw,
+            CameraSort      = 1 << 6 | Sort,
             FrustumCulling  = 1 << 7 | IndirectDraw,
         }
 
@@ -42,7 +43,7 @@ namespace UnityEditor.VFX
 
         private Features features = Features.None;
 
-        private VFXAbstractParticleOutput.SortCriteria sortCriterion = VFXAbstractParticleOutput.SortCriteria.Distance;
+        private SortCriteria sortCriterion = SortCriteria.Distance;
 
         public static bool HasFeature(Features flags, Features feature)
         {
@@ -195,8 +196,8 @@ namespace UnityEditor.VFX
                 if (HasFeature(Features.MotionVector) && output is VFXLineOutput)
                     yield return new VFXAttributeInfo(VFXAttribute.TargetPosition, VFXAttributeMode.Read);
 
-                if (sortCriterion == VFXAbstractParticleOutput.SortCriteria.YoungestInFront ||
-                    sortCriterion == VFXAbstractParticleOutput.SortCriteria.OldestInFront)
+                if (sortCriterion == SortCriteria.YoungestInFront ||
+                    sortCriterion == SortCriteria.OldestInFront)
                 {
                     yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
                 }
@@ -220,31 +221,25 @@ namespace UnityEditor.VFX
                 }
                 if (HasFeature(Features.LOD))
                     yield return "VFX_FEATURE_LOD";
-                if (HasFeature(Features.CameraSort))
-                    yield return "VFX_FEATURE_SORT";
-                switch (m_Output.GetSortCriterion())
+                if (HasFeature(Features.Sort))
                 {
-                    case VFXAbstractParticleOutput.SortCriteria.Custom:
-                        yield return "VFX_CUSTOM_SORT_KEY";
-                        break;
-                    case VFXAbstractParticleOutput.SortCriteria.Depth:
-                        yield return "VFX_DEPTH_SORT_KEY";
-                        break;
-                    case VFXAbstractParticleOutput.SortCriteria.Distance:
-                        yield return "VFX_DISTANCE_SORT_KEY";
-                        break;
-                    case VFXAbstractParticleOutput.SortCriteria.YoungestInFront:
-                        yield return "VFX_YOUNGEST_SORT_KEY";
-                        break;
-                    case VFXAbstractParticleOutput.SortCriteria.OldestInFront:
-                        yield return "VFX_OLDEST_SORT_KEY";
-                        break;
-                    default:
-                        throw new NotImplementedException("This Sorting criteria is missing an Additional Define");
+                    yield return "VFX_FEATURE_SORT";
+                    foreach (string additionalDef in GetSortingAdditionalDefines(m_Output.GetSortCriterion()))
+                    {
+                        yield return additionalDef;
+                    }
                 }
-
                 if (HasFeature(Features.FrustumCulling))
                     yield return "VFX_FEATURE_FRUSTUM_CULL";
+            }
+        }
+
+        public override IEnumerable<VFXMapping> additionalMappings
+        {
+            get
+            {
+                if(VFXSortingUtility.IsPerCamera(m_Output.GetSortCriterion()))
+                    yield return new VFXMapping("isPerCameraSort", 1);
             }
         }
 

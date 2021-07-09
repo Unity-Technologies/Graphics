@@ -7,6 +7,8 @@ using UnityEditor.VFX;
 using UnityEngine.VFX;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
+using static UnityEditor.VFX.VFXSortingUtility;
+
 
 namespace UnityEditor.VFX
 {
@@ -531,13 +533,21 @@ namespace UnityEditor.VFX
             }
 
             var implicitContext = new List<VFXContext>();
-            if (NeedsGlobalSort())
+            var outputsWithOwnSort = new List<VFXAbstractParticleOutput>();
+            SortCriteria globalSortCriterion = SortCriteria.Distance; //TODO :Initialize differently ?
+            bool needsGlobalSort = NeedsGlobalSort();
+            if (needsGlobalSort) //Issues a global sort, when it affects at least one output. If others don't match the criterion, or have a compute cull pass, they need a per output sort.
             {
                 // Then the camera sort
-                var cameraSort = VFXContext.CreateImplicitContext<VFXCameraSort>(this);
-                implicitContext.Add(cameraSort);
-                m_Contexts.Add(cameraSort);
+                var globalSort = VFXContext.CreateImplicitContext<VFXGlobalSort>(this);
+                globalSortCriterion = GetGlobalSortCriterion();
+                globalSort.sortCriterion = globalSortCriterion;
+                if (globalSort.sortCriterion == SortCriteria.Custom)
+                    globalSort.customSortingSlot = GetGlobalCustomSortKeySlot();
+                implicitContext.Add(globalSort);
+                m_Contexts.Add(globalSort);
             }
+
 
             //additional update
             for (int outputIndex = index; outputIndex < contexts.Count; ++outputIndex)
@@ -547,6 +557,8 @@ namespace UnityEditor.VFX
                 if (abstractParticleOutput == null)
                     continue;
 
+                abstractParticleOutput.needsOwnSort = abstractParticleOutput.HasSorting() && needsGlobalSort &&
+                                                      abstractParticleOutput.GetSortCriterion() != globalSortCriterion;
                 if (abstractParticleOutput.NeedsOutputUpdate())
                 {
                     var update = VFXContext.CreateImplicitContext<VFXOutputUpdate>(this);
@@ -575,7 +587,37 @@ namespace UnityEditor.VFX
 
         public bool NeedsGlobalSort()
         {
-            return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
+            var sortedOutputs = compilableOwners.OfType<VFXAbstractParticleOutput>()
+                .Where(o => o.CanBeCompiled() && o.HasSorting());
+            if (sortedOutputs.Any())
+            {
+                return sortedOutputs.Any(o =>
+                    !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
+            }
+
+            return false;
+
+            //return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
+        }
+
+        public SortCriteria GetGlobalSortCriterion() //TODO: Get that from a majority vote + add a check if relevant
+        {
+            var sortedOutputs = compilableOwners.OfType<VFXAbstractParticleOutput>()
+                .Where(o => o.CanBeCompiled() && o.HasSorting() );
+
+            var firstGlobalSortKey = sortedOutputs.First(o =>
+                !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)).GetSortCriterion();
+            return firstGlobalSortKey;
+        }
+
+        public VFXSlot GetGlobalCustomSortKeySlot() //TODO: Get that from a majority vote + add a check if relevant
+        {
+            var sortedOutputs = compilableOwners.OfType<VFXAbstractParticleOutput>()
+                .Where(o => o.CanBeCompiled() && o.HasSorting());
+
+            var firstCustomSortKeySlot = sortedOutputs.First(o =>
+                !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)).inputSlots.First(s => s.name == "sortKey");
+            return firstCustomSortKeySlot;
         }
 
         public override void FillDescs(
@@ -747,7 +789,7 @@ namespace UnityEditor.VFX
                         uint bufferCount = culler.bufferCount;
                         culler.bufferIndex = outBufferDescs.Count;
                         bool perCamera = culler.isPerCamera;
-                        uint bufferStride = culler.HasFeature(VFXOutputUpdate.Features.CameraSort) ? 8u : 4u;
+                        uint bufferStride = culler.HasFeature(VFXOutputUpdate.Features.Sort) ? 8u : 4u;
                         for (uint i = 0; i < bufferCount; ++i)
                         {
                             string bufferName = "indirectBuffer" + currentIndirectBufferIndex++;
@@ -757,7 +799,7 @@ namespace UnityEditor.VFX
                             outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Counter, size = capacity, stride = bufferStride });
                         }
 
-                        if (culler.HasFeature(VFXOutputUpdate.Features.CameraSort))
+                        if (culler.HasFeature(VFXOutputUpdate.Features.Sort))
                         {
                             culler.sortedBufferIndex = outBufferDescs.Count;
                             for (uint i = 0; i < bufferCount; ++i)
@@ -882,7 +924,7 @@ namespace UnityEditor.VFX
 
                     if (context.contextType == VFXContextType.Filter)
                     {
-                        if (context.taskType == VFXTaskType.CameraSort && needsGlobalIndirectBuffer)
+                        if (context.taskType == VFXTaskType.GlobalSort && needsGlobalIndirectBuffer)
                             bufferMappings.Add(new VFXMapping("inputBuffer", globalIndirectBufferIndex));
                         else if (context is VFXOutputUpdate)
                         {
@@ -898,7 +940,7 @@ namespace UnityEditor.VFX
                 if (deadListBufferIndex != -1 && context.contextType == VFXContextType.Output && (context as VFXAbstractParticleOutput).NeedsDeadListCount())
                     bufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
 
-                if (context.taskType == VFXTaskType.CameraSort)
+                if (context.taskType == VFXTaskType.GlobalSort)
                 {
                     bufferMappings.Add(new VFXMapping("outputBuffer", sortBufferAIndex));
                     if (deadListCountIndex != -1)
