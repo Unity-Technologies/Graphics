@@ -836,8 +836,18 @@ namespace UnityEngine.Rendering.Universal
                 renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
             // When post-processing is enabled we can use the stack to resolve rendering to camera target (screen or RT).
-            // However when there are render passes executing after post we avoid resolving to screen so rendering continues (before sRGBConvertion etc)
+            // However when there are render passes executing after post we avoid resolving to screen so rendering continues (before sRGBConversion etc)
             bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
+
+            if (applyPostProcessing)
+            {
+                var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
+                if (RenderingUtils.RTHandleNeedsReAlloc(m_PostProcessPasses.m_AfterPostProcessColor, desc, false))
+                {
+                    m_PostProcessPasses.m_AfterPostProcessColor?.Release();
+                    m_PostProcessPasses.m_AfterPostProcessColor = RTHandles.Alloc(desc, filterMode: FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
+                }
+            }
 
             if (lastCameraInTheStack)
             {
@@ -846,9 +856,9 @@ namespace UnityEngine.Rendering.Universal
                 // Post-processing will resolve to final target. No need for final blit pass.
                 if (applyPostProcessing)
                 {
-                    // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
-                    bool doSRGBConvertion = resolvePostProcessingToCameraTarget;
-                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
+                    // if resolving to screen we need to be able to perform sRGBConversion in post-processing if necessary
+                    bool doSRGBConversion = resolvePostProcessingToCameraTarget;
+                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConversion);
                     EnqueuePass(postProcessPass);
                 }
 

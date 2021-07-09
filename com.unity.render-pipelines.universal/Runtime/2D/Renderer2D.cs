@@ -245,8 +245,22 @@ namespace UnityEngine.Rendering.Universal
 
             if (stackHasPostProcess && m_PostProcessPasses.isCreated)
             {
-                RTHandle postProcessDestHandle =
-                    lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass ? k_CameraTarget : afterPostProcessColorHandle;
+                RTHandle postProcessDestHandle;
+                if (lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass)
+                {
+                    postProcessDestHandle = k_CameraTarget;
+                }
+                else
+                {
+                    var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
+                    if (RenderingUtils.RTHandleNeedsReAlloc(m_PostProcessPasses.m_AfterPostProcessColor, desc, false))
+                    {
+                        m_PostProcessPasses.m_AfterPostProcessColor?.Release();
+                        m_PostProcessPasses.m_AfterPostProcessColor = RTHandles.Alloc(desc, filterMode: FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
+                    }
+
+                    postProcessDestHandle = afterPostProcessColorHandle;
+                }
 
                 postProcessPass.Setup(
                     cameraTargetDescriptor,

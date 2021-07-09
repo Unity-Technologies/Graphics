@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
         PostProcessPass m_PostProcessPass;
         PostProcessPass m_FinalPostProcessPass;
 
-        RTHandle m_AfterPostProcessColor;
+        internal RTHandle m_AfterPostProcessColor;
         RTHandle m_ColorGradingLut;
 
         PostProcessData m_RendererPostProcessData;
@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
             m_FinalPostProcessPass = null;
             m_CurrentPostProcessData = null;
 
-            m_AfterPostProcessColor = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_AfterPostProcessTexture"), 0, CubemapFace.Unknown, -1), "_AfterPostProcessTexture");
+            m_AfterPostProcessColor = null;
             m_ColorGradingLut = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_InternalGradingLut"), 0, CubemapFace.Unknown, -1), "_InternalGradingLut");
 
             m_RendererPostProcessData = rendererPostProcessData;
