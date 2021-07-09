@@ -48,9 +48,21 @@ namespace UnityEngine.Rendering.HighDefinition
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 64;
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 128;
 
-            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 16;
-            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 14;
-            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.High] = 12;
+            SSGIDenoise[(int)ScalableSettingLevelParameter.Level.Low] = true;
+            SSGIDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = true;
+            SSGIDenoise[(int)ScalableSettingLevelParameter.Level.High] = true;
+
+            SSGIHalfResDenoise[(int)ScalableSettingLevelParameter.Level.Low] = true;
+            SSGIHalfResDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = false;
+            SSGIHalfResDenoise[(int)ScalableSettingLevelParameter.Level.High] = false;
+
+            SSGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 0.75f;
+            SSGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 0.5f;
+            SSGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 0.5f;
+
+            SSGISecondDenoise[(int)ScalableSettingLevelParameter.Level.Low] = true;
+            SSGISecondDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = true;
+            SSGISecondDenoise[(int)ScalableSettingLevelParameter.Level.High] = true;
 
             // Ray Traced Ambient Occlusion
             RTAORayLength[(int)ScalableSettingLevelParameter.Level.Low] = 0.5f;
@@ -182,8 +194,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // Screen Space Global Illumination
         /// <summary>Screen space global illumination step count for the ray marching.</summary>
         public int[] SSGIRaySteps = new int[s_QualitySettingCount];
-        /// <summary>Screen space global illumination's filter size.</summary>
-        public int[] SSGIFilterRadius = new int[s_QualitySettingCount];
+        /// <summary>Flag that enables the first denoising pass.</summary>
+        public bool[] SSGIDenoise = new bool[s_QualitySettingCount];
+        /// <summary>Flag that defines if the denoiser should be evaluated at half resolution.</summary>
+        public bool[] SSGIHalfResDenoise = new bool[s_QualitySettingCount];
+        /// <summary>Flag that defines the radius of the first denoiser.</summary>
+        public float[] SSGIDenoiserRadius = new float[s_QualitySettingCount];
+        /// <summary>Flag that enables the second denoising pass.</summary>
+        public bool[] SSGISecondDenoise = new bool[s_QualitySettingCount];
 
         // Ray Traced Ambient Occlusion
         /// <summary>Controls the length of ray traced ambient occlusion rays.</summary>
