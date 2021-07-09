@@ -228,6 +228,13 @@ namespace UnityEngine.Rendering.Universal
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
             if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && m_PostProcessPasses.isCreated)
             {
+                var desc = colorGradingLutPass.GetDesc(ref renderingData.postProcessingData);
+                if (RenderingUtils.RTHandleNeedsReAlloc(m_PostProcessPasses.m_ColorGradingLut, desc, false))
+                {
+                    m_PostProcessPasses.m_ColorGradingLut?.Release();
+                    m_PostProcessPasses.m_ColorGradingLut = RTHandles.Alloc(desc, filterMode: FilterMode.Bilinear, wrapMode: TextureWrapMode.Clamp, name: "_InternalGradingLut");
+                }
+
                 colorGradingLutPass.Setup(colorGradingLutHandle);
                 EnqueuePass(colorGradingLutPass);
             }

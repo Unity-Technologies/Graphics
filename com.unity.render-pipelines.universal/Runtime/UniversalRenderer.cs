@@ -690,6 +690,13 @@ namespace UnityEngine.Rendering.Universal
 
             if (generateColorGradingLUT)
             {
+                var desc = colorGradingLutPass.GetDesc(ref renderingData.postProcessingData);
+                if (RenderingUtils.RTHandleNeedsReAlloc(m_PostProcessPasses.m_ColorGradingLut, desc, false))
+                {
+                    m_PostProcessPasses.m_ColorGradingLut?.Release();
+                    m_PostProcessPasses.m_ColorGradingLut = RTHandles.Alloc(desc, filterMode: FilterMode.Bilinear, wrapMode: TextureWrapMode.Clamp, name: "_InternalGradingLut");
+                }
+
                 colorGradingLutPass.Setup(colorGradingLut);
                 EnqueuePass(colorGradingLutPass);
             }
