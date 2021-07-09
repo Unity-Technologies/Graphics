@@ -663,6 +663,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return historyValidity;
         }
 
+        internal bool RayTracingHalfResAllowed()
+        {
+            return DynamicResolutionHandler.instance.GetCurrentScale() >= (currentPlatformRenderPipelineSettings.dynamicResolutionSettings.rayTracingHalfResThreshold / 100.0f);
+        }
+
         void UpdateShaderVariablesRaytracingLightLoopCB(HDCamera hdCamera, CommandBuffer cmd)
         {
             m_ShaderVariablesRaytracingLightLoopCB._MinClusterPos = m_RayTracingLightCluster.GetMinClusterPos();
