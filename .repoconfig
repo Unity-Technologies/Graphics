@@ -47,4 +47,5 @@ path=<<EOT
 |^com\.unity\.[^\/]*\/Packages\/com\.unity\.[^\/]*\/\w+~\/  # as above but for embedded packages
 |^com\.unity\.[^\/]*\/[^@]+@\d+x\.                          # industry standard for icons with differnet resolution
 |^TestProjects\/                                            # allow all names for test files
+|^com\.unity\.testing\.hdrp                                 # as above but for testing packages
 EOT
