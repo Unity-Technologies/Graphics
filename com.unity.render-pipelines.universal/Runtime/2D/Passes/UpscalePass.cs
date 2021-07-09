@@ -6,8 +6,8 @@ namespace UnityEngine.Rendering.Universal
     {
         private static readonly ProfilingSampler m_ProfilingScope = new ProfilingSampler("Upscale Pass");
 
-        RenderTargetHandle m_Source;
-        RenderTargetHandle m_UpscaleHandle;
+        RTHandle m_Source;
+        RTHandle m_UpscaleHandle;
         int m_UpscaleWidth;
         int m_UpscaleHeight;
         FilterMode m_filterMode;
@@ -17,15 +17,21 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = evt;
         }
 
-        public void Setup(RenderTargetHandle colorTargetHandle, int width, int height, FilterMode mode, out RenderTargetHandle upscaleHandle)
+        public void Setup(RTHandle colorTargetHandle, int width, int height, FilterMode mode, ref RenderingData renderingData, out RTHandle upscaleHandle)
         {
             m_Source = colorTargetHandle;
             m_UpscaleWidth = width;
             m_UpscaleHeight = height;
             m_filterMode = mode;
 
-            m_UpscaleHandle.Init("_UpscaleTexture");
+            if (m_UpscaleHandle == null)
+                m_UpscaleHandle = RTHandles.Alloc("_UpscaleTexture", "_UpscaleTexture");
             upscaleHandle = m_UpscaleHandle;
+        }
+
+        public void Dispose()
+        {
+            m_UpscaleHandle?.Release();
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -38,13 +44,13 @@ namespace UnityEngine.Rendering.Universal
                 RenderTextureDescriptor upscaleDesc = cameraData.cameraTargetDescriptor;
                 upscaleDesc.width = m_UpscaleWidth;
                 upscaleDesc.height = m_UpscaleHeight;
-                cmd.GetTemporaryRT(m_UpscaleHandle.id, upscaleDesc, m_filterMode);
+                cmd.GetTemporaryRT(Shader.PropertyToID(m_UpscaleHandle.name), upscaleDesc, m_filterMode);
 
-                cmd.SetRenderTarget(m_UpscaleHandle.id,
+                cmd.SetRenderTarget(m_UpscaleHandle.nameID,
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
 
-                cmd.Blit(m_Source.id, m_UpscaleHandle.id);
+                cmd.Blit(m_Source.nameID, m_UpscaleHandle.nameID);
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -53,7 +59,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void OnFinishCameraStackRendering(CommandBuffer cmd)
         {
-            cmd.ReleaseTemporaryRT(m_UpscaleHandle.id);
+            cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_UpscaleHandle.name));
         }
     }
 }
