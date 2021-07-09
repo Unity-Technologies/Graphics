@@ -328,7 +328,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Compute buffers
             deferredParameters.rayBinResult = m_RayBinResult;
-            deferredParameters.rayBinResult = m_RayBinResult;
             deferredParameters.rayBinSizeResult = m_RayBinSizeResult;
             deferredParameters.accelerationStructure = RequestAccelerationStructure();
             deferredParameters.lightCluster = RequestLightCluster();
@@ -339,12 +338,6 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.gBufferRaytracingRT = m_GlobalSettings.renderPipelineRayTracingResources.gBufferRaytracingRT;
             deferredParameters.deferredRaytracingCS = m_GlobalSettings.renderPipelineRayTracingResources.deferredRaytracingCS;
             deferredParameters.rayBinningCS = m_GlobalSettings.renderPipelineRayTracingResources.rayBinningCS;
-
-            // XRTODO: add ray binning support for single-pass
-            if (deferredParameters.viewCount > 1 && deferredParameters.rayBinning)
-            {
-                deferredParameters.rayBinning = false;
-            }
 
             // Make a copy of the previous values that were defined in the CB
             deferredParameters.raytracingCB = m_ShaderVariablesRayTracingCB;
