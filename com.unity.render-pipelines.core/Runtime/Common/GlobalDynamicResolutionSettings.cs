@@ -44,9 +44,9 @@ namespace UnityEngine.Rendering
         [InspectorName("Edge Adaptive Scaling Upres")]
         EdgeAdaptiveScalingUpres,
         /// <summary>
-        /// Edge Adaptive Scaling Upres.
+        /// Temporal Upscaling.
         /// </summary>
-        [InspectorName("TAA Upsample (Experimental)")]
+        [InspectorName("TAA Upscale")]
         TAAU
     }
 
