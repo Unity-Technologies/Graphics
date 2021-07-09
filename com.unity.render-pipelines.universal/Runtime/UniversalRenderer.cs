@@ -857,7 +857,7 @@ namespace UnityEngine.Rendering.Universal
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
                 if (applyFinalPostProcessing)
                 {
-                    finalPostProcessPass.SetupFinalPass(new RenderTargetHandle(sourceForFinalPass), true);
+                    finalPostProcessPass.SetupFinalPass(sourceForFinalPass, true);
                     EnqueuePass(finalPostProcessPass);
                 }
 
