@@ -212,6 +212,11 @@ namespace UnityEditor.ShaderGraph
                         m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
                     }
 
+                    foreach (var depShader in context.shaderDependencies)
+                    {
+                        m_Builder.AppendLine($"Dependency \"{depShader.dependencyName}\" = \"{depShader.shaderName}\"");
+                    }
+
                     foreach (var rpCustomEditor in context.customEditorForRenderPipelines)
                     {
                         m_Builder.AppendLine($"CustomEditorForRenderPipeline \"{rpCustomEditor.shaderGUI}\" \"{rpCustomEditor.renderPipelineAssetType}\"");
@@ -255,6 +260,13 @@ namespace UnityEditor.ShaderGraph
                     // Check masternode fields for valid passes
                     if (pass.TestActive(activeFields))
                         GenerateShaderPass(targetIndex, pass.descriptor, activeFields, activeBlockDescriptors.Select(x => x.descriptor).ToList(), subShaderProperties);
+                }
+                if (descriptor.usePasses != null)
+                {
+                    foreach (string usePass in descriptor.usePasses)
+                    {
+                        m_Builder.AppendLine("UsePass \"" + usePass + "\"");
+                    }
                 }
             }
         }

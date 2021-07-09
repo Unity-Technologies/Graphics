@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
@@ -9,5 +11,6 @@ namespace UnityEditor.ShaderGraph
         public string renderQueue;
         public bool generatesPreview;
         public PassCollection passes;
+        public List<string> usePasses;
     }
 }
