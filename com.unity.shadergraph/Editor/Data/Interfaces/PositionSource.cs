@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    public enum TessellationOption
+    public enum PositionSource
     {
         Default,
         Predisplacement,

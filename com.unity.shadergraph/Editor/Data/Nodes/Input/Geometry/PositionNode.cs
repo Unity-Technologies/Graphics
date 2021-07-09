@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
         public const string kOutputSlotName = "Out";
         public override List<CoordinateSpace> validSpaces => new List<CoordinateSpace> {CoordinateSpace.Object, CoordinateSpace.View, CoordinateSpace.World, CoordinateSpace.Tangent, CoordinateSpace.AbsoluteWorld};
         [SerializeField]
-        internal TessellationOption m_TessellationOption = TessellationOption.Default;
+        internal PositionSource m_PositionSource = PositionSource.Default;
 
         public PositionNode()
         {
@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
             var name = string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Position));
             if (RequiresPositionPredisplacement(ShaderStageCapability.All) != NeededCoordinateSpace.None)
             {
-                name += TessellationOption.Predisplacement.ToString();
+                name += PositionSource.Predisplacement.ToString();
             }
             return name;
         }
@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph
 
         public NeededCoordinateSpace RequiresPositionPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
-            return m_TessellationOption == TessellationOption.Predisplacement ? space.ToNeededCoordinateSpace() : NeededCoordinateSpace.None;
+            return m_PositionSource == PositionSource.Predisplacement ? space.ToNeededCoordinateSpace() : NeededCoordinateSpace.None;
         }
 
         public override void OnAfterMultiDeserialize(string json)
