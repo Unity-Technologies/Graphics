@@ -135,8 +135,6 @@ In this release, Universal Renderer can manage and operate on multiple Camera co
 
 You can now use the new [ScriptableRenderPass.Blit](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/api/UnityEngine.Rendering.Universal.ScriptableRenderPass.html) method in your Scriptable Renderer Feature to apply effects to the color buffer without managing and handling Camera color buffers yourself. You can use the method to write effects that read and write to the Camera color buffer.
 
-See also: [UniversalRenderer.SwapColorBuffer](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/api/UnityEngine.Rendering.Universal.UniversalRenderer.html).
-
 ### URP 2D Renderer improvements
 
 This release contains multiple URP 2D Renderer improvements:
