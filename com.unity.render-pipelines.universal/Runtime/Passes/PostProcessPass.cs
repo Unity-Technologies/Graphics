@@ -525,9 +525,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cameraTarget = (m_Destination == RenderTargetHandle.CameraTarget) ? cameraTarget : m_Destination.Identifier();
                 }
 
-
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
-                bool finishPostProcessOnScreen = m_ResolveToScreen;
+                bool finishPostProcessOnScreen = m_UseSwapBuffer ? m_ResolveToScreen : cameraData.resolveFinalTarget || (m_Destination == cameraTargetHandle || m_HasFinalPass == true);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
