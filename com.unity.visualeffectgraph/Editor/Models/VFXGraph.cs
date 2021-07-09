@@ -33,7 +33,7 @@ namespace UnityEditor.VFX
                     VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
                     if (resource == null)
                         return;
-                    VFXGraph graph = resource.graph as VFXGraph;
+                    VFXGraph graph = resource.GetOrCreateGraph(); //resource.graph should be != null at this stage but GetOrCreateGraph is also assigning visualEffectResource
                     if (graph != null)
                     {
                         bool wasGraphSanitized = graph.sanitized;
@@ -523,7 +523,7 @@ namespace UnityEditor.VFX
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
 
-            UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
+            UpdateSubAssets(); //Force remove no more referenced object from the asset & *important* register as persistent new dependencies
         }
 
         private void SanitizeCameraBuffers(HashSet<ScriptableObject> objs)
