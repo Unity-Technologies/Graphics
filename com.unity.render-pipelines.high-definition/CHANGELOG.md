@@ -282,6 +282,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support for ray binning for ray tracing in XR (case 1346374).
 - Fixed exposure not being properly handled in ray tracing performance (RTGI and RTR, case 1346383).
 - Fixed the RTAO debug view being broken.
+- Fixed an issue that made camera motion vectors unavailable in custom passes.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

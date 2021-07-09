@@ -48,6 +48,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public readonly RTHandle                 cameraNormalBuffer;
 
         /// <summary>
+        /// Camera motion vectors buffer.
+        /// </summary>
+        public readonly RTHandle                 cameraMotionVectorsBuffer;
+
+        /// <summary>
         /// Lazy handle to the custom color buffer, not allocated if not used.
         /// </summary>
         public readonly Lazy<RTHandle>           customColorBuffer;
@@ -67,7 +72,8 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera hdCamera, CullingResults cullingResults,
             CullingResults cameraCullingResults,
             RTHandle cameraColorBuffer, RTHandle cameraDepthBuffer,
-            RTHandle cameraNormalBuffer, Lazy<RTHandle> customColorBuffer,
+            RTHandle cameraNormalBuffer, RTHandle cameraMotionVectorsBuffer,
+            Lazy<RTHandle> customColorBuffer,
             Lazy<RTHandle> customDepthBuffer, MaterialPropertyBlock propertyBlock)
         {
             this.renderContext = renderContext;
@@ -79,6 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.cameraDepthBuffer = cameraDepthBuffer;
             this.customColorBuffer = customColorBuffer;
             this.cameraNormalBuffer = cameraNormalBuffer;
+            this.cameraMotionVectorsBuffer = cameraMotionVectorsBuffer;
             this.customDepthBuffer = customDepthBuffer;
             this.propertyBlock = propertyBlock;
         }
