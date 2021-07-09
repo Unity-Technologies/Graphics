@@ -16,7 +16,6 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_DirectLightingStrength;
         private SerializedProperty m_Radius;
         private SerializedProperty m_SampleCount;
-
         #endregion
 
         private bool m_IsInitialized = false;
@@ -66,7 +65,9 @@ namespace UnityEditor.Rendering.Universal
 
             // We only enable this field when depth source is selected
             GUI.enabled = !isDeferredRenderingMode && m_Source.enumValueIndex == (int)ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth;
+            EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_NormalQuality, Styles.NormalQuality);
+            EditorGUI.indentLevel--;
             GUI.enabled = true;
 
             EditorGUILayout.PropertyField(m_Intensity, Styles.Intensity);
