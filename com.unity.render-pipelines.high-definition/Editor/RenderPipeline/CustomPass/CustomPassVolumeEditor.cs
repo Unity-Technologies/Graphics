@@ -7,10 +7,11 @@ using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Reflection;
 using System.Linq;
+using UnityEditor.Experimental.GraphView;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [CustomEditor(typeof(CustomPassVolume))]
+    [CustomEditor(typeof(CustomPassVolume)), CanEditMultipleObjects]
     sealed class CustomPassVolumeEditor : Editor
     {
         ReorderableList         m_CustomPassList;
@@ -18,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
         CustomPassVolume        m_Volume;
         MaterialEditor[]        m_MaterialEditors = new MaterialEditor[0];
         int                     m_CustomPassMaterialsHash;
+        bool                    m_SupportListMultiEditing;
 
         const string            k_DefaultListName = "Custom Passes";
 
@@ -160,6 +162,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawCustomPassReorderableList()
         {
+            if (targets.OfType<CustomPassVolume>().Count() > 1)
+            {
+                EditorGUILayout.HelpBox("Custom Pass List UI is not supported with multi-selection", MessageType.Warning, true);
+                return;
+            }
+
             // Sanitize list:
             for (int i = 0; i < m_SerializedPassVolume.customPasses.arraySize; i++)
             {
@@ -190,6 +198,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.LabelField(rect, k_DefaultListName, EditorStyles.largeLabel);
             };
 
+            m_CustomPassList.multiSelect = false;
             m_CustomPassList.drawElementCallback = (rect, index, active, focused) => {
                 EditorGUI.BeginChangeCheck();
 
@@ -217,24 +226,10 @@ namespace UnityEditor.Rendering.HighDefinition
             };
 
             m_CustomPassList.onAddCallback += (list) => {
-                Undo.RegisterCompleteObjectUndo(target, "Add custom pass");
-
-                var menu = new GenericMenu();
-                foreach (var customPassType in TypeCache.GetTypesDerivedFrom<CustomPass>())
-                {
-                    if (customPassType.IsAbstract)
-                        continue;
-
-                    menu.AddItem(new GUIContent(customPassType.Name), false, () => {
-                        passList.serializedObject.ApplyModifiedProperties();
-                        m_Volume.AddPassOfType(customPassType);
-                        UpdateMaterialEditors();
-                        passList.serializedObject.Update();
-                        // Notify the prefab that something have changed:
-                        PrefabUtility.RecordPrefabInstancePropertyModifications(target);
-                    });
-                }
-                menu.ShowAsContext();
+                var searchObject = ScriptableObject.CreateInstance<CustomPassListSearchWindow>();
+                searchObject.Initialize(AddCustomPass);
+                var windowPosition = GUIUtility.GUIToScreenPoint(Event.current.mousePosition);
+                SearchWindow.Open(new SearchWindowContext(windowPosition), searchObject);
             };
 
             m_CustomPassList.onReorderCallback = (index) => ClearCustomPassCache();
@@ -244,6 +239,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 ReorderableList.defaultBehaviours.DoRemoveButton(list);
                 ClearCustomPassCache();
             };
+
+            void AddCustomPass(Type customPassType)
+            {
+                foreach (CustomPassVolume volume in targets)
+                {
+                    Undo.RegisterCompleteObjectUndo(volume, "Add custom pass");
+
+                    passList.serializedObject.ApplyModifiedProperties();
+                    volume.AddPassOfType(customPassType);
+                    UpdateMaterialEditors();
+                    passList.serializedObject.Update();
+                    // Notify the prefab that something have changed:
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(volume);
+                }
+            }
         }
 
         void ClearCustomPassCache()

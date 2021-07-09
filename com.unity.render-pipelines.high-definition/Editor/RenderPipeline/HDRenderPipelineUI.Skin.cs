@@ -106,7 +106,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent SSGIRaySteps = EditorGUIUtility.TrTextContent("Ray Steps");
             public static readonly GUIContent SSGIRadius = EditorGUIUtility.TrTextContent("Radius");
             public static readonly GUIContent SSGIClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
-            public static readonly GUIContent SSGIFilterRadius = EditorGUIUtility.TrTextContent("Filter Radius");
+            public static readonly GUIContent SSGIDenoise = EditorGUIUtility.TrTextContent("Denoise");
+            public static readonly GUIContent SSGIHalfResDenoise = EditorGUIUtility.TrTextContent("Half Resolution Denoiser");
+            public static readonly GUIContent SSGIDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
+            public static readonly GUIContent SSGISecondDenoise = EditorGUIUtility.TrTextContent("Second Denoiser Pass");
 
             // Fog
             public static readonly GUIContent FogSettingsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Fog");
@@ -137,7 +140,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportSurfaceGradientContent = EditorGUIUtility.TrTextContent("Additive Normal Blending", "When enabled, HDRP uses surface gradients to preserve the affected objects normal when applying decal normals.");
             public static readonly GUIContent decalNormalFormatContent = EditorGUIUtility.TrTextContent("High Precision Normal Buffer", "When enabled, HDRP uses a high precision format for the buffer storing decal normals.");
             public static readonly GUIContent supportMotionVectorContent = EditorGUIUtility.TrTextContent("Motion Vectors", "When enabled, HDRP allocates memory for processing motion vectors which it uses for Motion Blur, TAA, and temporal re-projection of various effect like SSR.");
-            public static readonly GUIContent supportRuntimeDebugDisplayContent = EditorGUIUtility.TrTextContent("Runtime Debug Display", "When disabled, HDRP removes all debug display Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportRuntimeAOVAPIContent = EditorGUIUtility.TrTextContent("Runtime AOV API", "When disabled, HDRP removes all AOV API Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportDitheringCrossFadeContent = EditorGUIUtility.TrTextContent("Dithering Cross-fade", "When disabled, HDRP removes all dithering cross fade Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportTerrainHoleContent = EditorGUIUtility.TrTextContent("Terrain Hole", "When disabled, HDRP removes all Terrain hole Shader variants when you build for the Unity Player. This decreases build time.");
@@ -152,6 +154,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent rayTracingMSAAUnsupported = EditorGUIUtility.TrTextContent("When Ray tracing is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
+            public static readonly GUIContent supportRuntimeDebugDisplayContentLabel = EditorGUIUtility.TrTextContent("Runtime Debug Shaders", "When disabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but prevents the use of Rendering Debugger in Player builds.");
             public static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
             public static readonly GUIContent probeVolumeMemoryBudget = EditorGUIUtility.TrTextContent("Memory Budget", "Determines the width and height of the textures used to store GI data from probes. Note that the textures also have a fixed depth dimension.");
             public static readonly GUIContent probeVolumeSHBands = EditorGUIUtility.TrTextContent("SH Bands", "Determines up to what SH bands the Probe Volume will use. Choosing L2 will lead to better quality, but also higher memory and runtime cost.");
@@ -246,6 +249,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent forcedScreenPercentage = EditorGUIUtility.TrTextContent("Forced Screen Percentage", "Sets a specific screen percentage value. HDRP forces this screen percentage for dynamic resolution.");
             public static readonly GUIContent lowResTransparencyMinimumThreshold = EditorGUIUtility.TrTextContent("Low Res Transparency Min Threshold", "The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.");
             public const  string   lowResTransparencyThresholdDisabledMsg = "Low res transparency is currently disabled in the quality settings. \"Low Res Transparency Min Threshold\" will be ignored.";
+            public static readonly GUIContent rayTracingHalfResThreshold = EditorGUIUtility.TrTextContent("Ray Tracing Half Res Threshold", "The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution.");
 
             public static readonly GUIContent lowResTransparentEnabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, materials tagged as Low Res Transparent, will be rendered in a quarter res offscreen buffer and then composited to full res.");
             public static readonly GUIContent checkerboardDepthBuffer = EditorGUIUtility.TrTextContent("Checkerboarded depth buffer downsample", "When enabled, the depth buffer used for low res transparency is generated in a min/max checkerboard pattern from original full res buffer.");
@@ -283,7 +287,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 { supportDecalLayersContent          , string.Format("{0}, {1}", memoryDrawback, lotShaderVariantDrawback, lotDBufferDrawback) },
                 { metalAndAOContent                  , string.Format("{0}, {1}", memoryDrawback, dBufferDrawback) },
                 { supportMotionVectorContent         , memoryDrawback },
-                { supportRuntimeDebugDisplayContent  , shaderVariantDrawback },
                 { supportDitheringCrossFadeContent   , shaderVariantDrawback },
                 { supportTerrainHoleContent          , shaderVariantDrawback },
                 { supportDistortion                  , "" },

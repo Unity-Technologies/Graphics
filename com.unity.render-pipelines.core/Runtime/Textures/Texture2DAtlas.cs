@@ -12,15 +12,15 @@ namespace UnityEngine.Rendering
             public AtlasNode m_BottomChild = null;
             public Vector4 m_Rect = new Vector4(0, 0, 0, 0); // x,y is width and height (scale) z,w offset into atlas (offset)
 
-            public AtlasNode Allocate(int width, int height, bool powerOfTwoPadding)
+            public AtlasNode Allocate(ref ObjectPool<AtlasNode> pool, int width, int height, bool powerOfTwoPadding)
             {
                 // not a leaf node, try children
                 if (m_RightChild != null)
                 {
-                    AtlasNode node = m_RightChild.Allocate(width, height, powerOfTwoPadding);
+                    AtlasNode node = m_RightChild.Allocate(ref pool, width, height, powerOfTwoPadding);
                     if (node == null)
                     {
-                        node = m_BottomChild.Allocate(width, height, powerOfTwoPadding);
+                        node = m_BottomChild.Allocate(ref pool, width, height, powerOfTwoPadding);
                     }
                     return node;
                 }
@@ -38,8 +38,8 @@ namespace UnityEngine.Rendering
                 if ((width <= m_Rect.x - wPadd) && (height <= m_Rect.y - hPadd))
                 {
                     // perform the split
-                    m_RightChild = new AtlasNode();
-                    m_BottomChild = new AtlasNode();
+                    m_RightChild = pool.Get();
+                    m_BottomChild = pool.Get();
 
                     m_Rect.z += wPadd;
                     m_Rect.w += hPadd;
@@ -78,15 +78,19 @@ namespace UnityEngine.Rendering
                 return null;
             }
 
-            public void Release()
+            public void Release(ref ObjectPool<AtlasNode> pool)
             {
                 if (m_RightChild != null)
                 {
-                    m_RightChild.Release();
-                    m_BottomChild.Release();
+                    m_RightChild.Release(ref pool);
+                    m_BottomChild.Release(ref pool);
+                    pool.Release(m_RightChild);
+                    pool.Release(m_BottomChild);
                 }
+
                 m_RightChild = null;
                 m_BottomChild = null;
+                m_Rect = Vector4.zero;
             }
         }
 
@@ -94,6 +98,7 @@ namespace UnityEngine.Rendering
         private int m_Width;
         private int m_Height;
         private bool powerOfTwoPadding;
+        private ObjectPool<AtlasNode> m_NodePool;
 
         public AtlasAllocator(int width, int height, bool potPadding)
         {
@@ -102,11 +107,12 @@ namespace UnityEngine.Rendering
             m_Width = width;
             m_Height = height;
             powerOfTwoPadding = potPadding;
+            m_NodePool = new ObjectPool<AtlasNode>(_ => {}, _ => {});
         }
 
         public bool Allocate(ref Vector4 result, int width, int height)
         {
-            AtlasNode node = m_Root.Allocate(width, height, powerOfTwoPadding);
+            AtlasNode node = m_Root.Allocate(ref m_NodePool, width, height, powerOfTwoPadding);
             if (node != null)
             {
                 result = node.m_Rect;
@@ -121,7 +127,7 @@ namespace UnityEngine.Rendering
 
         public void Reset()
         {
-            m_Root.Release();
+            m_Root.Release(ref m_NodePool);
             m_Root.m_Rect.Set(m_Width, m_Height, 0, 0);
         }
     }
