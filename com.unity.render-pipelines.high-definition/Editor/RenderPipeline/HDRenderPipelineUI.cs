@@ -488,7 +488,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.renderPipelineSettings.lightLoopSettings.maxLightsPerClusterCell.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxLightsPerClusterCell.intValue, 1, HDRenderPipeline.k_MaxLightsPerClusterCell);
         }
 
+#if ENABLE_NVIDIA && !ENABLE_NVIDIA_MODULE
         static bool s_DisplayNvidiaModuleButtonInstall = true;
+#endif
+
         static void Drawer_SectionDynamicResolutionSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.enabled, Styles.enabled);
