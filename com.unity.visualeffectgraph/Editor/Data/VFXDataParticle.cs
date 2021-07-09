@@ -535,11 +535,12 @@ namespace UnityEditor.VFX
             var implicitContext = new List<VFXContext>();
             SortCriteria globalSortCriterion = SortCriteria.Distance; //TODO :Initialize differently ?
             bool needsGlobalSort = NeedsGlobalSort();
+            VFXSlot globalSortKeySlot = null;
             if (needsGlobalSort) //Issues a global sort, when it affects at least one output. If others don't match the criterion, or have a compute cull pass, they need a per output sort.
             {
                 // Then the camera sort
                 var globalSort = VFXContext.CreateImplicitContext<VFXGlobalSort>(this);
-                bool isCustomSortKey = GetGlobalSortCriterionAndSlotIfCustom(out globalSortCriterion, out var globalSortKeySlot);
+                bool isCustomSortKey = GetGlobalSortCriterionAndSlotIfCustom(out globalSortCriterion, out globalSortKeySlot);
                 globalSort.sortCriterion = globalSortCriterion;
                 if (isCustomSortKey)
                     globalSort.customSortingSlot = globalSortKeySlot;
@@ -555,8 +556,10 @@ namespace UnityEditor.VFX
                 if (abstractParticleOutput == null)
                     continue;
 
+                SortKeySlotComparer comparer = new SortKeySlotComparer();
                 abstractParticleOutput.needsOwnSort = abstractParticleOutput.HasSorting() && needsGlobalSort &&
-                                                      abstractParticleOutput.GetSortCriterion() != globalSortCriterion;
+                                                      (abstractParticleOutput.GetSortCriterion() != globalSortCriterion
+                                                       ||comparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"),globalSortKeySlot));
                 if (abstractParticleOutput.NeedsOutputUpdate())
                 {
                     var update = VFXContext.CreateImplicitContext<VFXOutputUpdate>(this);
