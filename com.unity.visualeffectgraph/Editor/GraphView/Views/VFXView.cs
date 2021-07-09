@@ -1075,6 +1075,9 @@ namespace UnityEditor.VFX.UI
                 m_NoAssetLabel.RemoveFromHierarchy();
                 m_Toolbar.SetEnabled(true);
 
+                m_AttachDropDownButton.SetEnabled(this.controller.graph.visualEffectResource.subgraph == null);
+                m_LockToggle.SetEnabled(this.controller.graph.visualEffectResource.subgraph == null);
+
                 if (IsAssetEditable())
                 {
                     m_LockedElement.style.display = DisplayStyle.None;
