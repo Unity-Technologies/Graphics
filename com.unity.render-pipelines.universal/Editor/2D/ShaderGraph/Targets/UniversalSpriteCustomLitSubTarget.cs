@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             bool useLegacyBlocks = !descs.Contains(BlockFields.SurfaceDescription.BaseColor) && !descs.Contains(BlockFields.SurfaceDescription.Alpha);
             context.AddField(CoreFields.UseLegacySpriteBlocks, useLegacyBlocks);
 
-            // Surface Type 
+            // Surface Type
             context.AddField(UniversalFields.SurfaceTransparent);
             context.AddField(Fields.DoubleSided);
 
