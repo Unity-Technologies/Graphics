@@ -277,6 +277,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - HD Global Settings can now be unassigned in the Graphics tab if HDRP is not the active pipeline(case 1343570).
 - Fix diffusion profile displayed in the inspector.
 - Fixed override camera rendering custom pass API aspect ratio issue when rendering to a render texture.
+- Fixed the incorrect value written to the VT feedback buffer when VT is not used.
 - Fixed an issue that made camera motion vectors unavailable in custom passes.
 
 ### Changed
@@ -372,6 +373,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hair uses GGX LTC for area light specular.
 - Moved invariants outside of loop for a minor CPU speedup in the light loop code.
 - Various improvements to the volumetric clouds.
+- Restore old version of the RendererList structs/api for compatibility.
 
 ## [11.0.0] - 2020-10-21
 
