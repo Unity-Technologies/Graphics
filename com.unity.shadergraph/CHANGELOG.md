@@ -112,6 +112,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ShaderGraph BuiltIn target not to apply emission in the ForwardAdd pass to match surface shader results [1345574]. (https://issuetracker.unity3d.com/product/unity/issues/guid/1345574/)
 - Fixed Procedural Virtual Texture compatibility with SRP Batcher [1329336] (https://issuetracker.unity3d.com/issues/procedural-virtual-texture-node-will-make-a-shadergraph-incompatible-with-srp-batcher)
 - Fixed an issue where SubGraph keywords would not deduplicate before counting towards the permutation limit [1343528] (https://issuetracker.unity3d.com/issues/shader-graph-graph-is-generating-too-many-variants-error-is-thrown-when-using-subgraphs-with-keywords)
+- Fixed an issue where an informational message could cause some UI controls on the graph inspector to be pushed outside the window [1343124] (https://issuetracker.unity3d.com/product/unity/issues/guid/1343124/)
+- Fixed a ShaderGraph issue where selecting a keyword property in the blackboard would invalidate all previews, causing them to recompile [1347666] (https://issuetracker.unity3d.com/product/unity/issues/guid/1347666/)
+- Fixed the incorrect value written to the VT feedback buffer when VT is not used.
+- Fixed ShaderGraph isNaN node, which was always returning false on Vulkan and Metal platforms.
 
 ## [11.0.0] - 2020-10-21
 
