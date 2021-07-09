@@ -20,6 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty forcePercentage;
         public SerializedProperty forcedPercentage;
         public SerializedProperty lowResTransparencyMinimumThreshold;
+        public SerializedProperty rayTracingHalfResThreshold;
 
         public SerializedDynamicResolutionSettings(SerializedProperty root)
         {
@@ -38,6 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
             forcePercentage                     = root.Find((GlobalDynamicResolutionSettings s) => s.forceResolution);
             forcedPercentage                    = root.Find((GlobalDynamicResolutionSettings s) => s.forcedPercentage);
             lowResTransparencyMinimumThreshold  = root.Find((GlobalDynamicResolutionSettings s) => s.lowResTransparencyMinimumThreshold);
+            rayTracingHalfResThreshold          = root.Find((GlobalDynamicResolutionSettings s) => s.rayTracingHalfResThreshold);
         }
     }
 }
