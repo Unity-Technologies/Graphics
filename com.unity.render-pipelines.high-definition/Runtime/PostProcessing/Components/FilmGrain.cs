@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the strength of the film grain effect.
         /// </summary>
-        [Tooltip("Controls the strength of the film grain effect.")]
+        [Tooltip("Use the slider to set the strength of the Film Grain effect.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
 
         /// <summary>

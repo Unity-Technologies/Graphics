@@ -235,7 +235,7 @@ namespace UnityEngine.Experimental.Rendering
             RunPlacement();
         }
 
-        static void CellCountInDirections(out Vector3Int cellsInXYZ, float cellSizeInMeters)
+        static void BrickCountInDirections(out Vector3Int cellsInXYZ, float brickSizeInMeter)
         {
             cellsInXYZ = Vector3Int.zero;
 
@@ -243,9 +243,9 @@ namespace UnityEngine.Experimental.Rendering
             var centeredMin = globalBounds.min - center;
             var centeredMax = globalBounds.max - center;
 
-            cellsInXYZ.x = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.x / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.x / cellSizeInMeters))) * 2;
-            cellsInXYZ.y = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.y / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.y / cellSizeInMeters))) * 2;
-            cellsInXYZ.z = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / cellSizeInMeters))) * 2;
+            cellsInXYZ.x = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.x / brickSizeInMeter)), Mathf.CeilToInt(Mathf.Abs(centeredMax.x / brickSizeInMeter))) * 2;
+            cellsInXYZ.y = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.y / brickSizeInMeter)), Mathf.CeilToInt(Mathf.Abs(centeredMax.y / brickSizeInMeter))) * 2;
+            cellsInXYZ.z = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / brickSizeInMeter)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / brickSizeInMeter))) * 2;
         }
 
         // NOTE: This is somewhat hacky and is going to likely be slow (or at least slower than it could).
@@ -518,13 +518,7 @@ namespace UnityEngine.Experimental.Rendering
                         asset.cells.Add(cell);
                         if (hasFoundBounds)
                         {
-                            Vector3Int cellsInDir;
-                            float cellSizeInMeters = Mathf.CeilToInt(refVol.profile.cellSizeInMeters);
-                            CellCountInDirections(out cellsInDir, cellSizeInMeters);
-
-                            asset.maxCellIndex.x = cellsInDir.x * (int)refVol.profile.cellSizeInBricks;
-                            asset.maxCellIndex.y = cellsInDir.y * (int)refVol.profile.cellSizeInBricks;
-                            asset.maxCellIndex.z = cellsInDir.z * (int)refVol.profile.cellSizeInBricks;
+                            BrickCountInDirections(out asset.maxCellIndex, refVol.profile.minBrickSize);
                         }
                         else
                         {
