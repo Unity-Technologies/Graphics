@@ -23,6 +23,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private Vector3 m_CachedDirectionalForward;
         private Vector3 m_CachedDirectionalAngles;
 
+        internal const int k_MinSlotSize = 64;
+
         // Helper array used to check what has been tmp filled.
         private (int, int)[] m_TempFilled = new(int, int)[6];
 
