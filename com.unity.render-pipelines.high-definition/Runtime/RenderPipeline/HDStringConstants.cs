@@ -720,6 +720,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RayBinSizeResult                = Shader.PropertyToID("_RayBinSizeResult");
         public static readonly int _RayBinTileCountX                = Shader.PropertyToID("_RayBinTileCountX");
         public static readonly int _BufferSizeX                     = Shader.PropertyToID("_BufferSizeX");
+        public static readonly int _RayBinViewOffset                = Shader.PropertyToID("_RayBinViewOffset");
+        public static readonly int _RayBinTileViewOffset            = Shader.PropertyToID("_RayBinTileViewOffset");
 
         // Sub Surface
         public static readonly int _ThroughputTextureRW             = Shader.PropertyToID("_ThroughputTextureRW");
