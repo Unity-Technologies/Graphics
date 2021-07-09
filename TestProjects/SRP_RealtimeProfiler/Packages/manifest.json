@@ -8,7 +8,7 @@
     "com.unity.render-pipelines.high-definition": "file:../../../com.unity.render-pipelines.high-definition",
     "com.unity.render-pipelines.high-definition-config": "file:../../../com.unity.render-pipelines.high-definition-config",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
-    "com.unity.test-framework": "1.1.24",
+    "com.unity.test-framework": "1.1.27",
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.timeline": "1.6.0-pre.5",
     "com.unity.ugui": "1.0.0",
