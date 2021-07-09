@@ -186,5 +186,22 @@ namespace UnityEditor.Graphing.Util
             }
             return false;
         }
+
+        public IEnumerable<string> ErrorStrings()
+        {
+            foreach (var messages in m_Messages.Values)
+            {
+                foreach (List<ShaderMessage> messageList in messages.Values)
+                {
+                    foreach (var message in messageList)
+                    {
+                        if (message.severity == ShaderCompilerMessageSeverity.Error)
+                        {
+                            yield return message.message;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

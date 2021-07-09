@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(123, Extension, -902)]
+    [ScriptedImporter(124, Extension, -902)]
 #else
-    [ScriptedImporter(52, Extension, -902)]
+    [ScriptedImporter(53, Extension, -902)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -68,6 +68,7 @@ Shader ""Hidden/GraphErrorShader2""
             }
             fixed4 frag (v2f i) : SV_Target
             {
+                $errors$
                 return fixed4(1,0,1,1);
             }
             ENDCG
@@ -354,7 +355,10 @@ Shader ""Hidden/GraphErrorShader2""
             if (firstShaderUtilErrorIndex != -1)
                 MessageManager.Log(path, messages[firstShaderUtilErrorIndex], shader);
             else if (anyNodeHasError)
+            {
+                // Not necessary anymore, as the Shader importer will report the errors
                 Debug.LogError($"Shader Graph at {path} has at least one error.");
+            }
             else if (messages.Length != 0)
                 MessageManager.Log(path, messages[0], shader);
             else if (graph.messageManager.nodeMessagesChanged)
@@ -392,7 +396,20 @@ Shader ""Hidden/GraphErrorShader2""
                 // ignored
             }
 
-            return shaderString ?? k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
+            if (shaderString == null)
+            {
+                shaderString = k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
+
+                // inject all of the message manager errors into the error shader
+                StringBuilder errors = new StringBuilder();
+                foreach (var error in graph.messageManager.ErrorStrings())
+                {
+                    errors.AppendLine("#error " + error);
+                }
+                shaderString = shaderString.Replace("$errors$", errors.ToString());
+            }
+
+            return shaderString;
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, out GraphData graph)
