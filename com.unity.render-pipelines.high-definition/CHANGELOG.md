@@ -277,6 +277,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed rounding issue when accessing the color buffer in the DoF shader.
 - HD Global Settings can now be unassigned in the Graphics tab if HDRP is not the active pipeline(case 1343570).
 - Fix diffusion profile displayed in the inspector.
+- HDRP Wizard can still be opened from Windows > Rendering, if the project is not using a Render Pipeline.
 - Fixed override camera rendering custom pass API aspect ratio issue when rendering to a render texture.
 - Fixed the incorrect value written to the VT feedback buffer when VT is not used.
 - Fixed support for ray binning for ray tracing in XR (case 1346374).
@@ -285,7 +286,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that made camera motion vectors unavailable in custom passes.
 - Fixed the possibility to hide custom pass from the create menu with the HideInInspector attribute.
 - Fixed support of multi-editing on custom pass volumes.
+- Fixed possible QNANS during first frame of SSGI, caused by uninitialized first frame data.
 - Fixed various SSGI issues (case 1340851, case 1339297, case 1327919).
+- Prevent user from spamming and corrupting installation of nvidia package.
+- Fixed an issue with surface gradient based normal blending for decals (volume gradients weren't converted to SG before resolving in some cases).
+- Fixed distortion when resizing the graphics compositor window in builds (case 1328968).
 - Fixed custom pass workflow for single camera effects.
 
 ### Changed
@@ -383,6 +388,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Various improvements to the volumetric clouds.
 - Restore old version of the RendererList structs/api for compatibility.
 - Various improvements to SSGI (case 1340851, case 1339297, case 1327919).
+- Changed the NVIDIA install button to the standard FixMeButton.
 
 ## [11.0.0] - 2020-10-21
 
