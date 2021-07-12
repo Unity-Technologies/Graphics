@@ -548,6 +548,9 @@ namespace UnityEngine.Rendering.Universal
                         requiresDepthCopyPass = false;
                     }
                 }
+
+                if (useRenderPassEnabled)
+                    useRenderPassEnabled = DebugHandler.IsRenderPassSupported;
             }
 
             // Assign camera targets (color and depth)
