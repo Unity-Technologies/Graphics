@@ -30,7 +30,7 @@ For more information about this feature, see the page [Deferred Rendering Path](
 
 ### URP decal system
 
-![Decal Projector in the Scene.](../Images/decal/decal-projector-selected-with-inspector.png)<br/>*Decal Projector in the Scene.*.
+![Decal Projector in the Scene.](../Images/decal/decal-projector-selected-with-inspector.png)<br/>*Decal Projector in the Scene.*
 
 The new decal system enables you to project decal materials into the surfaces of a Scene. Decals projected into a scene will wrap around meshes and interact with the Scene’s lighting. Decals are useful for adding extra textural detail to a Scene, especially in order to break up materials’ repetitiveness and detail patterns.
 
@@ -53,6 +53,10 @@ The **URP Light Cookies** feature enables a technique for masking or filtering o
 ### Converter framework: Built-in Render Pipeline to URP
 
 A new converter framework for migrating from the Built-in Render Pipeline to URP makes the migration process more robust and supports converting elements other than Materials.
+
+To open the Render Pipeline Converter window, select **Window** > **Rendering** > **Render Pipeline Converter**
+
+![Render Pipeline Converter](../Images/whats-new/urp-12/render-pipeline-converter-ui.png)
 
 ### Motion Vectors
 
