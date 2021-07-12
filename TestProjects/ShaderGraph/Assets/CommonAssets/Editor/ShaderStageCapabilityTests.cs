@@ -55,11 +55,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
             GraphData graphData = new GraphData() { assetGuid = graphGuid, messageManager = messageManager };
             MultiJson.Deserialize(graphData, fileContents);
             graphData.OnEnable();
-            graphData.ValidateGraph();            
+            graphData.ValidateGraph();
 
             var subGraphnodeName = "ShaderStageCapability_SubGraph";
             var subGraphNode = FindFirstNodeOfType<SubGraphNode>(graphData, subGraphnodeName);
-            if(subGraphNode == null)
+            if (subGraphNode == null)
             {
                 Assert.Fail("Failed to find sub graph node for {0}", subGraphnodeName);
                 return;
@@ -125,7 +125,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 Assert.IsNotNull(slotA, "Expected slotA to not be null");
                 Assert.IsNotNull(slotB, "Expected slotB to not be null");
                 var edge = graphData.Connect(slotA.slotReference, slotB.slotReference);
-                
+
                 bool foundNode = false;
                 foreach (var message in graphData.messageManager.GetNodeMessages())
                 {
@@ -134,7 +134,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
                         foundNode = true;
                         break;
                     }
-                    
                 }
                 Assert.IsTrue(foundNode, $"Expected node {nodeWithError.name} didn't have an error");
 
@@ -142,7 +141,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 graphData.messageManager.ClearAll();
                 graphData.RemoveEdge(edge);
             }
-            
+
             var subGraphNode = FindFirstNodeOfType<SubGraphNode>(graphData, "SubShaderInvalidCapabilities_SubGraph");
             var vertexIdNode = FindFirstNodeOfType<VertexIDNode>(graphData);
             var sampleTextureNode = FindFirstNodeOfType<SampleTexture2DNode>(graphData);
