@@ -137,6 +137,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool isPreviewCamera => cameraType == CameraType.Preview;
 
+        internal bool isRenderPassSupportedCamera => (cameraType == CameraType.Game || cameraType == CameraType.Reflection);
+
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
         /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
@@ -411,6 +413,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _ALPHAPREMULTIPLY_ON = "_ALPHAPREMULTIPLY_ON";
         public static readonly string _ALPHAMODULATE_ON = "_ALPHAMODULATE_ON";
         public static readonly string _NORMALMAP = "_NORMALMAP";
+
+        public static readonly string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";

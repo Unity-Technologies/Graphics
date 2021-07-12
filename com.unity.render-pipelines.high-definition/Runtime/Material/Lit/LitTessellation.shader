@@ -163,7 +163,7 @@ Shader "HDRP/LitTessellation"
         [Enum(Subsurface Scattering, 0, Standard, 1, Anisotropy, 2, Iridescence, 3, Specular Color, 4, Translucent, 5)] _MaterialID("MaterialId", Int) = 1 // MaterialId.Standard
         [ToggleUI] _TransmissionEnable("_TransmissionEnable", Float) = 1.0
 
-        [Enum(None, 0, Tessellation displacement, 3)] _DisplacementMode("DisplacementMode", Int) = 3
+        _DisplacementMode("DisplacementMode", Int) = 3
         [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleUI] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
         [ToggleUI] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
@@ -244,13 +244,13 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
     #pragma shader_feature_local_domain _TESSELLATION_PHONG
     #pragma shader_feature_local_fragment _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature_local_domain _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature_local_fragment _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
     #pragma shader_feature_local_raytracing _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
 
     #pragma shader_feature_local_fragment _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
-    #pragma shader_feature_local_fragment _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
+    #pragma shader_feature_local _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE
-    #pragma shader_feature_local_raytracing _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature_local_raytracing _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
     #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE
 
@@ -565,6 +565,7 @@ Shader "HDRP/LitTessellation"
             #undef TESSELLATION_ON
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
+            #pragma shader_feature EDITOR_VISUALIZATION
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"

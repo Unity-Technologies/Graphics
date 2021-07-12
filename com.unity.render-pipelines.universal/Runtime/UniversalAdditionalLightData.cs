@@ -3,6 +3,7 @@ using System;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>Light Layers.</summary>
+    [Flags]
     public enum LightLayerEnum
     {
         /// <summary>The light will no affect any object.</summary>
@@ -52,6 +53,7 @@ namespace UnityEngine.Rendering.Universal
 
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Light))]
+    [URPHelpURL("universal-additional-light-data")]
     public class UniversalAdditionalLightData : MonoBehaviour
     {
         // Version 0 means serialized data before the version field.

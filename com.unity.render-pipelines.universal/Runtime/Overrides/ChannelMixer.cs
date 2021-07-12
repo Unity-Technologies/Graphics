@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenu("Post-processing/Channel Mixer")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Channel Mixer", typeof(UniversalRenderPipeline))]
     public sealed class ChannelMixer : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Modify influence of the red channel in the overall mix.")]
