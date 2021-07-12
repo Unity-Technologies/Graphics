@@ -5,6 +5,8 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class SerializedLocalVolumetricFog
     {
+        public SerializedProperty localVolumetricFogType;
+
         public SerializedProperty densityParams;
         public SerializedProperty albedo;
         public SerializedProperty meanFreePath;
@@ -28,11 +30,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty falloffMode;
 
+        public SerializedProperty computeShader;
+
         SerializedObject m_SerializedObject;
 
         public SerializedLocalVolumetricFog(SerializedObject serializedObject)
         {
             m_SerializedObject = serializedObject;
+
+            localVolumetricFogType = m_SerializedObject.FindProperty("localVolumetricFogType");
 
             densityParams = m_SerializedObject.FindProperty("parameters");
 
@@ -59,6 +65,8 @@ namespace UnityEditor.Rendering.HighDefinition
             distanceFadeEnd   = densityParams.FindPropertyRelative("distanceFadeEnd");
 
             falloffMode = densityParams.FindPropertyRelative(nameof(LocalVolumetricFogArtistParameters.falloffMode));
+
+            computeShader = m_SerializedObject.FindProperty("localVolumetricFogCompute");
         }
 
         public void Apply()
