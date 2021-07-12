@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     cmd.SetComputeBufferParam(data.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, data.output.tileFeatureFlags);
 
-                    for (int i = 0; i < data.gBuffer.Length; ++i)
+                    for (int i = 0; i < data.gBufferCount; ++i)
                         cmd.SetComputeTextureParam(data.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._GBufferTexture[i], data.gBuffer[i]);
 
                     RTHandle stencilTexture = data.stencilTexture;
