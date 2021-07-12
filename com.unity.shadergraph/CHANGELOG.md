@@ -114,6 +114,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where an informational message could cause some UI controls on the graph inspector to be pushed outside the window [1343124] (https://issuetracker.unity3d.com/product/unity/issues/guid/1343124/)
 - Fixed a ShaderGraph issue where selecting a keyword property in the blackboard would invalidate all previews, causing them to recompile [1347666] (https://issuetracker.unity3d.com/product/unity/issues/guid/1347666/)
 - Fixed the incorrect value written to the VT feedback buffer when VT is not used.
+- Fixed a ShaderGraph issue where Float properties in Integer mode would not be cast properly in graph previews [1330302](https://fogbugz.unity3d.com/f/cases/1330302/)
 
 ## [11.0.0] - 2020-10-21
 
