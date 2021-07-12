@@ -5,6 +5,9 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
+    /// <summary>
+    /// Vector2 properties can represent a Min-Max range. This custom PropertyRM allows to display it as a MinMaxSlider
+    /// </summary>
     class Vector2PropertyRM : SimpleUIPropertyRM<Vector2, Vector2>
     {
         VFXVector2Field m_VectorField;
@@ -38,9 +41,6 @@ namespace UnityEditor.VFX.UI
             {
                 Vector2 range = m_Provider.attributes.FindRange();
                 result = CreateSliderField(out m_Slider);
-                m_Slider.onValueDragFinished = ValueDragFinished;
-                m_Slider.onValueDragStarted = ValueDragStarted;
-                m_Slider.RegisterCallback<BlurEvent>(OnFocusLost);
                 m_Slider.range = range;
             }
             else
@@ -111,6 +111,9 @@ namespace UnityEditor.VFX.UI
         {
             var field = new VFXLabeledField<VFXMinMaxSliderField, Vector2>(m_Label);
             slider = field.control;
+            slider.onValueDragFinished = ValueDragFinished;
+            slider.onValueDragStarted = ValueDragStarted;
+            slider.RegisterCallback<BlurEvent>(OnFocusLost);
             return field;
         }
 
