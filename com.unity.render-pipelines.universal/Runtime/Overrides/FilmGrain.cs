@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
         Custom
     }
 
-    [Serializable, VolumeComponentMenu("Post-processing/Film Grain (URP)")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/FilmGrain", typeof(UniversalRenderPipeline))]
     public sealed class FilmGrain : VolumeComponent, IPostProcessComponent
     {
         FilmGrain()
