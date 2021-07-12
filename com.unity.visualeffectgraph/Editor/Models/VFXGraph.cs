@@ -32,7 +32,7 @@ namespace UnityEditor.VFX
                 {
                     VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
                     if (resource == null)
-                        return;
+                        continue;
                     VFXGraph graph = resource.GetOrCreateGraph(); //resource.graph should be already != null at this stage but GetOrCreateGraph is also assigning the visualEffectResource. It's required for UpdateSubAssets
                     if (graph != null)
                     {
