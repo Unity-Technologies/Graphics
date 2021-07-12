@@ -1,4 +1,4 @@
-Shader "Debug/PlanarReflectionProbePreview"
+Shader "Hidden/Debug/PlanarReflectionProbePreview"
 {
     Properties
     {

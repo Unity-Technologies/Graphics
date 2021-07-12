@@ -1,4 +1,4 @@
-Shader "CoreResources/FilterAreaLightCookies"
+Shader "Hidden/CoreResources/FilterAreaLightCookies"
 {
     HLSLINCLUDE
         #pragma target 4.5

@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent perObjectLimit = EditorGUIUtility.TrTextContent("Per Object Limit", "Maximum amount of additional lights. These lights are sorted and culled per-object.");
             public static GUIContent supportsAdditionalShadowsText = EditorGUIUtility.TrTextContent("Cast Shadows", "If enabled shadows will be supported for spot lights.\n");
             public static GUIContent additionalLightsShadowmapResolution = EditorGUIUtility.TrTextContent("Shadow Atlas Resolution", "All additional lights are packed into a single shadowmap atlas. This setting controls the atlas size.");
-            public static GUIContent additionalLightsShadowResolutionTiers = EditorGUIUtility.TrTextContent("Shadow Resolution Tiers", "Additional Lights Shadow Resolution Tiers. Rounded to the next power of two, and clamped to be at least 128.");
+            public static GUIContent additionalLightsShadowResolutionTiers = EditorGUIUtility.TrTextContent("Shadow Resolution Tiers", $"Additional Lights Shadow Resolution Tiers. Rounded to the next power of two, and clamped to be at least {UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution}.");
             public static GUIContent[] additionalLightsShadowResolutionTierNames =
             {
                 new GUIContent("Low"),
@@ -381,7 +381,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     var fieldSlot = new Rect(contentRect.x + pixelShift, contentRect.y, num - labelWidth, contentRect.height); // Define the rectangle for the field
                     int value = EditorGUI.DelayedIntField(fieldSlot, values[index].intValue);
-                    values[index].intValue = Mathf.Max(128, Mathf.NextPowerOfTwo(value));
+                    values[index].intValue = Mathf.Max(UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution, Mathf.NextPowerOfTwo(value));
                 }
                 pixelShift += spaceLeft;  // Shift by the slot that was left for the field
             }

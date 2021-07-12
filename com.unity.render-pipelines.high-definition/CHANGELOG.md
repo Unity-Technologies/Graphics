@@ -29,6 +29,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an additional check in the "check scene for ray tracing" (case 1314963).
 - API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
 - Exposed update upon light movement for directional light shadows in UI.
+- Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
+- Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
+- Added an info box for micro shadow editor (case 1322830).
+- Added support for alpha channel in FXAA (case 1323941).
+- Added support for lighting full screen debug mode in automated tests.
+- Added support of motion vector buffer in custom postprocess
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -97,6 +103,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sub-shadow rendering for cached shadow maps.
 - Fixed PCSS filtering issues with cached shadow maps.
 - Fix screen being over-exposed when changing very different skies.
+- Fixed pixelated appearance of Contrast Adaptive Sharpen upscaler and several other issues when Hardware DRS is on
 - Fixed incorrect debug wireframe overlay on tessellated geometry (using littessellation), caused by the picking pass using an incorrect camera matrix.
 - Fixed nullref in layered lit shader editor.
 - Fix issue with Depth of Field CoC debug view.
@@ -128,6 +135,63 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP material being constantly dirty.
 - Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
 - Fixed SRP batcher not compatible with Decal (case 1311586)
+- Fixed wrong color buffer being bound to pre refraction custom passes.
+- Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
+- Fixed HDRPAsset loosing its reference to the ray tracing resources when clicking on a different quality level that doesn't have ray tracing (case 1320304).
+- Fixed SRP batcher not compatible with Decal (case 1311586).
+- Fixed error message when having MSAA and Screen Space Shadows (case 1318698).
+- Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
+- Fixed Tube and Disc lights mode selection (case 1317776)
+- Fixed missing Update in Wizard's DXR Documentation
+- Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
+- Fixed Exposure Frame Settings control issues on Planar reflection probes (case 1312153). Dynamic reflections now keep their own exposure relative to their parent camera.
+- Fixed warning fixed on ShadowLoop include (HDRISky and Unlit+ShadowMatte)
+- Fixed SSR Precision for 4K Screens
+- Fixed issue with gbuffer debug view when virtual texturing is enabled.
+- Fixed volumetric fog noise due to sun light leaking (case 1319005)
+- Fixed an issue with Decal normal blending producing NaNs.
+- Fixed issue in wizard when resource folder don't exist
+- Fixed issue with Decal projector edge on Metal (case 1286074)
+- Fixed Render Graph Debug UI not refreshing correctly in the Render Pipeline Debugger.
+- Fixed SSS materials in planar reflections (case 1319027).
+- Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
+- Fixed issue were the final image is inverted in the Y axis. Occurred only on final Player (non-dev for any platform) that use Dynamic Resolution Scaling with Contrast Adaptive Sharpening filter.
+- Fixed a bug with Reflection Probe baking would result in an incorrect baking reusing other's Reflection Probe baking
+- Fixed volumetric fog being visually chopped or missing when using hardware Dynamic Resolution Scaling.
+- Fixed generation of the packed depth pyramid when hardware Dynamic Resolution Scaling is enabled.
+- Fixed issue with an assert getting triggered with OnDemand shadows.
+- Fixed Decal's UV edit mode with negative UV
+- Fixed issue with the color space of AOVs (case 1324759)
+- Fixed issue with history buffers when using multiple AOVs (case 1323684).
+- Fixed camera preview with multi selection (case 1324126).
+- Fix potential NaN on apply distortion pass.
+- Fixed the camera controller in the template with the old input system (case 1326816).
+- Fixed broken Lanczos filter artifacts on ps4, caused by a very aggressive epsilon (case 1328904)
+- Fixed GBuffer clear option in FrameSettings not working
+- Fixed usage of Panini Projection with floating point HDRP and Post Processing color buffers.
+- Fixed a NaN generating in Area light code.
+- Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
+- Fixed issue with constant buffer being stomped on when async tasks run concurrently to shadows.
+- Fixed undo of some properties on light editor.
+- Fixed null reference exception in Raytracing SSS volume component.
+- Fixed artifact appearing when diffuse and specular normal differ too much for eye shader with area lights
+- Fixed LightCluster debug view for ray tracing.
+- Fixed issue with RAS build fail when LOD was missing a renderer
+- Fixed an issue where sometime a docked lookdev could be rendered at zero size and break.
+- Fixed an issue where runtime debug window UI would leak game objects.
+- Fixed NaNs when denoising pixels where the dot product between normal and view direction is near zero (case 1329624).
+- Fixed ray traced reflections that were too dark for unlit materials. Reflections are now more consistent with the material emissiveness.
+- Fixed pyramid color being incorrect when hardware dynamic resolution is enabled.
+- Fixed SSR Accumulation with Offset with Viewport Rect Offset on Camera
+- Fixed fog precision in some camera positions (case 1329603).
+- Fixed contact shadows tile coordinates calculations.
+- Fixed blocky looking bloom when dynamic resolution scaling was used.
+- Fixed material Emission properties not begin animated when recording an animation (case 1328108).
+- Fixed issue with history buffer allocation for AOVs when the request does not come in first frame.
+- Fix for wrong cached area light initialization.
+- Fixed an issue where enabling GPU Instancing on a ShaderGraph Material would cause compile failures [1338695].
+- Fixed issue with velocity rejection when using physically-based DoF.
+- Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -157,6 +221,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
 - Cached the base types of Volume Manager to improve memory and cpu usage.
+- Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
+- Updated Wizard to better handle RenderPipelineAsset in Quality Settings
+- Changed the behavior of the clear coat and SSR/RTR for the stack lit to mimic the Lit's behavior (case 1320154).
+- The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
+- Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
+- Assets going through the migration system are now dirtied.
+- Changed ray tracing acceleration structure build, so that only meshes with HDRP materials are included (case 1322365).
+- Increased path tracing max samples from 4K to 16K (case 1327729).
+- Film grain does not affect the alpha channel.
+- Disable TAA sharpening on alpha channel.
+- Default black texture XR is now opaque (alpha = 1).
+- Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
 
 ## [10.3.0] - 2020-12-01
 

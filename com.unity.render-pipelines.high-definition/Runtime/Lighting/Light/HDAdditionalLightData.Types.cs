@@ -324,6 +324,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 legacyLight.lightmapBakeType = LightmapBakeType.Baked;
 #endif
             }
+            else if (areaLightShape == AreaLightShape.Tube)
+            {
+#if UNITY_EDITOR
+                legacyLight.lightmapBakeType = LightmapBakeType.Realtime;
+#endif
+            }
             else
             {
                 legacyLight.type = LightType.Point;

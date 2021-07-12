@@ -1,8 +1,10 @@
 # Screen Space Global Illumination
 
-The **Screen Space Illumination** (SSGI) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate diffuse light bounces.
+The **Screen Space Global Illumination** (SSGI) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate diffuse light bounces.
 
-HDRP implements [ray-traced global illumination](Ray-Traced-Global-Illumination.md) on top of this override. This means that the properties visible in the Inspector change depending on whether or not you enable ray tracing.
+HDRP implements [ray-traced global illumination](Ray-Traced-Global-Illumination.md) (RTGI) on top of this override. This means that the properties visible in the Inspector change depending on whether or not you enable ray tracing.
+
+SSGI and RTGI completely replace all [lightmap](https://docs.unity3d.com/Manual/Lightmapping.html) and [Light Probe](https://docs.unity3d.com/Manual/LightProbes.html) data. If you enable this override and the Volume affects the Camera, Light Probes, and the ambient probe, stop contributing to lighting for GameObjects.
 
 ![](Images/HDRPFeatures-SSGI.png)
 

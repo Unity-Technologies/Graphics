@@ -28,6 +28,13 @@ For more information about the future, see the [Shadow](Shadows-in-HDRP.md) sect
 
 ## Improvements
 
+### Dynamic Resolution Scale
+This version of HDRP introduces multiple improvements to Dynamic Resolution Scaling:
+- The exposure and pixel to pixel quality now match between the software and hardware modes.
+- The rendering artifact that caused black edges to appear on screen when in hardware mode no longer occurs.
+- The rendering artifacts that appeared when using the Lanczos filter in software mode no longer occur.
+- Hardware mode now utilizes the Contrast Adaptive Sharpening filter to prevent the results from looking too pixelated. This uses FidelityFX (CAS) AMD™. For information about FidelityFX and Contrast Adaptive Sharpening, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).
+
 ### Support for exposure for planar reflection probe.
 
 From HDRP 11.0, [Planar Reflection Probes](Planar-Reflection-Probe.md) now consider exposure mode when they calculate reflections for emissive Materials. Previously, Planar Reflection Probes did not correctly reflect emissive Materials that had expose weight attenuations of 0.0 due to using the wrong exposure value.

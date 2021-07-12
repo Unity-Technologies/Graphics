@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [11.0.0] - 2020-10-21
 
 ### Added
+- Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
+- Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
 
 ### Changed
+- Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
 
 ### Fixed
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
@@ -32,6 +35,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the Custom Editor GUI field in the Graph settings that was ignored.
 - Fixed an issue where SampleRawCubemapNode were requiring the Normal in Object space instead of World space [1307962]
 - Fixed a bug in master node preview generation that failed compilation when a block was deleted [1319066] (https://issuetracker.unity3d.com/issues/shadergraph-deleting-stack-blocks-of-universal-rp-targeted-shadergraph-causes-the-main-preview-to-fail-to-compile)
+- Fixed a bug where property deduplication was failing and spamming errors [1317809] (https://issuetracker.unity3d.com/issues/console-error-when-adding-a-sample-texture-operator-when-a-sampler-state-property-is-present-in-blackboard)
+- Fixed a bug where synchronously compiling an unencountered shader variant for preview was causing long delays in graph updates [1324429]
+- Fixed a issue when clicking a property in subgraph blackboard will throw null exception errors.[1328377](https://issuetracker.unity3d.com/product/unity/issues/guid/1328377/)
+- Fixed an issue where an integer property would be exposed in the material inspector as a float [1332563]
+- Fixed an issue where upgrading from an older version of ShaderGraph would cause Enum keywords to be not exposed [1332510]
+- Fixed a bug in ShaderGraph where sticky notes couldn't be copied and pasted [1221042].
+- Fixed SubGraph SamplerState property defaults not being respected [1336119]
+- Fixed an issue where nested subgraphs with identical SamplerState property settings could cause compile failures [1336089]
+- Fixed an issue where SamplerState properties could not be renamed after creation [1336126]
+- Fixed a ShaderGraph issue where unused blocks get removed on edge replacement [1336832].
+- Fixed GPU instancing support in Shadergraph [1319655] (https://issuetracker.unity3d.com/issues/shader-graph-errors-are-thrown-when-a-propertys-shader-declaration-is-set-to-hybrid-per-instance-and-exposed-is-disabled).
+- Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
+- Fixed Procedural Virtual Texture compatibility with SRP Batcher [1329336] (https://issuetracker.unity3d.com/issues/procedural-virtual-texture-node-will-make-a-shadergraph-incompatible-with-srp-batcher)
+- Fixed an issue where SubGraph keywords would not deduplicate before counting towards the permutation limit [1343528] (https://issuetracker.unity3d.com/issues/shader-graph-graph-is-generating-too-many-variants-error-is-thrown-when-using-subgraphs-with-keywords)
 
 ## [10.3.0] - 2020-11-03
 

@@ -41,7 +41,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _DebugSingleShadowIndex;
 
         public int _DebugProbeVolumeMode;
-        public Vector3 _DebugDisplayPad0;
+        public int _DebugAOVOutput;
+        public int _DebugDisplayPad0;
+        public int _DebugDisplayPad1;
     }
 
     /// <summary>
@@ -296,6 +298,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static GUIContent[] renderingFullScreenDebugStrings => s_RenderingFullScreenDebugStrings;
         /// <summary>List of Full Screen Rendering Debug mode values.</summary>
         public static int[] renderingFullScreenDebugValues => s_RenderingFullScreenDebugValues;
+
+        /// <summary>List of Full Screen Lighting Debug mode names.</summary>
+        public static GUIContent[] lightingFullScreenDebugStrings => s_LightingFullScreenDebugStrings;
+        /// <summary>List of Full Screen Lighting Debug mode values.</summary>
+        public static int[] lightingFullScreenDebugValues => s_LightingFullScreenDebugValues;
 
         internal DebugDisplaySettings()
         {
@@ -1035,6 +1042,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RefreshRenderingDebug<T>(DebugUI.Field<T> field, T value)
         {
+            // Explicitly invoke the render debug unregister to handle render graph items.
             UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
             RegisterRenderingDebug();
         }

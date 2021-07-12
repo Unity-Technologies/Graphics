@@ -343,6 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public GameObject exposureTarget = null;
 
         internal float probeCustomFixedExposure = 1.0f;
+        internal float deExposureMultiplier = 1.0f;
 
         [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
         FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera();
