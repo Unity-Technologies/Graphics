@@ -64,6 +64,7 @@ namespace UnityEditor.Rendering.LookDev
             get
             {
                 var context = UnityEngine.ScriptableObject.CreateInstance<Context>();
+                context.hideFlags = HideFlags.HideAndDontSave;
                 context.Init();
                 return context;
             }
