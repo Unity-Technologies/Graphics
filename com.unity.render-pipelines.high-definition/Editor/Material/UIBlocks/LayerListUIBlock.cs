@@ -65,16 +65,17 @@ namespace UnityEditor.Rendering.HighDefinition
             Material material = materials[0];
 
             float indentOffset = EditorGUI.indentLevel * 15f;
-            float UVWidth = 30;
-            float resetButtonWidth = 43;
-            float padding = 4f;
-            float endOffset = 2f;
+            const float UVWidth = 30;
+            const float resetButtonWidth = 43;
+            const float padding = 4f;
+            const float endOffset = 2f;
             float labelWidth = EditorGUIUtility.labelWidth;
             float height = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            const float headerHeight = 15;
 
             EditorGUIUtility.labelWidth = labelWidth;
 
-            Rect headerLineRect = GUILayoutUtility.GetRect(1, 15);
+            Rect headerLineRect = GUILayoutUtility.GetRect(1, headerHeight);
             Rect headerLabelRect = new Rect(headerLineRect.x, headerLineRect.y, EditorGUIUtility.labelWidth - indentOffset + 15, height);
             Rect headerUVRect = new Rect(headerLineRect.x + headerLineRect.width - 37 - resetButtonWidth - endOffset, headerLineRect.y, UVWidth + 5, height);
             Rect headerMaterialDropRect = new Rect(headerLineRect.x + headerLabelRect.width - 15 + 2, headerLineRect.y, headerLineRect.width - headerLabelRect.width - headerUVRect.width, height);

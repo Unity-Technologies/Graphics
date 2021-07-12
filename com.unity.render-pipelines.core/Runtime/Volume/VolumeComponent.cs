@@ -95,6 +95,18 @@ namespace UnityEngine.Rendering
     public class VolumeComponent : ScriptableObject
     {
         /// <summary>
+        /// Local attribute for VolumeComponent fields only.
+        /// It handles relative indentation of a property for inspector.
+        /// </summary>
+        public sealed class Indent : PropertyAttribute
+        {
+            public readonly int relativeAmount;
+
+            public Indent(int relativeAmount = 1)
+                => this.relativeAmount = relativeAmount;
+        }
+
+        /// <summary>
         /// The active state of the set of parameters defined in this class. You can use this to
         /// quickly turn on or off all the overrides at once.
         /// </summary>

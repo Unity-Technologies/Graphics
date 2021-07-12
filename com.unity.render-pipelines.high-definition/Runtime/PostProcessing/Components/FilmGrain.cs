@@ -72,11 +72,6 @@ namespace UnityEngine.Rendering.HighDefinition
     [HDRPHelpURLAttribute("Post-Processing-Film-Grain")]
     public sealed class FilmGrain : VolumeComponent, IPostProcessComponent
     {
-        FilmGrain()
-        {
-            displayName = "Film Grain (HDRP)";
-        }
-
         /// <summary>
         /// Specifies the type of grain to use. Use <see cref="FilmGrainLookup.Custom"/> to provide your own <see cref="texture"/>.
         /// </summary>
