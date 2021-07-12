@@ -19,22 +19,15 @@ namespace UnityEngine.Rendering.Universal
         public RenderTargetHandle(RTHandle rtHandle)
         {
             if (rtHandle.nameID == BuiltinRenderTextureType.CameraTarget)
-            {
                 id = -1;
-            }
+            else if (rtHandle.name.Length == 0)
+                id = -2;
             else
-            {
-                Debug.Assert(rtHandle.name.Length > 0);
                 id = Shader.PropertyToID(rtHandle.name);
-            }
             if (rtHandle.rt == null)
-            {
                 rtid = rtHandle.nameID;
-            }
             else
-            {
                 rtid = new RenderTargetIdentifier(id, 0, CubemapFace.Unknown, -1);
-            }
         }
 
         internal static RenderTargetHandle GetCameraTarget(XRPass xr)
