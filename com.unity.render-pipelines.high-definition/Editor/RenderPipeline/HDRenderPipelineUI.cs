@@ -594,6 +594,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.showMixedValue = false;
                 }
 
+
                 if (serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage.hasMultipleDifferentValues)
                 {
                     using (new EditorGUI.DisabledGroupScope(true))
@@ -609,6 +610,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.floatValue = Mathf.Clamp(lowResTransparencyMinimumThreshold, 0.0f, 50.0f);
                     if (serialized.renderPipelineSettings.dynamicResolutionSettings.lowResTransparencyMinimumThreshold.floatValue > 0.0f && !serialized.renderPipelineSettings.lowresTransparentSettings.enabled.boolValue)
                         EditorGUILayout.HelpBox(Styles.lowResTransparencyThresholdDisabledMsg, MessageType.Info);
+                }
+
+                {
+                    float rayTracingHalfResThreshold = serialized.renderPipelineSettings.dynamicResolutionSettings.rayTracingHalfResThreshold.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    rayTracingHalfResThreshold = EditorGUILayout.DelayedFloatField(Styles.rayTracingHalfResThreshold, rayTracingHalfResThreshold);
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.rayTracingHalfResThreshold.floatValue = Mathf.Clamp(rayTracingHalfResThreshold, 0.0f, 100.0f);
                 }
             }
             --EditorGUI.indentLevel;
@@ -769,7 +778,10 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawSSGIQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIRaySteps.GetArrayElementAtIndex(tier), Styles.SSGIRaySteps);
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIFilterRadius.GetArrayElementAtIndex(tier), Styles.SSGIFilterRadius);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIDenoise.GetArrayElementAtIndex(tier), Styles.SSGIDenoise);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIHalfResDenoise.GetArrayElementAtIndex(tier), Styles.SSGIHalfResDenoise);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIDenoiserRadius.GetArrayElementAtIndex(tier), Styles.SSGIDenoiserRadius);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGISecondDenoise.GetArrayElementAtIndex(tier), Styles.SSGISecondDenoise);
         }
 
         static void Drawer_SectionRenderingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
