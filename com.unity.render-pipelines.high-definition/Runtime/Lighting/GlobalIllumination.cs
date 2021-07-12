@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the global illumination (screen space and ray traced).
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Screen Space Global Illumination")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Screen Space Global Illumination", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Ray-Traced-Global-Illumination")]
     public sealed class GlobalIllumination : VolumeComponentWithQuality
     {
@@ -30,6 +30,11 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region RayMarching
+        /// <summary>
+        /// Controls the fallback hierarchy for SSGI.
+        /// </summary>
+        public RayMarchingFallbackHierarchyParameter fallbackHierarchy = new RayMarchingFallbackHierarchyParameter(RayMarchingFallbackHierarchy.ReflectionProbesAndSky);
+
         /// <summary>
         /// The thickness of the depth buffer value used for the ray marching step
         /// </summary>
@@ -59,23 +64,78 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the number of steps used for ray marching.")]
         private MinIntParameter m_MaxRaySteps = new MinIntParameter(32, 0);
 
+        // Filtering
         /// <summary>
-        /// Defines the radius for the spatial filter
+        /// Defines if the screen space global illumination should be denoised.
         /// </summary>
-        public int filterRadius
+        public bool denoiseSS
         {
             get
             {
                 if (!UsesQualitySettings())
-                    return m_FilterRadius.value;
+                    return m_DenoiseSS.value;
                 else
-                    return GetLightingQualitySettings().SSGIFilterRadius[(int)quality.value];
+                    return GetLightingQualitySettings().SSGIDenoise[(int)quality.value];
             }
-            set { m_FilterRadius.value = value; }
+            set { m_DenoiseSS.value = value; }
         }
-        [Tooltip("Filter Radius")]
+        [SerializeField, FormerlySerializedAs("denoise")]
+        private BoolParameter m_DenoiseSS = new BoolParameter(true);
+
+        /// <summary>
+        /// Defines if the denoiser should be evaluated at half resolution.
+        /// </summary>
+        public bool halfResolutionDenoiserSS
+        {
+            get
+            {
+                if (!UsesQualitySettings() || UsesQualityMode())
+                    return m_HalfResolutionDenoiserSS.value;
+                else
+                    return GetLightingQualitySettings().SSGIHalfResDenoise[(int)quality.value];
+            }
+            set { m_HalfResolutionDenoiserSS.value = value; }
+        }
         [SerializeField]
-        private ClampedIntParameter m_FilterRadius = new ClampedIntParameter(2, 2, 16);
+        [Tooltip("Use a half resolution denoiser.")]
+        private BoolParameter m_HalfResolutionDenoiserSS = new BoolParameter(false);
+
+        /// <summary>
+        /// Controls the radius of the global illumination denoiser (First Pass).
+        /// </summary>
+        public float denoiserRadiusSS
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_DenoiserRadiusSS.value;
+                else
+                    return GetLightingQualitySettings().SSGIDenoiserRadius[(int)quality.value];
+            }
+            set { m_DenoiserRadiusSS.value = value; }
+        }
+        [SerializeField]
+        [Tooltip("Controls the radius of the GI denoiser (First Pass).")]
+        private ClampedFloatParameter m_DenoiserRadiusSS = new ClampedFloatParameter(0.6f, 0.001f, 1.0f);
+
+        /// <summary>
+        /// Defines if the second denoising pass should be enabled.
+        /// </summary>
+        public bool secondDenoiserPassSS
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_SecondDenoiserPassSS.value;
+                else
+                    return GetLightingQualitySettings().SSGISecondDenoise[(int)quality.value];
+            }
+            set { m_SecondDenoiserPassSS.value = value; }
+        }
+        [SerializeField]
+        [Tooltip("Enable second denoising pass.")]
+        private BoolParameter m_SecondDenoiserPassSS = new BoolParameter(true);
+
         #endregion
 
         #region RayTracing
