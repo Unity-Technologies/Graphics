@@ -128,6 +128,7 @@ namespace UnityEditor.VFX.UI
             using (new GUILayout.VerticalScope(GUILayout.Height(120)))
             {
                 var isAttached = this.m_vfxView.attachedComponent != null;
+                GUI.enabled = isAttached || Selection.activeGameObject.GetComponent<VisualEffect>() != null;
                 if (GUILayout.Button(isAttached ? VFXView.Contents.detach : VFXView.Contents.attachToSelection, GUILayout.Height(24)))
                 {
                     if (isAttached)
@@ -140,6 +141,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
+                GUI.enabled = true;
                 GUILayout.FlexibleSpace();
 
                 EditorGUILayout.PrefixLabel(VFXView.Contents.pickATarget, new GUIStyle { margin = new RectOffset(4, 0, 0, 0) });
