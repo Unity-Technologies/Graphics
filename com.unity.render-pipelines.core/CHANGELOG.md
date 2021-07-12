@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed alignment in Volume Components
 - Virtual Texturing fallback texture sampling code correctly honors the enableGlobalMipBias when virtual texturing is disabled.
 - Fixed LightAnchor too much error message, became a HelpBox on the Inspector.
+- Fixed library function SurfaceGradientFromTriplanarProjection to match the mapping convention used in SampleUVMappingNormalInternal.hlsl and fix its description.
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
