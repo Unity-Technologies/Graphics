@@ -16,6 +16,7 @@ namespace UnityEngine.Experimental.Rendering
 
         [DebuggerDisplay("Brick [{position}, {subdivisionLevel}]")]
         [Serializable]
+
         public struct Brick : IEquatable<Brick>
         {
             public Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
@@ -128,7 +129,8 @@ namespace UnityEngine.Experimental.Rendering
             Profiler.EndSample();
         }
 
-        public void AddBricks(RegId id, List<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight)
+        // Returns the start of the index for this set of bricks.
+        public Vector3Int AddBricks(RegId id, List<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight)
         {
             Debug.Assert(bricks.Count <= ushort.MaxValue, "Cannot add more than 65K bricks per RegId.");
             int largest_cell = ProbeReferenceVolume.CellSize(kMaxSubdivisionLevels);
@@ -188,10 +190,14 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
+            Vector3Int indexStart = Vector3Int.one * int.MaxValue;
             foreach (var voxel in bm.voxels)
             {
-                UpdateIndexForVoxel(voxel);
+                var indexStartForVoxel = UpdateIndexForVoxel(voxel);
+                indexStart = Vector3Int.Min(indexStart, indexStartForVoxel);
             }
+
+            return indexStart;
         }
 
         public void RemoveBricks(RegId id)
@@ -246,17 +252,22 @@ namespace UnityEngine.Experimental.Rendering
                     }
         }
 
-        void UpdateIndexForVoxel(Vector3Int voxel)
+        // Returns the min position for the voxel.
+        Vector3Int UpdateIndexForVoxel(Vector3Int voxel)
         {
             ClearVoxel(voxel);
             List<VoxelMeta> vm_list = m_VoxelToBricks[voxel];
+            Vector3Int indexStart = Vector3Int.one * int.MaxValue;
             foreach (var vm in vm_list)
             {
                 // get the list of bricks and indices
                 List<ReservedBrick> bricks = m_BricksToVoxels[vm.id].bricks;
                 List<ushort>        indcs = vm.brickIndices;
-                UpdateIndexForVoxel(voxel, bricks, indcs);
+                var minIndexForVoxel = UpdateIndexForVoxel(voxel, bricks, indcs);
+                indexStart = Vector3Int.Min(minIndexForVoxel, indexStart);
             }
+
+            return indexStart;
         }
 
         void ClearVoxel(Vector3Int pos)
@@ -271,7 +282,8 @@ namespace UnityEngine.Experimental.Rendering
             UpdateIndexData(posIS, bSize, -1);
         }
 
-        void UpdateIndexForVoxel(Vector3Int voxel, List<ReservedBrick> bricks, List<ushort> indices)
+        // Returns the min position for the  voxel.
+        Vector3Int UpdateIndexForVoxel(Vector3Int voxel, List<ReservedBrick> bricks, List<ushort> indices)
         {
             // clip voxel to index space
             Vector3Int vx_min, vx_max;
@@ -295,6 +307,8 @@ namespace UnityEngine.Experimental.Rendering
 
                 UpdateIndexData(posIS, bSize, rbrick.flattenedIdx);
             }
+
+            return m_CenterIS + vx_min;
         }
 
         void UpdateIndexData(in Vector3Int pos, in Vector3Int size, int value)

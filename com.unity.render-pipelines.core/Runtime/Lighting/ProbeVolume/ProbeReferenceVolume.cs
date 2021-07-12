@@ -233,6 +233,10 @@ namespace UnityEngine.Experimental.Rendering
             /// </summary>
             public ComputeBuffer index;
             /// <summary>
+            /// Indices of the various index buffers for each cell.
+            /// </summary>
+            public ComputeBuffer cellIndices;
+            /// <summary>
             /// Texture containing Spherical Harmonics L0 band data and first coefficient of L1_R.
             /// </summary>
             public Texture3D L0_L1rx;
@@ -292,6 +296,7 @@ namespace UnityEngine.Experimental.Rendering
         int                             m_MaxSubdivision;
         ProbeBrickPool                  m_Pool;
         ProbeBrickIndex                 m_Index;
+        ProbeCellIndices                m_CellIndices;
         List<Chunk>                     m_TmpSrcChunks = new List<Chunk>();
         float[]                         m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
         Dictionary<RegId, List<Chunk>>  m_Registry = new Dictionary<RegId, List<Chunk>>();
@@ -321,6 +326,9 @@ namespace UnityEngine.Experimental.Rendering
         // Similarly the index dimensions come from the authoring component; if a change happens
         // a pending request for re-init (and what it implies) is added from the editor.
         Vector3Int m_PendingIndexDimChange;
+        Vector3Int m_PendingMinCellPosition;
+        Vector3Int m_PendingMaxCellPosition;
+
         bool m_NeedsIndexDimChange = false;
         bool m_HasChangedIndexDim = false;
 
@@ -378,7 +386,7 @@ namespace UnityEngine.Experimental.Rendering
 
             m_MemoryBudget = parameters.memoryBudget;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
-            InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
+            InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange, m_PendingMinCellPosition, m_PendingMaxCellPosition);
             m_IsInitialized = true;
             sceneBounds = parameters.sceneBounds;
 #if UNITY_EDITOR
@@ -434,12 +442,25 @@ namespace UnityEngine.Experimental.Rendering
 
             // Compute the max index dimension from all the loaded assets + assets we need to load
             Vector3Int indexDimension = Vector3Int.zero;
+            Vector3Int minCellPosition = Vector3Int.zero;
+            Vector3Int maxCellPosition = Vector3Int.zero;
+
             foreach (var a in m_PendingAssetsToBeLoaded.Values)
+            {
                 indexDimension = Vector3Int.Max(indexDimension, a.maxBrickIndex);
+                minCellPosition = Vector3Int.Min(minCellPosition, a.minCellPosition);
+                maxCellPosition = Vector3Int.Max(maxCellPosition, a.maxCellPosition);
+            }
             foreach (var a in m_ActiveAssets.Values)
+            {
                 indexDimension = Vector3Int.Max(indexDimension, a.maxBrickIndex);
+                minCellPosition = Vector3Int.Min(minCellPosition, a.minCellPosition);
+                maxCellPosition = Vector3Int.Max(maxCellPosition, a.maxCellPosition);
+            }
 
             m_PendingIndexDimChange = indexDimension;
+            m_PendingMinCellPosition = minCellPosition;
+            m_PendingMaxCellPosition = maxCellPosition;
             m_NeedsIndexDimChange = m_Index == null || (m_Index != null && indexDimension != m_Index.GetIndexDimension());
         }
 
@@ -492,7 +513,7 @@ namespace UnityEngine.Experimental.Rendering
             if (m_NeedsIndexDimChange)
             {
                 CleanupLoadedData();
-                InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
+                InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange, m_PendingMinCellPosition, m_PendingMaxCellPosition);
                 m_HasChangedIndexDim = true;
                 m_NeedsIndexDimChange = false;
             }
@@ -589,8 +610,11 @@ namespace UnityEngine.Experimental.Rendering
                 List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
                 brickList.AddRange(cell.bricks);
                 List<Chunk> chunkList = new List<Chunk>();
-                var regId = AddBricks(brickList, dataLocation, out chunkList);
+                var indexStart = Vector3Int.zero;
+                var regId = AddBricks(brickList, dataLocation, out chunkList, out indexStart);
 
+                // Min subdiv here hard-coded to 0 as a temp measure.
+                m_CellIndices.AddCell(cell.position, indexStart, minSubdiv: 0);
                 AddCell(cell, chunkList);
                 m_AssetPathToBricks[path].Add(regId);
 
@@ -617,7 +641,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name ="allocationSize"> Size used for the chunk allocator that handles bricks.</param>
         /// <param name ="memoryBudget">Probe reference volume memory budget.</param>
         /// <param name ="indexDimensions">Dimensions of the index data structure.</param>
-        void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, Vector3Int indexDimensions)
+        void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, Vector3Int indexDimensions, Vector3Int minCellPosition, Vector3Int maxCellPosition)
         {
             if (!m_ProbeReferenceVolumeInit)
             {
@@ -639,6 +663,7 @@ namespace UnityEngine.Experimental.Rendering
                     indexDimensions = new Vector3Int(1, 1, 1);
                 }
                 m_Index = new ProbeBrickIndex(indexDimensions);
+                m_CellIndices = new ProbeCellIndices(minCellPosition, maxCellPosition, (int)Mathf.Pow(3, m_MaxSubdivision - 1));
 
                 // initialize offsets
                 m_PositionOffsets[0] = 0.0f;
@@ -693,6 +718,7 @@ namespace UnityEngine.Experimental.Rendering
 
             RuntimeResources rr = new RuntimeResources();
             m_Index.GetRuntimeResources(ref rr);
+            m_CellIndices.GetRuntimeResources(ref rr);
             m_Pool.GetRuntimeResources(ref rr);
             return rr;
         }
@@ -742,7 +768,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Runtime API starts here
-        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc, out List<Chunk> ch_list)
+        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc, out List<Chunk> ch_list, out Vector3Int bricksIndexStart)
         {
             Profiler.BeginSample("AddBricks");
 
@@ -788,7 +814,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Registry.Add(id, ch_list);
 
             // Build index
-            m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
+            bricksIndexStart = m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
 
             Profiler.EndSample();
 
@@ -835,7 +861,13 @@ namespace UnityEngine.Experimental.Rendering
             shaderVars._PoolDim = m_Pool.GetPoolDimensions();
             shaderVars._ViewBias = viewBias;
             shaderVars._PVSamplingNoise = parameters.samplingNoise;
+            shaderVars._CellInMinBricks = (int)Mathf.Pow(3, m_MaxSubdivision - 1);
+            shaderVars._CellIndicesDim = m_CellIndices.GetCellIndexDimension();
+            shaderVars._MinCellPosition = m_CellIndices.GetCellMinPosition();
+            shaderVars._MinBrickSize = MinBrickSize();
+
             shaderVars.pad0 = Vector2.zero;
+            shaderVars._CellInMeters = MaxBrickSize();
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }
@@ -850,6 +882,7 @@ namespace UnityEngine.Experimental.Rendering
             if (m_ProbeReferenceVolumeInit)
             {
                 m_Index.Cleanup();
+                m_CellIndices.Cleanup();
                 m_Pool.Cleanup();
             }
 

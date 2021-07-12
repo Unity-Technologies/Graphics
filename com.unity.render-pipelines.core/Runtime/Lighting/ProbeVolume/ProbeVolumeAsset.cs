@@ -23,8 +23,9 @@ namespace UnityEngine.Experimental.Rendering
 
         [SerializeField] internal List<ProbeReferenceVolume.Cell> cells = new List<ProbeReferenceVolume.Cell>();
 
-        [SerializeField] internal Vector3Int maxCellIndex;
-        [SerializeField] internal Vector3Int maxBrickIndex; // TODO TEMP
+        [SerializeField] internal Vector3Int maxCellPosition;
+        [SerializeField] internal Vector3Int minCellPosition;
+        [SerializeField] internal Vector3Int maxBrickIndex;
 
         [SerializeField] internal ProbeVolumeSHBands bands;
 

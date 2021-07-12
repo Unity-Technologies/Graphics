@@ -22,6 +22,13 @@ namespace UnityEngine.Rendering
         public float _ViewBias;
 
         public float _PVSamplingNoise;
-        public Vector3 pad0;
+        public Vector3 _MinCellPosition;
+
+        public Vector3 _CellIndicesDim;
+        public float _CellInMeters;
+
+        public float _CellInMinBricks;
+        public float _MinBrickSize;
+        public Vector2 pad0;
     }
 }

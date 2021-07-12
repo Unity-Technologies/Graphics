@@ -28,6 +28,7 @@ struct APVResources
 
 // Resources required for APV
 StructuredBuffer<int> _APVResIndex;
+StructuredBuffer<uint2> _APVResCellIndices;
 
 TEXTURE3D(_APVResL0_L1Rx);
 
@@ -38,6 +39,48 @@ TEXTURE3D(_APVResL2_0);
 TEXTURE3D(_APVResL2_1);
 TEXTURE3D(_APVResL2_2);
 TEXTURE3D(_APVResL2_3);
+
+
+// -------------------------------------------------------------
+// Indexing functions
+// -------------------------------------------------------------
+// TODO: As it is now, this is a very roundabout way of doing a no-op, it is here to test the flow.
+// Also fairly naive now, can be improved.
+
+void LoadCellIndexMetaData(int cellFlatIdx, out int3 physicalIdxStart, out int stepSize)
+{
+    uint2 metaData = _APVResCellIndices[cellFlatIdx];
+
+    stepSize = pow(3, metaData.y);
+
+    uint indexPacked = metaData.x;
+    physicalIdxStart.x = indexPacked & 0x3ff;
+    physicalIdxStart.y = (indexPacked >> 10) & 0x3ff;
+    physicalIdxStart.z = (indexPacked >> 20) & 0x3ff;
+}
+
+int3 GetIndexLocation(float3 posWS, out int tmpFlatIdx)
+{
+    int3 cellPos = floor(posWS / _CellInMeters);
+    float3 topLeftCellWS = cellPos * _CellInMeters;
+
+    // Make sure we start from 0
+    cellPos -= (int3)_MinCellPosition;
+
+    int flatIdx = cellPos.z * (_CellIndicesDim.x * _CellIndicesDim.y) + cellPos.y * _CellIndicesDim.x + cellPos.x;
+
+    int3 physicalIdxStart = 0;
+    int stepSize = 0;
+    LoadCellIndexMetaData(flatIdx, physicalIdxStart, stepSize);
+
+    float3 residualPosWS = posWS - topLeftCellWS;
+    int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
+
+    tmpFlatIdx = flatIdx;
+
+    return physicalIdxStart + localBrickIndex;
+}
+
 
 // We split the evaluation in several steps to make variants with different bands easier.
 float3 EvaluateAPVL0(APVResources apvRes, float3 uvw, out float L1Rx)
@@ -106,6 +149,11 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
 
     // convert to index
     int3 index = centerIS + floor(posRS);
+
+    int tmpFltIdx;
+    index = index.x == 9999999 ? index : GetIndexLocation(posWS + normalWS * _NormalBias
+        + viewDirWS * _ViewBias, tmpFltIdx);
+
     index = index % indexDim;
 
     // resolve the index
@@ -172,6 +220,16 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
         backBakeDiffuseLighting = EvaluateAmbientProbe(backNormalWS);
     }
+
+    //  TEST
+
+    //int tmpFltIdx;
+    //GetIndexLocation(posWS + normalWS * _NormalBias
+    //    + viewDir * _ViewBias, tmpFltIdx);
+    //uint hashedIdx = JenkinsHash(tmpFltIdx + 1);
+
+    //bakeDiffuseLighting = 100* float3(rcp(255.0f) * float3((hashedIdx >> 8) & 255, (hashedIdx >> 16) & 255, (hashedIdx >> 24) & 255));
+
 }
 
 float3 EvaluateAdaptiveProbeVolumeL0(in float3 posWS, in float3 normalWS, in float3 viewDir, in APVResources apvRes)
