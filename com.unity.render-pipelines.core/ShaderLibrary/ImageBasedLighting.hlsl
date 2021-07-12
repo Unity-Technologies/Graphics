@@ -24,11 +24,11 @@
 // approximating the cone of the specular lobe, and then computing the MIP map level
 // which (approximately) covers the footprint of the lobe with a single texel.
 // Improves the perceptual roughness distribution.
-real PerceptualRoughnessToMipmapLevel(real perceptualRoughness, uint mipMapCount)
+real PerceptualRoughnessToMipmapLevel(real perceptualRoughness, uint maxMipLevel)
 {
     perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
 
-    return perceptualRoughness * mipMapCount;
+    return perceptualRoughness * maxMipLevel;
 }
 
 real PerceptualRoughnessToMipmapLevel(real perceptualRoughness)
@@ -585,8 +585,7 @@ real4 IntegrateLDCharlie(TEXTURECUBE_PARAM(tex, sampl),
         totalWeight += w;
     }
 
-    real adhocFactor = PI / 2.0f; // todo: this factor is to make close match with the reference model, needs to be investigated why
-    return real4(adhocFactor * totalLight / totalWeight, 1.0);
+    return real4(totalLight / totalWeight, 1.0);
 }
 
 // Searches the row 'j' containing 'n' elements of 'haystack' and
