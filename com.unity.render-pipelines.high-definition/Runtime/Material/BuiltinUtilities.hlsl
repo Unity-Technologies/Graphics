@@ -42,7 +42,7 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
 void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, float3 backNormalWS, float4 texCoord1, float4 texCoord2,
                         out BuiltinData builtinData)
 {
-    ZERO_INITIALIZE(BuiltinData, builtinData);
+    ZERO_BUILTIN_INITIALIZE(builtinData);
 
     builtinData.opacity = alpha;
 
