@@ -987,7 +987,7 @@ namespace UnityEditor.VFX.Test
 
         //Regression test for case 1345426
         [UnityTest]
-        public IEnumerator ToSubGraphOperator()
+        public IEnumerator ConvertToSubGraphOperator()
         {
             var window = VFXViewWindow.GetWindow<VFXViewWindow>();
             window.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetName), null);
