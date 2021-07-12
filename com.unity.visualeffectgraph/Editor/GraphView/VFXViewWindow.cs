@@ -276,6 +276,8 @@ namespace  UnityEditor.VFX.UI
                         if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
                         {
                             VFXGraph.explicitCompile = true;
+                            graph.PrepareSubgraphs(); //It only corrects one corner case : Subgraph has just been created in vfxgraph, resyncslot hasn't been done yet.
+
                             graph.errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
                             using (var reporter = new VFXCompileErrorReporter(controller.graph.errorManager))
                             {
