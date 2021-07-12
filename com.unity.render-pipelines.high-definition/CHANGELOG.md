@@ -286,6 +286,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the possibility to hide custom pass from the create menu with the HideInInspector attribute.
 - Fixed support of multi-editing on custom pass volumes.
 - Fixed possible QNANS during first frame of SSGI, caused by uninitialized first frame data.
+- Fixed various SSGI issues (case 1340851, case 1339297, case 1327919).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -381,6 +382,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved invariants outside of loop for a minor CPU speedup in the light loop code.
 - Various improvements to the volumetric clouds.
 - Restore old version of the RendererList structs/api for compatibility.
+- Various improvements to SSGI (case 1340851, case 1339297, case 1327919).
 
 ## [11.0.0] - 2020-10-21
 
