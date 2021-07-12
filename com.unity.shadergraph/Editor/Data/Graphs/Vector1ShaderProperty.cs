@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 if (floatType == FloatType.Integer)
                 {
-                    return (int) base.value;
+                    return (int)base.value;
                 }
 
                 return base.value;
