@@ -271,6 +271,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom pass volume not executed in scene view because of the volume culling mask.
 - Fixed remapping of depth pyramid debug view
 - Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
+- Fixed missing global wind parameters in the visual environment.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -363,7 +364,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - TAA jitter is disabled while using Frame Debugger now.
 - Depth of field at half or quarter resolution is now computed consistently with the full resolution option (case 1335687).
 - Hair uses GGX LTC for area light specular.
-- Added global wind parameters in the visual environment.
 
 ## [11.0.0] - 2020-10-21
 
