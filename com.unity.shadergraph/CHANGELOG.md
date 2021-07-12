@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
 
 ### Fixed
+- Fixed an issue where horizontal scrollbars in graph sub windows could not have their lower scroll button used due to being overlapped by the resize handles [1320993]
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
 - Fixed a broken link in the TOC to Main Preview
 - Fixed an issue with the Gradient color picker displaying different values than the selected color.
