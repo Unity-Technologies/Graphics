@@ -104,7 +104,7 @@ namespace UnityEditor.ShaderGraph
                     if (warningCount > 0)
                     {
                         var firstWarning = warnings.FirstOrDefault();
-                        importLog.LogError($"Sub Graph at {subGraphPath} has {warningCount} warning(s), the first is: {firstWarning}", graphAsset);
+                        importLog.LogWarning($"Sub Graph at {subGraphPath} has {warningCount} warning(s), the first is: {firstWarning}", graphAsset);
                     }
                 }
                 messageManager.ClearAll();
