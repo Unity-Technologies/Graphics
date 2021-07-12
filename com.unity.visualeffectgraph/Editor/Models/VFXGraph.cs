@@ -936,9 +936,15 @@ namespace UnityEditor.VFX
 
             if (!cleanDependencies)
             {
+                //The CheckGraphBeforeImport of VFXSubgraphOperator isn't sufficient
+                //We could have cached incorrect m_SubChildren which aren't to be recomputed by CheckGraphBeforeImport
+                //Furthermore, CheckGraphBeforeImport is ignored when explicitCompile == true
+                //All in all, it shouldn't be needed here, it's a workaround.
+                PrepareSubgraphs();
+
                 foreach (var child in children)
                     child.CheckGraphBeforeImport();
-                PrepareSubgraphs(); /// ??
+
                 cleanDependencies = true;
             }
 
