@@ -100,8 +100,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         public sealed class Indent : PropertyAttribute
         {
+            /// <summary> Relative indent amount registered in this atribute </summary>
             public readonly int relativeAmount;
 
+            /// <summary> Constructor </summary>
+            /// <param name="relativeAmount">Relative indent change to use</param>
             public Indent(int relativeAmount = 1)
                 => this.relativeAmount = relativeAmount;
         }
