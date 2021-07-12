@@ -563,7 +563,7 @@ namespace UnityEditor.VFX.UI
 
             EditorGUIUtility.SetIconSize(new Vector2(16, 16));
 
-            Element[] children = GetChildren(tree, parent).ToArray();
+            var children = GetChildren(tree, parent).ToArray();
 
             Rect selectedRect = new Rect();
 

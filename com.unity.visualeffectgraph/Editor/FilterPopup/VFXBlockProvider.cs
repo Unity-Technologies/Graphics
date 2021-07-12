@@ -47,9 +47,8 @@ namespace UnityEditor.VFX.UI
 
             var depth = 1;
             string prevCategory = "";
-            string[] prevSplit = new string[0];
-
-            List<T> noCategory = new List<T>();
+            var prevSplit = new string[0];
+            var noCategory = new List<T>();
 
             foreach (var desc in descriptors)
             {
