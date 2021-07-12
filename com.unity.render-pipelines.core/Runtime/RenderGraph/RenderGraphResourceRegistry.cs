@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RendererUtils;
 
+// Typedefs for the in-engine RendererList API (to avoid conflicts with the experimental version)
+using CoreRendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
+
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
     class RenderGraphResourceRegistry
@@ -92,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RTHandle                            m_CurrentBackbuffer;
 
         const int                           kInitialRendererListCount = 256;
-        List<RendererList>                  m_ActiveRendererLists = new List<RendererList>(kInitialRendererListCount);
+        List<CoreRendererList>              m_ActiveRendererLists = new List<CoreRendererList>(kInitialRendererListCount);
 
         #region Internal Interface
         internal RTHandle GetTexture(in TextureHandle handle)
@@ -115,10 +119,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return GetTextureResource(handle.handle).NeedsFallBack();
         }
 
-        internal RendererList GetRendererList(in RendererListHandle handle)
+        internal CoreRendererList GetRendererList(in RendererListHandle handle)
         {
             if (!handle.IsValid() || handle >= m_RendererListResources.size)
-                return RendererList.nullRendererList;
+                return CoreRendererList.nullRendererList;
 
             return m_RendererListResources[handle].rendererList;
         }
@@ -341,7 +345,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return (m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle] as TextureResource).desc;
         }
 
-        internal RendererListHandle CreateRendererList(in RendererListDesc desc)
+        internal RendererListHandle CreateRendererList(in CoreRendererListDesc desc)
         {
             ValidateRendererListDesc(desc);
 
@@ -509,7 +513,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         }
 
-        void ValidateRendererListDesc(in RendererListDesc desc)
+        void ValidateRendererListDesc(in CoreRendererListDesc desc)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
 
