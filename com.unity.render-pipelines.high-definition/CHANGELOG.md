@@ -279,6 +279,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix diffusion profile displayed in the inspector.
 - HDRP Wizard can still be opened from Windows > Rendering, if the project is not using a Render Pipeline.
 - Fixed override camera rendering custom pass API aspect ratio issue when rendering to a render texture.
+- Fixed the incorrect value written to the VT feedback buffer when VT is not used.
+- Fixed support for ray binning for ray tracing in XR (case 1346374).
+- Fixed exposure not being properly handled in ray tracing performance (RTGI and RTR, case 1346383).
+- Fixed the RTAO debug view being broken.
+- Fixed an issue that made camera motion vectors unavailable in custom passes.
+- Fixed the possibility to hide custom pass from the create menu with the HideInInspector attribute.
+- Fixed support of multi-editing on custom pass volumes.
+- Fixed possible QNANS during first frame of SSGI, caused by uninitialized first frame data.
+- Fixed various SSGI issues (case 1340851, case 1339297, case 1327919).
+- Prevent user from spamming and corrupting installation of nvidia package.
+- Fixed an issue with surface gradient based normal blending for decals (volume gradients weren't converted to SG before resolving in some cases).
+- Fixed distortion when resizing the graphics compositor window in builds (case 1328968).
+- Fixed custom pass workflow for single camera effects.
 - Fixed gbuffer depth debug mode for materials not rendered during the prepass.
 - Fixed Vertex Color Mode documentation for layered lit shader.
 - Fixed wobbling/tearing-like artifacts with SSAO.
