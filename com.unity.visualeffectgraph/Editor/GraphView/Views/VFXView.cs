@@ -377,6 +377,7 @@ namespace UnityEditor.VFX.UI
                         ConnectController();
                     }
                     NewControllerSet();
+                    this.AttachToSelection();
                 }
             }
         }
@@ -843,23 +844,31 @@ namespace UnityEditor.VFX.UI
 
         public void AttachTo(VisualEffect selectedAsset)
         {
-            if (this.controller.graph.visualEffectResource.asset == selectedAsset?.visualEffectAsset)
+            if (this.controller?.graph.visualEffectResource.asset == selectedAsset?.visualEffectAsset)
             {
                 this.m_ComponentBoard.Attach(selectedAsset);
-                this.m_AttachDropDownButton.AddToClassList("checked");
             }
 
-            this.UpdateLockToggleTooltip();
+            this.UpdateToolbarButtons();
         }
 
         internal void Detach()
         {
             this.m_ComponentBoard.Detach();
-            this.m_AttachDropDownButton.RemoveFromClassList("checked");
+            this.UpdateToolbarButtons();
         }
 
-        private void UpdateLockToggleTooltip()
+        private void UpdateToolbarButtons()
         {
+            if (this.attachedComponent != null)
+            {
+                this.m_AttachDropDownButton.AddToClassList("checked");
+            }
+            else
+            {
+                this.m_AttachDropDownButton.RemoveFromClassList("checked");
+            }
+
             this.m_LockToggle.tooltip = this.isLocked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
 
             if (!string.IsNullOrEmpty(this.attachedComponent?.name))
@@ -885,7 +894,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                this.UpdateLockToggleTooltip();
+                this.UpdateToolbarButtons();
             }
         }
 
