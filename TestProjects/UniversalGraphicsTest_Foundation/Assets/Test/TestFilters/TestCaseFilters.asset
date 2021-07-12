@@ -174,3 +174,21 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Needs fixing on DX12
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 26800f4b3c38849428d29e93038a6084, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Needs fix for MSAA+depth
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 26800f4b3c38849428d29e93038a6084, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 11
+    XrSdk: 
+    StereoModes: 0
+    Reason: Needs fix for MSAA+depth

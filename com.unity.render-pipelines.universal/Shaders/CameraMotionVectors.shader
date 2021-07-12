@@ -21,24 +21,21 @@ Shader "Hidden/kMotion/CameraMotionVectors"
             // Includes
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
 
-        #if defined(USING_STEREO_MATRICES)
-        float4x4 _PrevViewProjMStereo[2];
-#define _PrevViewProjM _PrevViewProjMStereo[unity_StereoEyeIndex]
-#else
-#define  _PrevViewProjM _PrevViewProjMatrix
-#endif
 
             // -------------------------------------
             // Structs
             struct Attributes
             {
                 uint vertexID   : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 position : SV_POSITION;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             // -------------------------------------
@@ -46,6 +43,9 @@ Shader "Hidden/kMotion/CameraMotionVectors"
             Varyings vert(Attributes input)
             {
                 Varyings output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
                 output.position = GetFullScreenTriangleVertexPosition(input.vertexID);
                 return output;
             }
@@ -54,24 +54,30 @@ Shader "Hidden/kMotion/CameraMotionVectors"
             // Fragment
             half4 frag(Varyings input, out float outDepth : SV_Depth) : SV_Target
             {
-                // Calculate PositionInputs
-                half depth = LoadSceneDepth(input.position.xy).x;
-                outDepth = depth;
-                half2 screenSize = _ScreenSize.zw;
-                PositionInputs positionInputs = GetPositionInput(input.position.xy, screenSize, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-                // Calculate positions
-                float4 previousPositionVP = mul(_PrevViewProjM, float4(positionInputs.positionWS, 1.0));
-                float4 positionVP = mul(UNITY_MATRIX_VP, float4(positionInputs.positionWS, 1.0));
+                float2 uv = input.position.xy / _ScaledScreenParams.xy;
+            #if UNITY_REVERSED_Z
+                half depth = SampleSceneDepth(uv).x;
+            #else
+                half depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(uv).x);
+            #endif
+                outDepth = depth;
+
+                float3 wpos = ComputeWorldSpacePosition(uv, depth, UNITY_MATRIX_I_VP);
+
+                // Multiply with projection
+                float4 previousPositionVP = mul(_PrevViewProjMatrix, float4(wpos.xyz, 1.0));
+                float4 positionVP = mul(_ViewProjMatrix, float4(wpos.xyz, 1.0));
 
                 previousPositionVP.xy *= rcp(previousPositionVP.w);
                 positionVP.xy *= rcp(positionVP.w);
 
                 // Calculate velocity
                 float2 velocity = (positionVP.xy - previousPositionVP.xy);
-                #if UNITY_UV_STARTS_AT_TOP
+            #if UNITY_UV_STARTS_AT_TOP
                     velocity.y = -velocity.y;
-                #endif
+            #endif
 
                 // Convert velocity from Clip space (-1..1) to NDC 0..1 space
                 // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.

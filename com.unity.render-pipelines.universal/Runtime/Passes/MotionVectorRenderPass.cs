@@ -7,15 +7,16 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         #region Fields
         const string kPreviousViewProjectionMatrix = "_PrevViewProjMatrix";
+        const string kViewProjection = "_ViewProjMatrix";
 #if ENABLE_VR && ENABLE_XR_MODULE
-        const string kPreviousViewProjectionMatrixStero = "_PrevViewProjMStereo";
+        const string kPreviousViewProjectionStereo = "_PrevViewProjMatrixStereo";
+        const string kViewProjectionStereo = "_ViewProjMatrixStereo";
 #endif
-        const string kMotionVectorTexture = "_MotionVectorTexture";
         const GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
 
         static readonly string[] s_ShaderTags = new string[] { "MotionVectors" };
-
-        RenderTargetHandle m_MotionVectorHandle; //Move to UniversalRenderer like other passes?
+        static readonly int kTargetID = Shader.PropertyToID("_MotionVectorTexture");
+        readonly RenderTargetIdentifier m_MotionVectorTarget;
         readonly Material m_CameraMaterial;
         readonly Material m_ObjectMaterial;
 
@@ -29,6 +30,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
             m_CameraMaterial = cameraMaterial;
             m_ObjectMaterial = objectMaterial;
+            m_MotionVectorTarget = new RenderTargetIdentifier(kTargetID, 0, CubemapFace.Unknown, -1);
         }
 
         #endregion
@@ -43,10 +45,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             var rtd = cameraTextureDescriptor;
             rtd.graphicsFormat = m_TargetFormat;
-            // Configure Render Target
-            m_MotionVectorHandle.Init(kMotionVectorTexture);
-            cmd.GetTemporaryRT(m_MotionVectorHandle.id, rtd, FilterMode.Point);
-            ConfigureTarget(m_MotionVectorHandle.Identifier(), m_MotionVectorHandle.Identifier());
+
+            cmd.GetTemporaryRT(kTargetID, rtd, FilterMode.Point);
+            ConfigureTarget(m_MotionVectorTarget, m_MotionVectorTarget);
+            ConfigureClear(ClearFlag.Color, Color.black);
         }
 
         #endregion
@@ -74,13 +76,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
                 {
-                    m_CameraMaterial.SetMatrixArray(kPreviousViewProjectionMatrixStero, m_MotionData.previousViewProjectionMatrixStereo);
-                    m_ObjectMaterial.SetMatrixArray(kPreviousViewProjectionMatrixStero, m_MotionData.previousViewProjectionMatrixStereo);
+                    cmd.SetGlobalMatrixArray(kPreviousViewProjectionStereo, m_MotionData.previousViewProjectionStereo);
+                    cmd.SetGlobalMatrixArray(kViewProjectionStereo, m_MotionData.viewProjectionStereo);
+                }
+                else if (cameraData.xr.enabled)
+                {
+                    int passID = cameraData.xr.multipassId;
+                    cmd.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousViewProjectionStereo[passID]);
+                    cmd.SetGlobalMatrix(kViewProjection, m_MotionData.viewProjectionStereo[passID]);
                 }
                 else
 #endif
                 {
-                    Shader.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousViewProjectionMatrix);
+                    cmd.SetGlobalMatrix(kPreviousViewProjectionMatrix, m_MotionData.previousViewProjection);
+                    cmd.SetGlobalMatrix(kViewProjection, m_MotionData.viewProjection);
                 }
 
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
@@ -142,12 +151,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            // Reset Render Target
-            if (m_MotionVectorHandle != RenderTargetHandle.CameraTarget)
-            {
-                cmd.ReleaseTemporaryRT(m_MotionVectorHandle.id);
-                m_MotionVectorHandle = RenderTargetHandle.CameraTarget;
-            }
+            cmd.ReleaseTemporaryRT(kTargetID);
         }
 
         #endregion

@@ -7,12 +7,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         #region Fields
         bool m_IsFirstFrame;
         int m_LastFrameActive;
-        Matrix4x4 m_viewProjectionMatrix;
-        Matrix4x4 m_PreviousViewProjectionMatrix;
+        Matrix4x4 m_ViewProjection;
+        Matrix4x4 m_PreviousViewProjection;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-        Matrix4x4[] m_ViewProjectionMatrixStereo = new Matrix4x4[2];
-        Matrix4x4[] m_PreviousViewProjectionMatrixStereo = new Matrix4x4[2];
+        Matrix4x4[] m_ViewProjectionStereo = new Matrix4x4[2];
+        Matrix4x4[] m_PreviousViewProjectionStereo = new Matrix4x4[2];
 #endif
         #endregion
 
@@ -22,8 +22,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Set data
             m_IsFirstFrame = true;
             m_LastFrameActive = -1;
-            m_viewProjectionMatrix = Matrix4x4.identity;
-            m_PreviousViewProjectionMatrix = Matrix4x4.identity;
+            m_ViewProjection = Matrix4x4.identity;
+            m_PreviousViewProjection = Matrix4x4.identity;
         }
 
         #endregion
@@ -41,29 +41,29 @@ namespace UnityEngine.Rendering.Universal.Internal
             set => m_LastFrameActive = value;
         }
 
-        internal Matrix4x4 viewProjectionMatrix
+        internal Matrix4x4 viewProjection
         {
-            get => m_viewProjectionMatrix;
-            set => m_viewProjectionMatrix = value;
+            get => m_ViewProjection;
+            set => m_ViewProjection = value;
         }
 
-        internal Matrix4x4 previousViewProjectionMatrix
+        internal Matrix4x4 previousViewProjection
         {
-            get => m_PreviousViewProjectionMatrix;
-            set => m_PreviousViewProjectionMatrix = value;
+            get => m_PreviousViewProjection;
+            set => m_PreviousViewProjection = value;
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-        internal Matrix4x4[] previousViewProjectionMatrixStereo
+        internal Matrix4x4[] previousViewProjectionStereo
         {
-            get => m_PreviousViewProjectionMatrixStereo;
-            set => m_PreviousViewProjectionMatrixStereo = value;
+            get => m_PreviousViewProjectionStereo;
+            set => m_PreviousViewProjectionStereo = value;
         }
 
-        internal Matrix4x4[] viewProjectionMatrixStereo
+        internal Matrix4x4[] viewProjectionStereo
         {
-            get => m_ViewProjectionMatrixStereo;
-            set => m_ViewProjectionMatrixStereo = value;
+            get => m_ViewProjectionStereo;
+            set => m_ViewProjectionStereo = value;
         }
 #endif
     }

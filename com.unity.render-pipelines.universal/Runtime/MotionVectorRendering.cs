@@ -12,6 +12,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         uint  m_FrameCount;
         float m_LastTime;
         float m_Time;
+        float m_PrevAspectRatio = -1;
+#if ENABLE_VR && ENABLE_XR_MODULE
+        int m_PreviousMultiPassId = -1;
+#endif
         #endregion
 
         #region Constructors
@@ -94,47 +98,60 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
-
             // A camera could be rendered multiple times per frame, only updates the previous view proj & pos if needed
+            if (motionData.isFirstFrame)
+                m_PrevAspectRatio = cameraData.aspectRatio;
+
+            bool aspectChanged = m_PrevAspectRatio != cameraData.aspectRatio;
+            bool resetMatrix = motionData.isFirstFrame || aspectChanged;
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
+            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
             {
                 var gpuVP0 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(0), true) * cameraData.GetViewMatrix(0);
                 var gpuVP1 = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(1), true) * cameraData.GetViewMatrix(1);
 
-                // Last frame data
+                var viewProjStereo = motionData.viewProjectionStereo;
                 if (motionData.lastFrameActive != Time.frameCount)
                 {
-                    bool firstFrame = motionData.isFirstFrame;
-                    var prevViewProjStereo = motionData.previousViewProjectionMatrixStereo;
-                    prevViewProjStereo[0] = firstFrame ? gpuVP0 : prevViewProjStereo[0];
-                    prevViewProjStereo[1] = firstFrame ? gpuVP1 : prevViewProjStereo[1];
+                    motionData.previousViewProjectionStereo[0] = resetMatrix ? gpuVP0 : viewProjStereo[0];
+                    motionData.previousViewProjectionStereo[1] = resetMatrix ? gpuVP1 : viewProjStereo[1];
                     motionData.isFirstFrame = false;
                 }
 
-                // Current frame data
-                var viewProjStereo = motionData.viewProjectionMatrixStereo;
                 viewProjStereo[0] = gpuVP0;
                 viewProjStereo[1] = gpuVP1;
+            }
+            else if (cameraData.xr.enabled)
+            {
+                var gpuVP = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true) * camera.worldToCameraMatrix;
+
+                int matrixIndex = cameraData.xr.multipassId;
+                // With multi pass projection changes during the same frame
+                if (m_PreviousMultiPassId != matrixIndex || motionData.lastFrameActive != Time.frameCount)
+                {
+                    motionData.previousViewProjectionStereo[matrixIndex] = resetMatrix ?
+                        gpuVP : motionData.viewProjectionStereo[matrixIndex];
+                    motionData.isFirstFrame = false;
+                }
+
+                motionData.viewProjectionStereo[matrixIndex] = gpuVP;
+                m_PreviousMultiPassId = matrixIndex;
             }
             else
 #endif
             {
-                var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true); // Had to change this from 'false'
-                var gpuView = camera.worldToCameraMatrix;
-                var gpuVP = gpuProj * gpuView;
+                var gpuVP = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true) * camera.worldToCameraMatrix;
 
-                // Last frame data
                 if (motionData.lastFrameActive != Time.frameCount)
                 {
-                    motionData.previousViewProjectionMatrix = motionData.isFirstFrame ? gpuVP : motionData.viewProjectionMatrix;
+                    motionData.previousViewProjection = resetMatrix ? gpuVP : motionData.viewProjection;
                     motionData.isFirstFrame = false;
                 }
 
-                // Current frame data
-                motionData.viewProjectionMatrix = gpuVP;
+                motionData.viewProjection = gpuVP;
             }
 
+            m_PrevAspectRatio = cameraData.aspectRatio;
             motionData.lastFrameActive = Time.frameCount;
         }
     }
