@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             string path = AssetDatabase.GUIDToAssetPath(m_GraphData.assetGuid);
-            if (m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
+            if (shaderKeywords.permutations.Count > ShaderGraphPreferences.variantLimit)
             {
                 string graphName = "";
                 if (m_GraphData.owner != null)
