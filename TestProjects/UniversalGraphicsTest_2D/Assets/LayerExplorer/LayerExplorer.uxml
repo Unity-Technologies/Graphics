@@ -8,6 +8,10 @@
                 </ui:VisualElement>
                 <ui:ListView name="LayerList"/>
             </ui:VisualElement>
-            <ui:ScrollView name="InfoPanel"/>
+            <ui:VisualElement>
+                <ui:VisualElement name="Header" class="InfoViewHeader"/>
+                <ui:ScrollView name="InfoScroller" class="InfoScroller"/>
+                <ui:VisualElement name="Description" class="InfoView Footer"/>
+            </ui:VisualElement>
         </ui:TwoPaneSplitView>
 </ui:UXML>

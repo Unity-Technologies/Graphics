@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
@@ -29,13 +31,14 @@ internal class LayerExplorer : EditorWindow
     {
         // Each editor window contains a root VisualElement object
         var root = rootVisualElement;
+        var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/LayerExplorer/LayerExplorer.uss");
+        root.styleSheets.Add(styleSheet);
 
         // Import UXML
-        var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/LayerExplorer/LayerExplorer.uss");
         var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/LayerExplorer/LayerExplorer.uxml");
         VisualElement templateRoot = visualTree.Instantiate();
         templateRoot.style.flexGrow = 1;
-        templateRoot.styleSheets.Add(styleSheet);
+        // templateRoot.styleSheets.Add(styleSheet);
         root.Add(templateRoot);
 
         const int itemCount = 10;
@@ -50,14 +53,18 @@ internal class LayerExplorer : EditorWindow
         {
             items.Add(new LayerBatch
             {
-                batchId = i,
-                LayerNames = new []
-                {
-                    $"Layer {i}.A", $"Layer {i}.B", $"Layer {i}.C",
-                    $"Layer {i}.D", $"Layer {i}.E", $"Layer {i}.F",
-                    $"Layer {i}.G", $"Layer {i}.H", $"Layer {i}.J"
-                }
+                batchId = i
             });
+        }
+
+        foreach (var batch in items)
+        {
+            var count = Random.Range(1, 5);
+            batch.LayerNames = new string[count];
+            for (var j = 0; j < count; j++)
+            {
+                batch.LayerNames[j] = $"Batch{batch.batchId} Layer{j}";
+            }
         }
 
         var batchElement = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/LayerExplorer/LayerBatch.uxml");
@@ -67,16 +74,19 @@ internal class LayerExplorer : EditorWindow
         {
             // this line is required to make the child of the Listview vary in heights
             e.style.height = new StyleLength(StyleKeyword.Auto);
-            var batchIndex = e.Query<Label>("BatchIndex").First();
-            batchIndex.text = items[i].batchId.ToString();
 
-            var layers = e.Query<ListView>().First();
-            var layerNames = items[i].LayerNames.Take(Random.Range(1,items[i].LayerNames.Length)).ToList();
-            layers.itemsSource = layerNames;
-            layers.selectionType = SelectionType.None;
-            layers.fixedItemHeight = 20;
-            layers.makeItem = () => new Label();
-            layers.bindItem = (element, index) => (element as Label).text = layerNames[index];
+            var batch = items[i];
+            var batchIndex = e.Query<Label>("BatchIndex").First();
+            batchIndex.text = batch.batchId.ToString();
+
+            var layers = e.Query<VisualElement>("LayerNames").First();
+            layers.Clear();
+            foreach (var layerName in items[i].LayerNames)
+            {
+                var label = new Label {text = layerName};
+                label.AddToClassList("LayerNameLabel");
+                layers.Add(label);
+            }
 
             var color = e.Query<VisualElement>("BatchColor").First();
             color.style.backgroundColor = new StyleColor(colors[i % colors.Length]);
@@ -86,8 +96,32 @@ internal class LayerExplorer : EditorWindow
         layerList.itemsSource = items;
         layerList.makeItem = makeItem;
         layerList.bindItem = bindItem;
+        layerList.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
 
-        var container = layerList.Query<VisualElement>("unity-content-container").First();
-        container.style.height = new StyleLength(StyleKeyword.Auto);
+
+        var batchViewAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/LayerExplorer/LayerBatchView.uxml");
+        var batchView = batchViewAsset.Instantiate();
+
+        // populate
+        var title = batchView.Query<VisualElement>("Title").First();
+        title.Add(new Label{text = "Comparing Batch 2 and Batch 3"});
+
+        var label1 = batchView.Query<VisualElement>("Label1").First();
+        label1.Add(new Label{text = "Lights in Batch 2 but not in Batch 3"});
+
+        var bubble1 = batchView.Query<VisualElement>("Bubble1").First();
+        bubble1.Add(new Label{text = "[Bubble1]"});
+
+        var label2 = batchView.Query<VisualElement>("Label2").First();
+        label2.Add(new Label{text = "Lights in Batch 3 but not in Batch 2"});
+
+        var bubble2 = batchView.Query<VisualElement>("Bubble2").First();
+        bubble2.Add(new Label{text = "[Bubble2]"});
+
+        var desc = root.Query<VisualElement>("Description").First();
+        desc.Add(new Label{text = "Layers 2 and 3 are not batched together because they do not share the same set of lights."});
+
+        var infoView = root.Query<ScrollView>("InfoScroller").First();
+        infoView.Add(batchView);
     }
 }

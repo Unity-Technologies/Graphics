@@ -3,7 +3,7 @@
 }
 
 .LayerBatch.Header {
-    background-color: darkmagenta;
+    height: 20px;
 }
 
 .BatchIndexColumn {
@@ -11,11 +11,16 @@
 }
 
 .BatchIndexColumn.Index {
-    border-left-width: 10px;
+    padding-left: 10px;
 }
 
 .BatchNameColumn {
-    border-left-width: 10px;
+    padding-left: 10px;
+}
+
+.LayerNamesList
+{
+
 }
 
 .BatchColor {
@@ -24,4 +29,33 @@
 
 #LayerList {
     flex-grow: 1;
+}
+
+.LayerNameLabel {
+    padding: 5px;
+}
+
+.InfoView {
+}
+
+.InfoView.Content {
+    border-bottom-width: 10px;
+}
+
+.InfoView.Content.Spacer {
+    flex-grow: 1;
+}
+
+.InfoView.Footer {
+    padding: 10px;
+}
+
+.InfoViewHeader {
+    height: 20px;
+}
+
+.InfoScroller {
+    flex-grow: 1;
+    padding: 10px;
+    background-color: #2A2A2A;
 }

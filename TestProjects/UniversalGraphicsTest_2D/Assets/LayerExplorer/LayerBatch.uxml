@@ -3,6 +3,6 @@
     <ui:VisualElement class="LayerBatch">
         <ui:Label name="BatchIndex" class="BatchIndexColumn Index" />
         <ui:VisualElement name="BatchColor" class="BatchColor" />
-        <ui:ListView name="LayerNames" class="BatchNameColumn" />
+        <ui:VisualElement name="LayerNames" class="BatchNameColumn" />
     </ui:VisualElement>
 </ui:UXML>

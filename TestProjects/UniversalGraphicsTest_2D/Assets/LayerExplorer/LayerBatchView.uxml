@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+>
+    <ui:VisualElement>
+        <ui:VisualElement name="Title" class="InfoView Content"/>
+        <ui:VisualElement name="Label1" class="InfoView Content"/>
+        <ui:VisualElement name="Bubble1" class="InfoView Content"/>
+        <ui:VisualElement name="Label2" class="InfoView Content"/>
+        <ui:VisualElement name="Bubble2" class="InfoView Content"/>
+    </ui:VisualElement>
+</ui:UXML>
