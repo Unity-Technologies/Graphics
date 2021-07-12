@@ -53,6 +53,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_PrimarySettings(SerializedLocalVolumetricFog serialized, Editor owner)
         {
+            EditorGUILayout.PropertyField(serialized.localVolumetricFogType, Styles.s_TypeLabel);
+
+            EditorGUILayout.PropertyField(serialized.computeShader, Styles.s_ComputeLabel);
+
             EditorGUILayout.PropertyField(serialized.albedo, Styles.s_AlbedoLabel);
             EditorGUILayout.PropertyField(serialized.meanFreePath, Styles.s_MeanFreePathLabel);
         }

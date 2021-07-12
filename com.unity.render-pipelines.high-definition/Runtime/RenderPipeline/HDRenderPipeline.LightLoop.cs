@@ -837,6 +837,56 @@ namespace UnityEngine.Rendering.HighDefinition
             return TextureHandle.nullHandle;
         }
 
+        class SingleComputeLocalVolumeData
+        {
+            public VolumetricLightingParameters parameters;
+            public LocalVolumetricFog computeLocalVolume;
+            public TextureHandle vBuffer;
+            public int kernel;
+        }
+
+        void VoxelizeComputeLocalVolumetricFogs(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle vBuffer)
+        {
+            for (int i = 0; i < m_VisibleComputeLocalVolumes.Count; i++)
+            {
+                var v = m_VisibleComputeLocalVolumes[i];
+                if (v.localVolumetricFogCompute == null) continue;
+
+                var m = Matrix4x4.TRS(v.transform.position, v.transform.rotation, v.transform.lossyScale);
+
+                v.localVolumetricFogCompute.SetMatrix("VolumeMatrix", m);
+                v.localVolumetricFogCompute.SetMatrix("InvVolumeMatrix", m.inverse);
+
+                using (var builder = renderGraph.AddRenderPass<SingleComputeLocalVolumeData>("Voxelize single compute volume", out var passData))
+                {
+                    passData.kernel = v.localVolumetricFogCompute.FindKernel("CSMain");
+                    passData.parameters = PrepareVolumetricLightingParameters(hdCamera);
+                    passData.computeLocalVolume = v;
+                    passData.vBuffer = builder.WriteTexture(vBuffer);
+
+                    builder.SetRenderFunc(
+                        (SingleComputeLocalVolumeData data, RenderGraphContext ctx) =>
+                        {
+                            /*
+                            VoxelizeComputeLocalVolumetricFogs(
+                                data.computeLocalVolume,
+                                data.vBuffer,
+                                ctx.cmd);
+                            */
+
+                            // CustomDensityVolumesManager.ApplyCustomDensityVolumes(hdCamera, ctx.cmd, 0);
+
+                            ctx.cmd.SetGlobalVector("VolumeTime", Vector4.one * Time.realtimeSinceStartup);
+                            ctx.cmd.SetComputeTextureParam(data.computeLocalVolume.localVolumetricFogCompute, data.kernel, HDShaderIDs._VBufferDensity, data.vBuffer);
+
+                            ConstantBuffer.Push(ctx.cmd, data.parameters.volumetricCB, data.computeLocalVolume.localVolumetricFogCompute, HDShaderIDs._ShaderVariablesVolumetric);
+                            ConstantBuffer.Set<ShaderVariablesLightList>(ctx.cmd, data.computeLocalVolume.localVolumetricFogCompute, HDShaderIDs._ShaderVariablesLightList);
+                            ctx.cmd.DispatchCompute(data.computeLocalVolume.localVolumetricFogCompute, data.kernel, ((int)data.parameters.resolution.x + 7) / 8, ((int)data.parameters.resolution.y + 7) / 8, data.parameters.viewCount);
+                        });
+                }
+            }
+        }
+
         class GenerateMaxZMaskPassData
         {
             public GenerateMaxZParameters parameters;

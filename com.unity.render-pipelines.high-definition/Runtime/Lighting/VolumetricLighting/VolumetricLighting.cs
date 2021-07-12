@@ -222,6 +222,8 @@ namespace UnityEngine.Rendering.HighDefinition
         List<LocalVolumetricFogEngineData> m_VisibleVolumeData             = null;
         internal const int            k_MaxVisibleLocalVolumetricFogCount  = 512;
 
+        List<LocalVolumetricFog>      m_VisibleComputeLocalVolumes = null;
+
         // Static keyword is required here else we get a "DestroyBuffer can only be called from the main thread"
         ComputeBuffer                 m_VisibleVolumeBoundsBuffer     = null;
         ComputeBuffer                 m_VisibleVolumeDataBuffer       = null;
@@ -599,6 +601,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleVolumeData         = new List<LocalVolumetricFogEngineData>();
             m_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleLocalVolumetricFogCount, Marshal.SizeOf(typeof(OrientedBBox)));
             m_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleLocalVolumetricFogCount, Marshal.SizeOf(typeof(LocalVolumetricFogEngineData)));
+
+            m_VisibleComputeLocalVolumes = new List<LocalVolumetricFog>();
         }
 
         internal void DestroyVolumetricLightingBuffers()
@@ -608,6 +612,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_VisibleVolumeData   = null; // free()
             m_VisibleVolumeBounds = null; // free()
+            m_VisibleComputeLocalVolumes = null;
         }
 
         void InitializeVolumetricLighting()
@@ -702,6 +707,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleVolumeBounds.Clear();
                 m_VisibleVolumeData.Clear();
 
+                m_VisibleComputeLocalVolumes.Clear();
+
                 // Collect all visible finite volume data, and upload it to the GPU.
                 var volumes = LocalVolumetricFogManager.manager.PrepareLocalVolumetricFogData(cmd, hdCamera);
 
@@ -720,11 +727,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     // It's typically much shorter (along the Z axis) than the camera's frustum.
                     if (GeometryUtils.Overlap(obb, hdCamera.frustum, 6, 8))
                     {
-                        // TODO: cache these?
-                        var data = volume.parameters.ConvertToEngineData();
+                        if (volume.localVolumetricFogType == LocalVolumetricFogType.Texture)
+                        {
+                            // TODO: cache these?
+                            var data = volume.parameters.ConvertToEngineData();
 
-                        m_VisibleVolumeBounds.Add(obb);
-                        m_VisibleVolumeData.Add(data);
+                            m_VisibleVolumeBounds.Add(obb);
+                            m_VisibleVolumeData.Add(data);
+                        }
+                        else if (volume.localVolumetricFogType == LocalVolumetricFogType.Compute)
+                        {
+                            m_VisibleComputeLocalVolumes.Add(volume);
+                        }
                     }
                 }
 
@@ -891,6 +905,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.voxelizationCS, parameters.voxelizationKernel, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
         }
 
+        static void VoxelizeComputeLocalVolumetricFogs(LocalVolumetricFog computeLocalVolume, RTHandle vBuffer, CommandBuffer cmd)
+        {
+        }
+
         // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
         // The returned {x, y} coordinates (and all spheres) are all within the (-0.5, 0.5)^2 range.
         // The pattern has been rotated by 15 degrees to maximize the resolution along X and Y:
@@ -926,7 +944,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        struct VolumetricLightingParameters
+        internal struct VolumetricLightingParameters
         {
             public ComputeShader                volumetricLightingCS;
             public ComputeShader                volumetricLightingFilteringCS;
@@ -942,7 +960,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesLightList     lightListCB;
         }
 
-        VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCamera hdCamera)
+        internal VolumetricLightingParameters PrepareVolumetricLightingParameters(HDCamera hdCamera)
         {
             var parameters = new VolumetricLightingParameters();
 

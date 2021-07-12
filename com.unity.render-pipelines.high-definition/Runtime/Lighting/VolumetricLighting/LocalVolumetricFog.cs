@@ -3,6 +3,12 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    public enum LocalVolumetricFogType
+    {
+        Texture,
+        Compute
+    }
+
     /// <summary>Artist-friendly Local Volumetric Fog parametrization.</summary>
     [Serializable]
     public partial struct LocalVolumetricFogArtistParameters
@@ -166,8 +172,12 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("Rendering/Local Volumetric Fog")]
     public partial class LocalVolumetricFog : MonoBehaviour
     {
+        public LocalVolumetricFogType localVolumetricFogType = LocalVolumetricFogType.Texture;
+
         /// <summary>Local Volumetric Fog parameters.</summary>
         public LocalVolumetricFogArtistParameters parameters = new LocalVolumetricFogArtistParameters(Color.white, 10.0f, 0.0f);
+
+        public ComputeShader localVolumetricFogCompute;
 
         private Texture previousVolumeMask = null;
 #if UNITY_EDITOR
