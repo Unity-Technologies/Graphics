@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed memory leak when changing SRP pipeline settings, and having the player in pause mode.
 - Fixed alignment in Volume Components
 - Virtual Texturing fallback texture sampling code correctly honors the enableGlobalMipBias when virtual texturing is disabled.
+- Fixed LightAnchor too much error message, became a HelpBox on the Inspector.
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
