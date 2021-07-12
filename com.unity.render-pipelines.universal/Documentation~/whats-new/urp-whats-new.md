@@ -24,13 +24,13 @@ Reflection probe blending and box projection support have been added to allow fo
 
 ![URP Deferred Rendering Path](../Images/whats-new/urp-12/urp-deferred-rendering-path-art-demo.gif)<br/>*A sample scene that uses the Deferred Rendering Path.*
 
-The URP Deferred Rendering Path uses a rendering technique where light shading is performed in screen space on a separate rendering pass after all the vertex and pixel shaders have been rendered. Deferred shading decouples scene geometry from lighting calculations, so the shading of each light is only computed for the visible pixels that it actually affects. This approach gives the ability to render a large number of lights in a scene without incurring a significant performance hit that affects forward rendering techniques.
+The URP Deferred Rendering Path uses a rendering technique where light shading is performed in screen space on a separate rendering pass after all the vertex and pixel shaders have been rendered. Deferred shading decouples scene geometry from lighting calculations, so the shading of each light is only computed for the visible pixels that it actually affects. With this approach, Unity can efficiently render a far greater amount of lights in a scene compared to per-object forward rendering.
 
 For more information about this feature, see the page [Deferred Rendering Path](../rendering/deferred-rendering-path.md).
 
 ### URP decal system
 
-![URP decal demo.](../Images/whats-new/urp-12/urp-decals-art-demo.gif)<br/>*A sample URP project scene using decals*.
+![Decal Projector in the Scene.](../Images/decal/decal-projector-selected-with-inspector.png)<br/>*Decal Projector in the Scene.*.
 
 The new decal system enables you to project decal materials into the surfaces of a Scene. Decals projected into a scene will wrap around meshes and interact with the Scene’s lighting. Decals are useful for adding extra textural detail to a Scene, especially in order to break up materials’ repetitiveness and detail patterns.
 
