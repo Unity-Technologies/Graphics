@@ -4,8 +4,6 @@
 #pragma kernel GatherSingle                 GATHER_FILTER=GatherSingle     SINGLE_CHANNEL
 #pragma kernel GatherColor                  GATHER_FILTER=GatherColor
 
-#pragma only_renderers d3d11
-
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"

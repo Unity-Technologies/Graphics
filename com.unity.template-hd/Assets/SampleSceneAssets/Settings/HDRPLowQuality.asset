@@ -35,16 +35,15 @@ MonoBehaviour:
     customBufferFormat: 12
     supportedLitShaderMode: 2
     planarReflectionResolution:
-      m_Values: 000100000002000000020000
+      m_Values: 800000000001000000020000
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
-    supportDecalLayers: 0
+    supportDecalLayers: 1
     supportSurfaceGradient: 0
     decalNormalBufferHP: 0
     msaaSampleCount: 1
     supportMotionVectors: 1
-    supportRuntimeDebugDisplay: 0
     supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
@@ -259,6 +258,7 @@ MonoBehaviour:
     m_ObsoleteDecalLayerName5: Decal Layer 5
     m_ObsoleteDecalLayerName6: Decal Layer 6
     m_ObsoleteDecalLayerName7: Decal Layer 7
+    m_ObsoleteSupportRuntimeDebugDisplay: 0
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
   availableMaterialQualityLevels: -1

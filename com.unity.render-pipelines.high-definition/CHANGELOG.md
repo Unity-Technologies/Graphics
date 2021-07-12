@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for reflection probes as a fallback for ray traced reflections (case 1338644).
 - Added a minimum motion vector length to the motion vector debug view.
 - Added a better support for LODs in the ray tracing acceleration structure.
+- Added a property on the HDRP asset to allow users to avoid ray tracing effects running at too low percentages (case 1342588).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -104,6 +105,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the mipmap generation internal format after rendering format change.
 - Fixed multiple any hit occuring on transparent objects (case 1294927).
 - Cleanup Shader UI.
+- Indentation of the HDRenderPipelineAsset inspector UI for quality
 - Spacing on LayerListMaterialUIBlock
 - Generating a GUIContent with an Icon instead of making MaterialHeaderScopes drawing a Rect every time
 - Fixed sub-shadow rendering for cached shadow maps.
@@ -276,6 +278,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - HD Global Settings can now be unassigned in the Graphics tab if HDRP is not the active pipeline(case 1343570).
 - Fix diffusion profile displayed in the inspector.
 - HDRP Wizard can still be opened from Windows > Rendering, if the project is not using a Render Pipeline.
+- Fixed override camera rendering custom pass API aspect ratio issue when rendering to a render texture.
+- Fixed the incorrect value written to the VT feedback buffer when VT is not used.
+- Fixed support for ray binning for ray tracing in XR (case 1346374).
+- Fixed exposure not being properly handled in ray tracing performance (RTGI and RTR, case 1346383).
+- Fixed the RTAO debug view being broken.
+- Fixed an issue that made camera motion vectors unavailable in custom passes.
+- Fixed the possibility to hide custom pass from the create menu with the HideInInspector attribute.
+- Fixed support of multi-editing on custom pass volumes.
+- Fixed various SSGI issues (case 1340851, case 1339297, case 1327919).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -370,6 +381,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hair uses GGX LTC for area light specular.
 - Moved invariants outside of loop for a minor CPU speedup in the light loop code.
 - Various improvements to the volumetric clouds.
+- Restore old version of the RendererList structs/api for compatibility.
+- Various improvements to SSGI (case 1340851, case 1339297, case 1327919).
 
 ## [11.0.0] - 2020-10-21
 
