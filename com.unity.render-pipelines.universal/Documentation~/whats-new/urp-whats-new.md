@@ -30,7 +30,7 @@ For more information about this feature, see the page [Deferred Rendering Path](
 
 ### URP decal system
 
-![Decal Projector in the Scene.](../Images/decal/decal-projector-selected-with-inspector.png)<br/>*Decal Projector in the Scene.*
+![Decal Projector in the Scene.](../Images/whats-new/urp-12/urp-decal.png)<br/>*Decal Projector in the Scene.*
 
 The new decal system enables you to project decal materials into the surfaces of a Scene. Decals projected into a scene will wrap around meshes and interact with the Scene’s lighting. Decals are useful for adding extra textural detail to a Scene, especially in order to break up materials’ repetitiveness and detail patterns.
 
