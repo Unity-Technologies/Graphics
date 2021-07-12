@@ -166,6 +166,8 @@ namespace UnityEngine.Rendering.Universal
                 scaledCameraHeight = (float)cameraData.cameraTargetDescriptor.height;
                 cameraWidth = (float)cameraData.cameraTargetDescriptor.width;
                 cameraHeight = (float)cameraData.cameraTargetDescriptor.height;
+
+                useRenderPassEnabled = false;
             }
 
             if (camera.allowDynamicResolution)
@@ -646,8 +648,6 @@ namespace UnityEngine.Rendering.Universal
                     SortStable(m_ActiveRenderPassQueue);
                 }
 
-                if (cameraData.xr.enabled)
-                    useRenderPassEnabled = false;
                 SetupNativeRenderPassFrameData(cameraData, useRenderPassEnabled);
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
@@ -944,7 +944,7 @@ namespace UnityEngine.Rendering.Universal
             // Track CPU only as GPU markers for this scope were "too noisy".
             using (new ProfilingScope(null, Profiling.RenderPass.configure))
             {
-                if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
+                if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
                     ConfigureNativeRenderPass(cmd,  renderPass, cameraData);
                 else
                     renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
@@ -956,7 +956,7 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
-            if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
+            if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
                 ExecuteNativeRenderPass(context,  renderPass, cameraData, ref  renderingData);
             else
                 renderPass.Execute(context, ref renderingData);
@@ -1026,7 +1026,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // Clear camera color render-target separately from the rest of the render-targets.
 
-                    if ((cameraClearFlag & ClearFlag.Color) != 0 && (!IsRenderPassEnabled(renderPass) || cameraData.cameraType != CameraType.Game))
+                    if ((cameraClearFlag & ClearFlag.Color) != 0 && (!IsRenderPassEnabled(renderPass) || !cameraData.isRenderPassSupportedCamera))
                         SetRenderTarget(cmd, renderPass.colorAttachments[cameraColorTargetIndex], renderPass.depthAttachment, ClearFlag.Color, CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
                     if ((renderPass.clearFlag & ClearFlag.Color) != 0)
@@ -1045,7 +1045,7 @@ namespace UnityEngine.Rendering.Universal
 
                         if (writeIndex != otherTargetsCount)
                             Debug.LogError("writeIndex and otherTargetsCount values differed. writeIndex:" + writeIndex + " otherTargetsCount:" + otherTargetsCount);
-                        if (!IsRenderPassEnabled(renderPass) || cameraData.cameraType != CameraType.Game)
+                        if (!IsRenderPassEnabled(renderPass) || !cameraData.isRenderPassSupportedCamera)
                             SetRenderTarget(cmd, nonCameraAttachments, m_CameraDepthTarget, ClearFlag.Color, renderPass.clearColor);
                     }
                 }
@@ -1055,7 +1055,7 @@ namespace UnityEngine.Rendering.Universal
                 finalClearFlag |= needCustomCameraDepthClear ? (cameraClearFlag & ClearFlag.DepthStencil) : (renderPass.clearFlag & ClearFlag.DepthStencil);
                 finalClearFlag |= needCustomCameraColorClear ? (IsRenderPassEnabled(renderPass) ? (cameraClearFlag & ClearFlag.Color) : 0) : (renderPass.clearFlag & ClearFlag.Color);
 
-                if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
+                if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
                     SetNativeRenderPassMRTAttachmentList(renderPass, ref cameraData, needCustomCameraColorClear, finalClearFlag);
 
                 // Only setup render target if current render pass attachments are different from the active ones.
@@ -1069,7 +1069,7 @@ namespace UnityEngine.Rendering.Universal
                         for (int i = 0; i < rtCount; ++i)
                             trimmedAttachments[i] = renderPass.colorAttachments[i];
 
-                        if (!IsRenderPassEnabled(renderPass) || cameraData.cameraType != CameraType.Game)
+                        if (!IsRenderPassEnabled(renderPass) || !cameraData.isRenderPassSupportedCamera)
                         {
                             RenderTargetIdentifier depthAttachment = m_CameraDepthTarget;
 
@@ -1170,7 +1170,7 @@ namespace UnityEngine.Rendering.Universal
                     DebugHandler.TryGetScreenClearColor(ref finalClearColor);
                 }
 
-                if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
+                if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
                 {
                     SetNativeRenderPassAttachmentList(renderPass, ref cameraData, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
                 }

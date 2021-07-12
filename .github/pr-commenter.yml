@@ -1,5 +1,11 @@
 comment:
   on-update: edit
+  header: |
+    Hi! This comment will help you figure out which jobs to run before merging your PR. The suggestions are dynamic based on what files you have changed.
+    Link to Yamato: https://yamato.cds.internal.unity3d.com/jobs/902-Graphics
+    Search for your PR branch using the sidebar on the left, then add the following segment(s) to the end of the URL (you may need multiple tabs depending on how many packages you change)
+  footer: |
+    Depending on the scope of your PR, you may need to run more jobs than what has been suggested. Please speak to your lead or a Graphics SDET (#devs-graphics-automation) if you are unsure.
 
   snippets:
     - id: HDRP
@@ -9,47 +15,37 @@ comment:
         - com.unity.testing.hdrp/**/*
         - TestProjects/HDRP*/**/*
       body: |
-        It looks like you're changing an HDRP Package
-        Please run the following jobs before merging your PR:
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-hdrp.yml%2523PR_HDRP_2021.2    
+        **HDRP**
+        `/.yamato%252Fall-hdrp.yml%2523PR_HDRP_2021.2`
     - id: URP
       files:
         - com.unity.render-pipelines.universal/**/*
         - com.unity.testing.urp/**/*
         - TestProjects/Universal*/**/*
       body: |
-        It looks like you're changing a URP Package
-        Please run the following jobs before merging your PR:
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-urp.yml%2523PR_URP_2021.2
+        **URP**
+        `/.yamato%252Fall-urp.yml%2523PR_URP_2021.2`
     - id: ShaderGraph
       files:
         - com.unity.shadergraph/**/*
         - TestProjects/ShaderGraph*/**/*
         - com.unity.render-pipelines.universal/Editor/ShaderGraph/*
       body: |
-        It looks like you're changing a Shader Graph Package
-        Please run the following jobs before merging your PR:
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-shadergraph.yml%2523PR_ShaderGraph_2021.2
-        Depending on the scope of your PR, you may also need to run URP and HDRP jobs. Please ask your lead if you are unsure about what your PR could affect.
+        **Shader Graph**
+        `/.yamato%252Fall-shadergraph.yml%2523PR_ShaderGraph_2021.2`
     - id: VFX
       files:
         - com.unity.visualeffectgraph/**/*
         - com.unity.testing.visualeffectgraph/**/*
         - TestProjects/VisualEffectGraph*/**/*
       body: |
-        It looks like you're changing a VFX Package
-        Please run the following jobs before merging your PR:
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523General_Checks_2021.2
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252Fall-vfx.yml%2523PR_VFX_2021.2
-        Depending on the scope of your PR, you may also need to run URP and HDRP jobs. Please ask your lead if you are unsure about what your PR could affect.
+        **VFX**
+        `/.yamato%252Fall-vfx.yml%2523PR_VFX_2021.2`
     - id: Core
       files:
         - com.unity.render-pipelines.core/**/*
       body: |
-        It looks like you're changing the Core SRP Package
-        You could run ABV before merging your PR, but it will start A LOT of jobs. Please be responsible about it and run it only when you feel the PR is ready:
-        https://yamato.cds.internal.unity3d.com/jobs/902-Graphics/tree/master/.yamato%252F_abv.yml%2523all_project_ci_2021.2
+        **SRP Core**
+        You could run ABV on your branch before merging your PR, but it will start A LOT of jobs. Please be responsible about it and run it only when you feel the PR is ready:
+        `/.yamato%252F_abv.yml%2523all_project_ci_2021.2`
         Be aware that any modifications to the Core package impacts everyone in the Graphics repo so please discuss the PR with your lead.
