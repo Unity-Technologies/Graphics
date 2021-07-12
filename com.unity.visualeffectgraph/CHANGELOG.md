@@ -71,6 +71,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX Graph operators keep the same width when expanded or collpased so that the button does not change position
 - Fix Soft Particle depth computation when using an orthographic camera [Case 1309961](https://issuetracker.unity3d.com/product/unity/issues/guid/1309961)
 - Unexpected operator and block removal during migration [Case 1344645](https://issuetracker.unity3d.com/product/unity/issues/guid/1344645/)
+- Random crash using subgraph [Case 1345426](https://issuetracker.unity3d.com/product/unity/issues/guid/1345426/)
 
 ## [11.0.0] - 2020-10-21
 ### Added
