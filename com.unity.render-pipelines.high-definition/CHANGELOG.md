@@ -287,6 +287,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support of multi-editing on custom pass volumes.
 - Fixed possible QNANS during first frame of SSGI, caused by uninitialized first frame data.
 - Fixed various SSGI issues (case 1340851, case 1339297, case 1327919).
+- Prevent user from spamming and corrupting installation of nvidia package.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -383,6 +384,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Various improvements to the volumetric clouds.
 - Restore old version of the RendererList structs/api for compatibility.
 - Various improvements to SSGI (case 1340851, case 1339297, case 1327919).
+- Changed the NVIDIA install button to the standard FixMeButton.
 
 ## [11.0.0] - 2020-10-21
 
