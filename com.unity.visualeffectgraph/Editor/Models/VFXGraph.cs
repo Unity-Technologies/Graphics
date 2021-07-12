@@ -938,6 +938,7 @@ namespace UnityEditor.VFX
             {
                 foreach (var child in children)
                     child.CheckGraphBeforeImport();
+                PrepareSubgraphs(); /// ??
                 cleanDependencies = true;
             }
 
