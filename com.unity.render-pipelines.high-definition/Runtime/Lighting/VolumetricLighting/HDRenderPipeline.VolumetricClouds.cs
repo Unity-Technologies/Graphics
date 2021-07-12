@@ -79,15 +79,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SparsePresetMap.Apply();
 
             m_CloudyPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Cloudy Texture" };
-            m_CloudyPresetMap.SetPixel(0, 0, new Color(0.9f, 0.0f, 0.0625f, 1.0f));
+            m_CloudyPresetMap.SetPixel(0, 0, new Color(0.9f, 0.0f, 0.2f, 1.0f));
             m_CloudyPresetMap.Apply();
 
             m_OvercastPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Overcast Texture" };
-            m_OvercastPresetMap.SetPixel(0, 0, new Color(0.5f, 0.0f, 0.8f, 1.0f));
+            m_OvercastPresetMap.SetPixel(0, 0, new Color(0.5f, 0.0f, 1.0f, 1.0f));
             m_OvercastPresetMap.Apply();
 
             m_StormyPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Storm Texture" };
-            m_StormyPresetMap.SetPixel(0, 0, new Color(1.0f, 0.0f, 0.375f, 1.0f));
+            m_StormyPresetMap.SetPixel(0, 0, new Color(1.0f, 0.0f, 0.80f, 1.0f));
             m_StormyPresetMap.Apply();
         }
 
@@ -132,6 +132,58 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CustomLutPresetMap.Apply();
         }
 
+        // Ref: "Efficient Evaluation of Irradiance Environment Maps" from ShaderX 2
+        Vector3 SHEvalLinearL0L1(Vector3 N, Vector4 shAr, Vector4 shAg, Vector4 shAb)
+        {
+            Vector4 vA = new Vector4(N.x, N.y, N.z, 1.0f);
+
+            Vector3 x1;
+            // Linear (L1) + constant (L0) polynomial terms
+            x1.x = Vector4.Dot(shAr, vA);
+            x1.y = Vector4.Dot(shAg, vA);
+            x1.z = Vector4.Dot(shAb, vA);
+
+            return x1;
+        }
+
+        Vector3 SHEvalLinearL2(Vector3 N, Vector4 shBr, Vector4 shBg, Vector4 shBb, Vector4 shC)
+        {
+            Vector3 x2;
+            // 4 of the quadratic (L2) polynomials
+            Vector4 vB = new Vector4(N.x * N.y, N.y * N.z, N.z * N.z, N.z * N.x);
+            x2.x = Vector4.Dot(shBr, vB);
+            x2.y = Vector4.Dot(shBg, vB);
+            x2.z = Vector4.Dot(shBb, vB);
+
+            // Final (5th) quadratic (L2) polynomial
+            float vC = N.x * N.x - N.y * N.y;
+            Vector3 x3 = new Vector3(0.0f, 0.0f, 0.0f);
+            x3.x = shC.x * vC;
+            x3.x = shC.y * vC;
+            x3.x = shC.z * vC;
+            return x2 + x3;
+        }
+
+        Vector3 EvaluateAmbientProbe(Vector3 direction)
+        {
+            Vector4 shAr = m_PackedCoeffsClouds[0];
+            Vector4 shAg = m_PackedCoeffsClouds[1];
+            Vector4 shAb = m_PackedCoeffsClouds[2];
+            Vector4 shBr = m_PackedCoeffsClouds[3];
+            Vector4 shBg = m_PackedCoeffsClouds[4];
+            Vector4 shBb = m_PackedCoeffsClouds[5];
+            Vector4 shCr = m_PackedCoeffsClouds[6];
+
+            // Linear + constant polynomial terms
+            Vector3 res = SHEvalLinearL0L1(direction, shAr, shAg, shAb);
+
+            // Quadratic polynomials
+            res += SHEvalLinearL2(direction, shBr, shBg, shBb, shCr);
+
+            // Return the result
+            return res;
+        }
+
         // Function that fills the buffer with the ambient probe values
         unsafe void SetPreconvolvedAmbientLightProbe(ref ShaderVariablesClouds cb, HDCamera hdCamera, VolumetricClouds settings)
         {
@@ -141,9 +193,9 @@ namespace UnityEngine.Rendering.HighDefinition
             SphericalHarmonicsL2 finalSH = SphericalHarmonicMath.PremultiplyCoefficients(SphericalHarmonicMath.Convolve(probeSH, m_PhaseZHClouds));
 
             SphericalHarmonicMath.PackCoefficients(m_PackedCoeffsClouds, finalSH);
-            for (int i = 0; i < 7; i++)
-                for (int j = 0; j < 4; ++j)
-                    cb._AmbientProbeCoeffs[i * 4 + j] = m_PackedCoeffsClouds[i][j];
+
+            cb._AmbientProbeTop = EvaluateAmbientProbe(Vector3.up);
+            cb._AmbientProbeBottom = EvaluateAmbientProbe(Vector3.down);
         }
 
         // Allocation of the first history buffer
@@ -263,38 +315,38 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case VolumetricClouds.CloudPresets.Sparse:
                 {
-                    cloudModelData.densityMultiplier = 0.4472135955f;
+                    cloudModelData.densityMultiplier = 0.2f;
                     cloudModelData.shapeFactor = 0.9f;
-                    cloudModelData.shapeScale = 1.75f;
-                    cloudModelData.erosionFactor = 0.7f;
+                    cloudModelData.shapeScale = 2.0f;
+                    cloudModelData.erosionFactor = 0.6f;
                     cloudModelData.erosionScale = 30.0f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Cloudy:
                 {
-                    cloudModelData.densityMultiplier = 0.41833001326f;
-                    cloudModelData.shapeFactor = 0.75f;
+                    cloudModelData.densityMultiplier = 0.3f;
+                    cloudModelData.shapeFactor = 0.85f;
                     cloudModelData.shapeScale = 2.5f;
-                    cloudModelData.erosionFactor = 0.8f;
-                    cloudModelData.erosionScale = 25.0f;
+                    cloudModelData.erosionFactor = 0.7f;
+                    cloudModelData.erosionScale = 35.0f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Overcast:
                 {
-                    cloudModelData.densityMultiplier = 0.158113883f;
-                    cloudModelData.shapeFactor = 0.3f;
-                    cloudModelData.shapeScale = 3.5f;
-                    cloudModelData.erosionFactor = 0.0f;
-                    cloudModelData.erosionScale = 50.0f;
+                    cloudModelData.densityMultiplier = 0.25f;
+                    cloudModelData.shapeFactor = 0.7f;
+                    cloudModelData.shapeScale = 4.0f;
+                    cloudModelData.erosionFactor = 0.5f;
+                    cloudModelData.erosionScale = 30.0f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Stormy:
                 {
-                    cloudModelData.densityMultiplier = 0.55901699437f;
-                    cloudModelData.shapeFactor = 0.7f;
-                    cloudModelData.shapeScale = 3.5f;
+                    cloudModelData.densityMultiplier = 0.3f;
+                    cloudModelData.shapeFactor = 0.9f;
+                    cloudModelData.shapeScale =  2.0f;
                     cloudModelData.erosionFactor = 0.6f;
-                    cloudModelData.erosionScale = 60.0f;
+                    cloudModelData.erosionScale = 35.0f;
                     return;
                 }
             }
@@ -330,7 +382,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._NumPrimarySteps = settings.numPrimarySteps.value;
             cb._NumLightSteps = settings.numLightSteps.value;
             // 1000.0f is the maximal distance that a single step can do in theory (otherwise we endup skipping large clouds)
-            cb._MaxRayMarchingDistance = Mathf.Min(1000.0f * cb._NumPrimarySteps, hdCamera.camera.farClipPlane);
+            cb._MaxRayMarchingDistance = Mathf.Min(settings.cloudThickness.value / 8.0f *  cb._NumPrimarySteps, hdCamera.camera.farClipPlane);
             cb._CloudMapTiling.Set(settings.cloudTiling.value.x, settings.cloudTiling.value.y, settings.cloudOffset.value.x, settings.cloudOffset.value.y);
 
             cb._ScatteringTint = Color.white - settings.scatteringTint.value * 0.75f;
@@ -382,7 +434,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._MediumWindSpeed = settings.shapeSpeedMultiplier.value;
             cb._SmallWindSpeed = settings.erosionSpeedMultiplier.value;
 
-            cb._MultiScattering = 1.0f - settings.multiScattering.value * 0.8f;
+            cb._MultiScattering = 1.0f - settings.multiScattering.value * 0.95f;
 
             CloudModelData cloudModelData;
             if (settings.cloudControl.value == VolumetricClouds.CloudControl.Simple && settings.cloudPreset.value != VolumetricClouds.CloudPresets.Custom)
@@ -399,7 +451,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // The density multiplier is not used linearly
-            cb._DensityMultiplier = cloudModelData.densityMultiplier * cloudModelData.densityMultiplier * 4.0f;
+            cb._DensityMultiplier = cloudModelData.densityMultiplier * cloudModelData.densityMultiplier * 2.0f;
             cb._ShapeFactor = cloudModelData.shapeFactor;
             cb._ShapeScale = cloudModelData.shapeScale;
             cb._ErosionFactor = cloudModelData.erosionFactor;
@@ -515,6 +567,10 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.planarReflection = (hdCamera.camera.cameraType == CameraType.Reflection);
             parameters.localClouds = settings.localClouds.value;
 
+            // MSAA support
+            parameters.needsTemporaryBuffer = hdCamera.msaaEnabled;
+            parameters.cloudCombinePass = m_CloudCombinePass;
+
             parameters.needExtraColorBufferCopy = (GetColorBufferFormat() == GraphicsFormat.B10G11R11_UFloatPack32 &&
                 // On PC and Metal, but not on console.
                 (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 ||
@@ -522,6 +578,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan));
 
+            // In case of MSAA, we no longer require the preliminary copy as there is no longer a need for RW of the color buffer.
+            parameters.needExtraColorBufferCopy &= !parameters.needsTemporaryBuffer;
 
             // Compute shader and kernels
             parameters.volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
@@ -561,10 +619,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
             parameters.sunLight = GetCurrentSunLight();
             parameters.enableExposureControl = hdCamera.exposureControlFS;
-
-            // MSAA support
-            parameters.needsTemporaryBuffer = hdCamera.msaaEnabled;
-            parameters.cloudCombinePass = m_CloudCombinePass;
 
             // Update the constant buffer
             UpdateShaderVariableslClouds(ref parameters.cloudsCB, hdCamera, settings, parameters, shadowPass);
