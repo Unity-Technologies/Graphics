@@ -354,7 +354,7 @@ namespace UnityEditor.VFX
             VFXLibrary.OnSRPChanged -= OnSRPChanged;
         }
 
-        private void OnSRPChanged()
+        public void OnSRPChanged()
         {
             m_GraphSanitized = false;
             m_ExpressionGraphDirty = true;
@@ -868,7 +868,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void PrepareSubgraphs()
+        public void PrepareSubgraphs()
         {
             Profiler.BeginSample("PrepareSubgraphs");
             RecurseSubgraphRecreateCopy(children);
