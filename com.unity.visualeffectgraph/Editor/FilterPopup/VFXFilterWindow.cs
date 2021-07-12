@@ -457,21 +457,21 @@ namespace UnityEditor.VFX.UI
         private int GetSearchResultRelevancy(string elementName, string search)
         {
             // Minimum score means best result
-            // There are three cases:
-            // - Equality
-            // - Exact match => short is better
-            // - Contains all chunks (of course because that's mandatory to be in the search results)
-            //   => short is better
-            var score = -10_000;
+            // There are three criteria:
+            // - Equality => 0
+            // - Position of the match => smaller is better
+            // - Length of the name => shorter is better (here we know all names are matching the search in some way)
 
             if (elementName != search)
             {
-                score = elementName.Contains(search)
-                    ? -1_000
-                    : 2;
+                var position = elementName.IndexOf(search);
+
+                return position == 0
+                    ? elementName.Length
+                    : 1_000 + elementName.Length;
             }
 
-            return score + elementName.Length;
+            return 0;
         }
 
         private GroupElement GetElementRelative(int rel)
