@@ -285,6 +285,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that made camera motion vectors unavailable in custom passes.
 - Fixed the possibility to hide custom pass from the create menu with the HideInInspector attribute.
 - Fixed support of multi-editing on custom pass volumes.
+- Fixed possible QNANS during first frame of SSGI, caused by uninitialized first frame data.
 - Fixed various SSGI issues (case 1340851, case 1339297, case 1327919).
 
 ### Changed
