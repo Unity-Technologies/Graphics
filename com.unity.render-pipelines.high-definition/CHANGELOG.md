@@ -277,6 +277,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed rounding issue when accessing the color buffer in the DoF shader.
 - HD Global Settings can now be unassigned in the Graphics tab if HDRP is not the active pipeline(case 1343570).
 - Fix diffusion profile displayed in the inspector.
+- HDRP Wizard can still be opened from Windows > Rendering, if the project is not using a Render Pipeline.
 - Fixed override camera rendering custom pass API aspect ratio issue when rendering to a render texture.
 - Fixed the incorrect value written to the VT feedback buffer when VT is not used.
 - Fixed support for ray binning for ray tracing in XR (case 1346374).
