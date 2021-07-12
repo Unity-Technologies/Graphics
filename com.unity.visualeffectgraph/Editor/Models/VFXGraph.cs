@@ -123,7 +123,11 @@ namespace UnityEditor.VFX
                     if (!graph.sanitized || !graph.cleanDependencies)
                     {
                         //Early return, the reimport will be forced with the next OnPostprocessAllAssets after Sanitize
-                        resource.ClearRuntimeData();
+
+                        //It could be more appropriate to ClearRuntimeData but with systematic double import + delayCall,
+                        //the C++ behavior can be confused, removing an exposed property too early.
+                        //Thus, for now, commenting : resource.ClearRuntimeData();
+                        //See EditorTest : CreateComponent_Modify_Asset_Keep_Override
                     }
                     else
                     {
