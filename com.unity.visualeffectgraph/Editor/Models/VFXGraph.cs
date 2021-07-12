@@ -890,7 +890,8 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void PrepareSubgraphs()
+        //TODOPAUL : Revert this public
+        public void PrepareSubgraphs()
         {
             Profiler.BeginSample("PrepareSubgraphs");
             RecurseSubgraphRecreateCopy(children);

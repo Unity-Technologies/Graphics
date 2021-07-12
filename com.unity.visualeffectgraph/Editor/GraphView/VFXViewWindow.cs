@@ -276,6 +276,7 @@ namespace  UnityEditor.VFX.UI
                         if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
                         {
                             VFXGraph.explicitCompile = true;
+                            graph.PrepareSubgraphs(); //Why is it still needed ? TODOPAUL
                             graph.errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
                             using (var reporter = new VFXCompileErrorReporter(controller.graph.errorManager))
                             {

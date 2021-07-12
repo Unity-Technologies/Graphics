@@ -21,8 +21,11 @@ namespace UnityEditor.VFX.Test
         VFXViewController m_ViewController;
 
         const string testAssetName = "Assets/TmpTests/VFXGraph1.vfx";
+
         const string testSubgraphAssetName = "Assets/TmpTests/VFXGraphSub.vfx";
         const string testSubgraphSubAssetName = "Assets/TmpTests/VFXGraphSub_Subgraph.vfx";
+
+        const string testAssetMainSubgraph = "Assets/TmpTests/VFXGraphSubGraph_Main.vfx";
         const string testSubgraphSubOperatorAssetName = "Assets/TmpTests/VFXGraphSub_Subgraph.vfxoperator";
 
         private int m_StartUndoGroupId;
@@ -55,6 +58,7 @@ namespace UnityEditor.VFX.Test
             m_ViewController.useCount--;
             Undo.RevertAllDownToGroup(m_StartUndoGroupId);
             AssetDatabase.DeleteAsset(testAssetName);
+            AssetDatabase.DeleteAsset(testAssetMainSubgraph);
             AssetDatabase.DeleteAsset(testSubgraphAssetName);
             AssetDatabase.DeleteAsset(testSubgraphSubAssetName);
             AssetDatabase.DeleteAsset(testSubgraphSubOperatorAssetName);
@@ -990,9 +994,14 @@ namespace UnityEditor.VFX.Test
         public IEnumerator ConvertToSubGraphOperator()
         {
             var window = VFXViewWindow.GetWindow<VFXViewWindow>();
-            window.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetName), null);
 
-            var graph = m_ViewController.graph;
+            VisualEffectAsset asset = VisualEffectAssetEditorUtility.CreateNewAsset(testAssetMainSubgraph);
+            VisualEffectResource resource = asset.GetResource();
+            window.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetMainSubgraph), null);
+            
+            var viewController = VFXViewController.GetController(VisualEffectResource.GetResourceAtPath(testAssetMainSubgraph));
+
+            var graph = viewController.graph;
             var add_A = ScriptableObject.CreateInstance<Operator.Add>();
             graph.AddChild(add_A);
             var add_B = ScriptableObject.CreateInstance<Operator.Add>();
@@ -1019,7 +1028,7 @@ namespace UnityEditor.VFX.Test
                 spawnerOutput.LinkFrom(spawnerInit);
             }
 
-            var initialize = m_ViewController.graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
+            var initialize = viewController.graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
             Assert.IsNotNull(initialize);
             Assert.IsTrue(initialize.children.Any());
 
@@ -1028,7 +1037,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(firstVector3);
             Assert.IsTrue(add_B.outputSlots[0].Link(firstVector3[0][0]));
             Assert.IsTrue(firstVector3.HasLink(true));
-            m_ViewController.LightApplyChanges();
+            viewController.LightApplyChanges();
 
             yield return null;
 
@@ -1040,10 +1049,107 @@ namespace UnityEditor.VFX.Test
                 yield return null;
 
             //If we reach here without any error or crash, the bug has been fixed
-
             window.graphView.controller = null;
         }
 
+        //Extension of previous test (related to 1345426) : create two outputs in subgraph (instead of one), revert and restore
+        [UnityTest]
+        public IEnumerator ConvertToSubGraphOperator_And_ModifySubgraph()
+        {
+            var previousTest = ConvertToSubGraphOperator();
+            while (previousTest.MoveNext())
+                yield return previousTest.Current;
+
+            var resource = VisualEffectResource.GetResourceAtPath(testSubgraphSubOperatorAssetName);
+            resource.WriteAsset();
+
+            var oneOutputState = File.ReadAllText(testSubgraphSubOperatorAssetName);
+            Assert.IsFalse(string.IsNullOrEmpty(oneOutputState));
+
+            resource = VisualEffectResource.GetResourceAtPath(testSubgraphSubOperatorAssetName);
+            Assert.IsNotNull(resource);
+            var window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            window.LoadResource(resource, null);
+
+            var viewController = window.graphView.controller;
+            var graph = viewController.graph;
+            Assert.IsNotNull(graph);
+
+            var parameter = VFXLibrary.GetParameters().FirstOrDefault(o => o.model.type == typeof(Sphere));
+            Assert.IsNotNull(parameter);
+            var newParam = viewController.AddVFXParameter(Vector2.zero, (VFXModelDescriptorParameters)parameter);
+            newParam.isOutput = true;
+            var otherParamName = "programatically_new_name_test";
+            newParam.SetSettingValue("m_ExposedName", otherParamName);
+            viewController.ApplyChanges();
+            
+            resource.WriteAsset();
+
+            yield return null;
+            window.Close();
+
+            var twoOutputState = File.ReadAllText(testSubgraphSubOperatorAssetName);
+            Assert.IsFalse(string.IsNullOrEmpty(twoOutputState));
+            Assert.AreNotEqual(oneOutputState, twoOutputState);
+            Assert.IsTrue(twoOutputState.Contains(otherParamName));
+
+            window.graphView.controller = null;
+            for (int i = 0; i < 16; ++i)
+                yield return null;
+
+            //Check the actual status, should have now two slots
+            {
+                AssetDatabase.ImportAsset(testAssetMainSubgraph);
+                var mainAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetMainSubgraph);
+                var mainGraph = mainAsset.GetOrCreateResource().GetOrCreateGraph();
+
+                var subGraph = mainGraph.children.OfType<VFXSubgraphOperator>().FirstOrDefault();
+                Assert.IsNotNull(subGraph);
+                Assert.AreEqual(2, subGraph.outputSlots.Count);
+                //Assert.IsFalse(subGraph.outputSlots.Any(o => o == null)); //TODOPAUL : There is still a problem here
+            }
+            yield return null;
+
+            //Removing old slots, shouldn't get unexpected removed 
+            {
+                File.WriteAllText(testSubgraphSubOperatorAssetName, oneOutputState);
+                AssetDatabase.Refresh();
+
+                AssetDatabase.ImportAsset(testAssetMainSubgraph);
+                var mainAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetMainSubgraph);
+                var mainGraph = mainAsset.GetOrCreateResource().GetOrCreateGraph();
+
+                var subGraph = mainGraph.children.OfType<VFXSubgraphOperator>().FirstOrDefault();
+                Assert.IsNotNull(subGraph);
+                Assert.AreEqual(1, subGraph.outputSlots.Count);
+                Assert.IsFalse(subGraph.outputSlots.Any(o => o == null));
+            }
+            yield return null;
+
+            //Here, restore to the previous state, if one outputSlot is null, then we did a resync slot during compilation
+            {
+                File.WriteAllText(testSubgraphSubOperatorAssetName, twoOutputState);
+                AssetDatabase.Refresh();
+
+                AssetDatabase.ImportAsset(testAssetMainSubgraph);
+                var mainAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetMainSubgraph);
+                var mainGraph = mainAsset.GetOrCreateResource().GetOrCreateGraph();
+
+                var subGraph = mainGraph.children.OfType<VFXSubgraphOperator>().FirstOrDefault();
+                Assert.IsNotNull(subGraph);
+                Assert.AreEqual(2, subGraph.outputSlots.Count);
+                Assert.IsFalse(subGraph.outputSlots.Any(o => o == null));
+            }
+            yield return null;
+
+            //Finally, open the source asset it will crash if the vfxasset is wrongly formed
+            resource = VisualEffectResource.GetResourceAtPath(testAssetMainSubgraph);
+            window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            window.LoadResource(resource, null);
+
+            for (int i = 0; i < 16; ++i)
+                yield return null;
+        }
     }
 }
 #endif
