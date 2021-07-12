@@ -64,7 +64,6 @@ namespace UnityEditor.VFX
         bool showGeneralCategory;
         bool showRendererCategory;
         bool showPropertyCategory;
-        float lastPlayRate = -1f;
 
         protected SerializedProperty m_VisualEffectAsset;
         SerializedProperty m_ReseedOnPlay;
@@ -110,11 +109,6 @@ namespace UnityEditor.VFX
                 .ForEach(x => x.playRate = 1f);
             this.selectedVisualEffects.Clear();
             this.selectedVisualEffects.AddRange(newSelection);
-
-            if (m_VisualEffectAsset == null)
-            {
-                this.lastPlayRate = -1f;
-            }
         }
 
         protected void OnEnable()
@@ -529,17 +523,21 @@ namespace UnityEditor.VFX
             }
             GUILayout.EndHorizontal();
 
-            float playRate = this.lastPlayRate < 0
-                ? effects.First().playRate
-                : effects.FirstOrDefault(x => x.playRate != this.lastPlayRate)?.playRate ?? effects.First().playRate;
-            this.lastPlayRate = playRate;
+
+            var playRates = effects.Select(x => x.playRate).Distinct().ToArray();
+            float playRate = playRates[0];
 
             float playRateValue = playRate * VisualEffectControl.playRateToValue;
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Contents.playRate, GUILayout.Width(46));
-            playRateValue = EditorGUILayout.PowerSlider("", playRateValue, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
-            effects.ForEach(x => x.playRate = playRateValue * VisualEffectControl.valueToPlayRate);
+            EditorGUI.showMixedValue = playRates.Length > 1;
+            var newPlayRateVal = EditorGUILayout.PowerSlider("", (float)Math.Round(playRateValue), VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
+            EditorGUI.showMixedValue = false;
+            if (playRate >= 0 && GUI.changed)
+            {
+                effects.ForEach(x => x.playRate = newPlayRateVal * VisualEffectControl.valueToPlayRate);
+            }
 
             var eventType = Event.current.type;
             if (EditorGUILayout.DropdownButton(Contents.setPlayRate, FocusType.Passive, GUILayout.Width(40)))
