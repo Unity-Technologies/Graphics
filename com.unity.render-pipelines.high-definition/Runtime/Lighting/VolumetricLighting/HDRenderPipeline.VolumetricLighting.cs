@@ -950,8 +950,67 @@ namespace UnityEngine.Rendering.HighDefinition
             return TextureHandle.nullHandle;
         }
 
-        static void VoxelizeComputeLocalVolumetricFogs(LocalVolumetricFog computeLocalVolume, RTHandle vBuffer, CommandBuffer cmd)
+        class SingleComputeLocalVolumeData
         {
+            public ShaderVariablesVolumetric volumetricCB;
+            public Vector4 resolution;
+            public int viewCount;
+            public LocalVolumetricFog computeLocalVolume;
+            public TextureHandle vBuffer;
+            public int kernel;
+        }
+
+        void VoxelizeComputeLocalVolumetricFogs(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle vBuffer)
+        {
+            for (int i = 0; i < m_VisibleComputeLocalVolumes.Count; i++)
+            {
+                var v = m_VisibleComputeLocalVolumes[i];
+                if (v.localVolumetricFogCompute == null) continue;
+
+                var m = Matrix4x4.TRS(v.transform.position, v.transform.rotation, v.transform.lossyScale);
+
+                v.localVolumetricFogCompute.SetMatrix("VolumeMatrix", m);
+                v.localVolumetricFogCompute.SetMatrix("InvVolumeMatrix", m.inverse);
+
+                using (var builder = renderGraph.AddRenderPass<SingleComputeLocalVolumeData>("Voxelize single compute volume", out var passData))
+                {
+                    int frameIndex = (int)VolumetricFrameIndex(hdCamera);
+                    var currIdx = (frameIndex + 0) & 1;
+                    var prevIdx = (frameIndex + 1) & 1;
+
+                    var currParams = hdCamera.vBufferParams[currIdx];
+
+                    passData.viewCount = hdCamera.viewCount;
+
+                    var cvp = currParams.viewportSize;
+
+                    passData.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
+                    passData.kernel = v.localVolumetricFogCompute.FindKernel("CSMain");
+                    passData.volumetricCB = m_ShaderVariablesVolumetricCB;
+                    passData.computeLocalVolume = v;
+                    passData.vBuffer = builder.WriteTexture(vBuffer);
+
+                    builder.SetRenderFunc(
+                        (SingleComputeLocalVolumeData data, RenderGraphContext ctx) =>
+                        {
+                            /*
+                            VoxelizeComputeLocalVolumetricFogs(
+                                data.computeLocalVolume,
+                                data.vBuffer,
+                                ctx.cmd);
+                            */
+
+                            // CustomDensityVolumesManager.ApplyCustomDensityVolumes(hdCamera, ctx.cmd, 0);
+
+                            ctx.cmd.SetGlobalVector("VolumeTime", Vector4.one * Time.realtimeSinceStartup);
+                            ctx.cmd.SetComputeTextureParam(data.computeLocalVolume.localVolumetricFogCompute, data.kernel, HDShaderIDs._VBufferDensity, data.vBuffer);
+
+                            ConstantBuffer.Push(ctx.cmd, data.volumetricCB, data.computeLocalVolume.localVolumetricFogCompute, HDShaderIDs._ShaderVariablesVolumetric);
+                            ConstantBuffer.Set<ShaderVariablesLightList>(ctx.cmd, data.computeLocalVolume.localVolumetricFogCompute, HDShaderIDs._ShaderVariablesLightList);
+                            ctx.cmd.DispatchCompute(data.computeLocalVolume.localVolumetricFogCompute, data.kernel, ((int)data.resolution.x + 7) / 8, ((int)data.resolution.y + 7) / 8, data.viewCount);
+                        });
+                }
+            }
         }
 
         // Ref: https://en.wikipedia.org/wiki/Close-packing_of_equal_spheres
