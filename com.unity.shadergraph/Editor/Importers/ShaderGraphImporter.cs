@@ -68,7 +68,6 @@ Shader ""Hidden/GraphErrorShader2""
             }
             fixed4 frag (v2f i) : SV_Target
             {
-                $errors$
                 return fixed4(1,0,1,1);
             }
             ENDCG
@@ -114,6 +113,8 @@ Shader ""Hidden/GraphErrorShader2""
             var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
             if (oldShader != null)
                 ShaderUtil.ClearShaderMessages(oldShader);
+
+            var importLog = new AssetImportErrorLog(ctx);
 
             List<PropertyCollector.TextureInfo> configuredTextures;
             string path = ctx.assetPath;
@@ -164,7 +165,7 @@ Shader ""Hidden/GraphErrorShader2""
                 }
 #endif
 
-                ReportErrors(graph, shader, path);
+                ReportErrors(graph, shader, path, importLog);
 
                 EditorMaterialUtility.SetShaderDefaults(
                     shader,
@@ -326,7 +327,7 @@ Shader ""Hidden/GraphErrorShader2""
                     // Ensure that dependency path is relative to project
                     if (!string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/") && !assetPath.StartsWith("Assets/"))
                     {
-                        Debug.LogWarning($"Invalid dependency path: {assetPath}", mainObject);
+                        importLog.LogWarning($"Invalid dependency path: {assetPath}", mainObject);
                     }
                 }
 
@@ -340,12 +341,41 @@ Shader ""Hidden/GraphErrorShader2""
             }
         }
 
-        static void ReportErrors(GraphData graph, Shader shader, string path)
+        internal class AssetImportErrorLog : MessageManager.IErrorLog
+        {
+            AssetImportContext ctx;
+            public AssetImportErrorLog(AssetImportContext ctx)
+            {
+                this.ctx = ctx;
+            }
+
+            public void LogError(string message, UnityEngine.Object context = null)
+            {
+                // Note: if you get sent here by clicking on a ShaderGraph error message,
+                // this is a bug in the scripted importer system, not being able to link import error messages to the imported asset
+                ctx.LogImportError(message, context);
+            }
+            public void LogWarning(string message, UnityEngine.Object context = null)
+            {
+                ctx.LogImportWarning(message, context);
+            }
+        }
+
+        static bool NodeWasUsedByGraph(string nodeId, GraphData graphData)
+        {
+            var node = graphData.GetNodeFromId(nodeId);
+            return node?.wasUsedByGenerator ?? false;
+        }
+
+        // error messages should be reported through the asset import context, so that object references are translated properly (in the future), and the error is associated with the import
+        static void ReportErrors(GraphData graph, Shader shader, string path, AssetImportErrorLog importLog)
         {
             // Grab any messages from the shader compiler
             var messages = ShaderUtil.GetShaderMessages(shader);
 
-            bool anyNodeHasError = graph.messageManager.nodeMessagesChanged && graph.messageManager.AnyError();
+            var errors = graph.messageManager.ErrorStrings((nodeId) => NodeWasUsedByGraph(nodeId, graph));
+            int errCount = errors.Count();
+
             // Find the first compiler message that's an error
             int firstShaderUtilErrorIndex = -1;
             if (messages != null)
@@ -353,16 +383,30 @@ Shader ""Hidden/GraphErrorShader2""
 
             // Display only one message. Bias towards shader compiler messages over node messages and within that bias errors over warnings.
             if (firstShaderUtilErrorIndex != -1)
-                MessageManager.Log(path, messages[firstShaderUtilErrorIndex], shader);
-            else if (anyNodeHasError)
             {
-                // Not necessary anymore, as the Shader importer will report the errors
-                Debug.LogError($"Shader Graph at {path} has at least one error.");
+                // if shader compiler reported an error, show that
+                MessageManager.Log(path, messages[firstShaderUtilErrorIndex], shader, importLog);
+            }
+            else if (errCount > 0)
+            {
+                // otherwise show node errors
+                var firstError = errors.FirstOrDefault();
+                importLog.LogError($"Shader Graph at {path} has {errCount} error(s), the first is: {firstError}", shader);
             }
             else if (messages.Length != 0)
-                MessageManager.Log(path, messages[0], shader);
+            {
+                // otherwise show shader compiler warnings
+                MessageManager.Log(path, messages[0], shader, importLog);
+            }
             else if (graph.messageManager.nodeMessagesChanged)
-                Debug.LogWarning($"Shader Graph at {path} has at least one warning.");
+            {
+                // otherwise show node warnings
+                var warnings = graph.messageManager.ErrorStrings((nodeId) => NodeWasUsedByGraph(nodeId, graph), Rendering.ShaderCompilerMessageSeverity.Warning);
+                var warnCount = warnings.Count();
+                var firstWarning = warnings.FirstOrDefault();
+                if (warnCount > 0)
+                    importLog.LogWarning($"Shader Graph at {path} has {warnCount} warning(s), the first is: {firstWarning}", shader);
+            }
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph, GenerationMode mode = GenerationMode.ForReals, Target[] targets = null)
@@ -383,7 +427,8 @@ Shader ""Hidden/GraphErrorShader2""
                 shaderString = generator.generatedShader;
                 configuredTextures = generator.configuredTextures;
 
-                if (graph.messageManager.AnyError())
+                // we only care if an error was reported for a node that we actually used
+                if (graph.messageManager.AnyError((nodeId) => NodeWasUsedByGraph(nodeId, graph)))
                 {
                     shaderString = null;
                 }
@@ -400,13 +445,13 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 shaderString = k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
 
-                // inject all of the message manager errors into the error shader
-                StringBuilder errors = new StringBuilder();
-                foreach (var error in graph.messageManager.ErrorStrings())
-                {
-                    errors.AppendLine("#error " + error);
-                }
-                shaderString = shaderString.Replace("$errors$", errors.ToString());
+//                 // inject all of the Validation errors into the error shader as syntax errors
+//                 StringBuilder errors = new StringBuilder();
+//                 foreach (var error in graph.messageManager.ErrorStrings((nodeId) => NodeWasUsedMessageFilter(nodeId, graph)))
+//                 {
+//                     errors.AppendLine("#error " + error);
+//                 }
+//                 shaderString = shaderString.Replace("$errors$", errors.ToString());
             }
 
             return shaderString;

@@ -167,11 +167,14 @@ namespace UnityEditor.ShaderGraph
                 Debug.LogError($"Error in Shader Graph {graphName}:{ShaderKeyword.kVariantLimitWarning}");
 
                 m_ConfiguredTextures = shaderProperties.GetConfiguredTextures();
-                m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader.Replace("$errors$", "#error " + ShaderKeyword.kVariantLimitWarning));
+                m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader.Replace("Hidden/GraphErrorShader2", graphName));
             }
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
+            {
+                activeNode.SetUsedByGenerator();
                 activeNode.CollectShaderProperties(shaderProperties, m_Mode);
+            }
 
             // Collect excess shader properties from the TargetImplementation
             foreach (var target in m_Targets)

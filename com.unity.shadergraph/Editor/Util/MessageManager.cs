@@ -10,6 +10,28 @@ namespace UnityEditor.Graphing.Util
 {
     class MessageManager
     {
+        public interface IErrorLog
+        {
+            void LogError(string message, Object context);
+            void LogWarning(string message, Object context);
+        }
+
+        class DebugErrorLog : IErrorLog
+        {
+            private DebugErrorLog() { }
+            static DebugErrorLog _global = new DebugErrorLog();
+            public static DebugErrorLog Get() { return _global; }
+
+            public void LogError(string message, Object context = null)
+            {
+                Debug.LogError(message, context);
+            }
+            public void LogWarning(string message, Object context = null)
+            {
+                Debug.LogWarning(message, context);
+            }
+        }
+
         protected Dictionary<object, Dictionary<string, List<ShaderMessage>>> m_Messages =
             new Dictionary<object, Dictionary<string, List<ShaderMessage>>>();
 
@@ -143,43 +165,59 @@ namespace UnityEditor.Graphing.Util
             Debug.Log(output.ToString());
         }
 
-        public static void Log(AbstractMaterialNode node, string path, ShaderMessage message, Object context)
+        public static void Log(AbstractMaterialNode node, string path, ShaderMessage message, Object context, IErrorLog log = null)
         {
+            if (log == null)
+                log = DebugErrorLog.Get();
+
             var errString = $"{message.severity} in Graph at {path} at node {node.name}: {message.message}";
             if (message.severity == ShaderCompilerMessageSeverity.Error)
             {
-                Debug.LogError(errString, context);
+                log.LogError(errString, context);
             }
             else
             {
-                Debug.LogWarning(errString, context);
+                log.LogWarning(errString, context);
             }
         }
 
-        public static void Log(string path, ShaderMessage message, Object context)
+        public static void Log(string path, ShaderMessage message, Object context, IErrorLog log = null)
         {
+            if (log == null)
+                log = DebugErrorLog.Get();
+
             var errString = $"{message.severity} in Graph at {path} on line {message.line}: {message.message}";
             if (message.severity == ShaderCompilerMessageSeverity.Error)
             {
-                Debug.LogError(errString, context);
+                log.LogError(errString, context);
             }
             else
             {
-                Debug.LogWarning(errString, context);
+                log.LogWarning(errString, context);
             }
         }
 
-        public bool AnyError()
+        public bool AnyError(Func<string, bool> nodeFilter = null)
         {
-            foreach (var messages in m_Messages.Values)
+            if (m_Messages == null)
+                return false;
+
+            foreach (var kvp in m_Messages)
             {
-                foreach (List<ShaderMessage> messageList in messages.Values)
+                var errorProvider = kvp.Key;
+                var messageMap = kvp.Value;
+                foreach (var kvp2 in messageMap)
                 {
-                    foreach (var message in messageList)
+                    var nodeId = kvp2.Key;
+                    List<ShaderMessage> messageList = kvp2.Value;
+                    if ((nodeFilter == null) || nodeFilter(nodeId))
                     {
-                        if (message.severity == ShaderCompilerMessageSeverity.Error)
+                        foreach (var message in messageList)
                         {
-                            return true;
+                            if (message.severity == ShaderCompilerMessageSeverity.Error)
+                            {
+                                return true;
+                            }
                         }
                     }
                 }
@@ -187,17 +225,27 @@ namespace UnityEditor.Graphing.Util
             return false;
         }
 
-        public IEnumerable<string> ErrorStrings()
+        public IEnumerable<string> ErrorStrings(Func<string, bool> nodeFilter = null, ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
         {
-            foreach (var messages in m_Messages.Values)
+            if (m_Messages == null)
+                yield break;
+
+            foreach (var kvp in m_Messages)
             {
-                foreach (List<ShaderMessage> messageList in messages.Values)
+                var errorProvider = kvp.Key;
+                var messageMap = kvp.Value;
+                foreach (var kvp2 in messageMap)
                 {
-                    foreach (var message in messageList)
+                    var nodeId = kvp2.Key;
+                    if ((nodeFilter == null) || nodeFilter(nodeId))
                     {
-                        if (message.severity == ShaderCompilerMessageSeverity.Error)
+                        List<ShaderMessage> messageList = kvp2.Value;
+                        foreach (var message in messageList)
                         {
-                            yield return message.message;
+                            if (message.severity == severity)
+                            {
+                                yield return message.message;
+                            }
                         }
                     }
                 }
