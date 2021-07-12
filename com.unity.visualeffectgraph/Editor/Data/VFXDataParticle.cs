@@ -531,6 +531,15 @@ namespace UnityEditor.VFX
                     break;
                 m_Contexts.Add(contexts[index]);
             }
+            //Reset needsOwnSort flags
+            for (int outputIndex = index; outputIndex < contexts.Count; ++outputIndex)
+            {
+                var currentOutputContext = contexts[outputIndex];
+                var abstractParticleOutput = currentOutputContext as VFXAbstractParticleOutput;
+                if (abstractParticleOutput == null)
+                    continue;
+                abstractParticleOutput.needsOwnSort = false;
+            }
 
             var implicitContext = new List<VFXContext>();
             SortCriteria globalSortCriterion = SortCriteria.Distance; //TODO :Initialize differently ?
@@ -547,7 +556,7 @@ namespace UnityEditor.VFX
                 implicitContext.Add(globalSort);
                 m_Contexts.Add(globalSort);
             }
-
+            SortKeySlotComparer comparer = new SortKeySlotComparer();
             //additional update
             for (int outputIndex = index; outputIndex < contexts.Count; ++outputIndex)
             {
@@ -556,10 +565,10 @@ namespace UnityEditor.VFX
                 if (abstractParticleOutput == null)
                     continue;
 
-                SortKeySlotComparer comparer = new SortKeySlotComparer();
                 abstractParticleOutput.needsOwnSort = abstractParticleOutput.HasSorting() && needsGlobalSort &&
-                                                      (abstractParticleOutput.GetSortCriterion() != globalSortCriterion
-                                                       ||comparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"),globalSortKeySlot));
+                                                      abstractParticleOutput.GetSortCriterion() != globalSortCriterion
+                                                       || (abstractParticleOutput.GetSortCriterion() == SortCriteria.Custom
+                                                           && !comparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"),globalSortKeySlot));
                 if (abstractParticleOutput.NeedsOutputUpdate())
                 {
                     var update = VFXContext.CreateImplicitContext<VFXOutputUpdate>(this);
@@ -1026,7 +1035,7 @@ namespace UnityEditor.VFX
                 else
                     taskDescs.Add(taskDesc);
 
-                // if task is a per camera update with sorting, add sort tasks
+                // if task is a per output update with sorting, add sort tasks
                 if (context is VFXOutputUpdate)
                 {
                     var update = (VFXOutputUpdate)context;
@@ -1036,10 +1045,7 @@ namespace UnityEditor.VFX
                         for (int j = 0; j < update.bufferCount; ++j)
                         {
                             VFXEditorTaskDesc sortTaskDesc = new VFXEditorTaskDesc();
-                            sortTaskDesc.type = UnityEngine.VFX.VFXTaskType.PerCameraSort;
-                            // sortTaskDesc.type = update.HasFeature(VFXOutputUpdate.Features.CameraSort)
-                            //     ? UnityEngine.VFX.VFXTaskType.PerCameraSort
-                            //     : UnityEngine.VFX.VFXTaskType.CameraAgnosticSort;
+                            sortTaskDesc.type = UnityEngine.VFX.VFXTaskType.PerOutputSort;
                             sortTaskDesc.externalProcessor = null;
                             sortTaskDesc.model = context;
 
@@ -1054,8 +1060,9 @@ namespace UnityEditor.VFX
                                 sortTaskDesc.buffers[1] = new VFXMapping("scratchBuffer", -1); // No scratchBuffer needed
                             sortTaskDesc.buffers[2] = new VFXMapping("dstBuffer", update.sortedBufferIndex + j);
 
-                            sortTaskDesc.parameters = new VFXMapping[1];
+                            sortTaskDesc.parameters = new VFXMapping[2];
                             sortTaskDesc.parameters[0] = new VFXMapping("globalSort", 0);
+                            sortTaskDesc.parameters[1] = new VFXMapping("isPerCameraSort", update.isPerCamera ? 1 : 0);
 
                             taskDescs.Add(sortTaskDesc);
                         }

@@ -234,15 +234,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override IEnumerable<VFXMapping> additionalMappings
-        {
-            get
-            {
-                if(VFXSortingUtility.IsPerCamera(m_Output.GetSortCriterion()))
-                    yield return new VFXMapping("isPerCameraSort", 1);
-            }
-        }
-
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get

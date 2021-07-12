@@ -98,7 +98,7 @@ namespace UnityEditor.VFX
         protected SortMode sort = SortMode.Auto;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the sorting criterion.")]
-        protected VFXSortingUtility.SortCriteria sortCriterion = VFXSortingUtility.SortCriteria.Distance;
+        protected SortCriteria sortCriterion = SortCriteria.Distance;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the system will only output alive particles, as opposed to rendering all particles and culling dead ones in the vertex shader. Enable to improve performance when the system capacity is not reached or a high number of vertices per particle are used.")]
         protected bool indirectDraw = false;
@@ -140,7 +140,7 @@ namespace UnityEditor.VFX
 
         public bool needsOwnSort = false;
 
-        public VFXSortingUtility.SortCriteria GetSortCriterion() { return sortCriterion; }
+        public SortCriteria GetSortCriterion() { return sortCriterion; }
 
 
 
