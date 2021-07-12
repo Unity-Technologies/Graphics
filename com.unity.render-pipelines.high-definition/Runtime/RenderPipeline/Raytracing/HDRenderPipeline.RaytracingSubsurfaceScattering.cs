@@ -203,6 +203,8 @@ namespace UnityEngine.Rendering.HighDefinition
             filterParams.historyValidity = historyValidity;
             filterParams.occluderMotionRejection = false;
             filterParams.receiverMotionRejection = true;
+            filterParams.exposureControl = 0.0f;
+
             return GetTemporalFilter().Denoise(renderGraph, hdCamera, filterParams,
                 rayTracedSSS, renderGraph.defaultResources.blackTextureXR, historyBuffer,
                 depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
