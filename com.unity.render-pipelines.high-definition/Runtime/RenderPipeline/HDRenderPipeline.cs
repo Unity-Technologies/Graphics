@@ -17,6 +17,10 @@ using UnityEditor.Rendering;
 using UnityEngine.Rendering.VirtualTexturing;
 #endif
 
+// Resove the ambiguity in the RendererList name (pick the in-engine version)
+using RendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using RendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
+
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -1017,6 +1021,15 @@ namespace UnityEngine.Rendering.HighDefinition
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             Render(renderContext, new List<Camera>(cameras));
+        }
+
+#endif
+
+#if UNITY_2021_1_OR_NEWER
+        // Only for internal use, outside of SRP people can call Camera.Render()
+        internal void InternalRender(ScriptableRenderContext renderContext, List<Camera> cameras)
+        {
+            Render(renderContext, cameras);
         }
 
 #endif
