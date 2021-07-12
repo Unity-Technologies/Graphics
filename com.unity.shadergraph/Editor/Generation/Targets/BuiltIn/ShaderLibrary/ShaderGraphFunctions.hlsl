@@ -57,7 +57,12 @@ float3 shadergraph_LWReflectionProbe(float3 viewDir, float3 normalOS, float lod)
 void shadergraph_LWFog(float3 position, out float4 color, out float density)
 {
     color = unity_FogColor;
+    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+    // ComputeFogFactor returns the fog density (0 for no fog and 1 for full fog).
     density = ComputeFogFactor(TransformObjectToHClip(position).z);
+    #else
+    density = 0.0f;
+    #endif
 }
 
 // This function assumes the bitangent flip is encoded in tangentWS.w
