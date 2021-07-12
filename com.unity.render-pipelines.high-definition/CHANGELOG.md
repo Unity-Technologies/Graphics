@@ -291,6 +291,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Prevent user from spamming and corrupting installation of nvidia package.
 - Fixed an issue with surface gradient based normal blending for decals (volume gradients weren't converted to SG before resolving in some cases).
 - Fixed distortion when resizing the graphics compositor window in builds (case 1328968).
+- Fixed custom pass workflow for single camera effects.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
