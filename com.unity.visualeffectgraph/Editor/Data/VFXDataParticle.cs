@@ -566,8 +566,8 @@ namespace UnityEditor.VFX
                     continue;
 
                 abstractParticleOutput.needsOwnSort = abstractParticleOutput.HasSorting() && needsGlobalSort &&
-                                                      abstractParticleOutput.GetSortCriterion() != globalSortCriterion
-                                                       || (abstractParticleOutput.GetSortCriterion() == SortCriteria.Custom
+                                                      (abstractParticleOutput.GetSortCriterion() != globalSortCriterion
+                                                       || abstractParticleOutput.GetSortCriterion() == SortCriteria.Custom
                                                            && !comparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"),globalSortKeySlot));
                 if (abstractParticleOutput.NeedsOutputUpdate())
                 {
