@@ -397,7 +397,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // PB Sun/Sky settings
             var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
             cb._PhysicallyBasedSun =  visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased ? 1 : 0;
-            Light currentSun = GetMainDirectionalLight();
+            Light currentSun = GetCurrentSunLight();
             if (currentSun != null)
             {
                 // Grab the target sun additional data
@@ -611,7 +611,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.worley32RGB = m_Asset.renderPipelineResources.textures.worleyNoise32RGB;
             BlueNoise blueNoise = GetBlueNoiseManager();
             parameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
-            parameters.sunLight = GetMainDirectionalLight();
+            parameters.sunLight = GetCurrentSunLight();
             parameters.enableExposureControl = hdCamera.exposureControlFS;
 
             // MSAA support

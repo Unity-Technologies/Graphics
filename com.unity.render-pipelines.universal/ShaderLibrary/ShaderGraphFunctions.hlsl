@@ -9,7 +9,7 @@
 #define SHADERGRAPH_AMBIENT_SKY unity_AmbientSky
 #define SHADERGRAPH_AMBIENT_EQUATOR unity_AmbientEquator
 #define SHADERGRAPH_AMBIENT_GROUND unity_AmbientGround
-#define SHADERGRAPH_GET_SUN_LIGHT shadergraph_URPGetSunLight
+#define SHADERGRAPH_GET_MAIN_LIGHT shadergraph_URPGetMainLight
 
 
 #if defined(REQUIRE_DEPTH_TEXTURE)
@@ -92,7 +92,7 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
     return tangentToWorld;
 }
 
-void shadergraph_URPGetSunLight(out float3 direction, out float3 color)
+void shadergraph_URPGetMainLight(out float3 direction, out float3 color)
 {
     Light light = GetMainLight();
     direction = light.direction;

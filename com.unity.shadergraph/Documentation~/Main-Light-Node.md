@@ -1,8 +1,8 @@
-# Get Sun Light Node
+# Get Main Light Node
 
 ## Description
 
-Provides access to the direction and color of the main directional light.
+Provides access to the direction and color of the main directional light in the scene.
 The main directional light is the one casting shadows if there is any. Otherwise, it fallbacks to the first non shadow casting directional light.
 
 ### Ports

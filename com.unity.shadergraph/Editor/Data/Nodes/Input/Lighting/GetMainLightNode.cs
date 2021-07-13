@@ -3,22 +3,22 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input", "Lighting", "Sun Light")]
-    class GetSunLightNode : CodeFunctionNode
+    [Title("Input", "Lighting", "Main Light")]
+    class GetMainLightNode : CodeFunctionNode
     {
-        public GetSunLightNode()
+        public GetMainLightNode()
         {
-            name = "GetSunLight";
+            name = "Main Light";
         }
 
         public override bool hasPreview { get { return false; } }
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            return GetType().GetMethod("GetSunLight", BindingFlags.Static | BindingFlags.NonPublic);
+            return GetType().GetMethod("GetMainLight", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
-        static string GetSunLight(
+        static string GetMainLight(
             [Slot(0, Binding.None)] out Vector3 Direction,
             [Slot(1, Binding.None)] out Vector3 Color)
         {
@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
     Direction = half3(0.5, 0.5, 0);
     Color = 1;
     #else
-    SHADERGRAPH_GET_SUN_LIGHT(Direction, Color);
+    SHADERGRAPH_GET_MAIN_LIGHT(Direction, Color);
     #endif
 }
 ";

@@ -640,12 +640,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_CurrentShadowSortedSunLightIndex = -1;
         HDAdditionalLightData m_CurrentSunLightAdditionalLightData;
         DirectionalLightData m_CurrentSunLightDirectionalLightData;
-
-        /// <summary>
-        /// Main directional Light for the HD Render Pipeline.
-        /// </summary>
-        /// <returns>The main directional Light.</returns>
-        public Light GetMainDirectionalLight() => m_CurrentSunLight;
+        internal Light GetCurrentSunLight() { return m_CurrentSunLight; }
 
         // Screen space shadow data
         struct ScreenSpaceShadowData
@@ -1187,7 +1182,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeHeight),
                 position = light.GetPosition()
             };
-            if (lightComponent == GetMainDirectionalLight())
+            if (lightComponent == GetCurrentSunLight())
             {
                 // If this is the current sun light and volumetric cloud shadows are enabled we need to render the shadows
                 if (HasVolumetricCloudsShadows_IgnoreSun(hdCamera))
