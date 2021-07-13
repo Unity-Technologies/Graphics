@@ -50,6 +50,9 @@ namespace UnityEngine.Experimental.Rendering
             public List<ReservedBrick> bricks;
         }
 
+        // This is a representation of the index buffer where the entry is a cell flat Idx
+        int[,,] m_PhysicalIndexCellMapping;
+
         ComputeBuffer   m_IndexBuffer;
         int[]           m_IndexBufferData;
         Vector3Int      m_IndexDim;
@@ -84,6 +87,7 @@ namespace UnityEngine.Experimental.Rendering
             m_IndexBuffer = new ComputeBuffer(index_size, sizeof(int), ComputeBufferType.Structured);
 #endif
             m_IndexBufferData = new int[index_size];
+            m_PhysicalIndexCellMapping = new int[indexDimensions.x, indexDimensions.y, indexDimensions.z];
             m_NeedUpdateIndexComputeBuffer = false;
             // Should be done by a compute shader
             Clear();
