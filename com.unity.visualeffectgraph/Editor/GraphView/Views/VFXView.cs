@@ -166,7 +166,7 @@ namespace UnityEditor.VFX.UI
                     GUI.enabled = isAttached;
                     if (GUILayout.Button(attachedButtonLabel, GUILayout.Height(24), GUILayout.MinWidth(60)))
                     {
-                        Selection.activeObject = this.m_vfxView.attachedComponent;
+                        Selection.activeObject = this.m_vfxView.attachedComponent?.gameObject;
                     }
                 }
 
