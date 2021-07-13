@@ -14,7 +14,8 @@ public class AutoLoadPipelineAsset : MonoBehaviour
         if (m_PipelineAsset && GraphicsSettings.renderPipelineAsset != m_PipelineAsset)
         {
             m_PreviousPipelineAsset = GraphicsSettings.renderPipelineAsset;
-            GraphicsSettings.renderPipelineAsset = m_PipelineAsset;
+            //GraphicsSettings.renderPipelineAsset = m_PipelineAsset;
+            QualitySettings.renderPipeline = m_PipelineAsset;
         }
     }
 
@@ -22,7 +23,7 @@ public class AutoLoadPipelineAsset : MonoBehaviour
     {
         if (m_PreviousPipelineAsset)
         {
-            GraphicsSettings.renderPipelineAsset = m_PreviousPipelineAsset;
+            QualitySettings.renderPipeline = m_PreviousPipelineAsset;
         }
     }
 }

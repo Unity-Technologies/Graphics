@@ -18,16 +18,14 @@ MonoBehaviour:
   m_RendererData: {fileID: 0}
   m_RendererDataList:
   - {fileID: 11400000, guid: 73aaea17d5ba84b43bb1279840f57989, type: 2}
-  - {fileID: 11400000, guid: 8e323ecf9b8164ce6b844dc7a91b241a, type: 2}
-  - {fileID: 11400000, guid: fe0805910be03443e8db5511136ece6c, type: 2}
-  - {fileID: 11400000, guid: 7f89ffbe67972458c800ca6eed4e1490, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
   m_OpaqueDownsampling: 1
   m_SupportsTerrainHoles: 1
+  m_StoreActionsOptimization: 0
   m_SupportsHDR: 1
-  m_MSAA: 4
+  m_MSAA: 2
   m_RenderScale: 1
   m_MainLightRenderingMode: 1
   m_MainLightShadowsSupported: 1
@@ -39,7 +37,9 @@ MonoBehaviour:
   m_AdditionalLightsShadowResolutionTierLow: 512
   m_AdditionalLightsShadowResolutionTierMedium: 1024
   m_AdditionalLightsShadowResolutionTierHigh: 2048
-  m_ShadowDistance: 50
+  m_ReflectionProbeBlending: 0
+  m_ReflectionProbeBoxProjection: 0
+  m_ShadowDistance: 30
   m_ShadowCascadeCount: 4
   m_Cascade2Split: 0.25
   m_Cascade3Split: {x: 0.1, y: 0.3}
@@ -48,9 +48,12 @@ MonoBehaviour:
   m_ShadowDepthBias: 1
   m_ShadowNormalBias: 0
   m_SoftShadowsSupported: 1
+  m_AdditionalLightsCookieResolution: 2048
+  m_AdditionalLightsCookieFormat: 3
   m_UseSRPBatcher: 1
   m_SupportsDynamicBatching: 0
   m_MixedLightingSupported: 1
+  m_SupportsLightLayers: 0
   m_DebugLevel: 0
   m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 1
@@ -62,4 +65,5 @@ MonoBehaviour:
   m_MaxPixelLights: 0
   m_ShadowAtlasResolution: 256
   m_ShaderVariantLogLevel: 0
+  m_VolumeFrameworkUpdateMode: 0
   m_ShadowCascades: 0

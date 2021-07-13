@@ -1579,7 +1579,7 @@ GameObject:
   - component: {fileID: 1434764562}
   - component: {fileID: 1434764560}
   m_Layer: 0
-  m_Name: GunCam
+  m_Name: Gun Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3338,7 +3338,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2148271877166492642, guid: 8089b5fe6d8304423814ff197221f77d, type: 3}
       propertyPath: m_Name
-      value: FirstPersonPlayer
+      value: Cameras
       objectReference: {fileID: 0}
     - target: {fileID: 4212382672143566193, guid: 8089b5fe6d8304423814ff197221f77d, type: 3}
       propertyPath: m_RootOrder
@@ -3396,6 +3396,10 @@ PrefabInstance:
       propertyPath: m_Cameras.Array.data[0]
       value: 
       objectReference: {fileID: 1434764562}
+    - target: {fileID: 8157311212398424292, guid: 8089b5fe6d8304423814ff197221f77d, type: 3}
+      propertyPath: m_Name
+      value: Level Camera
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8089b5fe6d8304423814ff197221f77d, type: 3}
 --- !u!4 &8282558930070009748 stripped
