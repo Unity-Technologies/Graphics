@@ -90,6 +90,7 @@ namespace UnityEngine.Experimental.Rendering
             m_CellMin = cellMin;
             m_CellSizeInMinBricks = cellSizeInMinBricks;
             int flatCellCount = cellCount.x * cellCount.y * cellCount.z;
+            flatCellCount = flatCellCount == 0 ? 1 : flatCellCount;
             int entryPerCell = 2;
             int bufferSize = entryPerCell * flatCellCount;
             m_IndexOfIndicesBuffer = new ComputeBuffer(flatCellCount, 2 * sizeof(uint));
