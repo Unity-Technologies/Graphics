@@ -487,7 +487,10 @@ namespace UnityEditor.VFX
 
         protected virtual void SceneViewGUICallback()
         {
-            List<VisualEffect> effects = targets.OfType<VisualEffect>().ToList();
+            List<VisualEffect> effects = targets
+                .OfType<VisualEffect>()
+                .Where(x => x != null)
+                .ToList();
             if (effects.Count == 0)
                 return;
 
