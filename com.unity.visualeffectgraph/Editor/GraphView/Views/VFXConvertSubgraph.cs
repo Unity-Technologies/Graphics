@@ -274,6 +274,13 @@ namespace UnityEditor.VFX.UI
                 TransferEdges();
                 TransfertOperatorOutputEdges();
                 Uninit();
+
+                //The PrepareSubgraphs was initially in compilation
+                //This change has been canceled to prevent creation of model in the wrong place
+                //Be sure the newly created operator has expected slot
+                var subGraphOperator = m_SourceNode as VFXSubgraphOperator;
+                subGraphOperator.RecreateCopy();
+                subGraphOperator.ResyncSlots(true);
             }
 
             List<VFXBlockController> m_SourceBlockControllers;

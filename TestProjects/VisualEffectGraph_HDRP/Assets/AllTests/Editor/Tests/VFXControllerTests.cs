@@ -1048,6 +1048,12 @@ namespace UnityEditor.VFX.Test
             for (int i = 0; i < 32; ++i)
                 yield return null;
 
+            //Check the status of the newly integrated subgraph, expecting one output
+            var subgraph = viewController.graph.children.OfType<VFXSubgraphOperator>().FirstOrDefault();
+            Assert.IsNotNull(subgraph);
+            Assert.AreEqual(1, subgraph.outputSlots.Count);
+            Assert.IsFalse(subgraph.outputSlots.Any(s => s == null));
+
             //If we reach here without any error or crash, the bug has been fixed
             window.graphView.controller = null;
         }
