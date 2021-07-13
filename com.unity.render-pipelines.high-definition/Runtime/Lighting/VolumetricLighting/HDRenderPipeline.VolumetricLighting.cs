@@ -762,7 +762,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             m_VisibleVolumeBounds.Add(obb);
                             m_VisibleVolumeData.Add(data);
                         }
-                        else if (volume.localVolumetricFogType == LocalVolumetricFogType.Compute)
+                        else if (volume.localVolumetricFogType == LocalVolumetricFogType.Compute && volume.localVolumetricFogCompute != null)
                         {
                             m_VisibleComputeLocalVolumes.Add(volume);
                         }
@@ -955,61 +955,50 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesVolumetric volumetricCB;
             public Vector4 resolution;
             public int viewCount;
-            public LocalVolumetricFog computeLocalVolume;
+            public List<LocalVolumetricFog> computeLocalVolumes;
             public TextureHandle vBuffer;
             public int kernel;
         }
 
         void VoxelizeComputeLocalVolumetricFogs(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle vBuffer)
         {
-            for (int i = 0; i < m_VisibleComputeLocalVolumes.Count; i++)
+            using (var builder = renderGraph.AddRenderPass<SingleComputeLocalVolumeData>("Voxelize single compute volume", out var passData))
             {
-                var v = m_VisibleComputeLocalVolumes[i];
-                if (v.localVolumetricFogCompute == null) continue;
+                passData.computeLocalVolumes = m_VisibleComputeLocalVolumes;
+                int frameIndex = (int)VolumetricFrameIndex(hdCamera);
+                var currIdx = (frameIndex + 0) & 1;
+                var prevIdx = (frameIndex + 1) & 1;
 
-                var m = Matrix4x4.TRS(v.transform.position, v.transform.rotation, v.transform.lossyScale);
+                var currParams = hdCamera.vBufferParams[currIdx];
 
-                v.localVolumetricFogCompute.SetMatrix("VolumeMatrix", m);
-                v.localVolumetricFogCompute.SetMatrix("InvVolumeMatrix", m.inverse);
+                passData.viewCount = hdCamera.viewCount;
 
-                using (var builder = renderGraph.AddRenderPass<SingleComputeLocalVolumeData>("Voxelize single compute volume", out var passData))
-                {
-                    int frameIndex = (int)VolumetricFrameIndex(hdCamera);
-                    var currIdx = (frameIndex + 0) & 1;
-                    var prevIdx = (frameIndex + 1) & 1;
+                var cvp = currParams.viewportSize;
 
-                    var currParams = hdCamera.vBufferParams[currIdx];
+                passData.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
+                passData.volumetricCB = m_ShaderVariablesVolumetricCB;
+                passData.vBuffer = builder.WriteTexture(vBuffer);
 
-                    passData.viewCount = hdCamera.viewCount;
-
-                    var cvp = currParams.viewportSize;
-
-                    passData.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
-                    passData.kernel = v.localVolumetricFogCompute.FindKernel("CSMain");
-                    passData.volumetricCB = m_ShaderVariablesVolumetricCB;
-                    passData.computeLocalVolume = v;
-                    passData.vBuffer = builder.WriteTexture(vBuffer);
-
-                    builder.SetRenderFunc(
-                        (SingleComputeLocalVolumeData data, RenderGraphContext ctx) =>
+                builder.SetRenderFunc(
+                    (SingleComputeLocalVolumeData data, RenderGraphContext ctx) =>
+                    {
+                        for (int i = 0; i < passData.computeLocalVolumes.Count; i++)
                         {
-                            /*
-                            VoxelizeComputeLocalVolumetricFogs(
-                                data.computeLocalVolume,
-                                data.vBuffer,
-                                ctx.cmd);
-                            */
+                            var v = m_VisibleComputeLocalVolumes[i];
+                            passData.kernel = v.localVolumetricFogCompute.FindKernel("CSMain");
 
-                            // CustomDensityVolumesManager.ApplyCustomDensityVolumes(hdCamera, ctx.cmd, 0);
+                            var m = Matrix4x4.TRS(v.transform.position, v.transform.rotation, v.transform.lossyScale);
 
                             ctx.cmd.SetGlobalVector("VolumeTime", Vector4.one * Time.realtimeSinceStartup);
-                            ctx.cmd.SetComputeTextureParam(data.computeLocalVolume.localVolumetricFogCompute, data.kernel, HDShaderIDs._VBufferDensity, data.vBuffer);
+                            ctx.cmd.SetComputeTextureParam(data.computeLocalVolumes[i].localVolumetricFogCompute, data.kernel, HDShaderIDs._VBufferDensity, data.vBuffer);
 
-                            ConstantBuffer.Push(ctx.cmd, data.volumetricCB, data.computeLocalVolume.localVolumetricFogCompute, HDShaderIDs._ShaderVariablesVolumetric);
-                            ConstantBuffer.Set<ShaderVariablesLightList>(ctx.cmd, data.computeLocalVolume.localVolumetricFogCompute, HDShaderIDs._ShaderVariablesLightList);
-                            ctx.cmd.DispatchCompute(data.computeLocalVolume.localVolumetricFogCompute, data.kernel, ((int)data.resolution.x + 7) / 8, ((int)data.resolution.y + 7) / 8, data.viewCount);
-                        });
-                }
+                            ConstantBuffer.Push(ctx.cmd, data.volumetricCB, data.computeLocalVolumes[i].localVolumetricFogCompute, HDShaderIDs._ShaderVariablesVolumetric);
+                            ConstantBuffer.Set<ShaderVariablesLightList>(ctx.cmd, data.computeLocalVolumes[i].localVolumetricFogCompute, HDShaderIDs._ShaderVariablesLightList);
+                            ctx.cmd.SetComputeMatrixParam(data.computeLocalVolumes[i].localVolumetricFogCompute, "VolumeMatrix", m);
+                            ctx.cmd.SetComputeMatrixParam(data.computeLocalVolumes[i].localVolumetricFogCompute, "InvVolumeMatrix", m.inverse);
+                            ctx.cmd.DispatchCompute(data.computeLocalVolumes[i].localVolumetricFogCompute, data.kernel, ((int)data.resolution.x + 7) / 8, ((int)data.resolution.y + 7) / 8, data.viewCount);
+                        }
+                    });
             }
         }
 
