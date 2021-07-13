@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
 
             if (radiusProperty.isEditable)
             {
-                using (new Handles.DrawingScope(Handles.matrix * ConvertTransformToMatrix(circle.transform)))
+                using (new Handles.DrawingScope(Handles.matrix * circle.transform))
                 {
                     for (int i = 0; i < countVisible && i < s_RadiusDirections.Length; ++i)
                     {
@@ -64,7 +64,7 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(TCircle circle)
         {
-            using (new Handles.DrawingScope(Handles.matrix * ConvertTransformToMatrix(circle.transform)))
+            using (new Handles.DrawingScope(Handles.matrix * circle.transform))
             {
                 // Draw circle around the arc
                 Handles.DrawWireDisc(Vector3.zero, -Vector3.forward, circle.radius);
@@ -106,7 +106,7 @@ namespace UnityEditor.VFX
             float radius = arcCircle.circle.radius;
             float arc = arcCircle.arc * Mathf.Rad2Deg;
 
-            using (new Handles.DrawingScope(Handles.matrix * ConvertTransformToMatrix(arcCircle.circle.transform)))
+            using (new Handles.DrawingScope(Handles.matrix * arcCircle.circle.transform))
             {
                 Handles.DrawWireArc(Vector3.zero, -Vector3.forward, Vector3.up, arc, radius);
                 ArcGizmo(Vector3.zero, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f));

@@ -222,6 +222,21 @@ namespace UnityEditor.VFX
         public Vector3 scale;
 
         public static Transform defaultValue = new Transform { scale = Vector3.one };
+
+        public static implicit operator Matrix4x4(Transform t)
+        {
+            return Matrix4x4.TRS(t.position, Quaternion.Euler(t.angles), t.scale);
+        }
+
+        public static implicit operator Transform(Matrix4x4 m)
+        {
+            return new Transform()
+            {
+                position = m.GetPosition(),
+                angles = m.rotation.eulerAngles,
+                scale = m.lossyScale
+            };
+        }
     }
 
     [VFXType, Serializable]

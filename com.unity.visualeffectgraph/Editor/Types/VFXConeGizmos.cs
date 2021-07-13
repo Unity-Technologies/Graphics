@@ -134,7 +134,7 @@ namespace UnityEditor.VFX
             gizmo.RotationGizmo(center, angles, anglesProperty, false);
             gizmo.ScaleGizmo(center, angles, scale, scaleProperty, false);
 
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(center, Quaternion.Euler(angles), scale)))
+            using (new Handles.DrawingScope(Handles.matrix * cone.transform))
             {
                 if (baseRadiusScreen > 2 && baseRadiusProperty.isEditable)
                 {
@@ -195,7 +195,7 @@ namespace UnityEditor.VFX
                 baseRadiusScreen = (HandleUtility.WorldToGUIPoint(extremities.bottomCap) - HandleUtility.WorldToGUIPoint(extremities.bottomCap + Vector3.forward * cone.baseRadius)).magnitude;
             }
 
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(cone.transform.position, Quaternion.Euler(cone.transform.angles), cone.transform.scale)))
+            using (new Handles.DrawingScope(Handles.matrix * cone.transform))
             {
                 Handles.DrawWireDisc(extremities.topCap, Vector3.up, cone.topRadius);
                 Handles.DrawWireDisc(extremities.bottomCap, Vector3.up, cone.baseRadius);
@@ -272,7 +272,7 @@ namespace UnityEditor.VFX
                 baseRadiusScreen = (HandleUtility.WorldToGUIPoint(extremities.bottomCap) - HandleUtility.WorldToGUIPoint(extremities.bottomCap + Vector3.forward * arcCone.cone.baseRadius)).magnitude;
             }
 
-            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.TRS(arcCone.cone.transform.position, Quaternion.Euler(arcCone.cone.transform.angles), arcCone.cone.transform.scale)))
+            using (new Handles.DrawingScope(Handles.matrix * arcCone.cone.transform))
             {
                 if (topRadiusScreen > 2)
                     Handles.DrawWireArc(extremities.topCap, Vector3.up, Vector3.forward, arc, arcCone.cone.topRadius);

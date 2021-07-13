@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
             gizmo.ScaleGizmo(torus.transform.position, torus.transform.angles, torus.transform.scale, scaleProperty, false);
 
             // Radius controls
-            using (new Handles.DrawingScope(Handles.matrix * ConvertTransformToMatrix(torus.transform) * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
+            using (new Handles.DrawingScope(Handles.matrix * torus.transform * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
             {
                 for (int i = 0; i < angles.Count(); ++i)
                 {
@@ -113,7 +113,7 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(TTorus torus)
         {
-            using (new Handles.DrawingScope(Handles.matrix * ConvertTransformToMatrix(torus.transform)))
+            using (new Handles.DrawingScope(Handles.matrix * torus.transform))
             {
                 Handles.DrawWireDisc(Vector3.forward * torus.minorRadius, Vector3.forward, torus.majorRadius);
                 Handles.DrawWireDisc(Vector3.back * torus.minorRadius, Vector3.forward, torus.majorRadius);
@@ -162,7 +162,7 @@ namespace UnityEditor.VFX
         public override void OnDrawSpacedGizmo(TArcTorus arcTorus)
         {
             var arc = arcTorus.arc * Mathf.Rad2Deg;
-            using (new Handles.DrawingScope(Handles.matrix * ConvertTransformToMatrix(arcTorus.torus.transform)))
+            using (new Handles.DrawingScope(Handles.matrix * arcTorus.torus.transform))
             {
                 var excessAngle = arc % 360f;
                 var angle = Mathf.Abs(arc) >= 360f ? 360f : excessAngle;
