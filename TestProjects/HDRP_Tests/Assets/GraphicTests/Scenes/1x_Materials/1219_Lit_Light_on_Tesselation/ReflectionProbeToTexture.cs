@@ -9,7 +9,7 @@ public class ReflectionProbeToTexture : MonoBehaviour
     [SerializeField] private ReflectionProbe targetProbe = null;
     [SerializeField] private bool correctGamma = false;
     [SerializeField] private bool boxLayout = false;
-    
+
     private Material blitMat;
     private Texture probeTexture;
     private Texture2D texture;
@@ -22,7 +22,7 @@ public class ReflectionProbeToTexture : MonoBehaviour
     }
 
     [ContextMenu("Refresh")]
-	public void Convert ()
+    public void Convert()
     {
         if (targetProbe != null)
         {
@@ -37,7 +37,7 @@ public class ReflectionProbeToTexture : MonoBehaviour
 
             RenderTexture dest = new RenderTexture(texture.width, texture.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
 
-            while (!targetProbe.IsFinishedRendering(renderID)) { };
+            while (!targetProbe.IsFinishedRendering(renderID)) {};
 
             probeTexture = targetProbe.texture;
 
@@ -52,7 +52,7 @@ public class ReflectionProbeToTexture : MonoBehaviour
 
             GetComponent<RawImage>().texture = texture;
         }
-	}
+    }
 
     [ContextMenu("RenderProbe")]
     public void RenderProbe()

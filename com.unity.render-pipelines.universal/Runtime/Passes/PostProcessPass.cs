@@ -523,8 +523,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                 {
                     cameraTarget = (m_Destination == RenderTargetHandle.CameraTarget) ? cameraTarget : m_Destination.Identifier();
+                    m_ResolveToScreen = cameraData.resolveFinalTarget || (m_Destination == cameraTargetHandle || m_HasFinalPass == true);
                 }
-
 
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
                 bool finishPostProcessOnScreen = m_ResolveToScreen;
