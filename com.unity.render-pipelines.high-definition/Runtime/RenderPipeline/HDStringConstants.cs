@@ -821,6 +821,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _OutputAlphaTexture             = Shader.PropertyToID("_OutputAlphaTexture");
         public static readonly int _InputNearAlphaTexture          = Shader.PropertyToID("_InputNearAlphaTexture");
         public static readonly int _CoCTargetScale                 = Shader.PropertyToID("_CoCTargetScale");
+        public static readonly int _DepthMinMaxAvg                 = Shader.PropertyToID("_DepthMinMaxAvg");
 
         public static readonly int _FlareTex                       = Shader.PropertyToID("_FlareTex");
         public static readonly int _FlareColorValue                = Shader.PropertyToID("_FlareColorValue");
