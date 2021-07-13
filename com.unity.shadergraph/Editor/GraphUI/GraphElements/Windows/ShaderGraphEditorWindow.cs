@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
 
         protected override void OnEnable()
         {
-            EditorToolName = "GTF Playground";
+            EditorToolName = "Shader Graph";
             WithSidePanel = false;
 
             base.OnEnable();

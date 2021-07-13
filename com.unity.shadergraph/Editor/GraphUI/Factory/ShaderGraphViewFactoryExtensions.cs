@@ -46,8 +46,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.Factory
             PortModel model)
         {
             var ui = (Port)GraphViewFactoryExtensions.CreatePort(elementBuilder, store, model);
-            ui.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                "Packages/com.unity.shadergraph/Stylesheets/ShaderGraphPorts.uss"));
+            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.unity.shadergraph/Editor/GraphUI/GraphElements/Stylesheets/ShaderGraphPorts.uss");
+            ui.styleSheets.Add(styleSheet);
             return ui;
         }
 
