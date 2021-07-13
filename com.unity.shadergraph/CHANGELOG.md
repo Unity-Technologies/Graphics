@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated Custom Function Node to use new ShaderInclude asset type instead of TextAsset (.hlsl and .cginc softcheck remains).
 - Change BranchOnInputNode to choose NotConnected branch when generating Preview
 - Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
+- ShaderGraph SubGraphs will now report errors and warnings in a condensed single error.
 
 ### Fixed
 - Fixed an issue where fog node density was incorrectly calculated.
@@ -115,6 +116,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a ShaderGraph issue where selecting a keyword property in the blackboard would invalidate all previews, causing them to recompile [1347666] (https://issuetracker.unity3d.com/product/unity/issues/guid/1347666/)
 - Fixed the incorrect value written to the VT feedback buffer when VT is not used.
 - Fixed ShaderGraph isNaN node, which was always returning false on Vulkan and Metal platforms.
+- Disconnected nodes with errors in ShaderGraph no longer cause the imports to fail [1349311] (https://issuetracker.unity3d.com/issues/shadergraph-erroring-unconnected-node-causes-material-to-become-invalid-slash-pink)
+- ShaderGraph SubGraphs now report node warnings in the same way ShaderGraphs do [1350282].
 
 ## [11.0.0] - 2020-10-21
 

@@ -444,14 +444,6 @@ Shader ""Hidden/GraphErrorShader2""
             if (shaderString == null)
             {
                 shaderString = k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
-
-//                 // inject all of the Validation errors into the error shader as syntax errors
-//                 StringBuilder errors = new StringBuilder();
-//                 foreach (var error in graph.messageManager.ErrorStrings((nodeId) => NodeWasUsedMessageFilter(nodeId, graph)))
-//                 {
-//                     errors.AppendLine("#error " + error);
-//                 }
-//                 shaderString = shaderString.Replace("$errors$", errors.ToString());
             }
 
             return shaderString;
