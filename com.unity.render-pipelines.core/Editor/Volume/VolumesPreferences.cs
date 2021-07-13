@@ -55,8 +55,6 @@ namespace UnityEditor.Rendering
 
         public GUIContent header { get; } = EditorGUIUtility.TrTextContent("Volumes");
 
-        public int height => 17;
-
         public void PreferenceGUI()
         {
             EditorGUI.BeginChangeCheck();

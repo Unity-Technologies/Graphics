@@ -61,8 +61,6 @@ namespace UnityEditor.Rendering
 
         public GUIContent header { get; } = EditorGUIUtility.TrTextContent("Additional Properties");
 
-        public int height => 17;
-
         static class Keys
         {
             internal const string showAllAdditionalProperties = "General.ShowAllAdditionalProperties";

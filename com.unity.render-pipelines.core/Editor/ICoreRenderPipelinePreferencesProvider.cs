@@ -10,7 +10,6 @@ namespace UnityEditor.Rendering
     {
         List<string> keywords { get; }
         GUIContent header { get; }
-        int height { get; }
         void PreferenceGUI();
     }
 }
