@@ -1,4 +1,4 @@
-[comment]: # (If you modify this fine make sure you modify the copy/paste file: com.unity.render-pipelines.high-definition and com.unity.render-pipelines.core\Documentation~\Common\lens-flare-data-driven-component.md)
+[comment]: # (If you modify this file make sure you modify the copy/paste file: com.unity.render-pipelines.high-definition and com.unity.render-pipelines.core\Documentation~\Common\lens-flare-data-driven-component.md)
 
 # Lens Flare (SRP) Component
 
