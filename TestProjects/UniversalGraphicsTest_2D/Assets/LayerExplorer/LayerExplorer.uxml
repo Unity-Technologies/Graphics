@@ -5,8 +5,10 @@
             <ui:VisualElement>
 
                 <ui:Box     class="BatchList HeaderContainer">
-                    <ui:Label         class="BatchList IndexColumn Header" text="Batch ID"/>
-                    <ui:VisualElement class="BatchList ColorColumn"/>
+                    <ui:Label     class="BatchList IndexColumn Header" text="Batch ID"/>
+                    <ui:VisualElement class="BatchList ColorColumn Container">
+                        <ui:Label text="|" class="BatchList ColorColumn Splitter"/>
+                    </ui:VisualElement>
                     <ui:Label         class="BatchList NameColumn Header" text="Layer Names"/>
                 </ui:Box>
 

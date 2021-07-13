@@ -9,7 +9,7 @@
 
 .BatchList.IndexColumn {
     margin-left: 5px;
-    width: 60px;
+    width: 65px;
 }
 
 .BatchList.ColorColumn {
@@ -23,6 +23,15 @@
 
 .BatchList.BatchContainer {
     flex-direction: row;
+}
+
+.BatchList.ColorColumn.Container {
+    align-items: center;
+}
+
+.BatchList.ColorColumn.Splitter {
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .BatchList.IndexColumn.Header {
