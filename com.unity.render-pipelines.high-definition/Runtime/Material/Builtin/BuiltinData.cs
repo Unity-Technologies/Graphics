@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Depth Offset")]
             public float depthOffset; // define the depth in unity unit to add in Z forward direction
 
-            [SurfaceDataAttributes("VT Packed Feedback", precision = FieldPrecision.Real)]
+            [SurfaceDataAttributes("VT Packed Feedback", precision: FieldPrecision.Real, preprocessor: "defined(UNITY_VIRTUAL_TEXTURING)")]
             public Vector4 vtPackedFeedback;
         };
 

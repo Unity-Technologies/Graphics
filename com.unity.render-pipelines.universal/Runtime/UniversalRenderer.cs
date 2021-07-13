@@ -475,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
                 // If only post process requires depth texture, we can re-use depth buffer from main geometry pass instead of enqueuing a depth copy pass, but no proper API to do that for now, so resort to depth copy pass for now
                 m_CopyDepthPass.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
             }
-            
+
 
             createColorTexture |= RequiresIntermediateColorTexture(ref cameraData);
             createColorTexture |= renderPassInputs.requiresColorTexture;
@@ -570,6 +570,9 @@ namespace UnityEngine.Rendering.Universal
                         requiresDepthCopyPass = false;
                     }
                 }
+
+                if (useRenderPassEnabled)
+                    useRenderPassEnabled = DebugHandler.IsRenderPassSupported;
             }
 
             // Assign camera targets (color and depth)
@@ -676,6 +679,12 @@ namespace UnityEngine.Rendering.Universal
 
                 // make sure we store the depth only if following passes need it.
                 RenderBufferStoreAction opaquePassDepthStoreAction = (copyColorPass || requiresDepthCopyPass) ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled && cameraData.xr.copyDepth)
+                {
+                    opaquePassDepthStoreAction = RenderBufferStoreAction.Store;
+                }
+#endif
 
                 m_RenderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
                 m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
@@ -724,6 +733,8 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_MotionVectorPass);
             }
 
+            bool lastCameraInTheStack = cameraData.resolveFinalTarget;
+
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
 #endif
@@ -733,7 +744,8 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_TransparentSettingsPass);
                 }
 
-                RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
+                // if this is not lastCameraInTheStack we still need to Store, since the MSAA buffer might be needed by the Overlay cameras
+                RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 && lastCameraInTheStack ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 RenderBufferStoreAction transparentPassDepthStoreAction = RenderBufferStoreAction.DontCare;
 
                 // If CopyDepthPass pass event is scheduled on or after AfterRenderingTransparent, we will need to store the depth buffer or resolve (store for now until latest trunk has depth resolve support) it for MSAA case
@@ -746,7 +758,7 @@ namespace UnityEngine.Rendering.Universal
             }
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
-            bool lastCameraInTheStack = cameraData.resolveFinalTarget;
+
             bool hasCaptureActions = renderingData.cameraData.captureActions != null && lastCameraInTheStack;
             bool applyFinalPostProcessing = anyPostProcessing && lastCameraInTheStack &&
                 renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
@@ -801,14 +813,17 @@ namespace UnityEngine.Rendering.Universal
                 }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-                bool depthTargetResolved =
-                    // active depth is depth target, we don't need a blit pass to resolve
-                    m_ActiveCameraDepthAttachment == RenderTargetHandle.GetCameraTarget(cameraData.xr);
-
-                if (!depthTargetResolved && cameraData.xr.copyDepth)
+                if (cameraData.xr.enabled)
                 {
-                    m_XRCopyDepthPass.Setup(m_ActiveCameraDepthAttachment, RenderTargetHandle.GetCameraTarget(cameraData.xr));
-                    EnqueuePass(m_XRCopyDepthPass);
+                    bool depthTargetResolved =
+                        // active depth is depth target, we don't need a blit pass to resolve
+                        m_ActiveCameraDepthAttachment == RenderTargetHandle.GetCameraTarget(cameraData.xr);
+
+                    if (!depthTargetResolved && cameraData.xr.copyDepth)
+                    {
+                        m_XRCopyDepthPass.Setup(m_ActiveCameraDepthAttachment, RenderTargetHandle.GetCameraTarget(cameraData.xr));
+                        EnqueuePass(m_XRCopyDepthPass);
+                    }
                 }
 #endif
             }
@@ -1033,17 +1048,17 @@ namespace UnityEngine.Rendering.Universal
 
         bool PlatformRequiresExplicitMsaaResolve()
         {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             // In the editor play-mode we use a Game View Render Texture, with
             // samples count forced to 1 so we always need to do an explicit MSAA resolve.
             return true;
-            #else
+#else
             // On Metal/iOS the MSAA resolve is done implicitly as part of the renderpass, so we do not need an extra intermediate pass for the explicit autoresolve.
             // Note: On Vulkan Standalone, despite SystemInfo.supportsMultisampleAutoResolve being true, the backbuffer has only 1 sample, so we still require
             // the explicit resolve on non-mobile platforms with supportsMultisampleAutoResolve.
             return !(SystemInfo.supportsMultisampleAutoResolve && Application.isMobilePlatform)
                 && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal;
-            #endif
+#endif
         }
 
         /// <summary>

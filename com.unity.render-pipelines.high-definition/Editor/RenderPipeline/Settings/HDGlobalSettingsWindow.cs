@@ -7,6 +7,8 @@ using UnityEngine.UIElements;
 using UnityEditorInternal;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.VFX.HDRP;
+using UnityEditor.VFX.UI;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -73,6 +75,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Help.BrowseURL(Documentation.GetPageLink("Default-Settings-Window"));
         }
 
+        internal static bool needRefreshVfxErrors = false;
+
         public void DoGUI(string searchContext)
         {
             // When the asset being serialized has been deleted before its reconstruction
@@ -84,11 +88,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (serializedSettings == null || settingsSerialized != HDRenderPipelineGlobalSettings.instance)
             {
-                if (HDRenderPipeline.currentAsset != null || HDRenderPipelineGlobalSettings.instance != null)
+                if (HDRenderPipelineGlobalSettings.instance != null)
                 {
                     settingsSerialized = HDRenderPipelineGlobalSettings.Ensure();
                     var serializedObject = new SerializedObject(settingsSerialized);
                     serializedSettings = new SerializedHDRenderPipelineGlobalSettings(serializedObject);
+                }
+                else
+                {
+                    serializedSettings = null;
+                    settingsSerialized = null;
                 }
             }
             else if (settingsSerialized != null && serializedSettings != null)
@@ -103,6 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
                 Inspector.Draw(serializedSettings, null);
                 serializedSettings.serializedObject?.ApplyModifiedProperties();
+                VFXHDRPSettingsUtility.RefreshVfxErrorsIfNeeded(ref needRefreshVfxErrors);
             }
         }
 
@@ -123,13 +133,27 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (isHDRPinUse)
             {
-                EditorGUILayout.HelpBox(Styles.warningGlobalSettingsMissing, MessageType.Warning);
+                ShowMessageWithFixButton(Styles.warningGlobalSettingsMissing, MessageType.Warning);
             }
             else
             {
                 EditorGUILayout.HelpBox(Styles.warningHdrpNotActive, MessageType.Warning);
                 if (serialized == null)
-                    EditorGUILayout.HelpBox(Styles.infoGlobalSettingsMissing, MessageType.Info);
+                {
+                    ShowMessageWithFixButton(Styles.infoGlobalSettingsMissing, MessageType.Info);
+                }
+            }
+        }
+
+        void ShowMessageWithFixButton(string helpBoxLabel, MessageType type)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.HelpBox(helpBoxLabel, type);
+                if (GUILayout.Button(Styles.fixAssetButtonLabel, GUILayout.Width(45)))
+                {
+                    HDRenderPipelineGlobalSettings.Ensure();
+                }
             }
         }
 
@@ -145,6 +169,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                 {
                     HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
+                    Debug.Assert(newAsset == HDRenderPipelineGlobalSettings.instance);
                     if (settingsSerialized != null && !settingsSerialized.Equals(null))
                         EditorUtility.SetDirty(settingsSerialized);
                 }
