@@ -1,19 +1,19 @@
 Shader "Hidden/DistordFromTex"
 {
-	Properties
-	{
+    Properties
+    {
         _Tex("InputTex", 2D) = "white" {}
         _Scale("Scale", Float) = 2
         _Bias("Bias", Float) = -1
-	}
-	SubShader
-	{
-		Tags { "RenderType"="Opaque" }
-		LOD 100
+    }
+    SubShader
+    {
+        Tags { "RenderType"="Opaque" }
+        LOD 100
 
-		Pass
-		{
-			CGPROGRAM
+        Pass
+        {
+            CGPROGRAM
             #include "UnityCustomRenderTexture.cginc"
             #pragma vertex CustomRenderTextureVertexShader
             #pragma fragment frag
@@ -28,10 +28,10 @@ Shader "Hidden/DistordFromTex"
 
                 c.rgb = tex2D(_Tex, IN.localTexcoord.xy).rgb;
                 c.rg = c.rg * _Scale + _Bias;
-				
+
                 return c;
             }
-			ENDCG
-		}
-	}
+            ENDCG
+        }
+    }
 }

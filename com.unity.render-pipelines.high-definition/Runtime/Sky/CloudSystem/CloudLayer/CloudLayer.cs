@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Cloud Layer Volume Component.
     /// This component setups the Cloud Layer for rendering.
     /// </summary>
-    [VolumeComponentMenu("Sky/Cloud Layer")]
+    [VolumeComponentMenuForRenderPipeline("Sky/Cloud Layer", typeof(HDRenderPipeline))]
     [CloudUniqueID((int)CloudType.CloudLayer)]
     [HDRPHelpURLAttribute("Override-Cloud-Layer")]
     public class CloudLayer : CloudSettings
@@ -156,9 +156,9 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Distortion mode.</summary>
             [Tooltip("Distortion mode used to simulate cloud movement.\nIn Scene View, requires Always Refresh to be enabled.")]
             public VolumeParameter<CloudDistortionMode> distortionMode = new VolumeParameter<CloudDistortionMode>();
-            /// <summary>Direction of the distortion.</summary>
+            /// <summary>Direction of the distortion. This value can be relative to the Global Wind Orientation defined in the Visual Environment.</summary>
             public WindOrientationParameter scrollOrientation = new WindOrientationParameter();
-            /// <summary>Speed of the distortion.</summary>
+            /// <summary>Speed of the distortion. This value can be relative to the Global Wind Speed defined in the Visual Environment.</summary>
             public WindSpeedParameter scrollSpeed = new WindSpeedParameter();
             /// <summary>Texture used to distort the UVs for the cloud layer.</summary>
             [Tooltip("Specify the flowmap HDRP uses for cloud distortion (in LatLong layout).")]

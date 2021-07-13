@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// HDRI Sky Volume Component.
     /// This component setups HDRI sky for rendering.
     /// </summary>
-    [VolumeComponentMenu("Sky/HDRI Sky")]
+    [VolumeComponentMenuForRenderPipeline("Sky/HDRI Sky", typeof(HDRenderPipeline))]
     [SkyUniqueID((int)SkyType.HDRI)]
     [HDRPHelpURLAttribute("Override-HDRI-Sky")]
     public partial class HDRISky : SkySettings
@@ -37,9 +37,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable to affect only the upper part of the sky.</summary>
         [Tooltip("Check this box if the flowmap covers only the upper part of the sky.")]
         public BoolParameter            upperHemisphereOnly = new BoolParameter(true);
-        /// <summary>Direction of the distortion.</summary>
+        /// <summary>Direction of the distortion. This value can be relative to the Global Wind Orientation defined in the Visual Environment.</summary>
         public WindOrientationParameter scrollOrientation   = new WindOrientationParameter();
-        /// <summary>Speed of the distortion.</summary>
+        /// <summary>Speed of the distortion. This value can be relative to the Global Wind Speed defined in the Visual Environment.</summary>
         public WindSpeedParameter       scrollSpeed         = new WindSpeedParameter();
 
         /// <summary>Enable Backplate to have it visible.</summary>
