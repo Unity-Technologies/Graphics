@@ -158,6 +158,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
                         evValue = Mathf.Clamp(evValue, 0, float.MaxValue);
                         emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
+                        if (float.IsInfinity(emissiveIntensity.floatValue))
+                            emissiveIntensity.floatValue = float.MaxValue;
                     }
                     else
                     {
