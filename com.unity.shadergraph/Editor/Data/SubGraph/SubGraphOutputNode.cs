@@ -40,22 +40,14 @@ namespace UnityEditor.ShaderGraph
             List<MaterialSlot> slots = new List<MaterialSlot>();
             GetInputSlots(slots);
 
+            // Reset all input slots back to All, otherwise they'll be incorrectly configured when traversing below
             foreach (MaterialSlot slot in slots)
                 slot.stageCapability = ShaderStageCapability.All;
 
-            var effectiveStage = ShaderStageCapability.All;
             foreach (var slot in slots)
             {
-                var stage = NodeUtils.GetEffectiveShaderStageCapability(slot, true);
-                if (stage != ShaderStageCapability.All)
-                {
-                    effectiveStage = stage;
-                    break;
-                }
+                slot.stageCapability = NodeUtils.GetEffectiveShaderStageCapability(slot, true);
             }
-
-            foreach (MaterialSlot slot in slots)
-                slot.stageCapability = effectiveStage;
         }
 
         void ValidateSlotName()
