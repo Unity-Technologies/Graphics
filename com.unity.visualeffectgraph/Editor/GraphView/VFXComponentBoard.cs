@@ -156,20 +156,7 @@ namespace UnityEditor.VFX.UI
 
             contentContainer.AddStyleSheetPath("VFXComponentBoard");
 
-            m_AttachButton = this.Query<Button>("attach");
-            m_AttachButton.clickable.clicked += ToggleAttach;
-
-            m_SelectButton = this.Query<Button>("select");
-            m_SelectButton.clickable.clicked += Select;
-
-            m_ComponentPath = this.Query<Label>("component-path");
-
-            m_ComponentContainer = this.Query("component-container");
-            m_ComponentContainerParent = m_ComponentContainer.parent;
-
-            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
-            RegisterCallback<DetachFromPanelEvent>(OnDetachToPanel);
-
+            m_Subtitle = this.Query<Label>("subTitleLabel");
             m_Stop = this.Query<Button>("stop");
             m_Stop.clickable.clicked += EffectStop;
             m_Play = this.Query<Button>("play");
@@ -227,8 +214,6 @@ namespace UnityEditor.VFX.UI
 
             SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.componentBoard, defaultRect));
         }
-
-        VisualElement m_ComponentContainerParent;
 
         public void ValidatePosition()
         {
@@ -454,7 +439,6 @@ namespace UnityEditor.VFX.UI
 
         public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
         {
-            OnSelectionChanged();
             if (m_AttachedComponent != null
                 && visualEffects.Contains(m_AttachedComponent)
                 && m_AttachedComponent.visualEffectAsset != controller.graph.visualEffectResource.asset)
@@ -464,39 +448,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnAttachToPanel(AttachToPanelEvent e)
-        {
-            OnSelectionChanged();
-            Selection.selectionChanged += OnSelectionChanged;
-        }
-
-        void OnDetachToPanel(DetachFromPanelEvent e)
-        {
-            Selection.selectionChanged -= OnSelectionChanged;
-        }
-
-        VisualEffect m_SelectionCandidate;
-
         VisualEffect m_AttachedComponent;
 
         public VisualEffect GetAttachedComponent()
         {
             return m_AttachedComponent;
-        }
-
-        void OnSelectionChanged()
-        {
-            if (Selection.activeGameObject != null && controller != null)
-            {
-                m_SelectionCandidate = null;
-                m_SelectionCandidate = Selection.activeGameObject.GetComponent<VisualEffect>();
-                if (m_SelectionCandidate != null && m_SelectionCandidate.visualEffectAsset != controller.graph.visualEffectResource.asset)
-                {
-                    m_SelectionCandidate = null;
-                }
-            }
-
-            UpdateAttachButton();
         }
 
         bool m_LastKnownPauseState;
@@ -519,15 +475,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void UpdateAttachButton()
-        {
-            m_AttachButton.SetEnabled(m_SelectionCandidate != null || m_AttachedComponent != null && controller != null);
-
-            m_AttachButton.text = m_AttachedComponent != null ? "Detach" : "Attach";
-        }
-
         public void Detach()
         {
+            m_Subtitle.text = string.Empty;
+
             if (m_AttachedComponent != null)
             {
                 m_AttachedComponent.playRate = 1;
@@ -538,13 +489,9 @@ namespace UnityEditor.VFX.UI
             {
                 m_UpdateItem.Pause();
             }
-            m_ComponentContainer.RemoveFromHierarchy();
-            m_ComponentPath.text = "";
-            UpdateAttachButton();
             if (m_EventsContainer != null)
                 m_EventsContainer.Clear();
             m_Events.Clear();
-            m_SelectButton.visible = false;
             if (m_DebugUI != null)
                 m_DebugUI.Clear();
 
@@ -572,12 +519,11 @@ namespace UnityEditor.VFX.UI
 
         public void Attach(VisualEffect effect = null)
         {
-            VisualEffect target = effect != null ? effect : m_SelectionCandidate;
+            VisualEffect target = effect != null ? effect : Selection.activeGameObject.GetComponent<VisualEffect>();
             if (target != null)
             {
-                m_SelectionCandidate = target; // allow reattaching if effet != null;
                 m_AttachedComponent = target;
-                UpdateAttachButton();
+                m_Subtitle.text = m_AttachedComponent.name;
                 m_LastKnownPauseState = !m_AttachedComponent.pause;
                 UpdatePlayButton();
 
@@ -585,10 +531,7 @@ namespace UnityEditor.VFX.UI
                     m_UpdateItem = schedule.Execute(Update).Every(100);
                 else
                     m_UpdateItem.Resume();
-                if (m_ComponentContainer.parent == null)
-                    m_ComponentContainerParent.Add(m_ComponentContainer);
                 UpdateEventList();
-                m_SelectButton.visible = true;
 
                 var debugMode = VFXUIDebug.Modes.None;
                 if (m_DebugUI != null)
@@ -645,9 +588,6 @@ namespace UnityEditor.VFX.UI
                 path = m_AttachedComponent.gameObject.scene.name + " : " + path;
             }
 
-            if (m_ComponentPath.text != path)
-                m_ComponentPath.text = path;
-
             if (m_ParticleCount != null)
             {
                 int newParticleCount = 0;//m_AttachedComponent.aliveParticleCount
@@ -697,12 +637,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        Button m_AttachButton;
-        Button m_SelectButton;
-        Label m_ComponentPath;
-        VisualElement m_ComponentContainer;
         VisualElement m_EventsContainer;
 
+        Label m_Subtitle;
         Button m_Stop;
         Button m_Play;
         Button m_Step;

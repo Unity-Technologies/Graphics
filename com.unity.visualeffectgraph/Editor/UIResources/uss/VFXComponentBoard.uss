@@ -164,9 +164,9 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
     padding-top: 8px;
 }
 
-#on-play-stop
+#play-rate-container, #debug-tool-container, #events-tool-container, #bounds-tool-container
 {
-    padding-bottom: 8px;
+    margin: 8px;
 }
 
 #debug-container
@@ -299,7 +299,7 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
 #bounds-actions-container
 {
     flex-direction:row;
-    height: 40px;
+    height: 30px;
     align-items: center;
     padding-bottom: 2px;
     padding-top: 2px;
