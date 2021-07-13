@@ -548,6 +548,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+#if UNITY_EDITOR
         private void ClearSHBaking()
         {
             // Lighting data was cleared - clear out any stale SH data.
@@ -565,6 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
             QueueSHBaking();
         }
 
+#endif
         // Return luma of coefficients
         internal bool GetSHForNormalization(out Vector4 outL0L1, out Vector4 outL2_1, out float outL2_2)
         {
