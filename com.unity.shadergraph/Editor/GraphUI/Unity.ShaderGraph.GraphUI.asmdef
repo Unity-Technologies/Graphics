@@ -4,7 +4,6 @@
     "references": [
         "Unity.ShaderGraph.Registry",
         "Unity.ShaderGraph.GraphDelta",
-        "Unity.Searcher.Editor",
         "Unity.Properties",
         "Unity.Properties.UI",
         "Unity.Properties.UI.Editor",
@@ -12,7 +11,8 @@
         "Unity.GraphTools.Foundation.Overdrive.Editor",
         "Unity.GraphTools.Foundation.Overdrive.Model",
         "Unity.GraphTools.Foundation.Overdrive.CommandStateObserver",
-        "Unity.GraphTools.Foundation.Searcher.Editor",
+        "Unity.GraphToolsFoundation.Searcher.Editor",
+        "Unity.GraphTools.Foundation.Searcher",
         "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [
