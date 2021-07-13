@@ -560,9 +560,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // The issue is that the only available depth buffer is jittered so pixels would wobble around depth tested edges.
                     // In order to avoid that we decide that objects rendered after Post processes while TAA is active will not benefit from the depth buffer so we disable it.
                     hdCamera.UpdateAllViewConstants(false);
-                    hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
+                    hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB);
 
-                    ConstantBuffer.PushGlobal(ctx.cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+                    ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
                 });
             }
         }
