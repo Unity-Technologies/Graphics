@@ -343,7 +343,7 @@ platforms:
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
             retries: 2
 
-OSX_Apple_Silicon:
+  OSX_Apple_Silicon:
     name: OSX
     os: macos
     components:
