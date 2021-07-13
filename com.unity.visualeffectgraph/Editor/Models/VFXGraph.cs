@@ -36,14 +36,13 @@ namespace UnityEditor.VFX
                     VFXGraph graph = resource.GetOrCreateGraph(); //resource.graph should be already != null at this stage but GetOrCreateGraph is also assigning the visualEffectResource. It's required for UpdateSubAssets
                     if (graph != null)
                     {
-                        bool wasCompilable = graph.sanitized && graph.cleanDependencies;
+                        bool wasGraphSanitized = graph.sanitized;
 
                         try
                         {
                             graph.SanitizeForImport();
 
-                            bool isCompilable = graph.sanitized && graph.cleanDependencies;
-                            if (!wasCompilable && isCompilable)
+                            if (!wasGraphSanitized && graph.sanitized)
                             {
                                 if (assetToReimport == null)
                                     assetToReimport = new List<string>();
@@ -76,25 +75,6 @@ namespace UnityEditor.VFX
                         Debug.LogErrorFormat("Exception during reimport of {0} : {1}", assetPath, exception);
                     }
                 }
-
-                //This delay call is unexpected, we shouldn't have a deferred behavior from ImportAsset
-                //See case 1144276
-                EditorApplication.delayCall += () =>
-                {
-                    //Once it's done, reset the clean dependency sate, the next import will require a new reimport
-                    //in case of undetected modification from subgraph or shaderGraph
-                    foreach (var assetPath in assetToReimport)
-                    {
-                        VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
-                        if (resource == null)
-                            continue;
-                        VFXGraph graph = resource.GetOrCreateGraph();
-                        if (graph != null)
-                        {
-                            graph.cleanDependencies = false;
-                        }
-                    }
-                };
             }
         }
 
@@ -120,19 +100,26 @@ namespace UnityEditor.VFX
 
                 if (graph != null)
                 {
-                    if (!graph.sanitized || !graph.cleanDependencies)
+                    if (!graph.sanitized)
                     {
-                        //Early return, the reimport will be forced with the next OnPostprocessAllAssets after Sanitize
-
-                        //It could be more appropriate to ClearRuntimeData but with systematic double import + delayCall,
-                        //the C++ behavior can be confused, removing an exposed property too early.
-                        //Thus, for now, commenting : resource.ClearRuntimeData();
-                        //See EditorTest : CreateComponent_Modify_Asset_Keep_Override
-                        //... But it causes a failure with PlayModeXR : OnSetupMaterial is called
+                        resource.ClearRuntimeData();
                     }
                     else
                     {
-                        resource.GetOrCreateGraph().CompileForImport();
+                        //Trying another approach, since the CompileForImport seems to modify the vfxGraph
+                        //Restore the previous state after compilation !
+
+                        graph = resource.GetOrCreateGraph();
+                        var dependencies = new HashSet<ScriptableObject>();
+                        dependencies.Add(graph);
+                        graph.CollectDependencies(dependencies);
+                        var backup = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.ToArray(), CompressionLevel.Fastest);
+
+                        graph.CompileForImport();
+
+                        VFXMemorySerializer.ExtractObjects(backup, false);
+                        //The backup is actually calling UnknownChange here
+                        //You have to avoid because it will call ResyncSlot
                     }
                 }
                 else
@@ -895,8 +882,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        //TODOPAUL : Revert this public
-        public void PrepareSubgraphs()
+        private void PrepareSubgraphs()
         {
             Profiler.BeginSample("PrepareSubgraphs");
             RecurseSubgraphRecreateCopy(children);
@@ -940,19 +926,8 @@ namespace UnityEditor.VFX
                 }
             }
 
-            if (!cleanDependencies)
-            {
-                //The CheckGraphBeforeImport of VFXSubgraphOperator isn't sufficient
-                //We could have cached incorrect m_SubChildren which aren't to be recomputed by CheckGraphBeforeImport
-                //Furthermore, CheckGraphBeforeImport is ignored when explicitCompile == true
-                //All in all, it shouldn't be needed here, it's a workaround.
-                PrepareSubgraphs();
-
-                foreach (var child in children)
-                    child.CheckGraphBeforeImport();
-
-                cleanDependencies = true;
-            }
+            foreach (var child in children)
+                child.CheckGraphBeforeImport();
 
             SanitizeGraph();
         }
@@ -1043,18 +1018,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        public bool cleanDependencies
-        {
-            get
-            {
-                return m_CleanDependencies;
-            }
-            set
-            {
-                m_CleanDependencies = value;
-            }
-        }
-
         public bool sanitized { get { return m_GraphSanitized; } }
 
         public int version { get { return m_GraphVersion; } }
@@ -1067,8 +1030,6 @@ namespace UnityEditor.VFX
 
         [NonSerialized]
         private bool m_GraphSanitized = false;
-        [NonSerialized]
-        private bool m_CleanDependencies = false;
         [NonSerialized]
         private bool m_ExpressionGraphDirty = true;
         [NonSerialized]
