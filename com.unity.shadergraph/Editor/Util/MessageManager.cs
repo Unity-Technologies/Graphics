@@ -16,23 +16,6 @@ namespace UnityEditor.Graphing.Util
             void LogWarning(string message, Object context);
         }
 
-        class DebugErrorLog : IErrorLog
-        {
-            private DebugErrorLog() {}
-            static DebugErrorLog _global = new DebugErrorLog();
-            public static DebugErrorLog Get() { return _global; }
-
-            public void LogError(string message, Object context = null)
-            {
-                Debug.LogError(message, context);
-            }
-
-            public void LogWarning(string message, Object context = null)
-            {
-                Debug.LogWarning(message, context);
-            }
-        }
-
         protected Dictionary<object, Dictionary<string, List<ShaderMessage>>> m_Messages =
             new Dictionary<object, Dictionary<string, List<ShaderMessage>>>();
 
@@ -166,27 +149,8 @@ namespace UnityEditor.Graphing.Util
             Debug.Log(output.ToString());
         }
 
-        public static void Log(AbstractMaterialNode node, string path, ShaderMessage message, Object context, IErrorLog log = null)
+        public static void Log(string path, ShaderMessage message, Object context, IErrorLog log)
         {
-            if (log == null)
-                log = DebugErrorLog.Get();
-
-            var errString = $"{message.severity} in Graph at {path} at node {node.name}: {message.message}";
-            if (message.severity == ShaderCompilerMessageSeverity.Error)
-            {
-                log.LogError(errString, context);
-            }
-            else
-            {
-                log.LogWarning(errString, context);
-            }
-        }
-
-        public static void Log(string path, ShaderMessage message, Object context, IErrorLog log = null)
-        {
-            if (log == null)
-                log = DebugErrorLog.Get();
-
             var errString = $"{message.severity} in Graph at {path} on line {message.line}: {message.message}";
             if (message.severity == ShaderCompilerMessageSeverity.Error)
             {
