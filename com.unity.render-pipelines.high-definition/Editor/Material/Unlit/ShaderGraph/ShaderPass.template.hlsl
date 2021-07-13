@@ -20,7 +20,11 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
 
     #ifdef _ENABLE_SHADOW_MATTE
 
+        ...
+
         #if SHADERPASS == SHADERPASS_FORWARD_UNLIT
+
+            ...
 
             HDShadowContext shadowContext = InitShadowContext();
             float3 shadow3;
