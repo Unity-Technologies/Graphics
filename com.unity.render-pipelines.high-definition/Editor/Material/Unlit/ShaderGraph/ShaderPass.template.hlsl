@@ -20,11 +20,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
 
     #ifdef _ENABLE_SHADOW_MATTE
 
-        ...
-
         #if SHADERPASS == SHADERPASS_FORWARD_UNLIT
-
-            ...
 
             HDShadowContext shadowContext = InitShadowContext();
             float3 shadow3;
@@ -42,11 +38,9 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
             // With no Color (bsdfData.color.rgb, bsdfData.color.a == 0.0f), just use ShadowColor*Color to avoid a ring of "white" around the shadow
             // And mix color to consider the Color & ShadowColor alpha (from texture or/and color picker)
             #ifdef _SURFACE_TYPE_TRANSPARENT
-                CompilationFail
-                surfaceData.color = lerp(shadowColor.rgb * surfaceData.color.rgb, lerp(lerp(shadowColor.rgb, surfaceData.color.rgb, 1.0f - surfaceDescription.ShadowTint.a), surfaceData.color.rgb, shadow.a), surfaceDescription.Alpha);
+                surfaceData.color = lerp(shadowColor.rgb * surfaceData.color, lerp(lerp(shadowColor.rgb, surfaceData.color, 1.0 - surfaceDescription.ShadowTint.a), surfaceData.color, shadow.rgb), surfaceDescription.Alpha);
             #else
-                CompilationFail
-                surfaceData.color = lerp(lerp(shadowColor.rgb, surfaceData.color.rgb, 1.0f - surfaceDescription.ShadowTint.a), surfaceData.color.rgb, shadow.a);
+                surfaceData.color = lerp(lerp(shadowColor.rgb, surfaceData.color, 1.0 - surfaceDescription.ShadowTint.a), surfaceData.color, shadow.rgb);
             #endif
             localAlpha = ApplyBlendMode(surfaceData.color, localAlpha).a;
 
