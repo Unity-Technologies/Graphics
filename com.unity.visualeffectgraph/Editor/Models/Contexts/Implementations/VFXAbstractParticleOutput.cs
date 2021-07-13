@@ -143,7 +143,6 @@ namespace UnityEditor.VFX
         public SortCriteria GetSortCriterion() { return sortCriterion; }
 
 
-
         public virtual VFXOutputUpdate.Features outputUpdateFeatures
         {
             get

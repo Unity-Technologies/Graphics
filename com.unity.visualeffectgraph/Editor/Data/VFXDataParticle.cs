@@ -566,9 +566,9 @@ namespace UnityEditor.VFX
                     continue;
 
                 abstractParticleOutput.needsOwnSort = abstractParticleOutput.HasSorting() && needsGlobalSort &&
-                                                      (abstractParticleOutput.GetSortCriterion() != globalSortCriterion
-                                                       || abstractParticleOutput.GetSortCriterion() == SortCriteria.Custom
-                                                           && !comparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"),globalSortKeySlot));
+                    (abstractParticleOutput.GetSortCriterion() != globalSortCriterion
+                        || abstractParticleOutput.GetSortCriterion() == SortCriteria.Custom
+                        && !comparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"), globalSortKeySlot));
                 if (abstractParticleOutput.NeedsOutputUpdate())
                 {
                     var update = VFXContext.CreateImplicitContext<VFXOutputUpdate>(this);
@@ -646,11 +646,11 @@ namespace UnityEditor.VFX
                 globalSortKeySlot = sortkeySlotCounts.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
                 //Returns true if is custom
                 return true;
-
             }
             globalSortKeySlot = null;
             return false;
         }
+
         public override void FillDescs(
             VFXCompileErrorReporter reporter,
             List<VFXGPUBufferDesc> outBufferDescs,
@@ -1040,7 +1040,7 @@ namespace UnityEditor.VFX
                 {
                     var update = (VFXOutputUpdate)context;
 
-                    if (update.HasFeature(VFXOutputUpdate.Features.CameraSort) || update.HasFeature(VFXOutputUpdate.Features.Sort) )
+                    if (update.HasFeature(VFXOutputUpdate.Features.CameraSort) || update.HasFeature(VFXOutputUpdate.Features.Sort))
                     {
                         for (int j = 0; j < update.bufferCount; ++j)
                         {

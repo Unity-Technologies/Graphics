@@ -29,14 +29,13 @@ namespace UnityEditor.VFX
                     yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
                 }
             }
-
         }
 
         public override IEnumerable<VFXMapping> additionalMappings
         {
             get
             {
-                if(IsPerCamera(sortCriterion))
+                if (IsPerCamera(sortCriterion))
                     yield return new VFXMapping("isPerCameraSort", 1);
             }
         }

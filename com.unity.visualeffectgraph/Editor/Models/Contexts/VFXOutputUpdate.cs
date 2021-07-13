@@ -146,7 +146,6 @@ namespace UnityEditor.VFX
                 }
 
 
-
                 return expressionMapper;
             }
             else
