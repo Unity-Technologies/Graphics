@@ -51,12 +51,14 @@ void LoadCellIndexMetaData(int cellFlatIdx, out int3 physicalIdxStart, out int s
 {
     uint2 metaData = _APVResCellIndices[cellFlatIdx];
 
-    stepSize = pow(3, metaData.y);
+    int signX = (metaData.x & 1) > 0 ? 1 : -1;
+    physicalIdxStart.x = signX * ((metaData.x >> 1) & 0x7FFF);
+    int signY = ((metaData.x >> 16) & 1) > 0 ? 1 : -1;
+    physicalIdxStart.y = signY * ((metaData.x >> 17) & 0x7FFF);
+    int signZ = (metaData.y & 1) > 0 ? 1 : -1;
+    physicalIdxStart.z = signZ * ((metaData.y >> 1) & 0x7FFF);
 
-    uint indexPacked = metaData.x;
-    physicalIdxStart.x = indexPacked & 0x3ff;
-    physicalIdxStart.y = (indexPacked >> 10) & 0x3ff;
-    physicalIdxStart.z = (indexPacked >> 20) & 0x3ff;
+    stepSize = (metaData.y >> 16) & 0xFFFF;
 }
 
 int3 GetIndexLocation(float3 posWS, out int tmpFlatIdx)

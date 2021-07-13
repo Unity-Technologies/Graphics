@@ -22,17 +22,36 @@ namespace UnityEngine.Experimental.Rendering
                 val1 = 0;
                 val2 = 0;
 
-                // Can actually fit in  1 uint as follow
+
+                // This is a bit wasteful, we could easily be in one uint, but we need to have the signs too as the physical index might not be rounded by cell
+                // so cell index start might need to be negative
+                // UINT 1:
+                // Index start  sign X :  1 bit
+                // Index start       X : 15 bit
+                // Index start  sign Y :  1 bit
+                // Index start       Y : 15 bit
+
+                // UINT 2:
+                // Index start  sign Z :  1 bit
+                // Index start       Z : 15 bit
+                // pow(3, minSubdiv)   : 16 bit
+
+
+                // If sign was not an issue, we could've probably packed in a single uint as follow.
                 // IndexStart x: 10 bits
                 //            y: 9 bits
                 //            z: 10 bits
                 // minSubdiv   : 3 bits
+                // minSubdiv   : 3 bits
 
-                // Got 2 bits free. TODO: Is the packing too restricting?
-                val1 = ((uint)indexStart.x & 0x3ff) | ((uint)indexStart.y & 0x3ff) << 10 | ((uint)indexStart.z & 0x3ff) << 20;
-                // A LOT  of free  space here. lots more we can fit, min brick size can be 3 bits, indexDimension can actually be defined by brickSize (CellInMinBricks -constant- / brickSizeInThisCell )
-                // So  effectively we have 29 bits free, this can likely be the index inside the
-                val2 = (uint)minSubdiv;
+                val1 = indexStart.x >= 0 ? 1u : 0u;
+                val1 |= ((uint)Mathf.Abs(indexStart.x) & 0x7FFF) << 1;
+                val1 |= (indexStart.y >= 0 ? 1u : 0u) << 16;
+                val1 |= ((uint)Mathf.Abs(indexStart.y) & 0x7FFF) << 17;
+
+                val2 = indexStart.z >= 0 ? 1u : 0u;
+                val2 |= ((uint)Mathf.Abs(indexStart.z) & 0x7FFF) << 1;
+                val2 |= ((uint)Mathf.Pow(3, minSubdiv)) << 16;
             }
         }
 
@@ -82,6 +101,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             Vector3Int normalizedPos = cellPosition - m_CellMin;
             Debug.Log($"Cell {cellPosition} normalized as {normalizedPos} via a min of {m_CellMin} starts at {indexStart} ?");
+
             Debug.Assert(normalizedPos.x >= 0 && normalizedPos.y >= 0 && normalizedPos.z >= 0);
 
             int flatIdx = GetFlatIndex(normalizedPos);

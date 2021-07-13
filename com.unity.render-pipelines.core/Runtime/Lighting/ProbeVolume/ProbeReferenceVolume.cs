@@ -614,6 +614,14 @@ namespace UnityEngine.Experimental.Rendering
                 var regId = AddBricks(brickList, dataLocation, out chunkList, out indexStart);
 
                 // Min subdiv here hard-coded to 0 as a temp measure.
+                // TODO: The index start here is re-computed to match old behaviour, however it is important that it comes from the actual computations of the index buffer as the
+                // physical index will not have a guarantee of having an inter-cell structures (only intra cell will be guaranteed).
+                var WStoRS = Matrix4x4.Inverse(m_Transform.refSpaceToWS);
+
+                var posWS = new Vector3(cell.position.x * MaxBrickSize(), cell.position.y * MaxBrickSize(), cell.position.z * MaxBrickSize());
+                Vector3 posRS = WStoRS.MultiplyPoint(posWS);
+                Vector3Int posRSFloored = new Vector3Int(Mathf.FloorToInt(posRS.x), Mathf.FloorToInt(posRS.y), Mathf.FloorToInt(posRS.z));
+                indexStart = posRSFloored + (m_Index.GetIndexDimension() / 2);
                 m_CellIndices.AddCell(cell.position, indexStart, minSubdiv: 0);
                 AddCell(cell, chunkList);
                 m_AssetPathToBricks[path].Add(regId);
