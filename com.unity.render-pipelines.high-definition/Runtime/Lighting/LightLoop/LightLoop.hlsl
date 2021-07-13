@@ -353,10 +353,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         // For refraction to be stable, we should reuse the same refraction probe for the whole object.
         // Otherwise as if the object span different tiles it could produce a different refraction probe picking and thus have visual artifacts.
-        // For this we need to find the tile that is at the center of the object that is being rendered. 
+        // For this we need to find the tile that is at the center of the object that is being rendered.
         // And then select the first refraction probe of this list.
         if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (_EnableSSRefraction > 0))
-        {                
+        {
             // grab current object position and retrieve in which tile it belongs too
             float4x4 modelMat = GetObjectToWorldMatrix();
             float3 objPos = modelMat._m03_m13_m23;
@@ -374,7 +374,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             localInput.linearDepth = posClip.w;
 
             GetCountAndStart(localInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
-            
+
             EnvLightData envLightData;
             if (envLightCount > 0)
             {
