@@ -238,9 +238,10 @@ MonoBehaviour:
     alphaInjectionPS: {fileID: 4800000, guid: 4edd96259a5e8b44c90479928f0cd11e, type: 3}
     chromaKeyingPS: {fileID: 4800000, guid: 49feb6b111e82ec4eb6d3d08e4b6903e, type: 3}
     customClearPS: {fileID: 4800000, guid: 9cef3686fa32c8840947ed99b561195c, type: 3}
-    ssGIDenoiserCS: {fileID: 7200000, guid: a435d803bc32d0845ba1a713b7a1c8b1, type: 3}
     bilateralUpsampleCS: {fileID: 7200000, guid: 68e831c555284d741b985e05369f0e63,
       type: 3}
+    temporalFilterCS: {fileID: 7200000, guid: 741979ff70f7bd6489fbcb464280ecff, type: 3}
+    diffuseDenoiserCS: {fileID: 7200000, guid: b4ed2382141619f40af1f743a84ccaea, type: 3}
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}
     colorGradient: {fileID: 2800000, guid: 4ea52e665573c1644bf05dd9b11fd2a4, type: 3}
