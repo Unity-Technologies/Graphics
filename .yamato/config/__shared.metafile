@@ -74,11 +74,11 @@ test_platforms:
 
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
-      - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
+      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal,Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --player-load-path=players
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal, OSX_Apple_Silicon_Metal, Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --player-load-path=players
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
@@ -88,9 +88,11 @@ test_platforms:
       - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
       - [OSX_Metal]: --testfilter=%TEST_FILTER%
 
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
+      - [OSX_Apple_Silicon_Metal]: --device=arm64 --configuration=metal --device-ip=%BOKKEN_DEVICE_IP% --extra-editor-arg="-force-metal"
+
+      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, OSX_Apple_Silicon_Metal]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_Apple_Silicon_Metal]: --player-connection-ip=auto
 
     utr_flags_build:
       - [all]: '%CACHE_ARGS%'
@@ -102,7 +104,7 @@ test_platforms:
 
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
-      - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
+      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
 
@@ -114,7 +116,7 @@ test_platforms:
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --player-save-path=players
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal, OSX_Apple_Silicon_Metal, Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --player-save-path=players
 
       - [all]: --timeout=1200
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --timeout=2700
@@ -125,13 +127,13 @@ test_platforms:
       - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
       - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
-      - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
+      - [iPhone_Metal, OSX_Apple_Silicon_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
 
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
       - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
-      - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
+      - [iPhone_Metal, OSX_Apple_Silicon_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
 
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
     commands:
@@ -341,6 +343,42 @@ platforms:
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
             retries: 2
 
+OSX_Apple_Silicon:
+    name: OSX
+    os: macos
+    components:
+      - editor
+      - il2cpp
+    agents_project_Metal:
+      default:
+        type: Unity::metal::devkit
+        image: slough-ops/macos-10.15-base:stable
+        flavor: m1.mac
+      standalone_build:
+        type: Unity::VM::osx
+        image: desktop/unity-macos-10.15-xcode-12.2:stable
+        flavor: m1.mac
+    agent_package:
+      type: Unity::VM::osx
+      image: package-ci/mac:stable
+      flavor: m1.mac
+    copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
+    editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
+    commands:
+      [Metal]:
+        setup_utr:
+          - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+          - chmod +x ./utr
+        call_utr:
+          - |5-
+                    export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                    ./utr <UTR_FLAGS>
+        call_utr_without_git:
+          - ./utr <UTR_FLAGS>
+        unity_downloader_cli:
+          - brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
+          - brew install unity/unity/unity-downloader-cli
+          - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
 
   Linux:
     name: Linux

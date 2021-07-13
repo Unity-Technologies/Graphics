@@ -77,6 +77,15 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+  - name: OSX_Apple_Silicon
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 
 jobs:
   - name: PR <PROJECT_NAME>
@@ -156,6 +165,12 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
+      - platform: OSX_Apple_Silicon
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+        #  - Standalone
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>

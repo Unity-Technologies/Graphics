@@ -100,6 +100,15 @@ platforms:
       - name: il2cpp
     color_spaces:
       - Linear
+  - name: OSX_Apple_Silicon
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 #  - name: Android
 #    apis:
 #      - name: Vulkan
@@ -137,6 +146,12 @@ jobs:
           # - Standalone
           - playmode
           # - Standalone
+      - platform: OSX_Apple_Silicon
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+        #  - Standalone
   - name: <PROJECT_NAME>
     dependencies:
       - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
