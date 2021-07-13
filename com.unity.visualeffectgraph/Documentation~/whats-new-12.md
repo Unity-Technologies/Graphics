@@ -8,13 +8,13 @@ The following is a list of features Unity added to version 12 of the Visual Effe
 
 ### Fixed Lit Output for the Universal Render Pipeline (URP)
 
-![img](Images\banner-urp-fixed-lit-output.png)
+![](Images/banner-urp-fixed-lit-output.png)
 
 This version of the Visual Effect Graph adds support for lit outputs in the Universal Render Pipeline (URP). You can use this to create effects that can respond to the lighting in the scene.
 
 ### 2D Renderer Support (Compute Capable Devices)
 
-![img](Images\banner-2d-renderer-support.png)
+![](Images/banner-2d-renderer-support.png)
 
 In this version, the Visual Effect Graph has added support for the Universal Render Pipeline’s (URP) 2D Renderer. This means that you can now render effects in a 2D project and sort them along with sprites in your scene.
 
@@ -22,7 +22,7 @@ For more information, see [Rendering in the Universal Render Pipeline](https://d
 
 ### Bounds Helpers
 
-![img](Images\banner-bounds-helpers.png)
+![](Images/banner-bounds-helpers.png)
 
 This version of the Visual Effect Graph adds helpers for setting and working with bounds. You can now record bounds in the Target GameObject window to ensure a more accurate fit. You can also set bounds automatically to make sure they are always visible.
 
@@ -32,7 +32,7 @@ For more information, see [Visual effect bounds](visual-effect-bounds.md).
 
 ### Graphics/Compute Buffer Support
 
-![img](Images\banner-graphics-compute-buffer-support.png)
+![](Images/banner-graphics-compute-buffer-support.png)
 
 VFX version 21.2 also adds support for Graphics/Compute buffers. This makes it easier to handle and transfer large amounts of data to a Visual Effect Graph. This is particularly useful for tracking multiple GameObject positions in your graph.
 
@@ -40,7 +40,7 @@ This feature requires C# knowledge to set and handle Graphics Buffers.
 
 ### Signed Distance Field Baker
 
-![img](Images\banner-sdf-baker.png)
+![](Images/banner-sdf-baker.png)
 
 This version includes the new Signed Distance Field (SDF) Bake Tool. To access it, navigate to **Window > Visual Effects > Utilities > SDF Bake Tool**. You can use this tool to quickly turn meshes and prefabs into SDF assets which you can use to create various effects, such as custom collisions, or to make particles conform to a particular shape.
 
