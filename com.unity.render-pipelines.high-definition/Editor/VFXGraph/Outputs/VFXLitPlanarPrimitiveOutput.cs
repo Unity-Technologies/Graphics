@@ -94,5 +94,17 @@ namespace UnityEditor.VFX.HDRP
                 yield return VFXPlanarPrimitiveHelper.GetShaderDefine(primitiveType);
             }
         }
+
+        protected override IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                foreach (var setting in base.untransferableSettings)
+                {
+                    yield return setting;
+                }
+                yield return "primitiveType";
+            }
+        }
     }
 }
