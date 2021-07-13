@@ -128,7 +128,7 @@ namespace UnityEditor.VFX.UI
             using (new GUILayout.VerticalScope(GUILayout.Height(120)))
             {
                 var isAttached = this.m_vfxView.attachedComponent != null;
-                GUI.enabled = isAttached || Selection.activeGameObject.GetComponent<VisualEffect>() != null;
+                GUI.enabled = isAttached || Selection.activeGameObject?.GetComponent<VisualEffect>() != null;
                 if (GUILayout.Button(isAttached ? VFXView.Contents.detach : VFXView.Contents.attachToSelection, GUILayout.Height(24)))
                 {
                     if (isAttached)
