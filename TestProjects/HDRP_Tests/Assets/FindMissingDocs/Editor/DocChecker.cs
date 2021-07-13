@@ -49,17 +49,17 @@ public class DocChecker : EditorWindow
 
     public string undocumentedEntitiesFilePath => outputFolder + "/" + "undocumented_entities.txt";
 
-    [MenuItem ("Window/Doc Checker")]
+    [MenuItem("Window/Doc Checker")]
     public new static void Show() => EditorWindow.GetWindow<DocChecker>();
 
-    void OnGUI ()
+    void OnGUI()
     {
         UpdatePackagesList();
 
         if (IsLoading())
         {
             EditorGUILayout.LabelField("Loading Packages ...");
-            return ;
+            return;
         }
 
         if (collection == null)
@@ -207,7 +207,7 @@ public class DocChecker : EditorWindow
 
         if (responseFilePath != null)
             File.Delete(responseFilePath);
-        
+
         EditorUtility.ClearProgressBar();
         Debug.Log("Done !");
     }
