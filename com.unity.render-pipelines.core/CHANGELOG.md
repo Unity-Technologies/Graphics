@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Support for the PlayStation 5 platform has been added.
 - Support for additional properties for Volume Components without custom editor
+- Added VolumeComponentMenuForRenderPipelineAttribute to specify a volume component only for certain RenderPipelines.
 - Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
 - Support for the PlayStation 5 platform has been added.
 - Support for the XboxSeries platform has been added.
@@ -49,6 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Right Align of additional properties on Volume Components Editors
 - Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
 - Fixed L2 for Probe Volumes.
+- When adding Overrides to the Volume Profile, only show Volume Components from the current Pipeline.
 - Fixed assertion on compression of L1 coefficients for Probe Volume.
 - Explicit half precision not working even when Unified Shader Precision Model is enabled.
 - Fixed ACES filter artefact due to half float error on some mobile platforms.
@@ -61,6 +63,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Skip wind calculations for Speed Tree 8 when wind vector is zero (case 1343002)
 - Fixed memory leak when changing SRP pipeline settings, and having the player in pause mode.
 - Fixed alignment in Volume Components
+- Virtual Texturing fallback texture sampling code correctly honors the enableGlobalMipBias when virtual texturing is disabled.
+- Fixed LightAnchor too much error message, became a HelpBox on the Inspector.
+- Fixed library function SurfaceGradientFromTriplanarProjection to match the mapping convention used in SampleUVMappingNormalInternal.hlsl and fix its description.
+- Fixed Volume Gizmo size when rescaling parent GameObject
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
