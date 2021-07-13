@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Factory
         public static IModelUI CreateRegistryNode(this ElementBuilder elementBuilder, CommandDispatcher store, RegistryNodeModel model)
         {
             var ui = new RegistryNode();
-            ui.SetupBuildAndUpdate(model, store, elementBuilder.View);
+            ui.SetupBuildAndUpdate(model, store, elementBuilder.View, elementBuilder.Context);
             return ui;
         }
     }
