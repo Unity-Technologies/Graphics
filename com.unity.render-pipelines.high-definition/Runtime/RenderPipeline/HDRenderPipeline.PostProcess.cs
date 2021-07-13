@@ -514,6 +514,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = FXAAPass(renderGraph, hdCamera, source);
 
+                hdCamera.didResetPostProcessingHistoryInLastFrame = hdCamera.resetPostProcessingHistory;
+
                 hdCamera.resetPostProcessingHistory = false;
             }
 
@@ -779,8 +781,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RTHandle GetPreviousExposureTexture(HDCamera camera)
         {
-            // See GetExposureTexture
-            return GetExposureTextureHandle(camera.currentExposureTextures.previous);
+            // If the history was reset in the previous frame, then the history buffers were actually rendered with a neutral EV100 exposure multiplier
+            return (camera.didResetPostProcessingHistoryInLastFrame && !IsExposureFixed(camera)) ?
+                m_EmptyExposureTexture : GetExposureTextureHandle(camera.currentExposureTextures.previous);
         }
 
         RTHandle GetExposureDebugData()
@@ -2830,15 +2833,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
                                 data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, width, height,
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
-                                ShaderConfig.s_CameraRelativeRendering != 0,
-                                //data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
-                                data.hdCamera.mainViewConstants.viewProjMatrix,
                                 ctx.cmd, data.source,
                                 // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
                                 // And here the lambda setup like that seem to not alloc anything.
                                 (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
                                 HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
-                                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4,
+                                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5,
                                 data.parameters.skipCopy);
                         });
 
