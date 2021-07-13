@@ -354,6 +354,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public virtual void GetInputSlots<T>(MaterialSlot startingSlot, List<T> foundSlots) where T : MaterialSlot
+        {
+            GetInputSlots(foundSlots);
+        }
+
         public void GetOutputSlots<T>(List<T> foundSlots) where T : MaterialSlot
         {
             foreach (var slot in m_Slots.SelectValue())
@@ -363,6 +368,11 @@ namespace UnityEditor.ShaderGraph
                     foundSlots.Add(materialSlot);
                 }
             }
+        }
+
+        public virtual void GetOutputSlots<T>(MaterialSlot startingSlot, List<T> foundSlots) where T : MaterialSlot
+        {
+            GetOutputSlots(foundSlots);
         }
 
         public void GetSlots<T>(List<T> foundSlots) where T : MaterialSlot
