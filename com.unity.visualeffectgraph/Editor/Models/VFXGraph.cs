@@ -97,7 +97,6 @@ namespace UnityEditor.VFX
             if (resource != null)
             {
                 VFXGraph graph = resource.graph as VFXGraph;
-
                 if (graph != null)
                 {
                     if (!graph.sanitized)
@@ -106,19 +105,19 @@ namespace UnityEditor.VFX
                     }
                     else
                     {
-                        //Trying another approach, since the CompileForImport seems to modify the vfxGraph
-                        //Restore the previous state after compilation !
-
+                        //Workaround, use backup system to prevent any modification of the graph during compilation
+                        //The responsible of this unexpected change is PrepareSubgraphs => RecurseSubgraphRecreateCopy => ResyncSlots
+                        //It will let the VFXGraph in a really bad state after compilation.
                         graph = resource.GetOrCreateGraph();
                         var dependencies = new HashSet<ScriptableObject>();
                         dependencies.Add(graph);
                         graph.CollectDependencies(dependencies);
-                        var backup = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.ToArray(), CompressionLevel.Fastest);
+                        var backup = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.ToArray(), CompressionLevel.None);
 
                         graph.CompileForImport();
 
                         VFXMemorySerializer.ExtractObjects(backup, false);
-                        //The backup is actually calling UnknownChange here
+                        //The backup during undo/redo is actually calling UnknownChange after ExtractObjects
                         //You have to avoid because it will call ResyncSlot
                     }
                 }
