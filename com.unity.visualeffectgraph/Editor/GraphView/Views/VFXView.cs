@@ -584,7 +584,7 @@ namespace UnityEditor.VFX.UI
             m_Toolbar.Add(toggleBlackboard);
 
             m_ToggleComponentBoard = new ToolbarToggle();
-            m_ToggleComponentBoard.text = "Target GameObject";
+            m_ToggleComponentBoard.text = "Control";
             m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
             m_Toolbar.Add(m_ToggleComponentBoard);
 
