@@ -17,37 +17,43 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_202
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Win
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_2020.3
          rerun: on_new_revision
 Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_2020.3:
@@ -58,12 +64,15 @@ Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Line
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 2
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -85,28 +94,32 @@ Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Line
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=1200
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=1200
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/BoatAttack --timeout=1200
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=1200
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=1200
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -115,6 +128,9 @@ Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Line
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Win
+         rerun: on_new_revision
 URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_2020.3:
     name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_editor_mono_Linear on version 2020.3
     agent:
@@ -124,12 +140,15 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_2020
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 2
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -151,33 +170,40 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_2020
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Win
+         rerun: on_new_revision
 URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_2020.3:
     name: URP_Performance_BoatAttack on Win_DX11_performance_build_editmode_mono_Linear on version 2020.3
     agent:
@@ -186,12 +212,15 @@ URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_2020.
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 2
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -213,33 +242,40 @@ URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_2020.
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Win
+         rerun: on_new_revision
 URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
     name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -252,29 +288,32 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUS
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -296,10 +335,12 @@ Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Line
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 2
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -321,28 +362,32 @@ Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Line
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=1200
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=1200
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/BoatAttack --timeout=1200
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=1200
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=1200
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
@@ -366,10 +411,12 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_CUST
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 2
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -391,28 +438,32 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_CUST
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -432,10 +483,12 @@ URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_CUSTO
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_BRANCH: master
         BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
+         retries: 2
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -457,28 +510,32 @@ URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_CUSTO
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

@@ -243,6 +243,9 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Index of the camera to freeze for visibility.</summary>
             public int debugCameraToFreeze = 0;
 
+            /// <summary>Minimum length a motion vector needs to be to be displayed in the debug display. Unit is pixels.</summary>
+            public float minMotionVectorLength = 0.0f;
+
             // TODO: The only reason this exist is because of Material/Engine debug enums
             // They have repeating values, which caused issues when iterating through the enum, thus the need for explicit indices
             // Once we refactor material/engine debug to avoid repeating values, we should be able to remove that.

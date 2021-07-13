@@ -2745,8 +2745,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 tileSize = 16;
             }
 
-            int tileTexWidth = Mathf.CeilToInt(camera.actualWidth / tileSize);
-            int tileTexHeight = Mathf.CeilToInt(camera.actualHeight / tileSize);
+            int tileTexWidth = Mathf.CeilToInt(camera.actualWidth / (float)tileSize);
+            int tileTexHeight = Mathf.CeilToInt(camera.actualHeight / (float)tileSize);
             parameters.tileTargetSize = new Vector4(tileTexWidth, tileTexHeight, 1.0f / tileTexWidth, 1.0f / tileTexHeight);
 
             float screenMagnitude = (new Vector2(camera.actualWidth, camera.actualHeight).magnitude);

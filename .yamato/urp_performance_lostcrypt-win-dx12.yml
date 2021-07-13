@@ -17,37 +17,43 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linear_2020
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
     dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Win
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linear_2020.3
          rerun: on_new_revision
 Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linear_2020.3:
@@ -58,12 +64,15 @@ Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linea
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+         retries: 2
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -85,28 +94,32 @@ Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linea
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/2d-sara --timeout=1200
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/2d-sara --timeout=1200
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/2d-sara --timeout=1200
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/2d-sara --timeout=1200
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/2d-sara --timeout=1200
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/2d-sara --timeout=1200
     artifacts:
         logs:
             paths:
@@ -115,6 +128,9 @@ Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linea
         players:
             paths:
               -  "players*/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Win
+         rerun: on_new_revision
 URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_2020.3:
     name: URP_Performance_LostCrypt on Win_DX12_performance_playmode_editor_mono_Linear on version 2020.3
     agent:
@@ -124,12 +140,15 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_2020.
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+         retries: 2
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -151,33 +170,40 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_2020.
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Win
+         rerun: on_new_revision
 URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_2020.3:
     name: URP_Performance_LostCrypt on Win_DX12_performance_build_editmode_mono_Linear on version 2020.3
     agent:
@@ -186,12 +212,15 @@ URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_2020.3
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: '{{2020_3.changeset.id}}'
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+         retries: 2
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -213,33 +242,40 @@ URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_2020.3
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCryptLostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCryptLostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/2d-sara/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Win
+         rerun: on_new_revision
 URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
     name: URP_Performance_LostCrypt on Win_DX12_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -252,29 +288,32 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linear_CUST
         CUSTOM_REVISION: custom_revision_not_set
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -296,10 +335,12 @@ Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linea
         CUSTOM_REVISION: custom_revision_not_set
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+         retries: 2
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -321,28 +362,32 @@ Build_URP_Performance_LostCrypt_Win_DX12_performance_playmode_runtime_mono_Linea
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/2d-sara --timeout=1200
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/2d-sara --timeout=1200
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/2d-sara --timeout=1200
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/2d-sara --timeout=1200
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/2d-sara --timeout=1200
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/2d-sara --timeout=1200
     artifacts:
         logs:
             paths:
@@ -366,10 +411,12 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_CUSTO
         CUSTOM_REVISION: custom_revision_not_set
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+         retries: 2
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -391,28 +438,32 @@ URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_CUSTO
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -432,10 +483,12 @@ URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM
         CUSTOM_REVISION: custom_revision_not_set
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
         LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+         retries: 2
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -457,28 +510,32 @@ URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM
       -  cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
-      -  NetSh Advfirewall set allprofiles state off
-      -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCryptLostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: NetSh Advfirewall set allprofiles state off
+         retries: 2
+      -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
+         retries: 2
+      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+         retries: 2
+      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
+         retries: 2
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: |5-
+                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                set /p GIT_REVISIONDATE=<revdate.tmp
+                echo %GIT_REVISIONDATE%
+                del revdate.tmp
+                utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Direct3D12" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCryptLostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

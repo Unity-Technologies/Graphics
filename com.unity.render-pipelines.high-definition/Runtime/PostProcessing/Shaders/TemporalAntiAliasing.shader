@@ -16,6 +16,8 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local _ ANTI_RINGING
         #pragma multi_compile_local LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY POST_DOF
 
+        #pragma editor_sync_compilation
+
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -243,7 +245,7 @@ Shader "Hidden/HDRP/TemporalAA"
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
             outColor = color.CTYPE_SWIZZLE;
 
-#if VELOCITY_REJECTION
+#if VELOCITY_REJECTION && !defined(POST_DOF)
             _OutputVelocityMagnitudeHistory[COORD_TEXTURE2D_X(input.positionCS.xy)] = lengthMV;
 #endif
             // -------------------------------------------------------------
