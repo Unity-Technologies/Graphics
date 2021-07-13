@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Provide explicit access to spawnCount in graph
 - Support of direct link event to initialize context (which support several event within the same frame)
 - Structured Graphics Buffer support as exposed type
+- Added HDRP Decal output context.
 - Motion vectors enabled for particle strips
 
 ### Changed
@@ -68,6 +69,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix incorrect buffer type for strips
 - Fix culling of point output [Case 1225764](https://issuetracker.unity3d.com/product/unity/issues/guid/1225764/)
 - Enabled an optimization for motion vectors, storing projected positions for vertices instead of the transform matrix
+- Sticky notes can now be deleted through contextual manual menu
+- Blackboard fields can now be duplicated either with a shortcut (Ctrl+D) or with a contextual menu option
+- Properties labels do not overlap anymore
+- VFX Graph operators keep the same width when expanded or collpased so that the button does not change position
+- Fix Soft Particle depth computation when using an orthographic camera [Case 1309961](https://issuetracker.unity3d.com/product/unity/issues/guid/1309961)
+- When adding a new node/operator in the graph editor and using the search field, the search results are sorted in a smarter way
+- Unexpected operator and block removal during migration [Case 1344645](https://issuetracker.unity3d.com/product/unity/issues/guid/1344645/)
 - Compilation issue when normal is used in shadergraph for opacity with unlit output
 - Fix Exception on trying to invert a degenerate TRS matrix [Case 1307068](https://issuetracker.unity3d.com/product/unity/issues/guid/1307068/)
 - Fix IsFrontFace shader graph node for VFX.
