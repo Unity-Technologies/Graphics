@@ -53,6 +53,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [Test]
+        public void sg_subUnconnectedError()
+        {
+            TestImport(
+                "Assets/CommonAssets/Graphs/ErrorTestGraphs/sg_subUnconnectedError.shadergraph");
+        }
+
+        [Test]
         public void sg_subValidationError()
         {
             TestImport(
