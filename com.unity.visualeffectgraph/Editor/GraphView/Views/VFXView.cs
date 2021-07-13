@@ -155,8 +155,8 @@ namespace UnityEditor.VFX.UI
 
                 GUI.enabled = isAttached;
                 GUILayout.FlexibleSpace();
-                var attachedButtonLabel = this.m_vfxView.attachedComponent?.name != null
-                    ? new GUIContent(this.m_vfxView.attachedComponent?.name, VFXView.Contents.clickToSelect.text)
+                var attachedButtonLabel = this.m_vfxView.attachedComponent != null && this.m_vfxView.attachedComponent.name != null
+                    ? new GUIContent(this.m_vfxView.attachedComponent.name, VFXView.Contents.clickToSelect.text)
                     : VFXView.Contents.noSelection;
 
                 using (new GUILayout.HorizontalScope())
@@ -166,7 +166,7 @@ namespace UnityEditor.VFX.UI
                     GUI.enabled = isAttached;
                     if (GUILayout.Button(attachedButtonLabel, GUILayout.Height(24), GUILayout.MinWidth(60)))
                     {
-                        Selection.activeObject = this.m_vfxView.attachedComponent?.gameObject;
+                        Selection.activeObject = this.m_vfxView.attachedComponent != null ? this.m_vfxView.attachedComponent.gameObject : null;
                     }
                 }
 
@@ -874,7 +874,7 @@ namespace UnityEditor.VFX.UI
 
             this.m_LockToggle.tooltip = this.isLocked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
 
-            if (!string.IsNullOrEmpty(this.attachedComponent?.name))
+            if (this.attachedComponent != null && !string.IsNullOrEmpty(this.attachedComponent.name))
             {
                 this.m_LockToggle.tooltip += $"\nAttached to {this.attachedComponent.name}";
             }
