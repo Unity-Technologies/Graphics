@@ -52,6 +52,9 @@ namespace UnityEditor.Rendering.HighDefinition
             s_MissingProfiles.Clear();
 
             profilesToRegister = new bool[missingProfiles.Count];
+            for (int i = 0; i < profilesToRegister.Length; i++)
+                profilesToRegister[i] = true;
+
             uiList = new ReorderableList(missingProfiles, typeof(string), false, false, false, false)
             {
                 drawElementCallback = DrawProfileItem,
@@ -73,14 +76,25 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            profilesToRegister[index] = EditorGUI.Toggle(rect, profilesToRegister[index]);
-            rect.xMin += 14.0f + 9.0f; // width of the checkbox + padding
+            var boxRect = new Rect(rect) { width = 14.0f };
+            profilesToRegister[index] = EditorGUI.Toggle(boxRect, profilesToRegister[index]);
 
-            EditorGUI.LabelField(rect, missingProfiles[index].name);
+            using (new EditorGUI.DisabledScope(true))
+            {
+                // Padding around the field
+                rect.xMin += boxRect.width + 9.0f;
+                rect.y += 1;
+                rect.height = 20;
+
+                EditorGUI.ObjectField(rect, missingProfiles[index], typeof(DiffusionProfileSettings), false);
+            }
         }
 
         void OnGUI()
         {
+            var style = new GUIStyle(EditorStyles.inspectorDefaultMargins) { padding = new RectOffset(4, 4, 0, 0) };
+            EditorGUILayout.BeginVertical(style);
+
             EditorGUILayout.Space();
 
             GUIStyle textStyle = EditorStyles.label;
@@ -117,6 +131,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
+
+            EditorGUILayout.EndVertical();
         }
     }
 }
