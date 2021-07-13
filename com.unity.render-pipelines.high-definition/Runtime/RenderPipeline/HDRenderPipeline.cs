@@ -147,6 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId[] m_ForwardErrorPassNames = { HDShaderPassNames.s_AlwaysName, HDShaderPassNames.s_ForwardBaseName, HDShaderPassNames.s_DeferredName, HDShaderPassNames.s_PrepassBaseName, HDShaderPassNames.s_VertexName, HDShaderPassNames.s_VertexLMRGBMName, HDShaderPassNames.s_VertexLMName };
         ShaderTagId[] m_SinglePassName = new ShaderTagId[1];
         ShaderTagId[] m_MeshDecalsPassNames = { HDShaderPassNames.s_DBufferMeshName };
+        ShaderTagId[] m_VfxDecalsPassNames = { HDShaderPassNames.s_DBufferVFXDecalName };
 
         RenderStateBlock m_DepthStateOpaque;
         RenderStateBlock m_DepthStateNoWrite;

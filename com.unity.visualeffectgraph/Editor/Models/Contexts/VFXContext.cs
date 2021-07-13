@@ -611,5 +611,24 @@ namespace UnityEditor.VFX
             foreach (var block in children)
                 block.CheckGraphBeforeImport();
         }
+
+        //TODO: Register all the contexts that have issues when transfering settings (in ConvertContext() )
+        protected virtual IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                return Enumerable.Empty<string>();
+            }
+        }
+
+        public bool CanTransferSetting(string settingName)
+        {
+            return !untransferableSettings.Contains(settingName);
+        }
+
+        public bool CanTransferSetting(VFXSetting setting)
+        {
+            return CanTransferSetting(setting.field.Name);
+        }
     }
 }
