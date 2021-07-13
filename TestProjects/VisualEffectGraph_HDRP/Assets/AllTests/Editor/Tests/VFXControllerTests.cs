@@ -1106,7 +1106,7 @@ namespace UnityEditor.VFX.Test
                 var subGraph = mainGraph.children.OfType<VFXSubgraphOperator>().FirstOrDefault();
                 Assert.IsNotNull(subGraph);
                 Assert.AreEqual(2, subGraph.outputSlots.Count);
-                //Assert.IsFalse(subGraph.outputSlots.Any(o => o == null)); //TODOPAUL : There is still a problem here
+                Assert.IsFalse(subGraph.outputSlots.Any(o => o == null));
             }
             yield return null;
 
