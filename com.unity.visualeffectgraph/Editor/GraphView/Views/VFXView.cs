@@ -119,7 +119,7 @@ namespace UnityEditor.VFX.UI
 
         public override Vector2 GetWindowSize()
         {
-            return new Vector2(200, 120);
+            return new Vector2(250, 120);
         }
 
         public override void OnGUI(Rect rect)
@@ -144,7 +144,7 @@ namespace UnityEditor.VFX.UI
                 GUI.enabled = true;
                 GUILayout.FlexibleSpace();
 
-                EditorGUILayout.PrefixLabel(VFXView.Contents.pickATarget, new GUIStyle { margin = new RectOffset(4, 0, 0, 0) });
+                EditorGUILayout.LabelField(VFXView.Contents.pickATarget);
                 if (EditorGUILayout.ObjectField(this.m_vfxView.attachedComponent, typeof(VisualEffect), true, GUILayout.ExpandWidth(true)) is VisualEffect visualEffect)
                 {
                     if (visualEffect != this.m_vfxView.attachedComponent)
