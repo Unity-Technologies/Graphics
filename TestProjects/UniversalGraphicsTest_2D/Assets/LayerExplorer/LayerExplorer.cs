@@ -92,7 +92,7 @@ internal class LayerExplorer : EditorWindow
         var batch2 = batchList[index2];
 
         // populate
-        var title = infoView.Query<Label>("InfoTitle").First();
+        var title = root.Query<Label>("InfoTitle").First();
         title.text = "Comparing Batch 2 and Batch 3";
 
         var label1 = infoView.Query<Label>("InfoLabel1").First();
@@ -122,7 +122,6 @@ internal class LayerExplorer : EditorWindow
         // Each editor window contains a root VisualElement object
         var root = rootVisualElement;
 
-        // Import UXML
         var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/LayerExplorer/LayerExplorer.uxml");
         var templateRoot = visualTree.Instantiate();
         templateRoot.style.flexGrow = 1;
@@ -161,6 +160,7 @@ internal class LayerExplorer : EditorWindow
         layerList.makeItem = makeItem;
         layerList.bindItem = bindItem;
         layerList.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
+        layerList.showAlternatingRowBackgrounds = AlternatingRowBackground.ContentOnly;
 
         CompareBatch(0, 1);
 

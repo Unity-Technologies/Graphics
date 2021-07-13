@@ -1,33 +1,55 @@
-.LayerBatch {
+.BatchList {
+
+}
+
+.BatchList.HeaderContainer {
     flex-direction: row;
+    height: auto;
 }
 
-.LayerBatch.Header {
-    height: 20px;
-}
-
-.BatchIndexColumn {
+.BatchList.IndexColumn {
+    margin-left: 5px;
     width: 60px;
 }
 
-.BatchIndexColumn.Index {
-    padding-left: 10px;
-}
-
-.BatchNameColumn {
-    padding-left: 10px;
-}
-
-.BatchColor {
+.BatchList.ColorColumn {
     width: 10px;
 }
 
-#LayerList {
+.BatchList.NameColumn {
+    flex-grow: 2;
+    margin-left: 5px;
+}
+
+.BatchList.BatchContainer {
+    flex-direction: row;
+}
+
+.BatchList.IndexColumn.Header {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.BatchList.NameColumn.Header {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.BatchList.IndexColumn.Batch {
+    margin-top: 5px;
+}
+
+.BatchList.NameColumn.Batch {
+    margin-top: 5px;
+    flex-direction: column;
+}
+
+.BatchList .List {
     flex-grow: 1;
 }
 
 .LayerNameLabel {
-    padding: 5px;
+    margin-bottom: 5px;
 }
 
 .InfoView {
@@ -52,8 +74,9 @@
     white-space: normal;
 }
 
-.InfoViewHeader {
-    height: 20px;
+.InfoView.Header {
+    margin: 5px;
+    height: auto;
 }
 
 .InfoScroller {
