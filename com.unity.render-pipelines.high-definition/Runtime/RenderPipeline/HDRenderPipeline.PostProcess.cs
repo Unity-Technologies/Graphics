@@ -514,6 +514,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = FXAAPass(renderGraph, hdCamera, source);
 
+                hdCamera.didResetPostProcessingHistoryInLastFrame = hdCamera.resetPostProcessingHistory;
+
                 hdCamera.resetPostProcessingHistory = false;
             }
 
@@ -779,8 +781,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RTHandle GetPreviousExposureTexture(HDCamera camera)
         {
-            // See GetExposureTexture
-            return GetExposureTextureHandle(camera.currentExposureTextures.previous);
+            // If the history was reset in the previous frame, then the history buffers were actually rendered with a neutral EV100 exposure multiplier
+            return (camera.didResetPostProcessingHistoryInLastFrame && !IsExposureFixed(camera)) ?
+                m_EmptyExposureTexture : GetExposureTextureHandle(camera.currentExposureTextures.previous);
         }
 
         RTHandle GetExposureDebugData()

@@ -5,6 +5,10 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEngine.VFX;
 using UnityEngine.Rendering.RendererUtils;
 
+// Resove the ambiguity in the RendererList name (pick the in-engine version)
+using RendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using RendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
@@ -109,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Stop Single Pass is after post process.
                     StartXRSinglePass(m_RenderGraph, hdCamera);
 
-                    colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer);
+                    colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer, prepassOutput.depthBuffer);
                     colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
                 }
                 else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -152,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Evaluate the clear coat mask texture based on the lit shader mode
                     var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
                     lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph, hdCamera, ref prepassOutput, clearCoatMask, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), transparent: false);
-                    lightingBuffers.ssgiLightingBuffer = RenderScreenSpaceIndirectDiffuse(hdCamera, prepassOutput, rayCountTexture, historyValidationTexture);
+                    lightingBuffers.ssgiLightingBuffer = RenderScreenSpaceIndirectDiffuse(hdCamera, prepassOutput, rayCountTexture, historyValidationTexture, gpuLightListOutput.lightList);
 
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingClusterState())
                     {
@@ -1124,7 +1128,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ResetCameraMipBias(hdCamera);
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled())
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled() || hdCamera.IsSSGIEnabled())
             {
                 var resolvedColorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
                 GenerateColorPyramid(renderGraph, hdCamera, resolvedColorBuffer, currentColorPyramid, FullScreenDebugMode.FinalColorPyramid);
@@ -1193,7 +1197,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Figure out which client systems need which buffers
             // Only VFX systems for now
             parameters.neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);
-            parameters.needNormalBuffer |= ((parameters.neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Normal) != 0);
+            parameters.needNormalBuffer |= ((parameters.neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Normal) != 0 || GetIndirectDiffuseMode(hdCamera) == IndirectDiffuseMode.ScreenSpace);
             parameters.needDepthBuffer |= ((parameters.neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Depth) != 0 || GetIndirectDiffuseMode(hdCamera) == IndirectDiffuseMode.ScreenSpace);
 
             // Raytracing require both normal and depth from previous frame.
@@ -1462,6 +1466,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     builder.DependsOn(depedency.Value);
                 }
+
+                if (!hdCamera.colorPyramidHistoryIsValid)
+                {
+                    hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
+                    hdCamera.colorPyramidHistoryValidFrames = 0;
+                }
+                else
+                {
+                    hdCamera.colorPyramidHistoryValidFrames++;
+                }
+
 
                 passData.colorPyramid = builder.WriteTexture(output);
                 passData.inputColor = builder.ReadTexture(inputColor);

@@ -251,6 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             outputColorBuffer,
                             customPass.currentRenderTarget.depthBufferRG,
                             customPass.currentRenderTarget.normalBufferRG,
+                            customPass.currentRenderTarget.motionVectorBufferRG,
                             customPass.currentRenderTarget.customColorBuffer,
                             customPass.currentRenderTarget.customDepthBuffer,
                             ctx.renderGraphPool.GetTempMaterialPropertyBlock()

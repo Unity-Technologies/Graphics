@@ -341,14 +341,28 @@ StackInfo MakeStackInfo(VtInputParameters vt)
 
 float4 SampleVTFallbackToTexture(StackInfo info, int vtLevelMode, TEXTURE2D_PARAM(layerTexture, layerSampler))
 {
-    if (vtLevelMode == VtLevel_Automatic)
-        return SAMPLE_TEXTURE2D(layerTexture, layerSampler, info.vt.uv);
-    else if (vtLevelMode == VtLevel_Lod)
-        return SAMPLE_TEXTURE2D_LOD(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
-    else if (vtLevelMode == VtLevel_Bias)
-        return SAMPLE_TEXTURE2D_BIAS(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
-    else // vtLevelMode == VtLevel_Derivatives
-        return SAMPLE_TEXTURE2D_GRAD(layerTexture, layerSampler, info.vt.uv, info.vt.dx, info.vt.dy);
+    if (info.vt.enableGlobalMipBias)
+    {
+        if (vtLevelMode == VtLevel_Automatic)
+            return SAMPLE_TEXTURE2D(layerTexture, layerSampler, info.vt.uv);
+        else if (vtLevelMode == VtLevel_Lod)
+            return SAMPLE_TEXTURE2D_LOD(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
+        else if (vtLevelMode == VtLevel_Bias)
+            return SAMPLE_TEXTURE2D_BIAS(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
+        else // vtLevelMode == VtLevel_Derivatives
+            return SAMPLE_TEXTURE2D_GRAD(layerTexture, layerSampler, info.vt.uv, info.vt.dx, info.vt.dy);
+    }
+    else
+    {
+        if (vtLevelMode == VtLevel_Automatic)
+            return PLATFORM_SAMPLE_TEXTURE2D(layerTexture, layerSampler, info.vt.uv);
+        else if (vtLevelMode == VtLevel_Lod)
+            return PLATFORM_SAMPLE_TEXTURE2D_LOD(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
+        else if (vtLevelMode == VtLevel_Bias)
+            return PLATFORM_SAMPLE_TEXTURE2D_BIAS(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
+        else // vtLevelMode == VtLevel_Derivatives
+            return PLATFORM_SAMPLE_TEXTURE2D_GRAD(layerTexture, layerSampler, info.vt.uv, info.vt.dx, info.vt.dy);
+    }
 }
 
 StackInfo PrepareVT(VTProperty vtProperty, VtInputParameters vtParams)
