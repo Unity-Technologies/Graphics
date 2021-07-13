@@ -6,10 +6,10 @@
     xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
 >
     <ui:VisualElement>
-        <ui:VisualElement name="Title" class="InfoView Content"/>
-        <ui:VisualElement name="Label1" class="InfoView Content"/>
-        <ui:VisualElement name="Bubble1" class="InfoView Content"/>
-        <ui:VisualElement name="Label2" class="InfoView Content"/>
-        <ui:VisualElement name="Bubble2" class="InfoView Content"/>
+        <ui:Label name="Title" class="InfoView Content"/>
+        <ui:Label name="Label1" class="InfoView Content"/>
+        <ui:VisualElement name="Bubble1" class="InfoView Content PillContainer"/>
+        <ui:Label name="Label2" class="InfoView Content"/>
+        <ui:VisualElement name="Bubble2" class="InfoView Content PillContainer"/>
     </ui:VisualElement>
 </ui:UXML>

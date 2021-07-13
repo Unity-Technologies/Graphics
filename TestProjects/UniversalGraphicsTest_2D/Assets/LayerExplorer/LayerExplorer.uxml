@@ -11,7 +11,7 @@
             <ui:VisualElement>
                 <ui:VisualElement name="Header" class="InfoViewHeader"/>
                 <ui:ScrollView name="InfoScroller" class="InfoScroller"/>
-                <ui:VisualElement name="Description" class="InfoView Footer"/>
+                <ui:Label name="Description" class="InfoView Footer"/>
             </ui:VisualElement>
         </ui:TwoPaneSplitView>
 </ui:UXML>

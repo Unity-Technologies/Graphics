@@ -103,25 +103,39 @@ internal class LayerExplorer : EditorWindow
         var batchView = batchViewAsset.Instantiate();
 
         // populate
-        var title = batchView.Query<VisualElement>("Title").First();
-        title.Add(new Label{text = "Comparing Batch 2 and Batch 3"});
+        var title = batchView.Query<Label>("Title").First();
+        title.text = "Comparing Batch 2 and Batch 3";
 
-        var label1 = batchView.Query<VisualElement>("Label1").First();
-        label1.Add(new Label{text = "Lights in Batch 2 but not in Batch 3"});
+        var label1 = batchView.Query<Label>("Label1").First();
+        label1.text = "Lights in Batch 2 but not in Batch 3";
 
         var bubble1 = batchView.Query<VisualElement>("Bubble1").First();
-        bubble1.Add(new Label{text = "[Bubble1]"});
+        for (var k = 0; k < 10; k++)
+        {
+            var bubble = new Button();
+            bubble.AddToClassList("Pill");
+            bubble.Add(new Label{text = $"Bubble{k}"});
+            bubble1.Add(bubble);
+        }
 
-        var label2 = batchView.Query<VisualElement>("Label2").First();
-        label2.Add(new Label{text = "Lights in Batch 3 but not in Batch 2"});
+
+        var label2 = batchView.Query<Label>("Label2").First();
+        label2.text = "Lights in Batch 3 but not in Batch 2";
 
         var bubble2 = batchView.Query<VisualElement>("Bubble2").First();
-        bubble2.Add(new Label{text = "[Bubble2]"});
+        for (var k = 0; k < 10; k++)
+        {
+            var bubble = new Button();
+            bubble.AddToClassList("Pill");
+            bubble.Add(new Label{text = $"Bubble{k}"});
+            bubble2.Add(bubble);
+        }
 
-        var desc = root.Query<VisualElement>("Description").First();
-        desc.Add(new Label{text = "Layers 2 and 3 are not batched together because they do not share the same set of lights."});
+        var desc = root.Query<Label>("Description").First();
+        desc.text = "Layers 2 and 3 are not batched together because they do not share the same set of lights.";
 
         var infoView = root.Query<ScrollView>("InfoScroller").First();
+        // infoView.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
         infoView.Add(batchView);
     }
 }
