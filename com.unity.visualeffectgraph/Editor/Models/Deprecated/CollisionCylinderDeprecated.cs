@@ -46,8 +46,6 @@ bool collision = abs(dir.y) > halfHeight || sqrLength > cylinderRadius * cylinde
 
         public override void Sanitize(int version)
         {
-            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
-
             var newCollisionCone = ScriptableObject.CreateInstance<CollisionCone>();
             SanitizeHelper.MigrateBlockTShapeFromShape(newCollisionCone, this);
             ReplaceModel(newCollisionCone, this);

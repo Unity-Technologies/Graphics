@@ -27,8 +27,6 @@ namespace UnityEditor.VFX.Operator
 
         public override void Sanitize(int version)
         {
-            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
-
             var newArea = ScriptableObject.CreateInstance<Operator.CircleArea>();
             SanitizeHelper.MigrateTCircleFromCircle(newArea.inputSlots[0], inputSlots[0]);
             VFXSlot.CopyLinksAndValue(newArea.outputSlots[0], outputSlots[0], true);

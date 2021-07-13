@@ -29,8 +29,6 @@ namespace UnityEditor.VFX.Operator
 
         public override void Sanitize(int version)
         {
-            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
-
             var newVolume = ScriptableObject.CreateInstance<Operator.ConeVolume>();
             SanitizeHelper.MigrateTConeFromCylinder(newVolume.inputSlots[0], inputSlots[0]);
             VFXSlot.CopyLinksAndValue(newVolume.outputSlots[0], outputSlots[0], true);

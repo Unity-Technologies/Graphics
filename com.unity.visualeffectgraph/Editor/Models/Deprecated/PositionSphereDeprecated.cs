@@ -24,8 +24,6 @@ namespace UnityEditor.VFX.Block
 
         public override void Sanitize(int version)
         {
-            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
-
             var newPositionSphere = ScriptableObject.CreateInstance<PositionSphere>();
             SanitizeHelper.MigrateBlockTShapeFromShape(newPositionSphere, this);
             ReplaceModel(newPositionSphere, this);

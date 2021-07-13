@@ -41,8 +41,6 @@ namespace UnityEditor.VFX.Block
 
         public override void Sanitize(int version)
         {
-            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
-
             var newPositionTorus = ScriptableObject.CreateInstance<PositionTorus>();
             SanitizeHelper.MigrateBlockTShapeFromShape(newPositionTorus, this);
             ReplaceModel(newPositionTorus, this);

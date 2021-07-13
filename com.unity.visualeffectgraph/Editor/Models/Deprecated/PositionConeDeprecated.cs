@@ -52,8 +52,6 @@ namespace UnityEditor.VFX.Block
 
         public override void Sanitize(int version)
         {
-            if (!SanitizeHelper.s_Enable_Sanitize_of_TShape) return;
-
             var newPositionCone = ScriptableObject.CreateInstance<PositionCone>();
             SanitizeHelper.MigrateBlockTShapeFromShape(newPositionCone, this);
             ReplaceModel(newPositionCone, this);
