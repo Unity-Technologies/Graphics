@@ -925,10 +925,6 @@ namespace UnityEditor.VFX
                 }
             }
 
-            //This PrepareSubgraphs has been canceled from the compilation,
-            //but it's still needed to get update slot in VFXView.
-            //TODO : We shouldn't rely on compilation for the subgraph state.
-            PrepareSubgraphs();
             foreach (var child in children)
                 child.CheckGraphBeforeImport();
 
