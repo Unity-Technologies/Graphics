@@ -7,8 +7,8 @@ public class WriteShaderToRenderTexture : MonoBehaviour
     [SerializeField] RenderTexture rt = null;
     [SerializeField] Shader shader = null;
 
-	// Use this for initialization
-	void Start ()
+    // Use this for initialization
+    void Start()
     {
         Blit();
     }
