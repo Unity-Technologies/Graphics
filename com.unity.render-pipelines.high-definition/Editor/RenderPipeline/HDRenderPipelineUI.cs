@@ -444,15 +444,26 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                     serialized.renderPipelineSettings.decalSettings.atlasHeight.intValue = Mathf.Max(serialized.renderPipelineSettings.decalSettings.atlasHeight.intValue, 0);
 
+                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.decalSettings.perChannelMask, Styles.metalAndAOContent);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    // Tell VFX
+                    ((HDRenderPipelineEditor)owner).needRefreshVfxWarnings = true;
+                }
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen, Styles.maxDecalContent);
                 if (EditorGUI.EndChangeCheck())
                     serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen.intValue, 1, HDRenderPipeline.k_MaxDecalsOnScreen);
 
+                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDecalLayers, Styles.supportDecalLayersContent);
-
+                if (EditorGUI.EndChangeCheck())
+                {
+                    // Tell VFX
+                    ((HDRenderPipelineEditor)owner).needRefreshVfxWarnings = true;
+                }
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSurfaceGradient, Styles.supportSurfaceGradientContent);
 
                 if (serialized.renderPipelineSettings.supportSurfaceGradient.boolValue)
@@ -487,6 +498,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (EditorGUI.EndChangeCheck())
                 serialized.renderPipelineSettings.lightLoopSettings.maxLightsPerClusterCell.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxLightsPerClusterCell.intValue, 1, HDRenderPipeline.k_MaxLightsPerClusterCell);
         }
+
+#if ENABLE_NVIDIA && !ENABLE_NVIDIA_MODULE
+        static bool s_DisplayNvidiaModuleButtonInstall = true;
+#endif
 
         static void Drawer_SectionDynamicResolutionSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
@@ -623,13 +638,13 @@ namespace UnityEditor.Rendering.HighDefinition
             --EditorGUI.indentLevel;
 
 #if ENABLE_NVIDIA && !ENABLE_NVIDIA_MODULE
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.HelpBox(Styles.DLSSPackageLabel, MessageType.Info);
-            if (GUILayout.Button(Styles.DLSSInstallButton, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true)))
+            if (s_DisplayNvidiaModuleButtonInstall)
             {
-                PackageManager.Client.Add("com.unity.modules.nvidia");
+                CoreEditorUtils.DrawFixMeBox(Styles.DLSSPackageLabel, MessageType.Info, () => {
+                    PackageManager.Client.Add("com.unity.modules.nvidia");
+                    s_DisplayNvidiaModuleButtonInstall = false;
+                });
             }
-            EditorGUILayout.EndHorizontal();
 #endif
         }
 
@@ -778,7 +793,10 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawSSGIQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIRaySteps.GetArrayElementAtIndex(tier), Styles.SSGIRaySteps);
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIFilterRadius.GetArrayElementAtIndex(tier), Styles.SSGIFilterRadius);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIDenoise.GetArrayElementAtIndex(tier), Styles.SSGIDenoise);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIHalfResDenoise.GetArrayElementAtIndex(tier), Styles.SSGIHalfResDenoise);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIDenoiserRadius.GetArrayElementAtIndex(tier), Styles.SSGIDenoiserRadius);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGISecondDenoise.GetArrayElementAtIndex(tier), Styles.SSGISecondDenoise);
         }
 
         static void Drawer_SectionRenderingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)

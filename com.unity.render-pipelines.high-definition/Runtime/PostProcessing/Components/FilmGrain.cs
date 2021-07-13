@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Film Grain effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Film Grain")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Film Grain", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Post-Processing-Film-Grain")]
     public sealed class FilmGrain : VolumeComponent, IPostProcessComponent
     {
