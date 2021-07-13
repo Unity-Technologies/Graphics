@@ -1,4 +1,4 @@
-[comment]: # (If you modify this file make sure you modify the copy/paste file: com.unity.render-pipelines.universal and com.unity.render-pipelines.core\Documentation~\Common\lens-flare-data-driven-asset.md)
+[comment]: # (If you modify this file make sure you modify the copy/paste file: com.unity.render-pipelines.high-definition and com.unity.render-pipelines.core\Documentation~\Common\lens-flare-data-driven-asset.md)
 
 # Lens Flare (SRP) Asset
 
@@ -32,7 +32,7 @@ The Lens Flare Element asset has the following properties:
 
 #### Image
 
-![](images/LensFlareShapeImage.png)
+![](images/lighting/LensFlareShapeImage.png)
 
 | **Property**          | **Description**                                              |
 | --------------------- | ------------------------------------------------------------ |
@@ -43,7 +43,7 @@ The Lens Flare Element asset has the following properties:
 
 #### Circle
 
-![](images/LensFlareShapeCircle.png)
+![](images/lighting/LensFlareShapeCircle.png)
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
@@ -55,7 +55,7 @@ The Lens Flare Element asset has the following properties:
 
 #### Polygon
 
-![](images/LensFlareShapePolygon.png)
+![](images/lighting/LensFlareShapePolygon.png)
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
@@ -69,7 +69,7 @@ The Lens Flare Element asset has the following properties:
 
 ## Color
 
-![](images/LensFlareColor.png)
+![](images/lighting/LensFlareColor.png)
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
@@ -82,7 +82,7 @@ The Lens Flare Element asset has the following properties:
 
 ## Transform
 
-![](images/LensFlareTransform.png)
+![](images/lighting/LensFlareTransform.png)
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
@@ -97,7 +97,7 @@ The Lens Flare Element asset has the following properties:
 
 ## AxisTransform
 
-![](images/LensFlareAxisTransform.png)
+![](images/lighting/LensFlareAxisTransform.png)
 
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
@@ -109,7 +109,7 @@ The Lens Flare Element asset has the following properties:
 
 ## Distortion
 
-![](images/LensFlareRadialDistortion.png)
+![](images/lighting/LensFlareRadialDistortion.png)
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
@@ -131,7 +131,7 @@ The Lens Flare Element asset has the following properties:
 | Relative To Center | If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position. |
 
 ### Uniform
-![](images/LensFlareMultileElementUniform.png)
+![](images/lighting/LensFlareMultileElementUniform.png)
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
@@ -142,7 +142,7 @@ The Lens Flare Element asset has the following properties:
 
 ### Curve
 
-![](images/LensFlareMultileElementCurve.png)
+![](images/lighting/LensFlareMultileElementCurve.png)
 
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |
@@ -155,7 +155,7 @@ The Lens Flare Element asset has the following properties:
 
 ### Random
 
-![](images/LensFlareMultileElementRandom.png)
+![](images/lighting/LensFlareMultileElementRandom.png)
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |
