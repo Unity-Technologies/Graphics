@@ -14,11 +14,11 @@ namespace UnityEditor.Rendering
     {
     }
 
-    class AdditionalPropertiesPreferences
+    internal class AdditionalPropertiesPreferences : ICoreRenderPipelinePreferencesProvider
     {
         class Styles
         {
-            public static readonly GUIContent additionalPropertiesLabel = EditorGUIUtility.TrTextContent("Additional Properties", "Toggle all additional properties to either visible or hidden.");
+            public static readonly GUIContent additionalPropertiesLabel = EditorGUIUtility.TrTextContent("Visibility", "Toggle all additional properties to either visible or hidden.");
             public static readonly GUIContent[] additionalPropertiesNames = { EditorGUIUtility.TrTextContent("All Visible"), EditorGUIUtility.TrTextContent("All Hidden") };
             public static readonly int[] additionalPropertiesValues = { 1, 0 };
         }
@@ -26,7 +26,6 @@ namespace UnityEditor.Rendering
         static List<Type>                   s_VolumeComponentEditorTypes;
         static TypeCache.MethodCollection   s_AdditionalPropertiesVisibilityMethods;
         static bool                         s_ShowAllAdditionalProperties = false;
-        static List<string>                 s_SearchKeywords;
 
         static AdditionalPropertiesPreferences()
         {
@@ -57,35 +56,26 @@ namespace UnityEditor.Rendering
                 ShowAllAdditionalProperties(showAllAdditionalProperties);
             }
         }
+        static List<string> s_SearchKeywords = new() { "Additional", "Properties" };
+        public List<string> keywords => s_SearchKeywords;
+
+        public GUIContent header { get; } = EditorGUIUtility.TrTextContent("Additional Properties");
+
+        public int height => 17;
 
         static class Keys
         {
             internal const string showAllAdditionalProperties = "General.ShowAllAdditionalProperties";
         }
 
-        internal static void PreferenceGUI()
+        public void PreferenceGUI()
         {
-            Rect r = EditorGUILayout.GetControlRect();
-            r.xMin = 10;
-            EditorGUIUtility.labelWidth = 251;
-
             EditorGUI.BeginChangeCheck();
-            int newValue = EditorGUI.IntPopup(r, Styles.additionalPropertiesLabel, showAllAdditionalProperties ? 1 : 0, Styles.additionalPropertiesNames, Styles.additionalPropertiesValues);
+            int newValue = EditorGUILayout.IntPopup(Styles.additionalPropertiesLabel, showAllAdditionalProperties ? 1 : 0, Styles.additionalPropertiesNames, Styles.additionalPropertiesValues);
             if (EditorGUI.EndChangeCheck())
             {
                 showAllAdditionalProperties = newValue == 1;
             }
-        }
-
-        internal static List<string> GetPreferenceSearchKeywords()
-        {
-            if (s_SearchKeywords == null)
-            {
-                s_SearchKeywords = new List<string>();
-                s_SearchKeywords.Add("Additional");
-                s_SearchKeywords.Add("Properties");
-            }
-            return s_SearchKeywords;
         }
 
         static void ShowAllAdditionalProperties(bool value)

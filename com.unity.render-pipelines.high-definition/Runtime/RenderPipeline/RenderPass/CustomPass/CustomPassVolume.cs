@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static HashSet<CustomPassVolume>    m_ActivePassVolumes = new HashSet<CustomPassVolume>();
         static List<CustomPassVolume>       m_OverlappingPassVolumes = new List<CustomPassVolume>();
 
-        List<Collider>          m_Colliders = new List<Collider>();
+        internal List<Collider>          m_Colliders = new List<Collider>();
         List<Collider>          m_OverlappingColliders = new List<Collider>();
 
         static List<CustomPassInjectionPoint> m_InjectionPoints;
@@ -377,72 +377,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         // In the editor, we refresh the list of colliders at every frame because it's frequent to add/remove them
         void Update() => GetComponents(m_Colliders);
-
-        void OnDrawGizmos()
-        {
-            if (isGlobal || m_Colliders.Count == 0 || !enabled)
-                return;
-
-            var scale = transform.localScale;
-            var invScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
-            Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, scale);
-            Gizmos.color = CoreRenderPipelinePreferences.volumeGizmoColor;
-
-            // Draw a separate gizmo for each collider
-            foreach (var collider in m_Colliders)
-            {
-                if (!collider || !collider.enabled)
-                    continue;
-
-                // We'll just use scaling as an approximation for volume skin. It's far from being
-                // correct (and is completely wrong in some cases). Ultimately we'd use a distance
-                // field or at least a tesselate + push modifier on the collider's mesh to get a
-                // better approximation, but the current Gizmo system is a bit limited and because
-                // everything is dynamic in Unity and can be changed at anytime, it's hard to keep
-                // track of changes in an elegant way (which we'd need to implement a nice cache
-                // system for generated volume meshes).
-                switch (collider)
-                {
-                    case BoxCollider c:
-                        Gizmos.DrawCube(c.center, c.size);
-                        if (fadeRadius > 0)
-                        {
-                            // invert te scale for the fade radius because it's in fixed units
-                            Vector3 s = new Vector3(
-                                (fadeRadius * 2) / scale.x,
-                                (fadeRadius * 2) / scale.y,
-                                (fadeRadius * 2) / scale.z
-                            );
-                            Gizmos.DrawWireCube(c.center, c.size + s);
-                        }
-                        break;
-                    case SphereCollider c:
-                        // For sphere the only scale that is used is the transform.x
-                        Matrix4x4 oldMatrix = Gizmos.matrix;
-                        Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one * scale.x);
-                        Gizmos.DrawSphere(c.center, c.radius);
-                        if (fadeRadius > 0)
-                            Gizmos.DrawWireSphere(c.center, c.radius + fadeRadius / scale.x);
-                        Gizmos.matrix = oldMatrix;
-                        break;
-                    case MeshCollider c:
-                        // Only convex mesh m_Colliders are allowed
-                        if (!c.convex)
-                            c.convex = true;
-
-                        // Mesh pivot should be centered or this won't work
-                        Gizmos.DrawMesh(c.sharedMesh);
-
-                        // We don't display the Gizmo for fade distance mesh because the distances would be wrong
-                        break;
-                    default:
-                        // Nothing for capsule (DrawCapsule isn't exposed in Gizmo), terrain, wheel and
-                        // other m_Colliders...
-                        break;
-                }
-            }
-        }
-
 #endif
     }
 }

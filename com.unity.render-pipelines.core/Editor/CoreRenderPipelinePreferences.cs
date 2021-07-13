@@ -1,16 +1,34 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
+using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
     /// <summary>
     /// Core Render Pipeline preferences.
     /// </summary>
+    [InitializeOnLoad]
     public static class CoreRenderPipelinePreferences
     {
         /// <summary>
         /// Path to the Render Pipeline Preferences
         /// </summary>
         public static readonly string corePreferencePath = "Preferences/Core Render Pipeline";
+
+        private static readonly List<ICoreRenderPipelinePreferencesProvider> s_Providers = new();
+
+        static CoreRenderPipelinePreferences()
+        {
+            foreach (var provider in TypeCache.GetTypesDerivedFrom<ICoreRenderPipelinePreferencesProvider>())
+            {
+                if (provider.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null) == null)
+                    continue;
+
+                var providerInstance = (ICoreRenderPipelinePreferencesProvider)Activator.CreateInstance(provider);
+                s_Providers.Add(providerInstance);
+            }
+        }
 
         [SettingsProvider]
         static SettingsProvider PreferenceGUI()
@@ -19,15 +37,37 @@ namespace UnityEditor.Rendering
             {
                 guiHandler = searchContext =>
                 {
-                    AdditionalPropertiesPreferences.PreferenceGUI();
+                    var labelWidth = EditorGUIUtility.labelWidth;
+                    EditorGUIUtility.labelWidth = 251;
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        EditorGUILayout.Space(10, false);
+                        using (new EditorGUILayout.VerticalScope())
+                        {
+                            foreach (var providers in s_Providers)
+                            {
+                                EditorGUILayout.LabelField(providers.header, EditorStyles.boldLabel);
+                                providers.PreferenceGUI();
+                            }
+                        }
+                    }
+
+                    EditorGUIUtility.labelWidth = labelWidth;
                 }
             };
 
-            List<string> keywords = new List<string>();
-            foreach (var keyword in AdditionalPropertiesPreferences.GetPreferenceSearchKeywords())
-                keywords.Add(keyword);
-            provider.keywords = keywords;
+            FillKeywords(provider);
+
             return provider;
+        }
+
+        private static void FillKeywords(SettingsProvider provider)
+        {
+            List<string> keywords = new List<string>();
+            foreach (var providers in s_Providers)
+                keywords.AddRange(providers.keywords);
+            provider.keywords = keywords;
         }
 
         /// <summary>
