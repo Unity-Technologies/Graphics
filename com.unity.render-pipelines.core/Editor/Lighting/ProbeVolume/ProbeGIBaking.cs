@@ -442,11 +442,15 @@ namespace UnityEngine.Experimental.Rendering
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
+                cell.minSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision();
 
                 for (int i = 0; i < numProbes; ++i)
                 {
                     int j = bakingCells[c].probeIndices[i];
                     SphericalHarmonicsL2 shv = sh[j];
+
+                    int brickIdx = i / 64;
+                    cell.minSubdiv = Mathf.Min(cell.minSubdiv, cell.bricks[brickIdx].subdivisionLevel);
 
                     // Compress the range of all coefficients but the DC component to [0..1]
                     // Upper bounds taken from http://ppsloan.org/publications/Sig20_Advances.pptx
@@ -540,6 +544,7 @@ namespace UnityEngine.Experimental.Rendering
                         {
                             BrickCountInDirections(out asset.maxBrickIndex, refVol.profile.minBrickSize);
                             CellCountInDirections(out asset.minCellPosition, out asset.maxCellPosition, refVol.profile.cellSizeInMeters);
+                            asset.globalBounds = globalBounds;
                         }
                         else
                         {

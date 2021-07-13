@@ -78,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering
         internal Vector3Int GetCellIndexDimension() =>  m_CellCount;
         internal Vector3Int GetCellMinPosition() => m_CellMin;
 
-        int GetFlatIndex(Vector3Int  normalizedPos)
+        int GetFlatIndex(Vector3Int normalizedPos)
         {
             return normalizedPos.z * (m_CellCount.x * m_CellCount.y) + normalizedPos.y * m_CellCount.x + normalizedPos.x;
         }
@@ -98,15 +98,16 @@ namespace UnityEngine.Experimental.Rendering
             m_NeedUpdateComputeBuffer = false;
         }
 
-        internal void AddCell(Vector3Int cellPosition, Vector3Int indexStart, int minSubdiv)
+        internal int GetFlatIdxForCell(Vector3Int cellPosition)
         {
             Vector3Int normalizedPos = cellPosition - m_CellMin;
-            Debug.Log($"Cell {cellPosition} normalized as {normalizedPos} via a min of {m_CellMin} starts at {indexStart} ?");
-
             Debug.Assert(normalizedPos.x >= 0 && normalizedPos.y >= 0 && normalizedPos.z >= 0);
 
-            int flatIdx = GetFlatIndex(normalizedPos);
+            return GetFlatIndex(normalizedPos);
+        }
 
+        internal void AddCell(int cellFlatIdx, Vector3Int indexStart, int minSubdiv)
+        {
             int indexDimension = m_CellSizeInMinBricks / (int)Mathf.Pow(3, minSubdiv);
             IndexMetaData metaData = new IndexMetaData();
             metaData.indexStart = indexStart;
@@ -115,8 +116,8 @@ namespace UnityEngine.Experimental.Rendering
 
             uint packed1, packed2;
             metaData.Pack(out packed1, out packed2);
-            m_IndexOfIndicesData[flatIdx * 2 + 0] = packed1;
-            m_IndexOfIndicesData[flatIdx * 2 + 1] = packed2;
+            m_IndexOfIndicesData[cellFlatIdx * 2 + 0] = packed1;
+            m_IndexOfIndicesData[cellFlatIdx * 2 + 1] = packed2;
             m_NeedUpdateComputeBuffer = true;
         }
 

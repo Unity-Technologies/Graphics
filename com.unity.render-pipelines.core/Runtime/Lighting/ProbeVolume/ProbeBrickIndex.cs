@@ -50,9 +50,6 @@ namespace UnityEngine.Experimental.Rendering
             public List<ReservedBrick> bricks;
         }
 
-        // This is a representation of the index buffer where the entry is a cell flat Idx
-        int[,,] m_PhysicalIndexCellMapping;
-
         ComputeBuffer   m_IndexBuffer;
         int[]           m_IndexBufferData;
         Vector3Int      m_IndexDim;
@@ -69,6 +66,40 @@ namespace UnityEngine.Experimental.Rendering
         bool m_NeedUpdateIndexComputeBuffer;
 
         internal Vector3Int GetIndexDimension() { return m_IndexDim; }
+
+
+        class PhsyicalIndexRepresentation
+        {
+            enum SlotValue : byte
+            {
+                Free,
+                Occupied
+            }
+
+            const int k_SlotSize = 3;   // We assume step sizes of 3 bricks
+            SlotValue[] m_SlotsInfo;
+
+            Vector3Int m_PhysicalIndexResolutionInSlots;
+
+            int GetSlotFlatIdx(int x, int y, int z)
+            {
+                return z * (m_PhysicalIndexResolutionInSlots.x * m_PhysicalIndexResolutionInSlots.y) + y * m_PhysicalIndexResolutionInSlots.x + x;
+            }
+
+            bool IsEntryEmpty(int x, int y, int z)
+            {
+                return (m_SlotsInfo[GetSlotFlatIdx(x, y, z)] == SlotValue.Free);
+            }
+
+            bool IsEntryFull(int x, int y, int z)
+            {
+                return m_SlotsInfo[GetSlotFlatIdx(x, y, z)] != SlotValue.Free;
+            }
+        }
+        // This is a representation of the index buffer where the entry is a cell flat Idx
+        int[,,] m_PhysicalIndexCellMapping;
+        // Store what is the top left coordinate of the start of the index portion for a given cell within the physical index.
+        Dictionary<int, Vector3Int> m_CellIndexStart;
 
         internal ProbeBrickIndex(Vector3Int indexDimensions)
         {
@@ -134,7 +165,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Returns the start of the index for this set of bricks.
-        public Vector3Int AddBricks(RegId id, List<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight)
+        public void AddBricks(RegId id, List<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight)
         {
             Debug.Assert(bricks.Count <= ushort.MaxValue, "Cannot add more than 65K bricks per RegId.");
             int largest_cell = ProbeReferenceVolume.CellSize(kMaxSubdivisionLevels);
@@ -194,14 +225,10 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            Vector3Int indexStart = Vector3Int.one * int.MaxValue;
             foreach (var voxel in bm.voxels)
             {
-                var indexStartForVoxel = UpdateIndexForVoxel(voxel);
-                indexStart = Vector3Int.Min(indexStart, indexStartForVoxel);
+                UpdateIndexForVoxel(voxel);
             }
-
-            return indexStart;
         }
 
         public void RemoveBricks(RegId id)
@@ -256,22 +283,17 @@ namespace UnityEngine.Experimental.Rendering
                     }
         }
 
-        // Returns the min position for the voxel.
-        Vector3Int UpdateIndexForVoxel(Vector3Int voxel)
+        void UpdateIndexForVoxel(Vector3Int voxel)
         {
             ClearVoxel(voxel);
             List<VoxelMeta> vm_list = m_VoxelToBricks[voxel];
-            Vector3Int indexStart = Vector3Int.one * int.MaxValue;
             foreach (var vm in vm_list)
             {
                 // get the list of bricks and indices
                 List<ReservedBrick> bricks = m_BricksToVoxels[vm.id].bricks;
                 List<ushort>        indcs = vm.brickIndices;
                 var minIndexForVoxel = UpdateIndexForVoxel(voxel, bricks, indcs);
-                indexStart = Vector3Int.Min(minIndexForVoxel, indexStart);
             }
-
-            return indexStart;
         }
 
         void ClearVoxel(Vector3Int pos)

@@ -91,6 +91,7 @@ namespace UnityEngine.Experimental.Rendering
             public Vector3[] probePositions;
             public SphericalHarmonicsL2[] sh;
             public float[] validity;
+            public int minSubdiv;
         }
 
         class CellChunkInfo
@@ -269,6 +270,7 @@ namespace UnityEngine.Experimental.Rendering
         internal struct RegId
         {
             internal int id;
+            internal int ownerCell;
 
             public bool IsValid() => id != 0;
             public void Invalidate() => id = 0;
@@ -300,6 +302,7 @@ namespace UnityEngine.Experimental.Rendering
         List<Chunk>                     m_TmpSrcChunks = new List<Chunk>();
         float[]                         m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
         Dictionary<RegId, List<Chunk>>  m_Registry = new Dictionary<RegId, List<Chunk>>();
+        Bounds                          m_CurrGlobalBounds = new Bounds();
 
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
         Dictionary<int, CellChunkInfo> m_ChunkInfo = new Dictionary<int, CellChunkInfo>();
@@ -325,9 +328,13 @@ namespace UnityEngine.Experimental.Rendering
 
         // Similarly the index dimensions come from the authoring component; if a change happens
         // a pending request for re-init (and what it implies) is added from the editor.
-        Vector3Int m_PendingIndexDimChange;
-        Vector3Int m_PendingMinCellPosition;
-        Vector3Int m_PendingMaxCellPosition;
+        struct InitInfo
+        {
+            public Vector3Int pendingIndexDimChange;
+            public Vector3Int pendingMinCellPosition;
+            public Vector3Int pendingMaxCellPosition;
+        }
+        InitInfo m_PendingInitInfo;
 
         bool m_NeedsIndexDimChange = false;
         bool m_HasChangedIndexDim = false;
@@ -386,7 +393,7 @@ namespace UnityEngine.Experimental.Rendering
 
             m_MemoryBudget = parameters.memoryBudget;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
-            InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange, m_PendingMinCellPosition, m_PendingMaxCellPosition);
+            InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget);
             m_IsInitialized = true;
             sceneBounds = parameters.sceneBounds;
 #if UNITY_EDITOR
@@ -458,9 +465,9 @@ namespace UnityEngine.Experimental.Rendering
                 maxCellPosition = Vector3Int.Max(maxCellPosition, a.maxCellPosition);
             }
 
-            m_PendingIndexDimChange = indexDimension;
-            m_PendingMinCellPosition = minCellPosition;
-            m_PendingMaxCellPosition = maxCellPosition;
+            m_PendingInitInfo.pendingIndexDimChange = indexDimension;
+            m_PendingInitInfo.pendingMinCellPosition = minCellPosition;
+            m_PendingInitInfo.pendingMaxCellPosition = maxCellPosition;
             m_NeedsIndexDimChange = m_Index == null || (m_Index != null && indexDimension != m_Index.GetIndexDimension());
         }
 
@@ -513,7 +520,7 @@ namespace UnityEngine.Experimental.Rendering
             if (m_NeedsIndexDimChange)
             {
                 CleanupLoadedData();
-                InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange, m_PendingMinCellPosition, m_PendingMaxCellPosition);
+                InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget);
                 m_HasChangedIndexDim = true;
                 m_NeedsIndexDimChange = false;
             }
@@ -587,6 +594,14 @@ namespace UnityEngine.Experimental.Rendering
             m_PendingAssetsToBeUnloaded.Clear();
         }
 
+        int GetNumberOfBricksAtSubdiv(Cell cell)
+        {
+            // THIS IS TEMP.... Need to take into account stuff that is out of global bounds.
+            // Now it is not.
+            int fullCellBricksPerDim = CellSize(m_MaxSubdivision - 1) / CellSize(cell.minSubdiv);
+            return fullCellBricksPerDim * fullCellBricksPerDim * fullCellBricksPerDim;
+        }
+
         void LoadPendingCells(bool loadAll = false)
         {
             int count = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_CellsToBeLoaded.Count);
@@ -606,23 +621,25 @@ namespace UnityEngine.Experimental.Rendering
                 var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2);
                 ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, ProbeVolumeSHBands.SphericalHarmonicsL2);
 
+                int cellFlatIdx = m_CellIndices.GetFlatIdxForCell(cell.position);
+
                 // TODO register ID of brick list
                 List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
                 brickList.AddRange(cell.bricks);
                 List<Chunk> chunkList = new List<Chunk>();
-                var indexStart = Vector3Int.zero;
-                var regId = AddBricks(brickList, dataLocation, out chunkList, out indexStart);
+                var regId = AddBricks(brickList, dataLocation, cellFlatIdx, out chunkList);
 
                 // Min subdiv here hard-coded to 0 as a temp measure.
                 // TODO: The index start here is re-computed to match old behaviour, however it is important that it comes from the actual computations of the index buffer as the
                 // physical index will not have a guarantee of having an inter-cell structures (only intra cell will be guaranteed).
                 var WStoRS = Matrix4x4.Inverse(m_Transform.refSpaceToWS);
 
+                var indexStart = Vector3Int.zero;
                 var posWS = new Vector3(cell.position.x * MaxBrickSize(), cell.position.y * MaxBrickSize(), cell.position.z * MaxBrickSize());
                 Vector3 posRS = WStoRS.MultiplyPoint(posWS);
                 Vector3Int posRSFloored = new Vector3Int(Mathf.FloorToInt(posRS.x), Mathf.FloorToInt(posRS.y), Mathf.FloorToInt(posRS.z));
                 indexStart = posRSFloored + (m_Index.GetIndexDimension() / 2);
-                m_CellIndices.AddCell(cell.position, indexStart, minSubdiv: 0);
+                m_CellIndices.AddCell(cellFlatIdx, indexStart, minSubdiv: 0);
                 AddCell(cell, chunkList);
                 m_AssetPathToBricks[path].Add(regId);
 
@@ -648,9 +665,11 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         /// <param name ="allocationSize"> Size used for the chunk allocator that handles bricks.</param>
         /// <param name ="memoryBudget">Probe reference volume memory budget.</param>
-        /// <param name ="indexDimensions">Dimensions of the index data structure.</param>
-        void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, Vector3Int indexDimensions, Vector3Int minCellPosition, Vector3Int maxCellPosition)
+        void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget)
         {
+            var indexDimensions = m_PendingInitInfo.pendingIndexDimChange;
+            var minCellPosition = m_PendingInitInfo.pendingMinCellPosition;
+            var maxCellPosition = m_PendingInitInfo.pendingMaxCellPosition;
             if (!m_ProbeReferenceVolumeInit)
             {
                 int indexSize = 0;
@@ -776,7 +795,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Runtime API starts here
-        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc, out List<Chunk> ch_list, out Vector3Int bricksIndexStart)
+        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc, int cellIdx, out List<Chunk> ch_list)
         {
             Profiler.BeginSample("AddBricks");
 
@@ -819,10 +838,11 @@ namespace UnityEngine.Experimental.Rendering
             RegId id;
             m_ID++;
             id.id = m_ID;
+            id.ownerCell = cellIdx;
             m_Registry.Add(id, ch_list);
 
             // Build index
-            bricksIndexStart = m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
+            m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
 
             Profiler.EndSample();
 
