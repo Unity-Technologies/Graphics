@@ -342,10 +342,9 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out floa
 // -------------------------------------------------------------
 // Reflection Probe Normalization functions
 // -------------------------------------------------------------
-
-
 // Same idea as in Rendering of COD:IW [Drobot 2017]
-float GetReflProbeNormalizationFactor(float3 sampleDir, float4 reflProbeSHL0L1, float4 reflProbeSHL2_1, float reflProbeSHL2_2)
+
+float EvaluateReflectionProbeSH(float3 sampleDir, float4 reflProbeSHL0L1, float4 reflProbeSHL2_1, float reflProbeSHL2_2)
 {
     float outFactor = 0;
     float L0 = reflProbeSHL0L1.x;
@@ -371,7 +370,7 @@ float GetReflProbeNormalizationFactor(float3 sampleDir, float4 reflProbeSHL0L1, 
 
 float GetReflectionProbeNormalizationFactor(float3 lightingInReflDir, float3 sampleDir, float4 reflProbeSHL0L1, float4 reflProbeSHL2_1, float reflProbeSHL2_2)
 {
-    float refProbeNormalization = GetReflProbeNormalizationFactor(sampleDir, reflProbeSHL0L1, reflProbeSHL2_1, reflProbeSHL2_2);
+    float refProbeNormalization = EvaluateReflectionProbeSH(sampleDir, reflProbeSHL0L1, reflProbeSHL2_1, reflProbeSHL2_2);
     float localNormalization = Luminance(lightingInReflDir);
 
     return SafeDiv(localNormalization, refProbeNormalization);
