@@ -349,16 +349,15 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     #endif
 
-        EnvLightData envLightData;
 #if HAS_REFRACTION
 
-        int envDataToUse = -1;
-
-        // We need to find the tile that correspond to the refraction probe that is at the center
-        // of the object that is being rendered. This is a bit involved, but is invariant for the whole
-        // draw call.
-        if (_EnableSSRefraction > 0)
-        {
+        // For refraction to be stable, we should reuse the same refraction probe for the whole object.
+        // Otherwise as if the object span different tiles it could produce a different refraction probe picking and thus have visual artifacts.
+        // For this we need to find the tile that is at the center of the object that is being rendered. 
+        // And then select the first refraction probe of this list.
+        if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (_EnableSSRefraction > 0))
+        {                
+            // grab current object position and retrieve in which tile it belongs too
             float4x4 modelMat = GetObjectToWorldMatrix();
             float3 objPos = modelMat._m03_m13_m23;
             float4 posClip = TransformWorldToHClip(objPos);
@@ -368,28 +367,24 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
             uint envLightStart, envLightCount;
 
-            // Fetch first env light to provide the scene proxy for screen space computation
+            // Fetch first env light to provide the scene proxy for screen space refraction computation
             PositionInputs localInput;
             ZERO_INITIALIZE(PositionInputs, localInput);
             localInput.tileCoord = tileObj.xy;
             localInput.linearDepth = posClip.w;
 
             GetCountAndStart(localInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
+            
+            EnvLightData envLightData;
             if (envLightCount > 0)
-                envDataToUse = FetchIndex(envLightStart, 0);
-        }
+            {
+                envLightData = FetchEnvLight(FetchIndex(envLightStart, 0));
+            }
+            else // If no refraction probe, use sky
+            {
+                envLightData = InitSkyEnvLightData(0);
+            }
 
-        if (envDataToUse >= 0)
-        {
-            envLightData = FetchEnvLight(envDataToUse);
-        }
-        else
-        {
-            envLightData = InitSkyEnvLightData(0);
-        }
-
-        if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (_EnableSSRefraction > 0))
-        {
             IndirectLighting lighting = EvaluateBSDF_ScreenspaceRefraction(context, V, posInput, preLightData, bsdfData, envLightData, refractionHierarchyWeight);
             AccumulateIndirectLighting(lighting, aggregateLighting);
         }
