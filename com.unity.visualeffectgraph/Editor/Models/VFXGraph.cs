@@ -128,6 +128,7 @@ namespace UnityEditor.VFX
                         //the C++ behavior can be confused, removing an exposed property too early.
                         //Thus, for now, commenting : resource.ClearRuntimeData();
                         //See EditorTest : CreateComponent_Modify_Asset_Keep_Override
+                        //... But it causes a failure with PlayModeXR : OnSetupMaterial is called
                     }
                     else
                     {
