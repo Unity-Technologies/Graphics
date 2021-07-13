@@ -456,35 +456,26 @@ namespace UnityEngine.Rendering.Universal
             requiresDepthPrepass |= m_DepthPrimingMode == DepthPrimingMode.Forced;
 
             // If possible try to merge the opaque and skybox passes instead of splitting them when "Depth Texture" is required.
-#if ENABLE_VR && ENABLE_XR_MODULE
-            // This optimization is temporarily disabled on VR/XR because of a depth copy y-flip issue on DX11.
-            if (cameraData.xr.enabled)
+            // The copying of depth should normally happen after rendering opaques.
+            // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
+            // Aim to have the most optimized render pass event for Depth Copy (The aim is to minimize the number of render passes)
+            if (requiresDepthTexture)
             {
-                m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (applyPostProcessing || isSceneViewCamera || isGizmosEnabled)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
+                RenderPassEvent copyDepthPassEvent = RenderPassEvent.AfterRenderingOpaques;
+                // RenderPassInputs's requiresDepthTexture is configured through ScriptableRenderPass's ConfigureInput function
+                if (renderPassInputs.requiresDepthTexture)
+                {
+                    // Do depth copy before the render pass that requires depth texture as shader read resource
+                    copyDepthPassEvent = (RenderPassEvent)Mathf.Min((int)RenderPassEvent.AfterRenderingTransparents, ((int)renderPassInputs.requiresDepthTextureEarliestEvent) - 1);
+                }
+                m_CopyDepthPass.renderPassEvent = copyDepthPassEvent;
             }
-            else
-#endif
+            else if (cameraHasPostProcessingWithDepth || isSceneViewCamera || isGizmosEnabled)
             {
-                // The copying of depth should normally happen after rendering opaques.
-                // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
-                // Aim to have the most optimized render pass event for Depth Copy (The aim is to minimize the number of render passes)
-                if (requiresDepthTexture)
-                {
-                    RenderPassEvent copyDepthPassEvent = RenderPassEvent.AfterRenderingOpaques;
-                    // RenderPassInputs's requiresDepthTexture is configured through ScriptableRenderPass's ConfigureInput function
-                    if (renderPassInputs.requiresDepthTexture)
-                    {
-                        // Do depth copy before the render pass that requires depth texture as shader read resource
-                        copyDepthPassEvent = (RenderPassEvent)Mathf.Min((int)RenderPassEvent.AfterRenderingTransparents, ((int)renderPassInputs.requiresDepthTextureEarliestEvent) - 1);
-                    }
-                    m_CopyDepthPass.renderPassEvent = copyDepthPassEvent;
-                }
-                else if (cameraHasPostProcessingWithDepth || isSceneViewCamera || isGizmosEnabled)
-                {
-                    // If only post process requires depth texture, we can re-use depth buffer from main geometry pass instead of enqueuing a depth copy pass, but no proper API to do that for now, so resort to depth copy pass for now
-                    m_CopyDepthPass.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
-                }
+                // If only post process requires depth texture, we can re-use depth buffer from main geometry pass instead of enqueuing a depth copy pass, but no proper API to do that for now, so resort to depth copy pass for now
+                m_CopyDepthPass.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
             }
+            
 
             createColorTexture |= RequiresIntermediateColorTexture(ref cameraData);
             createColorTexture |= renderPassInputs.requiresColorTexture;
