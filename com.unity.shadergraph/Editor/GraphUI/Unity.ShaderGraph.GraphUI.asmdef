@@ -8,13 +8,12 @@
         "Unity.Properties",
         "Unity.Properties.UI",
         "Unity.Properties.UI.Editor",
-        "Unity.GraphTools.Foundation",
-        "Unity.GraphTools.Foundation.Editor",
         "Unity.GraphTools.Foundation.Overdrive",
         "Unity.GraphTools.Foundation.Overdrive.Editor",
         "Unity.GraphTools.Foundation.Overdrive.Model",
         "Unity.GraphTools.Foundation.Overdrive.CommandStateObserver",
-        "Unity.GraphToolsFoundation.Searcher.Editor"
+        "Unity.GraphTools.Foundation.Searcher.Editor",
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [
         "Editor"
