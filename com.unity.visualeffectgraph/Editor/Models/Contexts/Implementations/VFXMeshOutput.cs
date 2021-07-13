@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
                         features |= VFXOutputUpdate.Features.MultiMesh;
                     if (lod)
                         features |= VFXOutputUpdate.Features.LOD;
-                    if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw))
+                    if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw) || needsOwnSort)
                     {
                         if (VFXSortingUtility.IsPerCamera(sortCriterion))
                             features |= VFXOutputUpdate.Features.CameraSort;
