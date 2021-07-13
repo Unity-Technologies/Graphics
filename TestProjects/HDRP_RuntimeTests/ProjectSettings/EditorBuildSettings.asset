@@ -24,6 +24,12 @@ EditorBuildSettings:
     path: Assets/Scenes/003-VirtualTexturing-NoMV-Forward.unity
     guid: 500813a390ad4074cba926bf26eef57a
   - enabled: 1
+    path: Assets/Scenes/004-CloudsFlaresDecals.unity
+    guid: 254ba04bcf8c1a649bbe1a8e7b7addf3
+  - enabled: 1
+    path: Assets/Scenes/005-DistortCloudsParallax.unity
+    guid: 6aa3f93497269764cb080370aba9c23d
+  - enabled: 1
     path: Assets/Scenes/006-Compositor.unity
     guid: 78814036fbc87f24bbe8ec788ad92e67
   m_configObjects: {}

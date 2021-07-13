@@ -60,6 +60,8 @@ namespace UnityEngine.Rendering
             dynResType = DynamicResolutionType.Hardware,
             upsampleFilter = DynamicResUpscaleFilter.CatmullRom,
             forcedPercentage = 100.0f,
+            lowResTransparencyMinimumThreshold = 0.0f,
+            rayTracingHalfResThreshold = 50.0f,
 
             //Defaults for dlss
             enableDLSS = false,
@@ -73,7 +75,7 @@ namespace UnityEngine.Rendering
         /// <summary>Offsets the mip bias to recover mode detail. This only works if the camera is utilizing TAA.</summary>
         public bool useMipBias;
 
-        /// <summary>ToggleNVIDIA Deep Learning Super Sampling (DLSS).</summary>
+        /// <summary>Toggle NVIDIA Deep Learning Super Sampling (DLSS).</summary>
         public bool enableDLSS;
 
         /// <summary>Opaque quality setting of NVIDIA Deep Learning Super Sampling (DLSS). Use the system enum UnityEngine.NVIDIA.DLSSQuality to set the quality.</summary>
@@ -102,5 +104,11 @@ namespace UnityEngine.Rendering
         public bool forceResolution;
         /// <summary>The resolution percentage forced in case forceResolution is set to true.</summary>
         public float forcedPercentage;
+
+        /// <summary>The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.</summary>
+        public float lowResTransparencyMinimumThreshold;
+
+        /// <summary>The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution.</summary>
+        public float rayTracingHalfResThreshold;
     }
 }
