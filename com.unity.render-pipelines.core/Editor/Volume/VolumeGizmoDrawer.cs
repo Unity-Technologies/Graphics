@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering
             if (scr.isGlobal || colliders == null)
                 return;
 
-            var scale = scr.transform.localScale;
+            var scale = scr.transform.lossyScale;
             var invScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
             Gizmos.matrix = Matrix4x4.TRS(scr.transform.position, scr.transform.rotation, scale);
             Gizmos.color = VolumesPreferences.volumeGizmoColor;
