@@ -53,7 +53,6 @@ namespace UnityEditor.VFX
                             Debug.LogErrorFormat("Exception during sanitization of {0} : {1}", assetPath, exception);
                         }
                     }
-                    }
                     else
                     {
                         Debug.LogErrorFormat("VisualEffectGraphResource without graph : {0}", assetPath);
