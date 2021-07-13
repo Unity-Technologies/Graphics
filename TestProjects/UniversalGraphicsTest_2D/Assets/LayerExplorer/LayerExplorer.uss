@@ -18,11 +18,6 @@
     padding-left: 10px;
 }
 
-.LayerNamesList
-{
-
-}
-
 .BatchColor {
     width: 10px;
 }
@@ -68,7 +63,7 @@
 }
 
 .Pill {
-    border-left-color: rgba(161, 154, 154, 255);
+    border-left-color: rgb(161, 154, 154);
     border-right-color: rgba(161, 154, 154, 255);
     border-top-color: rgba(161, 154, 154, 255);
     border-bottom-color: rgba(161, 154, 154, 255);

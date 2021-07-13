@@ -1,17 +1,33 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
         <ui:TwoPaneSplitView>
-            <ui:VisualElement name="LayerListContainer">
+            <Style src="LayerExplorer.uss" />
+
+            <ui:VisualElement>
+
                 <ui:VisualElement class="LayerBatch Header">
                     <ui:Label class="BatchIndexColumn" text="Batch ID"/>
                     <ui:VisualElement class="BatchColor"/>
                     <ui:Label class="BatchNameColumn" text="Layer Names"/>
                 </ui:VisualElement>
+
                 <ui:ListView name="LayerList"/>
+
             </ui:VisualElement>
+
             <ui:VisualElement>
+
                 <ui:VisualElement name="Header" class="InfoViewHeader"/>
-                <ui:ScrollView name="InfoScroller" class="InfoScroller"/>
+
+                <ui:ScrollView name="InfoScroller" class="InfoScroller">
+                    <ui:Label name="InfoTitle" class="InfoView Content"/>
+                    <ui:Label name="InfoLabel1" class="InfoView Content"/>
+                    <ui:VisualElement name="InfoBubble1" class="InfoView Content PillContainer"/>
+                    <ui:Label name="InfoLabel2" class="InfoView Content"/>
+                    <ui:VisualElement name="InfoBubble2" class="InfoView Content PillContainer"/>
+                </ui:ScrollView>
+
                 <ui:Label name="Description" class="InfoView Footer"/>
+
             </ui:VisualElement>
         </ui:TwoPaneSplitView>
 </ui:UXML>
