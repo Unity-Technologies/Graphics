@@ -355,6 +355,7 @@ Shader ""Hidden/GraphErrorShader2""
                 // this is a bug in the scripted importer system, not being able to link import error messages to the imported asset
                 ctx.LogImportError(message, context);
             }
+
             public void LogWarning(string message, UnityEngine.Object context = null)
             {
                 ctx.LogImportWarning(message, context);

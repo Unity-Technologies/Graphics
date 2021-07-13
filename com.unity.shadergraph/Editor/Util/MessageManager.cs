@@ -18,7 +18,7 @@ namespace UnityEditor.Graphing.Util
 
         class DebugErrorLog : IErrorLog
         {
-            private DebugErrorLog() { }
+            private DebugErrorLog() {}
             static DebugErrorLog _global = new DebugErrorLog();
             public static DebugErrorLog Get() { return _global; }
 
@@ -26,6 +26,7 @@ namespace UnityEditor.Graphing.Util
             {
                 Debug.LogError(message, context);
             }
+
             public void LogWarning(string message, Object context = null)
             {
                 Debug.LogWarning(message, context);
