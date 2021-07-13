@@ -76,6 +76,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added tooltips for content inside the Rendering Debugger window.
 - Added support for reflection probes as a fallback for ray traced reflections (case 1338644).
 - Added a minimum motion vector length to the motion vector debug view.
+- Added a better support for LODs in the ray tracing acceleration structure.
+- Added a property on the HDRP asset to allow users to avoid ray tracing effects running at too low percentages (case 1342588).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -103,6 +105,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the mipmap generation internal format after rendering format change.
 - Fixed multiple any hit occuring on transparent objects (case 1294927).
 - Cleanup Shader UI.
+- Indentation of the HDRenderPipelineAsset inspector UI for quality
 - Spacing on LayerListMaterialUIBlock
 - Generating a GUIContent with an Icon instead of making MaterialHeaderScopes drawing a Rect every time
 - Fixed sub-shadow rendering for cached shadow maps.
@@ -271,7 +274,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom pass volume not executed in scene view because of the volume culling mask.
 - Fixed remapping of depth pyramid debug view
 - Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
+- Fixed rounding issue when accessing the color buffer in the DoF shader.
+- HD Global Settings can now be unassigned in the Graphics tab if HDRP is not the active pipeline(case 1343570).
+- Fix diffusion profile displayed in the inspector.
+- HDRP Wizard can still be opened from Windows > Rendering, if the project is not using a Render Pipeline.
+- Fixed override camera rendering custom pass API aspect ratio issue when rendering to a render texture.
+- Fixed the incorrect value written to the VT feedback buffer when VT is not used.
+- Fixed support for ray binning for ray tracing in XR (case 1346374).
+- Fixed exposure not being properly handled in ray tracing performance (RTGI and RTR, case 1346383).
+- Fixed the RTAO debug view being broken.
+- Fixed an issue that made camera motion vectors unavailable in custom passes.
+- Fixed the possibility to hide custom pass from the create menu with the HideInInspector attribute.
+- Fixed support of multi-editing on custom pass volumes.
+- Fixed possible QNANS during first frame of SSGI, caused by uninitialized first frame data.
+- Fixed various SSGI issues (case 1340851, case 1339297, case 1327919).
+- Prevent user from spamming and corrupting installation of nvidia package.
+- Fixed an issue with surface gradient based normal blending for decals (volume gradients weren't converted to SG before resolving in some cases).
+- Fixed distortion when resizing the graphics compositor window in builds (case 1328968).
+- Fixed custom pass workflow for single camera effects.
 - Fixed gbuffer depth debug mode for materials not rendered during the prepass.
+- Fixed Vertex Color Mode documentation for layered lit shader.
+- Fixed wobbling/tearing-like artifacts with SSAO.
+- Fixed white flash with SSR when resetting camera history (case 1335263).
+- Fixed VFX flag "Exclude From TAA" not working for some particle types.
 - Fixed tiled artifacts in refraction at borders between two reflection probes.
 
 ### Changed
@@ -365,6 +390,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - TAA jitter is disabled while using Frame Debugger now.
 - Depth of field at half or quarter resolution is now computed consistently with the full resolution option (case 1335687).
 - Hair uses GGX LTC for area light specular.
+- Moved invariants outside of loop for a minor CPU speedup in the light loop code.
+- Various improvements to the volumetric clouds.
+- Restore old version of the RendererList structs/api for compatibility.
+- Various improvements to SSGI (case 1340851, case 1339297, case 1327919).
+- Changed the NVIDIA install button to the standard FixMeButton.
 
 ## [11.0.0] - 2020-10-21
 

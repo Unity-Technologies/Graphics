@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Settings for shadows.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Shadowing/Shadows")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Shadowing/Shadows", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Override-Shadows")]
     public class HDShadowSettings : VolumeComponent
     {
