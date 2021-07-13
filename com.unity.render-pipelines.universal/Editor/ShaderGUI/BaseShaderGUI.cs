@@ -331,35 +331,39 @@ namespace UnityEditor
             }
         }
 
+        private void DrawEmissionTextureProperty()
+        {
+            if ((emissionMapProp == null) || (emissionColorProp == null))
+                return;
+
+            using (new EditorGUI.IndentLevelScope(2))
+            {
+                materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp, false);
+            }
+        }
+
         protected virtual void DrawEmissionProperties(Material material, bool keyword)
         {
             var emissive = true;
-            var hadEmissionTexture = emissionMapProp?.textureValue != null;
 
             if (!keyword)
             {
-                if ((emissionMapProp != null) && (emissionColorProp != null))
-                    materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp, false);
+                DrawEmissionTextureProperty();
             }
             else
             {
-                // Emission for GI?
                 emissive = materialEditor.EmissionEnabledProperty();
-
-                EditorGUI.BeginDisabledGroup(!emissive);
+                using (new EditorGUI.DisabledScope(!emissive))
                 {
-                    // Texture and HDR color controls
-                    if ((emissionMapProp != null) && (emissionColorProp != null))
-                        materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp, false);
+                    DrawEmissionTextureProperty();
                 }
-                EditorGUI.EndDisabledGroup();
             }
 
             // If texture was assigned and color was black set color to white
-            float brightness = 1.0f;
             if ((emissionMapProp != null) && (emissionColorProp != null))
             {
-                brightness = emissionColorProp.colorValue.maxColorComponent;
+                var hadEmissionTexture = emissionMapProp?.textureValue != null;
+                var brightness = emissionColorProp.colorValue.maxColorComponent;
                 if (emissionMapProp.textureValue != null && !hadEmissionTexture && brightness <= 0f)
                     emissionColorProp.colorValue = Color.white;
             }

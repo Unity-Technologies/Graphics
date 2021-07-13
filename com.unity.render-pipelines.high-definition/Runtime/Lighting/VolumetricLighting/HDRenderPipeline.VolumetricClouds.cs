@@ -567,6 +567,10 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.planarReflection = (hdCamera.camera.cameraType == CameraType.Reflection);
             parameters.localClouds = settings.localClouds.value;
 
+            // MSAA support
+            parameters.needsTemporaryBuffer = hdCamera.msaaEnabled;
+            parameters.cloudCombinePass = m_CloudCombinePass;
+
             parameters.needExtraColorBufferCopy = (GetColorBufferFormat() == GraphicsFormat.B10G11R11_UFloatPack32 &&
                 // On PC and Metal, but not on console.
                 (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 ||
@@ -574,6 +578,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan));
 
+            // In case of MSAA, we no longer require the preliminary copy as there is no longer a need for RW of the color buffer.
+            parameters.needExtraColorBufferCopy &= !parameters.needsTemporaryBuffer;
 
             // Compute shader and kernels
             parameters.volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
@@ -613,10 +619,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
             parameters.sunLight = GetCurrentSunLight();
             parameters.enableExposureControl = hdCamera.exposureControlFS;
-
-            // MSAA support
-            parameters.needsTemporaryBuffer = hdCamera.msaaEnabled;
-            parameters.cloudCombinePass = m_CloudCombinePass;
 
             // Update the constant buffer
             UpdateShaderVariableslClouds(ref parameters.cloudsCB, hdCamera, settings, parameters, shadowPass);
