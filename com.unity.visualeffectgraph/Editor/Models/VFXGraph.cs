@@ -41,7 +41,6 @@ namespace UnityEditor.VFX
                         try
                         {
                             graph.SanitizeForImport();
-
                             if (!wasGraphSanitized && graph.sanitized)
                             {
                                 if (assetToReimport == null)
@@ -53,6 +52,7 @@ namespace UnityEditor.VFX
                         {
                             Debug.LogErrorFormat("Exception during sanitization of {0} : {1}", assetPath, exception);
                         }
+                    }
                     }
                     else
                     {
@@ -101,6 +101,7 @@ namespace UnityEditor.VFX
                 {
                     if (!graph.sanitized)
                     {
+                        //Early return, the reimport will be forced with the next OnPostprocessAllAssets after Sanitize
                         resource.ClearRuntimeData();
                     }
                     else
