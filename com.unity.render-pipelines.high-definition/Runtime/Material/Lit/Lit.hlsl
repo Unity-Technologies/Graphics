@@ -1078,8 +1078,6 @@ struct PreLightData
     float3 transparentPositionWS;    // start of the refracted ray after exiting the shape
     float3 transparentTransmittance; // transmittance due to absorption
     float transparentSSMipLevel;     // mip level of the screen space gaussian pyramid for rough refraction
-
-    int refractionEnvDataToUse;
 #endif
 };
 

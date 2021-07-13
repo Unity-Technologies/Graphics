@@ -351,9 +351,37 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         EnvLightData envLightData;
 #if HAS_REFRACTION
-        if (preLightData.refractionEnvDataToUse >= 0)
+
+        int envDataToUse = -1;
+
+        // We need to find the tile that correspond to the refraction probe that is at the center
+        // of the object that is being rendered. This is a bit involved, but is invariant for the whole
+        // draw call.
+        if (_EnableSSRefraction > 0)
         {
-            envLightData = FetchEnvLight(preLightData.refractionEnvDataToUse);
+            float4x4 modelMat = GetObjectToWorldMatrix();
+            float3 objPos = modelMat._m03_m13_m23;
+            float4 posClip = TransformWorldToHClip(objPos);
+            posClip.xyz = posClip.xyz / posClip.w;
+
+            uint2 tileObj = (saturate(posClip.xy * 0.5f + 0.5f) * _ScreenSize.xy) / GetTileSize();
+
+            uint envLightStart, envLightCount;
+
+            // Fetch first env light to provide the scene proxy for screen space computation
+            PositionInputs localInput;
+            ZERO_INITIALIZE(PositionInputs, localInput);
+            localInput.tileCoord = tileObj.xy;
+            localInput.linearDepth = posClip.w;
+
+            GetCountAndStart(localInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
+            if (envLightCount > 0)
+                envDataToUse = FetchIndex(envLightStart, 0);
+        }
+
+        if (envDataToUse >= 0)
+        {
+            envLightData = FetchEnvLight(envDataToUse);
         }
         else
         {
