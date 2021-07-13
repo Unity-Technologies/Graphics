@@ -1,13 +1,13 @@
-[comment]: # (If you modify this fine make sure you modify the copy/paste file: com.unity.render-pipelines.universal and com.unity.render-pipelines.high-definition\Documentation~\lens-flare-data-driven-component.md)
+[comment]: # (If you modify this fine make sure you modify the copy/paste file: com.unity.render-pipelines.high-definition and com.unity.render-pipelines.core\Documentation~\Common\lens-flare-data-driven-component.md)
 
 # Lens Flare (SRP) Component
 
-![](images/LensFlareHeader.png)
+![](images/lighting/LensFlareHeader.png)
 
 Unity’s Scriptable Render Pipeline (SRP) includes the SRP Lens Flare Override component to control a [Lens Flare (SRP) Data](lens-flare-data-driven-asset.md) asset. You can attach an Lens Flare (SRP) Component to any GameObject.
 Some properties only appear when you attach this component to a light.
 
-![](images/LensFlareComp.png)
+![](images/lighting/LensFlareComp.png)
 
 ## Properties
 

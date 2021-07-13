@@ -1,4 +1,4 @@
-[comment]: # (If you modify this fine make sure you modify the copy/paste file: com.unity.render-pipelines.high-definition\Documentation~\lens-flare-data-driven-asset.md)
+[comment]: # (If you modify this fine make sure you modify the copy/paste file: com.unity.render-pipelines.universal and com.unity.render-pipelines.high-definition\Documentation~\lens-flare-data-driven-asset.md)
 
 # Lens Flare (SRP) Asset
 

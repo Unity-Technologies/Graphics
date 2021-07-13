@@ -915,14 +915,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
         {
-            var nonJitteredCameraProj = camera.projectionMatrix;
-            var cameraProj = nonJitteredCameraProj;
-            var gpuProj = GL.GetGPUProjectionMatrix(cameraProj, false);
             var gpuView = camera.worldToCameraMatrix;
-            var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(nonJitteredCameraProj, true);
+            var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
             // Zero out the translation component.
             gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
-            var gpuVP = gpuNonJitteredProj * gpuView;
+            var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
 
             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)Screen.width, (float)Screen.height,
                 usePanini, paniniDistance, paniniCropToFit,
