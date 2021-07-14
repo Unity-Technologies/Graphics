@@ -32,6 +32,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             UpscaleRenderTexture
         }
 
+        public enum PixelPerfectFilterMode
+        {
+            Point,
+            Bilinear,
+        }
+
         public enum ComponentVersions
         {
             Version_Unserialized = 0,
@@ -240,6 +246,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         [SerializeField] CropFrame m_CropFrame;
         [SerializeField] GridSnapping m_GridSnapping;
+        [SerializeField] PixelPerfectFilterMode m_FilterMode = PixelPerfectFilterMode.Point;
 
         // These are obsolete. They are here only for migration.
 #if UNITY_EDITOR
@@ -258,7 +265,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             get
             {
-                return m_Internal.useStretchFill ? FilterMode.Bilinear : FilterMode.Point;
+                return m_Internal.useStretchFill && m_FilterMode == PixelPerfectFilterMode.Bilinear ? FilterMode.Bilinear : FilterMode.Point;
             }
         }
 
