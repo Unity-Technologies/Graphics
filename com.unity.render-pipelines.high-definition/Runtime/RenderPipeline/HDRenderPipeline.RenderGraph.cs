@@ -39,12 +39,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_RenderGraph.Begin(new RenderGraphParameters()
                 {
                     executionName = hdCamera.name,
+                    currentFrameIndex = m_FrameCount,
+                    rendererListCulling = m_GlobalSettings.rendererListCulling,
                     scriptableRenderContext = renderContext,
-                    commandBuffer = commandBuffer,
-                    currentFrameIndex = m_FrameCount
+                    commandBuffer = commandBuffer
                 });
 
-                // We need to initalize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
+                // We need to initialize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
                 m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize);
 
@@ -112,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Stop Single Pass is after post process.
                     StartXRSinglePass(m_RenderGraph, hdCamera);
 
-                    colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer);
+                    colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer, prepassOutput.depthBuffer);
                     colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
                 }
                 else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -338,9 +339,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RecordRenderGraph(
                 renderRequest, aovRequest, aovBuffers,
                 aovCustomPassBuffers, renderContext, commandBuffer);
-
-            var hdrpSettings = defaultSettings as HDRenderPipelineGlobalSettings;
-            m_RenderGraph.rendererListCulling = hdrpSettings.rendererListCulling;
 
             m_RenderGraph.Execute();
 
@@ -1129,7 +1127,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ResetCameraMipBias(hdCamera);
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled())
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled() || hdCamera.IsSSGIEnabled())
             {
                 var resolvedColorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
                 GenerateColorPyramid(renderGraph, hdCamera, resolvedColorBuffer, currentColorPyramid, FullScreenDebugMode.FinalColorPyramid);
@@ -1467,6 +1465,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     builder.DependsOn(depedency.Value);
                 }
+
+                if (!hdCamera.colorPyramidHistoryIsValid)
+                {
+                    hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
+                    hdCamera.colorPyramidHistoryValidFrames = 0;
+                }
+                else
+                {
+                    hdCamera.colorPyramidHistoryValidFrames++;
+                }
+
 
                 passData.colorPyramid = builder.WriteTexture(output);
                 passData.inputColor = builder.ReadTexture(inputColor);

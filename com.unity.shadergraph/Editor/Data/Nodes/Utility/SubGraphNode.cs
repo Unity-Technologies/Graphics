@@ -134,6 +134,7 @@ namespace UnityEditor.ShaderGraph
                     return;
                 }
                 m_SubGraph.LoadGraphData();
+                m_SubGraph.LoadDependencyData();
 
                 name = m_SubGraph.name;
             }
@@ -190,6 +191,49 @@ namespace UnityEditor.ShaderGraph
         public override bool canSetPrecision
         {
             get { return asset?.subGraphGraphPrecision == GraphPrecision.Graph;  }
+        }
+
+        public override void GetInputSlots<T>(MaterialSlot startingSlot, List<T> foundSlots)
+        {
+            var allSlots = new List<T>();
+            GetInputSlots<T>(allSlots);
+            var info = asset?.GetOutputDependencies(startingSlot.RawDisplayName());
+            if (info != null)
+            {
+                foreach (var slot in allSlots)
+                {
+                    if (info.ContainsSlot(slot))
+                        foundSlots.Add(slot);
+                }
+            }
+        }
+
+        public override void GetOutputSlots<T>(MaterialSlot startingSlot, List<T> foundSlots)
+        {
+            var allSlots = new List<T>();
+            GetOutputSlots<T>(allSlots);
+            var info = asset?.GetInputDependencies(startingSlot.RawDisplayName());
+            if (info != null)
+            {
+                foreach (var slot in allSlots)
+                {
+                    if (info.ContainsSlot(slot))
+                        foundSlots.Add(slot);
+                }
+            }
+        }
+
+        ShaderStageCapability GetSlotCapability(MaterialSlot slot)
+        {
+            SlotDependencyInfo dependencyInfo;
+            if (slot.isInputSlot)
+                dependencyInfo = asset?.GetInputDependencies(slot.RawDisplayName());
+            else
+                dependencyInfo = asset?.GetOutputDependencies(slot.RawDisplayName());
+
+            if (dependencyInfo != null)
+                return dependencyInfo.capabilities;
+            return ShaderStageCapability.All;
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
@@ -474,10 +518,9 @@ namespace UnityEditor.ShaderGraph
                 validNames.Add(id);
             }
 
-            var outputStage = asset.effectiveShaderStage;
-
             foreach (var slot in asset.outputs)
             {
+                var outputStage = GetSlotCapability(slot);
                 var newSlot = MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(),
                     slot.shaderOutputName, SlotType.Output, Vector4.zero, outputStage, slot.hidden);
                 AddSlot(newSlot);
@@ -498,9 +541,8 @@ namespace UnityEditor.ShaderGraph
                 GetInputSlots(slots);
                 GetOutputSlots(slots);
 
-                var outputStage = asset.effectiveShaderStage;
                 foreach (MaterialSlot slot in slots)
-                    slot.stageCapability = outputStage;
+                    slot.stageCapability = GetSlotCapability(slot);
             }
         }
 
