@@ -5,9 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [10.7.0] - 2021-07-02
+### Fixed
+- Removed shader warnings due to SAMPLE_DEPTH_TEXTURE redefinition [Case 1331262](https://issuetracker.unity3d.com/product/unity/issues/guid/1331262/)
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
 
 ## [10.6.0] - 2021-04-29
 ### Fixed
