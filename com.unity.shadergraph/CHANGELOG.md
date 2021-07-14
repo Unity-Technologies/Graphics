@@ -117,6 +117,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the incorrect value written to the VT feedback buffer when VT is not used.
 - Fixed ShaderGraph isNaN node, which was always returning false on Vulkan and Metal platforms.
 - Fixed ShaderGraph sub-graph stage limitations to be per slot instead of per sub-graph node [1337137].
+- Fixed a ShaderGraph issue where Float properties in Integer mode would not be cast properly in graph previews [1330302](https://fogbugz.unity3d.com/f/cases/1330302/)
 
 ## [11.0.0] - 2020-10-21
 
