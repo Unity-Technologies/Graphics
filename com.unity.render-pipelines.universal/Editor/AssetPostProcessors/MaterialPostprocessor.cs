@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.Universal
 
         static void ReimportAllMaterials()
         {
-            string[] guids = AssetDatabase.FindAssets("t:material", null);
+            string[] guids = AssetDatabase.FindAssets($"glob:\"*.mat\"");
             // There can be several materials subAssets per guid ( ie : FBX files ), remove duplicate guids.
             var distinctGuids = guids.Distinct();
 
