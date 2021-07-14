@@ -14,9 +14,9 @@ namespace UnityEditor.Rendering
             if (scr.isGlobal || scr.m_Colliders.Count == 0)
                 return;
 
-            var scale = scr.transform.localScale;
-            var invScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
-            Gizmos.matrix = Matrix4x4.TRS(scr.transform.position, scr.transform.rotation, scale);
+            // Store the computation of the lossyScale
+            var lossyScale = scr.transform.lossyScale;
+            Gizmos.matrix = Matrix4x4.TRS(scr.transform.position, scr.transform.rotation, lossyScale);
             Gizmos.color = VolumesPreferences.volumeGizmoColor;
 
             // Draw a separate gizmo for each collider
@@ -35,14 +35,18 @@ namespace UnityEditor.Rendering
                 switch (collider)
                 {
                     case BoxCollider c:
-                        Gizmos.DrawCube(c.center, c.size);
+                        if (VolumesPreferences.drawWireFrame)
+                            Gizmos.DrawWireCube(c.center, c.size);
+
+                        if (VolumesPreferences.drawSolid)
+                            Gizmos.DrawCube(c.center, c.size);
                         if (scr.fadeRadius > 0)
                         {
                             // invert te scale for the fade radius because it's in fixed units
                             Vector3 s = new Vector3(
-                                (scr.fadeRadius * 2) / scale.x,
-                                (scr.fadeRadius * 2) / scale.y,
-                                (scr.fadeRadius * 2) / scale.z
+                                (scr.fadeRadius * 2) / scr.transform.localScale.x,
+                                (scr.fadeRadius * 2) / scr.transform.localScale.y,
+                                (scr.fadeRadius * 2) / scr.transform.localScale.z
                             );
                             Gizmos.DrawWireCube(c.center, c.size + s);
                         }
@@ -50,10 +54,13 @@ namespace UnityEditor.Rendering
                     case SphereCollider c:
                         // For sphere the only scale that is used is the transform.x
                         Matrix4x4 oldMatrix = Gizmos.matrix;
-                        Gizmos.matrix = Matrix4x4.TRS(scr.transform.position, scr.transform.rotation, Vector3.one * scale.x);
-                        Gizmos.DrawSphere(c.center, c.radius);
+                        Gizmos.matrix = Matrix4x4.TRS(scr.transform.position, scr.transform.rotation, Vector3.one * lossyScale.x);
+                        if (VolumesPreferences.drawWireFrame)
+                            Gizmos.DrawWireSphere(c.center, c.radius);
+                        if (VolumesPreferences.drawSolid)
+                            Gizmos.DrawSphere(c.center, c.radius);
                         if (scr.fadeRadius > 0)
-                            Gizmos.DrawWireSphere(c.center, c.radius + scr.fadeRadius / scale.x);
+                            Gizmos.DrawWireSphere(c.center, c.radius + scr.fadeRadius / lossyScale.x);
                         Gizmos.matrix = oldMatrix;
                         break;
                     case MeshCollider c:
@@ -61,8 +68,11 @@ namespace UnityEditor.Rendering
                         if (!c.convex)
                             c.convex = true;
 
-                        // Mesh pivot should be centered or this won't work
-                        Gizmos.DrawMesh(c.sharedMesh);
+                        if (VolumesPreferences.drawWireFrame)
+                            Gizmos.DrawWireMesh(c.sharedMesh);
+                        if (VolumesPreferences.drawSolid)
+                            // Mesh pivot should be centered or this won't work
+                            Gizmos.DrawMesh(c.sharedMesh);
 
                         // We don't display the Gizmo for fade distance mesh because the distances would be wrong
                         break;

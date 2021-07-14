@@ -4,7 +4,10 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    class VolumeGizmoDrawer
+    /// <summary>
+    /// Draws Volumes Gizmos
+    /// </summary>
+    public class VolumeGizmoDrawer
     {
         private static List<Collider> s_TempColliders = new List<Collider>();
 
@@ -22,13 +25,10 @@ namespace UnityEditor.Rendering
             if (scr.isGlobal || colliders == null)
                 return;
 
-            var scale = scr.transform.lossyScale;
-            var invScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
-            Gizmos.matrix = Matrix4x4.TRS(scr.transform.position, scr.transform.rotation, scale);
+            // Store the computation of the lossyScale
+            var lossyScale = scr.transform.lossyScale;
+            Gizmos.matrix = Matrix4x4.TRS(scr.transform.position, scr.transform.rotation, lossyScale);
             Gizmos.color = VolumesPreferences.volumeGizmoColor;
-
-            bool drawWireFrame = VolumesPreferences.volumeGizmosVisibilityOption is VolumesPreferences.VolumeGizmoVisibility.Wireframe or VolumesPreferences.VolumeGizmoVisibility.Everything;
-            bool drawSolid = VolumesPreferences.volumeGizmosVisibilityOption is VolumesPreferences.VolumeGizmoVisibility.Solid or VolumesPreferences.VolumeGizmoVisibility.Everything;
 
             // Draw a separate gizmo for each collider
             foreach (var collider in colliders)
@@ -46,18 +46,18 @@ namespace UnityEditor.Rendering
                 switch (collider)
                 {
                     case BoxCollider c:
-                        if (drawWireFrame)
+                        if (VolumesPreferences.drawWireFrame)
                             Gizmos.DrawWireCube(c.center, c.size);
 
-                        if (drawSolid)
+                        if (VolumesPreferences.drawSolid)
                             Gizmos.DrawCube(c.center, c.size);
                         break;
                     case SphereCollider c:
                         // For sphere the only scale that is used is the transform.x
-                        Gizmos.matrix = Matrix4x4.TRS(scr.transform.position, scr.transform.rotation, Vector3.one * scale.x);
-                        if (drawWireFrame)
+                        Gizmos.matrix = Matrix4x4.TRS(scr.transform.position, scr.transform.rotation, Vector3.one * lossyScale.x);
+                        if (VolumesPreferences.drawWireFrame)
                             Gizmos.DrawWireSphere(c.center, c.radius);
-                        if (drawSolid)
+                        if (VolumesPreferences.drawSolid)
                             Gizmos.DrawSphere(c.center, c.radius);
                         break;
                     case MeshCollider c:
@@ -65,9 +65,9 @@ namespace UnityEditor.Rendering
                         if (!c.convex)
                             c.convex = true;
 
-                        if (drawWireFrame)
+                        if (VolumesPreferences.drawWireFrame)
                             Gizmos.DrawWireMesh(c.sharedMesh);
-                        if (drawSolid)
+                        if (VolumesPreferences.drawSolid)
                             // Mesh pivot should be centered or this won't work
                             Gizmos.DrawMesh(c.sharedMesh);
                         break;

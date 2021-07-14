@@ -45,9 +45,21 @@ namespace UnityEditor.Rendering
             }
         }
 
+        /// <summary>
+        /// Returns if the Volume Gizmos should render the wireframe edges
+        /// </summary>
+        public static bool drawWireFrame => volumeGizmosVisibilityOption is VolumeGizmoVisibility.Wireframe or VolumeGizmoVisibility.Everything;
+        /// <summary>
+        /// Returns if the Volume Gizmos should render the solid faces
+        /// </summary>
+        public static bool drawSolid => volumeGizmosVisibilityOption is VolumeGizmoVisibility.Solid or VolumeGizmoVisibility.Everything;
+
         static Color s_VolumeGizmoColorDefault = new Color(0.2f, 0.8f, 0.1f, 0.125f);
         private static Func<Color> GetColorPrefVolumeGizmoColor;
 
+        /// <summary>
+        /// Returns the user defined color for rendering volume gizmos
+        /// </summary>
         public static Color volumeGizmoColor => GetColorPrefVolumeGizmoColor();
 
         static List<string> s_SearchKeywords = new() { "Gizmo", "Wireframe", "Visibility" };
@@ -55,6 +67,9 @@ namespace UnityEditor.Rendering
 
         public GUIContent header { get; } = EditorGUIUtility.TrTextContent("Volumes");
 
+        /// <summary>
+        /// Renders the Preferences UI for this provider
+        /// </summary>
         public void PreferenceGUI()
         {
             EditorGUI.BeginChangeCheck();

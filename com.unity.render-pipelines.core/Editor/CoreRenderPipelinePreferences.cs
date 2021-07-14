@@ -23,9 +23,7 @@ namespace UnityEditor.Rendering
             {
                 if (provider.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null) == null)
                     continue;
-
-                var providerInstance = (ICoreRenderPipelinePreferencesProvider)Activator.CreateInstance(provider);
-                s_Providers.Add(providerInstance);
+                s_Providers.Add(Activator.CreateInstance(provider) as ICoreRenderPipelinePreferencesProvider);
             }
         }
 
