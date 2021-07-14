@@ -48,7 +48,6 @@ namespace UnityEditor.Rendering
                     case BoxCollider c:
                         if (VolumesPreferences.drawWireFrame)
                             Gizmos.DrawWireCube(c.center, c.size);
-
                         if (VolumesPreferences.drawSolid)
                             Gizmos.DrawCube(c.center, c.size);
                         break;
