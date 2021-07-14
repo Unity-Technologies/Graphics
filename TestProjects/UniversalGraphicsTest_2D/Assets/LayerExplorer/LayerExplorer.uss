@@ -91,7 +91,17 @@
 .InfoScroller {
     flex-grow: 1;
     padding: 10px;
+    align-self: flex-start;
+}
+
+.InfoContainer{
+    flex-grow: 1;
     background-color: #2A2A2A;
+    justify-content: center;
+}
+
+.InitialPrompt {
+    align-self: center;
 }
 
 .Pill {

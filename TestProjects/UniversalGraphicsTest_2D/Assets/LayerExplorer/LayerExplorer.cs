@@ -5,11 +5,17 @@ using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.Build;
+using UnityEditor.TextCore.Text;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
-
+/**
+ * Todos:
+ * - Live updated when layers are changed added
+ * - Hook up to the actual render pass (duh)
+ * - Move assets into package
+ */
 internal class LayerExplorer : EditorWindow
 {
     public class LayerBatch
@@ -39,6 +45,7 @@ internal class LayerExplorer : EditorWindow
     }
 
     private List<LayerBatch> batchList;
+    private int primaryIndex;
 
     void MakeFakeData()
     {
@@ -78,15 +85,70 @@ internal class LayerExplorer : EditorWindow
     {
         var bubble = new Button();
         bubble.AddToClassList("Pill");
-        bubble.Add(new Label{text = name});
+        bubble.text = name;
+        // bubble.Add(new Label{text = name});
+
+        bubble.clicked += () =>
+        {
+            Debug.Log($"Clicked {name}");
+        };
+
         return bubble;
+    }
+
+    VisualElement GetOrCreateInfoView()
+    {
+        var root = rootVisualElement;
+        var infoView = root.Query<VisualElement>("InfoScroller").First();
+        if (infoView != null)
+            return infoView;
+
+        var infoContainer = root.Query<VisualElement>("InfoContainer").First();
+        infoContainer.Clear();
+
+        // load it
+        var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/LayerExplorer/LayerBatchInfoView.uxml");
+        infoView = visualTree.Instantiate();
+        infoContainer.Add(infoView);
+
+        return infoView;
+    }
+
+    void ViewBatch(int index)
+    {
+        var root = rootVisualElement;
+        var infoView = GetOrCreateInfoView();
+
+        var batch1 = batchList[index];
+
+        var title = root.Query<Label>("InfoTitle").First();
+        title.text = $"Batch {batch1.batchId}";
+
+        var label1 = infoView.Query<Label>("InfoLabel1").First();
+        label1.text = $"Lights in Batch {batch1.batchId}";
+
+        var bubble1 = infoView.Query<VisualElement>("InfoBubble1").First();
+        bubble1.Clear();
+        foreach(var light in batch1.Lights)
+        {
+            bubble1.Add(MakeLightPill(light));
+        }
+
+        var label2 = infoView.Query<Label>("InfoLabel2").First();
+        label2.text = "";
+
+        var bubble2 = infoView.Query<VisualElement>("InfoBubble2").First();
+        bubble2.Clear();
+
+        var desc = root.Query<Label>("Description").First();
+        desc.text = "";
     }
 
     void CompareBatch(int index1, int index2)
     {
         // Each editor window contains a root VisualElement object
         var root = rootVisualElement;
-        var infoView = root.Query<ScrollView>("InfoScroller").First();
+        var infoView = GetOrCreateInfoView();
 
         var batch1 = batchList[index1];
         var batch2 = batchList[index2];
@@ -99,6 +161,7 @@ internal class LayerExplorer : EditorWindow
         label1.text = "Lights in Batch 2 but not in Batch 3";
 
         var bubble1 = infoView.Query<VisualElement>("InfoBubble1").First();
+        bubble1.Clear();
         foreach(var light in batch1.Lights)
         {
             bubble1.Add(MakeLightPill(light));
@@ -108,6 +171,7 @@ internal class LayerExplorer : EditorWindow
         label2.text = "Lights in Batch 3 but not in Batch 2";
 
         var bubble2 = infoView.Query<VisualElement>("InfoBubble2").First();
+        bubble2.Clear();
         foreach(var light in batch2.Lights)
         {
             bubble2.Add(MakeLightPill(light));
@@ -155,14 +219,34 @@ internal class LayerExplorer : EditorWindow
             color.style.backgroundColor = new StyleColor(colors[i % colors.Length]);
         };
 
-        var layerList = root.Query<ListView>("LayerList").First();
-        layerList.itemsSource = batchList;
-        layerList.makeItem = makeItem;
-        layerList.bindItem = bindItem;
-        layerList.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
-        layerList.showAlternatingRowBackgrounds = AlternatingRowBackground.ContentOnly;
+        var batchListView = root.Query<ListView>("BatchList").First();
+        batchListView.itemsSource = batchList;
+        batchListView.makeItem = makeItem;
+        batchListView.bindItem = bindItem;
+        batchListView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
+        batchListView.showAlternatingRowBackgrounds = AlternatingRowBackground.ContentOnly;
+        batchListView.selectionType = SelectionType.Multiple;
 
-        CompareBatch(0, 1);
-
+        batchListView.onSelectionChange += objects =>
+        {
+            switch (batchListView.selectedIndices.Count())
+            {
+                case 1:
+                    primaryIndex = batchListView.selectedIndices.First();
+                    ViewBatch(primaryIndex);
+                    break;
+                case 2:
+                    // new indices are first in array!!??
+                    var secondIndex = batchListView.selectedIndices.First();
+                    CompareBatch(primaryIndex, secondIndex);
+                    break;
+                default:
+                    // assign new primary
+                    primaryIndex = batchListView.selectedIndices.First();
+                    ViewBatch(primaryIndex);
+                    batchListView.SetSelection(primaryIndex);
+                    break;
+            }
+        };
     }
 }

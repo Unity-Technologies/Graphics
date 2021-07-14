@@ -12,7 +12,7 @@
                     <ui:Label         class="BatchList NameColumn Header" text="Layer Names"/>
                 </ui:Box>
 
-                <ui:ListView name="LayerList" class="BatchList List"/>
+                <ui:ListView name="BatchList" class="BatchList List"/>
 
             </ui:VisualElement>
 
@@ -22,12 +22,17 @@
                     <ui:Label name="InfoTitle" class="InfoView Header"/>
                 </ui:Box>
 
-                <ui:ScrollView name="InfoScroller" class="InfoScroller">
-                    <ui:Label name="InfoLabel1" class="InfoView Content"/>
-                    <ui:VisualElement name="InfoBubble1" class="InfoView Content PillContainer"/>
-                    <ui:Label name="InfoLabel2" class="InfoView Content"/>
-                    <ui:VisualElement name="InfoBubble2" class="InfoView Content PillContainer"/>
-                </ui:ScrollView>
+                <ui:VisualElement name="InfoContainer" class="InfoContainer">
+                    <ui:Label name="InitialPrompt" text="Select a batch to begin..." class="InitialPrompt"/>
+                </ui:VisualElement>
+
+
+<!--                <ui:ScrollView name="InfoScroller" class="InfoScroller">-->
+<!--                    <ui:Label name="InfoLabel1" class="InfoView Content"/>-->
+<!--                    <ui:VisualElement name="InfoBubble1" class="InfoView Content PillContainer"/>-->
+<!--                    <ui:Label name="InfoLabel2" class="InfoView Content"/>-->
+<!--                    <ui:VisualElement name="InfoBubble2" class="InfoView Content PillContainer"/>-->
+<!--                </ui:ScrollView>-->
 
                 <ui:Label name="Description" class="InfoView Footer"/>
 
