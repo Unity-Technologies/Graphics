@@ -243,7 +243,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // This struct is define in the material. the Lightloop must not access it
     // PostEvaluateBSDF call at the end will convert Lighting to diffuse and specular lighting
     PackedAggregateLighting aggregateLighting;
-    InitPackedAggregateLighting(aggregateLighting, GetCurrentExposureMultiplier(), featureFlags, GetInverseCurrentExposureMultiplier());
+    InitPackedAggregateLighting(aggregateLighting, GetCurrentExposureMultiplier(), (featureFlags & LIGHTOPTIMIZATIONFLAGS_USE16BIT_ACCUMULATION_SOFTWARE_PACKING), GetInverseCurrentExposureMultiplier());
 
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {

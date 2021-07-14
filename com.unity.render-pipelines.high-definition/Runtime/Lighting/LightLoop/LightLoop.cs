@@ -87,6 +87,12 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
+    internal enum LightOptimizationFlags
+    {
+        Use16bitAccumulationSoftwarePacking = 1 << 20
+    }
+
+    [GenerateHLSL]
     class LightDefinitions
     {
         public static int s_MaxNrBigTileLightsPlusOne = 512;      // may be overkill but the footprint is 2 bits per pixel using uint16.
@@ -112,7 +118,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_LightClusterMaxCoarseEntries = 128;
 
         // Following define the maximum number of bits use in each feature category.
-        public static uint s_LightFeatureMaskFlags = 0xFFF000;
+        public static uint s_LightOptimizationFlags = 0xFF000000;
+        public static uint s_LightFeatureMaskFlags    = 0xFFF000;
         public static uint s_LightFeatureMaskFlagsOpaque = 0xFFF000 & ~((uint)LightFeatureFlags.SSRefraction); // Opaque don't support screen space refraction
         public static uint s_LightFeatureMaskFlagsTransparent = 0xFFF000 & ~((uint)LightFeatureFlags.SSReflection); // Transparent don't support screen space reflection
         public static uint s_MaterialFeatureMaskFlags = 0x000FFF;   // don't use all bits just to be safe from signed and/or float conversions :/
