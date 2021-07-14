@@ -84,10 +84,10 @@ public class OutputTextureFeature : ScriptableRendererFeature
                 bool yflip = (cameraData.IsCameraProjectionMatrixFlipped()) && !isGameViewFinalTarget;
                 float flipSign = yflip ? -1.0f : 1.0f;
                 Vector4 scaleBiasRt = (flipSign < 0.0f)
-                        ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
-                        : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+                    ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
+                    : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                 cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
-					
+
                 cmd.SetRenderTarget(m_Renderer.cameraColorTarget,
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
