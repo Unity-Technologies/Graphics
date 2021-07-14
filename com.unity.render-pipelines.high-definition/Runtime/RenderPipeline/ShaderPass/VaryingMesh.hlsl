@@ -198,7 +198,6 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 struct VaryingsMeshToDS
 {
     float3 positionRWS;
-    float3 positionPredisplacementRWS;
     float tessellationFactor;
     float3 normalWS;
 #ifdef VARYINGS_DS_NEED_TANGENT

@@ -84,14 +84,15 @@ Pass
 
     $splice(GraphDefines)
 
-	$features.graphTessellation: #ifdef TESSELLATION_ON
-	$features.graphTessellation: // World and normal are always available
-	$features.graphTessellation: $VaryingsMeshToDS.tangentWS:        #define VARYINGS_DS_NEED_TANGENT
-    $features.graphTessellation: $VaryingsMeshToDS.texCoord0:        #define VARYINGS_DS_NEED_TEXCOORD0
-    $features.graphTessellation: $VaryingsMeshToDS.texCoord1:        #define VARYINGS_DS_NEED_TEXCOORD1
-    $features.graphTessellation: $VaryingsMeshToDS.texCoord2:        #define VARYINGS_DS_NEED_TEXCOORD2
-    $features.graphTessellation: $VaryingsMeshToDS.texCoord3:        #define VARYINGS_DS_NEED_TEXCOORD3
-    $features.graphTessellation: $VaryingsMeshToDS.color:            #define VARYINGS_DS_NEED_COLOR
+    $features.graphTessellation: #ifdef TESSELLATION_ON
+    $features.graphTessellation: // World and normal are always available
+    $features.graphTessellation: $VaryingsMeshToDS.positionPredisplacementRWS:          #define VARYINGS_DS_NEED_POSITIONPREDISPLACEMENT
+    $features.graphTessellation: $VaryingsMeshToDS.tangentWS:                           #define VARYINGS_DS_NEED_TANGENT
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord0:                           #define VARYINGS_DS_NEED_TEXCOORD0
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord1:                           #define VARYINGS_DS_NEED_TEXCOORD1
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord2:                           #define VARYINGS_DS_NEED_TEXCOORD2
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord3:                           #define VARYINGS_DS_NEED_TEXCOORD3
+    $features.graphTessellation: $VaryingsMeshToDS.color:                               #define VARYINGS_DS_NEED_COLOR
 	$features.graphTessellation: #endif
 
     // Following two define are a workaround introduce in 10.1.x for RaytracingQualityNode
