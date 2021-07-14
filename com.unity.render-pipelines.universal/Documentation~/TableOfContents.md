@@ -18,7 +18,7 @@
     * [Decal](renderer-feature-decal.md)
       * [Decal Shader Graph](decal-shader.md)
 * [Upgrade guides](upgrade-guides.md)
-  * [Upgrading to URP 12.0.x](upgrade-guide-12-0-x.md)
+  * [Upgrading to URP 12.0.x](upgrade-guide-2021-2.md)
   * [Upgrading to URP 11.0.x](upgrade-guide-11-0-x.md)
   * [Upgrading to URP 10.1.x](upgrade-guide-10-1-x.md)
   * [Upgrading to URP 10.0.x](upgrade-guide-10-0-x.md)
@@ -70,6 +70,7 @@
     * [Tonemapping](post-processing-tonemapping.md)
     * [Vignette](post-processing-vignette.md)
     * [White Balance](Post-Processing-White-Balance.md)
+    * [Lens Flare Data Driven](lens-flare-data-driven-component.md)
 
 * [Shaders and Materials](shaders-in-universalrp.md)
   * [Shading Models](shading-model.md)
