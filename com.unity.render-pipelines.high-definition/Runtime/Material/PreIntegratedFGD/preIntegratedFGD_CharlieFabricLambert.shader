@@ -59,7 +59,7 @@ Shader "Hidden/HDRP/preIntegratedFGD_CharlieFabricLambert"
                 }
 
                 // Normalize the accumulated value
-                acc *= 1.0f / sampleCount; // note: we don't divide acc.xy by pdf (1/2pi) to have the values in [0, 1] range. The pdf division is done upon fetching in GetPreIntegratedFGDCharlieAndFabricLambert() 
+                acc *= 1.0f / sampleCount;
                 return acc;
             }
 
