@@ -116,7 +116,7 @@ if (abs(arcCone_cone_baseRadius - arcCone_cone_topRadius) > VFX_EPSILON)
     // Uniform distribution on cone
     float heightFactor = arcCone_cone_baseRadius / max(VFX_EPSILON, arcCone_cone_topRadius);
     float heightFactorPow = pow(heightFactor, {distributionExponent});
-    hNorm = pow(heightFactorPow + (1.0f - heightFactorPow) * RAND, rcp({distributionExponent}));
+    hNorm = pow(abs(heightFactorPow + (1.0f - heightFactorPow) * RAND), rcp({distributionExponent}));
     hNorm = (hNorm - heightFactor) / (1.0f - heightFactor); // remap on [0,1]
 }}
 else
