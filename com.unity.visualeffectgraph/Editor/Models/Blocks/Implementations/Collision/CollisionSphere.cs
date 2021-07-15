@@ -81,6 +81,8 @@ if (colliderSign * sqrLength <= colliderSign * sphere_radius * sphere_radius)
                 }
                 else
                 {
+                    //The computation of relativeScale is pretty naive See : https://github.cds.internal.unity3d.com/unity/vfx-graphics/pull/258/files#r162621
+                    //We can potentially take inspirations from https://iquilezles.org/www/articles/ellipsoids/ellipsoids.htm to improve these collisions
                     Source += @"
 float dist = max(length(tNextPos), VFX_EPSILON);
 float3 relativeScale = (tNextPos/dist) * invFieldScale;
