@@ -32,6 +32,14 @@
 #pragma kernel Deferred_Indirect_Fptl_Variant27     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant27     USE_INDIRECT    VARIANT=27
 #pragma kernel Deferred_Indirect_Fptl_Variant28     SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant28     USE_INDIRECT    VARIANT=28
 
+#if VARIANT==3
+#if defined(SHADER_API_PS4)
+#pragma warning (disable:7203)
+#pragma enableldsspilling(1048)
+#pragma argument(maxvgprcount=64)
+#endif
+#endif
+
 #pragma multi_compile _ SHADOWS_SHADOWMASK
 #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
 #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
