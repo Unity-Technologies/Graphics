@@ -23,9 +23,6 @@ namespace UnityEditor.Rendering.Universal
             if (!(saveContext is UniversalShaderGraphSaveContext universalSaveContext))
                 return;
 
-            if (!universalSaveContext.updateMaterials)
-                return;
-
             // Iterate over all loaded Materials
             Material[] materials = Resources.FindObjectsOfTypeAll<Material>();
             try
@@ -43,7 +40,12 @@ namespace UnityEditor.Rendering.Universal
 
                     // Reset keywords
                     if (materials[i].shader.name == shader.name)
-                        ShaderUtils.UpdateMaterial(materials[i], ShaderUtils.MaterialUpdateType.ModifiedShader);
+                    {
+                        if (universalSaveContext.updateMaterials)
+                            ShaderUtils.UpdateMaterial(materials[i], ShaderUtils.MaterialUpdateType.ModifiedShader);
+                        // we always call SetDirty to trigger a static preview icon rebuild.  A bit of overkill but don't see any other way to do that.
+                        EditorUtility.SetDirty(materials[i]);
+                    }
                 }
             }
             finally
