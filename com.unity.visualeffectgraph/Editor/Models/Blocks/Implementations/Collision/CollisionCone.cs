@@ -41,10 +41,6 @@ namespace UnityEditor.VFX.Block
                     yield return param;
                 }
 
-                //Not the same direction than PositionCone, it's a real normal here.
-                VFXExpression tanSlope = (baseRadius - topRadius) / height;
-                VFXExpression slope = new VFXExpressionATan(tanSlope);
-
                 var finalTransform = transform;
                 yield return new VFXNamedExpression(finalTransform, "fieldTransform");
                 yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(finalTransform), "invFieldTransform");
@@ -57,8 +53,6 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXNamedExpression(baseRadius, "cone_baseRadius");
                 yield return new VFXNamedExpression(topRadius, "cone_topRadius");
                 yield return new VFXNamedExpression(height, "cone_height");
-
-                yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
             }
         }
 
@@ -119,7 +113,10 @@ if (collision)
     float distToCap = colliderSign * (cone_halfHeight - relativePosY);
     float distToSide = colliderSign * (cone_radius - dist);
     float3 tPos = mul(invFieldTransform, float4(position, 1.0f)).xyz;
-    float3 sideNormal = normalize(float3(tNextPos.x * sincosSlope.y, sincosSlope.x, tNextPos.z * sincosSlope.y));
+
+    float distToYAxis = length(tNextPos.xz);
+    tNextPos.xz /= distToYAxis;
+    float3 sideNormal = normalize(float3(tNextPos.x * cone_height, cone_baseRadius - cone_topRadius, tNextPos.z * cone_height));
     float3 capNormal = float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
     float3 n = (float3)0;";
 
