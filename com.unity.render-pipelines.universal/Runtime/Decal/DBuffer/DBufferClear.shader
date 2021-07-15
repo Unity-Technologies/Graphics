@@ -16,7 +16,7 @@ Shader "Hidden/Universal Render Pipeline/DBufferClear"
             #pragma vertex FullscreenVert
             #pragma fragment Fragment
             #pragma multi_compile_fragment _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
-            #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+            #pragma multi_compile _ _USE_DRAW_PROCEDURAL _USE_VISIBILITY_MESH
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"

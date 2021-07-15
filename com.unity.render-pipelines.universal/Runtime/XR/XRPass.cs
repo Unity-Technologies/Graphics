@@ -104,6 +104,8 @@ namespace UnityEngine.Rendering.Universal
         int occlusionMeshCombinedHashCode = 0;
 
         internal bool isOcclusionMeshSupported { get => enabled && xrSdkEnabled && occlusionMeshMaterial != null; }
+        // CHANGE TO VIS MESH ONCE FIXED
+        internal bool isVisibilityMeshSupported { get => enabled && xrSdkEnabled; }
 
         internal bool hasValidOcclusionMesh
         {
@@ -120,6 +122,25 @@ namespace UnityEngine.Rendering.Universal
                 return false;
             }
         }
+
+        internal bool isVisibilityMeshEnabled { get; set; }
+
+        internal Mesh visibilityMesh
+        {
+            get
+            {
+                if (hasValidOcclusionMesh)
+                {
+                    if (singlePassEnabled)
+                        return occlusionMeshCombined;
+                    else
+                        return views[0].occlusionMesh;
+                }
+                return null;
+            }
+        }
+
+
 
         // Ability to override mirror view behavior for each pass
         internal delegate void CustomMirrorView(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport);

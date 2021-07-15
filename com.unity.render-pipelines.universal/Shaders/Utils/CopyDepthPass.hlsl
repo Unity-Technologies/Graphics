@@ -51,7 +51,9 @@ Varyings vert(Attributes input)
     //  - All good.
     // If URP is NOT rendering to RT neither rendering with OpenGL:
     //  - Source Depth is NOT fliped. We CANNOT flip when copying depth and don't flip when sampling. (ProjectionParams.x == 1)
-#if _USE_DRAW_PROCEDURAL
+#if _USE_VISIBILITY_MESH
+    output.positionCS = float4(input.positionHCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), UNITY_NEAR_CLIP_VALUE, 1.0f);
+#elif _USE_DRAW_PROCEDURAL
     output.positionCS = GetQuadVertexPosition(input.vertexID);
     output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
     output.uv = GetQuadTexCoord(input.vertexID);

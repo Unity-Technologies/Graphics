@@ -416,6 +416,7 @@ namespace UnityEngine.Rendering.Universal
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
+        public static readonly string UseVisibilityMesh = "_USE_VISIBILITY_MESH";
     }
 
     public sealed partial class UniversalRenderPipeline

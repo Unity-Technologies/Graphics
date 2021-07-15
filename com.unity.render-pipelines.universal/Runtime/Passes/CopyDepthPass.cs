@@ -129,7 +129,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                         : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                     cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
 
-                    cmd.DrawProcedural(Matrix4x4.identity, m_CopyDepthMaterial, 0, MeshTopology.Quads, 4);
+                    if (renderingData.cameraData.xr.isVisibilityMeshSupported)
+                    {
+                        cmd.DrawMesh(renderingData.cameraData.xr.visibilityMesh, Matrix4x4.identity, m_CopyDepthMaterial, 0, 0);
+                    }
+                    else
+                    {
+                        cmd.DrawProcedural(Matrix4x4.identity, m_CopyDepthMaterial, 0, MeshTopology.Quads, 4);
+                    }
                 }
                 else
 #endif

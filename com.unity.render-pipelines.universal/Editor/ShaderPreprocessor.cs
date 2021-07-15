@@ -79,6 +79,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_DeferredStencil = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_STENCIL);
         ShaderKeyword m_GbufferNormalsOct = new ShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
         ShaderKeyword m_UseDrawProcedural = new ShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+        ShaderKeyword m_UseVisibilityMesh = new ShaderKeyword(ShaderKeywordStrings.UseVisibilityMesh);
         ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
         ShaderKeyword m_UseFastSRGBLinearConversion = new ShaderKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
         ShaderKeyword m_LightLayers = new ShaderKeyword(ShaderKeywordStrings.LightLayers);

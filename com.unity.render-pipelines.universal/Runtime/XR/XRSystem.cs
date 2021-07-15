@@ -403,6 +403,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             blitDesc.GetBlitParameter(i, out var blitParam);
 
+
                             Vector4 scaleBias = yflip ? new Vector4(blitParam.srcRect.width, -blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.height + blitParam.srcRect.y) :
                                 new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
                             Vector4 scaleBiasRt = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
@@ -417,6 +418,7 @@ namespace UnityEngine.Rendering.Universal
                             mirrorViewMaterialProperty.SetFloat(XRShaderIDs._SourceTexArraySlice, (float)blitParam.srcTexArraySlice);
 
                             int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
+
                             cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
                         }
                     }

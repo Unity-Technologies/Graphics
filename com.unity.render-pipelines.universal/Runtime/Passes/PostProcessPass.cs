@@ -77,6 +77,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Option to use procedural draw instead of cmd.blit
         bool m_UseDrawProcedural;
 
+        // Option to use visibility mesh instead of fullscreen mesh for VR
+        bool m_UseVisibilityMesh;
+
         // Use Fast conversions between SRGB and Linear
         bool m_UseFastSRGBLinearConversion;
 
@@ -95,7 +98,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_Data = data;
             m_Materials = new MaterialLibrary(data);
             m_BlitMaterial = blitMaterial;
-
+          //  ConfigureClear(ClearFlag.Color, Color.black);
             // Texture format pre-lookup
             if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
             {
@@ -238,7 +241,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ColorAdjustments    = stack.GetComponent<ColorAdjustments>();
             m_Tonemapping         = stack.GetComponent<Tonemapping>();
             m_FilmGrain           = stack.GetComponent<FilmGrain>();
-            m_UseDrawProcedural   = renderingData.cameraData.xr.enabled;
+            m_UseVisibilityMesh = renderingData.cameraData.xr.isVisibilityMeshEnabled;
+            m_UseDrawProcedural = renderingData.cameraData.xr.enabled && !m_UseVisibilityMesh;
             m_UseFastSRGBLinearConversion = renderingData.postProcessingData.useFastSRGBLinearConversion;
 
             if (m_IsFinalPass)
@@ -293,31 +297,55 @@ namespace UnityEngine.Rendering.Universal.Internal
             return cameraData.requireSrgbConversion && m_EnableSRGBConversionIfNeeded;
         }
 
-        private new void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material, int passIndex = 0)
+        private new void Blit(CommandBuffer cmd,
+            RenderTargetIdentifier source,
+            RenderTargetIdentifier destination,
+            Material material,
+            in CameraData cameraData,
+            int passIndex = 0,
+            ClearFlag clearFlag = ClearFlag.None,
+            RenderBufferLoadAction colorLoadAction = RenderBufferLoadAction.Load,
+            RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store,
+            RenderBufferLoadAction depthLoadAction = RenderBufferLoadAction.Load,
+            RenderBufferStoreAction depthStoreAction = RenderBufferStoreAction.Store)
         {
             cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
-            if (m_UseDrawProcedural)
-            {
-                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+            Vector4 scaleBias = new Vector4(1, 1, 0, 0);
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+            cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+            if (m_UseVisibilityMesh)
+            {
+                cmd.SetRenderTarget(destination,
+                    colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
+                cmd.DrawMesh(cameraData.xr.visibilityMesh, Matrix4x4.identity, material, 0, passIndex);
+            }
+            else if (m_UseDrawProcedural)
+            {
                 cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
-                    RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
+                    colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
                 cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
             }
             else
+#endif
             {
+                cmd.SetRenderTarget(destination, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
                 cmd.Blit(source, destination, material, passIndex);
             }
         }
 
-        private void DrawFullscreenMesh(CommandBuffer cmd, Material material, int passIndex)
+        private void DrawFullscreenMesh(CommandBuffer cmd, Material material, int passIndex, in CameraData cameraData, Vector4? scaleBias = null)
         {
-            if (m_UseDrawProcedural)
+            Vector4 realScaleBias = scaleBias ?? new Vector4(1, 1, 0, 0);
+            if (m_UseVisibilityMesh)
             {
-                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, realScaleBias);
+                cmd.DrawMesh(cameraData.xr.visibilityMesh, Matrix4x4.identity, material, 0, passIndex);
+            }
+            else if (m_UseDrawProcedural)
+            {
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, realScaleBias);
+                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null); 
             }
             else
             {
@@ -377,6 +405,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
+            
             // Setup projection matrix for cmd.DrawMesh()
             cmd.SetGlobalMatrix(ShaderConstants._FullscreenProjMat, GL.GetGPUProjectionMatrix(Matrix4x4.identity, true));
 
@@ -386,10 +415,25 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.StopNaNs)))
                 {
-                    RenderingUtils.Blit(
-                        cmd, GetSource(), GetDestination(), m_Materials.stopNaN, 0, m_UseDrawProcedural,
-                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                   
+                    if (m_UseVisibilityMesh)
+                    {
+                        Vector4 scaleBias = new Vector4(1, 1, 0, 0);
+                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
+                        cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                        cmd.SetRenderTarget(destination,
+                            RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                            RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                        cmd.ClearRenderTarget(RTClearFlags.ColorStencil, Color.clear, 1.0f, 0);
+                        cmd.DrawMesh(cameraData.xr.visibilityMesh, Matrix4x4.identity, m_Materials.stopNaN, 0, 0);
+                    }
+                    else
+                    {
+                        RenderingUtils.Blit(
+                            cmd, GetSource(), GetDestination(), m_Materials.stopNaN, 0, m_UseDrawProcedural,
+                            RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                            RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                    }
 
                     Swap(ref renderer);
                 }
@@ -417,7 +461,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(markerName)))
                 {
-                    DoDepthOfField(cameraData.camera, cmd, GetSource(), GetDestination(), cameraData.pixelRect);
+                    DoDepthOfField(cameraData.camera, cmd, GetSource(), GetDestination(), cameraData.pixelRect, ref cameraData);
                     Swap(ref renderer);
                 }
             }
@@ -463,7 +507,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
                 {
-                    DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination());
+                    DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination(), in cameraData);
                     Swap(ref renderer);
                 }
             }
@@ -479,7 +523,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (bloomActive)
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.Bloom)))
-                        SetupBloom(cmd, GetSource(), m_Materials.uber);
+                        SetupBloom(cmd, GetSource(), m_Materials.uber, ref renderingData.cameraData);
                 }
 
                 // Setup other effects constants
@@ -534,17 +578,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                         colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-
+                    cmd.ClearRenderTarget(RTClearFlags.ColorStencil, Color.clear, 1.0f, 0);
                     bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
                     if (isRenderToBackBufferTarget)
                         cmd.SetViewport(cameraData.pixelRect);
                     // We y-flip if
                     // 1) we are bliting from render texture to back buffer and
                     // 2) renderTexture starts UV at top
+
+                    Vector4 scaleBias;
                     bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
-                    Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
-                    cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                    cmd.DrawProcedural(Matrix4x4.identity, m_Materials.uber, 0, MeshTopology.Quads, 4, 1, null);
+                    scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
+
+
+                    DrawFullscreenMesh(cmd, m_Materials.uber, 0, in cameraData, scaleBias);
+                  
 
                     //TODO: Implement swapbuffer in 2DRenderer so we can remove this
                     // For now, when render post - processing in the middle of the camera stack(not resolving to screen)
@@ -556,9 +604,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source, 0, CubemapFace.Unknown, -1),
                             colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
-                        scaleBias = new Vector4(1, 1, 0, 0);;
-                        cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                        cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
+
+                        DrawFullscreenMesh(cmd, m_BlitMaterial, 0, in cameraData);
                     }
                 }
                 else
@@ -613,7 +660,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return BuiltinRenderTextureType.CurrentActive;
         }
 
-        #region Sub-pixel Morphological Anti-aliasing
+#region Sub-pixel Morphological Anti-aliasing
 
         void DoSubpixelMorphologicalAntialiasing(ref CameraData cameraData, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination)
         {
@@ -669,7 +716,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             cmd.ClearRenderTarget(RTClearFlags.ColorStencil, Color.clear, 1.0f, 0);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
-            DrawFullscreenMesh(cmd, material, 0);
+            DrawFullscreenMesh(cmd, material, 0, cameraData);
 
             // Pass 2: Blend weights
             cmd.SetRenderTarget(new RenderTargetIdentifier(ShaderConstants._BlendTexture, 0, CubemapFace.Unknown, -1),
@@ -677,7 +724,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare);
             cmd.ClearRenderTarget(false, true, Color.clear);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._EdgeTexture);
-            DrawFullscreenMesh(cmd, material, 1);
+            DrawFullscreenMesh(cmd, material, 1, cameraData);
 
             // Pass 3: Neighborhood blending
             cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
@@ -685,7 +732,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._BlendTexture, ShaderConstants._BlendTexture);
-            DrawFullscreenMesh(cmd, material, 2);
+            DrawFullscreenMesh(cmd, material, 2, cameraData);
 
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._EdgeTexture);
@@ -693,21 +740,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
         }
 
-        #endregion
+#endregion
 
-        #region Depth Of Field
+#region Depth Of Field
 
         // TODO: CoC reprojection once TAA gets in LW
         // TODO: Proper LDR/gamma support
-        void DoDepthOfField(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Rect pixelRect)
+        void DoDepthOfField(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Rect pixelRect, ref CameraData cameraData)
         {
             if (m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian)
-                DoGaussianDepthOfField(camera, cmd, source, destination, pixelRect);
+                DoGaussianDepthOfField(camera, cmd, source, destination, pixelRect, ref cameraData);
             else if (m_DepthOfField.mode.value == DepthOfFieldMode.Bokeh)
-                DoBokehDepthOfField(cmd, source, destination, pixelRect);
+                DoBokehDepthOfField(cmd, source, destination, pixelRect, in cameraData);
         }
 
-        void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Rect pixelRect)
+        void DoGaussianDepthOfField(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Rect pixelRect, ref CameraData cameraData)
         {
             int downSample = 2;
             var material = m_Materials.gaussianDepthOfField;
@@ -736,7 +783,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
 
             // Compute CoC
-            Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
+            Blit(cmd, source, ShaderConstants._FullCoCTexture, material, in cameraData, 0);
 
             // Downscale & prefilter color + coc
             m_MRT2[0] = ShaderConstants._HalfCoCTexture;
@@ -747,19 +794,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
             cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture, 0, CubemapFace.Unknown, -1);
-            DrawFullscreenMesh(cmd, material, 1);
+            DrawFullscreenMesh(cmd, material, 1, cameraData);
 
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             // Blur
             cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, ShaderConstants._HalfCoCTexture);
-            Blit(cmd, ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
-            Blit(cmd, ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, 3);
+            Blit(cmd, ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, in cameraData, 2);
+            Blit(cmd, ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, in cameraData, 3);
 
             // Composite
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._PingTexture);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
-            Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, 4);
+            Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, in cameraData, 4);
 
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._FullCoCTexture);
@@ -825,7 +872,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return Mathf.Min(0.05f, kRadiusInPixels / viewportHeight);
         }
 
-        void DoBokehDepthOfField(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Rect pixelRect)
+        void DoBokehDepthOfField(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Rect pixelRect, in CameraData cameraData)
         {
             int downSample = 2;
             var material = m_Materials.bokehDepthOfField;
@@ -866,21 +913,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalVector(ShaderConstants._BokehConstants, new Vector4(uvMargin, uvMargin * 2.0f));
 
             // Compute CoC
-            Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
+            Blit(cmd, source, ShaderConstants._FullCoCTexture, material, in cameraData, 0);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
 
             // Downscale & prefilter color + coc
-            Blit(cmd, source, ShaderConstants._PingTexture, material, 1);
+            Blit(cmd, source, ShaderConstants._PingTexture, material, in cameraData, 1);
 
             // Bokeh blur
-            Blit(cmd, ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
+            Blit(cmd, ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, in cameraData, 2);
 
             // Post-filtering
-            Blit(cmd, ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, 3);
+            Blit(cmd, ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, in cameraData, 3);
 
             // Composite
             cmd.SetGlobalTexture(ShaderConstants._DofTexture, ShaderConstants._PingTexture);
-            Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, 4);
+            Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, in cameraData, 4);
 
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._FullCoCTexture);
@@ -888,9 +935,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.ReleaseTemporaryRT(ShaderConstants._PongTexture);
         }
 
-        #endregion
+#endregion
 
-        #region LensFlareDataDriven
+#region LensFlareDataDriven
 
         static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
         {
@@ -923,9 +970,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4, ShaderConstants._FlareData5, false);
         }
 
-        #endregion
+#endregion
 
-        #region Motion Blur
+#region Motion Blur
 #if ENABLE_VR && ENABLE_XR_MODULE
         // Hold the stereo matrices to avoid allocating arrays every frame
         internal static readonly Matrix4x4[] viewProjMatrixStereo = new Matrix4x4[2];
@@ -981,15 +1028,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
 
-            Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, (int)m_MotionBlur.quality.value);
+            Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, in cameraData, (int)m_MotionBlur.quality.value);
         }
 
-        #endregion
+#endregion
 
-        #region Panini Projection
+#region Panini Projection
 
         // Back-ported & adapted from the work of the Stockholm demo team - thanks Lasse!
-        void DoPaniniProjection(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination)
+        void DoPaniniProjection(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, in CameraData cameraData)
         {
             float distance = m_PaniniProjection.distance.value;
             var viewExtents = CalcViewExtents(camera);
@@ -1009,7 +1056,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ? ShaderKeywordStrings.PaniniGeneric : ShaderKeywordStrings.PaniniUnitDistance
             );
 
-            Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material);
+            Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, in cameraData);
         }
 
         Vector2 CalcViewExtents(Camera camera)
@@ -1059,11 +1106,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             return cylPos * (viewDist / cylDist);
         }
 
-        #endregion
+#endregion
 
-        #region Bloom
+#region Bloom
 
-        void SetupBloom(CommandBuffer cmd, RenderTargetIdentifier source, Material uberMaterial)
+        void SetupBloom(CommandBuffer cmd, RenderTargetIdentifier source, Material uberMaterial, ref CameraData cameraData)
         {
             // Start at half-res
             int tw = m_Descriptor.width >> 1;
@@ -1091,7 +1138,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             var desc = GetCompatibleDescriptor(tw, th, m_DefaultHDRFormat);
             cmd.GetTemporaryRT(ShaderConstants._BloomMipDown[0], desc, FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._BloomMipUp[0], desc, FilterMode.Bilinear);
-            Blit(cmd, source, ShaderConstants._BloomMipDown[0], bloomMaterial, 0);
+            Blit(cmd, source, ShaderConstants._BloomMipDown[0], bloomMaterial, in cameraData, 0);
 
             // Downsample - gaussian pyramid
             int lastDown = ShaderConstants._BloomMipDown[0];
@@ -1111,8 +1158,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Classic two pass gaussian blur - use mipUp as a temporary target
                 //   First pass does 2x downsampling + 9-tap gaussian
                 //   Second pass does 9-tap gaussian using a 5-tap filter + bilinear filtering
-                Blit(cmd, lastDown, mipUp, bloomMaterial, 1);
-                Blit(cmd, mipUp, mipDown, bloomMaterial, 2);
+                Blit(cmd, lastDown, mipUp, bloomMaterial, in cameraData, 1);
+                Blit(cmd, mipUp, mipDown, bloomMaterial, in cameraData, 2);
 
                 lastDown = mipDown;
             }
@@ -1125,7 +1172,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int dst = ShaderConstants._BloomMipUp[i];
 
                 cmd.SetGlobalTexture(ShaderConstants._SourceTexLowMip, lowMip);
-                Blit(cmd, highMip, BlitDstDiscardContent(cmd, dst), bloomMaterial, 3);
+                Blit(cmd, highMip, BlitDstDiscardContent(cmd, dst), bloomMaterial, in cameraData, 3);
             }
 
             // Cleanup
@@ -1177,9 +1224,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 uberMaterial.EnableKeyword(dirtIntensity > 0f ? ShaderKeywordStrings.BloomLQDirt : ShaderKeywordStrings.BloomLQ);
         }
 
-        #endregion
+#endregion
 
-        #region Lens Distortion
+#region Lens Distortion
 
         void SetupLensDistortion(Material material, bool isSceneView)
         {
@@ -1207,9 +1254,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 material.EnableKeyword(ShaderKeywordStrings.Distortion);
         }
 
-        #endregion
+#endregion
 
-        #region Chromatic Aberration
+#region Chromatic Aberration
 
         void SetupChromaticAberration(Material material)
         {
@@ -1219,9 +1266,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 material.EnableKeyword(ShaderKeywordStrings.ChromaticAberration);
         }
 
-        #endregion
+#endregion
 
-        #region Vignette
+#region Vignette
 
         void SetupVignette(Material material)
         {
@@ -1243,9 +1290,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             material.SetVector(ShaderConstants._Vignette_Params2, v2);
         }
 
-        #endregion
+#endregion
 
-        #region Color Grading
+#region Color Grading
 
         void SetupColorGrading(CommandBuffer cmd, ref RenderingData renderingData, Material material)
         {
@@ -1282,9 +1329,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        #endregion
+#endregion
 
-        #region Film Grain
+#region Film Grain
 
         void SetupGrain(in CameraData cameraData, Material material)
         {
@@ -1300,9 +1347,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        #endregion
+#endregion
 
-        #region 8-bit Dithering
+#region 8-bit Dithering
 
         void SetupDithering(in CameraData cameraData, Material material)
         {
@@ -1318,9 +1365,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        #endregion
+#endregion
 
-        #region Final pass
+#region Final pass
 
         void RenderFinalPass(CommandBuffer cmd, ref RenderingData renderingData)
         {
@@ -1374,8 +1421,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                     colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmd.SetViewport(cameraData.pixelRect);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1, null);
+
+                DrawFullscreenMesh(cmd, material, 0, in cameraData, scaleBias);
             }
             else
 #endif
@@ -1392,9 +1439,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        #endregion
+#endregion
 
-        #region Internal utilities
+#region Internal utilities
 
         class MaterialLibrary
         {
@@ -1511,6 +1558,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int[] _BloomMipDown;
         }
 
-        #endregion
+#endregion
     }
 }

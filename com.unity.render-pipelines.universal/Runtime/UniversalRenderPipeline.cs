@@ -617,12 +617,15 @@ namespace UnityEngine.Rendering.Universal
 
         if (xrActive)
         {
+
+            
             CommandBuffer cmd = CommandBufferPool.Get();
+
+
             using (new ProfilingScope(cmd, Profiling.Pipeline.XR.mirrorView))
             {
                 m_XRSystem.RenderMirrorView(cmd, baseCamera);
             }
-
             context.ExecuteCommandBuffer(cmd);
             context.Submit();
             CommandBufferPool.Release(cmd);

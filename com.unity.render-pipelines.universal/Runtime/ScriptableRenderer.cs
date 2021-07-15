@@ -1211,8 +1211,19 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (cameraData.xr.isLateLatchEnabled)
                     cameraData.xr.canMarkLateLatch = true;
+
+
                 cameraData.xr.StartSinglePass(cmd);
-                cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+
+                if (cameraData.xr.isVisibilityMeshSupported)
+                {
+                    cameraData.xr.isVisibilityMeshEnabled = true;
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings.UseVisibilityMesh);
+                }
+                else
+                {
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                }
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }
@@ -1224,8 +1235,19 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
+
+
+
                 cameraData.xr.StopSinglePass(cmd);
-                cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                if (cameraData.xr.isVisibilityMeshEnabled)
+                {
+                    cameraData.xr.isVisibilityMeshEnabled = false;
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.UseVisibilityMesh);
+                }
+                else
+                {
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                }
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
             }

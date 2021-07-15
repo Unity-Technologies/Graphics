@@ -4,6 +4,8 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         #pragma exclude_renderers gles
         #pragma multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL _USE_VISIBILITY_MESH
+        #pragma enable_d3d11_debug_symbols
+
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
