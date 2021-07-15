@@ -1,4 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphUI.GraphElements;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 
 namespace UnityEditor.ShaderGraph.GraphUI.Factory

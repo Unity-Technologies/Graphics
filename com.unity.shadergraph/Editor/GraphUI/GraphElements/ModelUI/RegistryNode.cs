@@ -1,7 +1,7 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.GraphUI
+namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
 {
     /// <summary>
     /// A RegistryNode is the view for a RegistryNodeModel. It gets a description of its UI from the ShaderGraph
@@ -14,6 +14,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
             base.BuildPartList();
 
             if (Model is not RegistryNodeModel registryNodeModel) return;
+
+            PartList.AppendPart(new RegistryKeyPart("registry-key", Model, this, ussClassName));
 
             // TODO: Build part list from node definition
         }
