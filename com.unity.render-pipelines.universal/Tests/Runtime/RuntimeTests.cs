@@ -73,7 +73,7 @@ class RuntimeTests
         if (RenderPipelineManager.currentPipeline == null)
             Assert.Pass("Render Pipeline Asset is Null, test pass by default");
 
-        Assert.AreEqual(RenderPipelineManager.currentPipeline.GetType(), typeof(UniversalRenderPipelineAsset),
+        Assert.AreEqual(RenderPipelineManager.currentPipeline.GetType(), typeof(UniversalRenderPipeline),
             "Pipeline Asset is not Universal RP");
     }
 }
