@@ -114,8 +114,7 @@ if (collision)
     float distToSide = colliderSign * (cone_radius - dist);
     float3 tPos = mul(invFieldTransform, float4(position, 1.0f)).xyz;
 
-    float distToYAxis = length(tNextPos.xz);
-    tNextPos.xz /= distToYAxis;
+    tNextPos.xz /= dist;
     float3 sideNormal = normalize(float3(tNextPos.x * cone_height, cone_baseRadius - cone_topRadius, tNextPos.z * cone_height));
     float3 capNormal = float3(0, tNextPos.y < cone_halfHeight ? -1.0f : 1.0f, 0);
     float3 n = (float3)0;";
