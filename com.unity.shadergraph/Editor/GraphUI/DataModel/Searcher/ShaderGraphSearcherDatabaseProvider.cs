@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Searcher;
-using UnityEditor.ShaderGraph.GraphUI.Utilities;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI.DataModel
@@ -13,18 +12,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         {
         }
 
-        SearcherItem CreateRegistryNodeSearcherItem(IGraphModel graphModel, PlaceholderRegistryKey key, string name)
-        {
-            return new GraphNodeModelSearcherItem(graphModel, null,
-                graphNodeCreationData => graphNodeCreationData.CreateRegistryNode(key, name), name);
-        }
-
         SearcherDatabaseBase CreateNodeDatabaseFromRegistry(IGraphModel graphModel)
         {
             // TODO: Get all keys and names from registry. Make categories by nesting SearcherItems.
             return new SearcherDatabase(new List<SearcherItem>
             {
-                CreateRegistryNodeSearcherItem(graphModel, new PlaceholderRegistryKey(), "TODO")
+                new RegistryNodeSearcherItem(graphModel, new PlaceholderRegistryKey(), "TODO")
             });
         }
 

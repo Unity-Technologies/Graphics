@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
@@ -25,6 +24,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override ISearcherDatabaseProvider GetSearcherDatabaseProvider()
         {
             return new ShaderGraphSearcherDatabaseProvider(this);
+        }
+
+        public override ISearcherFilterProvider GetSearcherFilterProvider()
+        {
+            return new ShaderGraphSearcherFilterProvider();
         }
     }
 }
