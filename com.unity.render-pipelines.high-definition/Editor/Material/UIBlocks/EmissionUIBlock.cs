@@ -131,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
         {
-            Color emissiveColorLDRLinear = emissiveColorLDR.colorValue / emissiveIntensity.floatValue;
+            Color emissiveColorLDRLinear = emissiveColor.colorValue / emissiveIntensity.floatValue;
             emissiveColorLDR.colorValue = emissiveColorLDRLinear.gamma;
         }
 
