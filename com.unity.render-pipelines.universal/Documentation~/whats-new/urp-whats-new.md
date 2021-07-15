@@ -20,6 +20,8 @@ Improvements in this release bring URP's **Scene Debug View Modes** closer to pa
 
 Reflection probe blending and box projection support have been added to allow for better reflection quality using probes and bringing URP closer to feature parity with the Built-In Render Pipeline.
 
+For more information on reflection probes in URP, see the page [Reflection probes](../lighting/reflection-probes.md).
+
 ### URP Deferred Rendering Path
 
 ![URP Deferred Rendering Path](../Images/whats-new/urp-12/urp-deferred-rendering-path.png)<br/>*A sample scene that uses the Deferred Rendering Path.*
