@@ -130,9 +130,39 @@ HairScatteringData EvaluateMultipleScattering(BSDFData bsdfData, float3 V, float
         scatteringData.globalScattering = forwardTransmittance * forwardSpread;
     }
 
-    // Local scattering,
+    // Local scattering.
     {
-        scatteringData.localScattering = 0;
+        // Similarly to front scattering, this same density coefficient is suggested for matching most path traced references.
+        const float densityFactorBack = 0.7;
+
+        // Compute the average backscattering attenuation, the attenuation in the neighborhood of x.
+        // Here we only model the first and third backscattering event, as the following are negligible.
+
+        // Ex. of a single backward scattering event. Where L is the incident light, V is the camera, (F) is a fiber cross-section
+        // with a forward scattering event, and (B) is a fiber cross section with a backward scattering event.
+        //
+        // V <---------------
+        //                  |
+        //                 (F) <--- ... ---> (B)
+        // L -------------->|
+
+        float3 af1 = scatteringData.averageScatteringFront;
+        float3 af2 = Sq(af1);
+        float3 afI = 1 - af2;
+
+        float3 ab1 = scatteringData.averageScatteringBack;
+        float3 ab2 = Sq(ab1);
+        float3 ab3 = ab2 * ab1
+
+        // Solve eq. 11, 13, & 14, analytic solutions to the potential infinite permutations of backward scattering
+        // in a volume of fibers (for one and three backward scatters).
+        float3 A1 = (ab1 * af2) / afI;
+        float3 A3 = (ab3 * af2) / pow(afI, 3);
+        float3 AB = A1 + A3;
+
+        // TODO: Average backscattering spread
+
+        scatteringData.localScattering = AB;
     }
 
     return scatteringData;
