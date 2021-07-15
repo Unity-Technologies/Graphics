@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenu("Post-processing/Color Curves")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Color Curves", typeof(UniversalRenderPipeline))]
     public sealed class ColorCurves : VolumeComponent, IPostProcessComponent
     {
         public TextureCurveParameter master = new TextureCurveParameter(new TextureCurve(new[] { new Keyframe(0f, 0f, 1f, 1f), new Keyframe(1f, 1f, 1f, 1f) }, 0f, false, new Vector2(0f, 1f)));

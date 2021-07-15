@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
@@ -44,6 +45,9 @@ namespace UnityEditor.Rendering.HighDefinition
             foreach (var customPassType in TypeCache.GetTypesDerivedFrom<CustomPass>())
             {
                 if (customPassType.IsAbstract)
+                    continue;
+
+                if (customPassType.GetCustomAttribute<HideInInspector>() != null)
                     continue;
 
                 tree.Add(new SearchTreeEntry(new GUIContent(customPassType.Name, icon))
