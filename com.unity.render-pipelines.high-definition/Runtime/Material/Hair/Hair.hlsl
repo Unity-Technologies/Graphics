@@ -6,6 +6,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairScattering.hlsl"
 
 //-----------------------------------------------------------------------------
 // Texture and constant buffer declaration
@@ -25,9 +26,15 @@
 // #define HAIR_DISPLAY_REFERENCE_BSDF
 // #define HAIR_DISPLAY_REFERENCE_IBL
 
+#if _USE_DENSITY_VOLUME_SCATTERING
+// Temp
+#define LIGHT_EVALUATION_NO_SHADOWS
+#endif
+
 // An extra material feature flag we utilize to compile two different versions of BSDF evaluation (one with transmission lobe
 // for analytic lights, one without transmission lobe for environment light).
-#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT (1 << 16)
+#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT         (1 << 16)
+#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING (1 << 17)
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -244,7 +251,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     #else
         // Need to provide some sensible default in case of no roughened azimuthal scattering, since currently our
         // absorption is dependent on it.
-        bsdfData.roughnessRadial = 0.5;
+        bsdfData.roughnessRadial = 0.3;
     #endif
 
         // Absorption
@@ -328,7 +335,7 @@ struct PreLightData
 
     // Scattering
 #if _USE_DENSITY_VOLUME_SCATTERING
-
+    HairScatteringData scatteringData;
 #endif
 
     // IBL
@@ -424,6 +431,12 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
     preLightData.orthoBasisViewNormal = GetOrthoBasisViewNormal(V, N, preLightData.NdotV);
+
+#if _USE_DENSITY_VOLUME_SCATTERING
+    // We initialize this to zero in this case, as it is actually evaluated per-light.
+    // (Also, we can't specify struct in BSDFData which is why we define it in PreLightData).
+    ZERO_INITIALIZE(HairScatteringData, preLightData.scatteringData);
+#endif
 
     return preLightData;
 }
@@ -596,7 +609,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
         // Various terms reused between lobe evaluation.
         float  M, D       = 0;
-        float3 A, F, T, S = 0;
+        float3 A, F, Tr, S = 0;
 
         // Solve the first three lobes (R, TT, TRT).
 
@@ -628,8 +641,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
             // Note: H = ~0.55 seems to be more suitable for this lobe's attenuation, but H = 0 allows us to simplify more of the math at the cost of slightly more error.
             // Plot: https://www.desmos.com/calculator/pum8esu6ot
             F = F_Schlick(bsdfData.fresnel0, cosThetaD);
-            T = exp(-4 * mu);
-            A = Sq(1 - F) * T;
+            Tr = exp(-4 * mu);
+            A = Sq(1 - F) * Tr;
 
             S += M * A * D;
         }
@@ -649,8 +662,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
             // Attenutation (Simplified for H = √3/2)
             F = F_Schlick(bsdfData.fresnel0, cosThetaD * 0.5);
-            T = exp(-2 * mu * (1 + cos(2 * FastASin(HAIR_H_TRT / etaPrime))));
-            A = Sq(1 - F) * F * Sq(T);
+            Tr = exp(-2 * mu * (1 + cos(2 * FastASin(HAIR_H_TRT / etaPrime))));
+            A = Sq(1 - F) * F * Sq(Tr);
 
             S += M * A * D;
         }
@@ -662,7 +675,11 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
         // Multiple Scattering
     #if _USE_DENSITY_VOLUME_SCATTERING
-        cbsdf.diffR = 0;
+        if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING))
+        {
+            // Debug Dual Scattering
+            cbsdf.specR = preLightData.scatteringData.globalScattering;
+        }
     #else
     #if _USE_LIGHT_FACING_NORMAL
         // See "Analytic Tangent Irradiance Environment Maps for Anisotropic Surfaces".
@@ -688,7 +705,6 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SurfaceShading.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairScattering.hlsl"
 
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
@@ -711,6 +727,16 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
                                      PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
+#if _USE_DENSITY_VOLUME_SCATTERING
+    // TODO: Move this whole block into the shader surface, or perhaps a callback.
+    // Currently we have to recompute the light vectors twice like this.
+    float3 L;
+    float4 distances; // {d, d^2, 1/d, d_proj}
+    GetPunctualLightVectors(posInput.positionWS, lightData, L, distances);
+
+    preLightData.scatteringData = EvaluateMultipleScattering(bsdfData, V, L, posInput.positionWS);
+#endif
+
     return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData,
                                  preLightData, lightData, bsdfData, V);
 }
