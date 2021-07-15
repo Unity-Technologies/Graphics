@@ -383,6 +383,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
                     sceneBounds = m_GlobalSettings.GetOrCreateAPVSceneBounds()
                 });
+                RegisterRetrieveOfProbeVolumeExtraDataAction();
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);

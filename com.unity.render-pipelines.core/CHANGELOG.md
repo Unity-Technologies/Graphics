@@ -67,6 +67,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed LightAnchor too much error message, became a HelpBox on the Inspector.
 - Fixed library function SurfaceGradientFromTriplanarProjection to match the mapping convention used in SampleUVMappingNormalInternal.hlsl and fix its description.
 - Fixed Volume Gizmo size when rescaling parent GameObject
+- Fixed rotation issue now all flare rotate on positive direction (1348570)
+- Fixed error when change Lens Flare Element Count followed by undo (1346894)
+- Fixed Lens Flare Thumbnails
+- Fixed Lens Flare 'radialScreenAttenuationCurve invisible'
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
