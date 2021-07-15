@@ -42,6 +42,29 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public CustomPassInjectionPoint injectionPoint = CustomPassInjectionPoint.BeforeTransparent;
 
+        [SerializeField]
+        internal Camera m_TargetCamera;
+
+        /// <summary>
+        /// Use this field to force the custom pass volume to be executed only for one camera.
+        /// </summary>
+        public Camera targetCamera
+        {
+            /// <summary>
+            /// Get the target camera of the custom pass. The target camera can be null if the custom pass is in local or global mode.
+            /// </summary>
+            get => useTargetCamera ? m_TargetCamera : null;
+            /// <summary>
+            /// Sets the target camera of the custom pass volume, this will bypass the volume mode (local or global) and the volume mask of the camera.
+            /// </summary>
+            /// <value>The new camera value. A null value will disable target camera mode and fall back to local or global.</value>
+            set
+            {
+                m_TargetCamera = value;
+                useTargetCamera = value != null;
+            }
+        }
+
         /// <summary>
         /// Fade value between 0 and 1. it represent how close you camera is from the collider of the custom pass.
         /// 0 when the camera is outside the volume + fade radius and 1 when it is inside the collider.
@@ -53,6 +76,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [System.NonSerialized]
         bool visible = true;
 #endif
+
+        [SerializeField]
+        internal bool useTargetCamera;
 
         // The current active custom pass volume is simply the smallest overlapping volume with the trigger transform
         static HashSet<CustomPassVolume>    m_ActivePassVolumes = new HashSet<CustomPassVolume>();
@@ -109,6 +135,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.camera.cameraType == CameraType.SceneView && !visible)
                 return false;
 #endif
+
+            if (useTargetCamera)
+                return targetCamera == hdCamera.camera;
 
             // We never execute volume if the layer is not within the culling layers of the camera
             // Special case for the scene view: we can't easily change it's volume later mask, so by default we show all custom passes
@@ -174,6 +203,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (!volume.IsVisible(camera))
                     continue;
+
+                if (volume.useTargetCamera)
+                {
+                    if (volume.targetCamera == camera.camera)
+                        m_OverlappingPassVolumes.Add(volume);
+                    continue;
+                }
 
                 // Global volumes always have influence
                 if (volume.isGlobal)

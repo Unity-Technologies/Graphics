@@ -29,7 +29,7 @@ class TestFilterGenerator
         {
             //Debug.Log("Found Scene " + editorBuildSettingsScene.path);
             EditorSceneManager.OpenScene(editorBuildSettingsScene.path);
-            
+
             GameObject obj = GameObject.Find("BrokenTestText");
 
             if (obj)
@@ -93,7 +93,7 @@ class TestFilterGenerator
 
         // Sort by platform
         filters.Sort(
-           (a, b) => (a.GraphicsDevice != b.GraphicsDevice) ? a.GraphicsDevice.CompareTo(b.GraphicsDevice) : a.FilteredScene.name.CompareTo(b.FilteredScene.name));
+            (a, b) => (a.GraphicsDevice != b.GraphicsDevice) ? a.GraphicsDevice.CompareTo(b.GraphicsDevice) : a.FilteredScene.name.CompareTo(b.FilteredScene.name));
 
         testFilters.filters = filters.ToArray();
         EditorUtility.SetDirty(testFilters);

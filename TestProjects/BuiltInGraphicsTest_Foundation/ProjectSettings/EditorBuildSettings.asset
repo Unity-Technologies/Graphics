@@ -21,6 +21,9 @@ EditorBuildSettings:
     path: Assets/Scenes/022_Lighting_BasicSpot.unity
     guid: 332a75631f7a3420ab1e02475d98a1fc
   - enabled: 1
+    path: Assets/Scenes/023_Lighting_EmissiveSpot.unity
+    guid: 69e4e7cc7cd1f4316a2424a08c109377
+  - enabled: 1
     path: Assets/Scenes/050_Shader_Graphs.unity
     guid: 6e7a83866a1e446b3becf7972371c5d0
   - enabled: 1
