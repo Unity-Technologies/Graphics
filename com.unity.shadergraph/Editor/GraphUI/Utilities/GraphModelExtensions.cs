@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Utilities
                 nodeName,
                 position,
                 guid,
-                nodeModel => nodeModel.key = registryKey,
+                nodeModel => nodeModel.registryKey = registryKey,
                 spawnFlags
             );
         }
