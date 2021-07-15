@@ -66,7 +66,7 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 #if VFX_PRIMITIVE_QUAD
 
 	    o.VFX_VARYING_UV.x = float(id & 1);
-	    o.VFX_VARYING_UV.y = float((id & 2) >> 1);
+	    o.VFX_VARYING_UV.y = (id & 2) * 0.5f;
 	    const float2 vOffsets = o.VFX_VARYING_UV.xy - 0.5f;
 	
 #elif VFX_PRIMITIVE_TRIANGLE

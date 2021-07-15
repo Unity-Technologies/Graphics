@@ -64,7 +64,7 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement 
             uv.x = texCoord;
         #endif
 
-            uv.y = float((id & 2) >> 1);
+            uv.y = (id & 2) * 0.5f;
             const float2 vOffsets = float2(0.0f, uv.y - 0.5f);
 
         #if VFX_STRIPS_SWAP_UV
@@ -73,7 +73,7 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement 
 
         #else
             uv.x = float(id & 1);
-            uv.y = float((id & 2) >> 1);
+            uv.y = (id & 2) * 0.5f;
             const float2 vOffsets = uv.xy - 0.5f;
         #endif
     #elif VFX_PRIMITIVE_TRIANGLE
