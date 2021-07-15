@@ -30,6 +30,10 @@ namespace UnityEditor.ShaderGraph
             set { m_BareResource = value; }
         }
 
+        // NOT serialized -- this is always set by the parent node if they care about it
+        public TextureSamplerState defaultSamplerState { get; set; }
+        public string defaultSamplerStateName => defaultSamplerState?.defaultPropertyName ?? "SamplerState_Linear_Repeat";
+
         public override void AppendHLSLParameterDeclaration(ShaderStringBuilder sb, string paramName)
         {
             if (m_BareResource)
@@ -50,7 +54,7 @@ namespace UnityEditor.ShaderGraph
             if (nodeOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            return "UnityBuildSamplerStateStruct(SamplerState_Linear_Repeat)";
+            return $"UnityBuildSamplerStateStruct({defaultSamplerStateName})";
         }
 
         public override SlotValueType valueType { get { return SlotValueType.SamplerState; } }
@@ -65,12 +69,12 @@ namespace UnityEditor.ShaderGraph
 
             properties.AddShaderProperty(new SamplerStateShaderProperty()
             {
-                value = new TextureSamplerState()
+                value = defaultSamplerState ?? new TextureSamplerState()
                 {
                     filter = TextureSamplerState.FilterMode.Linear,
                     wrap = TextureSamplerState.WrapMode.Repeat
                 },
-                overrideReferenceName = "SamplerState_Linear_Repeat",
+                overrideReferenceName = defaultSamplerStateName,
                 generatePropertyBlock = false,
             });
         }
@@ -78,5 +82,14 @@ namespace UnityEditor.ShaderGraph
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {}
 
+
+        public override void CopyDefaultValue(MaterialSlot other)
+        {
+            base.CopyDefaultValue(other);
+            if (other is SamplerStateMaterialSlot ms)
+            {
+                defaultSamplerState = ms.defaultSamplerState;
+            }
+        }
     }
 }

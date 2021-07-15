@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph
                 if (value.procedural)
                     decl = GetDefaultHLSLDeclaration();
 
-                action(new HLSLProperty(HLSLType._CUSTOM, referenceName, decl, concretePrecision)
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_CBDecl", decl, concretePrecision)
                 {
                     customDeclaration = (ssb) =>
                     {
@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendNewLine();
                 };
 
-                action(new HLSLProperty(HLSLType._CUSTOM, referenceName, HLSLDeclaration.Global, concretePrecision)
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_Global", HLSLDeclaration.Global, concretePrecision)
                 {
                     customDeclaration = customDecl
                 });

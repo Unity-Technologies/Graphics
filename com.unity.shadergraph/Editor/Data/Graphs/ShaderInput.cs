@@ -58,6 +58,8 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
+        public virtual string referenceNameForEditing => referenceName;
+
         // This is required to handle Material data serialized with "_Color_GUID" reference names
         // m_DefaultReferenceName expects to match the material data and previously used PropertyType
         // ColorShaderProperty is the only case where PropertyType doesnt match ConcreteSlotValueType
@@ -88,6 +90,7 @@ namespace UnityEditor.ShaderGraph.Internal
         internal abstract bool isExposable { get; }
         internal virtual bool isAlwaysExposed => false;
         internal abstract bool isRenamable { get; }
+        internal virtual bool isReferenceRenamable => isRenamable;
 
         internal abstract ShaderInput Copy();
     }
