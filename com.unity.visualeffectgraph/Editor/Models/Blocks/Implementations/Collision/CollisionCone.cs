@@ -121,31 +121,17 @@ if (collision)
     float3 n = (float3)0;";
 
                 //Position/Normal correction, the reason behind float3(1,0,1) is the distToSide which is actually in 2D Plane (XZ)
-                if (mode == Mode.Solid)
-                    Source += @"
-    if (distToSide < distToCap)
+                Source += @"
+    if (colliderSign * distToSide < colliderSign * distToCap)
     {
-        n = sideNormal;
+        n = colliderSign * sideNormal;
         tPos += n * float3(1,0,1) * distToSide;
     }
     else
     {
-        n = capNormal;
+        n = colliderSign * capNormal;
         tPos += n * distToCap;
     }";
-                else
-                    Source += @"
-    if (distToSide > distToCap)
-    {
-        n = -sideNormal;
-        tPos += n * float3(1,0,1) * distToSide;
-    }
-    else
-    {
-        n = -capNormal;
-        tPos += n * distToCap;
-    }
-";
 
                 //Clamp outside/inside cone afterwards (could optional, only relevant with teleport cases)
                 //Alternatively, we can apply several time Position & Normal correction
