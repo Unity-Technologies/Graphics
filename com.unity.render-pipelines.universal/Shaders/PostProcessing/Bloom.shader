@@ -2,7 +2,6 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
 {
     HLSLINCLUDE
         #pragma exclude_renderers gles
-        #pragma enable_d3d11_debug_symbols
         #pragma multi_compile_local _ _USE_RGBM
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL _USE_VISIBILITY_MESH
 
