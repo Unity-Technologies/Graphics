@@ -197,7 +197,7 @@ namespace UnityEditor.VFX
         public virtual void EndCompilation() {}
 
 
-        public void RefreshInputFlowSlots()
+        public void DetachAllInputFlowSlots(bool notify = true)
         {
             //Unlink all existing links. It is up to the user of this method to backup and restore links.
             if (m_InputFlowSlot != null)
@@ -207,7 +207,7 @@ namespace UnityEditor.VFX
                     while (m_InputFlowSlot[slot].link.Count > 0)
                     {
                         var clean = m_InputFlowSlot[slot].link.Last();
-                        InnerUnlink(clean.context, this, clean.slotIndex, slot);
+                        InnerUnlink(clean.context, this, clean.slotIndex, slot, notify);
                     }
                 }
             }
@@ -264,8 +264,8 @@ namespace UnityEditor.VFX
             if (from.m_ContextType == VFXContextType.SpawnerGPU && to.m_ContextType == VFXContextType.OutputEvent)
                 return false;
 
-            //Can't connect directly event to context (OutputEvent or Initialize) for now
-            if (from.m_ContextType == VFXContextType.Event && to.contextType != VFXContextType.Spawner && to.contextType != VFXContextType.Subgraph)
+            //Can't connect directly event to context to OutputEvent
+            if (from.m_ContextType == VFXContextType.Event && to.contextType == VFXContextType.OutputEvent)
                 return false;
 
             return true;
@@ -331,12 +331,12 @@ namespace UnityEditor.VFX
         {
             if (from == to)
                 return false;
-            if (from == VFXContextType.Spawner)
+            if (from == VFXContextType.Spawner || from == VFXContextType.Event)
                 return false;
             return true;
         }
 
-        private static void InnerLink(VFXContext from, VFXContext to, int fromIndex, int toIndex, bool notify = true)
+        protected static void InnerLink(VFXContext from, VFXContext to, int fromIndex, int toIndex, bool notify = true)
         {
             if (!CanLink(from, to, fromIndex, toIndex))
                 throw new ArgumentException(string.Format("Cannot link contexts {0} and {1}", from, to));
@@ -610,6 +610,25 @@ namespace UnityEditor.VFX
 
             foreach (var block in children)
                 block.CheckGraphBeforeImport();
+        }
+
+        //TODO: Register all the contexts that have issues when transfering settings (in ConvertContext() )
+        protected virtual IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                return Enumerable.Empty<string>();
+            }
+        }
+
+        public bool CanTransferSetting(string settingName)
+        {
+            return !untransferableSettings.Contains(settingName);
+        }
+
+        public bool CanTransferSetting(VFXSetting setting)
+        {
+            return CanTransferSetting(setting.field.Name);
         }
     }
 }

@@ -64,7 +64,6 @@ namespace UnityEngine.Rendering.HighDefinition
         HDDiffuseDenoiser m_DiffuseDenoiser;
         HDReflectionDenoiser m_ReflectionDenoiser;
         HDDiffuseShadowDenoiser m_DiffuseShadowDenoiser;
-        SSGIDenoiser m_SSGIDenoiser;
 
         // Ray-count manager data
         RayCountManager m_RayCountManager;
@@ -96,6 +95,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseRayTracingManager()
         {
+            m_CurrentRAS.Dispose();
+
             if (m_RayTracingLightCluster != null)
                 m_RayTracingLightCluster.ReleaseResources();
             if (m_RayCountManager != null)
@@ -107,8 +108,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TemporalFilter.Release();
             if (m_SimpleDenoiser != null)
                 m_SimpleDenoiser.Release();
-            if (m_SSGIDenoiser != null)
-                m_SSGIDenoiser.Release();
             if (m_DiffuseShadowDenoiser != null)
                 m_DiffuseShadowDenoiser.Release();
             if (m_DiffuseDenoiser != null)
@@ -329,6 +328,20 @@ namespace UnityEngine.Rendering.HighDefinition
             return (!materialIsOnlyTransparent && hasTransparentSubMaterial) ? AccelerationStructureStatus.TransparencyIssue : AccelerationStructureStatus.Added;
         }
 
+        // This function mimics the LOD calculation that is used for the rasterization
+        // THe idea is to have rasterization and ray tracing perfectly match.
+        internal float CalculateCameraDistance(float fieldOfView, float worldSpaceSize, float relativeScreenHeight)
+        {
+            float halfAngle = Mathf.Tan(Mathf.Deg2Rad * fieldOfView * 0.5F);
+            return worldSpaceSize / (2.0f * relativeScreenHeight * halfAngle);
+        }
+
+        internal float GetWorldSpaceSize(LODGroup lodGroup)
+        {
+            Vector3 lossyScale = lodGroup.transform.lossyScale;
+            return Mathf.Max(Mathf.Max(Mathf.Abs(lossyScale.x), Mathf.Abs(lossyScale.y)), Mathf.Abs(lossyScale.z)) * lodGroup.size;
+        }
+
         internal void BuildRayTracingAccelerationStructure(HDCamera hdCamera)
         {
             // Clear all the per frame-data
@@ -408,7 +421,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDAdditionalReflectionData reflectionProbe = reflectionProbeArray[reflIdx];
                 // Add it to the list if enabled
-                if (reflectionProbe.enabled)
+                // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
+                if (reflectionProbe.enabled
+                    && reflectionProbe.ReflectionProbeIsEnabled()
+                    && reflectionProbe.gameObject.activeSelf
+                    && reflectionProbe.HasValidRenderedData())
                 {
                     m_RayTracingLights.reflectionProbeArray.Add(reflectionProbe);
                 }
@@ -464,13 +481,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Grab the current LOD group
                 LODGroup lodGroup = lodGroupArray[i];
 
+                // Compute the distance between the LOD group and the camera
+                float lodGroupDistance = (hdCamera.camera.transform.position - lodGroup.transform.TransformPoint(lodGroup.localReferencePoint)).magnitude;
+
+                // Flag to track if the LODGroup has been represented
+                bool lodGroupProcessed = false;
+
                 // Get the set of LODs
                 LOD[] lodArray = lodGroup.GetLODs();
                 for (int lodIdx = 0; lodIdx < lodArray.Length; ++lodIdx)
                 {
+                    // Grab the current LOD
                     LOD currentLOD = lodArray[lodIdx];
-                    // We only want to push to the acceleration structure the lod0, we do not have defined way to select the right LOD at the moment
-                    if (lodIdx == 0)
+
+                    // Compute the distance until which this LOD may be used
+                    float maxLODUsageDistance = CalculateCameraDistance(hdCamera.camera.fieldOfView, GetWorldSpaceSize(lodGroup), currentLOD.screenRelativeTransitionHeight);
+
+                    // If the LOD should be the used one
+                    if (!lodGroupProcessed && lodGroupDistance < maxLODUsageDistance)
                     {
                         for (int rendererIdx = 0; rendererIdx < currentLOD.renderers.Length; ++rendererIdx)
                         {
@@ -486,6 +514,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 recursiveSettings.enable.value, recursiveSettings.layerMask.value,
                                 pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
                         }
+
+                        // Flag the LOD group as processed
+                        lodGroupProcessed = true;
                     }
 
                     // Add them to the processed set so that they are not taken into account when processing all the renderers
@@ -539,7 +570,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaterialsDirty |= (matCount != m_MaterialCRCs.Count);
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
-                m_CurrentRAS.Build(hdCamera.camera.transform.position);
+                m_CurrentRAS.Build(hdCamera.mainViewConstants.worldSpaceCameraPos);
             else
                 m_CurrentRAS.Build();
 
@@ -632,6 +663,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return historyValidity;
         }
 
+        internal bool RayTracingHalfResAllowed()
+        {
+            return DynamicResolutionHandler.instance.GetCurrentScale() >= (currentPlatformRenderPipelineSettings.dynamicResolutionSettings.rayTracingHalfResThreshold / 100.0f);
+        }
+
         void UpdateShaderVariablesRaytracingLightLoopCB(HDCamera hdCamera, CommandBuffer cmd)
         {
             m_ShaderVariablesRaytracingLightLoopCB._MinClusterPos = m_RayTracingLightCluster.GetMinClusterPos();
@@ -686,10 +722,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal HDTemporalFilter GetTemporalFilter()
         {
-            if (m_TemporalFilter == null && m_RayTracingSupported)
+            if (m_TemporalFilter == null)
             {
                 m_TemporalFilter = new HDTemporalFilter();
-                m_TemporalFilter.Init(m_GlobalSettings.renderPipelineRayTracingResources);
+                m_TemporalFilter.Init(m_GlobalSettings.renderPipelineResources);
             }
             return m_TemporalFilter;
         }
@@ -704,22 +740,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_SimpleDenoiser;
         }
 
-        internal SSGIDenoiser GetSSGIDenoiser()
-        {
-            if (m_SSGIDenoiser == null)
-            {
-                m_SSGIDenoiser = new SSGIDenoiser();
-                m_SSGIDenoiser.Init(m_GlobalSettings.renderPipelineResources);
-            }
-            return m_SSGIDenoiser;
-        }
-
         internal HDDiffuseDenoiser GetDiffuseDenoiser()
         {
             if (m_DiffuseDenoiser == null)
             {
                 m_DiffuseDenoiser = new HDDiffuseDenoiser();
-                m_DiffuseDenoiser.Init(m_GlobalSettings.renderPipelineResources, m_GlobalSettings.renderPipelineRayTracingResources, this);
+                m_DiffuseDenoiser.Init(m_GlobalSettings.renderPipelineResources, this);
             }
             return m_DiffuseDenoiser;
         }

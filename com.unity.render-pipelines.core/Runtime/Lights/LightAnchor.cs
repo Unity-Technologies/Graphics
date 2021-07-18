@@ -20,7 +20,7 @@ namespace UnityEngine
         const float k_AxisLength = 10;
 
         [SerializeField]
-        float m_Distance = 3;
+        float m_Distance = 0f;
         [SerializeField]
         UpDirection m_FrameSpace = UpDirection.World;
 
@@ -135,7 +135,6 @@ namespace UnityEngine
             Axes axes = GetWorldSpaceAxes(camera);
 
             Vector3 worldAnchorToLight = transform.position - anchorPosition;
-            float extractedDistance = worldAnchorToLight.magnitude;
 
             Vector3 projectOnGround = Vector3.ProjectOnPlane(worldAnchorToLight, axes.up);
             projectOnGround.Normalize();
@@ -148,7 +147,6 @@ namespace UnityEngine
             yaw = extractedYaw;
             pitch = extractedPitch;
             roll = transform.rotation.eulerAngles.z;
-            distance = extractedDistance;
         }
 
         /// <summary>
@@ -190,7 +188,6 @@ namespace UnityEngine
 
             if (camera == null)
             {
-                Debug.LogError("At least one camera must be tagged as MainCamera");
                 return;
             }
 
@@ -236,8 +233,9 @@ namespace UnityEngine
             transform.position = worldPosition;
 
             Vector3 lookAt = (anchor - worldPosition).normalized;
-            Quaternion worldRotation = Quaternion.LookRotation(lookAt, up) * Quaternion.AngleAxis(m_Roll, Vector3.forward);
-            transform.rotation = worldRotation;
+            Vector3 angles = Quaternion.LookRotation(lookAt, up).eulerAngles;
+            angles.z = m_Roll;
+            transform.eulerAngles = angles;
         }
     }
 }

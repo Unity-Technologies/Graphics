@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4  _FogColor; // color in rgb
         public float    _FogColorMode;
         public float    _GlobalMipBias;
-        public float    _Pad1;
+        public float    _GlobalMipBiasPow2;
         public float    _Pad2;
         public Vector4  _MipFogParameters;
         public Vector4  _HeightFogBaseScattering;
@@ -244,8 +244,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint     _EnableDecals;
         public uint     _DecalCount;
 
-        public uint _OffScreenRendering;
-        public uint _OffScreenDownsampleFactor;
+        public float _OffScreenDownsampleFactor;
+        public uint  _OffScreenRendering;
         public uint _XRViewCount;
         public int  _FrameCount;
 

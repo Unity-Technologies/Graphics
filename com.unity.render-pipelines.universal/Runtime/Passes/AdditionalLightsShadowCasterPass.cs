@@ -792,7 +792,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture), GraphicsFormat.ShadowAuto, renderTargetWidth, renderTargetHeight, 1, true);
+            ConfigureTarget(new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture), m_AdditionalLightsShadowmapTexture.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -884,8 +884,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool softShadows = shadowData.supportsSoftShadows &&
                     (mainLightHasSoftShadows || additionalLightHasSoftShadows);
 
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, anyShadowSliceRenderer);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, softShadows);
+                shadowData.isKeywordAdditionalLightShadowsEnabled = anyShadowSliceRenderer;
+                shadowData.isKeywordSoftShadowsEnabled = softShadows;
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, shadowData.isKeywordAdditionalLightShadowsEnabled);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
 
                 if (anyShadowSliceRenderer)
                     SetupAdditionalLightsShadowReceiverConstants(cmd, ref shadowData, softShadows);

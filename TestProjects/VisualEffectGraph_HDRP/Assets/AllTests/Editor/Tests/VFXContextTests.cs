@@ -204,12 +204,38 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void MultiLink_Spawn_And_Event_To_Initialize()
+        {
+            var from1 = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            var from2 = ScriptableObject.CreateInstance<VFXBasicEvent>();
+
+            var to = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            to.LinkFrom(from1);
+            to.LinkFrom(from2);
+
+            Assert.AreEqual(2, to.inputContexts.Count());
+        }
+
+        [Test]
+        public void MultiLink_Event_And_Spawn_To_Initialize()
+        {
+            var from1 = ScriptableObject.CreateInstance<VFXBasicEvent>();
+            var from2 = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+
+            var to = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            to.LinkFrom(from1);
+            to.LinkFrom(from2);
+
+            Assert.AreEqual(2, to.inputContexts.Count());
+        }
+
+        [Test]
         public void Link_Fail_From_Event_To_Initialize()
         {
             //For now, we can't use direct link from event to initialize context.
             var from = ScriptableObject.CreateInstance<VFXBasicEvent>();
             var to = ScriptableObject.CreateInstance<VFXBasicInitialize>();
-            Assert.IsFalse(VFXContext.CanLink(from, to));
+            Assert.IsTrue(VFXContext.CanLink(from, to));
         }
 
         [Test]

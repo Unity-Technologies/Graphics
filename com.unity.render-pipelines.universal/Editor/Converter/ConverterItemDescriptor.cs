@@ -1,4 +1,6 @@
-namespace UnityEditor.Rendering
+using System;
+
+namespace UnityEditor.Rendering.Universal.Converters
 {
     /// <summary>
     /// A structure holding the information for each Item that needs to be Converted.
@@ -8,7 +10,8 @@ namespace UnityEditor.Rendering
     ///     Example: If we know it is a custom shader, we can not convert it so we add the information here.
     /// HelpLink = Link to the documentation of how to convert this asset. Useful if the conversion failed or if we know we can not convert this asset automatically.
     /// </summary>
-    public struct ConverterItemDescriptor
+    [Serializable]
+    internal struct ConverterItemDescriptor
     {
         /// <summary> Name of the asset being converted. This will be shown in the UI. </summary>
         public string name;

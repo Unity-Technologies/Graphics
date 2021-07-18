@@ -4,7 +4,9 @@ The **Cloud Layer** [Volume component override](Volume-Components.md) controls s
 
 This component also exposes an option to project cloud shadows on the ground.
 
-## Using Cloud Layer
+![](Images/HDRPFeatures-CloudLayer.png)
+
+## Using the Cloud Layer
 
 The **Cloud Layer** uses the [Volume](Volumes.md) framework, so to enable and modify **Cloud Layer** properties, you must add a **Cloud Layer** override to a [Volume](Volumes.md) in your Scene. To add **Cloud Layer** to a Volume:
 

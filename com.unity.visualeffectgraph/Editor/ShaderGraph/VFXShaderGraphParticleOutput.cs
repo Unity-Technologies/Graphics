@@ -168,7 +168,7 @@ namespace UnityEditor.VFX
             var blendMode = BlendMode.Opaque;
 
             var shaderGraph = GetOrRefreshShaderGraphObject();
-            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
+            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph && VFXLibrary.currentSRPBinder != null)
             {
                 // VFX Blend Mode state configures important systems like sorting and indirect buffer.
                 // In the case of SG Generation path, we need to know the blend mode state of the SRP
@@ -305,7 +305,7 @@ namespace UnityEditor.VFX
             {
                 var shaderGraph = GetOrRefreshShaderGraphObject();
 
-                if (shaderGraph == null || !shaderGraph.generatesWithShaderGraph)
+                if (shaderGraph == null || !shaderGraph.generatesWithShaderGraph || VFXLibrary.currentSRPBinder == null)
                     return string.Empty;
 
                 return VFXLibrary.currentSRPBinder.GetShaderName(shaderGraph);
@@ -394,12 +394,14 @@ namespace UnityEditor.VFX
             base.CheckGraphBeforeImport();
             // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
             if (!VFXGraph.explicitCompile)
+            {
                 ResyncSlots(true);
 
-            // Ensure that the output context name is in sync with the shader graph shader enum name.
-            if (GetOrRefreshShaderGraphObject() != null &&
-                GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
-                Invalidate(InvalidationCause.kStructureChanged);
+                // Ensure that the output context name is in sync with the shader graph shader enum name.
+                if (GetOrRefreshShaderGraphObject() != null &&
+                    GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
+                    Invalidate(InvalidationCause.kUIChangedTransient);
+            }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -826,7 +828,7 @@ namespace UnityEditor.VFX
                         callSG.builder.Append($"\n{shaderGraph.outputStructName} OUTSG = {shaderGraph.evaluationFunctionName}(INSG");
 
                         if (graphCode.properties.Any())
-                            callSG.builder.Append("," + graphCode.properties.Select(t => t.GetHLSLVariableName(true)).Aggregate((s, t) => s + ", " + t));
+                            callSG.builder.Append("," + graphCode.properties.Select(t => t.GetHLSLVariableName(true, UnityEditor.ShaderGraph.GenerationMode.ForReals)).Aggregate((s, t) => s + ", " + t));
 
                         callSG.builder.AppendLine(");");
 

@@ -27,15 +27,17 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent skySubTitle = EditorGUIUtility.TrTextContent("Sky");
             public static readonly GUIContent decalsSubTitle = EditorGUIUtility.TrTextContent("Decals");
             public static readonly GUIContent decalsMetalAndAOSubTitle = EditorGUIUtility.TrTextContent("Decals Metal And AO");
+
             public static readonly GUIContent shadowSubTitle = EditorGUIUtility.TrTextContent("Shadows");
-            public static readonly GUIContent directionalShadowsSubTitle = EditorGUIUtility.TrTextContent("Directional Light Shadows");
-            public static readonly GUIContent punctualShadowsSubTitle = EditorGUIUtility.TrTextContent("Punctual Light Shadows");
-            public static readonly GUIContent areaShadowsSubTitle = EditorGUIUtility.TrTextContent("Area Light Shadows");
-            public static readonly GUIContent shadowPunctualLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Punctual Lights Atlas");
-            public static readonly GUIContent shadowAreaLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Area Lights Atlas");
-            public static readonly GUIContent punctualLightsShadowTiers = EditorGUIUtility.TrTextContent("Punctual Shadow Resolution Tiers");
-            public static readonly GUIContent areaLightsShadowTiers = EditorGUIUtility.TrTextContent("Area Shadow Resolution Tiers");
-            public static readonly GUIContent directionalLightsShadowTiers = EditorGUIUtility.TrTextContent("Directional Shadow Resolution Tiers");
+
+            public static readonly GUIContent punctualLightshadowSubTitle = EditorGUIUtility.TrTextContent("Punctual Light Shadows");
+            public static readonly GUIContent directionalLightshadowSubTitle = EditorGUIUtility.TrTextContent("Directional Light Shadows");
+            public static readonly GUIContent areaLightshadowSubTitle = EditorGUIUtility.TrTextContent("Area Light Shadows");
+
+            public static readonly GUIContent shadowLightAtlasSubTitle = EditorGUIUtility.TrTextContent("Light Atlas");
+
+            public static readonly GUIContent shadowResolutionTiers = EditorGUIUtility.TrTextContent("Resolution Tiers");
+
             public static readonly GUIContent dynamicResolutionSubTitle = EditorGUIUtility.TrTextContent("Dynamic resolution");
             public static readonly GUIContent lowResTransparencySubTitle = EditorGUIUtility.TrTextContent("Low res Transparency");
 
@@ -104,12 +106,15 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent SSGIRaySteps = EditorGUIUtility.TrTextContent("Ray Steps");
             public static readonly GUIContent SSGIRadius = EditorGUIUtility.TrTextContent("Radius");
             public static readonly GUIContent SSGIClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
-            public static readonly GUIContent SSGIFilterRadius = EditorGUIUtility.TrTextContent("Filter Radius");
+            public static readonly GUIContent SSGIDenoise = EditorGUIUtility.TrTextContent("Denoise");
+            public static readonly GUIContent SSGIHalfResDenoise = EditorGUIUtility.TrTextContent("Half Resolution Denoiser");
+            public static readonly GUIContent SSGIDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
+            public static readonly GUIContent SSGISecondDenoise = EditorGUIUtility.TrTextContent("Second Denoiser Pass");
 
             // Fog
             public static readonly GUIContent FogSettingsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Fog");
             public static readonly GUIContent FogSettingsBudget = EditorGUIUtility.TrTextContent("Volumetric Fog Budget");
-            public static readonly GUIContent FogSettingsRatio = EditorGUIUtility.TrTextContent("Volumetric Fog Ratio");
+            public static readonly GUIContent FogSettingsRatio = EditorGUIUtility.TrTextContent("Resolution Depth Ratio");
 
             public static readonly GUIContent materialQualityLevelContent = EditorGUIUtility.TrTextContent("Default Material Quality Level", "");
 
@@ -135,7 +140,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportSurfaceGradientContent = EditorGUIUtility.TrTextContent("Additive Normal Blending", "When enabled, HDRP uses surface gradients to preserve the affected objects normal when applying decal normals.");
             public static readonly GUIContent decalNormalFormatContent = EditorGUIUtility.TrTextContent("High Precision Normal Buffer", "When enabled, HDRP uses a high precision format for the buffer storing decal normals.");
             public static readonly GUIContent supportMotionVectorContent = EditorGUIUtility.TrTextContent("Motion Vectors", "When enabled, HDRP allocates memory for processing motion vectors which it uses for Motion Blur, TAA, and temporal re-projection of various effect like SSR.");
-            public static readonly GUIContent supportRuntimeDebugDisplayContent = EditorGUIUtility.TrTextContent("Runtime Debug Display", "When disabled, HDRP removes all debug display Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportRuntimeAOVAPIContent = EditorGUIUtility.TrTextContent("Runtime AOV API", "When disabled, HDRP removes all AOV API Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportDitheringCrossFadeContent = EditorGUIUtility.TrTextContent("Dithering Cross-fade", "When disabled, HDRP removes all dithering cross fade Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportTerrainHoleContent = EditorGUIUtility.TrTextContent("Terrain Hole", "When disabled, HDRP removes all Terrain hole Shader variants when you build for the Unity Player. This decreases build time.");
@@ -147,8 +151,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode (Preview)");
             public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
             public static readonly GUIContent rayTracingDX12OnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12.");
+            public static readonly GUIContent rayTracingMSAAUnsupported = EditorGUIUtility.TrTextContent("When Ray tracing is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
+            public static readonly GUIContent supportRuntimeDebugDisplayContentLabel = EditorGUIUtility.TrTextContent("Runtime Debug Shaders", "When disabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but prevents the use of Rendering Debugger in Player builds.");
             public static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
             public static readonly GUIContent probeVolumeMemoryBudget = EditorGUIUtility.TrTextContent("Memory Budget", "Determines the width and height of the textures used to store GI data from probes. Note that the textures also have a fixed depth dimension.");
             public static readonly GUIContent probeVolumeSHBands = EditorGUIUtility.TrTextContent("SH Bands", "Determines up to what SH bands the Probe Volume will use. Choosing L2 will lead to better quality, but also higher memory and runtime cost.");
@@ -196,8 +202,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent maxLightPerCellContent = EditorGUIUtility.TrTextContent("Maximum Lights per Cell (Ray Tracing)", "Sets the maximum number of lights HDRP can handle in each cell of the ray tracing light cluster.");
 
             public static readonly GUIContent resolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the shadow Atlas.");
-            public static readonly GUIContent cachedShadowAtlasResolution = EditorGUIUtility.TrTextContent("Cached Shadow Atlas Resolution", "Specifies the resolution of the shadow Atlas that contains the cached shadow maps.");
-            public static readonly GUIContent directionalShadowPrecisionContent = EditorGUIUtility.TrTextContent("Directional Shadow Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
+            public static readonly GUIContent cachedShadowAtlasResolution = EditorGUIUtility.TrTextContent("Cached Resolution", "Specifies the resolution of the shadow Atlas that contains the cached shadow maps.");
+            public static readonly GUIContent directionalShadowPrecisionContent = EditorGUIUtility.TrTextContent("Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
             public static readonly GUIContent precisionContent = EditorGUIUtility.TrTextContent("Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
             public static readonly GUIContent dynamicRescaleContent = EditorGUIUtility.TrTextContent("Dynamic Rescale", "When enabled, scales the shadow map size using the screen size of the Light to leave more space for other shadows in the atlas.");
             public static readonly GUIContent maxRequestContent = EditorGUIUtility.TrTextContent("Maximum Shadows on Screen", "Sets the maximum number of shadows HDRP can handle on screen at once. See the documentation for details on how many shadows each light type casts.");
@@ -211,7 +217,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportScreenSpaceShadows = EditorGUIUtility.TrTextContent("Screen Space Shadows", "Enables the support of screen space shadows in HDRP.");
             public static readonly GUIContent maxScreenSpaceShadowSlots = EditorGUIUtility.TrTextContent("Maximum", "Sets the maximum number of screen space shadows slots HDRP can handle on screen at once. Opaque shadows requires one slot, color shadow requires three.");
             public static readonly GUIContent screenSpaceShadowFormat = EditorGUIUtility.TrTextContent("Buffer Format", "Defines the format of the buffer used for screen space shadows. The buffer format can be R8G8B8A8 or R16G16B16A16.");
-            public static readonly GUIContent maxShadowResolution = EditorGUIUtility.TrTextContent("Max shadow resolution", "Specifies the maximum resolution for any single shadow map.");
+            public static readonly GUIContent maxShadowResolution = EditorGUIUtility.TrTextContent("Max Resolution", "Specifies the maximum resolution for any single shadow map.");
 
             public static readonly GUIContent drawDistanceContent = EditorGUIUtility.TrTextContent("Draw Distance", "Sets the maximum distance from the Camera at which HDRP draws Decals.");
             public static readonly GUIContent atlasWidthContent = EditorGUIUtility.TrTextContent("Atlas Width", "Sets the width of the Decal Atlas.");
@@ -226,7 +232,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent DLSSSharpnessContent = EditorGUIUtility.TrTextContent("Sharpness", "NVIDIA Deep Learning Super Sampling pixel sharpness of upsampler. Controls how the DLSS upsampler will render edges on the image. More sharpness usually means more contrast and clearer image but can increase flickering and fireflies. This setting is ignored if use optimal settings is used");
 
             public const string DLSSPackageLabel = "NVIDIA Deep Learning Super Sampling (DLSS) is not active in this project. To activate it, install the NVIDIA package.";
-            public const string DLSSInstallButton = "Install NVIDIA Package";
 
             public const  string   DLSSFeatureDetectedMsg = "Unity detected NVIDIA Deep Learning Super Sampling and will ignore the Fallback Upscale Filter.";
             public const  string   DLSSFeatureNotDetectedMsg = "Unity cannot detect NVIDIA Deep Learning Super Sampling (DLSS) and will use the Fallback Upscale Filter instead.";
@@ -241,6 +246,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent fallbackUpsampleFilter = EditorGUIUtility.TrTextContent("Fallback Upscale Filter", "Specifies the filter that HDRP uses for upscaling as a fallback if Prepost Upscaler is not detected.");
             public static readonly GUIContent forceScreenPercentage = EditorGUIUtility.TrTextContent("Force Screen Percentage", "When enabled, HDRP uses the Forced Screen Percentage value as the screen percentage.");
             public static readonly GUIContent forcedScreenPercentage = EditorGUIUtility.TrTextContent("Forced Screen Percentage", "Sets a specific screen percentage value. HDRP forces this screen percentage for dynamic resolution.");
+            public static readonly GUIContent lowResTransparencyMinimumThreshold = EditorGUIUtility.TrTextContent("Low Res Transparency Min Threshold", "The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.");
+            public const  string   lowResTransparencyThresholdDisabledMsg = "Low res transparency is currently disabled in the quality settings. \"Low Res Transparency Min Threshold\" will be ignored.";
+            public static readonly GUIContent rayTracingHalfResThreshold = EditorGUIUtility.TrTextContent("Ray Tracing Half Res Threshold", "The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution.");
 
             public static readonly GUIContent lowResTransparentEnabled = EditorGUIUtility.TrTextContent("Enable", "When enabled, materials tagged as Low Res Transparent, will be rendered in a quarter res offscreen buffer and then composited to full res.");
             public static readonly GUIContent checkerboardDepthBuffer = EditorGUIUtility.TrTextContent("Checkerboarded depth buffer downsample", "When enabled, the depth buffer used for low res transparency is generated in a min/max checkerboard pattern from original full res buffer.");
@@ -278,7 +286,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 { supportDecalLayersContent          , string.Format("{0}, {1}", memoryDrawback, lotShaderVariantDrawback, lotDBufferDrawback) },
                 { metalAndAOContent                  , string.Format("{0}, {1}", memoryDrawback, dBufferDrawback) },
                 { supportMotionVectorContent         , memoryDrawback },
-                { supportRuntimeDebugDisplayContent  , shaderVariantDrawback },
                 { supportDitheringCrossFadeContent   , shaderVariantDrawback },
                 { supportTerrainHoleContent          , shaderVariantDrawback },
                 { supportDistortion                  , "" },

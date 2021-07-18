@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public static class Styles
         {
             public static GUIContent specularMapText =
-                new GUIContent("Specular Map", "Sets and configures a Specular map and color for your Material.");
+                EditorGUIUtility.TrTextContent("Specular Map", "Designates a Specular Map and specular color determining the apperance of reflections on this Material's surface.");
         }
 
         public struct SimpleLitProperties
@@ -107,8 +107,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     color = "_BaseColor";
 
                 var col = material.GetColor(color);
-                col.a = material.GetFloat("_Smoothness");
-                material.SetColor(color, col);
+                float smoothness = material.GetFloat("_Smoothness");
+                if (smoothness != col.a)
+                {
+                    col.a = smoothness;
+                    material.SetColor(color, col);
+                }
             }
         }
     }

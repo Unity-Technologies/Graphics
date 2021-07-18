@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Depth Of Field effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Depth Of Field", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Post-Processing-Depth-of-Field")]
     public sealed class DepthOfField : VolumeComponentWithQuality, IPostProcessComponent
     {
@@ -309,6 +309,7 @@ namespace UnityEngine.Rendering.HighDefinition
         BoolParameter m_HighQualityFiltering = new BoolParameter(true);
 
         [AdditionalProperty]
+        [Tooltip("When enabled, HDRP uses a more accurate but slower physically based algorithm to compute the depth of field effect.")]
         [SerializeField]
         BoolParameter m_PhysicallyBased = new BoolParameter(false);
 
@@ -365,9 +366,17 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
 
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="FocusDistanceModeParameter"/> value.
+    /// </summary>
     [Serializable]
     public sealed class FocusDistanceModeParameter : VolumeParameter<FocusDistanceMode>
     {
+        /// <summary>
+        /// Creates a new <see cref="FocusDistanceModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
         public FocusDistanceModeParameter(FocusDistanceMode value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

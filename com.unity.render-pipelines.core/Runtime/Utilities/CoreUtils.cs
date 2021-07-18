@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.RendererUtils;
 
 namespace UnityEngine.Rendering
 {
@@ -994,7 +995,7 @@ namespace UnityEngine.Rendering
             if (obj != null)
             {
 #if UNITY_EDITOR
-                if (Application.isPlaying)
+                if (Application.isPlaying && !UnityEditor.EditorApplication.isPaused)
                     UnityObject.Destroy(obj);
                 else
                     UnityObject.DestroyImmediate(obj);
@@ -1308,7 +1309,8 @@ namespace UnityEngine.Rendering
         /// <param name="renderContext">Current Scriptable Render Context.</param>
         /// <param name="cmd">Command Buffer used for rendering.</param>
         /// <param name="rendererList">Renderer List to render.</param>
-        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
+        [Obsolete("Use the updated RendererList API in the UnityEngine.Rendering.RendererUtils namespace.")]
+        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, Experimental.Rendering.RendererList rendererList)
         {
             if (!rendererList.isValid)
                 throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
@@ -1324,6 +1326,20 @@ namespace UnityEngine.Rendering
                 var renderStateBlock = rendererList.stateBlock.Value;
                 renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
             }
+        }
+
+        /// <summary>
+        /// Draw a renderer list.
+        /// </summary>
+        /// <param name="renderContext">Current Scriptable Render Context.</param>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="rendererList">Renderer List to render.</param>
+        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererUtils.RendererList rendererList)
+        {
+            if (!rendererList.isValid)
+                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+
+            cmd.DrawRendererList(rendererList);
         }
 
         /// <summary>

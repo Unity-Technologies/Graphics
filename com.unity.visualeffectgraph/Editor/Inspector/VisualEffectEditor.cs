@@ -160,7 +160,8 @@ namespace UnityEditor.VFX
 
         bool DisplayProperty(ref VFXParameterInfo parameter, GUIContent nameContent, SerializedProperty overridenProperty, SerializedProperty valueProperty, bool overrideMixed, bool valueMixed, out bool overriddenChanged)
         {
-            if (parameter.realType == typeof(Matrix4x4).Name)
+            if (parameter.realType == typeof(Matrix4x4).Name
+                ||  parameter.realType == typeof(GraphicsBuffer).Name)
             {
                 overriddenChanged = false;
                 return false;
@@ -1208,11 +1209,11 @@ namespace UnityEditor.VFX
             public static readonly string[] s_DefaultRenderingLayerNames = GetDefaultRenderingLayerNames();
             private static string[] GetDefaultRenderingLayerNames()
             {
-                //Find UnityEditor.RendererEditorBase.defaultRenderingLayerNames by reflection to avoid any breakage due to an API change
+                //Find UnityEditor.RendererEditorBase.defaultPrefixedRenderingLayerNames by reflection to avoid any breakage due to an API change
                 var type = Type.GetType("UnityEditor.RendererEditorBase, UnityEditor");
                 if (type != null)
                 {
-                    var property = type.GetProperty("defaultRenderingLayerNames", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic | BindingFlags.Public);
+                    var property = type.GetProperty("defaultPrefixedRenderingLayerNames", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic | BindingFlags.Public);
                     if (property != null)
                     {
                         var invokeResult = property.GetMethod.Invoke(null, null);
@@ -1335,7 +1336,7 @@ namespace UnityEditor.VFX
                         string[] layerNames = null;
                         var srpAsset = GraphicsSettings.currentRenderPipeline;
                         if (srpAsset != null)
-                            layerNames = srpAsset.renderingLayerMaskNames;
+                            layerNames = srpAsset.prefixedRenderingLayerMaskNames;
 
                         if (layerNames == null)
                             layerNames = s_DefaultRenderingLayerNames;
