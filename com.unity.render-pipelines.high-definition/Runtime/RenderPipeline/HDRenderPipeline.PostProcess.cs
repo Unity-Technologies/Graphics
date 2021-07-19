@@ -4551,8 +4551,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeFloatParam(data.rcasCS, HDShaderIDs._RCASScale, 1.0f);
                             ctx.cmd.SetComputeTextureParam(data.rcasCS, data.mainKernel, HDShaderIDs._InputTexture, data.source);
                             ctx.cmd.SetComputeTextureParam(data.rcasCS, data.mainKernel, HDShaderIDs._OutputTexture, data.destination);
-                            ctx.cmd.SetComputeBufferParam(data.rcasCS, data.initKernel, "RCasParameters", data.casParametersBuffer);
-                            ctx.cmd.SetComputeBufferParam(data.rcasCS, data.mainKernel, "RCasParameters", data.casParametersBuffer);
+                            ctx.cmd.SetComputeBufferParam(data.rcasCS, data.initKernel, HDShaderIDs._RCasParameters, data.casParametersBuffer);
+                            ctx.cmd.SetComputeBufferParam(data.rcasCS, data.mainKernel, HDShaderIDs._RCasParameters, data.casParametersBuffer);
                             ctx.cmd.DispatchCompute(data.rcasCS, data.initKernel, 1, 1, 1);
 
                             int dispatchX = HDUtils.DivRoundUp(data.outputWidth, 8);
@@ -4622,8 +4622,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._EASUInputImageSize, inputTextureSize);
                             ctx.cmd.SetComputeTextureParam(data.easuCS, data.mainKernel, HDShaderIDs._OutputTexture, data.destination);
                             ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._EASUOutputSize, new Vector4(data.outputWidth, data.outputHeight));
-                            ctx.cmd.SetComputeBufferParam(data.easuCS, data.initKernel, "EASUParameters", data.easuParameterBuffer);
-                            ctx.cmd.SetComputeBufferParam(data.easuCS, data.mainKernel, "EASUParameters", data.easuParameterBuffer);
+                            ctx.cmd.SetComputeBufferParam(data.easuCS, data.initKernel, HDShaderIDs._EASUParameters, data.easuParameterBuffer);
+                            ctx.cmd.SetComputeBufferParam(data.easuCS, data.mainKernel, HDShaderIDs._EASUParameters, data.easuParameterBuffer);
                             ctx.cmd.DispatchCompute(data.easuCS, data.initKernel, 1, 1, 1);
 
                             int dispatchX = HDUtils.DivRoundUp(data.outputWidth,  8);

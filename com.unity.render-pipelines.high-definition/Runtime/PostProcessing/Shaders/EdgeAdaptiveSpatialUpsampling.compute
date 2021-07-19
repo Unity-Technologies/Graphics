@@ -18,7 +18,7 @@
 // [0] = const2
 // [1] = const3
 // ComputeBuffer is allocated with stride sizeof(int)*4, 4 elements
-RWStructuredBuffer<uint4> EASUParameters;
+RWStructuredBuffer<uint4> _EASUParameters;
 
 float4 _EASUViewportSize;
 float4 _EASUInputImageSize;
@@ -41,10 +41,10 @@ void KMain(uint3 LocalThreadId : SV_GroupThreadID, uint3 WorkGroupId : SV_GroupI
 
     // Do remapping of local xy in workgroup for a more PS-like swizzle pattern.
     AU2 gxy = ARmp8x8(LocalThreadId.x) + AU2(WorkGroupId.x<<3u, WorkGroupId.y<<3u);
-    AU4 con0 = EASUParameters[0];
-    AU4 con1 = EASUParameters[1];
-    AU4 con2 = EASUParameters[2];
-    AU4 con3 = EASUParameters[3];
+    AU4 con0 = _EASUParameters[0];
+    AU4 con1 = _EASUParameters[1];
+    AU4 con2 = _EASUParameters[2];
+    AU4 con3 = _EASUParameters[3];
     AF4 c;
     FsrEasuF(c.rgb, gxy, con0, con1, con2, con3);
 
@@ -57,10 +57,10 @@ void KMain(uint3 LocalThreadId : SV_GroupThreadID, uint3 WorkGroupId : SV_GroupI
 
 
 /*
-Doing this on the GPU despite the fact that CAS provides a CPU version
-of FsrRcasCon(). This is done to prevent us from having to rewrite a C#
-version every time CAS changes. This is not called from KMain to reduce overhead
-during main render.
+Doing this to avoid having to deal with any CPU side compilation of the headers.
+The FsrRcasCon is doing some extra parameter packing (log space / pows etc) so its better
+to keep this all in the GPU for simplicity sake, and avoid paying this cost for every wave.
+The headers also dont compile for c#, they are meant for c and c++.
 */
 [numthreads(1,1,1)]
 void KInitialize()
@@ -74,8 +74,8 @@ void KInitialize()
         _EASUInputImageSize.x,_EASUInputImageSize.y,
         _EASUOutputSize.x,    _EASUOutputSize.y);
 
-    EASUParameters[0] = con0;
-    EASUParameters[1] = con1;
-    EASUParameters[2] = con2;
-    EASUParameters[3] = con3;
+    _EASUParameters[0] = con0;
+    _EASUParameters[1] = con1;
+    _EASUParameters[2] = con2;
+    _EASUParameters[3] = con3;
 }
