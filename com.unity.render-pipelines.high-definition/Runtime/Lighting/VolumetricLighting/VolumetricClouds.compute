@@ -42,6 +42,8 @@
 // Maximal size of a light step
 #define LIGHT_STEP_MAXIMAL_SIZE 1000.0f
 
+#define USE_UPSAMPLE_PIXEL_CENTROID 1
+
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -1083,6 +1085,15 @@ void FillLDSUpscale(uint groupIndex, uint2 groupOrigin)
     gs_cacheDC[groupIndex] = depthStatusValue.z;
 }
 
+float4 FilterCloudSamples(float2 centroidCoord, float highDepth, in NeighborhoodUpsampleData3x3 data)
+{
+#if USE_UPSAMPLE_PIXEL_CENTROID
+    return BilUpColor3x3WithCentroid(centroidCoord, highDepth, data);
+#else
+    return BilUpColor3x3(highDepth, data);
+#endif
+}
+
 [numthreads(8, 8, 1)]
 void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
                             int groupIndex : SV_GroupIndex,
@@ -1112,8 +1123,10 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     NeighborhoodUpsampleData3x3 upsampleData;
 
     // Fill the sample data
-    FillCloudUpscaleNeighborhoodData(groupThreadId.xy, upsampleData);
+    float2 posInSource = frac(((float2)finalCoord.xy + 0.5) * _ScreenSize.zw * _IntermediateScreenSize.xy);
 
+    FillCloudUpscaleNeighborhoodData(groupThreadId.xy, upsampleData);
+ 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
     // Flag that tells us which pixel holds valid information
     float rejectedNeighborhood = 0.0;
@@ -1121,7 +1134,7 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     OverrideMaskValues(highDepth, upsampleData, rejectedNeighborhood, closestNeighbor);
 
     // Do the bilateral upscale
-    float4 currentClouds = BilUpColor3x3(highDepth, upsampleData);
+    float4 currentClouds = FilterCloudSamples(posInSource, highDepth, upsampleData);
     // Read the fallback value and use it if we defined that it was impossible for us to do something about it
     if (rejectedNeighborhood == 1.0f)
         currentClouds = float4(0.0, 0.0, 0.0, 1.0);
@@ -1129,7 +1142,7 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     upsampleData.lowDepthA = UNITY_RAW_FAR_CLIP_VALUE;
     upsampleData.lowDepthB = UNITY_RAW_FAR_CLIP_VALUE;
     upsampleData.lowDepthC = UNITY_RAW_FAR_CLIP_VALUE;
-    float4 currentClouds = highDepth == UNITY_RAW_FAR_CLIP_VALUE ? BilUpColor3x3(highDepth, upsampleData) : float4(0.0, 0.0, 0.0, 1.0);
+    float4 currentClouds = highDepth == UNITY_RAW_FAR_CLIP_VALUE ? FilterCloudSamples(posInSource, highDepth, upsampleData) : float4(0.0, 0.0, 0.0, 1.0);
 #endif
 
     // De-tonemap the inscattering value
