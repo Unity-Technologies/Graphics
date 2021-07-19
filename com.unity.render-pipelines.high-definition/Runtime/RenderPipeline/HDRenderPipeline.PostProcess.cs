@@ -4534,6 +4534,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (var builder = renderGraph.AddRenderPass<RCASData>("Robust Contrast Adaptive Sharpen", out var passData, ProfilingSampler.Get(HDProfileId.RobustContrastAdaptiveSharpen)))
                 {
                     passData.rcasCS = defaultResources.shaders.robustContrastAdaptiveSharpenCS;
+                    if (PostProcessEnableAlpha())
+                        passData.rcasCS.EnableKeyword("ENABLE_ALPHA");
+                    else
+                        passData.rcasCS.DisableKeyword("ENABLE_ALPHA");
                     passData.initKernel = passData.rcasCS.FindKernel("KInitialize");
                     passData.mainKernel = passData.rcasCS.FindKernel("KMain");
                     passData.viewCount = hdCamera.viewCount;
@@ -4594,6 +4598,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (var builder = renderGraph.AddRenderPass<EASUData>("Edge Adaptive Spatial Upsampling", out var passData, ProfilingSampler.Get(HDProfileId.EdgeAdaptiveSpatialUpsampling)))
                 {
                     passData.easuCS = defaultResources.shaders.edgeAdaptiveSpatialUpsamplingCS;
+                    if (PostProcessEnableAlpha())
+                        passData.easuCS.EnableKeyword("ENABLE_ALPHA");
+                    else
+                        passData.easuCS.DisableKeyword("ENABLE_ALPHA");
                     passData.initKernel = passData.easuCS.FindKernel("KInitialize");
                     passData.mainKernel = passData.easuCS.FindKernel("KMain");
                     passData.viewCount = hdCamera.viewCount;
@@ -4619,7 +4627,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._EASUViewportSize,   new Vector4(data.inputWidth, data.inputHeight));
                             ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._EASUInputImageSize, inputTextureSize);
                             ctx.cmd.SetComputeTextureParam(data.easuCS, data.mainKernel, HDShaderIDs._OutputTexture, data.destination);
-                            ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._EASUOutputSize, new Vector4(data.outputWidth, data.outputHeight));
+                            ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._EASUOutputSize, new Vector4(data.outputWidth, data.outputHeight, 1.0f / data.outputWidth, 1.0f / data.outputHeight));
                             ctx.cmd.SetComputeBufferParam(data.easuCS, data.initKernel, HDShaderIDs._EASUParameters, data.easuParameterBuffer);
                             ctx.cmd.SetComputeBufferParam(data.easuCS, data.mainKernel, HDShaderIDs._EASUParameters, data.easuParameterBuffer);
                             ctx.cmd.DispatchCompute(data.easuCS, data.initKernel, 1, 1, 1);

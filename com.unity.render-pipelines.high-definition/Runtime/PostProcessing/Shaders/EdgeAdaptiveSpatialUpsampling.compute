@@ -1,6 +1,7 @@
 #pragma kernel KMain
 #pragma kernel KInitialize
 
+#pragma multi_compile _ ENABLE_ALPHA
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -40,16 +41,26 @@ void KMain(uint3 LocalThreadId : SV_GroupThreadID, uint3 WorkGroupId : SV_GroupI
 
     // Do remapping of local xy in workgroup for a more PS-like swizzle pattern.
     AU2 gxy = ARmp8x8(LocalThreadId.x) + AU2(WorkGroupId.x<<3u, WorkGroupId.y<<3u);
+
+#ifdef ENABLE_ALPHA
+    float2 uv = ((float2)gxy.xy + 0.5) * _EASUOutputSize.zw;
+    float alpha = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv), 0.0).a;
+#else
+    float alpha = 1.0;
+#endif
+
     AU4 con0 = _EASUParameters[0];
     AU4 con1 = _EASUParameters[1];
     AU4 con2 = _EASUParameters[2];
     AU4 con3 = _EASUParameters[3];
     AF4 c;
+
     FsrEasuF(c.rgb, gxy, con0, con1, con2, con3);
 
     //Input always as sqrt of color.
     c.rgb *= c.rgb;
-    _OutputTexture[COORD_TEXTURE2D_X(gxy)] = float4(c.rgb,1.0);
+    c.a = alpha;
+    _OutputTexture[COORD_TEXTURE2D_X(gxy)] = c;
 }
 
 
