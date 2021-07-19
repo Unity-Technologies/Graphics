@@ -298,6 +298,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wobbling/tearing-like artifacts with SSAO.
 - Fixed white flash with SSR when resetting camera history (case 1335263).
 - Fixed VFX flag "Exclude From TAA" not working for some particle types.
+- Spot Light radius is not changed when editing the inner or outer angle of a multi selection (case 1345264)
 - Fixed Dof and MSAA. DoF is now using the min depth of the per-pixel MSAA samples when MSAA is enabled. This removes 1-pixel ringing from in focus objects (case 1347291).
 - Fixed parameter ranges in HDRP Asset settings.
 - Fixed CPU performance of decal projectors, by a factor of %100 (walltime) on HDRP PS4, by burstifying decal projectors CPU processing.
