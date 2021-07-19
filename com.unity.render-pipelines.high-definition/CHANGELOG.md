@@ -301,6 +301,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed objects disappearing from Lookdev window when entering playmode (case 1309368).
 - Fixed rendering of objects just after the TAA pass (before post process injection point).
 - Fixed tiled artifacts in refraction at borders between two reflection probes.
+- Fixed wrong LUT initialization in Wireframe mode.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

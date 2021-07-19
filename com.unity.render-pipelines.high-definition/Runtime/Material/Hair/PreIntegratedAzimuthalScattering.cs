@@ -51,6 +51,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_IsInit && m_PreIntegratedAzimuthalScatteringRT.IsCreated())
                 return;
 
+            if (GL.wireframe)
+            {
+                m_PreIntegratedAzimuthalScatteringRT.Create();
+                return;
+            }
+
             // Execute the pre-integration.
             CoreUtils.DrawFullScreen(cmd, m_PreIntegratedAzimuthalScatteringMaterial, new RenderTargetIdentifier(m_PreIntegratedAzimuthalScatteringRT));
 
