@@ -303,6 +303,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed parameter ranges in HDRP Asset settings.
 - Fixed CPU performance of decal projectors, by a factor of %100 (walltime) on HDRP PS4, by burstifying decal projectors CPU processing.
 - Only display HDRP Camera Preview if HDRP is the active pipeline (case 1350767).
+- Fixed ghosting issues if the exposure changed too much (RTGI).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
