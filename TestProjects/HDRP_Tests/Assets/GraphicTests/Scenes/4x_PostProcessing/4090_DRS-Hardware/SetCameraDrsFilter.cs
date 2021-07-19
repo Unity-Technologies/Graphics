@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 public class SetCameraDrsFilter : MonoBehaviour
 {
     public DynamicResUpscaleFilter DrsFilter = DynamicResUpscaleFilter.Bilinear;
-    
+
     private Camera m_Camera = null;
 
     void Start()

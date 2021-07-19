@@ -130,7 +130,6 @@ all_project_ci_nightly_2021.2:
         recurring:
           -  branch: master
              frequency: 1 * * ?
-
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_2021.2
          rerun: on_new_revision

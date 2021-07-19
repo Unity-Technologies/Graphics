@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenu("Post-processing/Split Toning")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Split Toning", typeof(UniversalRenderPipeline))]
     public sealed class SplitToning : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("The color to use for shadows.")]
