@@ -1126,7 +1126,7 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     float2 posInSource = frac(((float2)finalCoord.xy + 0.5) * _ScreenSize.zw * _IntermediateScreenSize.xy);
 
     FillCloudUpscaleNeighborhoodData(groupThreadId.xy, upsampleData);
- 
+
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
     // Flag that tells us which pixel holds valid information
     float rejectedNeighborhood = 0.0;

@@ -159,7 +159,7 @@ float4 BilUpColor3x3WithCentroid(float2 centroidCoord, float highDepth, in Neigh
     float4 weightsA = dA / (abs(highDepth - data.lowDepthA) + _UpsampleTolerance);
     float4 weightsB = dB / (abs(highDepth - data.lowDepthB) + _UpsampleTolerance);
     float weightsC =  dC / (abs(highDepth - data.lowDepthC) + _UpsampleTolerance);
- 
+
     float TotalWeight = dot(weightsA, float4(1,1,1,1)) + dot(weightsB, float4(1,1,1,1)) + weightsC;
     float4 WeightedSum = data.lowValue0 * weightsA.x
                         + data.lowValue1 * weightsA.y
