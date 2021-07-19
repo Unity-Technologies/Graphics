@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a minimum motion vector length to the motion vector debug view.
 - Added a better support for LODs in the ray tracing acceleration structure.
 - Added a property on the HDRP asset to allow users to avoid ray tracing effects running at too low percentages (case 1342588).
+- Added dependency to mathematics and burst, HDRP now will utilize this to improve on CPU cost. First implementation of burstified decal projector is here.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -299,6 +300,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed VFX flag "Exclude From TAA" not working for some particle types.
 - Fixed Dof and MSAA. DoF is now using the min depth of the per-pixel MSAA samples when MSAA is enabled. This removes 1-pixel ringing from in focus objects (case 1347291).
 - Fixed parameter ranges in HDRP Asset settings.
+- Fixed CPU performance of decal projectors, by a factor of %100 (walltime) on HDRP PS4, by burstifying decal projectors CPU processing.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
