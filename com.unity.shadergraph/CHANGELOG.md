@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added toggle "Disable Global Mip Bias" in Sample Texture 2D and Sample Texture 2D array node. This checkbox disables the runtimes automatic Mip Bias, which for instance can be activated during dynamic resolution scaling.
   - Added `Sprite` option to Main Preview, which is similar to `Quad` but does not allow rotation. `Sprite` is used as the default preview for URP Sprite shaders.
   - Added visible errors for invalid stage capability connections to shader graph.
+  - Added a ShaderGraph animated preview framerate throttle.
 
 ### Changed
 - Properties and Keywords are no longer separated by type on the blackboard. Categories allow for any combination of properties and keywords to be grouped together as the user defines.
