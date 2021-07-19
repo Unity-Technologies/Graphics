@@ -33,10 +33,11 @@ namespace UnityEditor.VFX.Operator
             VFXExpression orthographicSize = new VFXExpressionGetOrthographicSizeFromMainCamera();
             VFXExpression aspectRatio = new VFXExpressionExtractAspectRatioFromMainCamera();
             VFXExpression pixelDimensions = new VFXExpressionExtractPixelDimensionsFromMainCamera();
+            VFXExpression lensShift = new VFXExpressionExtractLensShiftFromMainCamera();
             VFXExpression depthBuffer = new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Depth);
             VFXExpression colorBuffer = new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Color);
 
-            return new[] { matrix, orthographic, fov, nearPlane, farPlane, orthographicSize, aspectRatio, pixelDimensions, depthBuffer, colorBuffer };
+            return new[] { matrix, orthographic, fov, nearPlane, farPlane, orthographicSize, aspectRatio, pixelDimensions, lensShift, depthBuffer, colorBuffer };
         }
     }
 }

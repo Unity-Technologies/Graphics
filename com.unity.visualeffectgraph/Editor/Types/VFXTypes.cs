@@ -327,6 +327,8 @@ namespace UnityEditor.VFX
         public float aspectRatio;
         [Min(0.0f), Tooltip("The width and height of the camera in pixels.")]
         public Vector2 pixelDimensions;
+        [ Tooltip("The lens shift along the x and y directions.")]
+        public Vector2 lensShift;
         [Tooltip("The depth buffer of the camera, containing the rendered depth information.")]
         public CameraBuffer depthBuffer;
         [Tooltip("The color buffer of the camera, containing the rendered color information.")]

@@ -35,6 +35,7 @@ namespace UnityEditor.VFX.Block
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionExtractFarPlaneFromMainCamera(), "Camera_farPlane"));
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionExtractAspectRatioFromMainCamera(), "Camera_aspectRatio"));
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionExtractPixelDimensionsFromMainCamera(), "Camera_pixelDimensions"));
+                expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionExtractLensShiftFromMainCamera(), "Camera_lensShift"));
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Depth), "Camera_depthBuffer"));
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Color), "Camera_colorBuffer"));
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionIsMainCameraOrthographic(), "Camera_orthographic"));
@@ -53,6 +54,7 @@ namespace UnityEditor.VFX.Block
             var cameraMatrix = expressions.First(e => e.name == "Camera_transform");
             var isOrtho = expressions.First(e => e.name == "Camera_orthographic");
             var orthoSize = expressions.First(e => e.name == "Camera_orthographicSize");
+            var lensShift = expressions.First(e => e.name == "Camera_lensShift");
 
             VFXExpression ViewToVFX = cameraMatrix.exp;
 
@@ -64,7 +66,7 @@ namespace UnityEditor.VFX.Block
             VFXExpression VFXToView = new VFXExpressionInverseTRSMatrix(ViewToVFX);
             VFXExpression ViewToClip = new VFXExpressionBranch(isOrtho.exp,
                 VFXOperatorUtility.GetOrthographicMatrix(orthoSize.exp, aspect.exp, near.exp, far.exp),
-                VFXOperatorUtility.GetPerspectiveMatrix(fov.exp, aspect.exp, near.exp, far.exp));
+                VFXOperatorUtility.GetPerspectiveMatrix(fov.exp, aspect.exp, near.exp, far.exp, lensShift.exp));
             VFXExpression ClipToView = new VFXExpressionInverseMatrix(ViewToClip);
 
             return new CameraMatricesExpressions()
