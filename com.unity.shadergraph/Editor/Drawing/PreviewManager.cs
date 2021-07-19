@@ -37,6 +37,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         HashSet<PreviewRenderData> m_PreviewsToDraw = new HashSet<PreviewRenderData>();                     // previews to re-render the texture (either because shader compile changed or property changed)
         HashSet<PreviewRenderData> m_TimedPreviews = new HashSet<PreviewRenderData>();                      // previews that are dependent on a time node -- i.e. animated / need to redraw every frame
 
+        double m_LastTimedUpdateTime = 0.0f;
+
         bool m_TopologyDirty;                                                                               // indicates topology changed, used to rebuild timed node list and preview type (2D/3D) inheritance.
 
         HashSet<BlockNode> m_MasterNodeTempBlocks = new HashSet<BlockNode>();                               // temp blocks used by the most recent master node preview generation.
@@ -452,7 +454,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         private static readonly ProfilerMarker RenderPreviewsMarker = new ProfilerMarker("RenderPreviews");
-        public void RenderPreviews(bool requestShaders = true)
+        public void RenderPreviews(EditorWindow editorWindow, bool requestShaders = true)
         {
             using (RenderPreviewsMarker.Auto())
             using (var renderList2D = PooledList<PreviewRenderData>.Get())
@@ -486,10 +488,29 @@ namespace UnityEditor.ShaderGraph.Drawing
                 CollectPreviewProperties(m_NodesPropertyChanged, perMaterialPreviewProperties);
                 m_NodesPropertyChanged.Clear();
 
-                // timed nodes change every frame, so must be drawn
+                // timed nodes are animated, so they should be updated regularly
                 // (m_TimedPreviews has been pre-propagated downstream)
                 // HOWEVER they do not need to collect properties. (the only property changing is time..)
-                m_PreviewsToDraw.UnionWith(m_TimedPreviews);
+
+                // get current window FPS, clamp to what we consider a valid range
+                // this is probably not accurate for multi-monitor.. but should be relevant to at least one of the monitors
+                double windowFPS = Screen.currentResolution.refreshRate + 1.0;  // +1 to round up, since it is an integer and rounded down
+                windowFPS = Math.Min(windowFPS, 120.0);
+                windowFPS = Math.Max(windowFPS, 30.0);
+
+                var curTime = EditorApplication.timeSinceStartup;
+                var deltaTime = curTime - m_LastTimedUpdateTime;
+                bool isFocusedWindow = (EditorWindow.focusedWindow == editorWindow);
+
+                // we throttle the update rate, based on whether the window is focused and if unity is active
+                double k_NonFocusedFPS = 10.0;
+                double k_InactiveFPS = 2.0;
+                double maxAnimatedFPS = (UnityEditorInternal.InternalEditorUtility.isApplicationActive ? (isFocusedWindow ? windowFPS : k_NonFocusedFPS) : k_InactiveFPS);
+                if (deltaTime > (1.0 / maxAnimatedFPS))
+                {
+                    m_PreviewsToDraw.UnionWith(m_TimedPreviews);
+                    m_LastTimedUpdateTime = curTime;
+                }
 
                 ForEachNodesPreview(nodesToDraw, p => m_PreviewsToDraw.Add(p));
 
