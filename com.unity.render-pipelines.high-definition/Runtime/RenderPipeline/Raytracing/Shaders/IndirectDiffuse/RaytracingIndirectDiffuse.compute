@@ -172,6 +172,20 @@ groupshared uint gs_cacheLighting_HR[HALF_RES_REGION_SIZE_2];
 groupshared float gs_cacheDepth_HR[HALF_RES_REGION_SIZE_2];
 groupshared uint gs_cacheNormal_HR[HALF_RES_REGION_SIZE_2];
 
+// The following logic applies to the max width, max height borders aswell).
+// Given that we are working in half resolution, the last viable pixel is not (width-1, height-1) but (width-2, height-2). 
+// Note that this will not work with a sample instruction, only the current load approach.
+// |---|---|---|---|---|---|---|---|
+// | I | I | I | I | I | I | I | I |
+// |---|---|---|---|---|---|---|---|
+// | V | I | V | I | V | I | O | I |
+// |---|---|---|---|---|---|---|---|
+// | I | I | I | I | I | I | I | I |
+// |---|---|---|---|---|---|---|---|
+// | V | I | V | I | V | I | V | I |
+// |---|---|---|---|---|---|---|---|
+// O being Width-2, Height-2
+
 void FillUpscaleNeighborhoodDataLDS_Half(uint groupIndex, uint2 groupOrigin)
 {
     // The initial position of the access
@@ -185,7 +199,7 @@ void FillUpscaleNeighborhoodDataLDS_Half(uint groupIndex, uint2 groupOrigin)
 
         // Compute the full res sampling coordinate
         int2 halfResCoord = int2(originXY.x + offsetX, originXY.y + offsetY);
-        int2 sampleCoord = int2(clamp(halfResCoord.x * 2, 0, _ScreenSize.x - 1), clamp(halfResCoord.y * 2, 0, _ScreenSize.y - 1));
+        int2 sampleCoord = int2(clamp(halfResCoord.x * 2, 0, _ScreenSize.x - 2), clamp(halfResCoord.y * 2, 0, _ScreenSize.y - 2));
 
         // Read all the values for tap
         float3 lighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, sampleCoord).xyz;
