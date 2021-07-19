@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// A generic Volume component holding a <see cref="VolumeProfile"/>.
     /// </summary>
-    [HDRPHelpURLAttribute("Volumes")]
+    [CoreRPHelpURL("Volumes", "com.unity.render-pipelines.high-definition")]
     [ExecuteAlways]
     [AddComponentMenu("Miscellaneous/Volume")]
     public class Volume : MonoBehaviour
@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The Volume priority in the stack. A higher value means higher priority. This supports negative values.
         /// </summary>
-        [Tooltip("Sets the Volume priority in the stack. A higher value means higher priority. You can use negative values.")]
+        [Tooltip("When multiple Volumes affect the same settings, Unity uses this value to determine which Volume to use. A Volume with the highest Priority value takes precedence.")]
         public float priority = 0f;
 
         /// <summary>
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering
             if (isGlobal || colliders == null)
                 return;
 
-            var scale = transform.localScale;
+            var scale = transform.lossyScale;
             var invScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
             Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, scale);
             Gizmos.color = CoreRenderPipelinePreferences.volumeGizmoColor;

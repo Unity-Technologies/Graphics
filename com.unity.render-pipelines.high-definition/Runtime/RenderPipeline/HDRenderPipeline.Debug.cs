@@ -1052,13 +1052,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle perVoxelOffset;
             public DBufferOutput dbuffer;
             public GBufferOutput gbuffer;
+            public TextureHandle depthBuffer;
 
             public Texture clearColorTexture;
             public RenderTexture clearDepthTexture;
             public bool clearDepth;
         }
 
-        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer, GBufferOutput gbuffer)
+        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer, GBufferOutput gbuffer, TextureHandle depthBuffer)
         {
             bool msaa = hdCamera.msaaEnabled;
 
@@ -1081,6 +1082,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.debugGBufferMaterial = m_currentDebugViewMaterialGBuffer;
                     passData.outputColor = builder.WriteTexture(output);
                     passData.gbuffer = ReadGBuffer(gbuffer, builder);
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
 
                     builder.SetRenderFunc(
                         (DebugViewMaterialData data, RenderGraphContext context) =>
@@ -1090,6 +1092,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 data.debugGBufferMaterial.SetTexture(HDShaderIDs._GBufferTexture[i], gbufferHandles.mrt[i]);
                             }
+                            data.debugGBufferMaterial.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
 
                             HDUtils.DrawFullScreen(context.cmd, data.debugGBufferMaterial, data.outputColor);
                         });
