@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.Overlays;
+using UnityEditor.ShaderGraph.GraphUI.Controllers;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
@@ -12,7 +13,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
     {
         protected override bool CanHandleAssetType(IGraphAssetModel asset) => asset is ShaderGraphAssetModel;
 
-        public ModelInspectorView nodeInspector { get; private set; }
+        InspectorController m_InspectorController;
+        public ModelInspectorView InspectorView => m_InspectorController.InspectorView;
 
         [InitializeOnLoadMethod]
         static void RegisterTool()
@@ -26,6 +28,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
             FindOrCreateGraphWindow<ShaderGraphEditorWindow>();
         }
 
+        void InitializeSubWindows()
+        {
+            m_InspectorController = new InspectorController(CommandDispatcher);
+        }
+
         protected override void OnEnable()
         {
             EditorToolName = "Shader Graph";
@@ -33,13 +40,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
 
             base.OnEnable();
 
+            InitializeSubWindows();
+
             // Needed to ensure that graph view takes up full window when overlay canvas is present
             rootVisualElement.style.position = new StyleEnum<Position>(Position.Absolute);
             rootVisualElement.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
             rootVisualElement.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
 
-            // TODO: See if we can eventually use m_SidePanel instead
-            nodeInspector = CreateModelInspectorView();
         }
 
         protected override GraphView CreateGraphView()
