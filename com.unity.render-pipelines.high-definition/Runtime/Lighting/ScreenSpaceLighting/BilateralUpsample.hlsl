@@ -160,7 +160,7 @@ float4 BilUpColor3x3WithCentroid(float2 centroidCoord, float highDepth, in Neigh
     float4 weightsB = dB / (abs(highDepth - data.lowDepthB) + _UpsampleTolerance);
     float weightsC =  dC / (abs(highDepth - data.lowDepthC) + _UpsampleTolerance);
 
-    float TotalWeight = dot(weightsA, float4(1,1,1,1)) + dot(weightsB, float4(1,1,1,1)) + weightsC;
+    float TotalWeight = dot(weightsA, float4(1,1,1,1)) + dot(weightsB, float4(1,1,1,1)) + weightsC + _NoiseFilterStrength;
     float4 WeightedSum = data.lowValue0 * weightsA.x
                         + data.lowValue1 * weightsA.y
                         + data.lowValue2 * weightsA.z
@@ -169,7 +169,8 @@ float4 BilUpColor3x3WithCentroid(float2 centroidCoord, float highDepth, in Neigh
                         + data.lowValue5 * weightsB.y
                         + data.lowValue6 * weightsB.z
                         + data.lowValue7 * weightsB.w
-                        + data.lowValue8 * weightsC;
+                        + data.lowValue8 * weightsC
+                        + _NoiseFilterStrength;
     return WeightedSum / TotalWeight;
 }
 
