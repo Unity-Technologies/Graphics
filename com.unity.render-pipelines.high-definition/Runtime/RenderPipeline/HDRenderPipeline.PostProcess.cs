@@ -4594,8 +4594,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (var builder = renderGraph.AddRenderPass<EASUData>("Edge Adaptive Spatial Upsampling", out var passData, ProfilingSampler.Get(HDProfileId.EdgeAdaptiveSpatialUpsampling)))
                 {
                     passData.easuCS = defaultResources.shaders.edgeAdaptiveSpatialUpsamplingCS;
-                    passData.easuCS.shaderKeywords = null;
-                    passData.easuCS.EnableKeyword("GAMMA2_INPUT");
                     passData.initKernel = passData.easuCS.FindKernel("KInitialize");
                     passData.mainKernel = passData.easuCS.FindKernel("KMain");
                     passData.viewCount = hdCamera.viewCount;

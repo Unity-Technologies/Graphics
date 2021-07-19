@@ -10,7 +10,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ffx_a.hlsl"
 
-// two elements:
+// one element:
 // [0] = const0
 // ComputeBuffer is allocated with stride sizeof(int)*4, 1 element
 RWStructuredBuffer<uint4> _RCasParameters;
