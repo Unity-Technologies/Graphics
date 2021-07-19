@@ -25,9 +25,6 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("Rendering/HDRP Decal Projector")]
     public partial class DecalProjector : MonoBehaviour
     {
-        internal static readonly Quaternion k_MinusYtoZRotation = Quaternion.Euler(-90, 0, 0);
-        static readonly Quaternion k_YtoZRotation = Quaternion.Euler(90, 0, 0);
-
         [SerializeField]
         private Material m_Material = null;
         /// <summary>
@@ -47,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        private int m_Layer;
+        internal int cachedEditorLayer = 0;
 #endif
 
         [SerializeField]
@@ -282,58 +279,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>current uv parameters in a way the DecalSystem will be able to use it</summary>
         internal Vector4 uvScaleBias => new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
 
-        /// <summary>current rotation in a way the DecalSystem will be able to use it</summary>
-        internal Quaternion rotation
-        {
-            get
-            {
-                // If Z-scale is negative we rotate decal differently to have correct forward direction for Angle Fade.
-                return transform.rotation * (effectiveScale.z >= 0f ? k_MinusYtoZRotation : k_YtoZRotation);
-            }
-        }
-
-        /// <summary>current size in a way the DecalSystem will be able to use it</summary>
-        internal Vector3 decalSize
-        {
-            get
-            {
-                Vector3 scale = effectiveScale;
-
-                // If Z-scale is negative the forward direction for rendering will be fixed by rotation,
-                // so we need to flip the scale of the affected axes back.
-                // The final sign of Z will depend on the other two axes, so we actually need to fix only Y here.
-                if (scale.z < 0f)
-                    scale.y *= -1f;
-
-                // Flipped projector (with 1 or 3 negative components of scale) would be invisible.
-                // In this case we additionally flip Z.
-                bool flipped = scale.x < 0f ^ scale.y < 0f ^ scale.z < 0f;
-                if (flipped)
-                    scale.z *= -1f;
-
-                return new Vector3(m_Size.x * scale.x, m_Size.z * scale.z, m_Size.y * scale.y);
-            }
-        }
-
-        /// <summary>current offset in a way the DecalSystem will be able to use it</summary>
-        internal Vector3 decalOffset
-        {
-            get
-            {
-                Vector3 scale = effectiveScale;
-
-                // If Z-scale is negative the forward direction for rendering will be fixed by rotation,
-                // so we need to flip the scale of the affected axes back.
-                if (scale.z < 0f)
-                {
-                    scale.y *= -1f;
-                    scale.z *= -1f;
-                }
-
-                return new Vector3(m_Offset.x * scale.x, -m_Offset.z * scale.z, m_Offset.y * scale.y);
-            }
-        }
-
         internal DecalSystem.DecalHandle Handle
         {
             get
@@ -349,9 +294,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Struct used to gather all decal property required to be cached to be sent to shader code
         internal struct CachedDecalData
         {
-            public Matrix4x4 localToWorld;
-            public Quaternion rotation;
-            public Matrix4x4 sizeOffset;
             public float drawDistance;
             public float fadeScale;
             public float startAngleFade;
@@ -368,9 +310,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CachedDecalData data = new CachedDecalData();
 
-            data.localToWorld = Matrix4x4.TRS(position, rotation, Vector3.one);
-            data.rotation = rotation;
-            data.sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
             data.drawDistance = m_DrawDistance;
             data.fadeScale = m_FadeScale;
             data.startAngleFade = m_StartAngleFade;
@@ -409,11 +348,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Handle = null;
             }
 
-            m_Handle = DecalSystem.instance.AddDecal(m_Material, GetCachedDecalData());
+            m_Handle = DecalSystem.instance.AddDecal(this);
             m_OldMaterial = m_Material;
 
 #if UNITY_EDITOR
-            m_Layer = gameObject.layer;
+            cachedEditorLayer = gameObject.layer;
             // Handle scene visibility
             UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateDecalVisibility;
 #endif
@@ -430,12 +369,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (m_Handle == null)
             {
-                m_Handle = DecalSystem.instance.AddDecal(m_Material, GetCachedDecalData());
+                m_Handle = DecalSystem.instance.AddDecal(this);
             }
             else
             {
                 // Scene culling mask may have changed.
-                DecalSystem.instance.UpdateCachedData(m_Handle, GetCachedDecalData());
+                DecalSystem.instance.UpdateCachedData(m_Handle, this);
             }
         }
 
@@ -474,7 +413,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (m_Material != null)
                     {
-                        m_Handle = DecalSystem.instance.AddDecal(m_Material, GetCachedDecalData());
+                        m_Handle = DecalSystem.instance.AddDecal(this);
 
                         if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
                         {
@@ -492,32 +431,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else // no material change, just update whatever else changed
                 {
-                    DecalSystem.instance.UpdateCachedData(m_Handle, GetCachedDecalData());
+                    DecalSystem.instance.UpdateCachedData(m_Handle, this);
                 }
-            }
-        }
 
 #if UNITY_EDITOR
-        void Update() // only run in editor
-        {
-            if (m_Layer != gameObject.layer)
-            {
-                m_Layer = gameObject.layer;
-                DecalSystem.instance.UpdateCachedData(m_Handle, GetCachedDecalData());
-            }
-        }
-
+                cachedEditorLayer = gameObject.layer;
 #endif
-
-        void LateUpdate()
-        {
-            if (m_Handle != null)
-            {
-                if (transform.hasChanged == true)
-                {
-                    DecalSystem.instance.UpdateCachedData(m_Handle, GetCachedDecalData());
-                    transform.hasChanged = false;
-                }
             }
         }
 

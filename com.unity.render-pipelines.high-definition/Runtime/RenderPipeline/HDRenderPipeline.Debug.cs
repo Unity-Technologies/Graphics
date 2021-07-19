@@ -361,6 +361,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetFloat(HDShaderIDs._TransparencyOverdrawMaxPixelCost, (float)data.debugDisplaySettings.data.transparencyDebugSettings.maxPixelCost);
                         mpb.SetFloat(HDShaderIDs._QuadOverdrawMaxQuadCost, (float)data.debugDisplaySettings.data.maxQuadCost);
                         mpb.SetFloat(HDShaderIDs._VertexDensityMaxPixelCost, (float)data.debugDisplaySettings.data.maxVertexDensity);
+                        mpb.SetFloat(HDShaderIDs._MinMotionVector, data.debugDisplaySettings.data.minMotionVectorLength);
 
                         if (fullscreenBuffer != null)
                             ctx.cmd.SetRandomWriteTarget(1, fullscreenBuffer);
@@ -1051,13 +1052,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle perVoxelOffset;
             public DBufferOutput dbuffer;
             public GBufferOutput gbuffer;
+            public TextureHandle depthBuffer;
 
             public Texture clearColorTexture;
             public RenderTexture clearDepthTexture;
             public bool clearDepth;
         }
 
-        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer, GBufferOutput gbuffer)
+        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer, GBufferOutput gbuffer, TextureHandle depthBuffer)
         {
             bool msaa = hdCamera.msaaEnabled;
 
@@ -1080,6 +1082,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.debugGBufferMaterial = m_currentDebugViewMaterialGBuffer;
                     passData.outputColor = builder.WriteTexture(output);
                     passData.gbuffer = ReadGBuffer(gbuffer, builder);
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
 
                     builder.SetRenderFunc(
                         (DebugViewMaterialData data, RenderGraphContext context) =>
@@ -1089,6 +1092,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 data.debugGBufferMaterial.SetTexture(HDShaderIDs._GBufferTexture[i], gbufferHandles.mrt[i]);
                             }
+                            data.debugGBufferMaterial.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
 
                             HDUtils.DrawFullScreen(context.cmd, data.debugGBufferMaterial, data.outputColor);
                         });

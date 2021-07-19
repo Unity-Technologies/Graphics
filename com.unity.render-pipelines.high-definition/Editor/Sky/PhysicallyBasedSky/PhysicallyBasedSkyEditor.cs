@@ -98,15 +98,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             DrawHeader("Model");
 
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                DrawOverrideCheckbox(m_Type);
-
-                using (new EditorGUI.DisabledScope(!m_Type.overrideState.boolValue))
-                {
+            using (var scope = new OverridablePropertyScope(m_Type, m_ModelTypeLabel, this))
+                if (scope.displayed)
                     m_Type.value.intValue = EditorGUILayout.IntPopup(m_ModelTypeLabel, m_Type.value.intValue, m_ModelTypes, m_ModelTypeValues);
-                }
-            }
 
             PhysicallyBasedSkyModel type = (PhysicallyBasedSkyModel)m_Type.value.intValue;
 
@@ -118,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(m_SphericalMode);
 
-                using (new HDEditorUtils.IndentScope())
+                using (new IndentLevelScope())
                 {
                     bool isSpherical = !m_SphericalMode.overrideState.boolValue || m_SphericalMode.value.boolValue;
                     if (isSpherical)

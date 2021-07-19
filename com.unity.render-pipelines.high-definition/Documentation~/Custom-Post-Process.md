@@ -92,6 +92,8 @@ The **injectionPoint** override allows you to specify where in the pipeline HDRP
 For more detailed information on where HDRP injects the custom post-process passes, see the following diagram:
 ![](Images/HDRP-frame-graph-diagram.png)
 
+**Note**: When you enable [Temporal anti-aliasing (TAA)](Anti-Aliasing.md#TAA), HDRP applies TAA between the injection points **BeforeTAA** and **beforePostProcess**. When you use [Depth Of Field](Post-Processing-Depth-of-Field.md) and enable its **Physically Based** property, HDRP performs a second TAA pass to perform temporal accumulation for this effect.
+
 Now there are the **Setup**, **Render**, and **Cleanup** functions. These are here to respectively allocate, use, and release the resources that the effect needs. The only resource that the example uses is a single Material. The example creates the Material in **Setup** and, in **Cleanup**, uses CoreUtils.Destroy() to release the Material. In the **Render** function, you have access to a [CommandBuffer](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.html) which you can use to enqueue tasks for HDRP to execute. Here you can use HDUtils.DrawFullScreen to render a fullscreen quad. It uses the CommandBuffer and Material that you pass in then blits the result to the destination RTHandle.
 
 <a name="Shader"></a>

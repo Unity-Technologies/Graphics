@@ -224,6 +224,13 @@ namespace UnityEditor.Rendering.HighDefinition
             HDUserSettings.wizardPopupAlreadyShownOnce = true;
         }
 
+        [MenuItem("Window/Rendering/HDRP Wizard", priority = 10000, validate = true)]
+        static bool CanShowWizard()
+        {
+            // If the user has more than one SRP installed, only show the Wizard if the pipeline is HDRP
+            return HDRenderPipeline.isReady || RenderPipelineManager.currentPipeline == null;
+        }
+
         void OnGUI()
         {
             if (m_BaseUpdatable == null)
@@ -245,23 +252,46 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void WizardBehaviourDelayed()
         {
+            if (!HDProjectSettings.wizardIsStartPopup)
+                throw new Exception(
+                    $"HDProjectSettings.wizardIsStartPopup must be true");
+
             if (frameToWait > 0)
-                --frameToWait;
-            else
             {
-                EditorApplication.update -= WizardBehaviourDelayed;
-
-                if (HDProjectSettings.wizardIsStartPopup && !HDUserSettings.wizardPopupAlreadyShownOnce)
-                {
-                    //Application.isPlaying cannot be called in constructor. Do it here
-                    if (Application.isPlaying)
-                        return;
-
-                    OpenWindow();
-                }
-
-                EditorApplication.quitting += () => HDUserSettings.wizardPopupAlreadyShownOnce = false;
+                --frameToWait;
+                return;
             }
+
+            // No need to update this method, unsubscribe from the application update
+            EditorApplication.update -= WizardBehaviourDelayed;
+
+            //Application.isPlaying cannot be called in constructor. Do it here
+            if (Application.isPlaying)
+                return;
+
+            EditorApplication.quitting += () => HDUserSettings.wizardPopupAlreadyShownOnce = false;
+
+            ShowWizardFirstTime();
+        }
+
+        static void ShowWizardFirstTime()
+        {
+            // Unsubscribe from possible events
+            // If the event has not been registered the unsubscribe will do nothing
+            RenderPipelineManager.activeRenderPipelineTypeChanged -= ShowWizardFirstTime;
+
+            if (!CanShowWizard())
+            {
+                // Delay the show of the wizard for the first time that the user is using HDRP
+                RenderPipelineManager.activeRenderPipelineTypeChanged += ShowWizardFirstTime;
+                return;
+            }
+
+            // If we reach this point can be because
+            // - That the user started Unity with HDRP in use
+            // - That the SRP has changed to HDRP for the first time in the session
+            if (!HDUserSettings.wizardPopupAlreadyShownOnce)
+                OpenWindow();
         }
 
         [Callbacks.DidReloadScripts]
@@ -277,6 +307,10 @@ namespace UnityEditor.Rendering.HighDefinition
         [Callbacks.DidReloadScripts]
         static void WizardBehaviour()
         {
+            // If the wizard does not need to be shown at start up, do nothing.
+            if (!HDProjectSettings.wizardIsStartPopup)
+                return;
+
             //We need to wait at least one frame or the popup will not show up
             frameToWait = 10;
             EditorApplication.update += WizardBehaviourDelayed;

@@ -235,7 +235,7 @@ namespace UnityEngine.Experimental.Rendering
             RunPlacement();
         }
 
-        static void CellCountInDirections(out Vector3Int cellsInXYZ, float cellSizeInMeters)
+        static void BrickCountInDirections(out Vector3Int cellsInXYZ, float brickSizeInMeter)
         {
             cellsInXYZ = Vector3Int.zero;
 
@@ -243,9 +243,9 @@ namespace UnityEngine.Experimental.Rendering
             var centeredMin = globalBounds.min - center;
             var centeredMax = globalBounds.max - center;
 
-            cellsInXYZ.x = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.x / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.x / cellSizeInMeters))) * 2;
-            cellsInXYZ.y = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.y / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.y / cellSizeInMeters))) * 2;
-            cellsInXYZ.z = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / cellSizeInMeters)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / cellSizeInMeters))) * 2;
+            cellsInXYZ.x = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.x / brickSizeInMeter)), Mathf.CeilToInt(Mathf.Abs(centeredMax.x / brickSizeInMeter))) * 2;
+            cellsInXYZ.y = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.y / brickSizeInMeter)), Mathf.CeilToInt(Mathf.Abs(centeredMax.y / brickSizeInMeter))) * 2;
+            cellsInXYZ.z = Mathf.Max(Mathf.CeilToInt(Mathf.Abs(centeredMin.z / brickSizeInMeter)), Mathf.CeilToInt(Mathf.Abs(centeredMax.z / brickSizeInMeter))) * 2;
         }
 
         // NOTE: This is somewhat hacky and is going to likely be slow (or at least slower than it could).
@@ -518,13 +518,7 @@ namespace UnityEngine.Experimental.Rendering
                         asset.cells.Add(cell);
                         if (hasFoundBounds)
                         {
-                            Vector3Int cellsInDir;
-                            float cellSizeInMeters = Mathf.CeilToInt(refVol.profile.cellSizeInMeters);
-                            CellCountInDirections(out cellsInDir, cellSizeInMeters);
-
-                            asset.maxCellIndex.x = cellsInDir.x * (int)refVol.profile.cellSizeInBricks;
-                            asset.maxCellIndex.y = cellsInDir.y * (int)refVol.profile.cellSizeInBricks;
-                            asset.maxCellIndex.z = cellsInDir.z * (int)refVol.profile.cellSizeInBricks;
+                            BrickCountInDirections(out asset.maxCellIndex, refVol.profile.minBrickSize);
                         }
                         else
                         {
@@ -618,6 +612,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             onAdditionalProbesBakeCompletedCalled = false;
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
+            AdditionalGIBakeRequestsManager.instance.AddRequestsToLightmapper();
             UnityEditor.Lightmapping.bakeCompleted += OnBakeCompletedCleanup;
 
             ClearBakingBatch();
@@ -734,6 +729,7 @@ namespace UnityEngine.Experimental.Rendering
                 ProbeOffsets[i] = i * probeDelta;
             ProbeOffsets[ProbeBrickPool.kBrickProbeCountPerDim - 1] = 1.0f;
 
+            float minDist = ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
 
             foreach (var b in bricks)
             {
@@ -754,7 +750,14 @@ namespace UnityEngine.Experimental.Rendering
                         for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
                         {
                             float xoff = ProbeOffsets[x];
-                            outProbePositions[posIdx] = offset + xoff * X + yoff * Y + zoff * Z;
+                            Vector3 probePosition = offset + xoff * X + yoff * Y + zoff * Z;
+                            // We need to round positions to the nearest multiple of the min distance between probes.
+                            // Otherwise, the deduplication could fail because of floating point precision issue.
+                            // This can lead to probes at the same position having different SH values, causing seams and other similar issues.
+                            Vector3 roundedPosition = new Vector3(Mathf.Round(probePosition.x / minDist) * minDist,
+                                Mathf.Round(probePosition.y / minDist) * minDist,
+                                Mathf.Round(probePosition.z / minDist) * minDist);
+                            outProbePositions[posIdx] = roundedPosition;
                             posIdx++;
                         }
                     }
