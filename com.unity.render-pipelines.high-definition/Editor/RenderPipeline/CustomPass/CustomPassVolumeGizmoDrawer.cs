@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering
                         }
                         break;
                     case SphereCollider c:
-                        // For sphere the only scale that is used is the transform.x
+                        // For sphere the only scale that is used is the transform.scale.x
                         Matrix4x4 oldMatrix = Gizmos.matrix;
                         Gizmos.matrix = Matrix4x4.TRS(scr.transform.position, scr.transform.rotation, Vector3.one * lossyScale.x);
                         if (VolumesPreferences.drawWireFrame)
