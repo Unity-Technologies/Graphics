@@ -5,12 +5,13 @@
 #pragma kernel TemporalAccumulationColor                        TEMPORAL_ACCUMULATION=TemporalAccumulationColor
 #pragma kernel TemporalAccumulationColorArray                   TEMPORAL_ACCUMULATION=TemporalAccumulationColorArray HISTORY_IS_ARRAY
 
-#pragma kernel CopyHistorySingle                                COPY_HISTORY=CopyHistorySingle SINGLE_CHANNEL
-#pragma kernel CopyHistorySingleArray                           COPY_HISTORY=CopyHistorySingleArray SINGLE_CHANNEL OUTPUT_IS_ARRAY
-#pragma kernel CopyHistorySingleArrayNoValidity                 COPY_HISTORY=CopyHistorySingleArrayNoValidity SINGLE_CHANNEL OUTPUT_IS_ARRAY NO_VALIDITY
+#pragma kernel CopyHistory
 
-#pragma kernel CopyHistoryColor                                 COPY_HISTORY=CopyHistoryColor
-#pragma kernel CopyHistoryColorArray                            COPY_HISTORY=CopyHistoryColorArray OUTPUT_IS_ARRAY
+#pragma kernel BlendHistorySingleArray                          BLEND_HISTORY_ARRAY=BlendHistorySingleArray SINGLE_CHANNEL OUTPUT_IS_ARRAY
+#pragma kernel BlendHistorySingleArrayNoValidity                BLEND_HISTORY_ARRAY=BlendHistorySingleArrayNoValidity SINGLE_CHANNEL OUTPUT_IS_ARRAY NO_VALIDITY
+#pragma kernel BlendHistoryColorArray                           BLEND_HISTORY_ARRAY=BlendHistoryColorArray OUTPUT_IS_ARRAY
+
+#pragma kernel OutputHistoryArray                               OUTPUT_IS_ARRAY
 
 // Common includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -26,7 +27,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DenoisingUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/HDTemporalFilter.cs.hlsl"
 
-#pragma only_renderers d3d11
 // #pragma enable_d3d11_debug_symbols
 
 // Tile size of this compute shaders
@@ -53,6 +53,8 @@ float _HistoryValidity;
 int _ReceiverMotionRejection;
 // Controls if the motion of the receiver is a valid rejection codition.
 int _OccluderMotionRejection;
+// Value that tells us if the current history should be discarded based on scene-level data
+float _EnableExposureControl;
 
 // The maximal normal difference threshold
 #define MAX_NORMAL_DIFFERENCE 0.65
@@ -148,14 +150,12 @@ TEXTURE2D_X(_HistoryBuffer);
 #endif
 // Noisy Input Buffer from the current rame
 TEXTURE2D_X(_DenoiseInputTexture);
-#if defined (HISTORY_IS_ARRAY) || defined (OUTPUT_IS_ARRAY)
-    // In the case of an array signal, this tells us which slice of the array we should be fetching
-    int _DenoisingHistorySlice;
-    // This value tells us which channels hold the value
-    float4 _DenoisingHistoryMask;
-#endif
+// In the case of an array signal, this tells us which slice of the array we should be fetching
+int _DenoisingHistorySlice;
+// This value tells us which channels hold the value
+float4 _DenoisingHistoryMask;
 // Generic output buffer for our kernels
-RW_TEXTURE2D_ARRAY(float4, _DenoiseOutputTextureRW);
+RW_TEXTURE2D_X(float4, _AccumulationOutputTextureRW);
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
 void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -169,7 +169,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     if (depth == UNITY_RAW_FAR_CLIP_VALUE)
     {
-        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, 0.0, 0);
+        _AccumulationOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(0.0, 0.0, 0.0, 0);
         return;
     }
 
@@ -200,7 +200,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         float sampleCount = history.y;
     #else
         float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
-        float4 history = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, 0);
+        float4 history = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, 0) * lerp(1.0, GetInversePreviousExposureMultiplier() * GetCurrentExposureMultiplier(), _EnableExposureControl);
         float sampleCount = history.w;
     #endif
 #endif
@@ -236,52 +236,85 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 
     // Store our accumulated value
     #if SINGLE_CHANNEL
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * (1.0 - accumulationFactor) + history.x * accumulationFactor, sampleCount, 0.0, 1.0);
+    _AccumulationOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * (1.0 - accumulationFactor) + history.x * accumulationFactor, sampleCount, 0.0, 1.0);
     #else
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * (1.0 - accumulationFactor) + history.xyz * accumulationFactor, sampleCount);
+    _AccumulationOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * (1.0 - accumulationFactor) + history.xyz * accumulationFactor, sampleCount);
     #endif
 }
 
-#if defined(OUTPUT_IS_ARRAY) && !defined(NO_VALIDITY)
-    // This is an additional history texture that holds the validity of the currently accumulated signal
-    RW_TEXTURE2D_ARRAY(float4, _ValidityOutputTextureRW);
-#endif
+RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 
 [numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
-void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
+void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
         return;  // Out of bounds, discard
 
-#if OUTPUT_IS_ARRAY
-        // Define which pixel we shall be reading from, writing to.
-        uint3 targetPixel = uint3(dispatchThreadId.xy, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice));
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy);
+}
+
+// Output is array textures
+TEXTURE2D_ARRAY(_DenoiseInputArrayTexture);
+RW_TEXTURE2D_X(float4, _IntermediateDenoiseOutputTextureRW);
+TEXTURE2D_X(_IntermediateDenoiseOutputTexture);
+RW_TEXTURE2D_ARRAY(float4, _DenoiseOutputArrayTextureRW);
+
+#if !defined(NO_VALIDITY)
+    TEXTURE2D_ARRAY(_ValidityInputArrayTexture);
+    RW_TEXTURE2D_X(float4, _IntermediateValidityOutputTextureRW);
+    TEXTURE2D_X(_IntermediateValidityOutputTexture);
+    RW_TEXTURE2D_ARRAY(float4, _ValidityOutputTextureRW);
+#endif
+
+[numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
+void BLEND_HISTORY_ARRAY(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
+        return;  // Out of bounds, discard
+
+        // Define which slice we shall be reading from.
+        int inputSlice = INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice);
 
         // In the case the output being an array, we only need to override the channels that we are currently processing
-        float4 previousHistoryValues = _DenoiseOutputTextureRW[targetPixel];
+        float4 previousHistoryValues = LOAD_TEXTURE2D_ARRAY(_DenoiseInputArrayTexture, dispatchThreadId.xy, inputSlice);
     #if !defined(NO_VALIDITY)
-        float4 previousValidityValues = _ValidityOutputTextureRW[targetPixel];
+        float4 previousValidityValues = LOAD_TEXTURE2D_ARRAY(_ValidityInputArrayTexture, dispatchThreadId.xy, inputSlice);
     #endif
 
     #if SINGLE_CHANNEL
-        _DenoiseOutputTextureRW[targetPixel] = (1.0 - _DenoisingHistoryMask) * previousHistoryValues
+        _IntermediateDenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = (1.0 - _DenoisingHistoryMask) * previousHistoryValues
                                               + _DenoisingHistoryMask * LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).x;
         #if !defined(NO_VALIDITY)
-        _ValidityOutputTextureRW[targetPixel] = (1.0 - _DenoisingHistoryMask) * previousValidityValues
+        _IntermediateValidityOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = (1.0 - _DenoisingHistoryMask) * previousValidityValues
                                               + _DenoisingHistoryMask * LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).y;
         #endif
     #else
         // If this is a color data, it means we need to override the first three channels
-        _DenoiseOutputTextureRW[targetPixel] = float4(LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).xyz
-                                                                                , previousHistoryValues.w);
+        _IntermediateDenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).xyz, previousHistoryValues.w);
         #if !defined(NO_VALIDITY)
-        _ValidityOutputTextureRW[targetPixel] = float4(LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).www
-                                                                                , previousValidityValues.w);
+        _IntermediateValidityOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).www, previousValidityValues.w);
         #endif
     #endif
-#else
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy);
-#endif
+}
+
+[numthreads(TEMPORAL_FILTER_TILE_SIZE, TEMPORAL_FILTER_TILE_SIZE, 1)]
+void OutputHistoryArray(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
+        return;  // Out of bounds, discard
+
+    // Define which pixel we shall be reading from, writing to.
+    uint3 targetPixel = uint3(dispatchThreadId.xy, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice));
+
+    // If this is a color data, it means we need to override the first three channels
+    _DenoiseOutputArrayTextureRW[targetPixel] = LOAD_TEXTURE2D_X(_IntermediateDenoiseOutputTexture, dispatchThreadId.xy);
+    #if !defined(NO_VALIDITY)
+    _ValidityOutputTextureRW[targetPixel] = LOAD_TEXTURE2D_X(_IntermediateValidityOutputTexture, dispatchThreadId.xy);
+    #endif
 }

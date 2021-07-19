@@ -73,7 +73,7 @@ namespace UnityEditor
 
             // Categories
             public static readonly GUIContent SurfaceOptions =
-                EditorGUIUtility.TrTextContent("Surface Options", "Controls how Universal RP renders the Material on a screen.");
+                EditorGUIUtility.TrTextContent("Surface Options", "Controls how URP Renders the material on screen.");
 
             public static readonly GUIContent SurfaceInputs = EditorGUIUtility.TrTextContent("Surface Inputs",
                 "These settings describe the look and feel of the surface itself.");
@@ -112,10 +112,10 @@ namespace UnityEditor
                 "Specifies the base Material and/or Color of the surface. If you’ve selected Transparent or Alpha Clipping under Surface Options, your Material uses the Texture’s alpha channel or color.");
 
             public static readonly GUIContent emissionMap = EditorGUIUtility.TrTextContent("Emission Map",
-                "Sets a Texture map to use for emission. You can also select a color with the color picker. Colors are multiplied over the Texture.");
+                "Determines the color and intensity of light that the surface of the material emits.");
 
             public static readonly GUIContent normalMapText =
-                EditorGUIUtility.TrTextContent("Normal Map", "Assigns a tangent-space normal map.");
+                EditorGUIUtility.TrTextContent("Normal Map", "Designates a Normal Map to create the illusion of bumps and dents on this Material's surface.");
 
             public static readonly GUIContent bumpScaleNotSupported =
                 EditorGUIUtility.TrTextContent("Bump scale is not supported on mobile platforms");
@@ -331,35 +331,39 @@ namespace UnityEditor
             }
         }
 
+        private void DrawEmissionTextureProperty()
+        {
+            if ((emissionMapProp == null) || (emissionColorProp == null))
+                return;
+
+            using (new EditorGUI.IndentLevelScope(2))
+            {
+                materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp, false);
+            }
+        }
+
         protected virtual void DrawEmissionProperties(Material material, bool keyword)
         {
             var emissive = true;
-            var hadEmissionTexture = emissionMapProp?.textureValue != null;
 
             if (!keyword)
             {
-                if ((emissionMapProp != null) && (emissionColorProp != null))
-                    materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp, false);
+                DrawEmissionTextureProperty();
             }
             else
             {
-                // Emission for GI?
                 emissive = materialEditor.EmissionEnabledProperty();
-
-                EditorGUI.BeginDisabledGroup(!emissive);
+                using (new EditorGUI.DisabledScope(!emissive))
                 {
-                    // Texture and HDR color controls
-                    if ((emissionMapProp != null) && (emissionColorProp != null))
-                        materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp, false);
+                    DrawEmissionTextureProperty();
                 }
-                EditorGUI.EndDisabledGroup();
             }
 
             // If texture was assigned and color was black set color to white
-            float brightness = 1.0f;
             if ((emissionMapProp != null) && (emissionColorProp != null))
             {
-                brightness = emissionColorProp.colorValue.maxColorComponent;
+                var hadEmissionTexture = emissionMapProp?.textureValue != null;
+                var brightness = emissionColorProp.colorValue.maxColorComponent;
                 if (emissionMapProp.textureValue != null && !hadEmissionTexture && brightness <= 0f)
                     emissionColorProp.colorValue = Color.white;
             }
