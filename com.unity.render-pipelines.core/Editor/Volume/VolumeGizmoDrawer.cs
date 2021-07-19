@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering
                             Gizmos.DrawCube(c.center, c.size);
                         break;
                     case SphereCollider c:
-                        // For sphere the only scale that is used is the transform.x
+                        // For sphere the only scale that is used is the transform.scale.x
                         Gizmos.matrix = Matrix4x4.TRS(scr.transform.position, scr.transform.rotation, Vector3.one * lossyScale.x);
                         if (VolumesPreferences.drawWireFrame)
                             Gizmos.DrawWireSphere(c.center, c.radius);
