@@ -120,6 +120,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ShaderGraph sub-graph stage limitations to be per slot instead of per sub-graph node [1337137].
 - Disconnected nodes with errors in ShaderGraph no longer cause the imports to fail [1349311] (https://issuetracker.unity3d.com/issues/shadergraph-erroring-unconnected-node-causes-material-to-become-invalid-slash-pink)
 - ShaderGraph SubGraphs now report node warnings in the same way ShaderGraphs do [1350282].
+- Fixed ShaderGraph exception when trying to set a texture to "main texture" [1350573].
+- Fixed a ShaderGraph issue where Float properties in Integer mode would not be cast properly in graph previews [1330302](https://fogbugz.unity3d.com/f/cases/1330302/)
 
 ## [11.0.0] - 2020-10-21
 
@@ -152,6 +154,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ParallaxMapping node compile issue on GLES2
 - Fixed a selection bug with block nodes after changing tabs [1312222]
 - Fixed some shader graph compiler errors not being logged [1304162].
+- Fixed a shader graph bug where the Hue node would have a large seam with negative values [1340849].
 - Fixed an error when using camera direction with sample reflected cube map [1340538].
 - Fixed ShaderGraph's FogNode returning an incorrect density when the fog setting was disabled [1347235].
 

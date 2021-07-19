@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added OverridablePropertyScope (for VolumeComponentEditor child class only) to handle the Additional Property, the override checkbox and disable display and decorator attributes in one scope.
 - Added IndentLevelScope (for VolumeComponentEditor child class only) to handle indentation of the field and the checkbox.
 - Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
+- Added new APIs for array resizing helpers (ArrayUtils), native array and TransformAccessArray resizing.
 
 ### Fixed
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
