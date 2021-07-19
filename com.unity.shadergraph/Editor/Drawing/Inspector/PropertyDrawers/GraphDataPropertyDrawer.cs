@@ -102,7 +102,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     // Get settings for Target
                     var context = new TargetPropertyGUIContext();
+                    // Indent the content of the foldout
+                    context.globalIndentLevel++;
                     target.GetPropertiesGUI(ref context, onChange, RegisterActionToUndo);
+                    context.globalIndentLevel--;
                     element.Add(context);
                 }
             }
@@ -118,6 +121,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     "Add a Universal or HDRP target instead, and enable 'Support VFX Graph' in the Graph Inspector.");
 
                 vfxWarningLabel.style.color = new StyleColor(Color.white);
+                vfxWarningLabel.style.whiteSpace = WhiteSpace.Normal;
 
                 vfxWarning.Add(vfxWarningLabel);
                 element.Add(vfxWarning);

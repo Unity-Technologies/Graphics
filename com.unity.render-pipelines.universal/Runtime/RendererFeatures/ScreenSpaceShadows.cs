@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [DisallowMultipleRendererFeature]
+    [Tooltip("Screen Space Shadows")]
     internal class ScreenSpaceShadows : ScriptableRendererFeature
     {
         // Serialized Fields
@@ -18,7 +19,7 @@ namespace UnityEngine.Rendering.Universal
         // Private Fields
         private Material m_Material;
         private ScreenSpaceShadowsPass m_SSShadowsPass = null;
-        private RestoreShadowKeywordsPass m_RestoreShadowKeywordsPass = null;
+        private ScreenSpaceShadowsPostPass m_SSShadowsPostPass = null;
 
         // Constants
         private const string k_ShaderName = "Hidden/Universal Render Pipeline/ScreenSpaceShadows";
@@ -28,14 +29,13 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_SSShadowsPass == null)
                 m_SSShadowsPass = new ScreenSpaceShadowsPass();
-            if (m_RestoreShadowKeywordsPass == null)
-                m_RestoreShadowKeywordsPass = new RestoreShadowKeywordsPass();
+            if (m_SSShadowsPostPass == null)
+                m_SSShadowsPostPass = new ScreenSpaceShadowsPostPass();
 
             LoadMaterial();
 
-            m_SSShadowsPass.profilerTag = name;
-            m_SSShadowsPass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
-            m_RestoreShadowKeywordsPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+            m_SSShadowsPass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
+            m_SSShadowsPostPass.renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
         }
 
         /// <inheritdoc/>
@@ -45,17 +45,17 @@ namespace UnityEngine.Rendering.Universal
             {
                 Debug.LogErrorFormat(
                     "{0}.AddRenderPasses(): Missing material. {1} render pass will not be added. Check for missing reference in the renderer resources.",
-                    GetType().Name, m_SSShadowsPass.profilerTag);
+                    GetType().Name, name);
                 return;
             }
 
             bool allowMainLightShadows = renderingData.shadowData.supportsMainLightShadows && renderingData.lightData.mainLightIndex != -1;
-            bool shouldEnqueue = m_SSShadowsPass.Setup(m_Settings) && allowMainLightShadows;
+            bool shouldEnqueue = allowMainLightShadows && m_SSShadowsPass.Setup(m_Settings, m_Material);
 
             if (shouldEnqueue)
             {
                 renderer.EnqueuePass(m_SSShadowsPass);
-                renderer.EnqueuePass(m_RestoreShadowKeywordsPass);
+                renderer.EnqueuePass(m_SSShadowsPostPass);
             }
         }
 
@@ -82,18 +82,18 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
-            m_SSShadowsPass.material = m_Material;
 
             return m_Material != null;
         }
 
         private class ScreenSpaceShadowsPass : ScriptableRenderPass
         {
-            // Public Variables
-            internal string profilerTag;
-            internal Material material;
+            // Profiling tag
+            private static string m_ProfilerTag = "ScreenSpaceShadows";
+            private static ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
             // Private Variables
+            private Material m_Material;
             private ScreenSpaceShadowsSettings m_CurrentSettings;
             private RenderTextureDescriptor m_RenderTextureDescriptor;
             private RenderTargetHandle m_RenderTarget;
@@ -107,12 +107,13 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderTarget.Init(k_SSShadowsTextureName);
             }
 
-            internal bool Setup(ScreenSpaceShadowsSettings featureSettings)
+            internal bool Setup(ScreenSpaceShadowsSettings featureSettings, Material material)
             {
                 m_CurrentSettings = featureSettings;
+                m_Material = material;
                 ConfigureInput(ScriptableRenderPassInput.Depth);
 
-                return material != null;
+                return m_Material != null;
             }
 
             /// <inheritdoc/>
@@ -135,28 +136,28 @@ namespace UnityEngine.Rendering.Universal
             /// <inheritdoc/>
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
-                if (material == null)
+                if (m_Material == null)
                 {
-                    Debug.LogErrorFormat("{0}.Execute(): Missing material. {1} render pass will not execute. Check for missing reference in the renderer resources.", GetType().Name, profilerTag);
+                    Debug.LogErrorFormat("{0}.Execute(): Missing material. ScreenSpaceShadows pass will not execute. Check for missing reference in the renderer resources.", GetType().Name);
                     return;
                 }
 
                 Camera camera = renderingData.cameraData.camera;
 
                 CommandBuffer cmd = CommandBufferPool.Get();
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.ResolveShadows)))
+                using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
                     if (!renderingData.cameraData.xr.enabled)
                     {
                         cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material);
                         cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
                     }
                     else
                     {
                         // Avoid setting and restoring camera view and projection matrices when in stereo.
                         RenderTargetIdentifier screenSpaceShadowTexture = m_RenderTarget.Identifier();
-                        cmd.Blit(null, screenSpaceShadowTexture, material);
+                        cmd.Blit(null, screenSpaceShadowTexture, m_Material);
                     }
 
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
@@ -180,10 +181,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private class RestoreShadowKeywordsPass : ScriptableRenderPass
+        private class ScreenSpaceShadowsPostPass : ScriptableRenderPass
         {
-            const string m_ProfilerTag = "Restore Shadow Keywords Pass";
-            private ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
+            // Profiling tag
+            private static string m_ProfilerTag = "ScreenSpaceShadows Post";
+            private static ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
             public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
             {
@@ -197,19 +199,17 @@ namespace UnityEngine.Rendering.Universal
                 {
                     ShadowData shadowData = renderingData.shadowData;
                     int cascadesCount = shadowData.mainLightShadowCascadesCount;
-
                     bool mainLightShadows = renderingData.shadowData.supportsMainLightShadows;
                     bool receiveShadowsNoCascade = mainLightShadows && cascadesCount == 1;
                     bool receiveShadowsCascades = mainLightShadows && cascadesCount > 1;
 
-                    // Before transparent object pass, force screen space shadow for main light to disable
+                    // Before transparent object pass, force to disable screen space shadow of main light
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowScreen, false);
 
                     // then enable main light shadows with or without cascades
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, receiveShadowsNoCascade);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, receiveShadowsCascades);
                 }
-
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }

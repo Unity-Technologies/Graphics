@@ -342,6 +342,10 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // Some state has been changed that requires checking for the auto add/removal of blocks.
+        // This needs to be checked at a later point in time so actions like replace (remove + add) don't remove blocks.
+        internal bool checkAutoAddRemoveBlocks { get; set; }
+
         public void SetGraphDefaultPrecision(GraphPrecision newGraphDefaultPrecision)
         {
             if ((!isSubGraph) && (newGraphDefaultPrecision == GraphPrecision.Graph))
@@ -1150,11 +1154,10 @@ namespace UnityEditor.ShaderGraph
                 throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
             m_Edges.Remove(e as Edge);
 
-            BlockNode b = null;
             AbstractMaterialNode input = e.inputSlot.node, output = e.outputSlot.node;
             if (input != null && ShaderGraphPreferences.autoAddRemoveBlocks)
             {
-                b = input as BlockNode;
+                checkAutoAddRemoveBlocks = true;
             }
 
             List<IEdge> inputNodeEdges;
@@ -1167,19 +1170,6 @@ namespace UnityEditor.ShaderGraph
 
             m_AddedEdges.Remove(e);
             m_RemovedEdges.Add(e);
-            if (b != null)
-            {
-                var activeBlockDescriptors = GetActiveBlocksForAllActiveTargets();
-                if (!activeBlockDescriptors.Contains(b.descriptor))
-                {
-                    var slot = b.FindSlot<MaterialSlot>(0);
-                    if (slot.IsUsingDefaultValue()) // TODO: How to check default value
-                    {
-                        RemoveNodeNoValidate(b);
-                        input = null;
-                    }
-                }
-            }
 
             if (reevaluateActivity)
             {
@@ -1619,8 +1609,11 @@ namespace UnityEditor.ShaderGraph
                 if (categoryData.categoryGuid == associatedCategoryGuid && categoryData.IsItemInCategory(itemToMove))
                 {
                     // Validate new index to move the item to
-                    if (newIndex < 0 || newIndex >= categoryData.childCount)
+                    if (newIndex < -1 || newIndex >= categoryData.childCount)
+                    {
+                        AssertHelpers.Fail("Provided invalid index input to MoveItemInCategory.");
                         return;
+                    }
 
                     categoryData.MoveItemInCategory(itemToMove, newIndex);
                     break;
@@ -1883,6 +1876,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             ValidateCustomBlockLimit();
+            ValidateContextBlocks();
         }
 
         public void AddValidationError(string id, string errorMessage,
@@ -2081,7 +2075,9 @@ namespace UnityEditor.ShaderGraph
                 position.y += 30;
 
                 StickyNoteData pastedStickyNote = new StickyNoteData(stickyNote.title, stickyNote.content, position);
-                if (groupMap.ContainsKey(stickyNote.group))
+                pastedStickyNote.textSize = stickyNote.textSize;
+                pastedStickyNote.theme = stickyNote.theme;
+                if (stickyNote.group != null && groupMap.ContainsKey(stickyNote.group))
                 {
                     pastedStickyNote.group = groupMap[stickyNote.group];
                 }
@@ -2830,12 +2826,116 @@ namespace UnityEditor.ShaderGraph
                 }
             }
         }
+
+        void ValidateContextBlocks()
+        {
+            void ValidateContext(ContextData contextData, ShaderStage expectedShaderStage)
+            {
+                if (contextData == null)
+                    return;
+
+                foreach (var block in contextData.blocks)
+                {
+                    var slots = block.value.GetInputSlots<MaterialSlot>();
+                    foreach (var slot in slots)
+                        FindAndReportSlotErrors(slot, expectedShaderStage);
+                }
+            };
+
+            ValidateContext(vertexContext, ShaderStage.Vertex);
+            ValidateContext(fragmentContext, ShaderStage.Fragment);
+        }
+
+        void FindAndReportSlotErrors(MaterialSlot initialSlot, ShaderStage expectedShaderStage)
+        {
+            var expectedCapability = expectedShaderStage.GetShaderStageCapability();
+            var errorSourceSlots = new HashSet<MaterialSlot>();
+            var visitedNodes = new HashSet<AbstractMaterialNode>();
+
+            var graph = initialSlot.owner.owner;
+            var slotStack = new Stack<MaterialSlot>();
+            slotStack.Clear();
+            slotStack.Push(initialSlot);
+
+            // Trace back and find any edges that introduce an error
+            while (slotStack.Any())
+            {
+                var slot = slotStack.Pop();
+
+                // If the slot is an input, jump across the connected edge to the output it's connected to
+                if (slot.isInputSlot)
+                {
+                    foreach (var edge in graph.GetEdges(slot.slotReference))
+                    {
+                        var node = edge.outputSlot.node;
+
+                        var outputSlot = node.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
+                        // If the output slot this is connected to is invalid then this is a source of an error.
+                        // Mark the slot and stop iterating, otherwise continue the recursion
+                        if (!outputSlot.stageCapability.HasFlag(expectedCapability))
+                            errorSourceSlots.Add(outputSlot);
+                        else
+                            slotStack.Push(outputSlot);
+                    }
+                }
+                else
+                {
+                    // No need to double visit nodes
+                    if (visitedNodes.Contains(slot.owner))
+                        continue;
+                    visitedNodes.Add(slot.owner);
+
+                    var ownerSlots = slot.owner.GetInputSlots<MaterialSlot>(slot);
+                    foreach (var ownerSlot in ownerSlots)
+                        slotStack.Push(ownerSlot);
+                }
+            }
+
+            bool IsEntireNodeStageLocked(AbstractMaterialNode node, ShaderStageCapability expectedNodeCapability)
+            {
+                var slots = node.GetOutputSlots<MaterialSlot>();
+                foreach (var slot in slots)
+                {
+                    if (expectedNodeCapability != slot.stageCapability)
+                        return false;
+                }
+                return true;
+            };
+
+            foreach (var errorSourceSlot in errorSourceSlots)
+            {
+                var errorNode = errorSourceSlot.owner;
+
+                // Determine if only one slot or the entire node is at fault. Currently only slots are
+                // denoted with stage capabilities so deduce this by checking all outputs
+                string errorSource;
+                if (IsEntireNodeStageLocked(errorNode, errorSourceSlot.stageCapability))
+                    errorSource = $"Node {errorNode.name}";
+                else
+                    errorSource = $"Slot {errorSourceSlot.RawDisplayName()}";
+
+                // Determine what action they can take. If the stage capability is None then this can't be connected to anything.
+                string actionToTake;
+                if (errorSourceSlot.stageCapability != ShaderStageCapability.None)
+                {
+                    var validStageName = errorSourceSlot.stageCapability.ToString().ToLower();
+                    actionToTake = $"reconnect to a {validStageName} block or delete invalid connection";
+                }
+                else
+                    actionToTake = "delete invalid connection";
+
+                var invalidStageName = expectedShaderStage.ToString().ToLower();
+                string message = $"{errorSource} is not compatible with {invalidStageName} block {initialSlot.RawDisplayName()}, {actionToTake}.";
+                AddValidationError(errorNode.objectId, message, ShaderCompilerMessageSeverity.Error);
+            }
+        }
     }
 
     [Serializable]
     class InspectorPreviewData
     {
         public SerializableMesh serializedMesh = new SerializableMesh();
+        public bool preventRotation;
 
         [NonSerialized]
         public Quaternion rotation = Quaternion.identity;

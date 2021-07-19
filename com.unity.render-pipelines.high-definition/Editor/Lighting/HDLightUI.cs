@@ -56,7 +56,6 @@ namespace UnityEditor.Rendering.HighDefinition
             Shadow = 1 << 3,
         }
 
-        const float k_MinLightSize = 0.01f; // Provide a small size of 1cm for line light
 
         readonly static ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~(-1), "HDRP");
         readonly static AdditionalPropertiesState<AdditionalProperties, Light> k_AdditionalPropertiesState = new AdditionalPropertiesState<AdditionalProperties, Light>(0, "HDRP");
@@ -64,8 +63,6 @@ namespace UnityEditor.Rendering.HighDefinition
         readonly static LightUnitSliderUIDrawer k_LightUnitSliderUIDrawer = new LightUnitSliderUIDrawer();
 
         public static readonly CED.IDrawer Inspector;
-
-        static Action<GUIContent, SerializedProperty, LightEditor.Settings> SliderWithTexture;
 
         internal static void RegisterEditor(HDLightEditor editor)
         {
@@ -130,30 +127,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 )
             );
 
-            //quicker than standard reflection as it is compiled
-            var paramLabel = Expression.Parameter(typeof(GUIContent), "label");
-            var paramProperty = Expression.Parameter(typeof(SerializedProperty), "property");
-            var paramSettings = Expression.Parameter(typeof(LightEditor.Settings), "settings");
-            System.Reflection.MethodInfo sliderWithTextureInfo = typeof(EditorGUILayout)
-                .GetMethod(
-                "SliderWithTexture",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static,
-                null,
-                System.Reflection.CallingConventions.Any,
-                new[] { typeof(GUIContent), typeof(SerializedProperty), typeof(float), typeof(float), typeof(float), typeof(Texture2D), typeof(GUILayoutOption[]) },
-                null);
-            var sliderWithTextureCall = Expression.Call(
-                sliderWithTextureInfo,
-                paramLabel,
-                paramProperty,
-                Expression.Constant((float)typeof(LightEditor.Settings).GetField("kMinKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue()),
-                Expression.Constant((float)typeof(LightEditor.Settings).GetField("kMaxKelvin", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue()),
-                Expression.Constant((float)typeof(LightEditor.Settings).GetField("kSliderPower", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetRawConstantValue()),
-                Expression.Field(paramSettings, typeof(LightEditor.Settings).GetField("m_KelvinGradientTexture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)),
-                Expression.Constant(null, typeof(GUILayoutOption[])));
-            var lambda = Expression.Lambda<Action<GUIContent, SerializedProperty, LightEditor.Settings>>(sliderWithTextureCall, paramLabel, paramProperty, paramSettings);
-            SliderWithTexture = lambda.Compile();
-
             Type lightMappingType = typeof(Lightmapping);
             var getLightingSettingsOrDefaultsFallbackInfo = lightMappingType.GetMethod("GetLightingSettingsOrDefaultsFallback", BindingFlags.Static | BindingFlags.NonPublic);
             var getLightingSettingsOrDefaultsFallbackLambda = Expression.Lambda<Func<LightingSettings>>(Expression.Call(null, getLightingSettingsOrDefaultsFallbackInfo));
@@ -186,12 +159,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     switch (serialized.areaLightShape)
                     {
                         case AreaLightShape.Rectangle:
-                            serialized.shapeWidth.floatValue = Mathf.Max(serialized.shapeWidth.floatValue, k_MinLightSize);
-                            serialized.shapeHeight.floatValue = Mathf.Max(serialized.shapeHeight.floatValue, k_MinLightSize);
+                            serialized.shapeWidth.floatValue = Mathf.Max(serialized.shapeWidth.floatValue,  HDAdditionalLightData.k_MinLightSize);
+                            serialized.shapeHeight.floatValue = Mathf.Max(serialized.shapeHeight.floatValue, HDAdditionalLightData.k_MinLightSize);
                             break;
                         case AreaLightShape.Tube:
                             serialized.settings.shadowsType.SetEnumValue(LightShadows.None);
-                            serialized.shapeWidth.floatValue = Mathf.Max(serialized.shapeWidth.floatValue, k_MinLightSize);
+                            serialized.shapeWidth.floatValue = Mathf.Max(serialized.shapeWidth.floatValue, HDAdditionalLightData.k_MinLightSize);
                             break;
                         case AreaLightShape.Disc:
                             //nothing to do
@@ -399,7 +372,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 {
                                     // Fake line with a small rectangle in vanilla unity for GI
                                     serialized.settings.areaSizeX.floatValue = serialized.shapeWidth.floatValue;
-                                    serialized.settings.areaSizeY.floatValue = k_MinLightSize;
+                                    serialized.settings.areaSizeY.floatValue = HDAdditionalLightData.k_MinLightSize;
                                 }
                                 // If realtime GI is enabled and the shape is unsupported or not implemented, show a warning.
                                 if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten && GetLightingSettingsOrDefaultsFallback.Invoke().realtimeGI)
@@ -435,10 +408,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (EditorGUI.EndChangeCheck())
             {
-                // Light size must be non-zero, else we get NaNs.
-                serialized.shapeWidth.floatValue = Mathf.Max(serialized.shapeWidth.floatValue, k_MinLightSize);
-                serialized.shapeHeight.floatValue = Mathf.Max(serialized.shapeHeight.floatValue, k_MinLightSize);
-                serialized.shapeRadius.floatValue = Mathf.Max(serialized.shapeRadius.floatValue, 0.0f);
                 serialized.needUpdateAreaLightEmissiveMeshComponents = true;
                 SetLightsDirty(owner); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
@@ -767,19 +736,32 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 serialized.settings.DrawCookie();
 
-                // When directional light use a cookie, it can control the size
-                if (serialized.settings.cookie != null && lightType == HDLightType.Directional)
+                if (serialized.settings.cookie is Texture cookie && cookie != null)
                 {
-                    EditorGUI.indentLevel++;
-                    EditorGUI.BeginChangeCheck();
-                    var size = new Vector2(serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
-                    size = EditorGUILayout.Vector2Field(s_Styles.cookieSize, size);
-                    if (EditorGUI.EndChangeCheck())
+                    // When directional light use a cookie, it can control the size
+                    if (lightType == HDLightType.Directional)
                     {
-                        serialized.shapeWidth.floatValue = size.x;
-                        serialized.shapeHeight.floatValue = size.y;
+                        EditorGUI.indentLevel++;
+                        EditorGUI.BeginChangeCheck();
+                        var size = new Vector2(serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
+                        size = EditorGUILayout.Vector2Field(s_Styles.cookieSize, size);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            serialized.shapeWidth.floatValue = size.x;
+                            serialized.shapeHeight.floatValue = size.y;
+                        }
+                        EditorGUI.indentLevel--;
                     }
-                    EditorGUI.indentLevel--;
+                    else if (lightType == HDLightType.Point && cookie.dimension != TextureDimension.Cube)
+                    {
+                        Debug.LogError($"The cookie texture '{cookie.name}' isn't compatible with the Point Light type. Only Cube textures are supported.");
+                        serialized.settings.cookieProp.objectReferenceValue = null;
+                    }
+                    else if (lightType == HDLightType.Spot && cookie.dimension != TextureDimension.Tex2D)
+                    {
+                        Debug.LogError($"The cookie texture '{cookie.name}' isn't compatible with the Spot Light type. Only 2D textures are supported.");
+                        serialized.settings.cookieProp.objectReferenceValue = null;
+                    }
                 }
 
                 ShowCookieTextureWarnings(serialized.settings.cookie, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);

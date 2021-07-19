@@ -62,11 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
 
                 // Reserve GUI space
-                using (new GUILayout.HorizontalScope())
-                {
-                    GUILayout.Space(EditorGUI.indentLevel * 15f);
-                    m_CurveRect = GUILayoutUtility.GetRect(128, 80);
-                }
+                m_CurveRect = GUILayoutUtility.GetRect(128, 80);
+                m_CurveRect.xMin += EditorGUI.indentLevel * 15f;
 
                 if (Event.current.type == EventType.Repaint)
                 {

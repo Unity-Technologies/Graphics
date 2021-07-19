@@ -109,8 +109,7 @@ A Light's **Update Mode** determines whether or not HDRP caches its shadow map:I
 When a Light that caches its shadows renders its shadow map for the first time, HDRP registers it with the cached shadow manager which assigns the shadow map to a cached shadow atlas. In the case of directional Lights, HDRP uses the same shadow atlas for cached and non-cached directional Lights.
 
 If the Light's **Update Mode** is set to **OnDemand**, you can manually request HDRP to update the Light's shadow map. To do this, access the Light's **HDAdditionalLightData** component and call the `RequestShadowMapRendering` function. Also, if the Light has multiple shadows (e.g. multiple cascades of a directional light), you can request the update of a specific sub-shadow. To do this, use the `RequestSubShadowMapRendering(shadowIndex)` function.
-By default when **Update Mode** is set to **OnDemand** the shadow maps will be rendered OnEnable the first time or when first registered with the system, however it is possible to change this behaviour by changing the property `onDomandShadowRenderOnPlacement`. If this property is set to false, the shadows won't be rendered until explicitly calling `RequestShadowMapRendering` or `RequestSubShadowMapRendering(shadowIndex)` .
-
+When **Update Mode** is set to **OnDemand** HDRP renders the shadow maps OnEnable for the first time, or when first registered with the system by default. However, you can change this behaviour using the `onDemandShadowRenderOnPlacement` property. If this property is set to false, HDRP does not render the shadows until you call `RequestShadowMapRendering` or `RequestSubShadowMapRendering(shadowIndex)`.
 
 For a Light that does cache its shadows, if you disable it or set its **Update Mode** to **Every Frame**, you can tell HDRP to preserve the Light's shadow map's place in the cached shadow atlas. This means that, if you enable the Light again, HDRP does not need to re-render the shadow map or place it into a shadow atlas. For information on how to make a Light preserve its shadow map's place in the cached shadow atlas, see [Preserving shadow atlas placement](#preserving-shadow-atlas-placement).
 
@@ -161,8 +160,8 @@ While you are in the Unity Editor, HDRP updates shadow maps whenever you modify 
 - SetShadowResolutionOverride()
 - SetShadowUpdateMode() or shadowUpdateMode. In this case, HDRP only refreshes the cached shadow maps if the mode changes between Every Frame and not Every Frame).
 
-
 Be aware that anything that is view-dependent is likely to create problems with cached shadow maps because HDRP does not automatically update them as the main view moves. A non-obvious example of this is tessellation. Because tessellation factor is view-dependent, the geometry that the main camera sees might mismatch the geometry that HDRP rendered into the cached shadow map. If this visibly occurs, trigger a request for HDRP to update the Light's shadow map. To do this, make sure the Light's **Update Mode** is set to **On Demand** and call `RequestShadowMapRendering`.
+Another non obvious scenario is when multiple views are available, the light will be updated only for a single view therefore causing the other views to have incorrect results. To avoid a common scenario in which the described artifact will occur, HDRP will not mark a shadow request as completed when performed from reflection probes with view dependent shadows and waiting until a non-reflection camera triggers a shadow update.
 
 
 

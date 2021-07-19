@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(26, Extension, -905)]
+    [ScriptedImporter(28, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -177,19 +177,35 @@ namespace UnityEditor.ShaderGraph
             List<AbstractMaterialNode> nodes = new List<AbstractMaterialNode>();
             NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode);
 
-            asset.effectiveShaderStage = ShaderStageCapability.All;
+            ShaderStageCapability effectiveShaderStage = ShaderStageCapability.All;
             foreach (var slot in outputSlots)
             {
                 var stage = NodeUtils.GetEffectiveShaderStageCapability(slot, true);
-                if (stage != ShaderStageCapability.All)
+                if (effectiveShaderStage == ShaderStageCapability.All && stage != ShaderStageCapability.All)
+                    effectiveShaderStage = stage;
+
+                asset.outputCapabilities.Add(new SlotCapability { slotName = slot.RawDisplayName(), capabilities = stage });
+
+                // Find all unique property nodes used by this slot and record a dependency for this input/output pair
+                var inputPropertyNames = new HashSet<string>();
+                var nodeSet = new HashSet<AbstractMaterialNode>();
+                NodeUtils.CollectNodeSet(nodeSet, slot);
+                foreach (var node in nodeSet)
                 {
-                    asset.effectiveShaderStage = stage;
-                    break;
+                    if (node is PropertyNode propNode && !inputPropertyNames.Contains(propNode.property.displayName))
+                    {
+                        inputPropertyNames.Add(propNode.property.displayName);
+                        var slotDependency = new SlotDependencyPair();
+                        slotDependency.inputSlotName = propNode.property.displayName;
+                        slotDependency.outputSlotName = slot.RawDisplayName();
+                        asset.slotDependencies.Add(slotDependency);
+                    }
                 }
             }
+            CollectInputCapabilities(asset, graph);
 
             asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode as SubGraphOutputNode);
-            asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
+            asset.requirements = ShaderGraphRequirements.FromNodes(nodes, effectiveShaderStage, false);
 
             // output precision is whatever the output node has as a graph precision, falling back to the graph default
             asset.outputGraphPrecision = outputNode.graphPrecision.GraphFallback(graph.graphDefaultPrecision);
@@ -422,6 +438,32 @@ namespace UnityEditor.ShaderGraph
             ancestors.RemoveAt(ancestors.Count - 1);
 
             return false;
+        }
+
+        static void CollectInputCapabilities(SubGraphAsset asset, GraphData graph)
+        {
+            // Collect each input's capabilities. There can be multiple property nodes
+            // contributing to the same input, so we cache these in a map while building
+            var inputCapabilities = new Dictionary<string, SlotCapability>();
+
+            // Walk all property node output slots, computing and caching the capabilities for that slot
+            var propertyNodes = graph.GetNodes<PropertyNode>();
+            foreach (var propertyNode in propertyNodes)
+            {
+                foreach (var slot in propertyNode.GetOutputSlots<MaterialSlot>())
+                {
+                    var slotName = slot.RawDisplayName();
+                    SlotCapability capabilityInfo;
+                    if (!inputCapabilities.TryGetValue(slotName, out capabilityInfo))
+                    {
+                        capabilityInfo = new SlotCapability();
+                        capabilityInfo.slotName = slotName;
+                        inputCapabilities.Add(propertyNode.property.displayName, capabilityInfo);
+                    }
+                    capabilityInfo.capabilities &= NodeUtils.GetEffectiveShaderStageCapability(slot, false);
+                }
+            }
+            asset.inputCapabilities.AddRange(inputCapabilities.Values);
         }
     }
 }
