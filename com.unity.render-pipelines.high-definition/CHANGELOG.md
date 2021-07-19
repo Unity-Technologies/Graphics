@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a minimum motion vector length to the motion vector debug view.
 - Added a better support for LODs in the ray tracing acceleration structure.
 - Added a property on the HDRP asset to allow users to avoid ray tracing effects running at too low percentages (case 1342588).
+- Added dependency to mathematics and burst, HDRP now will utilize this to improve on CPU cost. First implementation of burstified decal projector is here.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -289,6 +290,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed possible QNANS during first frame of SSGI, caused by uninitialized first frame data.
 - Fixed various SSGI issues (case 1340851, case 1339297, case 1327919).
 - Prevent user from spamming and corrupting installation of nvidia package.
+- Fixed an issue with surface gradient based normal blending for decals (volume gradients weren't converted to SG before resolving in some cases).
+- Fixed distortion when resizing the graphics compositor window in builds (case 1328968).
+- Fixed custom pass workflow for single camera effects.
+- Fixed gbuffer depth debug mode for materials not rendered during the prepass.
+- Fixed Vertex Color Mode documentation for layered lit shader.
+- Fixed wobbling/tearing-like artifacts with SSAO.
+- Fixed white flash with SSR when resetting camera history (case 1335263).
+- Fixed VFX flag "Exclude From TAA" not working for some particle types.
+- Spot Light radius is not changed when editing the inner or outer angle of a multi selection (case 1345264)
+- Fixed Dof and MSAA. DoF is now using the min depth of the per-pixel MSAA samples when MSAA is enabled. This removes 1-pixel ringing from in focus objects (case 1347291).
+- Fixed parameter ranges in HDRP Asset settings.
+- Fixed CPU performance of decal projectors, by a factor of %100 (walltime) on HDRP PS4, by burstifying decal projectors CPU processing.
+- Only display HDRP Camera Preview if HDRP is the active pipeline (case 1350767).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
