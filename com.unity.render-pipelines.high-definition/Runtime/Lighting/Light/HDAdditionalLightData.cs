@@ -35,6 +35,8 @@ namespace UnityEngine.Rendering.HighDefinition
     [ExecuteAlways]
     public partial class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
     {
+        internal const float k_MinLightSize = 0.01f; // Provide a small size of 1cm for line light
+
         internal static class ScalableSettings
         {
             public static IntScalableSetting ShadowResolutionArea(HDRenderPipelineAsset hdrp) =>
@@ -2494,6 +2496,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
         void LateUpdate()
         {
+            // Prevent any unwanted sync when not in HDRP (case 1217575)
+            if (HDRenderPipeline.currentPipeline == null)
+                return;
+
             // We force the animation in the editor and in play mode when there is an animator component attached to the light
 #if !UNITY_EDITOR
             if (!m_Animated)
@@ -2777,6 +2783,11 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateBounds();
 
             RefreshCachedShadow();
+
+            // Light size must be non-zero, else we get NaNs.
+            shapeWidth = Mathf.Max(shapeWidth, k_MinLightSize);
+            shapeHeight = Mathf.Max(shapeHeight, k_MinLightSize);
+            shapeRadius = Mathf.Max(shapeRadius, 0.0f);
 
 #if UNITY_EDITOR
             // If modification are due to change on prefab asset, we want to have prefab instances to self-update, but we cannot check in OnValidate if this is part of

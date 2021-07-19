@@ -1928,6 +1928,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             envLightData.envIndex = envIndex;
 
+            envLightData.normalizeWithAPV = hdCamera.frameSettings.IsEnabled(FrameSettingsField.NormalizeReflectionProbeWithProbeVolume) ? 1 : 0;
+            if (envLightData.normalizeWithAPV > 0)
+            {
+                if (!probe.GetSHForNormalization(out envLightData.L0L1, out envLightData.L2_1, out envLightData.L2_2))
+                {
+                    // We don't have valid data, hence we disable the feature.
+                    envLightData.normalizeWithAPV = 0;
+                }
+            }
+
             // Proxy data
             var proxyToWorld = probe.proxyToWorld;
             envLightData.proxyExtents = probe.proxyExtents;
