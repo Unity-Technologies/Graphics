@@ -393,6 +393,8 @@ namespace UnityEngine.Experimental.Rendering
                     }
                 }
             }
+
+            m_NeedUpdateIndexComputeBuffer = true;
         }
 
         void ClipToIndexSpace(Vector3Int pos, int subdiv, out Vector3Int outMinpos, out Vector3Int outMaxpos, CellIndexUpdateInfo cellInfo)
