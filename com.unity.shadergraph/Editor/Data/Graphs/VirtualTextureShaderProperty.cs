@@ -75,7 +75,11 @@ namespace UnityEditor.ShaderGraph
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
-                action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_CBDecl", HLSLDeclaration.UnityPerMaterial, concretePrecision)
+                HLSLDeclaration decl = HLSLDeclaration.UnityPerMaterial;
+                if (value.procedural)
+                    decl = GetDefaultHLSLDeclaration();
+
+                action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_CBDecl", decl, concretePrecision)
                 {
                     customDeclaration = (ssb) =>
                     {
