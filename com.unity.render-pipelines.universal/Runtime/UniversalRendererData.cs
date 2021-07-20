@@ -9,7 +9,7 @@ using UnityEngine.Assertions;
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable, ReloadGroup, ExcludeFromPreset]
-    public class UniversalRendererData : ScriptableRendererData
+    public class UniversalRendererData : ScriptableRendererData, ISerializationCallbackReceiver
     {
 #if UNITY_EDITOR
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
@@ -78,6 +78,7 @@ namespace UnityEngine.Rendering.Universal
 
         public ShaderResources shaders = null;
 
+        [SerializeField] int m_AssetVersion = 1;
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
@@ -263,6 +264,19 @@ namespace UnityEngine.Rendering.Universal
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif
 #endif
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+        }
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (m_AssetVersion == 0)
+            {
+                m_IntermediateTextureMode = IntermediateTextureMode.Always;
+                m_AssetVersion = 1;
+            }
         }
     }
 }

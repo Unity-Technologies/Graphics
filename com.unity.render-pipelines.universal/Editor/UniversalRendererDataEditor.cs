@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
-        SerializedProperty m_ImmediateTextureMode;
+        SerializedProperty m_IntermediateTextureMode;
 
 #if URP_ENABLE_CLUSTERED_UI
         static bool s_EnableClusteredUI => true;
@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.Universal
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
-            m_ImmediateTextureMode = serializedObject.FindProperty("m_ImmediateTextureMode");
+            m_IntermediateTextureMode = serializedObject.FindProperty("m_IntermediateTextureMode");
         }
 
         public override void OnInspectorGUI()
@@ -114,7 +114,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel--;
             }
 
-            EditorGUILayout.PropertyField(m_ImmediateTextureMode, Styles.intermediateTextureMode);
+            EditorGUILayout.PropertyField(m_IntermediateTextureMode, Styles.intermediateTextureMode);
 
 
             EditorGUI.indentLevel--;
