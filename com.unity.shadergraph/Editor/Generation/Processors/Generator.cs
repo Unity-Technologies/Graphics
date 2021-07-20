@@ -356,6 +356,7 @@ namespace UnityEditor.ShaderGraph
                 !CustomInterpolatorUtils.generatorNodeOnly && (pass.customInterpolators == null || pass.customInterpolators.Count() == 0);
 
             // Initialize custom interpolator sub generator
+            // NOTE: propertyCollector is not really used anymore -- we use the subshader PropertyCollector instead
             CustomInterpSubGen customInterpSubGen = new CustomInterpSubGen(m_OutputNode != null);
 
             // Initiailize Collectors
