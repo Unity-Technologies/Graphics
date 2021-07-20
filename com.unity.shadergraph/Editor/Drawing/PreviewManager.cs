@@ -453,6 +453,34 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        bool TimedNodesShouldUpdate(EditorWindow editorWindow)
+        {
+            // get current screen FPS, clamp to what we consider a valid range
+            // this is probably not accurate for multi-monitor.. but should be relevant to at least one of the monitors
+            double monitorFPS = Screen.currentResolution.refreshRate + 1.0;  // +1 to round up, since it is an integer and rounded down
+            if (Double.IsInfinity(monitorFPS) || Double.IsNaN(monitorFPS))
+                monitorFPS = 60.0f;
+            monitorFPS = Math.Min(monitorFPS, 144.0);
+            monitorFPS = Math.Max(monitorFPS, 30.0);
+
+            var curTime = EditorApplication.timeSinceStartup;
+            var deltaTime = curTime - m_LastTimedUpdateTime;
+            bool isFocusedWindow = (EditorWindow.focusedWindow == editorWindow);
+
+            // we throttle the update rate, based on whether the window is focused and if unity is active
+            const double k_AnimatedFPS_WhenNotFocused = 10.0;
+            const double k_AnimatedFPS_WhenInactive = 2.0;
+            double maxAnimatedFPS =
+                (UnityEditorInternal.InternalEditorUtility.isApplicationActive ?
+                    (isFocusedWindow ? monitorFPS : k_AnimatedFPS_WhenNotFocused) :
+                    k_AnimatedFPS_WhenInactive);
+
+            bool update = (deltaTime > (1.0 / maxAnimatedFPS));
+            if (update)
+                m_LastTimedUpdateTime = curTime;
+            return update;
+        }
+
         private static readonly ProfilerMarker RenderPreviewsMarker = new ProfilerMarker("RenderPreviews");
         public void RenderPreviews(EditorWindow editorWindow, bool requestShaders = true)
         {
@@ -488,29 +516,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 CollectPreviewProperties(m_NodesPropertyChanged, perMaterialPreviewProperties);
                 m_NodesPropertyChanged.Clear();
 
-                // timed nodes are animated, so they should be updated regularly
+                // timed nodes are animated, so they should be updated regularly (but not necessarily on every update)
                 // (m_TimedPreviews has been pre-propagated downstream)
                 // HOWEVER they do not need to collect properties. (the only property changing is time..)
-
-                // get current window FPS, clamp to what we consider a valid range
-                // this is probably not accurate for multi-monitor.. but should be relevant to at least one of the monitors
-                double windowFPS = Screen.currentResolution.refreshRate + 1.0;  // +1 to round up, since it is an integer and rounded down
-                windowFPS = Math.Min(windowFPS, 120.0);
-                windowFPS = Math.Max(windowFPS, 30.0);
-
-                var curTime = EditorApplication.timeSinceStartup;
-                var deltaTime = curTime - m_LastTimedUpdateTime;
-                bool isFocusedWindow = (EditorWindow.focusedWindow == editorWindow);
-
-                // we throttle the update rate, based on whether the window is focused and if unity is active
-                double k_NonFocusedFPS = 10.0;
-                double k_InactiveFPS = 2.0;
-                double maxAnimatedFPS = (UnityEditorInternal.InternalEditorUtility.isApplicationActive ? (isFocusedWindow ? windowFPS : k_NonFocusedFPS) : k_InactiveFPS);
-                if (deltaTime > (1.0 / maxAnimatedFPS))
-                {
+                if (TimedNodesShouldUpdate(editorWindow))
                     m_PreviewsToDraw.UnionWith(m_TimedPreviews);
-                    m_LastTimedUpdateTime = curTime;
-                }
 
                 ForEachNodesPreview(nodesToDraw, p => m_PreviewsToDraw.Add(p));
 
