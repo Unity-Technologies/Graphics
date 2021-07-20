@@ -339,7 +339,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportShadowMask, Styles.supportShadowMaskContent);
 
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests, Styles.maxRequestContent);
+            if (EditorGUI.EndChangeCheck())
+                serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests.intValue = Mathf.Max(1, serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests.intValue);
 
             if (!serialized.renderPipelineSettings.supportedLitShaderMode.hasMultipleDifferentValues)
             {
@@ -374,7 +377,11 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.IndentLevelScope())
             {
                 scalableSetting.ValueGUI<int>(Styles.shadowResolutionTiers);
+
+                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.DelayedIntField(resolutionProperty, Styles.maxShadowResolution);
+                if (EditorGUI.EndChangeCheck())
+                    resolutionProperty.intValue = Mathf.Max(1, resolutionProperty.intValue);
 
                 EditorGUILayout.LabelField(Styles.shadowLightAtlasSubTitle, EditorStyles.boldLabel);
 
@@ -444,15 +451,26 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                     serialized.renderPipelineSettings.decalSettings.atlasHeight.intValue = Mathf.Max(serialized.renderPipelineSettings.decalSettings.atlasHeight.intValue, 0);
 
+                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.decalSettings.perChannelMask, Styles.metalAndAOContent);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    // Tell VFX
+                    ((HDRenderPipelineEditor)owner).needRefreshVfxWarnings = true;
+                }
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen, Styles.maxDecalContent);
                 if (EditorGUI.EndChangeCheck())
                     serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen.intValue, 1, HDRenderPipeline.k_MaxDecalsOnScreen);
 
+                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDecalLayers, Styles.supportDecalLayersContent);
-
+                if (EditorGUI.EndChangeCheck())
+                {
+                    // Tell VFX
+                    ((HDRenderPipelineEditor)owner).needRefreshVfxWarnings = true;
+                }
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSurfaceGradient, Styles.supportSurfaceGradientContent);
 
                 if (serialized.renderPipelineSettings.supportSurfaceGradient.boolValue)
@@ -678,14 +696,14 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawDepthOfFieldQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
             {
-                EditorGUILayout.LabelField(Styles.nearBlurSubTitle);
+                EditorGUILayout.LabelField(Styles.nearBlurSubTitle, EditorStyles.miniLabel);
                 ++EditorGUI.indentLevel;
                 {
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.NearBlurSampleCount.GetArrayElementAtIndex(tier), Styles.sampleCountQuality);
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.NearBlurMaxRadius.GetArrayElementAtIndex(tier), Styles.maxRadiusQuality);
                 }
                 --EditorGUI.indentLevel;
-                EditorGUILayout.LabelField(Styles.farBlurSubTitle);
+                EditorGUILayout.LabelField(Styles.farBlurSubTitle, EditorStyles.miniLabel);
                 ++EditorGUI.indentLevel;
                 {
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.FarBlurSampleCount.GetArrayElementAtIndex(tier), Styles.sampleCountQuality);
@@ -853,8 +871,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
+            EditorGUI.BeginChangeCheck();
             serialized.renderPipelineSettings.lodBias.ValueGUI<float>(Styles.LODBias);
+            if (EditorGUI.EndChangeCheck())
+            {
+                for (var i = 0; i < serialized.renderPipelineSettings.lodBias.GetSchemaLevelCount(); ++i)
+                {
+                    var prop = serialized.renderPipelineSettings.lodBias.values.GetArrayElementAtIndex(i);
+                    prop.SetInline(Mathf.Max(0.01f, prop.GetInline<float>()));
+                }
+            }
+
+            EditorGUI.BeginChangeCheck();
             serialized.renderPipelineSettings.maximumLODLevel.ValueGUI<int>(Styles.maximumLODLevel);
+            if (EditorGUI.EndChangeCheck())
+            {
+                for (var i = 0; i < serialized.renderPipelineSettings.maximumLODLevel.GetSchemaLevelCount(); ++i)
+                {
+                    var prop = serialized.renderPipelineSettings.maximumLODLevel.values.GetArrayElementAtIndex(i);
+                    prop.SetInline(Mathf.Clamp(prop.GetInline<int>(), 0, 7));
+                }
+            }
 
             EditorGUILayout.Space(); //to separate with following sub sections
         }
