@@ -213,7 +213,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 
             // Evaluate if the exposure multiplier was at least twice bigger or smaller
             bool validExposurechange = max(expRatio, 1.0 / expRatio) < 2.0;
-            
+
             // If the exposure change was considered valid, we can keep the result and re-exposed it. Otherwise, we cannot use the history buffer
             if (validExposurechange)
                 history.xyz = history.xyz * GetInversePreviousExposureMultiplier() * currentExposure;
