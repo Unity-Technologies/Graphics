@@ -753,6 +753,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _OutputAlphaTexture             = Shader.PropertyToID("_OutputAlphaTexture");
         public static readonly int _InputNearAlphaTexture          = Shader.PropertyToID("_InputNearAlphaTexture");
         public static readonly int _CoCTargetScale                 = Shader.PropertyToID("_CoCTargetScale");
+        public static readonly int _DepthMinMaxAvg                 = Shader.PropertyToID("_DepthMinMaxAvg");
 
         public static readonly int _BloomParams                    = Shader.PropertyToID("_BloomParams");
         public static readonly int _BloomTint                      = Shader.PropertyToID("_BloomTint");

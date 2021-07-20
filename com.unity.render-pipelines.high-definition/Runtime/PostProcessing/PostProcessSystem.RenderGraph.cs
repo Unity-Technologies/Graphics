@@ -144,6 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle dilationPingPongRT;
             public TextureHandle prevCoC;
             public TextureHandle nextCoC;
+            public TextureHandle depthMinMaxAvgMSAA;
 
             public ComputeBufferHandle bokehNearKernel;
             public ComputeBufferHandle bokehFarKernel;
@@ -418,7 +419,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        TextureHandle DepthOfFieldPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle source)
+        TextureHandle DepthOfFieldPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle source, TextureHandle depthMinMaxAvgMSAA)
         {
             bool postDoFTAAEnabled = false;
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
@@ -455,6 +456,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = dofParameters;
                     passData.prevCoC = builder.ReadTexture(prevCoCHandle);
                     passData.nextCoC = builder.ReadWriteTexture(nextCoCHandle);
+
+                    if (hdCamera.msaaSamples != MSAASamples.None)
+                        passData.depthMinMaxAvgMSAA = builder.ReadTexture(depthMinMaxAvgMSAA);
 
                     float scale = 1f / (float)passData.parameters.resolution;
                     var screenScale = new Vector2(scale, scale);
@@ -559,7 +563,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 DoDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.nearCoC, data.nearAlpha,
                                     data.dilatedNearCoC, data.pingFarRGB, data.pongFarRGB, data.farCoC, data.fullresCoC, mipsHandles, data.dilationPingPongRT, data.prevCoC, data.nextCoC, data.motionVecTexture,
-                                    data.bokehNearKernel, data.bokehFarKernel, data.bokehIndirectCmd, data.nearBokehTileList, data.farBokehTileList, data.taaEnabled);
+                                    data.bokehNearKernel, data.bokehFarKernel, data.bokehIndirectCmd, data.nearBokehTileList, data.farBokehTileList, data.taaEnabled, data.depthMinMaxAvgMSAA);
                             });
 
                         source = passData.destination;
@@ -585,7 +589,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         builder.SetRenderFunc(
                             (DepthofFieldData data, RenderGraphContext ctx) =>
                             {
-                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.taaEnabled);
+                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.taaEnabled, data.depthMinMaxAvgMSAA);
                             });
 
                         source = passData.destination;
@@ -1008,6 +1012,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle depthBufferMipChain,
             TextureHandle normalBuffer,
             TextureHandle motionVectors,
+            TextureHandle depthValuesMSAA,
             TextureHandle finalRT,
             bool flipY)
         {
@@ -1042,7 +1047,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
 
-                source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source);
+                source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, depthValuesMSAA);
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)

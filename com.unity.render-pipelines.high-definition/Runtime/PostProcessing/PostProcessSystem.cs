@@ -1431,6 +1431,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.dofCombineCS.shaderKeywords = null;
             parameters.pbDoFGatherCS.shaderKeywords = null;
             parameters.dofCoCReprojectCS.shaderKeywords = null;
+            parameters.dofCoCCS.shaderKeywords = null;
+            parameters.dofCircleOfConfusionCS.shaderKeywords = null;
 
             bool nearLayerActive = parameters.nearLayerActive;
             bool farLayerActive = parameters.farLayerActive;
@@ -1486,6 +1488,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.ditheredTextureSet = blueNoise.DitheredTextureSet256SPP();
             }
 
+            if (camera.msaaSamples != MSAASamples.None)
+            {
+                // When MSAA is enabled, DoF should use the min depth of the MSAA samples to avoid 1-pixel ringing around in-focus objects [case 1347291]
+                parameters.dofCoCCS.EnableKeyword("USE_MIN_DEPTH");
+                parameters.dofCircleOfConfusionCS.EnableKeyword("USE_MIN_DEPTH");
+            }
+
             parameters.useMipSafePath = m_UseSafePath;
 
             return parameters;
@@ -1516,7 +1525,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle pingFarRGB, RTHandle pongFarRGB, RTHandle farCoC, RTHandle fullresCoC, RTHandle[] mips, RTHandle dilationPingPong,
             RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture,
             ComputeBuffer bokehNearKernel, ComputeBuffer bokehFarKernel, ComputeBuffer bokehIndirectCmd, ComputeBuffer nearBokehTileList, ComputeBuffer farBokehTileList,
-            bool taaEnabled)
+            bool taaEnabled, RTHandle depthMinMaxAvgMSAA)
         {
             bool nearLayerActive = dofParameters.nearLayerActive;
             bool farLayerActive = dofParameters.farLayerActive;
@@ -1636,6 +1645,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraDepthTexture, depthBuffer);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputCoCTexture, fullresCoC);
+
+                if (dofParameters.camera.msaaSamples != MSAASamples.None)
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMinMaxAvg, depthMinMaxAvgMSAA);
+
                 cmd.DispatchCompute(cs, kernel, (dofParameters.camera.actualWidth + 7) / 8, (dofParameters.camera.actualHeight + 7) / 8, dofParameters.camera.viewCount);
 
                 // -----------------------------------------------------------------------------
@@ -2000,7 +2013,7 @@ namespace UnityEngine.Rendering.HighDefinition
             fullresCoC = nextCoC;
         }
 
-        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, RTHandle minMaxCoCPing, RTHandle minMaxCoCPong, bool taaEnabled)
+        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, RTHandle minMaxCoCPing, RTHandle minMaxCoCPong, bool taaEnabled, RTHandle depthMinMaxAvgMSAA)
         {
             float scale = 1f / (float)dofParameters.resolution;
             int targetWidth = Mathf.RoundToInt(dofParameters.camera.actualWidth * scale);
@@ -2054,6 +2067,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraDepthTexture, depthBuffer);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, fullresCoC);
+                if (dofParameters.camera.msaaSamples != MSAASamples.None)
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._DepthMinMaxAvg, depthMinMaxAvgMSAA);
                 cmd.DispatchCompute(cs, kernel, (dofParameters.camera.actualWidth + 7) / 8, (dofParameters.camera.actualHeight + 7) / 8, dofParameters.camera.viewCount);
 
                 if (taaEnabled)
