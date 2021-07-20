@@ -231,11 +231,6 @@ namespace UnityEngine.Experimental.Rendering
             Debug.Assert(bricks.Count <= ushort.MaxValue, "Cannot add more than 65K bricks per RegId.");
             int largest_cell = ProbeReferenceVolume.CellSize(kMaxSubdivisionLevels);
 
-            //  Debug.Log($"{bricks.Count} - {cellInfo.minValidBrickIndexForCellAtMaxRes} {cellInfo.maxValidBrickIndexForCellAtMaxRes} {cellInfo.firstChunkIndex} {cellInfo.numberOfChunks} {cellInfo.minSubdivInCell}");
-
-            for (int all = 0; all < allocations.Count; ++all)
-                Debug.Log($"{allocations[all].x} {allocations[all].y} {allocations[all].z}");
-
             // create a new copy
             BrickMeta bm = new BrickMeta();
             bm.voxels = new HashSet<Vector3Int>();
