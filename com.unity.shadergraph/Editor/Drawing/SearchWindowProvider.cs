@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            
+
             Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateKnowNodes");
             foreach (var type in NodeClassCache.knownNodeTypes)
             {

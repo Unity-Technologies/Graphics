@@ -1061,11 +1061,11 @@ namespace UnityEditor.ShaderGraph
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
 
-			Profiler.EndSample();
+            Profiler.EndSample();
             // Turn off the skip flag so other passes behave correctly correctly.
             CustomInterpolatorUtils.generatorSkipFlag = false;
             CustomInterpolatorUtils.generatorNodeOnly = false;
-			Profiler.EndSample();
+            Profiler.EndSample();
         }
     }
 }

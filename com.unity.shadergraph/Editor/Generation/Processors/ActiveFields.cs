@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph.Internal
         public bool Add(FieldDescriptor fieldDescriptor)
         {
             bool added = m_fieldDescriptors.Add(fieldDescriptor);
-            if(added)
+            if (added)
             {
                 m_fieldNames.Add(fieldDescriptor.ToFieldString());
             }

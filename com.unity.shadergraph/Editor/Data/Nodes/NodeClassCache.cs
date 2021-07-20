@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
                 foreach (string str in deletedAssets)
                 {
                     var guid = AssetDatabase.AssetPathToGUID(str);
-                    if(m_KnownSubGraphLookupTable.ContainsKey(guid))
+                    if (m_KnownSubGraphLookupTable.ContainsKey(guid))
                     {
                         m_KnownSubGraphLookupTable.Remove(guid);
                     }
@@ -24,27 +24,26 @@ namespace UnityEditor.ShaderGraph
                 foreach (string str in movedFromAssetPaths)
                 {
                     var guid = AssetDatabase.AssetPathToGUID(str);
-                    if(m_KnownSubGraphLookupTable.ContainsKey(guid))
+                    if (m_KnownSubGraphLookupTable.ContainsKey(guid))
                     {
                         m_KnownSubGraphLookupTable.Remove(guid);
                     }
                 }
 
-                foreach(string str in importedAssets)
+                foreach (string str in importedAssets)
                 {
                     if (str.EndsWith(ShaderSubGraphImporter.Extension))
                     {
                         UpdateSubGraphEntry(str);
                     }
                 }
-                foreach(string str in movedAssets)
+                foreach (string str in movedAssets)
                 {
                     if (str.EndsWith(ShaderSubGraphImporter.Extension))
                     {
                         UpdateSubGraphEntry(str);
                     }
                 }
-
             }
         }
 
@@ -67,25 +66,25 @@ namespace UnityEditor.ShaderGraph
         public static void UpdateSubGraphEntry(string path)
         {
             string guid = AssetDatabase.AssetPathToGUID(path);
-            if(guid.Length == 0)
+            if (guid.Length == 0)
             {
                 return;
             }
             var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(path);
 
             bool valid = asset != null && asset.isValid;
-            if(m_KnownSubGraphLookupTable.TryGetValue(guid, out SubGraphAsset known))
+            if (m_KnownSubGraphLookupTable.TryGetValue(guid, out SubGraphAsset known))
             {
-                if(!valid)
+                if (!valid)
                 {
                     m_KnownSubGraphLookupTable.Remove(guid);
                 }
-                else if(asset != known)
+                else if (asset != known)
                 {
                     m_KnownSubGraphLookupTable[guid] = asset;
                 }
             }
-            else if(valid)
+            else if (valid)
             {
                 m_KnownSubGraphLookupTable.Add(guid, asset);
             }

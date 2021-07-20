@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
             while (index < end)
             {
                 char c = str[index];
-                if(!whitespace.Contains(c))
+                if (!whitespace.Contains(c))
                 {
                     break;
                 }
@@ -244,7 +244,7 @@ namespace UnityEditor.ShaderGraph
                         else
                         {
                             int endIndex = result.length;
-                            using (var temp = new ShaderStringBuilder(humanReadable:true))
+                            using (var temp = new ShaderStringBuilder(humanReadable: true))
                             {
                                 // Wrap in debug mode
                                 if (isDebug)

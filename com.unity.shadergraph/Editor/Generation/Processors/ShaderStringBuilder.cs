@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph
 
         private void AppendLine(string value, int startIndex, int count)
         {
-            if(value.Length > 0)
+            if (value.Length > 0)
             {
                 TryAppendIndentation();
                 m_StringBuilder.Append(value, startIndex, count);
@@ -111,11 +111,11 @@ namespace UnityEditor.ShaderGraph
             {
                 indexOfNextBreak = Math.Min(lines.IndexOf('\n'), lines.IndexOf('\r'));
             }
-            else if(newline >= 0)
+            else if (newline >= 0)
             {
                 indexOfNextBreak = newline;
             }
-            else if(ret >= 0)
+            else if (ret >= 0)
             {
                 indexOfNextBreak = ret;
             }
@@ -126,13 +126,13 @@ namespace UnityEditor.ShaderGraph
 
             while (indexOfNextBreak >= 0)
             {
-                AppendLine(lines, startSearchIndex, indexOfNextBreak-startSearchIndex);
+                AppendLine(lines, startSearchIndex, indexOfNextBreak - startSearchIndex);
                 startSearchIndex = indexOfNextBreak + 1;
 
                 newline = lines.IndexOf('\n', startSearchIndex);
                 ret = lines.IndexOf('\r', startSearchIndex);
 
-                if(newline >= 0 && ret >= 0)
+                if (newline >= 0 && ret >= 0)
                 {
                     indexOfNextBreak = Math.Min(lines.IndexOf('\n', startSearchIndex), lines.IndexOf('\r', startSearchIndex));
                 }
@@ -305,7 +305,7 @@ namespace UnityEditor.ShaderGraph
                 // Set indentations
                 m_StringBuilder.Replace(Environment.NewLine, Environment.NewLine + k_IndentationString);
             }
-            
+
             return m_StringBuilder.ToString();
         }
 
