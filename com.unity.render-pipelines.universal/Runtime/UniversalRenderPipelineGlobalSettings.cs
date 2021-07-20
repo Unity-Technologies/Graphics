@@ -46,8 +46,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
+#if !UNITY_EDITOR
+                // The URP Global Settings could have been changed by script, undo/redo (case 1342987), or file update - file versioning, let us make sure we display the correct one
+                // In a Player, we do not need to worry about those changes as we only support loading one
                 if (cachedInstance == null)
-                    cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<UniversalRenderPipeline>() as UniversalRenderPipelineGlobalSettings;
+#endif
+                cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<UniversalRenderPipeline>() as UniversalRenderPipelineGlobalSettings;
                 return cachedInstance;
             }
         }

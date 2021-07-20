@@ -44,8 +44,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
+#if !UNITY_EDITOR
+                // The HDRP Global Settings could have been changed by script, undo/redo (case 1342987), or file update - file versioning, let us make sure we display the correct one
+                // In a Player, we do not need to worry about those changes as we only support loading one
                 if (cachedInstance == null)
-                    cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>() as HDRenderPipelineGlobalSettings;
+#endif
+                cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>() as HDRenderPipelineGlobalSettings;
                 return cachedInstance;
             }
         }
@@ -62,6 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
+
         //Making sure there is at least one HDRenderPipelineGlobalSettings instance in the project
         static internal HDRenderPipelineGlobalSettings Ensure(bool canCreateNewAsset = true)
         {
