@@ -15,14 +15,10 @@ namespace UnityEngine.Experimental.Rendering
 
         internal struct IndexMetaData
         {
-            internal Vector3Int indexStart; // can be flatted into a single uint
-            internal int indexDimension; // Same on all 3 axis. If the index are all uniform this is not needed (will be different when using per-index minBrickSize)
-            internal int minSubdiv;
-
-            // NEW VERSION
             internal Vector3Int minLocalIdx;
             internal Vector3Int maxLocalIdx;
             internal int firstChunkIndex;
+            internal int minSubdiv;
 
 
             internal void Pack(out uint[] vals)
@@ -62,17 +58,6 @@ namespace UnityEngine.Experimental.Rendering
                 vals[2] |= ((uint)maxLocalIdx.z & 0x3FF) << 20;
             }
         }
-
-        // To  sample in shader:
-        // - index position is in minBrickSpace
-        // - Divide by number of bricks per cell, this will be index in cells starting from 0
-        // - use index computed above to get the metadata.
-        // - Get position relative to this index ( TODO: How? do we need extra data considering  we'll have streaming? Probably we will need a start in a virtual infinite index
-        //   which is like the old-index which is the whole world to get a relative index + then a physical index into the physical index into the index table.)
-        // - Sample index
-        // - ???
-        // - Profit
-
 
         ComputeBuffer m_IndexOfIndicesBuffer;
         uint[] m_IndexOfIndicesData;

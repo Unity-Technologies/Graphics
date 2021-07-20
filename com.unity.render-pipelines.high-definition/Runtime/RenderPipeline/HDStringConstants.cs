@@ -951,7 +951,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Adaptive Probe Volume
         public static readonly int _APVResIndex                    = Shader.PropertyToID("_APVResIndex");
-        public static readonly int _APVPhysicalIndex               = Shader.PropertyToID("_APVPhysicalIndex");
         public static readonly int _APVResCellIndices              = Shader.PropertyToID("_APVResCellIndices");
         public static readonly int _APVResL0_L1Rx                  = Shader.PropertyToID("_APVResL0_L1Rx");
         public static readonly int _APVResL1G_L1Ry                 = Shader.PropertyToID("_APVResL1G_L1Ry");

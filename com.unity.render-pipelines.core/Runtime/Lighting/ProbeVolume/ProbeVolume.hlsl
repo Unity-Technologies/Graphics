@@ -28,7 +28,6 @@ struct APVResources
 
 // Resources required for APV
 StructuredBuffer<int> _APVResIndex;
-StructuredBuffer<int> _APVPhysicalIndex;
 StructuredBuffer<uint3> _APVResCellIndices;
 
 TEXTURE3D(_APVResL0_L1Rx);
@@ -64,9 +63,8 @@ void LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize
     maxRelativeIdx.z = (metaData.z >> 20) & 0x3FF;
 }
 
-uint GetIndexData(float3 posWS, out int tmpFlatIdx, out float3 dbgOut)
+uint GetIndexData(APVResources apvRes, float3 posWS)
 {
-    dbgOut = 0;
     int3 cellPos = floor(posWS / _CellInMeters);
     float3 topLeftCellWS = cellPos * _CellInMeters;
 
@@ -83,8 +81,6 @@ uint GetIndexData(float3 posWS, out int tmpFlatIdx, out float3 dbgOut)
     float3 residualPosWS = posWS - topLeftCellWS;
     int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
 
-    tmpFlatIdx = flatIdx;
-
     // Out of bounds.
     if (any(localBrickIndex < minRelativeIdx || localBrickIndex >= maxRelativeIdx))
     {
@@ -98,7 +94,7 @@ uint GetIndexData(float3 posWS, out int tmpFlatIdx, out float3 dbgOut)
 
     int locationInPhysicalBuffer = chunkIdx * _IndexChunkSize + flattenedLocationInCell;
 
-    return _APVPhysicalIndex[locationInPhysicalBuffer];;
+    return apvRes.index[locationInPhysicalBuffer];
 }
 
 
@@ -156,36 +152,9 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     // transform into APV space
     float4 posWSForSample = float4(posWS + normalWS * _NormalBias
         + viewDirWS * _ViewBias, 1.0);
-    float3 posRS = mul(_WStoRS, posWSForSample).xyz;
 
-    uint3 indexDim = (uint3)_IndexDim;
-    uint3 poolDim = (uint3)_PoolDim;
-    int3 centerIS = indexDim / 2;
-
-    // check bounds
-    if (any(abs(posRS) > float3(centerIS)))
-    {
-        hasValidUVW = false;
-    }
-
-    // convert to index
-    int3 index = centerIS + floor(posRS);
-
-    int tmpFltIdx;
-    //index = index.x == 9999999 ? index : GetIndexLocation(posWS + normalWS * _NormalBias
-    //    + viewDirWS * _ViewBias, tmpFltIdx);
-
-
-    index = index % indexDim;
-
-    // resolve the index
-    int  flattened_index = index.z * (indexDim.x * indexDim.y) + index.x * indexDim.y + index.y;
-    uint packed_pool_idx = apvRes.index[flattened_index];
-
-#if 1
-    float3 unused;
-    packed_pool_idx = GetIndexData(posWSForSample.xyz, tmpFltIdx, unused);
-#endif
+    float3 posRS = posWSForSample.xyz / _MinBrickSize;
+    uint packed_pool_idx = GetIndexData(apvRes, posWSForSample.xyz);
 
     // no valid brick loaded for this index, fallback to ambient probe
     if (packed_pool_idx == 0xffffffff)
@@ -193,6 +162,7 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
         hasValidUVW = false;
     }
 
+    uint3 poolDim = (uint3)_PoolDim;
     // unpack pool idx
     // size is encoded in the upper 4 bits
     subdiv = (packed_pool_idx >> 28) & 15;
@@ -247,25 +217,6 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
         backBakeDiffuseLighting = EvaluateAmbientProbe(backNormalWS);
     }
-
-    //  TEST
-    int tmpFltIdx;
-    float3 outDBG;
-    float3 posWSForSample = posWS + normalWS * _NormalBias + viewDir * _ViewBias;
-    uint tOut = GetIndexData(posWSForSample.xyz, tmpFltIdx, outDBG);
-
-    uint hashedIdx = JenkinsHash(tmpFltIdx + 1);
-
-    if (tOut == 0xffffffff)
-    {
-        bakeDiffuseLighting = float3(100, 0, 0);
-    }
-    //else
-    //    bakeDiffuseLighting = 100* float3(rcp(255.0f) * float3((hashedIdx >> 8) & 255, (hashedIdx >> 16) & 255, (hashedIdx >> 24) & 255));
-    //GetIndexLocation(posWS + normalWS * _NormalBias
-    //    + viewDir * _ViewBias, tmpFltIdx);
-    //
-
 }
 
 float3 EvaluateAdaptiveProbeVolumeL0(in float3 posWS, in float3 normalWS, in float3 viewDir, in APVResources apvRes)

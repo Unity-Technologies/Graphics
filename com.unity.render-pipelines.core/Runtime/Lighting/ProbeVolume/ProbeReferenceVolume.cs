@@ -236,7 +236,6 @@ namespace UnityEngine.Experimental.Rendering
             /// Index data to fetch the correct location in the Texture3D.
             /// </summary>
             public ComputeBuffer index;
-            public ComputeBuffer newIndex;
             /// <summary>
             /// Indices of the various index buffers for each cell.
             /// </summary>
@@ -274,7 +273,6 @@ namespace UnityEngine.Experimental.Rendering
         internal struct RegId
         {
             internal int id;
-            internal int ownerCell;
 
             public bool IsValid() => id != 0;
             public void Invalidate() => id = 0;
@@ -656,8 +654,6 @@ namespace UnityEngine.Experimental.Rendering
             // TODO_FCC [ROUNDING-ISSUE]
             bricksForCell =  sizeOfValidIndicesAtMaxRes / CellSize(cell.minSubdiv);
 
-            Debug.Log($"CellPos {cell.position} --- size {sizeOfValidIndicesAtMaxRes}");
-
             return bricksForCell.x * bricksForCell.y * bricksForCell.z;
         }
 
@@ -702,20 +698,11 @@ namespace UnityEngine.Experimental.Rendering
                 List<Chunk> chunkList = new List<Chunk>();
 
                 var cellUpdateInfo = GetCellIndexUpdate(cell);
-                var regId = AddBricks(brickList, dataLocation, cellFlatIdx, cellUpdateInfo,  out chunkList);
+                var regId = AddBricks(brickList, dataLocation, cellUpdateInfo, out chunkList);
                 m_BricksToCellUpdateInfo.Add(regId, cellUpdateInfo);
 
-                // Min subdiv here hard-coded to 0 as a temp measure.
-                // TODO: The index start here is re-computed to match old behaviour, however it is important that it comes from the actual computations of the index buffer as the
-                // physical index will not have a guarantee of having an inter-cell structures (only intra cell will be guaranteed).
-                var WStoRS = Matrix4x4.Inverse(m_Transform.refSpaceToWS);
-
-                var indexStart = Vector3Int.zero;
-                var posWS = new Vector3(cell.position.x * MaxBrickSize(), cell.position.y * MaxBrickSize(), cell.position.z * MaxBrickSize());
-                Vector3 posRS = WStoRS.MultiplyPoint(posWS);
-                Vector3Int posRSFloored = new Vector3Int(Mathf.FloorToInt(posRS.x), Mathf.FloorToInt(posRS.y), Mathf.FloorToInt(posRS.z));
-                indexStart = posRSFloored + (m_Index.GetIndexDimension() / 2);
                 m_CellIndices.AddCell(cellFlatIdx, cellUpdateInfo);
+
                 AddCell(cell, chunkList);
                 m_AssetPathToBricks[path].Add(regId);
 
@@ -871,7 +858,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Runtime API starts here
-        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc, int cellIdx, ProbeBrickIndex.CellIndexUpdateInfo tmpCellUpdateInfo, out List<Chunk> ch_list)
+        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo, out List<Chunk> ch_list)
         {
             Profiler.BeginSample("AddBricks");
 
@@ -914,14 +901,10 @@ namespace UnityEngine.Experimental.Rendering
             RegId id;
             m_ID++;
             id.id = m_ID;
-
-            id.ownerCell = cellIdx;
             m_Registry.Add(id, ch_list);
 
             // Build index
-            // [OLD-VERSION-SWITCH]
-            //m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
-            m_Index.AddBricks_2(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), tmpCellUpdateInfo);
+            m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);
 
             Profiler.EndSample();
 
@@ -938,9 +921,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // clean up the index
-            // TODO_FCC : SWITCH HERE TO GO TO OLD VERSION [OLD-VERSION-SWITCH]
-            //m_Index.RemoveBricks(id);
-            m_Index.RemoveBricks_2(id, m_BricksToCellUpdateInfo[id]);
+            m_Index.RemoveBricks(id, m_BricksToCellUpdateInfo[id]);
 
             // clean up the pool
             m_Pool.Deallocate(ch_list);
