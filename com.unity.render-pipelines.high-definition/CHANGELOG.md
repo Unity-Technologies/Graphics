@@ -281,6 +281,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Vertex Color Mode documentation for layered lit shader.
 - Fixed wobbling/tearing-like artifacts with SSAO.
 - Fixed white flash with SSR when resetting camera history (case 1335263).
+- Fixed warning "Releasing render texture that is set to be RenderTexture.active!" on pipeline disposal / hdrp live editing.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
