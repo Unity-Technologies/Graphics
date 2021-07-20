@@ -136,6 +136,44 @@ float4 BilUpColor3x3(float highDepth, in NeighborhoodUpsampleData3x3 data)
     return WeightedSum / TotalWeight;
 }
 
+float CentroidDistance(float2 centroidCoord, int2 offset)
+{
+    float d = distance(float2(offset + 0.5), centroidCoord);
+    d *= d;
+    d *= d; //pow(d,4.0)
+    return 1.0/(1.0 + d);
+}
+
+float4 BilUpColor3x3WithCentroid(float2 centroidCoord, float highDepth, in NeighborhoodUpsampleData3x3 data)
+{
+    float4 dA = float4(CentroidDistance(centroidCoord, int2(-1,-1)),
+                       CentroidDistance(centroidCoord, int2( 0,-1)),
+                       CentroidDistance(centroidCoord, int2( 1,-1)),
+                       CentroidDistance(centroidCoord, int2(-1, 0)));
+    float4 dB = float4(CentroidDistance(centroidCoord, int2( 0, 0)),
+                       CentroidDistance(centroidCoord, int2( 1, 0)),
+                       CentroidDistance(centroidCoord, int2(-1, 1)),
+                       CentroidDistance(centroidCoord, int2( 0, 1)));
+    float  dC =        CentroidDistance(centroidCoord, int2( 1, 1));
+
+    float4 weightsA = dA / (abs(highDepth - data.lowDepthA) + _UpsampleTolerance);
+    float4 weightsB = dB / (abs(highDepth - data.lowDepthB) + _UpsampleTolerance);
+    float weightsC =  dC / (abs(highDepth - data.lowDepthC) + _UpsampleTolerance);
+
+    float TotalWeight = dot(weightsA, float4(1,1,1,1)) + dot(weightsB, float4(1,1,1,1)) + weightsC + _NoiseFilterStrength;
+    float4 WeightedSum = data.lowValue0 * weightsA.x
+                        + data.lowValue1 * weightsA.y
+                        + data.lowValue2 * weightsA.z
+                        + data.lowValue3 * weightsA.w
+                        + data.lowValue4 * weightsB.x
+                        + data.lowValue5 * weightsB.y
+                        + data.lowValue6 * weightsB.z
+                        + data.lowValue7 * weightsB.w
+                        + data.lowValue8 * weightsC
+                        + _NoiseFilterStrength;
+    return WeightedSum / TotalWeight;
+}
+
 // The bilateral upscale function (2x2 neighborhood) (single channel version)
 float BilUpSingle(float HiDepth, float4 LowDepths, float4 lowValue)
 {
