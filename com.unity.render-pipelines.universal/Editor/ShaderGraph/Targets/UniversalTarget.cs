@@ -125,6 +125,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         internal override bool ignoreCustomInterpolators => false;
         internal override int padCustomInterpolatorLimit => 4;
+        internal override bool prefersSpritePreview =>
+            activeSubTarget is UniversalSpriteUnlitSubTarget or UniversalSpriteLitSubTarget or
+                               UniversalSpriteCustomLitSubTarget;
 
         public UniversalTarget()
         {
@@ -1712,7 +1715,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             displayName = "Light Cookies",
             referenceName = "_LIGHT_COOKIES",
             type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
+            definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
 

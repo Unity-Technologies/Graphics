@@ -141,12 +141,24 @@ namespace UnityEditor.ShaderGraph
             m_GraphData.CollectShaderProperties(shaderProperties, m_Mode);
             m_GraphData.CollectShaderKeywords(shaderKeywords, m_Mode);
 
-            if (m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
+            var graphInputOrderData = new List<GraphInputData>();
+            foreach (var cat in m_GraphData.categories)
+            {
+                foreach (var input in cat.Children)
+                {
+                    graphInputOrderData.Add(new GraphInputData()
+                    {
+                        isKeyword = input is ShaderKeyword,
+                        referenceName = input.referenceName
+                    });
+                }
+            }
+            string path = AssetDatabase.GUIDToAssetPath(m_GraphData.assetGuid);
+            if (shaderKeywords.permutations.Count > ShaderGraphPreferences.variantLimit)
             {
                 string graphName = "";
                 if (m_GraphData.owner != null)
                 {
-                    string path = AssetDatabase.GUIDToAssetPath(m_GraphData.owner.AssetGuid);
                     if (path != null)
                     {
                         graphName = Path.GetFileNameWithoutExtension(path);
@@ -155,11 +167,14 @@ namespace UnityEditor.ShaderGraph
                 Debug.LogError($"Error in Shader Graph {graphName}:{ShaderKeyword.kVariantLimitWarning}");
 
                 m_ConfiguredTextures = shaderProperties.GetConfiguredTextures();
-                m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader);
+                m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader.Replace("Hidden/GraphErrorShader2", graphName));
             }
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
+            {
+                activeNode.SetUsedByGenerator();
                 activeNode.CollectShaderProperties(shaderProperties, m_Mode);
+            }
 
             // Collect excess shader properties from the TargetImplementation
             foreach (var target in m_Targets)
@@ -179,7 +194,7 @@ namespace UnityEditor.ShaderGraph
             m_Builder.AppendLine(@"Shader ""{0}""", m_Name);
             using (m_Builder.BlockScope())
             {
-                GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
+                GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode, graphInputOrderData);
 
                 for (int i = 0; i < m_Targets.Length; i++)
                 {

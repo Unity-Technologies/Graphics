@@ -45,7 +45,7 @@ Shader "Hidden/Test/OutputDepthNormalsTexture"
             half4 Fragment(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                
+
                 float2 uv = input.positionCS.xy;
                 float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(uv);
 
