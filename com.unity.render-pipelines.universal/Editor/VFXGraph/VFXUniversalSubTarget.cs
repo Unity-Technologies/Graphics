@@ -16,8 +16,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     [InitializeOnLoad]
     static class VFXUniversalSubTarget
     {
-        internal const string Inspector = "Rendering.HighDefinition.VFXShaderGraphGUI";
+        internal const string Inspector = "Rendering.TODOPAUL.VFXShaderGraphGUI";
 
+        //TODOPAUL : Specific to URP
         public static readonly DependencyCollection ElementSpaceDependencies = new DependencyCollection
         {
             // Interpolator dependency.
@@ -89,9 +90,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             for (int i = 0; i < passes.Length; i++)
             {
                 var passDescriptor = passes[i].descriptor;
-
-                var surfaceField = new List<FieldDescriptor>();
-
                 var surfaceDescriptionInputWithVFX = new StructDescriptor
                 {
                     name = StructFields.SurfaceDescriptionInputs.name,
@@ -99,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 };
 
                 // Warning: Touching the structs field may require to manually append the default structs here.
-                passDescriptor.structs = new StructCollection
+                passDescriptor.structs = new StructCollection //TODOPAUL : this StructCollection is specific to SRP
                 {
                     AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
                     AppendVFXInterpolator(UniversalStructs.Varyings, context, data),
@@ -109,11 +107,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     sourceAttributesStruct
                 };
 
-                passDescriptor.pragmas = new PragmaCollection
-                {
-                    ModifyVertexEntry(passDescriptor.pragmas),
-                    Pragma.MultiCompileInstancing
-                };
+                // Add additional VFX dependencies
+                passDescriptor.fieldDependencies = passDescriptor.fieldDependencies == null ? new DependencyCollection() : new DependencyCollection { passDescriptor.fieldDependencies }; // Duplicate fieldDependencies to avoid side effects (static list modification)
+                passDescriptor.fieldDependencies.Add(VFXUniversalSubTarget.ElementSpaceDependencies);
 
                 passDescriptor.additionalCommands = new AdditionalCommandCollection
                 {
@@ -134,14 +130,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     GenerateFragInputs(context, data)
                 };
 
-                //URP Specific : There isn't FragInput we are forced to use customInterpolators : Doesn't work as I though
-                /*passDescriptor.customInterpolators = new CustomInterpSubGen.Collection()
-                {
-                    new CustomInterpSubGen.Collection()
-                    {
-                        CustomInterpSubGen.Descriptor.MakeStruct("FragInputsVFXTOTO", "vfx")
-                    }
-                };*/
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
 
@@ -150,36 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return subShaderDescriptor;
         }
 
-        private static readonly GraphicsDeviceType[] s_RequiresModifiedVertexEntry = new GraphicsDeviceType[]
-        {
-            GraphicsDeviceType.Direct3D12,
-            GraphicsDeviceType.Vulkan
-        };
-
-        static PragmaCollection ModifyVertexEntry(PragmaCollection pragmas)
-        {
-            // Only modify the entry for the required APIs.
-            var graphicsAPI = PlayerSettings.GetGraphicsAPIs(EditorUserBuildSettings.activeBuildTarget)[0];
-            if (s_RequiresModifiedVertexEntry.All(o => o != graphicsAPI))
-                return pragmas;
-
-            // Replace the default vertex shader entry with one defined by VFX.
-            // NOTE: Assumes they are named "Vert" for all shader passes, which they are.
-            const string k_CoreBasicVertex = "#pragma vertex Vert";
-
-            var pragmaVFX = new PragmaCollection();
-
-            foreach (var pragma in pragmas)
-            {
-                if (pragma.value != k_CoreBasicVertex)
-                    pragmaVFX.Add(pragma.descriptor);
-                else
-                    pragmaVFX.Add(Pragma.Vertex("VertVFX"));
-            }
-
-            return pragmaVFX;
-        }
-
+        //TODOPAUL : this AttributesMeshVFX is specific to URP
         static StructDescriptor AttributesMeshVFX = new StructDescriptor()
         {
             name = StructFields.Attributes.name,
@@ -209,6 +168,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // A key difference between Material Shader and VFX Shader generation is how surface properties are provided. Material Shaders
         // simply provide properties via UnityPerMaterial cbuffer. VFX expects these same properties to be computed in the vertex
         // stage (because we must evaluate them with the VFX blocks), and packed with the interpolators for the fragment stage.
+
+        //TODOPAUL Most of behavior of this function isn't URP specific, we simply need a way get world & varying name
         static StructDescriptor AppendVFXInterpolator(StructDescriptor interpolator, VFXContext context, VFXContextCompiledData contextData)
         {
             var fields = interpolator.fields.ToList();
@@ -217,8 +178,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
 
             var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
-
-            int normalSemanticIndex = 0;
 
             // Warning/TODO: FragmentParameters are created from the ShaderGraphVfxAsset.
             // We may ultimately need to move this handling of VFX Interpolators + SurfaceDescriptionFunction function signature directly into the SG Generator (since it knows about the exposed properties).
@@ -235,7 +194,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         continue;
 
                     // TODO: NoInterpolation only for non-strips.
-                    fields.Add(new FieldDescriptor(UniversalStructs.Varyings.name, filteredNamedExpression.name, "", shaderValueType, $"NORMAL{normalSemanticIndex++}", "", StructFieldOptions.Static, "nointerpolation"));
+                    fields.Add(new FieldDescriptor(UniversalStructs.Varyings.name, filteredNamedExpression.name, "", shaderValueType, subscriptOptions: StructFieldOptions.Static, interpolation: "nointerpolation"));
                 }
             }
 

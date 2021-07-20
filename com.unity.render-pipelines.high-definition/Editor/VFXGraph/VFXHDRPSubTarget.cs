@@ -129,25 +129,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return subShaderDescriptor;
         }
 
-        static PragmaCollection ModifyVertexEntry(PragmaCollection pragmas)
-        {
-            // Replace the default vertex shader entry with one defined by VFX.
-            // NOTE: Assumes they are named "Vert" for all shader passes, which they are.
-            const string k_CoreBasicVertex = "#pragma vertex Vert";
-
-            var pragmaVFX = new PragmaCollection();
-
-            foreach (var pragma in pragmas)
-            {
-                if (pragma.value != k_CoreBasicVertex)
-                    pragmaVFX.Add(pragma.descriptor);
-                else
-                    pragmaVFX.Add(Pragma.Vertex("VertVFX"));
-            }
-
-            return pragmaVFX;
-        }
-
         static StructDescriptor AttributesMeshVFX = new StructDescriptor()
         {
             name = "AttributesMesh",
