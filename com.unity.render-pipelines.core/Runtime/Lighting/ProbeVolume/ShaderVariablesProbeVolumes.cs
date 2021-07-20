@@ -29,6 +29,7 @@ namespace UnityEngine.Rendering
 
         public float _CellInMinBricks;
         public float _MinBrickSize;
-        public Vector2 pad0;
+        public int _IndexChunkSize;
+        public int pad0;
     }
 }

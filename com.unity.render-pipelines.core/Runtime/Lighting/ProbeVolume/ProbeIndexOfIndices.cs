@@ -11,47 +11,55 @@ namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeCellIndices
     {
+        const int kUintPerEntry = 3;
+
         internal struct IndexMetaData
         {
             internal Vector3Int indexStart; // can be flatted into a single uint
             internal int indexDimension; // Same on all 3 axis. If the index are all uniform this is not needed (will be different when using per-index minBrickSize)
             internal int minSubdiv;
 
-            internal void Pack(out uint val1, out uint val2)
+            // NEW VERSION
+            internal Vector3Int minLocalIdx;
+            internal Vector3Int maxLocalIdx;
+            internal int firstChunkIndex;
+
+
+            internal void Pack(out uint[] vals)
             {
-                val1 = 0;
-                val2 = 0;
+                vals = new uint[kUintPerEntry];
+                for (int i = 0; i < kUintPerEntry; ++i)
+                {
+                    vals[i] = 0;
+                }
 
-
-                // This is a bit wasteful, we could easily be in one uint, but we need to have the signs too as the physical index might not be rounded by cell
-                // so cell index start might need to be negative
+                // New version packing is as follow: sadly uint3
+                //
+                //  Note this packing is really really generous, I really think we can get rid of 1 uint at least if we assume we don't go extreme.
+                //  but this is encompassing all scenarios.
+                //
+                // UINT 0:
+                //  FirstChunkIndex 29 bit
+                //  MinSubdiv       3  bit
                 // UINT 1:
-                // Index start  sign X :  1 bit
-                // Index start       X : 15 bit
-                // Index start  sign Y :  1 bit
-                // Index start       Y : 15 bit
-
+                //  minLocalIdx.x   10 bit
+                //  minLocalIdx.y   10 bit
+                //  minLocalIdx.z   10 bit
                 // UINT 2:
-                // Index start  sign Z :  1 bit
-                // Index start       Z : 15 bit
-                // pow(3, minSubdiv)   : 16 bit
+                //  maxLocalIdx.x   10 bit
+                //  maxLocalIdx.y   10 bit
+                //  maxLocalIdx.z   10 bit
 
+                vals[0] = (uint)firstChunkIndex & 0x1FFFFFFF;
+                vals[0] |= ((uint)minSubdiv & 0x7) << 29;
 
-                // If sign was not an issue, we could've probably packed in a single uint as follow.
-                // IndexStart x: 10 bits
-                //            y: 9 bits
-                //            z: 10 bits
-                // minSubdiv   : 3 bits
-                // minSubdiv   : 3 bits
+                vals[1] = (uint)minLocalIdx.x & 0x3FF;
+                vals[1] |= ((uint)minLocalIdx.y & 0x3FF) << 10;
+                vals[1] |= ((uint)minLocalIdx.z & 0x3FF) << 20;
 
-                val1 = indexStart.x >= 0 ? 1u : 0u;
-                val1 |= ((uint)Mathf.Abs(indexStart.x) & 0x7FFF) << 1;
-                val1 |= (indexStart.y >= 0 ? 1u : 0u) << 16;
-                val1 |= ((uint)Mathf.Abs(indexStart.y) & 0x7FFF) << 17;
-
-                val2 = indexStart.z >= 0 ? 1u : 0u;
-                val2 |= ((uint)Mathf.Abs(indexStart.z) & 0x7FFF) << 1;
-                val2 |= ((uint)Mathf.Pow(3, minSubdiv)) << 16;
+                vals[2] = (uint)maxLocalIdx.x & 0x3FF;
+                vals[2] |= ((uint)maxLocalIdx.y & 0x3FF) << 10;
+                vals[2] |= ((uint)maxLocalIdx.z & 0x3FF) << 20;
             }
         }
 
@@ -91,9 +99,8 @@ namespace UnityEngine.Experimental.Rendering
             m_CellSizeInMinBricks = cellSizeInMinBricks;
             int flatCellCount = cellCount.x * cellCount.y * cellCount.z;
             flatCellCount = flatCellCount == 0 ? 1 : flatCellCount;
-            int entryPerCell = 2;
-            int bufferSize = entryPerCell * flatCellCount;
-            m_IndexOfIndicesBuffer = new ComputeBuffer(flatCellCount, 2 * sizeof(uint));
+            int bufferSize = kUintPerEntry * flatCellCount;
+            m_IndexOfIndicesBuffer = new ComputeBuffer(flatCellCount, kUintPerEntry * sizeof(uint));
             m_IndexOfIndicesData = new uint[bufferSize];
             m_NeedUpdateComputeBuffer = false;
         }
@@ -106,18 +113,23 @@ namespace UnityEngine.Experimental.Rendering
             return GetFlatIndex(normalizedPos);
         }
 
-        internal void AddCell(int cellFlatIdx, Vector3Int indexStart, int minSubdiv)
+        internal void AddCell(int cellFlatIdx, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
         {
-            int indexDimension = m_CellSizeInMinBricks / (int)Mathf.Pow(3, minSubdiv);
+            int minSubdivCellSize = ProbeReferenceVolume.CellSize(cellUpdateInfo.minSubdivInCell);
             IndexMetaData metaData = new IndexMetaData();
-            metaData.indexStart = indexStart;
-            metaData.indexDimension = indexDimension;
-            metaData.minSubdiv = minSubdiv;
+            metaData.minSubdiv = cellUpdateInfo.minSubdivInCell;
+            // TODO_FCC [ROUNDING-ISSUE]
+            metaData.minLocalIdx = cellUpdateInfo.minValidBrickIndexForCellAtMaxRes / minSubdivCellSize;
+            metaData.maxLocalIdx = cellUpdateInfo.maxValidBrickIndexForCellAtMaxRes / minSubdivCellSize;
+            metaData.firstChunkIndex = cellUpdateInfo.firstChunkIndex;
 
-            uint packed1, packed2;
-            metaData.Pack(out packed1, out packed2);
-            m_IndexOfIndicesData[cellFlatIdx * 2 + 0] = packed1;
-            m_IndexOfIndicesData[cellFlatIdx * 2 + 1] = packed2;
+            metaData.Pack(out uint[] packedVals);
+
+            for (int i = 0; i < kUintPerEntry; ++i)
+            {
+                m_IndexOfIndicesData[cellFlatIdx * kUintPerEntry + i] = packedVals[i];
+            }
+
             m_NeedUpdateComputeBuffer = true;
         }
 

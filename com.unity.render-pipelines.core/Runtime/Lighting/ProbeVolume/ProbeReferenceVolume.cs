@@ -92,6 +92,9 @@ namespace UnityEngine.Experimental.Rendering
             public SphericalHarmonicsL2[] sh;
             public float[] validity;
             public int minSubdiv;
+
+            [System.NonSerialized]
+            public List<int> indexChunkIDs;
         }
 
         class CellChunkInfo
@@ -233,6 +236,7 @@ namespace UnityEngine.Experimental.Rendering
             /// Index data to fetch the correct location in the Texture3D.
             /// </summary>
             public ComputeBuffer index;
+            public ComputeBuffer newIndex;
             /// <summary>
             /// Indices of the various index buffers for each cell.
             /// </summary>
@@ -312,6 +316,9 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_BricksLoaded = false;
         Dictionary<string, List<RegId>> m_AssetPathToBricks = new Dictionary<string, List<RegId>>();
+
+        Dictionary<RegId, ProbeBrickIndex.CellIndexUpdateInfo> m_BricksToCellUpdateInfo = new Dictionary<RegId, ProbeBrickIndex.CellIndexUpdateInfo>();
+
         // Information of the probe volume asset that is being loaded (if one is pending)
         Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeLoaded = new Dictionary<string, ProbeVolumeAsset>();
         // Information on probes we need to remove.
@@ -452,22 +459,42 @@ namespace UnityEngine.Experimental.Rendering
             Vector3Int minCellPosition = Vector3Int.zero;
             Vector3Int maxCellPosition = Vector3Int.zero;
 
+            bool firstBound = true;
             foreach (var a in m_PendingAssetsToBeLoaded.Values)
             {
                 indexDimension = Vector3Int.Max(indexDimension, a.maxBrickIndex);
                 minCellPosition = Vector3Int.Min(minCellPosition, a.minCellPosition);
                 maxCellPosition = Vector3Int.Max(maxCellPosition, a.maxCellPosition);
+                if (firstBound)
+                {
+                    m_CurrGlobalBounds = a.globalBounds;
+                    firstBound = false;
+                }
+                else
+                {
+                    m_CurrGlobalBounds.Encapsulate(a.globalBounds);
+                }
             }
             foreach (var a in m_ActiveAssets.Values)
             {
                 indexDimension = Vector3Int.Max(indexDimension, a.maxBrickIndex);
                 minCellPosition = Vector3Int.Min(minCellPosition, a.minCellPosition);
                 maxCellPosition = Vector3Int.Max(maxCellPosition, a.maxCellPosition);
+                if (firstBound)
+                {
+                    m_CurrGlobalBounds = a.globalBounds;
+                    firstBound = false;
+                }
+                else
+                {
+                    m_CurrGlobalBounds.Encapsulate(a.globalBounds);
+                }
             }
 
             m_PendingInitInfo.pendingIndexDimChange = indexDimension;
             m_PendingInitInfo.pendingMinCellPosition = minCellPosition;
             m_PendingInitInfo.pendingMaxCellPosition = maxCellPosition;
+
             m_NeedsIndexDimChange = m_Index == null || (m_Index != null && indexDimension != m_Index.GetIndexDimension());
         }
 
@@ -594,12 +621,58 @@ namespace UnityEngine.Experimental.Rendering
             m_PendingAssetsToBeUnloaded.Clear();
         }
 
-        int GetNumberOfBricksAtSubdiv(Cell cell)
+        int GetNumberOfBricksAtSubdiv(Cell cell, out Vector3Int minValidLocalIdxAtMaxRes, out Vector3Int sizeOfValidIndicesAtMaxRes)
         {
-            // THIS IS TEMP.... Need to take into account stuff that is out of global bounds.
-            // Now it is not.
-            int fullCellBricksPerDim = CellSize(m_MaxSubdivision - 1) / CellSize(cell.minSubdiv);
-            return fullCellBricksPerDim * fullCellBricksPerDim * fullCellBricksPerDim;
+            minValidLocalIdxAtMaxRes = Vector3Int.zero;
+            sizeOfValidIndicesAtMaxRes = Vector3Int.one;
+
+            var posWS = new Vector3(cell.position.x * MaxBrickSize(), cell.position.y * MaxBrickSize(), cell.position.z * MaxBrickSize());
+            Bounds cellBounds = new Bounds();
+            cellBounds.min = posWS;
+            cellBounds.max = posWS + (Vector3.one * MaxBrickSize());
+
+            Bounds intersectBound = new Bounds();
+            intersectBound.min = Vector3.Max(cellBounds.min, m_CurrGlobalBounds.min);
+            intersectBound.max = Vector3.Min(cellBounds.max, m_CurrGlobalBounds.max);
+
+            Vector3 size = intersectBound.max - intersectBound.min;
+
+
+            var toStart = intersectBound.min - cellBounds.min;
+            minValidLocalIdxAtMaxRes.x = Mathf.CeilToInt((toStart.x) / MinBrickSize());
+            minValidLocalIdxAtMaxRes.y = Mathf.CeilToInt((toStart.y) / MinBrickSize());
+            minValidLocalIdxAtMaxRes.z = Mathf.CeilToInt((toStart.z) / MinBrickSize());
+
+            var toEnd = intersectBound.max - cellBounds.min;
+            var maxValidLocalIdx = Vector3Int.zero;
+            // TODO_FCC: What about the +1 here? Is this problematic? NEED TO CHECK. [OFF-BY-ONE?]
+            maxValidLocalIdx.x = Mathf.CeilToInt((toEnd.x) / MinBrickSize()) + 1;
+            maxValidLocalIdx.y = Mathf.CeilToInt((toEnd.y) / MinBrickSize()) + 1;
+            maxValidLocalIdx.z = Mathf.CeilToInt((toEnd.z) / MinBrickSize()) + 1;
+
+            sizeOfValidIndicesAtMaxRes = maxValidLocalIdx - minValidLocalIdxAtMaxRes;
+
+            Vector3Int bricksForCell = new Vector3Int();
+            // TODO_FCC [ROUNDING-ISSUE]
+            bricksForCell =  sizeOfValidIndicesAtMaxRes / CellSize(cell.minSubdiv);
+
+            Debug.Log($"CellPos {cell.position} --- size {sizeOfValidIndicesAtMaxRes}");
+
+            return bricksForCell.x * bricksForCell.y * bricksForCell.z;
+        }
+
+        ProbeBrickIndex.CellIndexUpdateInfo GetCellIndexUpdate(Cell cell)
+        {
+            ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo = new ProbeBrickIndex.CellIndexUpdateInfo();
+
+            int brickCountsAtResolution = GetNumberOfBricksAtSubdiv(cell, out var minValidLocalIdx, out var sizeOfValidIndices);
+            cellUpdateInfo.cellPositionInBricksAtMaxRes = cell.position * CellSize(m_MaxSubdivision - 1);
+            cellUpdateInfo.minSubdivInCell = cell.minSubdiv;
+            cellUpdateInfo.minValidBrickIndexForCellAtMaxRes = minValidLocalIdx;
+            cellUpdateInfo.maxValidBrickIndexForCellAtMaxRes = sizeOfValidIndices + minValidLocalIdx;
+
+            m_Index.UpdateCellIndexUpdateInfo(cell, brickCountsAtResolution, ref cellUpdateInfo);
+            return cellUpdateInfo;
         }
 
         void LoadPendingCells(bool loadAll = false)
@@ -627,7 +700,10 @@ namespace UnityEngine.Experimental.Rendering
                 List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
                 brickList.AddRange(cell.bricks);
                 List<Chunk> chunkList = new List<Chunk>();
-                var regId = AddBricks(brickList, dataLocation, cellFlatIdx, out chunkList);
+
+                var cellUpdateInfo = GetCellIndexUpdate(cell);
+                var regId = AddBricks(brickList, dataLocation, cellFlatIdx, cellUpdateInfo,  out chunkList);
+                m_BricksToCellUpdateInfo.Add(regId, cellUpdateInfo);
 
                 // Min subdiv here hard-coded to 0 as a temp measure.
                 // TODO: The index start here is re-computed to match old behaviour, however it is important that it comes from the actual computations of the index buffer as the
@@ -639,7 +715,7 @@ namespace UnityEngine.Experimental.Rendering
                 Vector3 posRS = WStoRS.MultiplyPoint(posWS);
                 Vector3Int posRSFloored = new Vector3Int(Mathf.FloorToInt(posRS.x), Mathf.FloorToInt(posRS.y), Mathf.FloorToInt(posRS.z));
                 indexStart = posRSFloored + (m_Index.GetIndexDimension() / 2);
-                m_CellIndices.AddCell(cellFlatIdx, indexStart, minSubdiv: 0);
+                m_CellIndices.AddCell(cellFlatIdx, cellUpdateInfo);
                 AddCell(cell, chunkList);
                 m_AssetPathToBricks[path].Add(regId);
 
@@ -795,7 +871,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Runtime API starts here
-        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc, int cellIdx, out List<Chunk> ch_list)
+        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc, int cellIdx, ProbeBrickIndex.CellIndexUpdateInfo tmpCellUpdateInfo, out List<Chunk> ch_list)
         {
             Profiler.BeginSample("AddBricks");
 
@@ -838,11 +914,14 @@ namespace UnityEngine.Experimental.Rendering
             RegId id;
             m_ID++;
             id.id = m_ID;
+
             id.ownerCell = cellIdx;
             m_Registry.Add(id, ch_list);
 
             // Build index
-            m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
+            // [OLD-VERSION-SWITCH]
+            //m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
+            m_Index.AddBricks_2(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), tmpCellUpdateInfo);
 
             Profiler.EndSample();
 
@@ -859,11 +938,14 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // clean up the index
-            m_Index.RemoveBricks(id);
+            // TODO_FCC : SWITCH HERE TO GO TO OLD VERSION [OLD-VERSION-SWITCH]
+            //m_Index.RemoveBricks(id);
+            m_Index.RemoveBricks_2(id, m_BricksToCellUpdateInfo[id]);
 
             // clean up the pool
             m_Pool.Deallocate(ch_list);
             m_Registry.Remove(id);
+            m_BricksToCellUpdateInfo.Remove(id);
         }
 
         /// <summary>
@@ -893,8 +975,8 @@ namespace UnityEngine.Experimental.Rendering
             shaderVars._CellIndicesDim = m_CellIndices.GetCellIndexDimension();
             shaderVars._MinCellPosition = m_CellIndices.GetCellMinPosition();
             shaderVars._MinBrickSize = MinBrickSize();
-
-            shaderVars.pad0 = Vector2.zero;
+            shaderVars._IndexChunkSize = ProbeBrickIndex.kIndexChunkSize;
+            shaderVars.pad0 = 0;
             shaderVars._CellInMeters = MaxBrickSize();
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);

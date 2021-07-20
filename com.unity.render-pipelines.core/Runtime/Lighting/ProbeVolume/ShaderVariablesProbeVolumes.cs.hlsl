@@ -18,7 +18,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesProbeVolumes, b5)
     float _CellInMeters;
     float _CellInMinBricks;
     float _MinBrickSize;
-    float2 pad0;
+    int _IndexChunkSize;
+    int pad0;
 CBUFFER_END
 
 

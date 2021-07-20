@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (validResources)
                 {
                     cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResIndex, rr.index);
+                    cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVPhysicalIndex, rr.newIndex);
                     cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResCellIndices, rr.cellIndices);
 
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0_L1Rx, rr.L0_L1rx);
@@ -53,6 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResIndex, m_EmptyIndexBuffer);
+                cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVPhysicalIndex, m_EmptyIndexBuffer);
                 cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResCellIndices, m_EmptyIndexBuffer);
 
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0_L1Rx, TextureXR.GetBlackTexture3D());
