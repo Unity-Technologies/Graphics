@@ -57,23 +57,7 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
-
-#if defined(HAVE_VFX_MODIFICATION)
-    AttributesElement element;
-    ZERO_INITIALIZE(AttributesElement, element);
-
-    if (!GetMeshAndElementIndex(input, element))
-        return (PackedVaryings)0; // Culled index.
-
-    if (!GetInterpolatorAndElementData(output, element))
-        return (PackedVaryings)0; // Dead particle.
-
-    SetupVFXMatrices(element, output);
-    output = BuildVaryings(input, element, output);
-#else
     output = BuildVaryings(input);
-#endif
-
     PackedVaryings packedOutput = (PackedVaryings)0;
     packedOutput = PackVaryings(output);
     return packedOutput;
@@ -84,17 +68,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
-
-    SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
-    SurfaceDescription surfaceDescription = (SurfaceDescription)0;
-#if defined(HAVE_VFX_MODIFICATION)
-    GraphProperties properties;
-    ZERO_INITIALIZE(GraphProperties, properties);
-    GetElementPixelProperties(surfaceDescriptionInputs, properties);
-    surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs, properties);
-#else
-    surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
-#endif
+    SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
     #if _ALPHATEST_ON
         half alpha = surfaceDescription.Alpha;

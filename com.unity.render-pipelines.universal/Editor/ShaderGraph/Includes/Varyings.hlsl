@@ -6,18 +6,21 @@
     float3 _LightPosition;
 #endif
 
-Varyings BuildVaryings(Attributes input
-#if defined(HAVE_VFX_MODIFICATION)
-    , AttributesElement element
-    , Varyings baseOutput
-#endif
-)
+Varyings BuildVaryings(Attributes input)
 {
-#if defined(HAVE_VFX_MODIFICATION)
-    //TODOPAUL : This output could have been partially filled by GetInterpolatorAndElementData
-    Varyings output = baseOutput;
-#else
     Varyings output = (Varyings)0;
+
+#if defined(HAVE_VFX_MODIFICATION)
+    AttributesElement element;
+    ZERO_INITIALIZE(AttributesElement, element);
+
+    if (!GetMeshAndElementIndex(input, element))
+        return output; // Culled index.
+
+    if (!GetInterpolatorAndElementData(output, element))
+        return output; // Dead particle.
+
+    SetupVFXMatrices(element, output);
 #endif
 
     UNITY_SETUP_INSTANCE_ID(input);
@@ -168,4 +171,19 @@ Varyings BuildVaryings(Attributes input
 #endif
 
     return output;
+}
+
+//TODOPAUL maybe Move it somewhere else
+SurfaceDescription BuildSurfaceDescription(Varyings varyings)
+{
+    SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(varyings);
+#if defined(HAVE_VFX_MODIFICATION)
+    GraphProperties properties;
+    ZERO_INITIALIZE(GraphProperties, properties);
+    GetElementPixelProperties(surfaceDescriptionInputs, properties);
+    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs, properties);
+#else
+    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+#endif
+    return surfaceDescription;
 }
