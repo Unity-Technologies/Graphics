@@ -122,6 +122,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - ShaderGraph SubGraphs now report node warnings in the same way ShaderGraphs do [1350282].
 - Fixed ShaderGraph exception when trying to set a texture to "main texture" [1350573].
 - Fixed a ShaderGraph issue where Float properties in Integer mode would not be cast properly in graph previews [1330302](https://fogbugz.unity3d.com/f/cases/1330302/)
+- Fixed a ShaderGraph issue where hovering over a context block but not its node stack would not bring up the incorrect add menu [1351733](https://fogbugz.unity3d.com/f/cases/1351733/)
 
 ## [11.0.0] - 2020-10-21
 

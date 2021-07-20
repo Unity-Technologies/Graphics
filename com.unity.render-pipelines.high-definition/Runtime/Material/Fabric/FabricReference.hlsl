@@ -37,7 +37,7 @@ float3 IntegrateSpecularCottonWoolIBLRef(LightLoopContext lightLoopContext,
 
         // The sample is multiplied by NdotL and divided by pdf: acc += f(w)*l(w)*cos(w)/pdf.
         // For cos-weighted importance sampling pdf=NdotL/PI. NdotL cancels out and we multiply by PI in the end
-        acc += F * D * Vis * val.rgb; 
+        acc += F * D * Vis * val.rgb;
     }
     return acc * PI / sampleCount;
 }
