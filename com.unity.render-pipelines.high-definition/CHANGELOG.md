@@ -402,6 +402,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Restore old version of the RendererList structs/api for compatibility.
 - Various improvements to SSGI (case 1340851, case 1339297, case 1327919).
 - Changed the NVIDIA install button to the standard FixMeButton.
+- Improved a bit the area cookie behavior for higher smoothness values to reduce artifacts.
 
 ## [11.0.0] - 2020-10-21
 
