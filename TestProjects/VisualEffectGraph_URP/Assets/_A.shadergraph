@@ -11,7 +11,12 @@
         }
     ],
     "m_Keywords": [],
-    "m_CategoryData": [],
+    "m_Dropdowns": [],
+    "m_CategoryData": [
+        {
+            "m_Id": "64f4bd1d3a854fea8193cd924de2baa8"
+        }
+    ],
     "m_Nodes": [
         {
             "m_Id": "407bdc1fe30a4613a420dd1d92b66912"
@@ -204,7 +209,8 @@
         "serializedMesh": {
             "m_SerializedMesh": "{\"mesh\":{\"instanceID\":0}}",
             "m_Guid": ""
-        }
+        },
+        "preventRotation": false
     },
     "m_Path": "Shader Graphs",
     "m_GraphPrecision": 1,
@@ -279,16 +285,21 @@
 }
 
 {
-    "m_SGVersion": 0,
+    "m_SGVersion": 1,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget",
     "m_ObjectId": "0beb4eb7b49b4c858a7bba411ea2dc14",
     "m_ActiveSubTarget": {
         "m_Id": "774da87dfa8d4164aa4b9b3f02efbae5"
     },
+    "m_AllowMaterialOverride": false,
     "m_SurfaceType": 1,
+    "m_ZTestMode": 4,
+    "m_ZWriteControl": 0,
     "m_AlphaMode": 2,
-    "m_TwoSided": false,
+    "m_RenderFace": 0,
     "m_AlphaClip": false,
+    "m_CastShadows": true,
+    "m_ReceiveShadows": true,
     "m_CustomEditorGUI": "",
     "m_SupportVFX": true
 }
@@ -482,6 +493,21 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "64f4bd1d3a854fea8193cd924de2baa8",
+    "m_Name": "",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "78aa1c70947d4520b92311248efc7f58"
+        },
+        {
+            "m_Id": "abe33b0c35954b24809c869374c249c0"
+        }
+    ]
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "6721b65422f74caf9650bb7b7d5dc213",
     "m_Id": 0,
@@ -538,6 +564,8 @@
     "m_DefaultReferenceName": "Center",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -798,6 +826,8 @@
     "m_DefaultReferenceName": "_Color",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
