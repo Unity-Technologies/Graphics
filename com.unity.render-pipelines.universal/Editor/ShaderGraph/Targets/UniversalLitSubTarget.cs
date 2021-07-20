@@ -72,7 +72,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 context.AddCustomEditorForRenderPipeline(typeof(ShaderGraphLitGUI).FullName, universalRPType);
 
             // Process SubShaders
-            context.AddSubShader(PostProcessSubShader(SubShaders.LitComputeDotsSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit)));
+            //context.AddSubShader(PostProcessSubShader(SubShaders.LitComputeDotsSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit)));
             context.AddSubShader(PostProcessSubShader(SubShaders.LitGLESSubShader(target, workflowMode, target.renderType, target.renderQueue, complexLit)));
         }
 
@@ -107,6 +107,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            base.GetFields(ref context);
+
             var descs = context.blocks.Select(x => x.descriptor);
 
             // Lit -- always controlled by subtarget
@@ -323,7 +325,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     generatesPreview = true,
                     passes = new PassCollection()
                 };
-
+                /*
                 if (complexLit)
                     result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.Forward));
                 else
@@ -343,7 +345,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.passes.Add(LitPasses.Meta(target));
                 result.passes.Add(LitPasses._2D(target));
                 result.passes.Add(CorePasses.SceneSelection(target));
-                result.passes.Add(CorePasses.ScenePicking(target));
+                result.passes.Add(CorePasses.ScenePicking(target));*/
+
+                //NE PAS COMMIT !
+                result.passes.Add(LitPasses.Forward(target, workflowMode));
 
                 return result;
             }
