@@ -89,6 +89,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ClusteredRendering = false;
         const TileSize k_DefaultTileSize = TileSize._32;
         [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
+        [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.WhenNeeded;
 
         protected override ScriptableRenderer Create()
         {
@@ -218,6 +219,16 @@ namespace UnityEngine.Rendering.Universal
                 Assert.IsTrue(value.IsValid());
                 SetDirty();
                 m_TileSize = value;
+            }
+        }
+
+        public IntermediateTextureMode intermediateTextureMode
+        {
+            get => m_IntermediateTextureMode;
+            set
+            {
+                SetDirty();
+                m_IntermediateTextureMode = value;
             }
         }
 

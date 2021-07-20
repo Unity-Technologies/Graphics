@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: When using the deferred rendering path, the Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
             public static readonly GUIContent clusteredRenderingLabel = EditorGUIUtility.TrTextContent("Clustered (experimental)", "(Experimental) Enables clustered rendering, allowing for more lights per object and more accurate light cullling.");
+            public static readonly GUIContent intermediateTextureMode = EditorGUIUtility.TrTextContent("Intermediate Texture", "TODO");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -41,6 +42,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_PostProcessData;
         SerializedProperty m_Shaders;
         SerializedProperty m_ShadowTransparentReceiveProp;
+        SerializedProperty m_ImmediateTextureMode;
 
 #if URP_ENABLE_CLUSTERED_UI
         static bool s_EnableClusteredUI => true;
@@ -64,6 +66,7 @@ namespace UnityEditor.Rendering.Universal
             m_PostProcessData = serializedObject.FindProperty("postProcessData");
             m_Shaders = serializedObject.FindProperty("shaders");
             m_ShadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
+            m_ImmediateTextureMode = serializedObject.FindProperty("m_ImmediateTextureMode");
         }
 
         public override void OnInspectorGUI()
@@ -110,6 +113,8 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.indentLevel--;
             }
+
+            EditorGUILayout.PropertyField(m_ImmediateTextureMode, Styles.intermediateTextureMode);
 
 
             EditorGUI.indentLevel--;
