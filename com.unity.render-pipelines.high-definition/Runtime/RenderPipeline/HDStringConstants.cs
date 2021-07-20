@@ -624,6 +624,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DistanceTexture                 = Shader.PropertyToID("_DistanceTexture");
         public static readonly int _JitterFramePeriod               = Shader.PropertyToID("_JitterFramePeriod");
         public static readonly int _SingleReflectionBounce          = Shader.PropertyToID("_SingleReflectionBounce");
+        public static readonly int _RoughnessBasedDenoising         = Shader.PropertyToID("_RoughnessBasedDenoising");
         public static readonly int _HistoryBufferSize               = Shader.PropertyToID("_HistoryBufferSize");
         public static readonly int _CurrentEffectResolution         = Shader.PropertyToID("_CurrentEffectResolution");
         public static readonly int _SampleCountTextureRW            = Shader.PropertyToID("_SampleCountTextureRW");
