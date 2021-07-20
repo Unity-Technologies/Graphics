@@ -130,10 +130,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            if (hdriSky.enableDistortion.value == true)
+            if (hdriSky.distortionMode.value != HDRISky.DistortionMode.None)
             {
                 m_SkyHDRIMaterial.EnableKeyword("SKY_MOTION");
-                if (hdriSky.procedural.value == false)
+                if (hdriSky.distortionMode.value == HDRISky.DistortionMode.Flowmap)
                 {
                     m_SkyHDRIMaterial.EnableKeyword("USE_FLOWMAP");
                     m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Flowmap, hdriSky.flowmap.value);
@@ -142,13 +142,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_SkyHDRIMaterial.DisableKeyword("USE_FLOWMAP");
 
                 var hdCamera = builtinParams.hdCamera;
-                float rot = -Mathf.Deg2Rad * hdriSky.scrollDirection.value;
-                bool upperHemisphereOnly = hdriSky.upperHemisphereOnly.value || hdriSky.procedural.value;
-                Vector4 flowmapParam = new Vector4(upperHemisphereOnly ? 1.0f : 0.0f, scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
+                float rot = Mathf.Deg2Rad * (hdriSky.scrollOrientation.GetValue(hdCamera) - hdriSky.rotation.value);
+                bool upperHemisphereOnly = hdriSky.upperHemisphereOnly.value || (hdriSky.distortionMode.value == HDRISky.DistortionMode.Procedural);
+                Vector4 flowmapParam = new Vector4(upperHemisphereOnly ? 1.0f : 0.0f, scrollFactor / 200.0f, -Mathf.Cos(rot), -Mathf.Sin(rot));
 
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._FlowmapParam, flowmapParam);
 
-                scrollFactor += hdCamera.animateMaterials ? hdriSky.scrollSpeed.value * (hdCamera.time - lastTime) * 0.01f : 0.0f;
+                scrollFactor += hdCamera.animateMaterials ? hdriSky.scrollSpeed.GetValue(hdCamera) * (hdCamera.time - lastTime) * 0.01f : 0.0f;
                 lastTime = hdCamera.time;
             }
             else
