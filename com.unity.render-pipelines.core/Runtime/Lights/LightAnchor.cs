@@ -10,17 +10,17 @@ namespace UnityEngine
     /// Represents camera-space light controls around a virtual pivot point.
     /// </summary>
     [AddComponentMenu("Rendering/Light Anchor")]
-    [RequireComponent(typeof(Light))]
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [CoreRPHelpURLAttribute("View-Lighting-Tool")]
     public class LightAnchor : MonoBehaviour
     {
+        const float minDistance = 0.001f;
         const float k_ArcRadius = 5;
         const float k_AxisLength = 10;
 
         [SerializeField]
-        float m_Distance = 0f;
+        float m_Distance = minDistance;
         [SerializeField]
         UpDirection m_FrameSpace = UpDirection.World;
 
@@ -70,7 +70,7 @@ namespace UnityEngine
         public float distance
         {
             get { return m_Distance; }
-            set { m_Distance = Mathf.Max(value, .01f); }
+            set { m_Distance = Mathf.Clamp(value, minDistance,1000); }
         }
 
         /// <summary>
