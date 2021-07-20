@@ -6,8 +6,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 {
     public class HDGlobalSettingsTests : MonoBehaviour
     {
-        HDRenderPipelineAsset asset;
-
         HDRenderPipelineGlobalSettings initialGlobalSettings;
         HDRenderPipelineGlobalSettings otherGlobalSettings;
 
@@ -22,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [TearDown]
         public void TearDown()
         {
+            ScriptableObject.DestroyImmediate(otherGlobalSettings);
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
         }
 
