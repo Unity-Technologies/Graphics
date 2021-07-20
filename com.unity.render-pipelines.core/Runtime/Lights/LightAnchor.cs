@@ -20,7 +20,7 @@ namespace UnityEngine
         const float k_AxisLength = 10;
 
         [SerializeField]
-        float m_Distance = 3;
+        float m_Distance = 0f;
         [SerializeField]
         UpDirection m_FrameSpace = UpDirection.World;
 
@@ -188,7 +188,6 @@ namespace UnityEngine
 
             if (camera == null)
             {
-                Debug.LogError("At least one camera must be tagged as MainCamera");
                 return;
             }
 

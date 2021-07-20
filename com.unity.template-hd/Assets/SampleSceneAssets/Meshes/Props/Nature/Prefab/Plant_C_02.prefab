@@ -10,9 +10,9 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
+  serializedVersion: 4
   m_Convex: 0
-  m_CookingOptions: 14
+  m_CookingOptions: 30
   m_Mesh: {fileID: 4300004, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
 --- !u!1001 &2565653233748399308
 PrefabInstance:
@@ -23,7 +23,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 100000, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 4294967295
+      value: 126
       objectReference: {fileID: 0}
     - target: {fileID: 100006, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
       propertyPath: m_Name
@@ -32,6 +32,10 @@ PrefabInstance:
     - target: {fileID: 100006, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 400006, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400006, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
       propertyPath: m_LocalPosition.x
@@ -46,6 +50,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400006, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 400006, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
@@ -56,14 +64,6 @@ PrefabInstance:
     - target: {fileID: 400006, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
       propertyPath: m_LocalRotation.z
       value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 400006, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 400006, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
-      propertyPath: m_RootOrder
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400006, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -85,7 +85,6 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
 --- !u!1 &2565653233748300394 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 100006, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 100006, guid: 5e7a5827c5b20aa49b565a7cee3a2f2b, type: 3}
   m_PrefabInstance: {fileID: 2565653233748399308}
   m_PrefabAsset: {fileID: 0}
