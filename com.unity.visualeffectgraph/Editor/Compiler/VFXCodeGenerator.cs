@@ -483,7 +483,7 @@ namespace UnityEditor.VFX
                 var isInterpolant = !(expressionToName.ContainsKey(filteredNamedExpression.exp) && expressionToName[filteredNamedExpression.exp] == filteredNamedExpression.name);
 
                 //TODOPAUL : hacky workaround (surfaceInput == FragsInput)
-                bool isHDRP = UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline");
+                bool isHDRP = VFXLibrary.currentSRPBinder != null && VFXLibrary.currentSRPBinder.ToString().Contains("HDRP");
                 var surfaceSetter = isHDRP ? "output.vfx" : "output";
 
                 fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"{surfaceSetter}.{filteredNamedExpression.name}", $"{(isInterpolant ? "input." : string.Empty)}{filteredNamedExpression.name}");
@@ -507,7 +507,7 @@ namespace UnityEditor.VFX
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
 
                 //TODOPAUL : hacky workaround (surfaceInput == FragsInput)
-                bool isHDRP = UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline");
+                bool isHDRP = VFXLibrary.currentSRPBinder != null && VFXLibrary.currentSRPBinder.ToString().Contains("HDRP");
                 var surfaceGetter = isHDRP ? "fragInputs.vfx" : "fragInputs";
                 fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"{surfaceGetter}.{filteredNamedExpression.name}");
                 fragInputsGeneration.WriteLine();
