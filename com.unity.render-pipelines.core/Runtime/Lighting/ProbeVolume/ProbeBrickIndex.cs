@@ -189,22 +189,52 @@ namespace UnityEngine.Experimental.Rendering
         internal void UpdateCellIndexUpdateInfo(ProbeReferenceVolume.Cell cell, int bricksCount, ref CellIndexUpdateInfo cellUpdateInfo)
         {
             int numberOfChunks = Mathf.CeilToInt((float)bricksCount / kIndexChunkSize);
+
+            // Search for the first empty element with enough space.
+            int firstValidChunk = -1;
+            for (int i = 0; i < m_IndexInChunks; ++i)
+            {
+                if (!m_IndexChunks[i])
+                {
+                    int emptySlotsStartingHere = 0;
+                    for (int k = i; k < (i + numberOfChunks); ++k)
+                    {
+                        if (!m_IndexChunks[k]) emptySlotsStartingHere++;
+                        else break;
+                    }
+
+                    if (emptySlotsStartingHere == numberOfChunks)
+                    {
+                        firstValidChunk = i;
+                        break;
+                    }
+                }
+            }
+
+            Debug.Assert(firstValidChunk >= 0);
+            if (firstValidChunk < 0) return;
+
             // This assert will need to go away or do something else when streaming is allowed (we need to find holes in available chunks or stream out stuff)
-            Debug.Assert(m_NextFreeChunk + numberOfChunks < m_IndexInChunks);
-            cellUpdateInfo.firstChunkIndex = m_NextFreeChunk;
+            cellUpdateInfo.firstChunkIndex = firstValidChunk;
             cellUpdateInfo.numberOfChunks = numberOfChunks;
-            for (int i = m_NextFreeChunk; i < numberOfChunks; ++i)
+            for (int i = firstValidChunk; i < (firstValidChunk + numberOfChunks); ++i)
             {
                 Debug.Assert(!m_IndexChunks[i]);
                 m_IndexChunks[i] = true;
             }
-            m_NextFreeChunk += numberOfChunks;
+
+            m_NextFreeChunk += Mathf.Max(0, (firstValidChunk + numberOfChunks) - m_NextFreeChunk);
         }
 
         public void AddBricks(RegId id, List<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight, CellIndexUpdateInfo cellInfo)
         {
             Debug.Assert(bricks.Count <= ushort.MaxValue, "Cannot add more than 65K bricks per RegId.");
             int largest_cell = ProbeReferenceVolume.CellSize(kMaxSubdivisionLevels);
+
+            //  Debug.Log($"{bricks.Count} - {cellInfo.minValidBrickIndexForCellAtMaxRes} {cellInfo.maxValidBrickIndexForCellAtMaxRes} {cellInfo.firstChunkIndex} {cellInfo.numberOfChunks} {cellInfo.minSubdivInCell}");
+
+            for (int all = 0; all < allocations.Count; ++all)
+                Debug.Log($"{allocations[all].x} {allocations[all].y} {allocations[all].z}");
 
             // create a new copy
             BrickMeta bm = new BrickMeta();
@@ -294,7 +324,7 @@ namespace UnityEngine.Experimental.Rendering
             m_BricksToVoxels.Remove(id);
 
             // Clear allocated chunks
-            for (int i = cellInfo.firstChunkIndex; i < cellInfo.numberOfChunks; ++i)
+            for (int i = cellInfo.firstChunkIndex; i < (cellInfo.firstChunkIndex + cellInfo.numberOfChunks); ++i)
             {
                 m_IndexChunks[i] = false;
             }

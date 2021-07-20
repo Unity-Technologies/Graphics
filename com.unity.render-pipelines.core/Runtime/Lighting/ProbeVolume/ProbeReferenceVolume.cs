@@ -703,6 +703,8 @@ namespace UnityEngine.Experimental.Rendering
 
                 m_CellIndices.AddCell(cellFlatIdx, cellUpdateInfo);
 
+                //Debug.Log($"{cellFlatIdx}: {cellUpdateInfo.minValidBrickIndexForCellAtMaxRes} {cellUpdateInfo.maxValidBrickIndexForCellAtMaxRes} {cellUpdateInfo.firstChunkIndex} {cellUpdateInfo.numberOfChunks} {cellUpdateInfo.minSubdivInCell}");
+
                 AddCell(cell, chunkList);
                 m_AssetPathToBricks[path].Add(regId);
 

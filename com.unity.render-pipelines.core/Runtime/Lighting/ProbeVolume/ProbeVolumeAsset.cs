@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    [PreferBinarySerialization]
+    // [PreferBinarySerialization]
     internal class ProbeVolumeAsset : ScriptableObject
     {
         [Serializable]
