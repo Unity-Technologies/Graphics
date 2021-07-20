@@ -7,8 +7,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.GraphUI.Controllers
 {
     // Base class for all controllers of a sub-window within the shader graph
-    abstract class GraphSubWindowController<ToolState, SubWindowView> : StateObserver<ToolState>
-        where ToolState : IState
+    abstract class GraphSubWindowController<SubWindowView>
         where SubWindowView : VisualElement
     {
         // Actual view content of the SubWindow
@@ -18,9 +17,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.Controllers
         // Reference to the GTF command dispatcher
         protected CommandDispatcher m_CommandDispatcher;
 
-        protected GraphSubWindowController(CommandDispatcher dispatcher)
+        // Reference to the containing GraphView
+        protected GraphView m_ParentGraphView;
+
+        // TODO: Handle layout serialization/deserialization
+        // TODO: Handle styling
+
+        protected GraphSubWindowController(CommandDispatcher dispatcher, GraphView parentGraphView)
         {
             m_CommandDispatcher = dispatcher;
+            m_ParentGraphView = parentGraphView;
         }
     }
 }

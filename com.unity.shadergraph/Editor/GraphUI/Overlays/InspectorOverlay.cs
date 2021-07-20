@@ -15,8 +15,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Views
             var inspector = parent.InspectorView;
             if (inspector is null) return;
 
+            this.displayed = true;
+
             m_Root.Clear();
             m_Root.Add(inspector);
         }
+
     }
 }

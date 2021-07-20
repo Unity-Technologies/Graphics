@@ -16,6 +16,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
         InspectorController m_InspectorController;
         public ModelInspectorView InspectorView => m_InspectorController.InspectorView;
 
+        BlackboardController m_BlackboardController;
+        public Blackboard BlackboardView => m_BlackboardController.BlackboardView;
+
+        PreviewController m_PreviewController;
+        public PreviewView PreviewView => m_PreviewController.PreviewView;
+
         [InitializeOnLoadMethod]
         static void RegisterTool()
         {
@@ -30,7 +36,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
 
         void InitializeSubWindows()
         {
-            m_InspectorController = new InspectorController(CommandDispatcher);
+            m_InspectorController = new InspectorController(CommandDispatcher, GraphView);
+            m_BlackboardController = new BlackboardController(CommandDispatcher, GraphView);
+            m_PreviewController = new PreviewController(CommandDispatcher, GraphView);
         }
 
         protected override void OnEnable()

@@ -3,17 +3,13 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI.Controllers
 {
-    class InspectorController : GraphSubWindowController<GraphToolState, ModelInspectorView>
+    class InspectorController : GraphSubWindowController<ModelInspectorView>
     {
         public ModelInspectorView InspectorView => m_SubWindowContent;
 
-        public InspectorController(CommandDispatcher dispatcher) : base(dispatcher)
+        public InspectorController(CommandDispatcher dispatcher, GraphView parentGraphView) : base(dispatcher, parentGraphView)
         {
             m_SubWindowContent = new ModelInspectorView(dispatcher);
-        }
-
-        protected override void Observe(GraphToolState state)
-        {
         }
     }
 }
