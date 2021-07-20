@@ -35,8 +35,9 @@ float3 IntegrateSpecularCottonWoolIBLRef(LightLoopContext lightLoopContext,
         float D = D_Charlie(NdotH, bsdfData.roughnessT);
         float Vis = V_Charlie(NdotL, NdotV, bsdfData.roughnessT);
 
-        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-        acc += F * D * Vis * val.rgb;
+        // The sample is multiplied by NdotL and divided by pdf: acc += f(w)*l(w)*cos(w)/pdf.
+        // For cos-weighted importance sampling pdf=NdotL/PI. NdotL cancels out and we multiply by PI in the end
+        acc += F * D * Vis * val.rgb; 
     }
     return acc * PI / sampleCount;
 }

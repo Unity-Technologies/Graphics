@@ -59,7 +59,7 @@ Shader "Hidden/HDRP/preIntegratedFGD_CharlieFabricLambert"
                 }
 
                 // Normalize the accumulated value
-                acc *= 1.0f / sampleCount;
+                acc *= 1.0f / sampleCount; // should be multiplied by 2pi, but to keep the values in [0, 1] range for texture storage we defer the multiplication to sampling in GetPreIntegratedFGDCharlieAndFabricLambert
                 return acc;
             }
 
