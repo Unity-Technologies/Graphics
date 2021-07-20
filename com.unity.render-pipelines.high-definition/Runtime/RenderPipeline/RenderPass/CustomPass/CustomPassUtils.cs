@@ -40,6 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static int verticalBlurPassIndex;
         static int horizontalBlurPassIndex;
         static int copyPassIndex;
+        static int copyDepthPassIndex;
         static int depthToColorPassIndex;
         static int depthPassIndex;
         static int normalToColorPassIndex;
@@ -52,6 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
             verticalBlurPassIndex = customPassUtilsMaterial.FindPass("VerticalBlur");
             horizontalBlurPassIndex = customPassUtilsMaterial.FindPass("HorizontalBlur");
             copyPassIndex = customPassUtilsMaterial.FindPass("Copy");
+            copyDepthPassIndex = customPassUtilsMaterial.FindPass("CopyDepth");
 
             customPassRenderersUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.customPassRenderersUtils);
             depthToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthToColorPass");
@@ -133,11 +135,17 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(ctx.cmd, copySampler))
             {
                 SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
-
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
+
+                // Copy color buffer
+                if (source.rt.graphicsFormat != GraphicsFormat.None && destination.rt.graphicsFormat != GraphicsFormat.None)
+                    ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
+
+                // Copy depth buffer
+                if (source.rt.depthStencilFormat != GraphicsFormat.None && destination.rt.depthStencilFormat != GraphicsFormat.None)
+                    ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyDepthPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
