@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Parameters passed to sun light cookie rendering functions.
     /// </summary>
-    public class BuiltinSunCookieParameters
+    public struct BuiltinSunCookieParameters
     {
         /// <summary>Camera used for rendering.</summary>
         public HDCamera                 hdCamera;

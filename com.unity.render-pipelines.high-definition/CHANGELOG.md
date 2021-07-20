@@ -305,6 +305,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Only display HDRP Camera Preview if HDRP is the active pipeline (case 1350767).
 - Prevent any unwanted light sync when not in HDRP (case 1217575)
 - Fixed missing global wind parameters in the visual environment.
+- Fixed fabric IBL (Charlie) pre-convolution performance and accuracy (uses 1000x less samples and is closer match with the ground truth)
+- Fixed conflicting runtime debug menu command with an option to disable runtime debug window hotkey.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -402,6 +404,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Restore old version of the RendererList structs/api for compatibility.
 - Various improvements to SSGI (case 1340851, case 1339297, case 1327919).
 - Changed the NVIDIA install button to the standard FixMeButton.
+- Improved a bit the area cookie behavior for higher smoothness values to reduce artifacts.
 
 ## [11.0.0] - 2020-10-21
 
