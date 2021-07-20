@@ -146,8 +146,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ShaderGraph materials to select render queue in the same way as handwritten shader materials by default, but allows for a user override for custom behavior. [case 1335795]
 - Fixed sceneview debug mode rendering (case 1211436).
 - URP Global Settings can now be unassigned in the Graphics tab (case 1343570).
-- VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
-- VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
+- VFX: Fixed soft particles when HDR or Opaque texture isn't enabled.
+- VFX: Fixed OpenGL soft particles fallback when depth texture isn't available.
+- Support undo of URP Global Settings asset assignation (case 1342987).
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
