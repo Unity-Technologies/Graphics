@@ -41,11 +41,8 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.SecondarySpecularTint:          surfaceData.secondarySpecularTint =         surfaceDescription.SecondarySpecularTint;
     $SurfaceDescription.SecondarySpecularShift:         surfaceData.secondarySpecularShift =        surfaceDescription.SecondarySpecularShift;
 
-    // TODO: Adopt smoothness nomenclature + factorization?
-    $SurfaceDescription.LongitudinalRoughness:          surfaceData.roughnessLongitudinal =         surfaceDescription.LongitudinalRoughness;
-    $SurfaceDescription.AzimuthalRoughness:             surfaceData.roughnessAzimuthal =            surfaceDescription.AzimuthalRoughness;
-    $SurfaceDescription.PrimaryReflectionRoughness:     surfaceData.roughnessPrimaryReflection =    surfaceDescription.PrimaryReflectionRoughness;
-    $SurfaceDescription.RefractionIndex:                surfaceData.ior =                           surfaceDescription.RefractionIndex;
+    $SurfaceDescription.RadialSmoothness:               surfaceData.perceptualRadialSmoothness =    surfaceDescription.RadialSmoothness;
+    $SurfaceDescription.PrimaryReflectionSmoothness:    surfaceData.primaryReflectionSmoothness =   surfaceDescription.PrimaryReflectionSmoothness;
     $SurfaceDescription.CuticleAngle:                   surfaceData.cuticleAngle =                  surfaceDescription.CuticleAngle;
 
     // These static material feature allow compile time optimization

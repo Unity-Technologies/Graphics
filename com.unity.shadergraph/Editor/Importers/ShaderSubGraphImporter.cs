@@ -56,8 +56,16 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        static bool NodeWasUsedByGraph(string nodeId, GraphData graphData)
+        {
+            var node = graphData.GetNodeFromId(nodeId);
+            return node?.wasUsedByGenerator ?? false;
+        }
+
         public override void OnImportAsset(AssetImportContext ctx)
         {
+            var importLog = new ShaderGraphImporter.AssetImportErrorLog(ctx);
+
             var graphAsset = ScriptableObject.CreateInstance<SubGraphAsset>();
             var subGraphPath = ctx.assetPath;
             var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
@@ -72,7 +80,7 @@ namespace UnityEditor.ShaderGraph
 
             try
             {
-                ProcessSubGraph(graphAsset, graphData);
+                ProcessSubGraph(graphAsset, graphData, importLog);
             }
             catch (Exception e)
             {
@@ -81,16 +89,22 @@ namespace UnityEditor.ShaderGraph
             }
             finally
             {
-                if (messageManager.AnyError())
+                var errors = messageManager.ErrorStrings((nodeId) => NodeWasUsedByGraph(nodeId, graphData));
+                int errCount = errors.Count();
+                if (errCount > 0)
                 {
+                    var firstError = errors.FirstOrDefault();
+                    importLog.LogError($"Sub Graph at {subGraphPath} has {errCount} error(s), the first is: {firstError}", graphAsset);
                     graphAsset.isValid = false;
-                    foreach (var pair in messageManager.GetNodeMessages())
+                }
+                else
+                {
+                    var warnings = messageManager.ErrorStrings((nodeId) => NodeWasUsedByGraph(nodeId, graphData), Rendering.ShaderCompilerMessageSeverity.Warning);
+                    int warningCount = warnings.Count();
+                    if (warningCount > 0)
                     {
-                        var node = graphData.GetNodeFromId(pair.Key);
-                        foreach (var message in pair.Value)
-                        {
-                            MessageManager.Log(node, subGraphPath, message, graphAsset);
-                        }
+                        var firstWarning = warnings.FirstOrDefault();
+                        importLog.LogWarning($"Sub Graph at {subGraphPath} has {warningCount} warning(s), the first is: {firstWarning}", graphAsset);
                     }
                 }
                 messageManager.ClearAll();
@@ -137,7 +151,7 @@ namespace UnityEditor.ShaderGraph
                     // Ensure that dependency path is relative to project
                     if (!string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/") && !assetPath.StartsWith("Assets/"))
                     {
-                        Debug.LogWarning($"Invalid dependency path: {assetPath}", graphAsset);
+                        importLog.LogWarning($"Invalid dependency path: {assetPath}", graphAsset);
                     }
                 }
 
@@ -151,7 +165,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static void ProcessSubGraph(SubGraphAsset asset, GraphData graph)
+        static void ProcessSubGraph(SubGraphAsset asset, GraphData graph, ShaderGraphImporter.AssetImportErrorLog importLog)
         {
             var graphIncludes = new IncludeCollection();
             var registry = new FunctionRegistry(new ShaderStringBuilder(), graphIncludes, true);
@@ -176,6 +190,10 @@ namespace UnityEditor.ShaderGraph
 
             List<AbstractMaterialNode> nodes = new List<AbstractMaterialNode>();
             NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode);
+
+            // flag the used nodes so we can filter out errors from unused nodes
+            foreach (var node in nodes)
+                node.SetUsedByGenerator();
 
             ShaderStageCapability effectiveShaderStage = ShaderStageCapability.All;
             foreach (var slot in outputSlots)
@@ -241,7 +259,7 @@ namespace UnityEditor.ShaderGraph
 
             if (!anyErrors && containsCircularDependency)
             {
-                Debug.LogError($"Error in Graph at {assetPath}: Sub Graph contains a circular dependency.", asset);
+                importLog.LogError($"Error in Graph at {assetPath}: Sub Graph contains a circular dependency.", asset);
                 anyErrors = true;
             }
 
