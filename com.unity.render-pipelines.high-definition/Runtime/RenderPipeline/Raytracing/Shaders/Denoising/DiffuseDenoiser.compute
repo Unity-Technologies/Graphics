@@ -200,7 +200,7 @@ uint OffsetToLDSAdress(uint2 groupThreadId, int2 offset)
 {
     // Compute the tap coordinate in the 8x8 grid
     uint2 tapAddress = (uint2)((int2)(groupThreadId) + offset);
-    return clamp((uint)(tapAddress.x) + tapAddress.y * GATHER_REGION_SIZE, 0, GATHER_REGION_SIZE_2 - 1);
+    return clamp(tapAddress.x + tapAddress.y * GATHER_REGION_SIZE, 0, GATHER_REGION_SIZE_2 - 1);
 }
 
 [numthreads(DIFFUSE_DENOISER_TILE_SIZE, DIFFUSE_DENOISER_TILE_SIZE, 1)]
