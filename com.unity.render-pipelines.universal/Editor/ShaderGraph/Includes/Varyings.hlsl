@@ -2,8 +2,36 @@
     // Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs
     // For Directional lights, _LightDirection is used when applying shadow Normal Bias.
     // For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
+
+//_LightDirection is already defined in com.unity.render-pipelines.universal\Runtime\VFXGraph\Shaders\VFXCommon.hlsl
+//TODOPAUL : Check if we can't move this declaration somewhere else
+#ifndef HAVE_VFX_MODIFICATION
     float3 _LightDirection;
+#endif
     float3 _LightPosition;
+#endif
+
+#if defined(HAVE_VFX_MODIFICATION)
+VertexDescription BuildVertexDescription(Attributes input, AttributesElement element)
+{
+    GraphProperties properties;
+    ZERO_INITIALIZE(GraphProperties, properties);
+    // Fetch the vertex graph properties for the particle instance.
+    GetElementVertexProperties(element, properties);
+
+    // Evaluate Vertex Graph
+    VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
+    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs, properties);
+    return vertexDescription;
+}
+#else
+VertexDescription BuildVertexDescription(Attributes input)
+{
+    // Evaluate Vertex Graph
+    VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
+    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+    return vertexDescription;
+}
 #endif
 
 Varyings BuildVaryings(Attributes input)
@@ -28,17 +56,11 @@ Varyings BuildVaryings(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 #if defined(FEATURES_GRAPH_VERTEX)
-    // Evaluate Vertex Graph
-    VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
 
 #if defined(HAVE_VFX_MODIFICATION)
-    GraphProperties properties;
-    ZERO_INITIALIZE(GraphProperties, properties);
-    // Fetch the vertex graph properties for the particle instance.
-    GetElementVertexProperties(element, properties);
-    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs, properties);
+    VertexDescription vertexDescription = BuildVertexDescription(input, element);
 #else
-    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+    VertexDescription vertexDescription = BuildVertexDescription(input);
 #endif
 
     #if defined(CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC)
