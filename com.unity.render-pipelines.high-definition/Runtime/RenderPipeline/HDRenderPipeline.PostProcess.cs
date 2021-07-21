@@ -1379,10 +1379,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void GrabTemporalAntialiasingHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next, bool postDoF = false)
         {
+            Vector2 scale = new Vector2(camera.postProcessScreenSize.x * camera.screenSize.z, camera.postProcessScreenSize.y * camera.screenSize.w);
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
                 return rtHandleSystem.Alloc(
-                    Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
+                    scale, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
                     filterMode: FilterMode.Bilinear, colorFormat: GetPostprocessTextureFormat(),
                     enableRandomWrite: true, useDynamicScale: true, name: $"{id} TAA History"
                 );
@@ -1398,10 +1399,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void GrabVelocityMagnitudeHistoryTextures(HDCamera camera, out RTHandle previous, out RTHandle next)
         {
+            Vector2 scale = new Vector2(camera.postProcessScreenSize.x * camera.screenSize.z, camera.postProcessScreenSize.y * camera.screenSize.w);
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
                 return rtHandleSystem.Alloc(
-                    Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
+                    scale, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
                     filterMode: FilterMode.Bilinear, colorFormat: GraphicsFormat.R16_SFloat,
                     enableRandomWrite: true, useDynamicScale: true, name: $"{id} Velocity magnitude"
                 );
@@ -1429,6 +1431,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 taaParameters;
             public Vector4 taaFilterWeights;
             public bool motionVectorRejection;
+            public Rect viewport;
+            public bool stencil;
 
             public TextureHandle source;
             public TextureHandle destination;
@@ -1518,8 +1522,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory, postDoF);
 
-            Vector2Int prevViewPort = camera.historyRTHandleProperties.previousViewportSize;
-            passData.previousScreenSize = new Vector4(prevViewPort.x, prevViewPort.y, 1.0f / prevViewPort.x, 1.0f / prevViewPort.y);
+            if (resGroup == ResolutionGroup.AfterDynamicResUpscale)
+            {
+                // If TAA runs after dynamic res upscale, then previousScreenSize is always the camera.postProcessScreenSize (is not affected by rthandle scale)
+                passData.previousScreenSize = new Vector4(camera.postProcessScreenSize.x, camera.postProcessScreenSize.y, 1.0f / camera.postProcessScreenSize.x, 1.0f / camera.postProcessScreenSize.y);
+                passData.stencil = false;   // we don't upscale the stencil after DLSS (probably not worth the extra cost)
+            }
+            else
+            {
+                Vector2Int prevViewPort = camera.historyRTHandleProperties.previousViewportSize;
+                passData.previousScreenSize = new Vector4(prevViewPort.x, prevViewPort.y, 1.0f / prevViewPort.x, 1.0f / prevViewPort.y);
+                passData.stencil = true;
+            }
 
             passData.source = builder.ReadTexture(sourceTexture);
             passData.depthBuffer = builder.ReadTexture(depthBuffer);
@@ -1541,6 +1555,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Post-DoF TAA Destination");
             passData.destination = builder.WriteTexture(dest);
+
+            passData.viewport = new Rect(0, 0, camera.postProcessScreenSize.x, camera.postProcessScreenSize.y);
         }
 
         TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)
@@ -1593,8 +1609,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetRandomWriteTarget(2, nextMVLenTexture);
                         }
 
+                        ctx.cmd.SetViewport(data.viewport);
+
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
+                        if (data.stencil)
+                            ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
                         ctx.cmd.ClearRandomWriteTargets();
                     });
 
