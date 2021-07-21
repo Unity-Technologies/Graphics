@@ -676,6 +676,10 @@ namespace UnityEngine.Experimental.Rendering
             int count = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_CellsToBeLoaded.Count);
             count = loadAll ? m_CellsToBeLoaded.Count : count;
 
+            // This should never happen, *unless* an asset was baked with previous version of index buffer.
+            if (m_PendingInitInfo.pendingMinCellPosition == m_PendingInitInfo.pendingMaxCellPosition && count > 1)
+                return;
+
             if (count != 0)
                 ClearDebugData();
 
