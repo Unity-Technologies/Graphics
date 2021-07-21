@@ -540,24 +540,8 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         var asset = refVol2Asset[refVol];
                         asset.cells.Add(cell);
-                        if (hasFoundBounds)
-                        {
-                            BrickCountInDirections(out asset.maxBrickIndex, refVol.profile.minBrickSize);
-                            CellCountInDirections(out asset.minCellPosition, out asset.maxCellPosition, refVol.profile.cellSizeInMeters);
-                            asset.globalBounds = globalBounds;
-                        }
-                        else
-                        {
-                            foreach (var p in cell.probePositions)
-                            {
-                                float x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.minBrickSize;
-                                float y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.minBrickSize;
-                                float z = Mathf.Abs((float)p.z + refVol.transform.position.z) / refVol.profile.minBrickSize;
-                                asset.maxBrickIndex.x = Mathf.Max(asset.maxBrickIndex.x, Mathf.CeilToInt(x * 2));
-                                asset.maxBrickIndex.y = Mathf.Max(asset.maxBrickIndex.y, Mathf.CeilToInt(y * 2));
-                                asset.maxBrickIndex.z = Mathf.Max(asset.maxBrickIndex.z, Mathf.CeilToInt(z * 2));
-                            }
-                        }
+                        CellCountInDirections(out asset.minCellPosition, out asset.maxCellPosition, refVol.profile.cellSizeInMeters);
+                        asset.globalBounds = globalBounds;
                     }
                 }
             }

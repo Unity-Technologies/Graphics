@@ -16,7 +16,6 @@ namespace UnityEngine.Experimental.Rendering
         internal const int kMaxSubdivisionLevels = 7; // 3 bits
         internal const int kIndexChunkSize = 243;
 
-        // Index: chunks version (TODO: This will be the only one, will move after)
         BitArray m_IndexChunks;
         int m_IndexInChunks;
         int m_NextFreeChunk;
@@ -61,7 +60,6 @@ namespace UnityEngine.Experimental.Rendering
             public List<ReservedBrick> bricks;
         }
 
-        Vector3Int      m_IndexDim;
         Vector3Int      m_CenterRS;   // the anchor in ref space, around which the index is defined. [IMPORTANT NOTE! For now we always have it at 0, so is not passed to the shader, but is kept here until development is active in case we find it useful]
 
         Dictionary<Vector3Int, List<VoxelMeta>> m_VoxelToBricks;
@@ -71,21 +69,34 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_NeedUpdateIndexComputeBuffer;
 
-        internal Vector3Int GetIndexDimension() { return m_IndexDim; }
+        int SizeOfPhysicalIndexFromBudget(ProbeVolumeTextureMemoryBudget memoryBudget)
+        {
+            switch (memoryBudget)
+            {
+                case ProbeVolumeTextureMemoryBudget.MemoryBudgetLow:
+                    // 32 MB - 8 million of bricks worth of space. At full resolution and a distance of 1 meter between probes, this is roughly 600 * 600 * 600 meters worth of bricks. If 0.25x on Y axis, this is equivalent to 1200 * 150 * 1200 meters
+                    return 32000000;
+                case ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium:
+                    // 64 MB - 16 million of bricks worth of space. At full resolution and a distance of 1 meter between probes, this is roughly 756 * 756 * 756 meters worth of bricks. If 0.25x on Y axis, this is equivalent to 1512 * 184 * 1512 meters
+                    return 64000000;
+                case ProbeVolumeTextureMemoryBudget.MemoryBudgetHigh:
+                    // 128 MB - 16 million of bricks worth of space. At full resolution and a distance of 1 meter between probes, this is roughly 951 * 951 * 951 meters worth of bricks. If 0.25x on Y axis, this is equivalent to 1902 * 237 * 1902 meters
+                    return 128000000;
+            }
+            return 64000000;
+        }
 
-        internal ProbeBrickIndex(Vector3Int indexDimensions, int physicalIndexSize = 64000000)
+        internal ProbeBrickIndex(ProbeVolumeTextureMemoryBudget memoryBudget)
         {
             Profiler.BeginSample("Create ProbeBrickIndex");
-            int index_size = indexDimensions.x * indexDimensions.y * indexDimensions.z;
             m_CenterRS     = new Vector3Int(0, 0, 0);
-            m_IndexDim     = indexDimensions;
 
             m_VoxelToBricks = new Dictionary<Vector3Int, List<VoxelMeta>>();
             m_BricksToVoxels = new Dictionary<RegId, BrickMeta>();
 
             m_NeedUpdateIndexComputeBuffer = false;
 
-            m_IndexInChunks = Mathf.CeilToInt((float)physicalIndexSize / kIndexChunkSize);
+            m_IndexInChunks = Mathf.CeilToInt((float)SizeOfPhysicalIndexFromBudget(memoryBudget) / kIndexChunkSize);
             m_IndexChunks = new BitArray(Mathf.Max(1, m_IndexInChunks));
             int physicalBufferSize = m_IndexInChunks * kIndexChunkSize;
             m_PhysicalIndexBufferData = new int[physicalBufferSize];
@@ -175,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering
             // IMPORTANT, These values should be at max resolution. This means that
             // The map to the lower possible resolution is done after.  However they are still in local space.
             public Vector3Int minValidBrickIndexForCellAtMaxRes;
-            public Vector3Int maxValidBrickIndexForCellAtMaxRes;
+            public Vector3Int maxValidBrickIndexForCellAtMaxResPlusOne;
             public Vector3Int cellPositionInBricksAtMaxRes;
         }
 
@@ -186,8 +197,10 @@ namespace UnityEngine.Experimental.Rendering
             return (index & ~(mask << shift)) | ((size & mask) << shift);
         }
 
-        internal void UpdateCellIndexUpdateInfo(ProbeReferenceVolume.Cell cell, int bricksCount, ref CellIndexUpdateInfo cellUpdateInfo)
+        internal void AssignIndexChunksToCell(ProbeReferenceVolume.Cell cell, int bricksCount, ref CellIndexUpdateInfo cellUpdateInfo)
         {
+            // We need to better handle the case where the chunks are full, this is where streaming will need to come into place swapping in/out
+
             int numberOfChunks = Mathf.CeilToInt((float)bricksCount / kIndexChunkSize);
 
             // Search for the first empty element with enough space.
@@ -349,7 +362,6 @@ namespace UnityEngine.Experimental.Rendering
             // Since the index is spurious (not same resolution, but varying per cell) we need to bring to the output resolution the brick coordinates
             // Before finding the locations inside the Index for the current cell/chunk.
 
-            // TODO_FCC [ROUNDING-ISSUE]
             brickMin /= ProbeReferenceVolume.CellSize(cellInfo.minSubdivInCell);
             brickMax /= ProbeReferenceVolume.CellSize(cellInfo.minSubdivInCell);
 
@@ -361,7 +373,7 @@ namespace UnityEngine.Experimental.Rendering
             // We are now in the right resolution, but still not considering the valid area, so we need to still normalize against that.
             // To do so first let's move back the limits to the desired resolution
             var cellMinIndex = cellInfo.minValidBrickIndexForCellAtMaxRes / ProbeReferenceVolume.CellSize(cellInfo.minSubdivInCell);
-            var cellMaxIndex = cellInfo.maxValidBrickIndexForCellAtMaxRes / ProbeReferenceVolume.CellSize(cellInfo.minSubdivInCell);
+            var cellMaxIndex = cellInfo.maxValidBrickIndexForCellAtMaxResPlusOne / ProbeReferenceVolume.CellSize(cellInfo.minSubdivInCell);
 
             // Then perform the rescale of the local indices for min and max.
             brickMin -= cellMinIndex;
@@ -399,7 +411,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // The position here is in global space, however we want to constraint this voxel update to the valid cell area
             var minValidPosition = cellInfo.cellPositionInBricksAtMaxRes + cellInfo.minValidBrickIndexForCellAtMaxRes;
-            var maxValidPosition = cellInfo.cellPositionInBricksAtMaxRes + cellInfo.maxValidBrickIndexForCellAtMaxRes - Vector3Int.one; // TODO: CHECK ABOUT THE -1, SAME PROBLEM AS [OFF-BY-ONE?] search this tag around
+            var maxValidPosition = cellInfo.cellPositionInBricksAtMaxRes + cellInfo.maxValidBrickIndexForCellAtMaxResPlusOne - Vector3Int.one;
 
             int minpos_x = pos.x - m_CenterRS.x;
             int minpos_y = pos.y;

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    // [PreferBinarySerialization]
+    [PreferBinarySerialization]
     internal class ProbeVolumeAsset : ScriptableObject
     {
         [Serializable]
@@ -25,7 +25,6 @@ namespace UnityEngine.Experimental.Rendering
 
         [SerializeField] internal Vector3Int maxCellPosition;
         [SerializeField] internal Vector3Int minCellPosition;
-        [SerializeField] internal Vector3Int maxBrickIndex;
 
         // TODO TMP! THIS IS NOT REALLY NEEDED AS IT IS LIKE THIS, CAN DIRECTLY STORE EXCESS IN BRICKS.
         [SerializeField] internal Bounds globalBounds;

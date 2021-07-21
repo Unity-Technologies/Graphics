@@ -103,9 +103,8 @@ namespace UnityEngine.Experimental.Rendering
             int minSubdivCellSize = ProbeReferenceVolume.CellSize(cellUpdateInfo.minSubdivInCell);
             IndexMetaData metaData = new IndexMetaData();
             metaData.minSubdiv = cellUpdateInfo.minSubdivInCell;
-            // TODO_FCC [ROUNDING-ISSUE]
             metaData.minLocalIdx = cellUpdateInfo.minValidBrickIndexForCellAtMaxRes / minSubdivCellSize;
-            metaData.maxLocalIdx = cellUpdateInfo.maxValidBrickIndexForCellAtMaxRes / minSubdivCellSize;
+            metaData.maxLocalIdx = cellUpdateInfo.maxValidBrickIndexForCellAtMaxResPlusOne / minSubdivCellSize;
             metaData.firstChunkIndex = cellUpdateInfo.firstChunkIndex;
 
             metaData.Pack(out uint[] packedVals);

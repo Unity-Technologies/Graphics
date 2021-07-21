@@ -13,11 +13,6 @@ namespace UnityEngine.Rendering
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)APVConstantBufferRegister.GlobalRegister)]
     internal unsafe struct ShaderVariablesProbeVolumes
     {
-        public Matrix4x4 _WStoRS;
-
-        public Vector3 _IndexDim;
-        public float _NormalBias;
-
         public Vector3 _PoolDim;
         public float _ViewBias;
 
@@ -30,6 +25,6 @@ namespace UnityEngine.Rendering
         public float _CellInMinBricks;
         public float _MinBrickSize;
         public int _IndexChunkSize;
-        public int pad0;
+        public float _NormalBias;
     }
 }
