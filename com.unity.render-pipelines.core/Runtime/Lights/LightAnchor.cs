@@ -20,7 +20,7 @@ namespace UnityEngine
         const float k_AxisLength = 10;
 
         [SerializeField]
-        float m_Distance = minDistance;
+        float m_Distance = k_MinDistance;
         [SerializeField]
         UpDirection m_FrameSpace = UpDirection.World;
 
