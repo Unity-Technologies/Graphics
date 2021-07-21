@@ -58,6 +58,8 @@ namespace UnityEditor.Rendering.Universal
                 var path = AssetDatabase.GUIDToAssetPath(asset);
                 EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                if (material == null || material.shader == null)
+                    continue;
                 if (!IsURPShader(material.shader))
                 {
                     continue;
