@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed white flash with SSR when resetting camera history (case 1335263).
 - Fixed VFX flag "Exclude From TAA" not working for some particle types.
 - Prevent any unwanted light sync when not in HDRP (case 1217575)
+- Fixed screen-space shadows with XR single-pass and camera relative rendering (1348260).
 
 ## [10.6.0] - 2021-04-29
 
