@@ -94,7 +94,10 @@ namespace UnityEngine.Experimental.Rendering
             public int minSubdiv;
 
             [System.NonSerialized]
-            public List<int> indexChunkIDs;
+            public int flatIdxInCellIndices = -1;
+
+            [System.NonSerialized]
+            public bool loaded = false;
         }
 
         class CellChunkInfo
@@ -313,7 +316,8 @@ namespace UnityEngine.Experimental.Rendering
 
 
         bool m_BricksLoaded = false;
-        Dictionary<string, List<RegId>> m_AssetPathToBricks = new Dictionary<string, List<RegId>>();
+        Dictionary<Cell, RegId> m_CellToBricks = new Dictionary<Cell, RegId>();
+
 
         Dictionary<RegId, ProbeBrickIndex.CellIndexUpdateInfo> m_BricksToCellUpdateInfo = new Dictionary<RegId, ProbeBrickIndex.CellIndexUpdateInfo>();
 
@@ -423,17 +427,33 @@ namespace UnityEngine.Experimental.Rendering
             m_IsInitialized = false;
         }
 
-        void RemoveCell(int cellIndex)
+        void RemoveCell(Cell cell)
         {
-            if (cells.ContainsKey(cellIndex))
-                cells.Remove(cellIndex);
+            if (cell.loaded)
+            {
+                if (cells.ContainsKey(cell.index))
+                    cells.Remove(cell.index);
 
-            if (m_ChunkInfo.ContainsKey(cellIndex))
-                m_ChunkInfo.Remove(cellIndex);
+                if (m_ChunkInfo.ContainsKey(cell.index))
+                    m_ChunkInfo.Remove(cell.index);
+
+                if (cell.flatIdxInCellIndices >= 0)
+                    m_CellIndices.MarkCellAsUnloaded(cell.flatIdxInCellIndices);
+
+                RegId cellBricksID = new RegId();
+                if (m_CellToBricks.TryGetValue(cell, out cellBricksID))
+                {
+                    ReleaseBricks(cellBricksID);
+                    m_CellToBricks.Remove(cell);
+                }
+            }
+
+            cell.loaded = false;
         }
 
         void AddCell(Cell cell, List<Chunk> chunks)
         {
+            cell.loaded = true;
             cells[cell.index] = cell;
 
             var cellChunks = new CellChunkInfo();
@@ -520,23 +540,13 @@ namespace UnityEngine.Experimental.Rendering
             // Remove bricks and empty cells
             foreach (var cell in asset.cells)
             {
-                RemoveCell(cell.index);
-            }
-
-            // Unload brick data
-            if (m_AssetPathToBricks.ContainsKey(key))
-            {
-                var regIds = m_AssetPathToBricks[key];
-                foreach (var regId in regIds)
-                    ReleaseBricks(regId);
-
-                m_AssetPathToBricks.Remove(key);
+                RemoveCell(cell);
             }
 
             ClearDebugData();
         }
 
-        void PerformPendingIndexDimensionChangeAndInit()
+        void PerformPendingIndexChangeAndInit()
         {
             if (m_NeedsIndexRebuild)
             {
@@ -554,7 +564,6 @@ namespace UnityEngine.Experimental.Rendering
         void LoadAsset(ProbeVolumeAsset asset)
         {
             var path = asset.GetSerializedFullPath();
-            m_AssetPathToBricks[path] = new List<RegId>();
 
 
             for (int i = 0; i < asset.cells.Count; ++i)
@@ -688,7 +697,7 @@ namespace UnityEngine.Experimental.Rendering
                 var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2);
                 ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, ProbeVolumeSHBands.SphericalHarmonicsL2);
 
-                int cellFlatIdx = m_CellIndices.GetFlatIdxForCell(cell.position);
+                cell.flatIdxInCellIndices = m_CellIndices.GetFlatIdxForCell(cell.position);
 
                 // TODO register ID of brick list
                 List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
@@ -699,12 +708,10 @@ namespace UnityEngine.Experimental.Rendering
                 var regId = AddBricks(brickList, dataLocation, cellUpdateInfo, out chunkList);
                 m_BricksToCellUpdateInfo.Add(regId, cellUpdateInfo);
 
-                m_CellIndices.AddCell(cellFlatIdx, cellUpdateInfo);
-
-                Debug.Log($"{cellFlatIdx}: {cellUpdateInfo.minValidBrickIndexForCellAtMaxRes} {cellUpdateInfo.maxValidBrickIndexForCellAtMaxRes} {cellUpdateInfo.firstChunkIndex} {cellUpdateInfo.numberOfChunks} {cellUpdateInfo.minSubdivInCell}");
+                m_CellIndices.AddCell(cell.flatIdxInCellIndices, cellUpdateInfo);
 
                 AddCell(cell, chunkList);
-                m_AssetPathToBricks[path].Add(regId);
+                m_CellToBricks[cell] = regId;
 
                 dataLocation.Cleanup();
                 m_CellsToBeLoaded.RemoveAt(0);
@@ -718,7 +725,7 @@ namespace UnityEngine.Experimental.Rendering
         public void PerformPendingOperations(bool loadAllCells = false)
         {
             PerformPendingDeletion();
-            PerformPendingIndexDimensionChangeAndInit();
+            PerformPendingIndexChangeAndInit();
             PerformPendingLoading();
             LoadPendingCells(loadAllCells);
         }

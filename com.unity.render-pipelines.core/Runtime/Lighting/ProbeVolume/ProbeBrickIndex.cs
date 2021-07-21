@@ -74,16 +74,16 @@ namespace UnityEngine.Experimental.Rendering
             switch (memoryBudget)
             {
                 case ProbeVolumeTextureMemoryBudget.MemoryBudgetLow:
+                    // 16 MB - 4 million of bricks worth of space. At full resolution and a distance of 1 meter between probes, this is roughly 474 * 474 * 474 meters worth of bricks. If 0.25x on Y axis, this is equivalent to 948 * 118 * 948 meters
+                    return 16000000;
+                case ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium:
                     // 32 MB - 8 million of bricks worth of space. At full resolution and a distance of 1 meter between probes, this is roughly 600 * 600 * 600 meters worth of bricks. If 0.25x on Y axis, this is equivalent to 1200 * 150 * 1200 meters
                     return 32000000;
-                case ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium:
+                case ProbeVolumeTextureMemoryBudget.MemoryBudgetHigh:
                     // 64 MB - 16 million of bricks worth of space. At full resolution and a distance of 1 meter between probes, this is roughly 756 * 756 * 756 meters worth of bricks. If 0.25x on Y axis, this is equivalent to 1512 * 184 * 1512 meters
                     return 64000000;
-                case ProbeVolumeTextureMemoryBudget.MemoryBudgetHigh:
-                    // 128 MB - 16 million of bricks worth of space. At full resolution and a distance of 1 meter between probes, this is roughly 951 * 951 * 951 meters worth of bricks. If 0.25x on Y axis, this is equivalent to 1902 * 237 * 1902 meters
-                    return 128000000;
             }
-            return 64000000;
+            return 32000000;
         }
 
         internal ProbeBrickIndex(ProbeVolumeTextureMemoryBudget memoryBudget)
@@ -197,7 +197,7 @@ namespace UnityEngine.Experimental.Rendering
             return (index & ~(mask << shift)) | ((size & mask) << shift);
         }
 
-        internal void AssignIndexChunksToCell(ProbeReferenceVolume.Cell cell, int bricksCount, ref CellIndexUpdateInfo cellUpdateInfo)
+        internal bool AssignIndexChunksToCell(ProbeReferenceVolume.Cell cell, int bricksCount, ref CellIndexUpdateInfo cellUpdateInfo)
         {
             // We need to better handle the case where the chunks are full, this is where streaming will need to come into place swapping in/out
 
@@ -224,8 +224,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            Debug.Assert(firstValidChunk >= 0);
-            if (firstValidChunk < 0) return;
+            if (firstValidChunk < 0) return false;
 
             // This assert will need to go away or do something else when streaming is allowed (we need to find holes in available chunks or stream out stuff)
             cellUpdateInfo.firstChunkIndex = firstValidChunk;
@@ -237,6 +236,8 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_NextFreeChunk += Mathf.Max(0, (firstValidChunk + numberOfChunks) - m_NextFreeChunk);
+
+            return true;
         }
 
         public void AddBricks(RegId id, List<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight, CellIndexUpdateInfo cellInfo)

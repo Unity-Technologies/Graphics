@@ -44,23 +44,28 @@ TEXTURE3D(_APVResL2_3);
 // -------------------------------------------------------------
 // Indexing functions
 // -------------------------------------------------------------
-// TODO: As it is now, this is a very roundabout way of doing a no-op, it is here to test the flow.
-// Also fairly naive now, can be improved.
 
-void LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize, out int3 minRelativeIdx, out int3 maxRelativeIdx)
+bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize, out int3 minRelativeIdx, out int3 maxRelativeIdx)
 {
+    bool cellIsLoaded = false;
     uint3 metaData = _APVResCellIndices[cellFlatIdx];
 
-    chunkIndex = metaData.x & 0x1FFFFFFF;
-    stepSize = pow(3, (metaData.x >> 29) & 0x7);
+    if (metaData.x != 0xFFFFFFFF)
+    {
+        chunkIndex = metaData.x & 0x1FFFFFFF;
+        stepSize = pow(3, (metaData.x >> 29) & 0x7);
 
-    minRelativeIdx.x = metaData.y & 0x3FF;
-    minRelativeIdx.y = (metaData.y >> 10) & 0x3FF;
-    minRelativeIdx.z = (metaData.y >> 20) & 0x3FF;
+        minRelativeIdx.x = metaData.y & 0x3FF;
+        minRelativeIdx.y = (metaData.y >> 10) & 0x3FF;
+        minRelativeIdx.z = (metaData.y >> 20) & 0x3FF;
 
-    maxRelativeIdx.x = metaData.z & 0x3FF;
-    maxRelativeIdx.y = (metaData.z >> 10) & 0x3FF;
-    maxRelativeIdx.z = (metaData.z >> 20) & 0x3FF;
+        maxRelativeIdx.x = metaData.z & 0x3FF;
+        maxRelativeIdx.y = (metaData.z >> 10) & 0x3FF;
+        maxRelativeIdx.z = (metaData.z >> 20) & 0x3FF;
+        cellIsLoaded = true;
+    }
+
+    return cellIsLoaded;
 }
 
 uint GetIndexData(APVResources apvRes, float3 posWS)
@@ -76,25 +81,32 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
     int stepSize = 0;
     int3 minRelativeIdx, maxRelativeIdx;
     int chunkIdx = -1;
-    LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx);
-
-    float3 residualPosWS = posWS - topLeftCellWS;
-    int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
-
-    // Out of bounds.
-    if (any(localBrickIndex < minRelativeIdx || localBrickIndex >= maxRelativeIdx))
+    bool isValidBrick = true;
+    if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
     {
-        return 0xffffffff;
+        float3 residualPosWS = posWS - topLeftCellWS;
+        int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
+
+        // Out of bounds.
+        if (any(localBrickIndex < minRelativeIdx || localBrickIndex >= maxRelativeIdx))
+        {
+            isValidBrick = false;
+        }
+
+        int3 sizeOfValid = maxRelativeIdx - minRelativeIdx;
+        // Relative to valid region
+        int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
+        int flattenedLocationInCell = localRelativeIndexLoc.z * (sizeOfValid.x * sizeOfValid.y) + localRelativeIndexLoc.x * sizeOfValid.y + localRelativeIndexLoc.y;
+
+        int locationInPhysicalBuffer = chunkIdx * _IndexChunkSize + flattenedLocationInCell;
+
+    }
+    else
+    {
+        isValidBrick = false;
     }
 
-    int3 sizeOfValid = maxRelativeIdx - minRelativeIdx;
-    // Relative to valid region
-    int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
-    int flattenedLocationInCell = localRelativeIndexLoc.z * (sizeOfValid.x * sizeOfValid.y) + localRelativeIndexLoc.x * sizeOfValid.y + localRelativeIndexLoc.y;
-
-    int locationInPhysicalBuffer = chunkIdx * _IndexChunkSize + flattenedLocationInCell;
-
-    return apvRes.index[locationInPhysicalBuffer];
+    return isValidBrick ? apvRes.index[locationInPhysicalBuffer] : 0xffffffff;
 }
 
 

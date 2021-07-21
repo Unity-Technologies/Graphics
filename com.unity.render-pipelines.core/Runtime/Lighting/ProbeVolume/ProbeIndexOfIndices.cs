@@ -117,6 +117,16 @@ namespace UnityEngine.Experimental.Rendering
             m_NeedUpdateComputeBuffer = true;
         }
 
+        internal void MarkCellAsUnloaded(int cellFlatIdx)
+        {
+            for (int i = 0; i < kUintPerEntry; ++i)
+            {
+                m_IndexOfIndicesData[cellFlatIdx * kUintPerEntry + i] = 0xFFFFFFFF;
+            }
+
+            m_NeedUpdateComputeBuffer = true;
+        }
+
         internal void PushComputeData()
         {
             m_IndexOfIndicesBuffer.SetData(m_IndexOfIndicesData);
