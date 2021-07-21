@@ -1,6 +1,7 @@
 import os
 import subprocess
 import ruamel.yaml as yml
+import sys
 
 # This script calls the ruamel build.py script, with an argument pointing to current GIT repo
 # i.e. when this is called within Graphics repo, then build.py will edit the files in Graphics repo 
@@ -30,7 +31,7 @@ if __name__== "__main__":
     gfx_sdet_tools_dir = config["gfx_sdet_tools_path"]
     build_py = os.path.join(gfx_sdet_tools_dir,'yml-generator','ruamel','build.py')
 
-    cmd = ['python3', build_py,
+    cmd = [sys.executable, build_py,
            '--yamato-dir', current_yamato_dir]
     print(f'Calling {cmd}')
 
