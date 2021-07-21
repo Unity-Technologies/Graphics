@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireScreenPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
+        , IMayRequirePositionPredisplacement
         , IMayRequireVertexColor
         , IMayRequireTime
         , IMayRequireFaceSign
@@ -296,7 +297,7 @@ namespace UnityEditor.ShaderGraph
                 arguments.Add(feedbackVar);
             }
 
-            sb.AppendIndentation();
+            sb.TryAppendIndentation();
             sb.Append(asset.functionName);
             sb.Append("(");
             bool firstArg = true;
@@ -743,6 +744,14 @@ namespace UnityEditor.ShaderGraph
                 return NeededCoordinateSpace.None;
 
             return asset.requirements.requiresPosition;
+        }
+
+        public NeededCoordinateSpace RequiresPositionPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            if (asset == null)
+                return NeededCoordinateSpace.None;
+
+            return asset.requirements.requiresPositionPredisplacement;
         }
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
