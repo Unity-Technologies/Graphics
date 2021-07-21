@@ -765,6 +765,7 @@ Shader ""Hidden/GraphErrorShader2""
             AddCoordinateSpaceSnippets(InterpolatorType.BiTangent, r => r.requiresBitangent);
             AddCoordinateSpaceSnippets(InterpolatorType.ViewDirection, r => r.requiresViewDir);
             AddCoordinateSpaceSnippets(InterpolatorType.Position, r => r.requiresPosition);
+            AddCoordinateSpaceSnippets(InterpolatorType.PositionPredisplacement, r => r.requiresPositionPredisplacement);
 
             AddRequirementsSnippet(r => r.requiresVertexColor, $"float4 {ShaderGeneratorNames.VertexColor}");
             AddRequirementsSnippet(r => r.requiresScreenPosition, $"float4 {ShaderGeneratorNames.ScreenPosition}");
