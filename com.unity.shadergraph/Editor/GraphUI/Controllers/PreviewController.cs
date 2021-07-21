@@ -3,13 +3,13 @@ using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 
 namespace UnityEditor.ShaderGraph.GraphUI.Controllers
 {
-    class PreviewController : GraphSubWindowController<PreviewView>
+    class PreviewController : GraphSubWindowController<PreviewView, PreviewOverlay>
     {
-        public PreviewView PreviewView => m_SubWindowContent;
+        protected override string OverlayID => PreviewOverlay.k_OverlayID;
 
-        public PreviewController(CommandDispatcher dispatcher, GraphView parentGraphView) : base(dispatcher, parentGraphView)
+        public PreviewController(CommandDispatcher dispatcher, GraphView parentGraphView, EditorWindow parentWindow) : base(dispatcher, parentGraphView, parentWindow)
         {
-            m_SubWindowContent = new PreviewView();
+            View = new PreviewView();
         }
     }
 }

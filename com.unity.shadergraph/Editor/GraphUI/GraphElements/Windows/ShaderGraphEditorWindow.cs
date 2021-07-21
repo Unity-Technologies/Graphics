@@ -14,13 +14,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
         protected override bool CanHandleAssetType(IGraphAssetModel asset) => asset is ShaderGraphAssetModel;
 
         InspectorController m_InspectorController;
-        public ModelInspectorView InspectorView => m_InspectorController.InspectorView;
+        public ModelInspectorView InspectorView => m_InspectorController.View;
 
         BlackboardController m_BlackboardController;
-        public Blackboard BlackboardView => m_BlackboardController.BlackboardView;
+        public Blackboard BlackboardView => m_BlackboardController.View;
 
         PreviewController m_PreviewController;
-        public PreviewView PreviewView => m_PreviewController.PreviewView;
+        public PreviewView PreviewView => m_PreviewController.View;
 
         [InitializeOnLoadMethod]
         static void RegisterTool()
@@ -36,9 +36,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
 
         void InitializeSubWindows()
         {
-            m_InspectorController = new InspectorController(CommandDispatcher, GraphView);
-            m_BlackboardController = new BlackboardController(CommandDispatcher, GraphView);
-            m_PreviewController = new PreviewController(CommandDispatcher, GraphView);
+            m_InspectorController = new InspectorController(CommandDispatcher, GraphView, this);
+            m_BlackboardController = new BlackboardController(CommandDispatcher, GraphView, this);
+            m_PreviewController = new PreviewController(CommandDispatcher, GraphView, this);
         }
 
         protected override void OnEnable()

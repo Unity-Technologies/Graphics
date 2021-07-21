@@ -4,9 +4,11 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Views
 {
-    [Overlay(typeof(ShaderGraphEditorWindow), "Preview")]
+    [Overlay(typeof(ShaderGraphEditorWindow), k_OverlayID)]
     class PreviewOverlay : GraphSubWindowOverlay
     {
+        public const string k_OverlayID = "Preview";
+
         protected override void OnPanelContentAttached(AttachToPanelEvent evt)
         {
             var parent = (ShaderGraphEditorWindow) containerWindow;

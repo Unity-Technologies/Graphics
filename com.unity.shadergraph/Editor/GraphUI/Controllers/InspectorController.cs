@@ -1,15 +1,16 @@
 ﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI.Controllers
 {
-    class InspectorController : GraphSubWindowController<ModelInspectorView>
+    class InspectorController : GraphSubWindowController<ModelInspectorView, InspectorOverlay>
     {
-        public ModelInspectorView InspectorView => m_SubWindowContent;
+        protected override string OverlayID => InspectorOverlay.k_OverlayID;
 
-        public InspectorController(CommandDispatcher dispatcher, GraphView parentGraphView) : base(dispatcher, parentGraphView)
+        public InspectorController(CommandDispatcher dispatcher, GraphView parentGraphView, EditorWindow parentWindow) : base(dispatcher, parentGraphView, parentWindow)
         {
-            m_SubWindowContent = new ModelInspectorView(dispatcher);
+            View = new ModelInspectorView(dispatcher);
         }
     }
 }

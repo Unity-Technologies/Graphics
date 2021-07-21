@@ -1,15 +1,16 @@
 ﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 
 namespace UnityEditor.ShaderGraph.GraphUI.Controllers
 {
-    class BlackboardController : GraphSubWindowController<Blackboard>
+    class BlackboardController : GraphSubWindowController<Blackboard, BlackboardOverlay>
     {
-        public Blackboard BlackboardView => m_SubWindowContent;
+        protected override string OverlayID => BlackboardOverlay.k_OverlayID;
 
-        public BlackboardController(CommandDispatcher dispatcher, GraphView parentGraphView) : base(dispatcher, parentGraphView)
+        public BlackboardController(CommandDispatcher dispatcher, GraphView parentGraphView, EditorWindow parentWindow) : base(dispatcher, parentGraphView, parentWindow)
         {
-            m_SubWindowContent = new Blackboard();
-            m_SubWindowContent.SetupBuildAndUpdate(BlackboardView.Model, dispatcher, parentGraphView);
+            View = new Blackboard();
+            View.SetupBuildAndUpdate(View.Model, dispatcher, parentGraphView);
         }
     }
 }
