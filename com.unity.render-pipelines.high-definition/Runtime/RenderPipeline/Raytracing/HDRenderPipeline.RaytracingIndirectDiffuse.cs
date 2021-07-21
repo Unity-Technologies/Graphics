@@ -526,7 +526,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 filterParams.historyValidity = historyValidity0;
                 filterParams.occluderMotionRejection = false;
                 filterParams.receiverMotionRejection = giSettings.receiverMotionRejection.value;
-                filterParams.exposureControl = 0.0f;
+                filterParams.exposureControl = true;
                 TextureHandle denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, filterParams,
                     rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferHF,
                     depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
@@ -545,7 +545,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     filterParams.historyValidity = historyValidity1;
                     filterParams.occluderMotionRejection = false;
                     filterParams.receiverMotionRejection = giSettings.receiverMotionRejection.value;
-                    filterParams.exposureControl = 0.0f;
+                    filterParams.exposureControl = true;
                     denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, filterParams,
                         rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferLF,
                         depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
