@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Profiling;
 using Pool = UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
@@ -72,9 +73,9 @@ namespace UnityEditor.ShaderGraph
             return fieldActive;
         }
 
-        internal static void GenerateShaderStruct(StructDescriptor shaderStruct, ActiveFields activeFields, out ShaderStringBuilder structBuilder)
+        internal static void GenerateShaderStruct(StructDescriptor shaderStruct, ActiveFields activeFields, bool humanReadable, out ShaderStringBuilder structBuilder)
         {
-            structBuilder = new ShaderStringBuilder();
+            structBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
             structBuilder.AppendLine($"struct {shaderStruct.name}");
             using (structBuilder.BlockSemicolonScope())
             {
@@ -192,13 +193,13 @@ namespace UnityEditor.ShaderGraph
             packStruct.fields = packedSubscripts.Concat(postUnpackedSubscripts).ToArray();
         }
 
-        internal static void GenerateInterpolatorFunctions(StructDescriptor shaderStruct, IActiveFields activeFields, out ShaderStringBuilder interpolatorBuilder)
+        internal static void GenerateInterpolatorFunctions(StructDescriptor shaderStruct, IActiveFields activeFields, bool humanReadable, out ShaderStringBuilder interpolatorBuilder)
         {
             //set up function string builders and struct builder
             List<int> packedCounts = new List<int>();
-            var packBuilder = new ShaderStringBuilder();
-            var unpackBuilder = new ShaderStringBuilder();
-            interpolatorBuilder = new ShaderStringBuilder();
+            var packBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
+            var unpackBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
+            interpolatorBuilder = new ShaderStringBuilder(humanReadable: humanReadable);
             string packedStruct = "Packed" + shaderStruct.name;
 
             //declare function headers
@@ -249,8 +250,9 @@ namespace UnityEditor.ShaderGraph
                         }
                         // add code to packer and unpacker -- add subscript to packedstruct
                         string packedChannels = ShaderSpliceUtil.GetChannelSwizzle(firstChannel, vectorCount);
-                        packBuilder.AppendLine($"output.interp{interpIndex}.{packedChannels} =  input.{subscript.name};");
-                        unpackBuilder.AppendLine($"output.{subscript.name} = input.interp{interpIndex}.{packedChannels};");
+                        string index = interpIndex.ToString();
+                        packBuilder.AppendLine($"output.interp{index}.{packedChannels} =  input.{subscript.name};");
+                        unpackBuilder.AppendLine($"output.{subscript.name} = input.interp{index}.{packedChannels};");
                     }
 
                     if (subscript.HasPreprocessor())
@@ -913,7 +915,9 @@ namespace UnityEditor.ShaderGraph
             if (activeNode is IGeneratesFunction functionNode)
             {
                 functionRegistry.builder.currentNode = activeNode;
+                Profiler.BeginSample("GenerateNodeFunction");
                 functionNode.GenerateNodeFunction(functionRegistry, mode);
+                Profiler.EndSample();
             }
 
             if (activeNode is IGeneratesBodyCode bodyNode)
@@ -922,7 +926,9 @@ namespace UnityEditor.ShaderGraph
                     descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(keywordPermutations));
 
                 descriptionFunction.currentNode = activeNode;
+                Profiler.BeginSample("GenerateNodeCode");
                 bodyNode.GenerateNodeCode(descriptionFunction, mode);
+                Profiler.EndSample();
                 descriptionFunction.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
 
                 if (keywordPermutations != null)
@@ -1047,12 +1053,14 @@ namespace UnityEditor.ShaderGraph
             using (builder.BlockScope())
             {
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
+                Profiler.BeginSample("GenerateNodeDescriptions");
                 for (int i = 0; i < nodes.Count; i++)
                 {
                     GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
                         shaderProperties, shaderKeywords,
                         graph, mode);
                 }
+                Profiler.EndSample();
 
                 functionRegistry.builder.currentNode = null;
                 builder.currentNode = null;
