@@ -1716,7 +1716,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             displayName = "Light Cookies",
             referenceName = "_LIGHT_COOKIES",
             type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
+            definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
 
