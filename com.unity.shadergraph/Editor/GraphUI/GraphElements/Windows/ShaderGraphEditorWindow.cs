@@ -14,13 +14,25 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
         protected override bool CanHandleAssetType(IGraphAssetModel asset) => asset is ShaderGraphAssetModel;
 
         InspectorController m_InspectorController;
-        public ModelInspectorView InspectorView => m_InspectorController.View;
+        ModelInspectorView m_InspectorView => m_InspectorController.View;
 
         BlackboardController m_BlackboardController;
-        public Blackboard BlackboardView => m_BlackboardController.View;
+        Blackboard m_BlackboardView => m_BlackboardController.View;
 
         PreviewController m_PreviewController;
-        public PreviewView PreviewView => m_PreviewController.View;
+        Preview m_Preview => m_PreviewController.View;
+
+        public VisualElement GetGraphSubWindow<T>()
+        {
+            if (typeof(T) == typeof(Blackboard))
+                return m_BlackboardView;
+            if (typeof(T) == typeof(ModelInspectorView))
+                return m_InspectorView;
+            if (typeof(T) == typeof(Preview))
+                return m_Preview;
+
+            return null;
+        }
 
         [InitializeOnLoadMethod]
         static void RegisterTool()

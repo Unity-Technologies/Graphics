@@ -5,24 +5,16 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Views
 {
     [Overlay(typeof(ShaderGraphEditorWindow), k_OverlayID)]
-    class PreviewOverlay : GraphSubWindowOverlay
+    class PreviewOverlay : GraphSubWindowOverlay<Preview>
     {
         public const string k_OverlayID = "Preview";
+        protected override string elementName => "Preview";
+        protected override string ussRootClassName => "preview";
 
         protected override void OnPanelContentAttached(AttachToPanelEvent evt)
         {
-            var parent = (ShaderGraphEditorWindow) containerWindow;
-            if (parent == null) return;
-
-            var previewView = parent.PreviewView;
-            if (previewView is null) return;
-
+            base.OnPanelContentAttached(evt);
             this.displayed = true;
-            previewView.style.width = 100;
-            previewView.style.height = 100;
-
-            m_Root.Clear();
-            m_Root.Add(previewView);
         }
     }
 }

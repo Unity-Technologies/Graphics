@@ -27,9 +27,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.Utilities
             }
         }
 
-        static string StylesheetPath = GraphElementHelper.AssetPath + "GraphElements/Stylesheets/";
-        static string NewLookStylesheetPath = GraphElementHelper.AssetPath + "GraphElements/Stylesheets/NewLook/";
-        static string TemplatePath = GraphElementHelper.AssetPath + "GraphElements/Templates/";
+        static string StylesheetPath = AssetPath + "GraphElements/Stylesheets/";
+        static string NewLookStylesheetPath = AssetPath + "GraphElements/Stylesheets/NewLook/";
+        static string TemplatePath = AssetPath + "GraphElements/Templates/";
         internal static bool UseNewStylesheets { get; set; }
 
         internal static void AddStylesheet(this VisualElement ve, string stylesheetName)

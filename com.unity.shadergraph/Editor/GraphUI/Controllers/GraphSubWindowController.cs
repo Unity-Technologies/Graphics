@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Controllers
     // Base class for all controllers of a sub-window within the shader graph
     abstract class GraphSubWindowController<SubWindowView, ViewOverlay>
         where SubWindowView : VisualElement
-        where ViewOverlay : GraphSubWindowOverlay
+        where ViewOverlay : GraphSubWindowOverlay<SubWindowView>
     {
         protected virtual string OverlayID { get => String.Empty; }
 
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Controllers
         protected GraphView m_ParentGraphView;
 
         // TODO: Handle layout serialization/deserialization
-        
+
         protected GraphSubWindowController(CommandDispatcher dispatcher, GraphView parentGraphView, EditorWindow parentWindow)
         {
             m_CommandDispatcher = dispatcher;
