@@ -570,7 +570,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Texture3D ErosionNoiseTypeToTexture(VolumetricClouds.CloudErosionNoise noiseType)
         {
-            switch(noiseType)
+            switch (noiseType)
             {
                 case VolumetricClouds.CloudErosionNoise.Worley32:
                     return m_Asset.renderPipelineResources.textures.worleyNoise32RGB;

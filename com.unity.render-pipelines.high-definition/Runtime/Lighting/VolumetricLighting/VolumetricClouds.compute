@@ -743,7 +743,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                     // If it has been more than EMPTY_STEPS_BEFORE_LARGE_STEPS, disable active sampling and start large steps
                     if (sequentialEmptySamples == EMPTY_STEPS_BEFORE_LARGE_STEPS)
                         activeSampling = false;
-                    
+
                     // Do the next step
                     float relativeStepSize = lerp(cloudRay.integrationNoise, 1.0, saturate(currentIndex));
                     currentPosition += cloudRay.direction * stepS * relativeStepSize;

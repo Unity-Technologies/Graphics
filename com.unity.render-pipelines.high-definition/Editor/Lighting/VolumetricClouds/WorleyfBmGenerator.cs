@@ -86,7 +86,7 @@ internal class WorleyfBmGenerator : MonoBehaviour
 
         result = GenerateWorleyfBm(32, 32, 32, NoiseType.Perlin);
         SaveTextureAsPNG(result, "Assets/PerlinNoise32RGB.png");
-        
+
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
     }

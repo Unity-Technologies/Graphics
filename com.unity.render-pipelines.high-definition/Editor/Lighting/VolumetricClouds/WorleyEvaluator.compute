@@ -70,7 +70,7 @@ void PerlinNoiseEvaluator(uint3 dispatchThreadID : SV_DispatchThreadID)
     // Compute the worley fractal brownian motion
     const float baseFrequence = 4.0;
     float perlinFBM = lerp(1.0, EvaluatePerlinFractalBrownianMotion(position, baseFrequence, 8.0), 0.5);
-    
+
     // Output to the render texture.
     _WorleyEvaluationOutput[dispatchThreadID.xy] = float4(perlinFBM, 0.0, 0.0, 1.0);
 }

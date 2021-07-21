@@ -623,7 +623,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void PropagateEffectHistoryValidity(HistoryEffectSlot slot, int flagMask)
         {
-            flagMask |= exposureControlFS ? (int) HistoryEffectFlags.ExposureControl : 0;
+            flagMask |= exposureControlFS ? (int)HistoryEffectFlags.ExposureControl : 0;
             historyEffectUsage[(int)slot].frameCount = (int)cameraFrameCount;
             historyEffectUsage[(int)slot].flagMask = flagMask;
         }
