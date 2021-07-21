@@ -276,7 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Static textures
             public Texture3D worley128RGBA;
-            public Texture3D worley32RGB;
+            public Texture3D erosionNoise;
             public Texture cloudMapTexture;
             public Texture cloudLutTexture;
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
@@ -319,7 +319,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cloudModelData.shapeFactor = 0.9f;
                     cloudModelData.shapeScale = 2.0f;
                     cloudModelData.erosionFactor = 0.6f;
-                    cloudModelData.erosionScale = 30.0f;
+                    cloudModelData.erosionScale = 60.0f;
+                    cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Cloudy:
@@ -328,7 +329,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cloudModelData.shapeFactor = 0.85f;
                     cloudModelData.shapeScale = 2.5f;
                     cloudModelData.erosionFactor = 0.7f;
-                    cloudModelData.erosionScale = 35.0f;
+                    cloudModelData.erosionScale = 70.0f;
+                    cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Overcast:
@@ -337,7 +339,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cloudModelData.shapeFactor = 0.7f;
                     cloudModelData.shapeScale = 4.0f;
                     cloudModelData.erosionFactor = 0.5f;
-                    cloudModelData.erosionScale = 30.0f;
+                    cloudModelData.erosionScale = 60.0f;
+                    cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Stormy:
@@ -346,7 +349,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cloudModelData.shapeFactor = 0.9f;
                     cloudModelData.shapeScale =  2.0f;
                     cloudModelData.erosionFactor = 0.6f;
-                    cloudModelData.erosionScale = 35.0f;
+                    cloudModelData.erosionScale = 70.0f;
+                    cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
                     return;
                 }
             }
@@ -357,6 +361,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cloudModelData.shapeScale = 0.33333333333f;
             cloudModelData.erosionFactor = 0.6f;
             cloudModelData.erosionScale = 0.33333333333f;
+            cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
         }
 
         // The earthRadius
@@ -369,9 +374,22 @@ namespace UnityEngine.Rendering.HighDefinition
             public float shapeScale;
             public float erosionFactor;
             public float erosionScale;
+            public VolumetricClouds.CloudErosionNoise erosionNoise;
         }
 
-        void UpdateShaderVariableslClouds(ref ShaderVariablesClouds cb, HDCamera hdCamera, VolumetricClouds settings, in VolumetricCloudsParameters parameters, bool shadowPass)
+        float ErosionNoiseTypeToErosionCompensation(VolumetricClouds.CloudErosionNoise noiseType)
+        {
+            switch (noiseType)
+            {
+                case VolumetricClouds.CloudErosionNoise.Worley32:
+                    return 1.0f;
+                case VolumetricClouds.CloudErosionNoise.Perlin32:
+                    return 0.75f;
+            }
+            return 1.0f;
+        }
+
+        void UpdateShaderVariableslClouds(ref ShaderVariablesClouds cb, HDCamera hdCamera, VolumetricClouds settings, ref VolumetricCloudsParameters parameters, bool shadowPass)
         {
             // Convert to kilometers
             cb._LowestCloudAltitude = settings.lowestCloudAltitude.value;
@@ -433,6 +451,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._LargeWindSpeed = settings.cloudMapSpeedMultiplier.value;
             cb._MediumWindSpeed = settings.shapeSpeedMultiplier.value;
             cb._SmallWindSpeed = settings.erosionSpeedMultiplier.value;
+            cb._AltitudeDistortion = settings.altitudeDistortion.value * 0.25f;
 
             cb._MultiScattering = 1.0f - settings.multiScattering.value * 0.95f;
 
@@ -448,7 +467,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cloudModelData.shapeScale = settings.shapeScale.value;
                 cloudModelData.erosionFactor = settings.erosionFactor.value;
                 cloudModelData.erosionScale = settings.erosionScale.value;
+                cloudModelData.erosionNoise = settings.erosionNoiseType.value;
             }
+            parameters.erosionNoise = ErosionNoiseTypeToTexture(cloudModelData.erosionNoise);
 
             // The density multiplier is not used linearly
             cb._DensityMultiplier = cloudModelData.densityMultiplier * cloudModelData.densityMultiplier * 2.0f;
@@ -472,6 +493,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float absoluteCloudHighest = cb._HighestCloudAltitude + cb._EarthRadius;
             cb._MaxCloudDistance = Mathf.Sqrt(absoluteCloudHighest * absoluteCloudHighest - cb._EarthRadius * cb._EarthRadius);
             cb._ErosionOcclusion = settings.erosionOcclusion.value;
+            cb._ErosionFactorCompensation = ErosionNoiseTypeToErosionCompensation(settings.erosionNoiseType.value);
 
             // If this is a planar reflection, we need to compute the non oblique matrices
             if (hdCamera.camera.cameraType == CameraType.Reflection)
@@ -546,6 +568,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return Texture2D.blackTexture;
         }
 
+        Texture3D ErosionNoiseTypeToTexture(VolumetricClouds.CloudErosionNoise noiseType)
+        {
+            switch(noiseType)
+            {
+                case VolumetricClouds.CloudErosionNoise.Worley32:
+                    return m_Asset.renderPipelineResources.textures.worleyNoise32RGB;
+                case VolumetricClouds.CloudErosionNoise.Perlin32:
+                    return m_Asset.renderPipelineResources.textures.perlinNoise32RGB;
+            }
+            return m_Asset.renderPipelineResources.textures.worleyNoise32RGB;
+        }
+
         VolumetricCloudsParameters PrepareVolumetricCloudsParameters(HDCamera hdCamera, VolumetricClouds settings, bool shadowPass, bool historyValidity)
         {
             VolumetricCloudsParameters parameters = new VolumetricCloudsParameters();
@@ -614,14 +648,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             parameters.worley128RGBA = m_Asset.renderPipelineResources.textures.worleyNoise128RGBA;
-            parameters.worley32RGB = m_Asset.renderPipelineResources.textures.worleyNoise32RGB;
             BlueNoise blueNoise = GetBlueNoiseManager();
             parameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
             parameters.sunLight = GetMainLight();
             parameters.enableExposureControl = hdCamera.exposureControlFS;
 
             // Update the constant buffer
-            UpdateShaderVariableslClouds(ref parameters.cloudsCB, hdCamera, settings, parameters, shadowPass);
+            UpdateShaderVariableslClouds(ref parameters.cloudsCB, hdCamera, settings, ref parameters, shadowPass);
 
             return parameters;
         }
@@ -686,7 +719,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._HalfResDepthBuffer, intermediateDepthBuffer0);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._HistoryVolumetricClouds1Texture, previousHistory1Buffer);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._Worley128RGBA, parameters.worley128RGBA);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._Worley32RGB, parameters.worley32RGB);
+                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._ErosionNoise, parameters.erosionNoise);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudMapTexture, parameters.cloudMapTexture);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudLutTexture, parameters.cloudLutTexture);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudsLightingTextureRW, intermediateLightingBuffer0);
@@ -794,15 +827,23 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle intermediateColorBufferCopy;
         }
 
-        private bool EvaluateVolumetricCloudsHistoryValidity(HDCamera hdCamera)
+        int CombineVolumetricCLoudsHistoryStateToMask(bool localClouds)
         {
-            // Evaluate the history validity
-            return hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.VolumetricClouds, false, false);
+            // Combine the flags to define the current mask (we use the custom bit 0 to track the locality of the clouds.
+            return (localClouds ? (int)HDCamera.HistoryEffectFlags.CustomBit0 : 0);
         }
 
-        private void PropagateVolumetricCloudsHistoryValidity(HDCamera hdCamera)
+        private bool EvaluateVolumetricCloudsHistoryValidity(HDCamera hdCamera, bool localClouds)
         {
-            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.VolumetricClouds, false, false);
+            // Evaluate the history validity
+            int flagMask = CombineVolumetricCLoudsHistoryStateToMask(localClouds);
+            return hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.VolumetricClouds, flagMask);
+        }
+
+        private void PropagateVolumetricCloudsHistoryValidity(HDCamera hdCamera, bool localClouds)
+        {
+            int flagMask = CombineVolumetricCLoudsHistoryStateToMask(localClouds);
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.VolumetricClouds, flagMask);
         }
 
         TextureHandle TraceVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVectors, TextureHandle volumetricLighting)
@@ -812,7 +853,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.EnableAsyncCompute(false);
                 VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
-                passData.parameters = PrepareVolumetricCloudsParameters(hdCamera, settings, false, EvaluateVolumetricCloudsHistoryValidity(hdCamera));
+                passData.parameters = PrepareVolumetricCloudsParameters(hdCamera, settings, false, EvaluateVolumetricCloudsHistoryValidity(hdCamera, settings.localClouds.value));
                 passData.colorBuffer = builder.ReadTexture(builder.WriteTexture(colorBuffer));
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.motionVectors = builder.ReadTexture(motionVectors);
@@ -876,7 +917,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void UpdateVolumetricClouds(HDCamera hdCamera, in VolumetricClouds settings)
         {
             // The system needs to be reset if this is the first frame or the history is not from the previous frame
-            if (hdCamera.volumetricCloudsAnimationData.lastTime == -1.0f || !EvaluateVolumetricCloudsHistoryValidity(hdCamera))
+            if (hdCamera.volumetricCloudsAnimationData.lastTime == -1.0f || !EvaluateVolumetricCloudsHistoryValidity(hdCamera, settings.localClouds.value))
             {
                 // This is the first frame for the system
                 hdCamera.volumetricCloudsAnimationData.lastTime = hdCamera.time;
@@ -920,7 +961,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TraceVolumetricClouds(renderGraph, hdCamera, colorBuffer, depthPyramid, motionVector, volumetricLighting);
 
             // Make sure to mark the history frame index validity.
-            PropagateVolumetricCloudsHistoryValidity(hdCamera);
+            PropagateVolumetricCloudsHistoryValidity(hdCamera, settings.localClouds.value);
         }
 
         void PreRenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera)

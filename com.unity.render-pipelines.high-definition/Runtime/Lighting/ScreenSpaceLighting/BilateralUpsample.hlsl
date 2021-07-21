@@ -38,7 +38,46 @@ float4 BilUpColor(float HiDepth, float4 LowDepths, float4 lowValue0, float4 lowV
     return WeightedSum / TotalWeight;
 }
 
-static const float BilateralUpSampleWeights3x3[9] = {9.0, 3.0, 3.0, 3.0, 3.0, 1.0, 1.0, 1.0, 1.0};
+// The bilateral upscale function (2x2 neighborhood) (single channel version)
+float BilUpSingle(float HiDepth, float4 LowDepths, float4 lowValue)
+{
+    float4 weights = float4(9, 3, 1, 3) / (abs(HiDepth - LowDepths) + _UpsampleTolerance);
+    float TotalWeight = dot(weights, 1) + _NoiseFilterStrength;
+    float WeightedSum = dot(lowValue, weights) + _NoiseFilterStrength;
+    return WeightedSum / TotalWeight;
+}
+
+// This is the representation of the halfresolution neighborhood
+// |-----|-----|-----|
+// |     |     |     |
+// |-----|-----|-----|
+// |     |     |     |
+// |-----|-----|-----|
+// |     |     |     |
+// |-----|-----|-----|
+
+// This is the representation of the fullresolution neighborhood
+// |-----|-----|-----|
+// |     |     |     |
+// |-----|--|--|-----|
+// |     |--|--|     |
+// |-----|--|--|-----|
+// |     |     |     |
+// |-----|-----|-----|
+
+// The base is centered at (0, 0) at the center of the center pixel:
+// The 4 full res pixels are centered {L->R, T->B} at {-0.25, -0.25}, {0.25, -0.25}
+//                                                    {-0.25, 0.25}, {0.25, 0.25}
+//
+// The 9 half res pixels are placed {L->R, T->B} at {-1.0, -1.0}, {0.0, -1.0}, {1.0, -1.0}
+//                                                  {-1.0, 0.0}, {0.0, 0.0}, {1.0, 0.0}
+//                                                  {-1.0, 1.0}, {0.0, 1.0}, {1.0, 1.0}
+
+// Set of pre-generated weights (L->R, T->B). After experimentation, the final weighting function is exp(-distance^2)
+static const float distanceBasedWeights[9 * 4] = {0.324652, 0.535261, 0.119433, 0.535261, 0.882497, 0.196912, 0.119433, 0.196912, 0.0439369, 
+0.119433, 0.535261, 0.324652, 0.196912, 0.882497, 0.535261, 0.0439369, 0.196912, 0.119433, 
+0.119433, 0.196912, 0.0439369, 0.535261, 0.882497, 0.196912, 0.324652, 0.535261, 0.119433, 
+0.0439369, 0.196912, 0.119433, 0.196912, 0.882497, 0.535261, 0.119433, 0.535261, 0.324652};
 
 // Due to compiler issues, it is not possible to use arrays to store the neighborhood values, we then store
 // them in this structure
@@ -64,6 +103,11 @@ struct NeighborhoodUpsampleData3x3
     float4 lowValue6;
     float4 lowValue7;
     float4 lowValue8;
+
+    // Weights used to combine the neighborhood
+    float4 lowWeightA;
+    float4 lowWeightB;
+    float lowWeightC;
 };
 
 void EvaluateMaskValidity(float linearHighDepth, float lowDepth, int currentIndex,
@@ -118,29 +162,24 @@ void OverrideMaskValues(float highDepth, inout NeighborhoodUpsampleData3x3 data,
 // The bilateral upscale function (3x3 neighborhood)
 float4 BilUpColor3x3(float highDepth, in NeighborhoodUpsampleData3x3 data)
 {
-    float4 weightsA = float4(1, 3, 1, 3) / (abs(highDepth - data.lowDepthA) + _UpsampleTolerance);
-    float4 weightsB = float4(9, 3, 1, 3) / (abs(highDepth - data.lowDepthB) + _UpsampleTolerance);
-    float weightsC = 1.0 / (abs(highDepth - data.lowDepthC) + _UpsampleTolerance);
+    float4 combinedWeightsA = data.lowWeightA / (abs(highDepth - data.lowDepthA) + _UpsampleTolerance);
+    float4 combinedWeightsB = data.lowWeightB / (abs(highDepth - data.lowDepthB) + _UpsampleTolerance);
+    float combinedWeightsC = data.lowWeightC / (abs(highDepth - data.lowDepthC) + _UpsampleTolerance);
 
-    float TotalWeight = dot(weightsA, 1) + dot(weightsB, 1) + weightsC + _NoiseFilterStrength;
-    float4 WeightedSum = data.lowValue0 * weightsA.x
-                        + data.lowValue1 * weightsA.y
-                        + data.lowValue2 * weightsA.z
-                        + data.lowValue3 * weightsA.w
-                        + data.lowValue4 * weightsB.x
-                        + data.lowValue5 * weightsB.y
-                        + data.lowValue6 * weightsB.z
-                        + data.lowValue7 * weightsB.w
-                        + data.lowValue8 * weightsC
+    float TotalWeight = combinedWeightsA.x + combinedWeightsA.y + combinedWeightsA.z + combinedWeightsA.w
+                    + combinedWeightsB.x + combinedWeightsB.y + combinedWeightsB.z + combinedWeightsB.w
+                    + combinedWeightsC
+                    + _NoiseFilterStrength;
+
+    float4 WeightedSum = data.lowValue0 * combinedWeightsA.x
+                        + data.lowValue1 * combinedWeightsA.y
+                        + data.lowValue2 * combinedWeightsA.z
+                        + data.lowValue3 * combinedWeightsA.w
+                        + data.lowValue4 * combinedWeightsB.x
+                        + data.lowValue5 * combinedWeightsB.y
+                        + data.lowValue6 * combinedWeightsB.z
+                        + data.lowValue7 * combinedWeightsB.w
+                        + data.lowValue8 * combinedWeightsC
                         + _NoiseFilterStrength;
-    return WeightedSum / TotalWeight;
-}
-
-// The bilateral upscale function (2x2 neighborhood) (single channel version)
-float BilUpSingle(float HiDepth, float4 LowDepths, float4 lowValue)
-{
-    float4 weights = float4(9, 3, 1, 3) / (abs(HiDepth - LowDepths) + _UpsampleTolerance);
-    float TotalWeight = dot(weights, 1) + _NoiseFilterStrength;
-    float WeightedSum = dot(lowValue, weights) + _NoiseFilterStrength;
     return WeightedSum / TotalWeight;
 }
