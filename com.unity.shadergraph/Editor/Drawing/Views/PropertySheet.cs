@@ -20,12 +20,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public VisualElement headerContainer
         {
-            get { return m_HeaderContainer.Children().FirstOrDefault(); }
+            get => m_HeaderContainer;
             set
             {
                 var first = m_HeaderContainer.Children().FirstOrDefault();
-                if (first != null)
-                    first.RemoveFromHierarchy();
+                first?.RemoveFromHierarchy();
 
                 m_HeaderContainer.Add(value);
             }
