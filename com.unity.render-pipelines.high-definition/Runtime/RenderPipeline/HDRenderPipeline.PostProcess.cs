@@ -1525,7 +1525,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (resGroup == ResolutionGroup.AfterDynamicResUpscale)
             {
                 // If TAA runs after dynamic res upscale, then previousScreenSize is always the camera.postProcessScreenSize (is not affected by rthandle scale)
-                passData.previousScreenSize = new Vector4(camera.postProcessScreenSize.x, camera.postProcessScreenSize.y, 1.0f / camera.postProcessScreenSize.x, 1.0f / camera.postProcessScreenSize.y);
+                passData.previousScreenSize = new Vector4(postProcessViewportSize.x, postProcessViewportSize.y, 1.0f / postProcessViewportSize.x, 1.0f / postProcessViewportSize.y);
                 passData.stencil = false;   // we don't upscale the stencil after DLSS (probably not worth the extra cost)
             }
             else
@@ -1556,7 +1556,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Post-DoF TAA Destination");
             passData.destination = builder.WriteTexture(dest);
 
-            passData.viewport = new Rect(0, 0, camera.postProcessScreenSize.x, camera.postProcessScreenSize.y);
+            passData.viewport = new Rect(0, 0, postProcessViewportSize.x, postProcessViewportSize.y);
         }
 
         TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)
