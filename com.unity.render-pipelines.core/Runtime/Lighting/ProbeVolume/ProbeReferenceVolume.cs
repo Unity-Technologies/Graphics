@@ -660,9 +660,9 @@ namespace UnityEngine.Experimental.Rendering
             return bricksForCell.x * bricksForCell.y * bricksForCell.z;
         }
 
-        ProbeBrickIndex.CellIndexUpdateInfo GetCellIndexUpdate(Cell cell)
+        bool GetCellIndexUpdate(Cell cell, out ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
         {
-            ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo = new ProbeBrickIndex.CellIndexUpdateInfo();
+            cellUpdateInfo = new ProbeBrickIndex.CellIndexUpdateInfo();
 
             int brickCountsAtResolution = GetNumberOfBricksAtSubdiv(cell, out var minValidLocalIdx, out var sizeOfValidIndices);
             cellUpdateInfo.cellPositionInBricksAtMaxRes = cell.position * CellSize(m_MaxSubdivision - 1);
@@ -670,8 +670,7 @@ namespace UnityEngine.Experimental.Rendering
             cellUpdateInfo.minValidBrickIndexForCellAtMaxRes = minValidLocalIdx;
             cellUpdateInfo.maxValidBrickIndexForCellAtMaxResPlusOne = sizeOfValidIndices + minValidLocalIdx;
 
-            m_Index.AssignIndexChunksToCell(cell, brickCountsAtResolution, ref cellUpdateInfo);
-            return cellUpdateInfo;
+            return m_Index.AssignIndexChunksToCell(cell, brickCountsAtResolution, ref cellUpdateInfo);
         }
 
         void LoadPendingCells(bool loadAll = false)
@@ -699,22 +698,28 @@ namespace UnityEngine.Experimental.Rendering
 
                 cell.flatIdxInCellIndices = m_CellIndices.GetFlatIdxForCell(cell.position);
 
-                // TODO register ID of brick list
-                List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
-                brickList.AddRange(cell.bricks);
-                List<Chunk> chunkList = new List<Chunk>();
+                if (GetCellIndexUpdate(cell, out var cellUpdateInfo))
+                {
+                    List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
+                    brickList.AddRange(cell.bricks);
+                    List<Chunk> chunkList = new List<Chunk>();
 
-                var cellUpdateInfo = GetCellIndexUpdate(cell);
-                var regId = AddBricks(brickList, dataLocation, cellUpdateInfo, out chunkList);
-                m_BricksToCellUpdateInfo.Add(regId, cellUpdateInfo);
+                    var regId = AddBricks(brickList, dataLocation, cellUpdateInfo, out chunkList);
+                    m_BricksToCellUpdateInfo.Add(regId, cellUpdateInfo);
 
-                m_CellIndices.AddCell(cell.flatIdxInCellIndices, cellUpdateInfo);
+                    m_CellIndices.AddCell(cell.flatIdxInCellIndices, cellUpdateInfo);
 
-                AddCell(cell, chunkList);
-                m_CellToBricks[cell] = regId;
+                    AddCell(cell, chunkList);
+                    m_CellToBricks[cell] = regId;
 
-                dataLocation.Cleanup();
-                m_CellsToBeLoaded.RemoveAt(0);
+                    dataLocation.Cleanup();
+                    m_CellsToBeLoaded.RemoveAt(0);
+                }
+                else
+                {
+                    // We need to first remove something to fit, can't load things further.
+                    return;
+                }
             }
         }
 
