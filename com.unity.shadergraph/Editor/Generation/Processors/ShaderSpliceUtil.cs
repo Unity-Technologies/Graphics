@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -12,6 +13,9 @@ namespace UnityEditor.ShaderGraph
         private static char[] channelNames =
         { 'x', 'y', 'z', 'w' };
 
+
+        private static char[] whitespace =
+        { ' ', '\t', '\r', '\n', '\f'};
         public static string GetChannelSwizzle(int firstChannel, int channelCount)
         {
             System.Text.StringBuilder result = new System.Text.StringBuilder();
@@ -27,11 +31,10 @@ namespace UnityEditor.ShaderGraph
         private static int SkipWhitespace(string str, int start, int end)
         {
             int index = start;
-
             while (index < end)
             {
                 char c = str[index];
-                if (!Char.IsWhiteSpace(c))
+                if (!whitespace.Contains(c))
                 {
                     break;
                 }
@@ -55,14 +58,14 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder result;
             AssetCollection assetCollection;
 
-            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, ShaderStringBuilder outShaderCodeResult = null)
+            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, bool humanReadable, ShaderStringBuilder outShaderCodeResult = null)
             {
                 this.activeFields = activeFields;
                 this.namedFragments = namedFragments;
                 this.isDebug = isDebug;
                 this.templatePaths = templatePaths;
                 this.assetCollection = assetCollection;
-                this.result = outShaderCodeResult ?? new ShaderStringBuilder();
+                this.result = outShaderCodeResult ?? new ShaderStringBuilder(humanReadable: humanReadable);
                 includedFiles = new HashSet<string>();
             }
 
@@ -119,7 +122,7 @@ namespace UnityEditor.ShaderGraph
                 public bool Is(string other)
                 {
                     int len = end - start;
-                    return (other.Length == len) && (0 == string.Compare(s, start, other, 0, len));
+                    return (other.Length == len) && (0 == string.CompareOrdinal(s, start, other, 0, len));
                 }
 
                 public string GetString()
@@ -241,7 +244,7 @@ namespace UnityEditor.ShaderGraph
                         else
                         {
                             int endIndex = result.length;
-                            using (var temp = new ShaderStringBuilder())
+                            using (var temp = new ShaderStringBuilder(humanReadable: true))
                             {
                                 // Wrap in debug mode
                                 if (isDebug)
@@ -324,10 +327,9 @@ namespace UnityEditor.ShaderGraph
                 var fieldName = predicate.GetString();
                 var nonwhitespace = SkipWhitespace(predicate.s, predicate.end + 1, endLine);
 
-                if (!fieldName.StartsWith("features") && activeFields.permutationCount > 0)
+                if (!fieldName.StartsWith("features", StringComparison.Ordinal) && activeFields.permutationCount > 0)
                 {
                     var passedPermutations = activeFields.allPermutations.instances.Where(i => i.Contains(fieldName)).ToList();
-
                     if (passedPermutations.Count > 0)
                     {
                         var ifdefs = KeywordUtil.GetKeywordPermutationSetConditional(
@@ -338,20 +340,19 @@ namespace UnityEditor.ShaderGraph
                         AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
                         result.AppendNewLine();
                         result.AppendLine("#endif");
-
                         return false;
                     }
                     else
                     {
                         appendEndln = false; //if line isn't active, remove whitespace
                     }
-
                     return false;
                 }
                 else
                 {
                     // eval if(param)
-                    if (activeFields.baseInstance.Contains(fieldName))
+                    bool contains = activeFields.baseInstance.Contains(fieldName);
+                    if (contains)
                     {
                         // predicate is active
                         // append everything before the beginning of the escape sequence
@@ -382,18 +383,28 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            private static bool IsLetter(char c)
+            {
+                return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+            }
+
+            private static bool IsLetterOrDigit(char c)
+            {
+                return IsLetter(c) || Char.IsDigit(c);
+            }
+
             private Token ParseIdentifier(string code, int start, int end)
             {
                 if (start < end)
                 {
                     char c = code[start];
-                    if (Char.IsLetter(c) || (c == '_'))
+                    if (IsLetter(c) || (c == '_'))
                     {
                         int cur = start + 1;
                         while (cur < end)
                         {
                             c = code[cur];
-                            if (!(Char.IsLetterOrDigit(c) || (c == '_')))
+                            if (!(IsLetterOrDigit(c) || (c == '_')))
                                 break;
                             cur++;
                         }

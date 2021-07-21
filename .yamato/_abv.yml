@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files.
 # Read more under .yamato/docs/readme.md
 
-{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
+{% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -34,6 +34,28 @@ all_project_ci_nightly_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/all-hdrp.yml#Nightly_HDRP_trunk
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx.yml#Nightly_VFX_trunk
+         rerun: on_new_revision
+      -  path: .yamato/all-urp.yml#Nightly_URP_trunk
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_trunk
+         rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_trunk
+         rerun: on_new_revision
+all_project_ci_trunk_weekly_trunk:
+    name: Trunk Weekly on trunk
+    variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: weekly
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_trunk
          rerun: on_new_revision
@@ -141,6 +163,24 @@ all_project_ci_nightly_2021.2:
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_2021.2
          rerun: on_new_revision
+all_project_ci_trunk_weekly_2021.2:
+    name: Trunk Weekly on 2021.2
+    variables:
+        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/all-hdrp.yml#Nightly_HDRP_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx.yml#Nightly_VFX_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/all-urp.yml#Nightly_URP_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_2021.2
+         rerun: on_new_revision
 General_Checks_2021.2:
     name: General Checks on 2021.2
     variables:
@@ -217,6 +257,24 @@ all_project_ci_CUSTOM-REVISION:
          rerun: on_new_revision
 all_project_ci_nightly_CUSTOM-REVISION:
     name: Nightly on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/all-hdrp.yml#Nightly_HDRP_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx.yml#Nightly_VFX_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-urp.yml#Nightly_URP_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
+         rerun: on_new_revision
+all_project_ci_trunk_weekly_CUSTOM-REVISION:
+    name: Trunk Weekly on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"

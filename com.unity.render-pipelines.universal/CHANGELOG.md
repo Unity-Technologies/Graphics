@@ -148,6 +148,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - URP Global Settings can now be unassigned in the Graphics tab (case 1343570).
 - VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
 - VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
+- Fixed issue with legacy stereo matrices with XR multipass. [case 1342416]
 - VFX: Compilation issue with ShaderGraph and planar lit outputs [case 1349894](https://issuetracker.unity3d.com/product/unity/issues/guid/1349894/)
 
 ### Changed
