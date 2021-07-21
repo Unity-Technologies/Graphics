@@ -438,7 +438,49 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUI.LabelField(r, "No");
                     }
                     return;
-                }),
+                }, (lprop, rprop) =>
+                    {
+                        TryGetAdditionalLightData(lprop, out var lLightData);
+                        TryGetAdditionalLightData(rprop, out var rLightData);
+
+                        if (IsNullComparison(lLightData, rLightData, out var order))
+                            return order;
+
+                        var hdrp = HDRenderPipeline.currentAsset;
+
+                        var shadowResolution = lLightData.shadowResolution;
+                        int shadowRes = 0;
+                        var lightType = lLightData.type;
+
+                        if (shadowResolution.useOverride)
+                        {
+                            shadowRes = shadowResolution.@override;
+                        }
+                        else
+                        {
+                            var defaultValue = HDLightUI.ScalableSettings.ShadowResolution(lightType, hdrp);
+                            shadowRes = defaultValue[shadowResolution.level];
+                        }
+
+                        bool lFit = lLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(lLightData) || HDCachedShadowManager.instance.WouldFitInAtlas(shadowRes, lightType);
+
+                        shadowResolution = rLightData.shadowResolution;
+                        lightType = rLightData.type;
+
+                        if (shadowResolution.useOverride)
+                        {
+                            shadowRes = shadowResolution.@override;
+                        }
+                        else
+                        {
+                            var defaultValue = HDLightUI.ScalableSettings.ShadowResolution(lightType, hdrp);
+                            shadowRes = defaultValue[shadowResolution.level];
+                        }
+
+                        bool rFit = lLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(rLightData) || HDCachedShadowManager.instance.WouldFitInAtlas(shadowRes, lightType);
+
+                        return rFit.CompareTo(lFit);
+                    }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ShadowResolutionValue, "m_Intensity", 130, (r, prop, dep) =>          // 14: Shadow resolution override
                 {
                     var hdrp = HDRenderPipeline.currentAsset;
