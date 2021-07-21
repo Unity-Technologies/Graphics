@@ -29,8 +29,6 @@ namespace UnityEngine.Experimental.Rendering
                     vals[i] = 0;
                 }
 
-                // New version packing is as follow: sadly uint3
-                //
                 //  Note this packing is really really generous, I really think we can get rid of 1 uint at least if we assume we don't go extreme.
                 //  but this is encompassing all scenarios.
                 //

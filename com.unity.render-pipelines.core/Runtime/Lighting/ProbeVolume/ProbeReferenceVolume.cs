@@ -530,8 +530,6 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_BricksLoaded = false;
         Dictionary<Cell, RegId> m_CellToBricks = new Dictionary<Cell, RegId>();
-
-
         Dictionary<RegId, ProbeBrickIndex.CellIndexUpdateInfo> m_BricksToCellUpdateInfo = new Dictionary<RegId, ProbeBrickIndex.CellIndexUpdateInfo>();
 
         // Information of the probe volume asset that is being loaded (if one is pending)
@@ -548,8 +546,6 @@ namespace UnityEngine.Experimental.Rendering
         bool m_ProbeReferenceVolumeInit = false;
         internal bool isInitialized => m_ProbeReferenceVolumeInit;
 
-        // Similarly the index dimensions come from the authoring component; if a change happens
-        // a pending request for re-init (and what it implies) is added from the editor.
         struct InitInfo
         {
             public Vector3Int pendingMinCellPosition;
@@ -558,7 +554,7 @@ namespace UnityEngine.Experimental.Rendering
         InitInfo m_PendingInitInfo;
 
         bool m_NeedsIndexRebuild = false;
-        bool m_HasChangedIndexDim = false;
+        bool m_HasChangedIndex = false;
 
         int m_CBShaderID = Shader.PropertyToID("ShaderVariablesProbeVolumes");
 
@@ -765,12 +761,12 @@ namespace UnityEngine.Experimental.Rendering
             {
                 CleanupLoadedData();
                 InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget);
-                m_HasChangedIndexDim = true;
+                m_HasChangedIndex = true;
                 m_NeedsIndexRebuild = false;
             }
             else
             {
-                m_HasChangedIndexDim = false;
+                m_HasChangedIndex = false;
             }
         }
 
@@ -798,7 +794,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Pool.EnsureTextureValidity();
 
             // Load the ones that are already active but reload if we said we need to load
-            if (m_HasChangedIndexDim)
+            if (m_HasChangedIndex)
             {
                 foreach (var asset in m_ActiveAssets.Values)
                 {
@@ -853,19 +849,15 @@ namespace UnityEngine.Experimental.Rendering
 
             Vector3 size = intersectBound.max - intersectBound.min;
 
-
             var toStart = intersectBound.min - cellBounds.min;
             minValidLocalIdxAtMaxRes.x = Mathf.CeilToInt((toStart.x) / MinBrickSize());
             minValidLocalIdxAtMaxRes.y = Mathf.CeilToInt((toStart.y) / MinBrickSize());
             minValidLocalIdxAtMaxRes.z = Mathf.CeilToInt((toStart.z) / MinBrickSize());
 
             var toEnd = intersectBound.max - cellBounds.min;
-            var maxValidLocalIdx = Vector3Int.zero;
-            maxValidLocalIdx.x = Mathf.CeilToInt((toEnd.x) / MinBrickSize()) + 1;
-            maxValidLocalIdx.y = Mathf.CeilToInt((toEnd.y) / MinBrickSize()) + 1;
-            maxValidLocalIdx.z = Mathf.CeilToInt((toEnd.z) / MinBrickSize()) + 1;
-
-            sizeOfValidIndicesAtMaxRes = maxValidLocalIdx - minValidLocalIdxAtMaxRes;
+            sizeOfValidIndicesAtMaxRes.x = Mathf.CeilToInt((toEnd.x) / MinBrickSize()) - minValidLocalIdxAtMaxRes.x + 1;
+            sizeOfValidIndicesAtMaxRes.y = Mathf.CeilToInt((toEnd.y) / MinBrickSize()) - minValidLocalIdxAtMaxRes.y + 1;
+            sizeOfValidIndicesAtMaxRes.z = Mathf.CeilToInt((toEnd.z) / MinBrickSize()) - minValidLocalIdxAtMaxRes.z + 1;
 
             Vector3Int bricksForCell = new Vector3Int();
             bricksForCell =  sizeOfValidIndicesAtMaxRes / CellSize(cell.minSubdiv);

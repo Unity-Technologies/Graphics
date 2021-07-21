@@ -25,8 +25,6 @@ namespace UnityEngine.Experimental.Rendering
 
         [SerializeField] internal Vector3Int maxCellPosition;
         [SerializeField] internal Vector3Int minCellPosition;
-
-        // TODO TMP! THIS IS NOT REALLY NEEDED AS IT IS LIKE THIS, CAN DIRECTLY STORE EXCESS IN BRICKS.
         [SerializeField] internal Bounds globalBounds;
 
 
