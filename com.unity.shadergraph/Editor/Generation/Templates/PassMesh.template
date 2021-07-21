@@ -76,7 +76,6 @@ Pass
     };
     #endif
 
-
     // Includes
     $splice(CustomInterpolatorPreInclude)
 
@@ -86,10 +85,6 @@ Pass
     // Structs and Packing
 
     $splice(CustomInterpolatorPrePacking)
-
-    #ifndef HAVE_VFX_MODIFICATION
-    $splice(PassStructs)
-    #endif
 
     $splice(PassStructs)
 
