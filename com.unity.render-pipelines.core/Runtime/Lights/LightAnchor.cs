@@ -70,7 +70,7 @@ namespace UnityEngine
         public float distance
         {
             get { return m_Distance; }
-            set { m_Distance = Mathf.Clamp(value, minDistance, 1000); }
+            set { m_Distance = Mathf.Clamp(value, k_MinDistance, 1000); }
         }
 
         /// <summary>
