@@ -6,6 +6,21 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         private ComputeBuffer m_EmptyIndexBuffer = null;
 
+        internal void RetrieveExtraDataFromProbeVolumeBake(ProbeReferenceVolume.ExtraDataActionInput input)
+        {
+            var hdProbes = GameObject.FindObjectsOfType<HDProbe>();
+            foreach (var hdProbe in hdProbes)
+            {
+                hdProbe.TryUpdateLuminanceSHL2ForNormalization();
+            }
+        }
+
+        void RegisterRetrieveOfProbeVolumeExtraDataAction()
+        {
+            ProbeReferenceVolume.instance.retrieveExtraDataAction = null;
+            ProbeReferenceVolume.instance.retrieveExtraDataAction += RetrieveExtraDataFromProbeVolumeBake;
+        }
+
         bool IsAPVEnabled()
         {
             return m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume && m_GlobalSettings.supportProbeVolumes;
