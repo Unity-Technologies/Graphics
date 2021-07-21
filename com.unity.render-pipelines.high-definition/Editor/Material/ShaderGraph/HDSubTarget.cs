@@ -39,6 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected VFXContext m_ContextVFX = null;
         protected VFXContextCompiledData m_ContextDataVFX;
         protected bool TargetsVFX() => m_ContextVFX != null;
+        protected bool TargetsTerrain() => target.SupportsTerrain();
 
         protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
 

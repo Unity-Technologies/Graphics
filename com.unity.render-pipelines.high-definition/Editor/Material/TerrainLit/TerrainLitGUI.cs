@@ -124,6 +124,21 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        static public void SetupTerrainKeywords(Material material)
+        {
+            // TODO: planar/triplannar support
+            //SetupLayersMappingKeywords(material);
+
+            bool enableHeightBlend = material.HasProperty(kEnableHeightBlend) && material.GetFloat(kEnableHeightBlend) > 0;
+            CoreUtils.SetKeyword(material, "_TERRAIN_BLEND_HEIGHT", enableHeightBlend);
+
+            bool enableInstancedPerPixelNormal = material.HasProperty(kEnableInstancedPerPixelNormal) && material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
+            CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);
+
+            int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
+            CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", specOcclusionMode == 0);
+        }
+
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupTerrainLitKeywordsAndPass(Material material)
         {

@@ -75,6 +75,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             CoreUtils.Destroy(defaultProperties);
             defaultProperties = null;
+
+            // TODO: There's probably a better place for this. Also, it'd be nice to be able to check HDTarget::SupportsTerrain() before doing this.
+            TerrainLitGUI.SetupTerrainKeywords(material);
         }
     }
 }

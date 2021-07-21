@@ -59,6 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
         Toggle m_SupportVFXToggle;
+        Toggle m_SupportTerrainToggle;
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
@@ -71,6 +72,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         [SerializeField]
         bool m_SupportVFX;
+        [SerializeField]
+        bool m_SupportTerrain;
 
         private static readonly List<Type> m_IncompatibleVFXSubTargets = new List<Type>
         {
@@ -126,6 +129,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Override EditorGUI (replaces the HDRP material editor by a custom one)
             if (!string.IsNullOrEmpty(m_CustomEditorGUI))
                 context.AddCustomEditorForRenderPipeline(m_CustomEditorGUI, typeof(HDRenderPipelineAsset));
+            else if (SupportsTerrain())
+                context.AddCustomEditorForRenderPipeline("UnityEditor.Rendering.HighDefinition.TerrainLitGUI", typeof(HDRenderPipelineAsset));
+
 
             // Setup the active SubTarget
             ProcessSubTargetDatas(m_ActiveSubTarget.value);
@@ -210,6 +216,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         onChange();
                     });
                 }
+            }
+
+            // Terrain Support
+            if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target is not compatible with Terrain.");
+            else
+            {
+                m_SupportTerrainToggle = new Toggle("") { value = m_SupportTerrain };
+                const string k_TerrainToggleTooltip = "When enabled, this shader can be assigned to a Terrain.";
+                context.AddProperty("Support Terrain", k_TerrainToggleTooltip, 0, m_SupportTerrainToggle, (evt) =>
+                {
+                    m_SupportTerrain = m_SupportTerrainToggle.value;
+                    onChange();
+                });
             }
         }
 
@@ -375,6 +395,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return false;
 
             return m_SupportVFX;
+        }
+
+        public bool SupportsTerrain()
+        {
+            if (m_ActiveSubTarget.value == null)
+                return false;
+
+            if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                return false;
+
+            return m_SupportTerrain;
         }
 
         public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
@@ -786,6 +817,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #region Pragmas
     static class CorePragmas
     {
+        public static readonly PragmaDescriptor TerrainInstancingOptions = new PragmaDescriptor { value = $"instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap" };
         // We will always select Basic, BasicVFX or BasicTessellation - added in PostProcessSubShader
         public static PragmaCollection Basic = new PragmaCollection
         {
@@ -872,6 +904,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static KeywordCollection RaytracingVisiblity = new KeywordCollection
         {
             { CoreKeywordDescriptors.TransparentColorShadow },
+        };
+
+        public static KeywordCollection Terrain = new KeywordCollection
+        {
+            { TerrainKeywordDescriptors.BlendHeight},
+            { TerrainKeywordDescriptors.InstancedPerPixelNormal},
+            { TerrainKeywordDescriptors.MaskMap},
+            { TerrainKeywordDescriptors.NormalMap},
+            { TerrainKeywordDescriptors.Terrain8Layers},
         };
     }
     #endregion
@@ -1076,6 +1117,50 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #endregion
 
     #region KeywordDescriptors
+    static class TerrainKeywordDescriptors
+    {
+        public static KeywordDescriptor Terrain8Layers = new KeywordDescriptor()
+        {
+            displayName = "Terrain 8 Layers",
+            referenceName = "_TERRAIN_8_LAYERS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+        public static KeywordDescriptor NormalMap = new KeywordDescriptor()
+        {
+            displayName = "Terrain Has Normal Map",
+            referenceName = "_NORMALMAP",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+        public static KeywordDescriptor MaskMap = new KeywordDescriptor()
+        {
+            displayName = "Terrain Has Mask Map",
+            referenceName = "_MASKMAP",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+        public static KeywordDescriptor BlendHeight = new KeywordDescriptor()
+        {
+            displayName = "Terrain Blend Height",
+            referenceName = "_TERRAIN_BLEND_HEIGHT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+        public static KeywordDescriptor InstancedPerPixelNormal = new KeywordDescriptor()
+        {
+            displayName = "Terrain Instanced Per Pixel Normal",
+            referenceName = "_TERRAIN_INSTANCED_PERPIXEL_NORMAL",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+    }
+
     static class CoreKeywordDescriptors
     {
         public static KeywordDescriptor WriteNormalBuffer = new KeywordDescriptor()

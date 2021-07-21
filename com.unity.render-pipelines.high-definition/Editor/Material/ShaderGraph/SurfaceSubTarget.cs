@@ -78,14 +78,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var passes = new PassCollection
                 {
                     // Common "surface" passes
-                    HDShaderPasses.GenerateShadowCaster(supportLighting, TargetsVFX(), systemData.tessellation),
+                    HDShaderPasses.GenerateShadowCaster(supportLighting, TargetsVFX(), systemData.tessellation, TargetsTerrain()),
                     HDShaderPasses.GenerateMETA(supportLighting, TargetsVFX()),
-                    HDShaderPasses.GenerateScenePicking(TargetsVFX(), systemData.tessellation),
-                    HDShaderPasses.GenerateSceneSelection(supportLighting, TargetsVFX(), systemData.tessellation),
+                    HDShaderPasses.GenerateSceneSelection(supportLighting, TargetsVFX(), systemData.tessellation, TargetsTerrain()),
                     HDShaderPasses.GenerateMotionVectors(supportLighting, supportForward, TargetsVFX(), systemData.tessellation),
                     { HDShaderPasses.GenerateBackThenFront(supportLighting, TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.TransparentBackFace, true)},
                     { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting, TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.TransparentDepthPostPass, true)}
                 };
+
+                if (!TargetsTerrain())
+                    passes.Add(HDShaderPasses.GenerateScenePicking(TargetsVFX(), systemData.tessellation));
 
                 if (supportLighting)
                 {
@@ -100,8 +102,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 if (supportForward)
                 {
-                    passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
-                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
+                    passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation, TargetsTerrain()));
+                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation, TargetsTerrain()));
                 }
 
                 if (supportDistortion)
@@ -180,6 +182,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 pass.keywords.Add(CoreKeywordDescriptors.TessellationMode);
             }
+
+            if (TargetsTerrain())
+                pass.keywords.Add(CoreKeywords.Terrain);
         }
 
         public override void GetFields(ref TargetFieldContext context)
