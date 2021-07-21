@@ -15,7 +15,7 @@ namespace UnityEngine
     [CoreRPHelpURLAttribute("View-Lighting-Tool")]
     public class LightAnchor : MonoBehaviour
     {
-        const float minDistance = 0.001f;
+        const float k_MinDistance = 0.001f;
         const float k_ArcRadius = 5;
         const float k_AxisLength = 10;
 
