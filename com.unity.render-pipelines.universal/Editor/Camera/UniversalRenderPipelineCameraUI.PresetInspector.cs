@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.Universal
             Rendering = 1 << 2,
         }
 
-        static readonly ExpandedState<Expandable, Camera> k_ExpandedState = new(Expandable.Projection, "URP");
+        static readonly ExpandedState<Expandable, Camera> k_ExpandedState = new(Expandable.Projection, "URP-preset");
 
         public static readonly CED.IDrawer Inspector = CED.Group(
             CED.FoldoutGroup(

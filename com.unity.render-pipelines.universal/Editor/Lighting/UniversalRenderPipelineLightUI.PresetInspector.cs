@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.Universal
             Emission = 1 << 1
         }
 
-        static readonly ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~(-1), "URP");
+        static readonly ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~(-1), "URP-preset");
 
         public static readonly CED.IDrawer Inspector = CED.Group(
             CED.FoldoutGroup(Styles.generalHeader,

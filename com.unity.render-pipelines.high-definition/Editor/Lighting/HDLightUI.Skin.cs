@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    internal partial class HDLightUI
+    partial class HDLightUI
     {
         public sealed class Styles
         {

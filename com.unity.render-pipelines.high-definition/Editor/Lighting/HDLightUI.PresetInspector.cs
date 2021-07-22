@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Emission = 1 << 2,
         }
 
-        static readonly ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~(-1), "HDRP");
+        static readonly ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~(-1), "HDRP-preset");
 
         static HDLightUI.Styles s_Styles = new HDLightUI.Styles();
 

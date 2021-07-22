@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Rendering = 1 << 2,
         }
 
-        static readonly ExpandedState<Expandable, Camera> k_ExpandedState = new ExpandedState<Expandable, Camera>(Expandable.Projection, "HDRP");
+        static readonly ExpandedState<Expandable, Camera> k_ExpandedState = new ExpandedState<Expandable, Camera>(Expandable.Projection, "HDRP-preset");
 
         public static readonly CED.IDrawer Inspector = CED.Group(
             CED.FoldoutGroup(

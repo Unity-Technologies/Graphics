@@ -240,8 +240,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 case HDLightType.Point:
                     EditorGUI.BeginChangeCheck();
-                    using (new EditorGUI.DisabledScope(false))
-                        EditorGUILayout.PropertyField(serialized.shapeRadius, s_Styles.lightRadius);
+                    EditorGUILayout.PropertyField(serialized.shapeRadius, s_Styles.lightRadius);
                     if (EditorGUI.EndChangeCheck())
                     {
                         //Also affect baked shadows

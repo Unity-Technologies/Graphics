@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     using CED = CoreEditorDrawer<SerializedHDCamera>;
 
-    internal static partial class HDCameraUI
+    static partial class HDCameraUI
     {
         public partial class Rendering
         {
