@@ -130,5 +130,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _EnableFastToneMapping;
         // Padding
         public float _Padding;
+
+        [HLSLArray(3 * 4, typeof(Vector4))]
+        public fixed float _DistanceBasedWeights[12 * 4];
     }
 }

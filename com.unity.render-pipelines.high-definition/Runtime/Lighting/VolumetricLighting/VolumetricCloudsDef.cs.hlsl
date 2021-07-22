@@ -61,6 +61,7 @@ CBUFFER_START(ShaderVariablesClouds)
     float _ErosionFactorCompensation;
     int _EnableFastToneMapping;
     float _Padding;
+    float4 _DistanceBasedWeights[12];
 CBUFFER_END
 
 

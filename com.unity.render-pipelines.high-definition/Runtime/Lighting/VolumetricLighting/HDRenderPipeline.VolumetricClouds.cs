@@ -30,7 +30,39 @@ namespace UnityEngine.Rendering.HighDefinition
         // Combine pass via hardware blending, used in case of MSAA color target.
         Material m_CloudCombinePass;
 
-        void InitializeVolumetricClouds()
+        // This is the representation of the half resolution neighborhood
+        // |-----|-----|-----|
+        // |     |     |     |
+        // |-----|-----|-----|
+        // |     |     |     |
+        // |-----|-----|-----|
+        // |     |     |     |
+        // |-----|-----|-----|
+
+        // This is the representation of the full resolution neighborhood
+        // |-----|-----|-----|
+        // |     |     |     |
+        // |-----|--|--|-----|
+        // |     |--|--|     |
+        // |-----|--|--|-----|
+        // |     |     |     |
+        // |-----|-----|-----|
+
+        // The base is centered at (0, 0) at the center of the center pixel:
+        // The 4 full res pixels are centered {L->R, T->B} at {-0.25, -0.25}, {0.25, -0.25}
+        //                                                    {-0.25, 0.25}, {0.25, 0.25}
+        //
+        // The 9 half res pixels are placed {L->R, T->B} at {-1.0, -1.0}, {0.0, -1.0}, {1.0, -1.0}
+        //                                                  {-1.0, 0.0}, {0.0, 0.0}, {1.0, 0.0}
+        //                                                  {-1.0, 1.0}, {0.0, 1.0}, {1.0, 1.0}
+
+        // Set of pre-generated weights (L->R, T->B). After experimentation, the final weighting function is exp(-distance^2)
+        static float[] m_DistanceBasedWeights = new float[]{ 0.324652f, 0.535261f, 0.119433f, 0.535261f, 0.882497f, 0.196912f, 0.119433f, 0.196912f, 0.0439369f,
+                0.119433f, 0.535261f, 0.324652f, 0.196912f, 0.882497f, 0.535261f, 0.0439369f, 0.196912f, 0.119433f,
+                0.119433f, 0.196912f, 0.0439369f, 0.535261f, 0.882497f, 0.196912f, 0.324652f, 0.535261f, 0.119433f,
+                0.0439369f, 0.196912f, 0.119433f, 0.196912f, 0.882497f, 0.535261f, 0.119433f, 0.535261f, 0.324652f};
+
+    void InitializeVolumetricClouds()
         {
             if (!m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
                 return;
@@ -544,6 +576,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cb._EnableFastToneMapping = parameters.enableExposureControl ? 1 : 0;
+
+            unsafe
+            {
+                for (int p = 0; p < 4; ++p)
+                    for (int i = 0; i < 9; ++i)
+                    cb._DistanceBasedWeights[12 * p + i] = m_DistanceBasedWeights[9 * p + i];
+            }
         }
 
         Texture2D GetPresetCloudMapTexture(VolumetricClouds.CloudPresets preset)

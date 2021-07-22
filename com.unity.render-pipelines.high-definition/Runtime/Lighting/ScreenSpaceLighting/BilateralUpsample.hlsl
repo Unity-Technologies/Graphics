@@ -47,38 +47,6 @@ float BilUpSingle(float HiDepth, float4 LowDepths, float4 lowValue)
     return WeightedSum / TotalWeight;
 }
 
-// This is the representation of the halfresolution neighborhood
-// |-----|-----|-----|
-// |     |     |     |
-// |-----|-----|-----|
-// |     |     |     |
-// |-----|-----|-----|
-// |     |     |     |
-// |-----|-----|-----|
-
-// This is the representation of the fullresolution neighborhood
-// |-----|-----|-----|
-// |     |     |     |
-// |-----|--|--|-----|
-// |     |--|--|     |
-// |-----|--|--|-----|
-// |     |     |     |
-// |-----|-----|-----|
-
-// The base is centered at (0, 0) at the center of the center pixel:
-// The 4 full res pixels are centered {L->R, T->B} at {-0.25, -0.25}, {0.25, -0.25}
-//                                                    {-0.25, 0.25}, {0.25, 0.25}
-//
-// The 9 half res pixels are placed {L->R, T->B} at {-1.0, -1.0}, {0.0, -1.0}, {1.0, -1.0}
-//                                                  {-1.0, 0.0}, {0.0, 0.0}, {1.0, 0.0}
-//                                                  {-1.0, 1.0}, {0.0, 1.0}, {1.0, 1.0}
-
-// Set of pre-generated weights (L->R, T->B). After experimentation, the final weighting function is exp(-distance^2)
-static const float distanceBasedWeights[9 * 4] = {0.324652, 0.535261, 0.119433, 0.535261, 0.882497, 0.196912, 0.119433, 0.196912, 0.0439369,
-0.119433, 0.535261, 0.324652, 0.196912, 0.882497, 0.535261, 0.0439369, 0.196912, 0.119433,
-0.119433, 0.196912, 0.0439369, 0.535261, 0.882497, 0.196912, 0.324652, 0.535261, 0.119433,
-0.0439369, 0.196912, 0.119433, 0.196912, 0.882497, 0.535261, 0.119433, 0.535261, 0.324652};
-
 // Due to compiler issues, it is not possible to use arrays to store the neighborhood values, we then store
 // them in this structure
 struct NeighborhoodUpsampleData3x3
