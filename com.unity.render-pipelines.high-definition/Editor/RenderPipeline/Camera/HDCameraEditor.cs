@@ -53,7 +53,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             m_SerializedCamera.Update();
 
-            HDCameraUI.Inspector.Draw(m_SerializedCamera, this);
+            if (HDUtils.IsPresetEditor(this))
+            {
+                HDCameraUIPreset.Inspector.Draw(m_SerializedCamera, this);
+            }
+            else
+                HDCameraUI.Inspector.Draw(m_SerializedCamera, this);
 
             m_SerializedCamera.Apply();
         }
