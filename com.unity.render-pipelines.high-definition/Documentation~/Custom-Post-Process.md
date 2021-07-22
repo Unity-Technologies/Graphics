@@ -61,8 +61,7 @@ public sealed class GrayScale : CustomPostProcessVolumeComponent, IPostProcessCo
             return;
 
         m_Material.SetFloat("_Intensity", intensity.value);
-        m_Material.SetTexture("_InputTexture", source);
-        HDUtils.DrawFullScreen(cmd, m_Material, destination);
+        cmd.Blit(source, destination, m_Material, 0);
     }
 
     public override void Cleanup() => CoreUtils.Destroy(m_Material);
@@ -104,6 +103,12 @@ HDRP gives you total control over the vertex and fragment Shader so you can edit
 ```glsl
 Shader "Hidden/Shader/GrayScale"
 {
+    Properties
+    {
+        // This property is necessary to make the CommandBuffer.Blit bind the source texture to _MainTex
+        _MainTex("Main Texture", 2DArray) = "grey" {}
+    }
+
     HLSLINCLUDE
 
     #pragma target 4.5
@@ -144,18 +149,18 @@ Shader "Hidden/Shader/GrayScale"
 
     // List of properties to control your post process effect
     float _Intensity;
-    TEXTURE2D_X(_InputTexture);
+    TEXTURE2D_X(_MainTex);
 
     float4 CustomPostProcess(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-        uint2 positionSS = input.texcoord * _ScreenSize.xy;
-        float3 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xyz;
+        float3 sourceColor = SAMPLE_TEXTURE2D_X(_MainTex, s_linear_clamp_sampler, input.texcoord).xyz;
 
-        // We do the blending manually instead of relying on the hardware blend
-        // It's necessary because the color buffer contains garbage from the previous post process effect.
-        return float4(lerp(outColor, Luminance(outColor).xxx, _Intensity), 1);
+        // Apply greyscale effect
+        float3 color = lerp(sourceColor, Luminance(sourceColor), _Intensity);
+
+        return float4(color, 1);
     }
 
     ENDHLSL
