@@ -33,6 +33,7 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent newLabel = EditorGUIUtility.TrTextContent("New", "Create a new profile.");
             public static readonly GUIContent saveLabel = EditorGUIUtility.TrTextContent("Save", "Save the instantiated profile");
             public static readonly GUIContent cloneLabel = EditorGUIUtility.TrTextContent("Clone", "Create a new profile and copy the content of the currently assigned profile.");
+            public static readonly string noVolumeMessage = L10n.Tr("Please select or create a new Volume profile to begin applying effects to the scene.");
         }
 
         SerializedProperty m_IsGlobal;
@@ -233,6 +234,9 @@ namespace UnityEditor.Rendering
             }
 
             serializedObject.ApplyModifiedProperties();
+
+            if (m_Profile.objectReferenceValue == null)
+                EditorGUILayout.HelpBox(Styles.noVolumeMessage, MessageType.Info);
         }
 
         static bool IsAssetInReadOnlyPackage(string path)

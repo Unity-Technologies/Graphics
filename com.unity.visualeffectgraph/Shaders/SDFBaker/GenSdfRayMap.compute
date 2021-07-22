@@ -20,7 +20,7 @@
 #pragma kernel ChooseDirectionTriangleOnly
 #pragma kernel SurfaceClosing
 
-#include "SdfUtils.hlsl"
+#include "Packages/com.unity.visualeffectgraph/Shaders/SDFBaker/SdfUtils.hlsl"
 
 StructuredBuffer<uint> indices;
 StructuredBuffer<float3> vertices;

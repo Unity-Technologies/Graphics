@@ -625,6 +625,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             onAdditionalProbesBakeCompletedCalled = false;
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
+            AdditionalGIBakeRequestsManager.instance.AddRequestsToLightmapper();
             UnityEditor.Lightmapping.bakeCompleted += OnBakeCompletedCleanup;
 
             ClearBakingBatch();
@@ -651,18 +652,9 @@ namespace UnityEngine.Experimental.Rendering
             return ctx;
         }
 
-        static void TrackSceneRefs(Scene origin, Dictionary<Scene, int> sceneRefs)
-        {
-            if (!sceneRefs.ContainsKey(origin))
-                sceneRefs[origin] = 0;
-            else
-                sceneRefs[origin] += 1;
-        }
-
         public static ProbeSubdivisionResult BakeBricks(ProbeSubdivisionContext ctx)
         {
             var result = new ProbeSubdivisionResult();
-            var sceneRefs = new Dictionary<Scene, int>();
 
             if (ctx.probeVolumes.Count == 0)
                 return result;
@@ -672,7 +664,7 @@ namespace UnityEngine.Experimental.Rendering
                 // subdivide all the cells and generate brick positions
                 foreach (var cell in ctx.cells)
                 {
-                    sceneRefs.Clear();
+                    var scenesInCell = new HashSet<Scene>();
 
                     // Calculate overlaping probe volumes to avoid unnecessary work
                     var overlappingProbeVolumes = new List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)>();
@@ -681,7 +673,7 @@ namespace UnityEngine.Experimental.Rendering
                         if (ProbeVolumePositioning.OBBIntersect(probeVolume.volume, cell.volume))
                         {
                             overlappingProbeVolumes.Add(probeVolume);
-                            TrackSceneRefs(probeVolume.component.gameObject.scene, sceneRefs);
+                            scenesInCell.Add(probeVolume.component.gameObject.scene);
                         }
                     }
 
@@ -701,7 +693,7 @@ namespace UnityEngine.Experimental.Rendering
                                 if ((probeVolume.component.objectLayerMask & rendererLayerMask) != 0)
                                 {
                                     validRenderers.Add(renderer);
-                                    TrackSceneRefs(go.scene, sceneRefs);
+                                    scenesInCell.Add(go.scene);
                                 }
                             }
                         }
@@ -713,15 +705,9 @@ namespace UnityEngine.Experimental.Rendering
 
                     var bricks = ProbePlacement.SubdivideCell(cell.volume, ctx, gpuResources, validRenderers, overlappingProbeVolumes);
 
-                    // Each cell keeps a number of references it has to each scene it was influenced by
-                    // We use this list to determine which scene's ProbeVolume asset to assign this cells data to
-                    var sortedRefs = new SortedDictionary<int, Scene>();
-                    foreach (var item in sceneRefs)
-                        sortedRefs[-item.Value] = item.Key;
-
                     result.cellPositions.Add(cell.position);
                     result.bricksPerCells[cell.position] = bricks;
-                    result.sortedRefs = sortedRefs;
+                    result.scenesPerCells[cell.position] = scenesInCell;
                 }
             }
 
@@ -811,7 +797,7 @@ namespace UnityEngine.Experimental.Rendering
                     bakingCell.probeIndices = indices;
 
                     m_BakingBatch.cells.Add(bakingCell);
-                    m_BakingBatch.cellIndex2SceneReferences[cell.index] = new List<Scene>(results.sortedRefs.Values);
+                    m_BakingBatch.cellIndex2SceneReferences[cell.index] = results.scenesPerCells[cellPos].ToList();
                 }
             }
 

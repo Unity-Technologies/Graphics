@@ -37,6 +37,8 @@ namespace UnityEditor.ShaderGraph
             public static FieldDescriptor positionCS = new FieldDescriptor(Varyings.name, "positionCS", "", ShaderValueType.Float4, "SV_POSITION");
             public static FieldDescriptor positionWS = new FieldDescriptor(Varyings.name, "positionWS", "VARYINGS_NEED_POSITION_WS", ShaderValueType.Float3,
                 subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor positionPredisplacementWS = new FieldDescriptor(Varyings.name, "positionPredisplacementWS", "VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor normalWS = new FieldDescriptor(Varyings.name, "normalWS", "VARYINGS_NEED_NORMAL_WS", ShaderValueType.Float3,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor tangentWS = new FieldDescriptor(Varyings.name, "tangentWS", "VARYINGS_NEED_TANGENT_WS", ShaderValueType.Float4,
@@ -113,6 +115,17 @@ namespace UnityEditor.ShaderGraph
             public static FieldDescriptor AbsoluteWorldSpacePosition = new FieldDescriptor(VertexDescriptionInputs.name, "AbsoluteWorldSpacePosition", "", ShaderValueType.Float3,
                 subscriptOptions: StructFieldOptions.Optional);
 
+            public static FieldDescriptor ObjectSpacePositionPredisplacement = new FieldDescriptor(VertexDescriptionInputs.name, "ObjectSpacePositionPredisplacement", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor ViewSpacePositionPredisplacement = new FieldDescriptor(VertexDescriptionInputs.name, "ViewSpacePositionPredisplacement", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor WorldSpacePositionPredisplacement = new FieldDescriptor(VertexDescriptionInputs.name, "WorldSpacePositionPredisplacement", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor TangentSpacePositionPredisplacement = new FieldDescriptor(VertexDescriptionInputs.name, "TangentSpacePositionPredisplacement", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor AbsoluteWorldSpacePositionPredisplacement = new FieldDescriptor(VertexDescriptionInputs.name, "AbsoluteWorldSpacePositionPredisplacement", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
+
             public static FieldDescriptor ScreenPosition = new FieldDescriptor(VertexDescriptionInputs.name, "ScreenPosition", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor uv0 = new FieldDescriptor(VertexDescriptionInputs.name, "uv0", "", ShaderValueType.Float4,
@@ -185,6 +198,17 @@ namespace UnityEditor.ShaderGraph
             public static FieldDescriptor TangentSpacePosition = new FieldDescriptor(SurfaceDescriptionInputs.name, "TangentSpacePosition", "", ShaderValueType.Float3,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor AbsoluteWorldSpacePosition = new FieldDescriptor(SurfaceDescriptionInputs.name, "AbsoluteWorldSpacePosition", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
+
+            public static FieldDescriptor ObjectSpacePositionPredisplacement = new FieldDescriptor(SurfaceDescriptionInputs.name, "ObjectSpacePositionPredisplacement", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor ViewSpacePositionPredisplacement = new FieldDescriptor(SurfaceDescriptionInputs.name, "ViewSpacePositionPredisplacement", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor WorldSpacePositionPredisplacement = new FieldDescriptor(SurfaceDescriptionInputs.name, "WorldSpacePositionPredisplacement", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor TangentSpacePositionPredisplacement = new FieldDescriptor(SurfaceDescriptionInputs.name, "TangentSpacePositionPredisplacement", "", ShaderValueType.Float3,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor AbsoluteWorldSpacePositionPredisplacement = new FieldDescriptor(SurfaceDescriptionInputs.name, "AbsoluteWorldSpacePositionPredisplacement", "", ShaderValueType.Float3,
                 subscriptOptions: StructFieldOptions.Optional);
 
             public static FieldDescriptor ScreenPosition = new FieldDescriptor(SurfaceDescriptionInputs.name, "ScreenPosition", "", ShaderValueType.Float4,

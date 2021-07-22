@@ -5,9 +5,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the ambient occlusion.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Sky/Volumetric Clouds")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Sky/Volumetric Clouds", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Override-Volumetric-Clouds")]
-    public sealed class VolumetricClouds : VolumeComponent
+    public sealed partial class VolumetricClouds : VolumeComponent
     {
         /// <summary>
         /// Control mode for the volumetric clouds.
@@ -345,16 +345,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter erosionOcclusion = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         /// <summary>
-        /// Sets the global wind speed in kilometers per hour.
+        /// Sets the global wind speed in kilometers per hour. This value can be relative to the Global Wind Speed defined in the Visual Environment.
         /// </summary>
-        [Tooltip("Sets the global wind speed in kilometers per hour.")]
-        public MinFloatParameter globalWindSpeed = new MinFloatParameter(100.0f, 0.0f);
+        [Tooltip("Sets the global wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.")]
+        public WindSpeedParameter globalWindSpeed = new WindSpeedParameter();
 
         /// <summary>
-        /// Controls the orientation of the wind relative to the X world vector.
+        /// Controls the orientation of the wind relative to the X world vector. This value can be relative to the Global Wind Orientation defined in the Visual Environment.
         /// </summary>
-        [Tooltip("Controls the orientation of the wind relative to the X world vector.")]
-        public ClampedFloatParameter orientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+        [Tooltip("Controls the orientation of the wind relative to the X world vector.\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.")]
+        public WindOrientationParameter orientation = new WindOrientationParameter();
 
         /// <summary>
         /// Controls the multiplier to the speed of the cloud map.
