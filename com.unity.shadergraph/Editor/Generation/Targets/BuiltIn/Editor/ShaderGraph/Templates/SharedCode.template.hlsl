@@ -108,7 +108,7 @@ void SurfaceVertexToVaryings(v2f_surf surfVertex, inout Varyings result)
     result.positionCS = surfVertex.pos;
     $Varyings.positionWS:       result.positionWS = surfVertex.worldPos;
     $Varyings.normalWS:         result.normalWS = surfVertex.worldNormal;
-    $Varyings.viewDirectionWS:  result.viewDirectionWS = surfVertex.viewDir;
+    // viewDirectionWS is never filled out in the legacy pass' function. Always use the value computed by SRP
     // World Tangent isn't an available input on v2f_surf
     $Varyings.shadowCoord:      result.shadowCoord = surfVertex._ShadowCoord;
 
