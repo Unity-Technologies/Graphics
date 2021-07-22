@@ -39,9 +39,9 @@ namespace UnityEngine.Rendering
         /// </summary>
         ContrastAdaptiveSharpen,
         /// <summary>
-        /// Edge Adaptive Scaling Upres.
+        /// FidelityFX Super Resolution 1.0
         /// </summary>
-        [InspectorName("Edge Adaptive Scaling Upres")]
+        [InspectorName("FidelityFX Super Resolution 1.0")]
         EdgeAdaptiveScalingUpres
     }
 
