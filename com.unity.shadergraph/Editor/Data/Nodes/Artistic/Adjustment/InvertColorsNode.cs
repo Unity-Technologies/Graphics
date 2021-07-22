@@ -111,7 +111,7 @@ namespace UnityEditor.ShaderGraph
 
             if (!generationMode.IsPreview())
             {
-                sb.AppendIndentation();
+                sb.TryAppendIndentation();
                 sb.Append("{0} _{1}_InvertColors = {0} ({2}",
                     FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(),
                     GetVariableNameForNode(),

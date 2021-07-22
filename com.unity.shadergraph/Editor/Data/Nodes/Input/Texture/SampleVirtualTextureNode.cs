@@ -343,7 +343,7 @@ namespace UnityEditor.ShaderGraph
 
         void AppendVtSample(ShaderStringBuilder sb, string propertiesName, string vtInputVariable, string infoVariable, int layerIndex, string outputVariableName)
         {
-            sb.AppendIndentation();
+            sb.TryAppendIndentation();
             sb.Append(outputVariableName); sb.Append(" = ");
             sb.Append("SampleVTLayerWithTextureType(");
             sb.Append(propertiesName);          sb.Append(", ");
@@ -393,7 +393,7 @@ namespace UnityEditor.ShaderGraph
                 string dyExpr = "0.0f";
 
                 // function header
-                s.AppendIndentation();
+                s.TryAppendIndentation();
                 s.Append("float4 ");
                 s.Append(functionName);
                 s.Append("(float2 uv");
@@ -475,7 +475,7 @@ namespace UnityEditor.ShaderGraph
                     if (layerOutputVariables.Count > 0)
                     {
                         // assign feedback variable
-                        sb.AppendIndentation();
+                        sb.TryAppendIndentation();
                         if (!noFeedback)
                         {
                             sb.Append("float4 ");
