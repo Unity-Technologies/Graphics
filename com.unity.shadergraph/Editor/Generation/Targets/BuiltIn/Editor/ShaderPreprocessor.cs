@@ -101,11 +101,16 @@ namespace UnityEditor.Rendering.BuiltIn
             return (featureMask & feature) != 0;
         }
 
+        bool IsSRPPass(ShaderSnippetData snippetData)
+        {
+            return (snippetData.passType == PassType.ScriptableRenderPipeline ||
+                snippetData.passType == PassType.ScriptableRenderPipelineDefaultUnlit);
+        }
+
         bool StripUnusedPass(ShaderFeatures features, ShaderSnippetData snippetData)
         {
             // Strip all SRP shader variants
-            if (snippetData.passType == PassType.ScriptableRenderPipeline ||
-                snippetData.passType == PassType.ScriptableRenderPipelineDefaultUnlit)
+            if (IsSRPPass(snippetData))
             {
                 return true;
             }
@@ -286,6 +291,16 @@ namespace UnityEditor.Rendering.BuiltIn
             return false;
         }
 
+        bool ShouldLogShaderVariant(Shader shader, ShaderSnippetData snippetData)
+        {
+            if (shader.name.Contains("Shader Graphs/") && !IsSRPPass(snippetData))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, int prevVariantsCount, int currVariantsCount)
         {
             float percentageCurrent = (float)currVariantsCount / (float)prevVariantsCount * 100f;
@@ -296,7 +311,9 @@ namespace UnityEditor.Rendering.BuiltIn
                 shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
                 prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
                 percentageTotal);
-            Debug.Log(result);
+
+            if (ShouldLogShaderVariant(shader, snippetData))
+                Debug.Log(result);
         }
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
@@ -309,12 +326,8 @@ namespace UnityEditor.Rendering.BuiltIn
             // is the active render pipeline (i.e., there is no SRP asset in place).
             RenderPipelineAsset rpAsset = GraphicsSettings.currentRenderPipeline;
             if (rpAsset != null || compilerDataList == null || compilerDataList.Count == 0)
-            {
-                Debug.Log("OnProcessShader (BuiltIn): compiler data list empty, exiting.");
                 return;
-            }
 
-            Debug.Log("OnProcessShader (BuiltIn): Starting processing");
             m_stripTimer.Start();
 
             int prevVariantCount = compilerDataList.Count;
@@ -353,8 +366,6 @@ namespace UnityEditor.Rendering.BuiltIn
             m_TotalVariantsInputCount += prevVariantCount;
             m_TotalVariantsOutputCount += compilerDataList.Count;
             LogShaderVariants(shader, snippetData, prevVariantCount, compilerDataList.Count);
-
-            Debug.Log("OnProcessShader (BuiltIn): Done processing");
 
 #if PROFILE_BUILD
             Profiler.EndSample();
