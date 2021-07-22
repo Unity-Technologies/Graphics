@@ -57,12 +57,12 @@ namespace UnityEngine.Rendering.HighDefinition
         //                                                  {-1.0, 1.0}, {0.0, 1.0}, {1.0, 1.0}
 
         // Set of pre-generated weights (L->R, T->B). After experimentation, the final weighting function is exp(-distance^2)
-        static float[] m_DistanceBasedWeights = new float[]{ 0.324652f, 0.535261f, 0.119433f, 0.535261f, 0.882497f, 0.196912f, 0.119433f, 0.196912f, 0.0439369f,
-                0.119433f, 0.535261f, 0.324652f, 0.196912f, 0.882497f, 0.535261f, 0.0439369f, 0.196912f, 0.119433f,
-                0.119433f, 0.196912f, 0.0439369f, 0.535261f, 0.882497f, 0.196912f, 0.324652f, 0.535261f, 0.119433f,
-                0.0439369f, 0.196912f, 0.119433f, 0.196912f, 0.882497f, 0.535261f, 0.119433f, 0.535261f, 0.324652f};
+        static float[] m_DistanceBasedWeights = new float[] { 0.324652f, 0.535261f, 0.119433f, 0.535261f, 0.882497f, 0.196912f, 0.119433f, 0.196912f, 0.0439369f,
+                                                              0.119433f, 0.535261f, 0.324652f, 0.196912f, 0.882497f, 0.535261f, 0.0439369f, 0.196912f, 0.119433f,
+                                                              0.119433f, 0.196912f, 0.0439369f, 0.535261f, 0.882497f, 0.196912f, 0.324652f, 0.535261f, 0.119433f,
+                                                              0.0439369f, 0.196912f, 0.119433f, 0.196912f, 0.882497f, 0.535261f, 0.119433f, 0.535261f, 0.324652f};
 
-    void InitializeVolumetricClouds()
+        void InitializeVolumetricClouds()
         {
             if (!m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
                 return;
@@ -581,7 +581,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 for (int p = 0; p < 4; ++p)
                     for (int i = 0; i < 9; ++i)
-                    cb._DistanceBasedWeights[12 * p + i] = m_DistanceBasedWeights[9 * p + i];
+                        cb._DistanceBasedWeights[12 * p + i] = m_DistanceBasedWeights[9 * p + i];
             }
         }
 
