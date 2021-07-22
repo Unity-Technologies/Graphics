@@ -39,11 +39,11 @@ Release branches are defined as follows:
 - **{package-major-version}.x.x/release** is used for Unity 2020.x and below. f.ex, **10.x.x/release** maps to Unity 2020.3 LTS.
 
 If you need to find if a specific changeset is included in a specific Unity version, you can search tags for the Unity version.
-On GitHub, you can do that by clicking on the **Branch** drop-down then clicking the **Tags** tab. Typing `2021.2` will list all changesets tagged to each Unity version. 
+On GitHub, you can do that by clicking on the **Branch** drop-down then clicking the **Tags** tab. Typing `2021.2` will list all changesets tagged to each Unity version.
 
 ## Modifying package source
 
-You can download and install the packages of this repositories on your Unity project and modify the package source code. 
+You can download and install the packages of this repositories on your Unity project and modify the package source code.
 You can do that by one of the following methods:
 
 1. Clone this repository in any folder on your computer. [Install them as local packages](https://docs.unity3d.com/Manual/upm-ui-local.html) into your project.
@@ -85,7 +85,7 @@ Unity provides sample Scenes to use with SRP. You can find these Scenes in the [
 
 ## Package versions on Unity 2020.3 LTS and below
 
-On Unity 2020.3 LTS and below, the packages in this repository were not Core packages. Instead they were regular packages and different versions could be installed to different versions of Unity. 
+On Unity 2020.3 LTS and below, the packages in this repository were not Core packages. Instead they were regular packages and different versions could be installed to different versions of Unity.
 The compatibility of Unity versions and package versions were as follows:
 
 - **Unity 2020.3 is compatible with SRP versions 10.x.x**
