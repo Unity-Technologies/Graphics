@@ -519,7 +519,7 @@ namespace UnityEditor
                 material.SetTextureScale("_MainTex", material.GetTextureScale("_BaseMap"));
                 material.SetTextureOffset("_MainTex", material.GetTextureOffset("_BaseMap"));
             }
-            if (material.HasProperty("_Color"))
+            if (material.HasProperty("_Color")) //TODOPAUL : _BaseColor if we have exposed a property in VFX name "Color" it fails
                 material.SetColor("_Color", material.GetColor("_BaseColor"));
 
             // Emission
