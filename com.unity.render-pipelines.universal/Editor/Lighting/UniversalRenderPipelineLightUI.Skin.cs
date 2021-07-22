@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.Universal
 {
     internal partial class UniversalRenderPipelineLightUI
     {
-        static class Styles
+        public static class Styles
         {
             public static readonly GUIContent generalHeader = new GUIContent("General");
             public static readonly GUIContent shapeHeader = new GUIContent("Shape");

@@ -11,26 +11,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static class HDLightUIPreset
     {
-        public static readonly CED.IDrawer Inspector;
-
-
         [HDRPHelpURL("Light-Component")]
         enum Expandable
         {
             General = 1 << 0,
             Emission = 1 << 2,
         }
-        readonly static ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~(-1), "HDRP");
+
+        static readonly ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~(-1), "HDRP");
 
         static HDLightUI.Styles s_Styles = new HDLightUI.Styles();
 
-        static HDLightUIPreset()
-        {
-            Inspector = CED.Group(
-                CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.General, k_ExpandedState, HDLightUI.DrawGeneralContent),
-                CED.FoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedState, HDLightUI.DrawEmissionContentForPreset)
-
-            );
-        }
+        public static readonly CED.IDrawer Inspector = CED.Group(
+            CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.General, k_ExpandedState, HDLightUI.DrawGeneralContent),
+            CED.FoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedState, HDLightUI.DrawEmissionContentForPreset)
+        );
     }
 }
