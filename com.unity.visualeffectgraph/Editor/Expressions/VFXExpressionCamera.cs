@@ -213,5 +213,4 @@ namespace UnityEditor.VFX
                 return VFXValue.Constant(CameraType.defaultValue.orthographicSize);
         }
     }
-
 }

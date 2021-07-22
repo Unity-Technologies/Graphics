@@ -100,14 +100,13 @@ float4 GetCloudLayerColor(float3 dir, int index)
         }
         else
         {
-            float3 windDir = RotationUp(float3(0, 0, 1), _ScrollDirection(index));
-            windDir.x *= -1.0;
+            float3 windDir = float3(_ScrollDirection(index).x, 0.0f, _ScrollDirection(index).y);
             delta = windDir * sin(dir.y*PI*0.5);
         }
 
         // Sample twice
-        float2 color1 = SampleCloudMap(normalize(dir - alpha.x * delta), index);
-        float2 color2 = SampleCloudMap(normalize(dir - alpha.y * delta), index);
+        float2 color1 = SampleCloudMap(normalize(dir + alpha.x * delta), index);
+        float2 color2 = SampleCloudMap(normalize(dir + alpha.y * delta), index);
 
         // Blend color samples
         color = lerp(color1, color2, abs(2.0 * alpha.x));

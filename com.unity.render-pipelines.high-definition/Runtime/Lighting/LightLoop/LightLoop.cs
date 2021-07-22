@@ -1186,7 +1186,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 else if (m_SkyManager.TryGetCloudSettings(hdCamera, out var cloudSettings, out var cloudRenderer))
                 {
                     if (cloudRenderer.GetSunLightCookieParameters(cloudSettings, ref cookieParams))
-                        cloudRenderer.RenderSunLightCookie(cloudSettings, lightComponent, cmd);
+                    {
+                        var builtinParams = new BuiltinSunCookieParameters
+                        {
+                            cloudSettings = cloudSettings,
+                            sunLight = lightComponent,
+                            hdCamera = hdCamera,
+                            commandBuffer = cmd
+                        };
+                        cloudRenderer.RenderSunLightCookie(builtinParams);
+                    }
                 }
             }
 
@@ -1918,6 +1927,16 @@ namespace UnityEngine.Rendering.HighDefinition
             envLightData.influencePositionRWS = influenceToWorld.GetColumn(3);
 
             envLightData.envIndex = envIndex;
+
+            envLightData.normalizeWithAPV = hdCamera.frameSettings.IsEnabled(FrameSettingsField.NormalizeReflectionProbeWithProbeVolume) ? 1 : 0;
+            if (envLightData.normalizeWithAPV > 0)
+            {
+                if (!probe.GetSHForNormalization(out envLightData.L0L1, out envLightData.L2_1, out envLightData.L2_2))
+                {
+                    // We don't have valid data, hence we disable the feature.
+                    envLightData.normalizeWithAPV = 0;
+                }
+            }
 
             // Proxy data
             var proxyToWorld = probe.proxyToWorld;

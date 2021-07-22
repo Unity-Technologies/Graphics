@@ -170,8 +170,7 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
         viewPos *= 1.0f - radius / linearEyeDepth; // Push based on radius
         position = mul(ViewToVFX,float4(viewPos,1.0f)).xyz;
-"
-                    ;
+";
 
                 Source += collisionResponseSource;
                 Source += @"
