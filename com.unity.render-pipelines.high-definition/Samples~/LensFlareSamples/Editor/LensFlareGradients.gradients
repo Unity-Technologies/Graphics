@@ -106,8 +106,8 @@ MonoBehaviour:
   - m_Name: 
     m_Gradient:
       serializedVersion: 2
-      key0: {r: 0, g: 0.0963881, b: 1, a: 1}
-      key1: {r: 1, g: 0, b: 0, a: 1}
+      key0: {r: 0.16509432, g: 0.24694777, b: 1, a: 1}
+      key1: {r: 1, g: 0.1745283, b: 0.1745283, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -136,8 +136,8 @@ MonoBehaviour:
   - m_Name: 
     m_Gradient:
       serializedVersion: 2
-      key0: {r: 0, g: 0.0963881, b: 1, a: 1}
-      key1: {r: 0.1452893, g: 1, b: 0, a: 1}
+      key0: {r: 0.2028302, g: 0.28098404, b: 1, a: 1}
+      key1: {r: 0.3023679, g: 1, b: 0.18396229, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -166,8 +166,8 @@ MonoBehaviour:
   - m_Name: 
     m_Gradient:
       serializedVersion: 2
-      key0: {r: 0.6232681, g: 0, b: 1, a: 1}
-      key1: {r: 0, g: 0.09511185, b: 1, a: 1}
+      key0: {r: 0.6856826, g: 0.16509432, b: 1, a: 1}
+      key1: {r: 0.13679248, g: 0.21803553, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -196,8 +196,8 @@ MonoBehaviour:
   - m_Name: 
     m_Gradient:
       serializedVersion: 2
-      key0: {r: 1, g: 0, b: 0, a: 1}
-      key1: {r: 1, g: 0.6308285, b: 0, a: 1}
+      key0: {r: 1, g: 0.11792451, b: 0.11792451, a: 1}
+      key1: {r: 1, g: 0.6609323, b: 0.08018869, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -342,4 +342,34 @@ MonoBehaviour:
       atime7: 0
       m_Mode: 0
       m_NumColorKeys: 3
+      m_NumAlphaKeys: 2
+  - m_Name: 
+    m_Gradient:
+      serializedVersion: 2
+      key0: {r: 0.13679248, g: 0.41295606, b: 1, a: 1}
+      key1: {r: 1, g: 0.44313097, b: 0.13679248, a: 1}
+      key2: {r: 0, g: 0, b: 0, a: 0}
+      key3: {r: 0, g: 0, b: 0, a: 0}
+      key4: {r: 0, g: 0, b: 0, a: 0}
+      key5: {r: 0, g: 0, b: 0, a: 0}
+      key6: {r: 0, g: 0, b: 0, a: 0}
+      key7: {r: 0, g: 0, b: 0, a: 0}
+      ctime0: 0
+      ctime1: 65535
+      ctime2: 0
+      ctime3: 0
+      ctime4: 0
+      ctime5: 0
+      ctime6: 0
+      ctime7: 0
+      atime0: 0
+      atime1: 65535
+      atime2: 0
+      atime3: 0
+      atime4: 0
+      atime5: 0
+      atime6: 0
+      atime7: 0
+      m_Mode: 0
+      m_NumColorKeys: 2
       m_NumAlphaKeys: 2
