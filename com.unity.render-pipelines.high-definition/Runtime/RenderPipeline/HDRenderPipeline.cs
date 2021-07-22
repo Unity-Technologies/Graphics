@@ -17,6 +17,10 @@ using UnityEditor.Rendering;
 using UnityEngine.Rendering.VirtualTexturing;
 #endif
 
+// Resove the ambiguity in the RendererList name (pick the in-engine version)
+using RendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using RendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
+
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -143,6 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId[] m_ForwardErrorPassNames = { HDShaderPassNames.s_AlwaysName, HDShaderPassNames.s_ForwardBaseName, HDShaderPassNames.s_DeferredName, HDShaderPassNames.s_PrepassBaseName, HDShaderPassNames.s_VertexName, HDShaderPassNames.s_VertexLMRGBMName, HDShaderPassNames.s_VertexLMName };
         ShaderTagId[] m_SinglePassName = new ShaderTagId[1];
         ShaderTagId[] m_MeshDecalsPassNames = { HDShaderPassNames.s_DBufferMeshName };
+        ShaderTagId[] m_VfxDecalsPassNames = { HDShaderPassNames.s_DBufferVFXDecalName };
 
         RenderStateBlock m_DepthStateOpaque;
         RenderStateBlock m_DepthStateNoWrite;
@@ -378,6 +383,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
                     sceneBounds = m_GlobalSettings.GetOrCreateAPVSceneBounds()
                 });
+                RegisterRetrieveOfProbeVolumeExtraDataAction();
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
@@ -1021,6 +1027,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
+#if UNITY_2021_1_OR_NEWER
+        // Only for internal use, outside of SRP people can call Camera.Render()
+        internal void InternalRender(ScriptableRenderContext renderContext, List<Camera> cameras)
+        {
+            Render(renderContext, cameras);
+        }
+
+#endif
+
         /// <summary>
         /// RenderPipeline Render implementation.
         /// </summary>
@@ -1055,6 +1070,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
             m_GlobalSettings.GetOrCreateDefaultVolume();
+
+
+            DecalSystem.instance.StartDecalUpdateJobs();
 
             // This function should be called once every render (once for all camera)
             LightLoopNewRender();

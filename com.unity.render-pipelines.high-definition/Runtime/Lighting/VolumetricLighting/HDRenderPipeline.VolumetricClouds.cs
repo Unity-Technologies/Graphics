@@ -425,7 +425,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Compute the theta angle for the wind direction
-            float theta = settings.orientation.value / 180.0f * Mathf.PI;
+            float theta = settings.orientation.GetValue(hdCamera) / 180.0f * Mathf.PI;
             // We apply a minus to see something moving in the right direction
             cb._WindDirection = new Vector2(-Mathf.Cos(theta), -Mathf.Sin(theta));
             cb._WindVector = hdCamera.volumetricCloudsAnimationData.cloudOffset;
@@ -567,6 +567,10 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.planarReflection = (hdCamera.camera.cameraType == CameraType.Reflection);
             parameters.localClouds = settings.localClouds.value;
 
+            // MSAA support
+            parameters.needsTemporaryBuffer = hdCamera.msaaEnabled;
+            parameters.cloudCombinePass = m_CloudCombinePass;
+
             parameters.needExtraColorBufferCopy = (GetColorBufferFormat() == GraphicsFormat.B10G11R11_UFloatPack32 &&
                 // On PC and Metal, but not on console.
                 (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 ||
@@ -574,6 +578,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan));
 
+            // In case of MSAA, we no longer require the preliminary copy as there is no longer a need for RW of the color buffer.
+            parameters.needExtraColorBufferCopy &= !parameters.needsTemporaryBuffer;
 
             // Compute shader and kernels
             parameters.volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
@@ -613,10 +619,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
             parameters.sunLight = GetCurrentSunLight();
             parameters.enableExposureControl = hdCamera.exposureControlFS;
-
-            // MSAA support
-            parameters.needsTemporaryBuffer = hdCamera.msaaEnabled;
-            parameters.cloudCombinePass = m_CloudCombinePass;
 
             // Update the constant buffer
             UpdateShaderVariableslClouds(ref parameters.cloudsCB, hdCamera, settings, parameters, shadowPass);
@@ -886,14 +888,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 float delaTime = hdCamera.time - hdCamera.volumetricCloudsAnimationData.lastTime;
 
                 // Compute the theta angle for the wind direction
-                float theta = settings.orientation.value / 180.0f * Mathf.PI;
+                float theta = settings.orientation.GetValue(hdCamera) / 180.0f * Mathf.PI;
 
                 // Compute the wind direction
                 Vector2 windDirection = new Vector2(Mathf.Cos(theta), Mathf.Sin(theta));
 
                 // Conversion  from km/h to m/s  is the 0.277778f factor
                 // We apply a minus to see something moving in the right direction
-                Vector2 windVector = -windDirection * settings.globalWindSpeed.value * delaTime * 0.277778f;
+                Vector2 windVector = -windDirection * settings.globalWindSpeed.GetValue(hdCamera) * delaTime * 0.277778f;
 
                 // Animate the offset
                 hdCamera.volumetricCloudsAnimationData.cloudOffset += windVector;
