@@ -133,7 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
             GetLightingSettingsOrDefaultsFallback = getLightingSettingsOrDefaultsFallbackLambda.Compile();
         }
 
-        static void DrawGeneralContent(SerializedHDLight serialized, Editor owner)
+        internal static void DrawGeneralContent(SerializedHDLight serialized, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
             Rect lineRect = EditorGUILayout.GetControlRect();
@@ -240,7 +240,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 case HDLightType.Point:
                     EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.PropertyField(serialized.shapeRadius, s_Styles.lightRadius);
+                    using (new EditorGUI.DisabledScope(false))
+                        EditorGUILayout.PropertyField(serialized.shapeRadius, s_Styles.lightRadius);
                     if (EditorGUI.EndChangeCheck())
                     {
                         //Also affect baked shadows
@@ -628,6 +629,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void DrawEmissionContent(SerializedHDLight serialized, Editor owner)
         {
+            DrawEmissionContentFiltered(serialized, owner, isInPreset: false);
+        }
+
+        internal static void DrawEmissionContentForPreset(SerializedHDLight serialized, Editor owner)
+        {
+            DrawEmissionContentFiltered(serialized, owner, isInPreset: true);
+        }
+
+        static void DrawEmissionContentFiltered(SerializedHDLight serialized, Editor owner, bool isInPreset)
+        {
             using (var changes = new EditorGUI.ChangeCheckScope())
             {
                 if (GraphicsSettings.lightsUseLinearIntensity && GraphicsSettings.lightsUseColorTemperature)
@@ -678,7 +689,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.color);
             }
 
-            DrawLightIntensityGUILayout(serialized, owner);
+            if (!isInPreset)
+                DrawLightIntensityGUILayout(serialized, owner);
 
             HDLightType lightType = serialized.type;
             SpotLightShape spotLightShape = serialized.spotLightShape.GetEnumValue<SpotLightShape>();
@@ -732,91 +744,93 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUI.BeginChangeCheck(); // For GI we need to detect any change on additional data and call SetLightDirty
 
-            if (lightType != HDLightType.Area)
+            if (!isInPreset)
             {
-                serialized.settings.DrawCookie();
-
-                if (serialized.settings.cookie is Texture cookie && cookie != null)
+                if (lightType != HDLightType.Area)
                 {
-                    // When directional light use a cookie, it can control the size
-                    if (lightType == HDLightType.Directional)
+                    serialized.settings.DrawCookie();
+
+                    if (serialized.settings.cookie is Texture cookie && cookie != null)
                     {
-                        EditorGUI.indentLevel++;
-                        EditorGUI.BeginChangeCheck();
-                        var size = new Vector2(serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
-                        size = EditorGUILayout.Vector2Field(s_Styles.cookieSize, size);
-                        if (EditorGUI.EndChangeCheck())
+                        // When directional light use a cookie, it can control the size
+                        if (lightType == HDLightType.Directional)
                         {
-                            serialized.shapeWidth.floatValue = size.x;
-                            serialized.shapeHeight.floatValue = size.y;
+                            EditorGUI.indentLevel++;
+                            EditorGUI.BeginChangeCheck();
+                            var size = new Vector2(serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
+                            size = EditorGUILayout.Vector2Field(s_Styles.cookieSize, size);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                serialized.shapeWidth.floatValue = size.x;
+                                serialized.shapeHeight.floatValue = size.y;
+                            }
+                            EditorGUI.indentLevel--;
                         }
-                        EditorGUI.indentLevel--;
+                        else if (lightType == HDLightType.Point && cookie.dimension != TextureDimension.Cube)
+                        {
+                            Debug.LogError($"The cookie texture '{cookie.name}' isn't compatible with the Point Light type. Only Cube textures are supported.");
+                            serialized.settings.cookieProp.objectReferenceValue = null;
+                        }
+                        else if (lightType == HDLightType.Spot && cookie.dimension != TextureDimension.Tex2D)
+                        {
+                            Debug.LogError($"The cookie texture '{cookie.name}' isn't compatible with the Spot Light type. Only 2D textures are supported.");
+                            serialized.settings.cookieProp.objectReferenceValue = null;
+                        }
                     }
-                    else if (lightType == HDLightType.Point && cookie.dimension != TextureDimension.Cube)
+
+                    ShowCookieTextureWarnings(serialized.settings.cookie, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
+                }
+                else if (serialized.areaLightShape == AreaLightShape.Rectangle || serialized.areaLightShape == AreaLightShape.Disc)
+                {
+                    EditorGUILayout.ObjectField(serialized.areaLightCookie, s_Styles.areaLightCookie);
+                    ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
+                }
+                if (serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot || (serialized.type == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
+                {
+                    EditorGUI.BeginChangeCheck();
+                    UnityEngine.Object iesAsset = EditorGUILayout.ObjectField(
+                        s_Styles.iesTexture,
+                        serialized.type == HDLightType.Point ? serialized.iesPoint.objectReferenceValue : serialized.iesSpot.objectReferenceValue,
+                        typeof(IESObject), false);
+                    if (EditorGUI.EndChangeCheck())
                     {
-                        Debug.LogError($"The cookie texture '{cookie.name}' isn't compatible with the Point Light type. Only Cube textures are supported.");
-                        serialized.settings.cookieProp.objectReferenceValue = null;
-                    }
-                    else if (lightType == HDLightType.Spot && cookie.dimension != TextureDimension.Tex2D)
-                    {
-                        Debug.LogError($"The cookie texture '{cookie.name}' isn't compatible with the Spot Light type. Only 2D textures are supported.");
-                        serialized.settings.cookieProp.objectReferenceValue = null;
+                        SerializedProperty pointTex = serialized.iesPoint;
+                        SerializedProperty spotTex = serialized.iesSpot;
+                        if (iesAsset == null)
+                        {
+                            pointTex.objectReferenceValue = null;
+                            spotTex.objectReferenceValue = null;
+                        }
+                        else
+                        {
+                            string guid;
+                            long localID;
+                            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(iesAsset, out guid, out localID);
+                            string path = AssetDatabase.GUIDToAssetPath(guid);
+                            UnityEngine.Object[] textures = AssetDatabase.LoadAllAssetRepresentationsAtPath(path);
+                            foreach (var subAsset in textures)
+                            {
+                                if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-Cube-IES"))
+                                {
+                                    pointTex.objectReferenceValue = subAsset;
+                                }
+                                else if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-2D-IES"))
+                                {
+                                    spotTex.objectReferenceValue = subAsset;
+                                }
+                            }
+                        }
+                        serialized.iesPoint.serializedObject.ApplyModifiedProperties();
+                        serialized.iesSpot.serializedObject.ApplyModifiedProperties();
                     }
                 }
 
-                ShowCookieTextureWarnings(serialized.settings.cookie, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
-            }
-            else if (serialized.areaLightShape == AreaLightShape.Rectangle || serialized.areaLightShape == AreaLightShape.Disc)
-            {
-                EditorGUILayout.ObjectField(serialized.areaLightCookie, s_Styles.areaLightCookie);
-                ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
-            }
-
-            if (serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot || (serialized.type == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
-            {
-                EditorGUI.BeginChangeCheck();
-                UnityEngine.Object iesAsset = EditorGUILayout.ObjectField(
-                    s_Styles.iesTexture,
-                    serialized.type == HDLightType.Point ? serialized.iesPoint.objectReferenceValue : serialized.iesSpot.objectReferenceValue,
-                    typeof(IESObject), false);
-                if (EditorGUI.EndChangeCheck())
+                if (serialized.type == HDLightType.Spot &&
+                    serialized.spotLightShape.enumValueIndex == (int)SpotLightShape.Cone &&
+                    serialized.iesSpot.objectReferenceValue != null)
                 {
-                    SerializedProperty pointTex = serialized.iesPoint;
-                    SerializedProperty spotTex = serialized.iesSpot;
-                    if (iesAsset == null)
-                    {
-                        pointTex.objectReferenceValue = null;
-                        spotTex.objectReferenceValue = null;
-                    }
-                    else
-                    {
-                        string guid;
-                        long localID;
-                        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(iesAsset, out guid, out localID);
-                        string path = AssetDatabase.GUIDToAssetPath(guid);
-                        UnityEngine.Object[] textures = AssetDatabase.LoadAllAssetRepresentationsAtPath(path);
-                        foreach (var subAsset in textures)
-                        {
-                            if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-Cube-IES"))
-                            {
-                                pointTex.objectReferenceValue = subAsset;
-                            }
-                            else if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-2D-IES"))
-                            {
-                                spotTex.objectReferenceValue = subAsset;
-                            }
-                        }
-                    }
-                    serialized.iesPoint.serializedObject.ApplyModifiedProperties();
-                    serialized.iesSpot.serializedObject.ApplyModifiedProperties();
+                    EditorGUILayout.PropertyField(serialized.spotIESCutoffPercent, s_Styles.spotIESCutoffPercent);
                 }
-            }
-
-            if (serialized.type == HDLightType.Spot &&
-                serialized.spotLightShape.enumValueIndex == (int)SpotLightShape.Cone &&
-                serialized.iesSpot.objectReferenceValue != null)
-            {
-                EditorGUILayout.PropertyField(serialized.spotIESCutoffPercent, s_Styles.spotIESCutoffPercent);
             }
 
             if (EditorGUI.EndChangeCheck())

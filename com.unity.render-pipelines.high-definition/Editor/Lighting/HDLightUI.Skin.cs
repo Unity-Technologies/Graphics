@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    partial class HDLightUI
+    internal partial class HDLightUI
     {
-        sealed class Styles
+        public sealed class Styles
         {
             // Headers
             public readonly GUIContent generalHeader = new GUIContent("General");
