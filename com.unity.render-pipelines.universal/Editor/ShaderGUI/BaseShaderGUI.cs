@@ -237,15 +237,31 @@ namespace UnityEditor
             ShaderPropertiesGUI(material);
         }
 
+        //TODOPAUL : See with URP team how to handle it properly
+        protected virtual uint materialFilter
+        {
+            get
+            {
+                return uint.MaxValue;
+            }
+        }
+
         public virtual void OnOpenGUI(Material material, MaterialEditor materialEditor)
         {
+            var filter = (Expandable)materialFilter;
+
             // Generate the foldouts
-            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceOptions, (uint)Expandable.SurfaceOptions, DrawSurfaceOptions);
-            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceInputs, (uint)Expandable.SurfaceInputs, DrawSurfaceInputs);
+            if (filter.HasFlag(Expandable.SurfaceOptions))
+                m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceOptions, (uint)Expandable.SurfaceOptions, DrawSurfaceOptions);
 
-            FillAdditionalFoldouts(m_MaterialScopeList);
+            if (filter.HasFlag(Expandable.SurfaceInputs))
+                m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceInputs, (uint)Expandable.SurfaceInputs, DrawSurfaceInputs);
 
-            m_MaterialScopeList.RegisterHeaderScope(Styles.AdvancedLabel, (uint)Expandable.Advanced, DrawAdvancedOptions);
+            if (filter.HasFlag(Expandable.Details))
+                FillAdditionalFoldouts(m_MaterialScopeList);
+
+            if (filter.HasFlag(Expandable.Advanced))
+                m_MaterialScopeList.RegisterHeaderScope(Styles.AdvancedLabel, (uint)Expandable.Advanced, DrawAdvancedOptions);
         }
 
         public void ShaderPropertiesGUI(Material material)

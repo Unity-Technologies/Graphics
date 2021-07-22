@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         // VFX Properties
         VFXContext m_ContextVFX = null;
         VFXContextCompiledData m_ContextDataVFX;
-        bool TargetsVFX() => m_ContextVFX != null;
+        protected bool TargetsVFX() => m_ContextVFX != null;
 
         public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
         {
