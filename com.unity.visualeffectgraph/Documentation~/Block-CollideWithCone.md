@@ -16,7 +16,7 @@ This Block is compatible with the following Contexts:
 | ----------------- | -------- | ------------------------------------------------------------ |
 | **Mode**          | Enum     | The collision shape mode. The options are:<br/>&#8226; **Solid**: Particles cannot enter the collider.<br/>&#8226; **Inverted**: Particles cannot leave the collider. The collider becomes a volume that the particles cannot exit. |
 | **Radius Mode**   | Enum     | The mode that determines the collision radius of each particle. The options are:<br/>&#8226; **None**: Particles have a radius of zero.<br/>&#8226; **From Size**: Particles inherit their radius from their individual sizes.<br/>&#8226; **Custom**: Allows you to set the radius of the particles to a specific value. |
-| **Rough Surface** | Bool     | Toggles whether or not the collider simulates a rough surface. When enabled, Unity adds randomness to the direction in which particles bounce back to simulate collision with a rough surface. |
+| **Rough Surface** | Bool     | Toggles whether or not the collider simulates a rough surface. When you enable this property, Unity adds randomness to the direction in which particles bounce back to simulate collision with a rough surface. |
 
 ## Block properties
 

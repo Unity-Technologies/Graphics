@@ -4,7 +4,7 @@ Menu Path : **Force > Conform to Sphere**
 
 The **Conform to Sphere** Block attracts particles towards a defined sphere. This is useful for a range of cases, such as simulating a “charging” energy effect, and works best when you use it alongside other forces.
 
-This operator doesn't support spheres that have scale axis of different lengths (ellipsoids). If you use an ellipsoid as an input, this operator uses its longest axis to define the sphere.
+This Operator doesn't support spheres that have scale axis of different lengths (ellipsoids). If you use an ellipsoid as an input, this Operator uses its longest axis to define the sphere.
 
 ![](Images/Block-ConformToSphereExample.gif)
 
