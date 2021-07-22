@@ -1,5 +1,6 @@
 
 using NUnit.Framework;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Registry.UnitTests
 {
