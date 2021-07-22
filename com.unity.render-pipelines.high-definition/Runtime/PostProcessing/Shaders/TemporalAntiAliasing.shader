@@ -14,6 +14,7 @@ Shader "Hidden/HDRP/TemporalAA"
         #pragma multi_compile_local_fragment _ FORCE_BILINEAR_HISTORY
         #pragma multi_compile_local_fragment _ ENABLE_MV_REJECTION
         #pragma multi_compile_local_fragment _ ANTI_RINGING
+        #pragma multi_compile_local_fragment _ DIRECT_STENCIL_SAMPLE
         #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY TAA_UPSCALE POST_DOF
 
         #pragma editor_sync_compilation
@@ -111,6 +112,10 @@ Shader "Hidden/HDRP/TemporalAA"
         RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture) : register(u1);
         #endif
 
+        #if DIRECT_STENCIL_SAMPLE
+        TEXTURE2D_X_UINT2(_StencilTexture);
+        #endif
+
         float4 _TaaPostParameters;
         float4 _TaaPostParameters1;
         float4 _TaaHistorySize;
@@ -124,6 +129,7 @@ Shader "Hidden/HDRP/TemporalAA"
 
         #define _BaseBlendFactor _TaaPostParameters1.x
         #define _CentralWeight _TaaPostParameters1.y
+        #define _ExcludeTAABit _TaaPostParameters1.z
 
         // TAAU specific
         float4 _TaauParameters;
@@ -221,6 +227,13 @@ Shader "Hidden/HDRP/TemporalAA"
 #endif
             float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos);
 #endif
+            bool excludeTAABit = false;
+#if DIRECT_STENCIL_SAMPLE
+            uint stencil = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, samplePos));
+            excludeTAABit = (stencil == _ExcludeTAABit);
+#endif
+
+            float lengthMV = 0;
 
             DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_point_clamp_sampler, ClampAndScaleUVForPoint(uv + closestOffset * _InputSize.zw), 0), motionVector);
             // --------------------------------------------------------
@@ -235,95 +248,98 @@ Shader "Hidden/HDRP/TemporalAA"
 
             // --------------- Gather neigbourhood data ---------------
             CTYPE color = Fetch4(_InputTexture, uv, 0.0, _RTHandleScaleForTAA).CTYPE_SWIZZLE;
-            color = clamp(color, 0, CLAMP_MAX);
-            color = ConvertToWorkingSpace(color);
+            if (!excludeTAABit)
+            {
+                color = clamp(color, 0, CLAMP_MAX);
+                color = ConvertToWorkingSpace(color);
 
-            NeighbourhoodSamples samples;
-            GatherNeighbourhood(_InputTexture, uv, floor(input.positionCS.xy), color, _RTHandleScaleForTAA, samples);
-            // --------------------------------------------------------
+                NeighbourhoodSamples samples;
+                GatherNeighbourhood(_InputTexture, uv, floor(input.positionCS.xy), color, _RTHandleScaleForTAA, samples);
+                // --------------------------------------------------------
 
-            // --------------- Filter central sample ---------------
-            float4 filterParams = _TaaFilterWeights;
-            float4 filterParams1 = _TaaFilterWeights1;
-            float centralWeight = _CentralWeight;
-            #ifdef TAA_UPSCALE
-            filterParams.x = _TAAUFilterRcpSigma2;
-            filterParams.y = _TAAUScale;
-            filterParams.zw = outputPixInInput - (floor(outputPixInInput) + 0.5f);
+                // --------------- Filter central sample ---------------
+                float4 filterParams = _TaaFilterWeights;
+                float4 filterParams1 = _TaaFilterWeights1;
+                float centralWeight = _CentralWeight;
+#ifdef TAA_UPSCALE
+                filterParams.x = _TAAUFilterRcpSigma2;
+                filterParams.y = _TAAUScale;
+                filterParams.zw = outputPixInInput - (floor(outputPixInInput) + 0.5f);
 
-            #elif CENTRAL_FILTERING  == BLACKMAN_HARRIS
-            // We need to swizzle weights as we use quad communication to access neighbours, so the order of neighbours is not always the same (this needs to go away when moving back to compute)
-            SwizzleFilterWeights(floor(input.positionCS.xy), filterParams, filterParams1);
-            #endif
-            CTYPE filteredColor = FilterCentralColor(samples, filterParams, filterParams1, centralWeight);
-            // ------------------------------------------------------
+#elif CENTRAL_FILTERING  == BLACKMAN_HARRIS
+                // We need to swizzle weights as we use quad communication to access neighbours, so the order of neighbours is not always the same (this needs to go away when moving back to compute)
+                SwizzleFilterWeights(floor(input.positionCS.xy), filterParams, filterParams1);
+#endif
+                CTYPE filteredColor = FilterCentralColor(samples, filterParams, filterParams1, centralWeight);
+                // ------------------------------------------------------
 
-            if (offScreen)
-                history = filteredColor;
+                if (offScreen)
+                    history = filteredColor;
 
-            // --------------- Get neighbourhood information and clamp history ---------------
-            float colorLuma = GetLuma(filteredColor);
-            float historyLuma = GetLuma(history);
+                // --------------- Get neighbourhood information and clamp history ---------------
+                float colorLuma = GetLuma(filteredColor);
+                float historyLuma = GetLuma(history);
 
-            float motionVectorLength = 0.0f;
-            float motionVectorLenInPixels = 0.0f;
+                float motionVectorLength = 0.0f;
+                float motionVectorLenInPixels = 0.0f;
 
 #if ANTI_FLICKER_MV_DEPENDENT || VELOCITY_REJECTION
-            motionVectorLength = length(motionVector);
-            motionVectorLenInPixels = motionVectorLength * length(_InputSize.xy);
+                motionVectorLength = length(motionVector);
+                motionVectorLenInPixels = motionVectorLength * length(_InputSize.xy);
 #endif
 
-            GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale);
+                GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLenInPixels, _TAAURenderScale);
 
-            history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
-            filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
-            // ------------------------------------------------------------------------------
+                history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
+                filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
+                // ------------------------------------------------------------------------------
 
-            // --------------- Compute blend factor for history ---------------
-            float blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour), _BaseBlendFactor);
-            // --------------------------------------------------------
+                // --------------- Compute blend factor for history ---------------
+                float blendFactor = GetBlendFactor(colorLuma, historyLuma, GetLuma(samples.minNeighbour), GetLuma(samples.maxNeighbour), _BaseBlendFactor);
+                // --------------------------------------------------------
 
-            // ------------------- Alpha handling ---------------------------
+                // ------------------- Alpha handling ---------------------------
 #if defined(ENABLE_ALPHA)
-            // Compute the antialiased alpha value
-            filteredColor.w = lerp(history.w, filteredColor.w, blendFactor);
-            // TAA should not overwrite pixels with zero alpha. This allows camera stacking with mixed TAA settings (bottom camera with TAA OFF and top camera with TAA ON).
-            CTYPE unjitteredColor = Fetch4(_InputTexture, input.texcoord - color.w * jitter, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
-            unjitteredColor = ConvertToWorkingSpace(unjitteredColor);
-            unjitteredColor.xyz *= PerceptualWeight(unjitteredColor);
-            filteredColor.xyz = lerp(unjitteredColor.xyz, filteredColor.xyz, filteredColor.w);
-            blendFactor = color.w > 0 ? blendFactor : 1;
+                // Compute the antialiased alpha value
+                filteredColor.w = lerp(history.w, filteredColor.w, blendFactor);
+                // TAA should not overwrite pixels with zero alpha. This allows camera stacking with mixed TAA settings (bottom camera with TAA OFF and top camera with TAA ON).
+                CTYPE unjitteredColor = Fetch4(_InputTexture, input.texcoord - color.w * jitter, 0.0, _RTHandleScale.xy).CTYPE_SWIZZLE;
+                unjitteredColor = ConvertToWorkingSpace(unjitteredColor);
+                unjitteredColor.xyz *= PerceptualWeight(unjitteredColor);
+                filteredColor.xyz = lerp(unjitteredColor.xyz, filteredColor.xyz, filteredColor.w);
+                blendFactor = color.w > 0 ? blendFactor : 1;
 #endif
-            // ---------------------------------------------------------------
+                // ---------------------------------------------------------------
 
-            // --------------- Blend to final value and output ---------------
+                // --------------- Blend to final value and output ---------------
 
 #if VELOCITY_REJECTION
-            // The 10 multiplier serves a double purpose, it is an empirical scale value used to perform the rejection and it also helps with storing the value itself.
-            float lengthMV = motionVectorLength * 10;
-            blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory);
+                // The 10 multiplier serves a double purpose, it is an empirical scale value used to perform the rejection and it also helps with storing the value itself.
+                lengthMV = motionVectorLength * 10;
+                blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity, _RTHandleScaleForTAAHistory);
 #endif
 
 #ifdef TAA_UPSCALE
-            blendFactor *= GetUpsampleConfidence(filterParams.zw, _TAAUBoxConfidenceThresh, _TAAUFilterRcpSigma2, _TAAUScale);
+                blendFactor *= GetUpsampleConfidence(filterParams.zw, _TAAUBoxConfidenceThresh, _TAAUFilterRcpSigma2, _TAAUScale);
 #endif
-            blendFactor = max(blendFactor, 0.03);
+                blendFactor = max(blendFactor, 0.03);
 
-            CTYPE finalColor;
+                CTYPE finalColor;
 #if PERCEPTUAL_SPACE_ONLY_END
-            finalColor.xyz = lerp(ReinhardToneMap(history).xyz, ReinhardToneMap(filteredColor).xyz, blendFactor);
-            finalColor.xyz = InverseReinhardToneMap(finalColor).xyz;
+                finalColor.xyz = lerp(ReinhardToneMap(history).xyz, ReinhardToneMap(filteredColor).xyz, blendFactor);
+                finalColor.xyz = InverseReinhardToneMap(finalColor).xyz;
 #else
-            finalColor.xyz = lerp(history.xyz, filteredColor.xyz, blendFactor);
-            finalColor.xyz *= PerceptualInvWeight(finalColor);
+                finalColor.xyz = lerp(history.xyz, filteredColor.xyz, blendFactor);
+                finalColor.xyz *= PerceptualInvWeight(finalColor);
 #endif
 
-            color.xyz = ConvertToOutputSpace(finalColor.xyz);
-            color.xyz = clamp(color.xyz, 0, CLAMP_MAX);
+                color.xyz = ConvertToOutputSpace(finalColor.xyz);
+                color.xyz = clamp(color.xyz, 0, CLAMP_MAX);
 #if defined(ENABLE_ALPHA)
-            // Set output alpha to the antialiased alpha.
-            color.w = filteredColor.w;
+                // Set output alpha to the antialiased alpha.
+                color.w = filteredColor.w;
 #endif
+            }
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
             outColor = color.CTYPE_SWIZZLE;

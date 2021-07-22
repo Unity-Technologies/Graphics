@@ -481,7 +481,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
                     {
-                        source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: false, "TAA Destination");
+                        source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, prepassOutput.stencilBuffer, postDoF: false, "TAA Destination");
                         if (hdCamera.IsTAAUEnabled())
                         {
                             SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
@@ -495,7 +495,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
 
-                source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, depthMinMaxAvgMSAA);
+                source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, prepassOutput.stencilBuffer, depthMinMaxAvgMSAA);
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)
@@ -1416,6 +1416,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle destination;
             public TextureHandle motionVecTexture;
             public TextureHandle depthBuffer;
+            public TextureHandle stencilBuffer;
             public TextureHandle depthMipChain;
             public TextureHandle prevHistory;
             public TextureHandle nextHistory;
@@ -1437,7 +1438,7 @@ namespace UnityEngine.Rendering.HighDefinition
         };
 
         void PrepareTAAPassData(RenderGraph renderGraph, RenderGraphBuilder builder, TemporalAntiAliasingData passData, HDCamera camera,
-            TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)
+            TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, TextureHandle stencilTexture, bool postDoF, string outputName)
         {
             passData.resetPostProcessingHistory = camera.resetPostProcessingHistory;
 
@@ -1469,7 +1470,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 taaSampleWeights[i] /= totalWeight;
             }
 
-            passData.taaParameters1 = new Vector4(1.0f - camera.taaBaseBlendFactor, taaSampleWeights[0], 0, 0);
+            passData.taaParameters1 = new Vector4(1.0f - camera.taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTAA, 0);
             passData.taaFilterWeights = new Vector4(taaSampleWeights[1], taaSampleWeights[2], taaSampleWeights[3], taaSampleWeights[4]);
             passData.taaFilterWeights1 = new Vector4(taaSampleWeights[5], taaSampleWeights[6], taaSampleWeights[7], taaSampleWeights[8]);
 
@@ -1523,6 +1524,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.temporalAAMaterial.EnableKeyword("MEDIUM_QUALITY");
                         break;
                 }
+            }
+
+            if (TAAU)
+            {
+                passData.temporalAAMaterial.EnableKeyword("DIRECT_STENCIL_SAMPLE");
             }
 
             RTHandle prevHistory, nextHistory;
@@ -1590,13 +1596,15 @@ namespace UnityEngine.Rendering.HighDefinition
             var resScale = DynamicResolutionHandler.instance.GetCurrentScale();
             float stdDev = 0.4f;
             passData.taauParams = new Vector4(1.0f / (stdDev * stdDev), 1.0f / resScale, 0.5f / resScale, resScale);
+
+            passData.stencilBuffer = stencilTexture;
         }
 
-        TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)
+        TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, TextureHandle stencilBuffer, bool postDoF, string outputName)
         {
             using (var builder = renderGraph.AddRenderPass<TemporalAntiAliasingData>("Temporal Anti-Aliasing", out var passData, ProfilingSampler.Get(HDProfileId.TemporalAntialiasing)))
             {
-                PrepareTAAPassData(renderGraph, builder, passData, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, sourceTexture, postDoF, outputName);
+                PrepareTAAPassData(renderGraph, builder, passData, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, sourceTexture, stencilBuffer, postDoF, outputName);
 
                 builder.SetRenderFunc(
                     (TemporalAntiAliasingData data, RenderGraphContext ctx) =>
@@ -1672,6 +1680,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.runsTAAU)
                         {
                             rect = data.finalViewport;
+
+                            RTHandle stencil = data.stencilBuffer;
+                            if (stencil.rt.stencilFormat == GraphicsFormat.None)  // We are accessing MSAA resolved version and not the depth stencil buffer directly.
+                                mpb.SetTexture(HDShaderIDs._StencilTexture, stencilBuffer);
+                            else
+                                mpb.SetTexture(HDShaderIDs._StencilTexture, stencilBuffer, RenderTextureSubElement.Stencil);
+
+
                             HDUtils.DrawFullScreen(ctx.cmd, rect, data.temporalAAMaterial, data.destination, mpb, taauPass);
                         }
                         else
@@ -2716,7 +2732,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool taaEnabled;
         }
 
-        TextureHandle DepthOfFieldPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle source, TextureHandle depthMinMaxAvgMSAA)
+        TextureHandle DepthOfFieldPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle source, TextureHandle depthMinMaxAvgMSAA, TextureHandle stencilTexture)
         {
             bool postDoFTAAEnabled = false;
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
@@ -2909,7 +2925,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
                 if (taaEnabled && m_DepthOfField.physicallyBased)
                 {
-                    source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: true, "Post-DoF TAA Destination");
+                    source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, stencilTexture, postDoF: true, "Post-DoF TAA Destination");
                     hdCamera.dofHistoryIsValid = true;
                     postDoFTAAEnabled = true;
                 }
