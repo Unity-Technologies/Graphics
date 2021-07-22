@@ -78,7 +78,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a minimum motion vector length to the motion vector debug view.
 - Added a better support for LODs in the ray tracing acceleration structure.
 - Added a property on the HDRP asset to allow users to avoid ray tracing effects running at too low percentages (case 1342588).
-- Added a window to choose missing diffusion profiles to add to global settings when importing materials.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -287,6 +286,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the possibility to hide custom pass from the create menu with the HideInInspector attribute.
 - Fixed support of multi-editing on custom pass volumes.
 - Fixed various SSGI issues (case 1340851, case 1339297, case 1327919).
+- Fixed diffusion profile upgrade window to by delaying the windows to end of the import process
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
