@@ -168,6 +168,8 @@
 #define DEPTH_OFFSET_SEMANTIC SV_Depth
 
 // Include language header
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/UndefMacros.hlsl"
+
 #if defined (SHADER_API_GAMECORE)
 #include "Packages/com.unity.render-pipelines.gamecore/ShaderLibrary/API/GameCore.hlsl"
 #elif defined(SHADER_API_XBOXONE)
