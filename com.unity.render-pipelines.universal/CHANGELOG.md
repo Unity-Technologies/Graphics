@@ -155,6 +155,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unlit shader function name ambiguity
 - Fixed Terrain holes not appearing in shadows [case 1349305]
 - VFX: Compilation issue with ShaderGraph and planar lit outputs [case 1349894](https://issuetracker.unity3d.com/product/unity/issues/guid/1349894/)
+- Removed unsupported fields from Presets of Light and Camera [case 1335979].
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
