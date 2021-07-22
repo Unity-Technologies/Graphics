@@ -42,7 +42,7 @@ namespace UnityEditor.VFX
             if (!kVFXShaderValueTypeMap.TryGetValue(type, out var shaderValueType))
                 return null;
 
-            return new FieldDescriptor("Attributes", attribute.name, "", shaderValueType);
+            return new FieldDescriptor("VFXAttributes", attribute.name, "", shaderValueType);
         }
 
         static class VFXFields

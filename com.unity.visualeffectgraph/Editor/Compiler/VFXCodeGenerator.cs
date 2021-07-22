@@ -552,9 +552,9 @@ namespace UnityEditor.VFX
             globalDeclaration.WriteBuffer(contextData.uniformMapper, contextData.graphicsBufferUsage);
             globalDeclaration.WriteLine();
             globalDeclaration.WriteTexture(contextData.uniformMapper);
-            globalDeclaration.WriteAttributeStruct(allCurrentAttributes.Select(a => a.attrib), "Attributes");
+            globalDeclaration.WriteAttributeStruct(allCurrentAttributes.Select(a => a.attrib), "VFXAttributes");
             globalDeclaration.WriteLine();
-            globalDeclaration.WriteAttributeStruct(allSourceAttributes.Select(a => a.attrib), "SourceAttributes");
+            globalDeclaration.WriteAttributeStruct(allSourceAttributes.Select(a => a.attrib), "VFXSourceAttributes");
             globalDeclaration.WriteLine();
 
             var linkedEventOut = context.allLinkedOutputSlot.Where(s => ((VFXModel)s.owner).GetFirstOfType<VFXContext>().CanBeCompiled()).ToList();
@@ -576,7 +576,7 @@ namespace UnityEditor.VFX
             //< Final composition
             var globalIncludeContent = new VFXShaderWriter();
             globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP 64");
-            globalIncludeContent.WriteLine("#define HAS_ATTRIBUTES 1");
+            globalIncludeContent.WriteLine("#define HAS_VFX_ATTRIBUTES 1");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_ACTUAL (0)");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_MOTION_VECTOR (1)");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_SELECTION (2)");
