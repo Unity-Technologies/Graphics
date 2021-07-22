@@ -33,6 +33,6 @@ Shader "CustomRenderTexture/#NAME#"
                 return countbits(~(p.x & p.y) + 1) % 2 * float4(uv, 1, 1) * color;
             }
             ENDCG
-            }
+        }
     }
 }
