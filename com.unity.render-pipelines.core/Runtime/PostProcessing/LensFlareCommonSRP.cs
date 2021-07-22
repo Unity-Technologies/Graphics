@@ -708,8 +708,7 @@ namespace UnityEngine.Rendering
                                 float sizeCurveValue = element.scaleCurve.length > 0 ? element.scaleCurve.Evaluate(timeScale) : 1.0f;
                                 localSize *= sizeCurveValue;
 
-                                float angleFromCurve = element.uniformAngleCurve.Evaluate(timeScale);
-                                //float angleFromCurve = element.uniformAngleCurve.Evaluate(timeScale) * (180.0f - (180.0f / element.count));
+                                float angleFromCurve = element.uniformAngleCurve.Evaluate(timeScale) * (180.0f - (180.0f / (float)element.count));
 
                                 Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, rayOff, vScreenRatio, rotation + angleFromCurve, localPos, element.angularOffset, element.positionOffset, element.autoRotate);
                                 cmd.SetGlobalVector(_FlareData0, flareData0);

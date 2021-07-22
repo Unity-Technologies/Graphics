@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error when change Lens Flare Element Count followed by undo (1346894)
 - Fixed Lens Flare Thumbnails
 - Fixed Lens Flare 'radialScreenAttenuationCurve invisible'
+- Fixed Lens Flare rotation for Curve Distribution
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
