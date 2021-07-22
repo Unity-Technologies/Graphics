@@ -20,9 +20,11 @@ Improvements in this release bring URP's **Scene Debug View Modes** closer to pa
 
 Reflection probe blending and box projection support have been added to allow for better reflection quality using probes and bringing URP closer to feature parity with the Built-In Render Pipeline.
 
+For more information on reflection probes in URP, see the page [Reflection probes](../lighting/reflection-probes.md).
+
 ### URP Deferred Rendering Path
 
-![URP Deferred Rendering Path](../Images/whats-new/urp-12/urp-deferred-rendering-path-art-demo.gif)<br/>*A sample scene that uses the Deferred Rendering Path.*
+![URP Deferred Rendering Path](../Images/whats-new/urp-12/urp-deferred-rendering-path.png)<br/>*A sample scene that uses the Deferred Rendering Path.*
 
 The URP Deferred Rendering Path uses a rendering technique where light shading is performed in screen space on a separate rendering pass after all the vertex and pixel shaders have been rendered. Deferred shading decouples scene geometry from lighting calculations, so the shading of each light is only computed for the visible pixels that it actually affects. With this approach, Unity can efficiently render a far greater amount of lights in a scene compared to per-object forward rendering.
 
@@ -92,9 +94,9 @@ This version introduces a new Lens Flare system. Lens Flares simulate the effect
 
 ### Enlighten Realtime GI
 
-![Enlighten Realtime GI](../Images/whats-new/urp-12/enlighten-realtime-gi.gif)<br/>*A sample scene with Enlighten Realtime GI*.
+![Enlighten Realtime GI](../Images/whats-new/urp-12/enlighten-realtime-gi.png)<br/>*A sample scene with Enlighten Realtime GI*.
 
-Enlighten Realtime GI lets you to enrich your projects with more dynamic lighting effects by, for example, having moving lights that affect global illumination in scenes. Additionally, we’ve extended the platform reach of Enlighten Realtime GI to Apple Silicon, Sony PlayStation(R) 5, and Microsoft Xbox Series X|S platforms.
+Enlighten Realtime GI lets you enrich your projects with more dynamic lighting effects by, for example, having moving lights that affect global illumination in scenes. We've extended the platform reach of Enlighten Realtime GI to Apple Silicon, Sony PlayStation(R) 5, and Microsoft Xbox Series X|S platforms.
 
 ### SpeedTree 8 vegetation
 

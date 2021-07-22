@@ -33,6 +33,9 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         bool m_IsActive = true;
 
+        [NonSerialized]
+        bool m_WasUsedByGenerator = false;
+
         [SerializeField]
         List<JsonData<MaterialSlot>> m_Slots = new List<JsonData<MaterialSlot>>();
 
@@ -188,6 +191,16 @@ namespace UnityEditor.ShaderGraph
             get { return m_IsActive; }
         }
 
+        internal virtual bool wasUsedByGenerator
+        {
+            get { return m_WasUsedByGenerator; }
+        }
+
+        internal void SetUsedByGenerator()
+        {
+            m_WasUsedByGenerator = true;
+        }
+
         //There are times when isActive needs to be set to a value explicitly, and
         //not be changed by active forest parsing (what we do when we need to figure out
         //what nodes should or should not be active, usually from an edit; see NodeUtils).
@@ -341,6 +354,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public virtual void GetInputSlots<T>(MaterialSlot startingSlot, List<T> foundSlots) where T : MaterialSlot
+        {
+            GetInputSlots(foundSlots);
+        }
+
         public void GetOutputSlots<T>(List<T> foundSlots) where T : MaterialSlot
         {
             foreach (var slot in m_Slots.SelectValue())
@@ -350,6 +368,11 @@ namespace UnityEditor.ShaderGraph
                     foundSlots.Add(materialSlot);
                 }
             }
+        }
+
+        public virtual void GetOutputSlots<T>(MaterialSlot startingSlot, List<T> foundSlots) where T : MaterialSlot
+        {
+            GetOutputSlots(foundSlots);
         }
 
         public void GetSlots<T>(List<T> foundSlots) where T : MaterialSlot
