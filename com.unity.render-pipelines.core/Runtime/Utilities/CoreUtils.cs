@@ -1396,6 +1396,9 @@ namespace UnityEngine.Rendering
         public static T GetLastEnumValue<T>() where T : Enum
             => typeof(T).GetEnumValues().Cast<T>().Last();
 
+        internal static string GetCorePath()
+            => "Packages/com.unity.render-pipelines.core/";
+
 #if UNITY_EDITOR
         // This is required in Runtime assembly between #if UNITY_EDITOR
         /// <summary>
