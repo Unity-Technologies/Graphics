@@ -153,11 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //rebind the indices of the entity to update, to the index passed as deletion.
             if (entityToUpdate.valid)
-            {
-                var entityDataToUpdate = m_Entities[entityToUpdate.index];
-                entityDataToUpdate.arrayIndex = entityData.arrayIndex;
-                m_Entities[entityToUpdate.index] = entityDataToUpdate;
-            }
+                UpdateIndex(entityToUpdate, entityData.arrayIndex);
 
             m_FreeIndices.Enqueue(entity.index);
             var item = m_Entities[entity.index];
@@ -187,14 +183,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public void Execute(int index, LightAccess light)
             {
-
+                Color c = light.color;
             }
         }
 
         public void Test()
         {
             var job = new TestJob();
-            var jobHandle = job.Schedule(m_LightComponents.GetLightAccessArray());
+            var jobHandle = job.ScheduleReadOnly(m_LightComponents.GetLightAccessArray(), 32);
+            //var jobHandle = job.Schedule(m_LightComponents.GetLightAccessArray());
             jobHandle.Complete();
         }
     }
