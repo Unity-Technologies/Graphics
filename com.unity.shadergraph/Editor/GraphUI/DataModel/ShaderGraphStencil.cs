@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
@@ -24,65 +23,12 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override ISearcherDatabaseProvider GetSearcherDatabaseProvider()
         {
-            return new ShaderGraphSearcherDatabaseProvider(this,
-                new List<ShaderGraphSearcherDatabaseProvider.Preset>
-                {
-                    new("Vectors")
-                    {
-                        inputs =
-                        {
-                            {"Vec2", TypeHandle.Vector2},
-                            {"Vec3", TypeHandle.Vector3},
-                            {"Vec4", TypeHandle.Vector4},
-                        },
-                        outputs =
-                        {
-                            {"Vec2", TypeHandle.Vector2},
-                            {"Vec3", TypeHandle.Vector3},
-                            {"Vec4", TypeHandle.Vector4},
-                        }
-                    },
+            return new ShaderGraphSearcherDatabaseProvider(this);
+        }
 
-                    new("And")
-                    {
-                        inputs =
-                        {
-                            {"A", TypeHandle.Bool},
-                            {"B", TypeHandle.Bool},
-                        },
-                        outputs =
-                        {
-                            {"A AND B", TypeHandle.Bool},
-                        }
-                    },
-
-                    new("Construct Vec3")
-                    {
-                        inputs =
-                        {
-                            {"X", TypeHandle.Float},
-                            {"Y", TypeHandle.Float},
-                            {"Z", TypeHandle.Float},
-                        },
-                        outputs =
-                        {
-                            {"Vec3", TypeHandle.Vector3},
-                        }
-                    },
-
-                    new("Sample Texture2D")
-                    {
-                        inputs =
-                        {
-                            {"UV", TypeHandle.Vector2},
-                            {"Texture", ShaderGraphTypes.Texture2D},
-                        },
-                        outputs =
-                        {
-                            {"RGBA", TypeHandle.Vector4},
-                        }
-                    },
-                });
+        public override ISearcherFilterProvider GetSearcherFilterProvider()
+        {
+            return new ShaderGraphSearcherFilterProvider();
         }
     }
 }
