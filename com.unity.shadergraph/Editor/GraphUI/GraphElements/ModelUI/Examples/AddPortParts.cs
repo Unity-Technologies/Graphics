@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
             m_NameField = new TextField("Name");
             m_Root.Add(m_NameField);
 
-            m_TypeDropdown = new DropdownField("Type", ShaderGraphTypes.TypeHandleNames.ToList(), 0);
+            m_TypeDropdown = new DropdownField("Type", ShaderGraphExampleTypes.TypeHandleNames.ToList(), 0);
             m_TypeDropdown.RegisterValueChangedCallback(e =>
             {
                 if (string.IsNullOrEmpty(m_NameField.value) || m_NameField.value == e.previousValue) m_NameField.value = e.newValue;
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
             m_OwnerElement.CommandDispatcher.Dispatch(new AddPortCommand(
                 m_OutputToggle.value,
                 m_NameField.value,
-                ShaderGraphTypes.TypeHandlesByName[m_TypeDropdown.value],
+                ShaderGraphExampleTypes.TypeHandlesByName[m_TypeDropdown.value],
                 new [] { (CustomizableNodeModel) m_Model }));
         }
 

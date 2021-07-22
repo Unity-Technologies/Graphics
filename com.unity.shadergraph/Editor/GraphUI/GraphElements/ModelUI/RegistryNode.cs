@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
 
             if (Model is not RegistryNodeModel registryNodeModel) return;
 
-            PartList.AppendPart(new RegistryKeyPart("registry-key", Model, this, ussClassName));
+            PartList.InsertPartAfter(titleIconContainerPartName, new RegistryKeyPart("registry-key", Model, this, ussClassName));
 
             // TODO: Build part list from node definition
         }

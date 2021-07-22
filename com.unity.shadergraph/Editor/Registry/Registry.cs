@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph.Registry.Experimental
 {
+    [Serializable]
     public struct RegistryKey
     {
         // TODO: Tease out namespace (to support overrides) via IReadOnlyCollection
