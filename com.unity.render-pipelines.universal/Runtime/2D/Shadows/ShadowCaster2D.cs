@@ -63,7 +63,6 @@ namespace UnityEngine.Rendering.Universal
             m_CachedLocalToWorldMatrix = transform.localToWorldMatrix;
         }
 
-
         /// <summary>
         /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
         /// </summary>
@@ -115,7 +114,7 @@ namespace UnityEngine.Rendering.Universal
             deltaPos.x = light.m_CachedPosition.x - deltaPos.x;
             deltaPos.y = light.m_CachedPosition.y - deltaPos.y;
             deltaPos.z = light.m_CachedPosition.z - deltaPos.z;
-            
+
             float distanceSq = Vector3.SqrMagnitude(deltaPos);
 
             float radiiLength = light.boundingSphere.radius + m_ProjectedBoundingSphere.radius;

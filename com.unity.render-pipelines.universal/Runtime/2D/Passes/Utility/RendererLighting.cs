@@ -524,7 +524,7 @@ namespace UnityEngine.Rendering.Universal
         {
             // Before rendering the lights cache some values that are expensive to get/calculate
             var culledLights = pass.rendererData.lightCullResult.visibleLights;
-            for (var i=0; i < culledLights.Count; i++)
+            for (var i = 0; i < culledLights.Count; i++)
             {
                 culledLights[i].CacheValues();
             }

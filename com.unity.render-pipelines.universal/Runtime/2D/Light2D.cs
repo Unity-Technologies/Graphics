@@ -184,7 +184,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool hasCachedMesh => (vertices.Length > 1 && indices.Length > 1);
 
-        
 
         /// <summary>
         /// The light's current type

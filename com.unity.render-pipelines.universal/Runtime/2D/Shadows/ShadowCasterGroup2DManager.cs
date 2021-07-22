@@ -21,7 +21,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-
         public static void AddShadowCasterGroupToList(ShadowCasterGroup2D shadowCaster, List<ShadowCasterGroup2D> list)
         {
             int positionToInsert = 0;
