@@ -184,6 +184,9 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 
 #ifdef TESSELLATION_ON
     output.positionRWS = positionRWS;
+#ifdef VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
+    output.positionPredisplacementRWS = positionRWS;
+#endif
     // For tessellation we evaluate the tessellation factor from vertex shader then interpolate it in Hull Shader
     // Note: For unknow reason evaluating the tessellationFactor directly in Hull shader cause internal compiler issue for both Metal and Vulkan (Unity issue) when use with shadergraph
     // so we prefer this version to be compatible with all platforms, have same code for non shader graph and shader graph version and also it should be faster.
@@ -196,6 +199,10 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionRWS = positionRWS;
 #endif
+#ifdef VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
+    output.positionPredisplacementRWS = positionRWS;
+#endif
+
     output.positionCS = TransformWorldToHClip(positionRWS);
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
     output.normalWS = normalWS;
@@ -261,6 +268,9 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionRWS = input.positionRWS;
+#endif
+#ifdef VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
+    output.positionPredisplacementRWS = input.positionPredisplacementRWS;
 #endif
 
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
