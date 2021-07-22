@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            if (HDUtils.IsPresetEditor(this))
+            if (HDEditorUtils.IsPresetEditor(this))
             {
                 EditorGUILayout.HelpBox("Presets of HD Reflection Probe is not supported.", MessageType.Info);
                 return;
