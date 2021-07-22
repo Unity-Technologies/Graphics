@@ -341,20 +341,20 @@ namespace UnityEngine.Rendering.HighDefinition
             // Prefetch frame settings - these aren't free to pull so we want to do it only once
             // per frame
             var frameSettings = camera.frameSettings;
-            m_StopNaNFS = frameSettings.IsEnabled(FrameSettingsField.StopNaN);
-            m_DepthOfFieldFS = frameSettings.IsEnabled(FrameSettingsField.DepthOfField);
-            m_MotionBlurFS = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
-            m_PaniniProjectionFS = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
-            m_BloomFS = frameSettings.IsEnabled(FrameSettingsField.Bloom);
-            m_LensFlareDataDataDrivenFS = frameSettings.IsEnabled(FrameSettingsField.LensFlareDataDriven);
-            m_ChromaticAberrationFS = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration);
-            m_LensDistortionFS = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
-            m_VignetteFS = frameSettings.IsEnabled(FrameSettingsField.Vignette);
-            m_ColorGradingFS = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
-            m_TonemappingFS = frameSettings.IsEnabled(FrameSettingsField.Tonemapping);
-            m_FilmGrainFS = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
-            m_DitheringFS = frameSettings.IsEnabled(FrameSettingsField.Dithering);
-            m_AntialiasingFS = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
+            m_StopNaNFS = frameSettings.IsEnabled(FrameSettingsField.StopNaN) && m_PostProcessEnabled;
+            m_DepthOfFieldFS = frameSettings.IsEnabled(FrameSettingsField.DepthOfField) && m_PostProcessEnabled;
+            m_MotionBlurFS = frameSettings.IsEnabled(FrameSettingsField.MotionBlur) && m_PostProcessEnabled;
+            m_PaniniProjectionFS = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection) && m_PostProcessEnabled;
+            m_BloomFS = frameSettings.IsEnabled(FrameSettingsField.Bloom) && m_PostProcessEnabled;
+            m_LensFlareDataDataDrivenFS = frameSettings.IsEnabled(FrameSettingsField.LensFlareDataDriven) && m_PostProcessEnabled;
+            m_ChromaticAberrationFS = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration) && m_PostProcessEnabled;
+            m_LensDistortionFS = frameSettings.IsEnabled(FrameSettingsField.LensDistortion) && m_PostProcessEnabled;
+            m_VignetteFS = frameSettings.IsEnabled(FrameSettingsField.Vignette) && m_PostProcessEnabled;
+            m_ColorGradingFS = frameSettings.IsEnabled(FrameSettingsField.ColorGrading) && m_PostProcessEnabled;
+            m_TonemappingFS = frameSettings.IsEnabled(FrameSettingsField.Tonemapping) && m_PostProcessEnabled;
+            m_FilmGrainFS = frameSettings.IsEnabled(FrameSettingsField.FilmGrain) && m_PostProcessEnabled;
+            m_DitheringFS = frameSettings.IsEnabled(FrameSettingsField.Dithering) && m_PostProcessEnabled;
+            m_AntialiasingFS = frameSettings.IsEnabled(FrameSettingsField.Antialiasing) || camera.IsTAAUEnabled();
 
             // Override full screen anti-aliasing when doing path tracing (which is naturally anti-aliased already)
             m_AntialiasingFS &= !m_PathTracing.enable.value;
@@ -462,7 +462,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Note: whether a pass is really executed or not is generally inside the Do* functions.
             // with few exceptions.
 
-            if (m_PostProcessEnabled)
+            if (m_PostProcessEnabled || m_AntialiasingFS)
             {
                 source = StopNaNsPass(renderGraph, hdCamera, source);
 
