@@ -111,6 +111,12 @@ namespace UnityEngine.Rendering.Universal
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+
+        /// <summary>
+        /// Returns true if post processing passes require depth texture.
+        /// </summary>
+        public bool postProcessingRequiresDepthTexture;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
         public bool xrRendering;
 #endif

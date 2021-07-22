@@ -561,7 +561,6 @@ namespace UnityEditor.VFX.Test
         {
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
-
     }
 }
 #endif

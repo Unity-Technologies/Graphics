@@ -612,6 +612,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             onAdditionalProbesBakeCompletedCalled = false;
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
+            AdditionalGIBakeRequestsManager.instance.AddRequestsToLightmapper();
             UnityEditor.Lightmapping.bakeCompleted += OnBakeCompletedCleanup;
 
             ClearBakingBatch();

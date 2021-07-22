@@ -24,14 +24,10 @@ namespace UnityEngine.Rendering.Universal
 
     public static class ShadowUtils
     {
-        private static readonly RenderTextureFormat m_ShadowmapFormat;
         private static readonly bool m_ForceShadowPointSampling;
 
         static ShadowUtils()
         {
-            m_ShadowmapFormat = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap) && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)
-                ? RenderTextureFormat.Shadowmap
-                : RenderTextureFormat.Depth;
             m_ForceShadowPointSampling = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal &&
                 GraphicsSettings.HasShaderDefine(Graphics.activeTier, BuiltinShaderDefine.UNITY_METAL_SHADOWS_USE_POINT_FILTERING);
         }
@@ -264,10 +260,14 @@ namespace UnityEngine.Rendering.Universal
 
         public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
         {
-            var shadowTexture = RenderTexture.GetTemporary(width, height, bits, m_ShadowmapFormat);
+            var format = Experimental.Rendering.GraphicsFormatUtility.GetDepthStencilFormat(bits, 0);
+            RenderTextureDescriptor rtd = new RenderTextureDescriptor(width, height, Experimental.Rendering.GraphicsFormat.None, format);
+            rtd.shadowSamplingMode = (RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
+                && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)) ?
+                ShadowSamplingMode.CompareDepths : ShadowSamplingMode.None;
+            var shadowTexture = RenderTexture.GetTemporary(rtd);
             shadowTexture.filterMode = m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear;
             shadowTexture.wrapMode = TextureWrapMode.Clamp;
-
             return shadowTexture;
         }
 

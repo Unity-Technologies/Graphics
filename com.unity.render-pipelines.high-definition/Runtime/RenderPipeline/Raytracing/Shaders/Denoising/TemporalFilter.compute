@@ -54,7 +54,7 @@ int _ReceiverMotionRejection;
 // Controls if the motion of the receiver is a valid rejection codition.
 int _OccluderMotionRejection;
 // Value that tells us if the current history should be discarded based on scene-level data
-float _EnableExposureControl;
+int _EnableExposureControl;
 
 // The maximal normal difference threshold
 #define MAX_NORMAL_DIFFERENCE 0.65
@@ -200,8 +200,26 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         float sampleCount = history.y;
     #else
         float3 color = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
-        float4 history = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, 0) * lerp(1.0, GetInversePreviousExposureMultiplier() * GetCurrentExposureMultiplier(), _EnableExposureControl);
+        float4 history = SAMPLE_TEXTURE2D_X_LOD(_HistoryBuffer, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, 0);
         float sampleCount = history.w;
+        if (_EnableExposureControl == 1)
+        {
+            // Grab the previous frame and current frame exposures
+            float prevExposure = GetPreviousExposureMultiplier();
+            float currentExposure = GetCurrentExposureMultiplier();
+
+            // Compute the exposure ratio (while avoiding zeros)
+            float expRatio = (prevExposure * currentExposure) != 0.0 ? currentExposure / prevExposure : 100.0;
+
+            // Evaluate if the exposure multiplier was at least twice bigger or smaller
+            bool validExposurechange = max(expRatio, 1.0 / expRatio) < 2.0;
+
+            // If the exposure change was considered valid, we can keep the result and re-exposed it. Otherwise, we cannot use the history buffer
+            if (validExposurechange)
+                history.xyz = history.xyz * GetInversePreviousExposureMultiplier() * currentExposure;
+            else
+                sampleCount = 0.0;
+        }
     #endif
 #endif
 
