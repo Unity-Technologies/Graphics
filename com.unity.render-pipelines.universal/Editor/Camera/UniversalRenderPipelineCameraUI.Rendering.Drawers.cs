@@ -121,6 +121,17 @@ namespace UnityEditor.Rendering.Universal
                 )
             );
 
+            public static readonly CED.IDrawer DrawerPreset = CED.FoldoutGroup(
+                CameraUI.Rendering.Styles.header,
+                Expandable.Rendering,
+                k_ExpandedState,
+                FoldoutOption.Indent,
+                CED.Group(
+                    CameraUI.Rendering.Drawer_Rendering_CullingMask,
+                    CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
+                )
+            );
+
             static void DrawerRenderingRenderer(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
                 var rpAsset = UniversalRenderPipeline.asset;

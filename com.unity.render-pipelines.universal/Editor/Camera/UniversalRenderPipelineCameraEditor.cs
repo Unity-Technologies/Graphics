@@ -259,6 +259,12 @@ namespace UnityEditor.Rendering.Universal
             base.OnDisable();
         }
 
+        // IsPreset is an internal API - lets reuse the usable part of this function
+        static internal bool IsPresetEditor(UnityEditor.Editor editor)
+        {
+            return (int)((editor.target as Component).gameObject.hideFlags) == 93;
+        }
+
         public override void OnInspectorGUI()
         {
             var rpAsset = UniversalRenderPipeline.asset;
@@ -270,7 +276,14 @@ namespace UnityEditor.Rendering.Universal
 
             m_SerializedCamera.Update();
 
-            UniversalRenderPipelineCameraUI.Inspector.Draw(m_SerializedCamera, this);
+            if (IsPresetEditor(this))
+            {
+                UniversalRenderPipelineCameraUIPreset.Inspector.Draw(m_SerializedCamera, this);
+            }
+            else
+            {
+                UniversalRenderPipelineCameraUI.Inspector.Draw(m_SerializedCamera, this);
+            }
 
             m_SerializedCamera.Apply();
         }

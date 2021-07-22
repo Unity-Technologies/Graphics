@@ -1,15 +1,16 @@
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering.Universal
 {
-    using CED = CoreEditorDrawer<SerializedHDCamera>;
+    using CED = CoreEditorDrawer<UniversalRenderPipelineSerializedCamera>;
 
-    static class HDCameraUIPreset
+    static class UniversalRenderPipelineCameraUIPreset
     {
         /// <summary>Enum to store know the expanded state of a expandable section on the camera inspector</summary>
-        [HDRPHelpURL("HDRP-Camera")]
+        [URPHelpURL("camera-component-reference")]
         public enum Expandable
         {
             /// <summary> Projection</summary>
@@ -20,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Rendering = 1 << 2,
         }
 
-        static readonly ExpandedState<Expandable, Camera> k_ExpandedState = new ExpandedState<Expandable, Camera>(Expandable.Projection, "HDRP");
+        static readonly ExpandedState<Expandable, Camera> k_ExpandedState = new(Expandable.Projection, "URP");
 
         public static readonly CED.IDrawer Inspector = CED.Group(
             CED.FoldoutGroup(
@@ -28,8 +29,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Expandable.Projection,
                 k_ExpandedState,
                 FoldoutOption.Indent,
-                CED.Group(CameraUI.Drawer_Projection), HDCameraUI.PhysicalCamera.DrawerPreset),
-            HDCameraUI.Rendering.DrawerPreset
+                CED.Group(CameraUI.Drawer_Projection), UniversalRenderPipelineCameraUI.PhysicalCamera.Drawer),
+            UniversalRenderPipelineCameraUI.Rendering.DrawerPreset
         );
     }
 }
