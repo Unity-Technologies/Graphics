@@ -1194,6 +1194,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Dynamic exposure - will be applied in the next frame
             // Not considered as a post-process so it's not affected by its enabled state
+
+            TextureHandle exposureForImmediateApplication = TextureHandle.nullHandle;
             if (!IsExposureFixed(hdCamera) && hdCamera.exposureControlFS)
             {
                 using (var builder = renderGraph.AddRenderPass<DynamicExposureData>("Dynamic Exposure", out var passData, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
@@ -1208,6 +1210,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 DoHistogramBasedExposure(data, ctx.cmd);
                             });
+                        exposureForImmediateApplication = passData.nextExposure;
                     }
                     else
                     {
@@ -1221,6 +1224,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 DoDynamicExposure(data, ctx.cmd);
                             });
+                        exposureForImmediateApplication = passData.nextExposure;
                     }
                 }
 
@@ -1236,7 +1240,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.height = hdCamera.actualHeight;
                         passData.viewCount = hdCamera.viewCount;
                         passData.source = builder.ReadTexture(source);
-                        passData.prevExposure = builder.ReadTexture(renderGraph.ImportTexture(GetPreviousExposureTexture(hdCamera)));
+                        passData.prevExposure = exposureForImmediateApplication;
 
                         TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Apply Exposure Destination");
                         passData.destination = builder.WriteTexture(dest);
@@ -1244,10 +1248,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         builder.SetRenderFunc(
                             (ApplyExposureData data, RenderGraphContext ctx) =>
                             {
-                                // Note: we use previous instead of current because the textures
-                                // are swapped internally as the system expects the texture will be used
-                                // on the next frame. So the actual "current" for this frame is in
-                                // "previous".
                                 ctx.cmd.SetComputeTextureParam(data.applyExposureCS, data.applyExposureKernel, HDShaderIDs._ExposureTexture, data.prevExposure);
                                 ctx.cmd.SetComputeTextureParam(data.applyExposureCS, data.applyExposureKernel, HDShaderIDs._InputTexture, data.source);
                                 ctx.cmd.SetComputeTextureParam(data.applyExposureCS, data.applyExposureKernel, HDShaderIDs._OutputTexture, data.destination);
