@@ -168,6 +168,8 @@
 #define DEPTH_OFFSET_SEMANTIC SV_Depth
 
 // Include language header
+// Before declaring macros we need to undef some of them to avoid warnings.
+// Said warnings are happening as these macros are included in HLSLSupport.cginc and API files re-define them.
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/API/UndefMacros.hlsl"
 
 #if defined (SHADER_API_GAMECORE)
