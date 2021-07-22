@@ -77,9 +77,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowType = type;
         }
 
-        public override void InitAtlas(RenderPipelineResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
+        public override void InitAtlas(HDShadowAtlasInitParameters atlasInitParams)
         {
-            base.InitAtlas(renderPipelineResources, renderGraph, useSharedTexture, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
+            base.InitAtlas(atlasInitParams);
             m_IsACacheForShadows = true;
 
             m_AtlasResolutionInSlots = HDUtils.DivRoundUp(width, m_MinSlotSize);
@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Note: If changing the characteristics of the atlas via HDRP asset, the lights OnEnable will not be called again so we are missing them, however we can explicitly
             // put them back up for placement. If this is the first Init of the atlas, the lines below do nothing.
-            DefragmentAtlasAndReRender(initParams);
+            DefragmentAtlasAndReRender(atlasInitParams.initParams);
             m_CanTryPlacement = true;
             m_NeedOptimalPacking = true;
         }
@@ -350,8 +350,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     record.shadowIndex = currentLightData.lightIdxForCachedShadows + i;
                     record.viewportSize = resolution;
                     record.offsetInAtlas = new Vector4(-1, -1, -1, -1); // Will be set later.
-                    // Only situation in which we allow not to render on placement if it is OnDemand and onDomandShadowRenderOnPlacement is false
-                    record.rendersOnPlacement = (currentLightData.shadowUpdateMode == ShadowUpdateMode.OnDemand) ? (currentLightData.forceRenderOnPlacement || currentLightData.onDomandShadowRenderOnPlacement) : true;
+                    // Only situation in which we allow not to render on placement if it is OnDemand and onDemandShadowRenderOnPlacement is false
+                    record.rendersOnPlacement = (currentLightData.shadowUpdateMode == ShadowUpdateMode.OnDemand) ? (currentLightData.forceRenderOnPlacement || currentLightData.onDemandShadowRenderOnPlacement) : true;
                     currentLightData.forceRenderOnPlacement = false; // reset the force flag as we scheduled the rendering forcefully already.
                     recordList.Add(record);
                 }
@@ -618,7 +618,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_ShadowsPendingRendering.ContainsKey(shadowIdx))
             {
                 m_ShadowsPendingRendering.Remove(shadowIdx);
-                m_ShadowsWithValidData.Add(shadowIdx, shadowIdx);
+                if (!m_ShadowsWithValidData.ContainsKey(shadowIdx))
+                    m_ShadowsWithValidData.Add(shadowIdx, shadowIdx);
             }
         }
 

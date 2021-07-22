@@ -5,7 +5,7 @@ Shader "Hidden/HDRP/ScreenSpaceShadows"
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-        #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+        #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
@@ -47,6 +47,9 @@ Shader "Hidden/HDRP/ScreenSpaceShadows"
                 return 1.0f;
 
             PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+            // Adjust world-space position for XR single-pass and camera relative
+            ApplyCameraRelativeXR(posInput.positionWS);
 
             // Init shadow context
             LightLoopContext context;

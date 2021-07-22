@@ -1,11 +1,9 @@
-using System;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class LitGUI
+    public static class LitGUI
     {
         public enum WorkflowMode
         {
@@ -21,48 +19,48 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         public static class Styles
         {
-            public static GUIContent workflowModeText = new GUIContent("Workflow Mode",
+            public static GUIContent workflowModeText = EditorGUIUtility.TrTextContent("Workflow Mode",
                 "Select a workflow that fits your textures. Choose between Metallic or Specular.");
 
             public static GUIContent specularMapText =
-                new GUIContent("Specular Map", "Sets and configures the map and color for the Specular workflow.");
+                EditorGUIUtility.TrTextContent("Specular Map", "Designates a Specular Map and specular color determining the apperance of reflections on this Material's surface.");
 
             public static GUIContent metallicMapText =
-                new GUIContent("Metallic Map", "Sets and configures the map for the Metallic workflow.");
+                EditorGUIUtility.TrTextContent("Metallic Map", "Sets and configures the map for the Metallic workflow.");
 
-            public static GUIContent smoothnessText = new GUIContent("Smoothness",
+            public static GUIContent smoothnessText = EditorGUIUtility.TrTextContent("Smoothness",
                 "Controls the spread of highlights and reflections on the surface.");
 
             public static GUIContent smoothnessMapChannelText =
-                new GUIContent("Source",
+                EditorGUIUtility.TrTextContent("Source",
                     "Specifies where to sample a smoothness map from. By default, uses the alpha channel for your map.");
 
-            public static GUIContent highlightsText = new GUIContent("Specular Highlights",
+            public static GUIContent highlightsText = EditorGUIUtility.TrTextContent("Specular Highlights",
                 "When enabled, the Material reflects the shine from direct lighting.");
 
             public static GUIContent reflectionsText =
-                new GUIContent("Environment Reflections",
+                EditorGUIUtility.TrTextContent("Environment Reflections",
                     "When enabled, the Material samples reflections from the nearest Reflection Probes or Lighting Probe.");
 
-            public static GUIContent heightMapText = new GUIContent("Height Map",
-                "Specifies the Height Map (G) for this Material.");
+            public static GUIContent heightMapText = EditorGUIUtility.TrTextContent("Height Map",
+                "Defines a Height Map that will drive a parallax effect in the shader making the surface seem displaced.");
 
-            public static GUIContent occlusionText = new GUIContent("Occlusion Map",
+            public static GUIContent occlusionText = EditorGUIUtility.TrTextContent("Occlusion Map",
                 "Sets an occlusion map to simulate shadowing from ambient lighting.");
 
             public static readonly string[] metallicSmoothnessChannelNames = {"Metallic Alpha", "Albedo Alpha"};
             public static readonly string[] specularSmoothnessChannelNames = {"Specular Alpha", "Albedo Alpha"};
 
-            public static GUIContent clearCoatText   = new GUIContent("Clear Coat",
+            public static GUIContent clearCoatText   = EditorGUIUtility.TrTextContent("Clear Coat",
                 "A multi-layer material feature which simulates a thin layer of coating on top of the surface material." +
                 "\nPerformance cost is considerable as the specular component is evaluated twice, once per layer.");
 
-            public static GUIContent clearCoatMaskText   = new GUIContent("Mask",
+            public static GUIContent clearCoatMaskText   = EditorGUIUtility.TrTextContent("Mask",
                 "Specifies the amount of the coat blending." +
                 "\nActs as a multiplier of the clear coat map mask value or as a direct mask value if no map is specified." +
                 "\nThe map specifies clear coat mask in the red channel and clear coat smoothness in the green channel.");
 
-            public static GUIContent clearCoatSmoothnessText = new GUIContent("Smoothness",
+            public static GUIContent clearCoatSmoothnessText = EditorGUIUtility.TrTextContent("Smoothness",
                 "Specifies the smoothness of the coating." +
                 "\nActs as a multiplier of the clear coat map smoothness value or as a direct smoothness value if no map is specified.");
         }
@@ -209,6 +207,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             DoSmoothness(materialEditor, material, properties.smoothness, properties.smoothnessMapChannel, smoothnessChannelNames);
         }
 
+        internal static bool IsOpaque(Material material)
+        {
+            bool opaque = true;
+            if (material.HasProperty(Property.SurfaceType))
+                opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat(Property.SurfaceType) == BaseShaderGUI.SurfaceType.Opaque);
+            return opaque;
+        }
+
         public static void DoSmoothness(MaterialEditor materialEditor, Material material, MaterialProperty smoothness, MaterialProperty smoothnessMapChannel, string[] smoothnessChannelNames)
         {
             EditorGUI.indentLevel += 2;
@@ -217,8 +223,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             if (smoothnessMapChannel != null) // smoothness channel
             {
-                var opaque = (BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") == BaseShaderGUI.SurfaceType.Opaque;
-
+                var opaque = IsOpaque(material);
                 EditorGUI.indentLevel++;
                 EditorGUI.showMixedValue = smoothnessMapChannel.hasMixedValue;
                 if (opaque)
@@ -250,28 +255,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             return SmoothnessMapChannel.SpecularMetallicAlpha;
         }
 
+        // (shared by all lit shaders, including shadergraph Lit Target and Lit.shader)
+        internal static void SetupSpecularWorkflowKeyword(Material material, out bool isSpecularWorkflow)
+        {
+            isSpecularWorkflow = false;     // default is metallic workflow
+            if (material.HasProperty(Property.SpecularWorkflowMode))
+                isSpecularWorkflow = ((WorkflowMode)material.GetFloat(Property.SpecularWorkflowMode)) == WorkflowMode.Specular;
+            CoreUtils.SetKeyword(material, "_SPECULAR_SETUP", isSpecularWorkflow);
+        }
+
+        // setup keywords for Lit.shader
         public static void SetMaterialKeywords(Material material)
         {
+            SetupSpecularWorkflowKeyword(material, out bool isSpecularWorkFlow);
+
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
-            var hasGlossMap = false;
-            var isSpecularWorkFlow = false;
-            var opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") ==
-                BaseShaderGUI.SurfaceType.Opaque);
-            if (material.HasProperty("_WorkflowMode"))
-            {
-                isSpecularWorkFlow = (WorkflowMode)material.GetFloat("_WorkflowMode") == WorkflowMode.Specular;
-                if (isSpecularWorkFlow)
-                    hasGlossMap = material.GetTexture("_SpecGlossMap") != null;
-                else
-                    hasGlossMap = material.GetTexture("_MetallicGlossMap") != null;
-            }
-            else
-            {
-                hasGlossMap = material.GetTexture("_MetallicGlossMap") != null;
-            }
-
-            CoreUtils.SetKeyword(material, "_SPECULAR_SETUP", isSpecularWorkFlow);
+            var specularGlossMap = isSpecularWorkFlow ? "_SpecGlossMap" : "_MetallicGlossMap";
+            var hasGlossMap = material.GetTexture(specularGlossMap) != null;
 
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", hasGlossMap);
 
@@ -289,6 +290,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             if (material.HasProperty("_SmoothnessTextureChannel"))
             {
+                var opaque = IsOpaque(material);
                 CoreUtils.SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
                     GetSmoothnessMapChannel(material) == SmoothnessMapChannel.AlbedoAlpha && opaque);
             }

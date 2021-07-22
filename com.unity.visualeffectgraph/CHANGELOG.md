@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sample vertices of a transformed skinned mesh with Position (Skinned Mesh) and Sample Skinned Mesh operator.
 - Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
 - Material Offset setting in inspector of the rendered outputs.
+- Restore "Exact Fixed Time Step" option on VisualEffectAsset.
+- Support 2D Renderer in URP for Unlit.
+- New tool to help set VFX Bounds
+- New tool : Signed Distance Field baker.
+- Provide explicit access to spawnCount in graph
+- Support of direct link event to initialize context (which support several event within the same frame)
+- Structured Graphics Buffer support as exposed type
+- Added HDRP Decal output context.
 
 ### Changed
 - Allow remaking an existing link.
@@ -50,6 +58,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Having more than five GPU Event output leads to "unexpected token 'if" at compilation [Case 1323434](https://issuetracker.unity3d.com/product/unity/issues/guid/1323434/)
 - Deleted properties still show up in the inspector [Case 1320952](https://issuetracker.unity3d.com/product/unity/issues/guid/1320952/)
 - Exception in VFXFilterWindow if search field is empty [Case 1235269](https://issuetracker.unity3d.com/product/unity/issues/guid/1235269/)
+- Fixed null reference exception when exposing Camera type in VFX graph [Case 1315582](https://issuetracker.unity3d.com/product/unity/issues/guid/1315582/)
+- Fixed VFX with output mesh being always reimported [Case 1309753](https://issuetracker.unity3d.com/product/unity/issues/guid/1309753/)
+- Modified state in the VFX tab has now a correct state
+- Motion Vector map sampling for flipbooks were not using correct mips
+- Remove unexpected expression in spawn context evaluation [Case 1318412](https://issuetracker.unity3d.com/product/unity/issues/guid/1318412/)
+- Fix unexpected Spawn context execution ordering
+- Fix incorrect buffer type for strips
+- Enabled an optimization for motion vectors, storing projected positions for vertices instead of the transform matrix
+- Sticky notes can now be deleted through contextual manual menu
+- Blackboard fields can now be duplicated either with a shortcut (Ctrl+D) or with a contextual menu option
+- Properties labels do not overlap anymore
+- VFX Graph operators keep the same width when expanded or collpased so that the button does not change position
+- Fix Soft Particle depth computation when using an orthographic camera [Case 1309961](https://issuetracker.unity3d.com/product/unity/issues/guid/1309961)
+- When adding a new node/operator in the graph editor and using the search field, the search results are sorted in a smarter way
+- Unexpected operator and block removal during migration [Case 1344645](https://issuetracker.unity3d.com/product/unity/issues/guid/1344645/)
 
 ## [11.0.0] - 2020-10-21
 ### Added

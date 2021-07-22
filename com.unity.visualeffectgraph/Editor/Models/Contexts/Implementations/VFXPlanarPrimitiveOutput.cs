@@ -18,7 +18,15 @@ namespace UnityEditor.VFX
         //[VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public bool useGeometryShader = false;
 
-        public override string name { get { return "Output Particle " + primitiveType.ToString(); } }
+        public override string name
+        {
+            get
+            {
+                if (shaderName != string.Empty)
+                    return $"Output Particle {shaderName} {primitiveType.ToString()}";
+                return $"Output Particle {primitiveType.ToString()}";
+            }
+        }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePlanarPrimitive"); } }
         public override VFXTaskType taskType
         {
@@ -105,6 +113,18 @@ namespace UnityEditor.VFX
             }
             if (primitiveType == VFXPrimitiveType.Octagon)
                 yield return slotExpressions.First(o => o.name == "cropFactor");
+        }
+
+        protected override IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                foreach (var setting in base.untransferableSettings)
+                {
+                    yield return setting;
+                }
+                yield return "primitiveType";
+            }
         }
     }
 }

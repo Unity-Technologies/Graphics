@@ -3,9 +3,11 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Overlays;
 using UnityEditor.Experimental;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
@@ -26,6 +28,8 @@ class VFXSlotContainerEditor : Editor
     protected void OnDisable()
     {
         SceneView.duringSceneGui -= OnSceneGUI;
+        if (s_EffectUi == this)
+            s_EffectUi = null;
     }
 
     protected virtual SerializedProperty FindProperty(VFXSetting setting)
@@ -128,6 +132,24 @@ class VFXSlotContainerEditor : Editor
 
     IGizmoController m_CurrentController;
 
+    static VFXSlotContainerEditor s_EffectUi;
+
+    [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
+    class SceneViewVFXSlotContainerOverlay : IMGUIOverlay, ITransientOverlay
+    {
+        const string k_OverlayId = "Scene View/Visual Effect Model";
+        const string k_DisplayName = "Visual Effect Model";
+
+        public bool visible => s_EffectUi != null;
+
+        public override void OnGUI()
+        {
+            if (s_EffectUi == null)
+                return;
+            s_EffectUi.SceneViewGUICallback();
+        }
+    }
+
     void OnSceneGUI(SceneView sv)
     {
         try // make sure we don't break the whole scene
@@ -156,7 +178,11 @@ class VFXSlotContainerEditor : Editor
 
                         if (m_CurrentController.gizmoables.Count > 0)
                         {
-                            SceneViewOverlay.Window(new GUIContent("Choose Gizmo"), SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
+                            s_EffectUi = this;
+                        }
+                        else
+                        {
+                            s_EffectUi = null;
                         }
                     }
                 }
@@ -175,7 +201,7 @@ class VFXSlotContainerEditor : Editor
         }
     }
 
-    protected virtual void SceneViewGUICallback(UnityObject target, SceneView sceneView)
+    internal virtual void SceneViewGUICallback()
     {
         if (m_CurrentController == null)
             return;
@@ -215,7 +241,8 @@ class VFXSlotContainerEditor : Editor
                         if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
                         {
                             Bounds b = m_CurrentController.GetGizmoBounds(view.attachedComponent);
-                            if (b.size.sqrMagnitude > Mathf.Epsilon)
+                            var sceneView = SceneView.lastActiveSceneView;
+                            if (b.size.sqrMagnitude > Mathf.Epsilon && sceneView)
                                 sceneView.Frame(b, false);
                         }
                     }

@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireScreenPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
+        , IMayRequirePositionPredisplacement
         , IMayRequireVertexColor
     {
         [SerializeField]
@@ -178,6 +179,18 @@ namespace UnityEditor.ShaderGraph
 
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresPosition;
+        }
+
+        public NeededCoordinateSpace RequiresPositionPredisplacement(ShaderStageCapability stageCapability)
+        {
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+                return NeededCoordinateSpace.None;
+
+            if (m_Descriptor.control == null)
+                return NeededCoordinateSpace.None;
+
+            var requirements = m_Descriptor.control.GetRequirements();
+            return requirements.requiresPositionPredisplacement;
         }
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)

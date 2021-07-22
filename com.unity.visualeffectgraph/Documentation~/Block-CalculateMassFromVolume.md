@@ -2,7 +2,7 @@
 
 Menu Path : **Attribute > Derived > Calculate Mass from Volume**
 
-The **Calculate Mass from Volume** Block sets a particle’s **Mass** attribute based on its volume, derived from the **Scale** attribute and the block’s **Density** property. This block is useful for calculating the mass of particles with different scales so they behave believably during physics simulations.
+The **Calculate Mass from Volume** Block sets a particle’s **Mass** attribute based on its volume, derived from the **Scale** attribute and the Block’s **Density** property. This Block is useful for calculating the mass of particles with different scales so they behave believably during physics simulations.
 
 ## Block compatibility
 

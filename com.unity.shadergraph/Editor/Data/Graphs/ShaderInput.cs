@@ -110,13 +110,17 @@ namespace UnityEditor.ShaderGraph.Internal
             if (m_DefaultRefNameVersion <= 0)
                 return; // old version is updated in the getter
 
-            var dispName = displayName;
             if (forceSanitize ||
                 string.IsNullOrEmpty(m_DefaultReferenceName) ||
-                (m_RefNameGeneratedByDisplayName != dispName))
+                (m_RefNameGeneratedByDisplayName != displayName))
             {
-                m_DefaultReferenceName = graphData.SanitizeGraphInputReferenceName(this, dispName);
-                m_RefNameGeneratedByDisplayName = dispName;
+                // Make sure all reference names are consistently auto-generated with a pre-pended underscore (if they can be renamed)
+                var targetRefName = displayName;
+                if (this.isReferenceRenamable && !targetRefName.StartsWith("_"))
+                    targetRefName = "_" + targetRefName;
+
+                m_DefaultReferenceName = graphData.SanitizeGraphInputReferenceName(this, targetRefName);
+                m_RefNameGeneratedByDisplayName = displayName;
             }
         }
 
@@ -155,6 +159,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 return overrideReferenceName;
             }
         }
+
+        public virtual string referenceNameForEditing => referenceName;
 
         public override void OnBeforeDeserialize()
         {
@@ -213,6 +219,16 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal bool isExposed => isExposable && generatePropertyBlock;
 
+        public virtual bool allowedInSubGraph
+        {
+            get { return true; }
+        }
+
+        public virtual bool allowedInMainGraph
+        {
+            get { return true; }
+        }
+
         internal abstract ConcreteSlotValueType concreteShaderValueType { get; }
 
         internal abstract bool isExposable { get; }
@@ -220,7 +236,40 @@ namespace UnityEditor.ShaderGraph.Internal
 
         // this controls whether the UI allows the user to rename the display and reference names
         internal abstract bool isRenamable { get; }
+        internal virtual bool isReferenceRenamable => isRenamable;
+
+        internal virtual bool isCustomSlotAllowed => true;
+
+        [SerializeField]
+        bool m_UseCustomSlotLabel = false;
+
+        [SerializeField]
+        string m_CustomSlotLabel;
+
+        internal bool useCustomSlotLabel
+        {
+            get => m_UseCustomSlotLabel;
+            set => m_UseCustomSlotLabel = value;
+        }
+
+        internal string customSlotLabel
+        {
+            get => m_CustomSlotLabel;
+            set => m_CustomSlotLabel = value;
+        }
+
+        internal bool isConnectionTestable
+        {
+            get => m_UseCustomSlotLabel;
+        }
+
+        static internal string GetConnectionStateVariableName(string variableName)
+        {
+            return variableName + "_IsConnected";
+        }
 
         internal abstract ShaderInput Copy();
+
+        internal virtual void OnBeforePasteIntoGraph(GraphData graph) {}
     }
 }

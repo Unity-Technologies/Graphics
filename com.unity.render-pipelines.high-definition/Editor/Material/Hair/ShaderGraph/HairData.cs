@@ -8,7 +8,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public enum MaterialType
         {
-            KajiyaKay
+            KajiyaKay,
+            Marschner
+        }
+
+        public enum GeometryType
+        {
+            Cards,
+            Strands
+        }
+
+        public enum ScatteringMode
+        {
+            Approximate,
+            DensityVolume
         }
 
         [SerializeField]
@@ -20,11 +33,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_UseLightFacingNormal = false;
-        public bool useLightFacingNormal
+        ScatteringMode m_ScatteringMode;
+
+        public ScatteringMode scatteringMode
         {
-            get => m_UseLightFacingNormal;
-            set => m_UseLightFacingNormal = value;
+            get => m_ScatteringMode;
+            set => m_ScatteringMode = value;
+        }
+
+        [SerializeField]
+        GeometryType m_GeometryType;
+
+        public GeometryType geometryType
+        {
+            get => m_GeometryType;
+            set => m_GeometryType = value;
+        }
+
+        [SerializeField]
+        bool m_UseRoughenedAzimuthalScattering = false;
+
+        public bool useRoughenedAzimuthalScattering
+        {
+            get => m_UseRoughenedAzimuthalScattering;
+            set => m_UseRoughenedAzimuthalScattering = value;
         }
     }
 }

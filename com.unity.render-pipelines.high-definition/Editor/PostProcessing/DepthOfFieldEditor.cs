@@ -21,13 +21,18 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent k_FarFocusEnd = new GUIContent("End", "Sets the distance from the Camera at which the far field blur reaches its maximum blur radius.");
             public static GUIContent k_PhysicallyBased = new GUIContent("Physically Based", "Uses a more accurate but slower physically based method to compute DoF.");
 
+            public static GUIContent k_DepthOfFieldMode = new GUIContent("Focus Mode", "Controls the focus of the camera lens.");
+
             public static readonly string InfoBox = "Physically Based DoF currently has a high performance overhead. Enabling TAA is highly recommended when using this option.";
+            public static readonly string FocusDistanceInfoBox = "When using the Physical Camera mode, the depth of field will be influenced by the Aperture, the Focal Length and the Sensor size set in the physical properties of the camera.";
         }
 
         SerializedDataParameter m_FocusMode;
 
         // Physical mode
         SerializedDataParameter m_FocusDistance;
+
+        SerializedDataParameter m_FocusDistanceMode;
 
         // Manual mode
         SerializedDataParameter m_NearFocusStart;
@@ -53,6 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FocusMode = Unpack(o.Find(x => x.focusMode));
 
             m_FocusDistance = Unpack(o.Find(x => x.focusDistance));
+            m_FocusDistanceMode = Unpack(o.Find(x => x.focusDistanceMode));
 
             m_NearFocusStart = Unpack(o.Find(x => x.nearFocusStart));
             m_NearFocusEnd = Unpack(o.Find(x => x.nearFocusEnd));
@@ -73,13 +79,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_FocusMode);
+            PropertyField(m_FocusMode, Styles.k_DepthOfFieldMode);
 
             int mode = m_FocusMode.value.intValue;
             if (mode == (int)DepthOfFieldMode.Off)
                 return;
 
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 // Draw the focus mode controls
                 DrawFocusSettings(mode);
@@ -89,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             base.OnInspectorGUI();
 
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 // Draw the quality controls
                 DrawQualitySettings();
@@ -100,7 +106,14 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (mode == (int)DepthOfFieldMode.UsePhysicalCamera)
             {
-                PropertyField(m_FocusDistance);
+                EditorGUILayout.HelpBox(Styles.FocusDistanceInfoBox, MessageType.Info);
+                PropertyField(m_FocusDistanceMode);
+
+                int distanceMode = m_FocusDistanceMode.value.intValue;
+                if (distanceMode == (int)FocusDistanceMode.Volume)
+                {
+                    PropertyField(m_FocusDistance);
+                }
             }
             else if (mode == (int)DepthOfFieldMode.Manual)
             {

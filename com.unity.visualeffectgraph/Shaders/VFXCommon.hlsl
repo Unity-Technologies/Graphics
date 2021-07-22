@@ -98,29 +98,54 @@ float3 GetViewVFXPosition() { return mul(VFXGetWorldToObjectMatrix(), float4(VFX
 
 #define VFX_SAMPLER(name) GetVFXSampler(name,sampler##name)
 
-float4 SampleTexture(VFXSampler2D s, float2 coords, float level = 0.0f)
+float4 SampleTexture(VFXSampler2D s, float2 coords)
 {
-    return s.t.SampleLevel(s.s, coords, level);
+    return SAMPLE_TEXTURE2D(s.t, s.s, coords);
 }
 
-float4 SampleTexture(VFXSampler2DArray s, float2 coords, float slice, float level = 0.0f)
+float4 SampleTexture(VFXSampler2DArray s, float2 coords, float slice)
 {
-    return s.t.SampleLevel(s.s, float3(coords, slice), level);
+    return SAMPLE_TEXTURE2D_ARRAY(s.t, s.s, coords, slice);
 }
 
-float4 SampleTexture(VFXSampler3D s, float3 coords, float level = 0.0f)
+float4 SampleTexture(VFXSampler3D s, float3 coords)
 {
-    return s.t.SampleLevel(s.s, coords, level);
+    return SAMPLE_TEXTURE3D(s.t, s.s, coords);
 }
 
-float4 SampleTexture(VFXSamplerCube s, float3 coords, float level = 0.0f)
+float4 SampleTexture(VFXSamplerCube s, float3 coords)
 {
-    return s.t.SampleLevel(s.s, coords, level);
+    return SAMPLE_TEXTURECUBE(s.t, s.s, coords);
 }
 
-float4 SampleTexture(VFXSamplerCubeArray s, float3 coords, float slice, float level = 0.0f)
+float4 SampleTexture(VFXSamplerCubeArray s, float3 coords, float slice)
 {
-    return s.t.SampleLevel(s.s, float4(coords, slice), level);
+    return SAMPLE_TEXTURECUBE_ARRAY(s.t, s.s, coords, slice);
+}
+
+float4 SampleTexture(VFXSampler2D s, float2 coords, float level)
+{
+    return SAMPLE_TEXTURE2D_LOD(s.t, s.s, coords, level);
+}
+
+float4 SampleTexture(VFXSampler2DArray s, float2 coords, float slice, float level)
+{
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(s.t, s.s, coords, slice, level);
+}
+
+float4 SampleTexture(VFXSampler3D s, float3 coords, float level)
+{
+    return SAMPLE_TEXTURE3D_LOD(s.t, s.s, coords, level);
+}
+
+float4 SampleTexture(VFXSamplerCube s, float3 coords, float level)
+{
+    return SAMPLE_TEXTURECUBE_LOD(s.t, s.s, coords, level);
+}
+
+float4 SampleTexture(VFXSamplerCubeArray s, float3 coords, float slice, float level)
+{
+    return SAMPLE_TEXTURECUBE_ARRAY_LOD(s.t, s.s, coords, slice, level);
 }
 
 float4 LoadTexture(VFXSampler2D s, int3 pixelCoords)
@@ -404,7 +429,7 @@ float4 SampleGradient(float2 gradientData, float u)
 {
     float2 uv = float2(HalfTexelOffset(saturate(u)), gradientData.x);
     if (gradientData.y > 0.5f) uv.x = SnapToTexel(uv.x);
-    return bakedTexture.SampleLevel(samplerbakedTexture, uv, 0);
+    return SampleTexture(VFX_SAMPLER(bakedTexture), uv, 0);
 }
 
 float4 SampleGradient(float gradientData, float u)
@@ -427,7 +452,7 @@ float SampleCurve(float4 curveData, float u)
         case 2: uNorm = HalfTexelOffset(frac(max(0.0f, uNorm))); break; // clamp start
         case 3: uNorm = HalfTexelOffset(saturate(uNorm)); break; // clamp both
     }
-    return bakedTexture.SampleLevel(samplerbakedTexture, float2(uNorm, curveData.z), 0)[asuint(curveData.w) & 0x3];
+    return SampleTexture(VFX_SAMPLER(bakedTexture), float2(uNorm, curveData.z), 0)[asuint(curveData.w) & 0x3];
 }
 
 ///////////
@@ -580,15 +605,15 @@ struct VFXUVData
 
 float4 SampleTexture(VFXSampler2D s, VFXUVData uvData)
 {
-    float4 s0 = s.t.Sample(s.s, uvData.uvs.xy + uvData.mvs.xy);
-    float4 s1 = s.t.Sample(s.s, uvData.uvs.zw + uvData.mvs.zw);
+    float4 s0 = SampleTexture(s, uvData.uvs.xy + uvData.mvs.xy);
+    float4 s1 = SampleTexture(s, uvData.uvs.zw + uvData.mvs.zw);
     return lerp(s0, s1, uvData.blend);
 }
 
 float4 SampleTexture(VFXSampler2DArray s, VFXUVData uvData) //For flipbook in array layout
 {
-    float4 s0 = s.t.Sample(s.s, uvData.uvs.xyz + float3(uvData.mvs.xy,0.0f));
-    float4 s1 = s.t.Sample(s.s, uvData.uvs.xyw + float3(uvData.mvs.zw,0.0f));
+    float4 s0 = SampleTexture(s, uvData.uvs.xy + uvData.mvs.xy, uvData.uvs.z);
+    float4 s1 = SampleTexture(s, uvData.uvs.xy + uvData.mvs.zw, uvData.uvs.w);
     return lerp(s0, s1, uvData.blend);
 }
 
@@ -670,3 +695,11 @@ VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
 ////////////
 
 #include "VFXParticleStripCommon.hlsl"
+
+
+
+////////////////////////////
+// Bounds reduction utils //
+////////////////////////////
+
+#include "VFXBoundsReduction.hlsl"

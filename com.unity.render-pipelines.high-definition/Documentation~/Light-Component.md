@@ -35,18 +35,18 @@ For more detailed information on how to configure realistic light fixtures, see 
 
 The properties available for Lights are in separate sections. Each section contains some properties that all Lights share, and also properties that customize the behavior of the specific type of Light. These sections also contain [additional properties](More-Options.md) that you can expose if you want to fine-tune your light's behavior. The sections are:
 
-- [General](#GeneralProperties)
-- [Shape](#ShapeProperties)
-- [Celestial Body](#CelestialBodyProperties)
-- [Emission](#EmissionProperties)
-- [Volumetrics](#VolumetricProperties)
-- [Shadows](#ShadowProperties)
+- [General](#General)
+- [Shape](#Shape)
+- [Celestial Body](#CelestialBody)
+- [Emission](#Emission)
+- [Volumetrics](#Volumetric)
+- [Shadows](#Shadow)
 
 ### Animation
 
 To make the Light work with the **Animation window**, when you click on the **Add Property** button, you need to use the properties inside the **HD Additional Light Data** component and not inside the Light component itself. If you do edit the properties inside the Light component, this modifies the built-in light values, which HDRP does not support. Alternatively, you can use the record button and modify the values directly inside the Inspector.
 
-<a name="GeneralProperties"></a>
+<a name="General"></a>
 
 ### General
 
@@ -56,7 +56,7 @@ To make the Light work with the **Animation window**, when you click on the **Ad
 | --------------- | ------------------------------------------------------------ |
 | **Type**        | Defines the Light’s type. Lights of different Types behave differently, so when you change the **Type**, the properties change in the Inspector. Possible types are:<br />&#8226; Directional<br />&#8226; Point<br />&#8226; Spot<br />&#8226; Area |
 | **Mode**        | Specify the [Light Mode](https://docs.unity3d.com/Manual/LightModes.html) that HDRP uses to determine how to bake a Light, if at all. Possible modes are:<br />&#8226; [Realtime](https://docs.unity3d.com/Manual/LightMode-Realtime.html): Unity performs the lighting calculations for Realtime Lights at runtime, once per frame. <br />&#8226; [Mixed](https://docs.unity3d.com/Manual/LightMode-Mixed.html): Mixed Lights combine elements of both realtime and baked lighting. <br />&#8226; [Baked](https://docs.unity3d.com/Manual/LightMode-Baked.html): Unity performs lighting calculations for Baked Lights in the Unity Editor, and saves the results to disk as lighting data. Note that soft falloff/range attenuation is not supported for Baked Area Lights. |
-| **Light Layer** | A  mask that allows you to choose which Light Layers this Light affects. The affected Light only lights up Mesh Renderers or Terrain with a matching **Rendering Layer Mask**.<br />This property only appears when you enable [additional properties](More-Options.md) for this section. |
+| **Light Layer** | A  mask that allows you to choose which Light Layers this Light affects. The affected Light only lights up Mesh Renderers or Terrain with a matching **Rendering Layer Mask**. This property only appears if:<br/>&#8226; Your Project supports light layers. For information on how to set up light layers, see [light layers](Light-Layers.md).<br/>&#8226;  You enable [additional properties](More-Options.md) for this section. |
 
 #### Light Types guide
 
@@ -71,7 +71,7 @@ To make the Light work with the **Animation window**, when you click on the **Ad
 
 [!include[](snippets/area-light-material-support-disclaimer.md)]
 
-<a name="ShapeProperties"></a>
+<a name="Shape"></a>
 
 ### **Shape**
 
@@ -116,7 +116,7 @@ These settings define the area this Light affects. Each Light **Type** has its o
 | **Length**   | For **Tube**. Defines the length of the Tube Light. The center of the Light is the Transform Position and the Light itself extends out from the center symmetrically. The **Length** is the distance from one end of the tube to the other. |
 | **Radius**   | For **Disc**. Define the radius of the Disc Light.           |
 
-<a name="CelestialBodyProperties"></a>
+<a name="CelestialBody"></a>
 
 ### **Celestial Body (Directional only)**
 
@@ -132,7 +132,7 @@ These settings define the behavior of the light when you use it as a celestial b
 | **- Surface Tint** | Tints the surface of the celestial body. |
 | **- Distance** | Controls the distance of the sun disc. This is useful if you have multiple sun discs in the sky and want to change their sort order. HDRP draws sun discs with smaller **Distance** values on top of those with larger **Distance** values.<br />This property only appears when you enable [additional properties](More-Options.md) for this section. |
 
-<a name="EmissionProperties"></a>
+<a name="Emission"></a>
 
 ### **Emission**
 
@@ -173,7 +173,7 @@ These settings define the emissive behavior of your Light. You can set the Light
 | **Size X**   | The horizontal size of the projected cookie texture in pixels.<br />This property only appears when you set a **Cookie** in the Light Inspector. |
 | **Size Y**   | The vertical size of the projected cookie texture in pixels.<br />This property only appears when you set a **Cookie** in the Light Inspector. |
 
-<a name="VolumetricProperties"></a>
+<a name="Volumetric"></a>
 
 ### **Volumetrics**
 
@@ -187,7 +187,7 @@ These settings define the volumetric behavior of this Light. Alter these setting
 | **Dimmer**        | Dims the volumetric lighting effect of this Light.           |
 | **Shadow Dimmer** | Dims the volumetric fog effect of this Light. Set this property to 0 to make the volumetric scattering compute faster. |
 
-<a name="ShadowProperties"></a>
+<a name="Shadow"></a>
 
 ### **Shadows**
 

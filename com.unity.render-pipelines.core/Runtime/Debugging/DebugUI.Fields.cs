@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
@@ -88,9 +90,7 @@ namespace UnityEngine.Rendering
                 if (!v.Equals(getter()))
                 {
                     setter(v);
-
-                    if (onValueChanged != null)
-                        onValueChanged(this, v);
+                    onValueChanged?.Invoke(this, v);
                 }
             }
         }
@@ -241,6 +241,39 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static class EnumUtility
+        {
+            internal static GUIContent[] MakeEnumNames(Type enumType)
+            {
+                return enumType.GetFields(BindingFlags.Public | BindingFlags.Static).Select(fieldInfo =>
+                {
+                    var description = fieldInfo.GetCustomAttributes(typeof(InspectorNameAttribute), false);
+
+                    if (description.Length > 0)
+                    {
+                        return new GUIContent(((InspectorNameAttribute)description.First()).displayName);
+                    }
+
+                    // Space-delimit PascalCase (https://stackoverflow.com/questions/155303/net-how-can-you-split-a-caps-delimited-string-into-an-array)
+                    var niceName = Regex.Replace(fieldInfo.Name, "([a-z](?=[A-Z])|[A-Z](?=[A-Z][a-z]))", "$1 ");
+                    return new GUIContent(niceName);
+                }).ToArray();
+            }
+
+            internal static int[] MakeEnumValues(Type enumType)
+            {
+                // Linq.Cast<T> on a typeless Array breaks the JIT on PS4/Mono so we have to do it manually
+                //enumValues = Enum.GetValues(value).Cast<int>().ToArray();
+
+                var values = Enum.GetValues(enumType);
+                var enumValues = new int[values.Length];
+                for (int i = 0; i < values.Length; i++)
+                    enumValues[i] = (int)values.GetValue(i);
+
+                return enumValues;
+            }
+        }
+
         /// <summary>
         /// Enumerator field.
         /// </summary>
@@ -270,7 +303,7 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Current enumeration value index.
             /// </summary>
-            public int currentIndex { get { return getIndex(); } set { setIndex(value); } }
+            public int currentIndex { get => getIndex(); set => setIndex(value); }
 
             /// <summary>
             /// Generates enumerator values and names automatically based on the provided type.
@@ -279,24 +312,8 @@ namespace UnityEngine.Rendering
             {
                 set
                 {
-                    var values = Enum.GetValues(value);
-                    enumValues = new int[values.Length];
-                    enumNames = new GUIContent[values.Length];
-                    for (int i = 0; i < values.Length; i++)
-                    {
-                        var enumValue = values.GetValue(i);
-                        var memInfo = value.GetMember(value.GetEnumName(enumValue));
-                        var name = memInfo[0]
-                            .GetCustomAttributes(typeof(InspectorNameAttribute), false)
-                            .FirstOrDefault() is InspectorNameAttribute attribute ? attribute.displayName : enumValue.ToString();
-
-                        if (memInfo[0].GetCustomAttributes(typeof(ObsoleteAttribute), false).FirstOrDefault() is ObsoleteAttribute)
-                            name += " (Obsolete)";
-
-                        enumNames[i] = new GUIContent(name);
-                        enumValues[i] = (int)enumValue;
-                    }
-
+                    enumNames = EnumUtility.MakeEnumNames(value);
+                    enumValues = EnumUtility.MakeEnumValues(value);
                     InitIndexes();
                     InitQuickSeparators();
                 }
@@ -380,29 +397,20 @@ namespace UnityEngine.Rendering
             /// </summary>
             public int[] enumValues { get; private set; }
 
-            internal Type m_EnumType;
+            Type m_EnumType;
 
             /// <summary>
             /// Generates bitfield values and names automatically based on the provided type.
             /// </summary>
             public Type enumType
             {
+                get => m_EnumType;
                 set
                 {
-                    enumNames = Enum.GetNames(value).Select(x => new GUIContent(x)).ToArray();
-
-                    // Linq.Cast<T> on a typeless Array breaks the JIT on PS4/Mono so we have to do it manually
-                    //enumValues = Enum.GetValues(value).Cast<int>().ToArray();
-
-                    var values = Enum.GetValues(value);
-                    enumValues = new int[values.Length];
-                    for (int i = 0; i < values.Length; i++)
-                        enumValues[i] = (int)values.GetValue(i);
-
                     m_EnumType = value;
+                    enumNames = EnumUtility.MakeEnumNames(value);
+                    enumValues = EnumUtility.MakeEnumValues(value);
                 }
-
-                get { return m_EnumType; }
             }
         }
 

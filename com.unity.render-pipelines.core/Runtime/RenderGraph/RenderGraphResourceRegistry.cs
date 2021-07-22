@@ -2,6 +2,11 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RendererUtils;
+
+// Typedefs for the in-engine RendererList API (to avoid conflicts with the experimental version)
+using CoreRendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
@@ -90,13 +95,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         RTHandle                            m_CurrentBackbuffer;
 
+        const int                           kInitialRendererListCount = 256;
+        List<CoreRendererList>              m_ActiveRendererLists = new List<CoreRendererList>(kInitialRendererListCount);
+
         #region Internal Interface
         internal RTHandle GetTexture(in TextureHandle handle)
         {
             if (!handle.IsValid())
                 return null;
 
-            return GetTextureResource(handle.handle).graphicsResource;
+            var resource = GetTextureResource(handle.handle).graphicsResource;
+            if (resource == null && handle.fallBackResource != TextureHandle.nullHandle.handle)
+                return GetTextureResource(handle.fallBackResource).graphicsResource;
+
+            return resource;
         }
 
         internal bool TextureNeedsFallback(in TextureHandle handle)
@@ -107,10 +119,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return GetTextureResource(handle.handle).NeedsFallBack();
         }
 
-        internal RendererList GetRendererList(in RendererListHandle handle)
+        internal CoreRendererList GetRendererList(in RendererListHandle handle)
         {
             if (!handle.IsValid() || handle >= m_RendererListResources.size)
-                return RendererList.nullRendererList;
+                return CoreRendererList.nullRendererList;
 
             return m_RendererListResources[handle].rendererList;
         }
@@ -333,7 +345,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return (m_RenderGraphResources[(int)RenderGraphResourceType.Texture].resourceArray[handle] as TextureResource).desc;
         }
 
-        internal RendererListHandle CreateRendererList(in RendererListDesc desc)
+        internal RendererListHandle CreateRendererList(in CoreRendererListDesc desc)
         {
             ValidateRendererListDesc(desc);
 
@@ -497,36 +509,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 if (desc.width == 0 || desc.height == 0)
                     throw new ArgumentException("Texture using Explicit size mode was create with either width or height at zero.");
-                if (desc.enableMSAA)
-                    throw new ArgumentException("enableMSAA TextureDesc parameter is not supported for textures using Explicit size mode.");
-            }
-
-            if (desc.sizeMode == TextureSizeMode.Scale || desc.sizeMode == TextureSizeMode.Functor)
-            {
-                if (desc.msaaSamples != MSAASamples.None)
-                    throw new ArgumentException("msaaSamples TextureDesc parameter is not supported for textures using Scale or Functor size mode.");
             }
 #endif
         }
 
-        void ValidateRendererListDesc(in RendererListDesc desc)
+        void ValidateRendererListDesc(in CoreRendererListDesc desc)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
 
-            if (desc.passName != ShaderTagId.none && desc.passNames != null
-                || desc.passName == ShaderTagId.none && desc.passNames == null)
+            if (!desc.IsValid())
             {
-                throw new ArgumentException("Renderer List creation descriptor must contain either a single passName or an array of passNames.");
+                throw new ArgumentException("Renderer List descriptor is not valid.");
             }
 
             if (desc.renderQueueRange.lowerBound == 0 && desc.renderQueueRange.upperBound == 0)
             {
                 throw new ArgumentException("Renderer List creation descriptor must have a valid RenderQueueRange.");
-            }
-
-            if (desc.camera == null)
-            {
-                throw new ArgumentException("Renderer List creation descriptor must have a valid Camera.");
             }
 #endif
         }
@@ -545,17 +543,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         }
 
-        internal void CreateRendererLists(List<RendererListHandle> rendererLists)
+        internal void CreateRendererLists(List<RendererListHandle> rendererLists, ScriptableRenderContext context, bool manualDispatch = false)
         {
-            // For now we just create a simple structure
-            // but when the proper API is available in trunk we'll kick off renderer lists creation jobs here.
+            // We gather the active renderer lists of a frame in a list/array before we pass it in the core API for batch processing
+            m_ActiveRendererLists.Clear();
+
             foreach (var rendererList in rendererLists)
             {
                 ref var rendererListResource = ref m_RendererListResources[rendererList];
                 ref var desc = ref rendererListResource.desc;
-                RendererList newRendererList = RendererList.Create(desc);
-                rendererListResource.rendererList = newRendererList;
+                rendererListResource.rendererList = context.CreateRendererList(desc);
+                m_ActiveRendererLists.Add(rendererListResource.rendererList);
             }
+
+            if (manualDispatch)
+                context.PrepareRendererListsAsync(m_ActiveRendererLists);
         }
 
         internal void Clear(bool onException)
@@ -565,6 +567,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                 m_RenderGraphResources[i].Clear(onException, m_CurrentFrameIndex);
             m_RendererListResources.Clear();
+            m_ActiveRendererLists.Clear();
         }
 
         internal void PurgeUnusedGraphicsResources()

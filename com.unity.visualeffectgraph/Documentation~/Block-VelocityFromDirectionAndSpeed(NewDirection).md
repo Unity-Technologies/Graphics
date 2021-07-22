@@ -26,7 +26,7 @@ This Block is compatible with the following Contexts:
 
 | **Input**           | **Type**  | **Description**                                              |
 | ------------------- | --------- | ------------------------------------------------------------ |
-| **Direction**       | Direction | The specific direction vector this block blends with the current **direction** attribute, based on the ***Blend Direction*** property. |
+| **Direction**       | Direction | The specific direction vector this Block blends with the current **direction** attribute, based on the ***Blend Direction*** property. |
 | **Speed**           | float     | The speed multiplier to apply to the direction vector in order to calculate the velocity.<br/>This property only appears if you set **Speed Mode** to **Constant**. |
 | **Min Speed**       | float     | The minimum speed multiplier to apply to the direction vector in order to calculate the velocity.<br/>This property only appears if you set **Speed Mode** to **Random**. |
 | **Max Speed**       | float     | The maximum speed multiplier to apply to the direction vector in order to calculate the velocity.<br/>This property only appears if you set **Speed Mode** to **Random**. |

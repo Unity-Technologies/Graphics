@@ -11,6 +11,9 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         void OnSceneGUI()
         {
+            if (HDRenderPipeline.currentPipeline == null)
+                return;
+
             var c = (Camera)target;
 
             if (!UnityEditor.Rendering.CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
@@ -23,25 +26,40 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void OnOverlayGUI(Object target, SceneView sceneView)
         {
+            if (HDRenderPipeline.currentPipeline == null)
+                return;
+
             UnityEditor.Rendering.CameraEditorUtils.DrawCameraSceneViewOverlay(target, sceneView, InitializePreviewCamera);
         }
 
         Camera InitializePreviewCamera(Camera c, Vector2 previewSize)
         {
-            m_PreviewCamera.CopyFrom(c);
-            EditorUtility.CopySerialized(c, m_PreviewCamera);
+            Camera previewCamera = null;
+            HDAdditionalCameraData previewAdditionalCameraData = null;
+            for (int i = 0; i < serializedObject.targetObjects.Length; i++)
+            {
+                if (serializedObject.targetObjects[i] == c)
+                {
+                    previewCamera = m_PreviewCameras[i];
+                    previewAdditionalCameraData = m_PreviewAdditionalCameraDatas[i];
+                    break;
+                }
+            }
+
+            previewCamera.CopyFrom(c);
+            EditorUtility.CopySerialized(c, previewCamera);
             var cameraData = c.GetComponent<HDAdditionalCameraData>();
-            EditorUtility.CopySerialized(cameraData, m_PreviewAdditionalCameraData);
+            EditorUtility.CopySerialized(cameraData, previewAdditionalCameraData);
             // We need to explicitly reset the camera type here
             // It is probably a CameraType.Game, because we copied the source camera's properties.
-            m_PreviewCamera.cameraType = CameraType.Preview;
-            m_PreviewCamera.gameObject.SetActive(false);
+            previewCamera.cameraType = CameraType.Preview;
+            previewCamera.gameObject.SetActive(false);
 
             var previewTexture = GetPreviewTextureWithSize((int)previewSize.x, (int)previewSize.y);
-            m_PreviewCamera.targetTexture = previewTexture;
-            m_PreviewCamera.pixelRect = new Rect(0, 0, previewSize.x, previewSize.y);
+            previewCamera.targetTexture = previewTexture;
+            previewCamera.pixelRect = new Rect(0, 0, previewSize.x, previewSize.y);
 
-            return m_PreviewCamera;
+            return previewCamera;
         }
 
         static Type k_SceneViewOverlay_WindowFunction = Type.GetType("UnityEditor.SceneViewOverlay+WindowFunction,UnityEditor");

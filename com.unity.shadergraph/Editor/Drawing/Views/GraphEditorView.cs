@@ -51,6 +51,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         MessageManager m_MessageManager;
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
+        VisualElement m_HoveredContextView;
 
         BlackboardController m_BlackboardController;
 
@@ -131,7 +132,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_AssetName = graphName;
             m_MessageManager = messageManager;
             previewManager = new PreviewManager(graph, messageManager);
-            previewManager.RenderPreviews(false);
+            previewManager.RenderPreviews(m_EditorWindow, false);
 
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
             var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
@@ -216,7 +217,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // This takes care of when a property is dragged from BB and then the drag is ended by the Escape key, hides the scroll boundary regions and drag indicator if so
                 m_GraphView.RegisterCallback<DragExitedEvent>(evt =>
                 {
-                    blackboardController.blackboard.HideScrollBoundaryRegions();
+                    blackboardController.blackboard.OnDragExitedEvent(evt);
                     blackboardController.blackboard.hideDragIndicatorAction?.Invoke();
                 });
 
@@ -301,6 +302,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 //need to eventually remove this reference to editor window in context views
                 var contextView = new ContextView(name, contextData, m_EditorWindow);
+
+                // GraphView marks ContextViews' stacks, but not the actual root elements, as insertable. We want the
+                // contextual searcher menu to come up when *any* part of the ContextView is hovered. As a workaround,
+                // we keep track of the hovered ContextView and offer it if no targets are found.
+                contextView.RegisterCallback((MouseOverEvent _) => m_HoveredContextView = contextView);
+                contextView.RegisterCallback((MouseOutEvent _) =>
+                {
+                    if (m_HoveredContextView == contextView) m_HoveredContextView = null;
+                });
+
                 contextView.SetPosition(new Rect(contextData.position, Vector2.zero));
                 contextView.AddPort(portDirection);
                 m_GraphView.AddElement(contextView);
@@ -346,7 +357,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (EditorWindow.focusedWindow == m_EditorWindow) //only display the search window when current graph view is focused
             {
                 m_SearchWindowProvider.connectedPort = null;
-                m_SearchWindowProvider.target = c.target;
+                m_SearchWindowProvider.target = c.target ?? m_HoveredContextView;
                 SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
                     item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - m_EditorWindow.position.position),
                     c.screenMousePosition - m_EditorWindow.position.position, null);
@@ -669,7 +680,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ColorManager.UpdateNodeViews(nodeList);
             }
 
-            previewManager.RenderPreviews();
+            previewManager.RenderPreviews(m_EditorWindow);
 
             if (wasUndoRedoPerformed || m_InspectorView.doesInspectorNeedUpdate)
                 m_InspectorView.Update();
@@ -679,40 +690,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_GroupHashSet.Clear();
 
-            foreach (var node in m_Graph.removedNodes)
-            {
-                node.UnregisterCallback(OnNodeChanged);
-                var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
-                    .FirstOrDefault(p => p.node != null && p.node == node);
-                if (nodeView != null)
-                {
-                    nodeView.Dispose();
-
-                    if (node is BlockNode blockNode)
-                    {
-                        var context = m_GraphView.GetContext(blockNode.contextData);
-                        // blocknode may be floating and not actually in the stacknode's visual hierarchy.
-                        if (context.Contains(nodeView as Node))
-                        {
-                            context.RemoveElement(nodeView as Node);
-                        }
-                        else
-                        {
-                            m_GraphView.RemoveElement((Node)nodeView);
-                        }
-                    }
-                    else
-                    {
-                        m_GraphView.RemoveElement((Node)nodeView);
-                    }
-
-                    if (node.group != null)
-                    {
-                        var shaderGroup = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().First(g => g.userData == node.group);
-                        m_GroupHashSet.Add(shaderGroup);
-                    }
-                }
-            }
+            HandleRemovedNodes();
 
             foreach (var noteData in m_Graph.removedNotes)
             {
@@ -859,9 +837,57 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            // If we auto-remove blocks and something has happened to trigger a check (don't re-check constantly)
+            if (m_Graph.checkAutoAddRemoveBlocks && ShaderGraphPreferences.autoAddRemoveBlocks)
+            {
+                var activeBlocks = m_Graph.GetActiveBlocksForAllActiveTargets();
+                m_Graph.AddRemoveBlocksFromActiveList(activeBlocks);
+                m_Graph.checkAutoAddRemoveBlocks = false;
+                // We have to re-check any nodes views that need to be removed since we already handled this above. After leaving this function the states on m_Graph will be cleared so we'll lose track of removed blocks.
+                HandleRemovedNodes();
+            }
+
             UpdateBadges();
 
             RegisterGraphViewCallbacks();
+        }
+
+        void HandleRemovedNodes()
+        {
+            foreach (var node in m_Graph.removedNodes)
+            {
+                node.UnregisterCallback(OnNodeChanged);
+                var nodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>()
+                    .FirstOrDefault(p => p.node != null && p.node == node);
+                if (nodeView != null)
+                {
+                    nodeView.Dispose();
+
+                    if (node is BlockNode blockNode)
+                    {
+                        var context = m_GraphView.GetContext(blockNode.contextData);
+                        // blocknode may be floating and not actually in the stacknode's visual hierarchy.
+                        if (context.Contains(nodeView as Node))
+                        {
+                            context.RemoveElement(nodeView as Node);
+                        }
+                        else
+                        {
+                            m_GraphView.RemoveElement((Node)nodeView);
+                        }
+                    }
+                    else
+                    {
+                        m_GraphView.RemoveElement((Node)nodeView);
+                    }
+
+                    if (node.group != null)
+                    {
+                        var shaderGroup = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().First(g => g.userData == node.group);
+                        m_GroupHashSet.Add(shaderGroup);
+                    }
+                }
+            }
         }
 
         void UpdateBadges()

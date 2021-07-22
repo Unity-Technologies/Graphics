@@ -504,14 +504,10 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
     float4 blendMasks = useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask, lod) : SAMPLE_UVMAPPING_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask);
 
-    // Wind uses vertex alpha as an intensity parameter.
-    // So in case Layered shader uses wind, we need to hardcode the alpha here so that the main layer can be visible without affecting wind intensity.
-    // It also means that when using wind, users can't use vertex color to modulate the effect of influence from the main layer.
-    float4 maskVertexColor = vertexColor;
 #if defined(_LAYER_MASK_VERTEX_COLOR_MUL)
-    blendMasks *= saturate(maskVertexColor);
+    blendMasks *= saturate(vertexColor);
 #elif defined(_LAYER_MASK_VERTEX_COLOR_ADD)
-    blendMasks = saturate(blendMasks + maskVertexColor * 2.0 - 1.0);
+    blendMasks = saturate(blendMasks + vertexColor * 2.0 - 1.0);
 #endif
 
     return blendMasks;
@@ -777,13 +773,23 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
-    GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
-
     surfaceData.geomNormalWS = input.tangentToWorld[2];
 
-    surfaceData.specularOcclusion = 1.0; // This need to be init here to quiet the compiler in case of decal, but can be override later.
+    // This need to be init here to quiet the compiler in case of decal, but can be override later.
+    surfaceData.specularOcclusion = 1.0;
+    surfaceData.normalWS = float3(0.0, 0.0, 0.0);
 
-#if HAVE_DECALS
+#if HAVE_DECALS && (defined(DECAL_SURFACE_GRADIENT) && defined(SURFACE_GRADIENT))
+    if (_EnableDecals)
+    {
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData, normalTS);
+    }
+#endif
+
+    GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
+
+#if HAVE_DECALS && (!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT))
     if (_EnableDecals)
     {
         // Both uses and modifies 'surfaceData.normalWS'.

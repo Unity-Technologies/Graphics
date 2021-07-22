@@ -1,73 +1,75 @@
 //#define USE_INDEX_NATIVE_ARRAY
-using System.Collections;
+using System;
+using System.Diagnostics;
 using System.Collections.Generic;
-using Unity.Collections;
 using UnityEngine.Profiling;
-using Chunk = UnityEngine.Rendering.ProbeBrickPool.BrickChunkAlloc;
-using RegId = UnityEngine.Rendering.ProbeReferenceVolume.RegId;
+using UnityEngine.Rendering;
+using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
+using RegId = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.RegId;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeBrickIndex
     {
         // a few constants
-        internal const int kMaxSubdivisionLevels = 15; // 4 bits
-        private  const int kAPVConstantsSize = 12 + 1 + 3 + 3 + 3 + 3;
+        internal const int kMaxSubdivisionLevels = 7; // 3 bits
 
-        [System.Serializable]
-        public struct Brick
+        [DebuggerDisplay("Brick [{position}, {subdivisionLevel}]")]
+        [Serializable]
+        public struct Brick : IEquatable<Brick>
         {
             public Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
-            public int size;              // size as factor covered elementary cells
+            public int subdivisionLevel;              // size as factor covered elementary cells
 
-            internal Brick(Vector3Int position, int size)
+            internal Brick(Vector3Int position, int subdivisionLevel)
             {
                 this.position = position;
-                this.size = size;
+                this.subdivisionLevel = subdivisionLevel;
             }
+
+            public bool Equals(Brick other) => position == other.position && subdivisionLevel == other.subdivisionLevel;
         }
 
-        private struct ReservedBrick
+        [DebuggerDisplay("Brick [{brick.position}, {brick.subdivisionLevel}], {flattenedIdx}")]
+        struct ReservedBrick
         {
             public Brick brick;
             public int   flattenedIdx;
         }
 
-        private struct HeightRange
-        {
-            public int min;
-            public int cnt;
-        }
-
-        private struct VoxelMeta
+        struct VoxelMeta
         {
             public RegId id;
             public List<ushort> brickIndices;
         }
 
-        private struct BrickMeta
+        struct BrickMeta
         {
             public HashSet<Vector3Int> voxels;
             public List<ReservedBrick> bricks;
         }
 
+        ComputeBuffer   m_IndexBuffer;
+        int[]           m_IndexBufferData;
+        Vector3Int      m_IndexDim;
+        Vector3Int      m_CenterRS;   // the anchor in ref space, around which the index is defined. [IMPORTANT NOTE! For now we always have it at 0, so is not passed to the shader, but is kept here until development is active in case we find it useful]
+        Vector3Int      m_CenterIS;   // the position in index space that the anchor maps to [IMPORTANT NOTE! For now we always have it at indexDimensions / 2, so is not passed to the shader, but is kept here until development is active in case we find it useful]
 
-        private ComputeBuffer m_IndexBuffer;
-        private Vector3Int    m_IndexDim;
-        private Vector3Int    m_CenterRS;   // the anchor in ref space, around which the index is defined
-        private Vector3Int    m_CenterIS;   // the position in index space that the anchor maps to
-        private HeightRange[] m_HeightRanges;
 #if !USE_NATIVE_ARRAY
-        private int[]         m_TmpUpdater = new int[Mathf.Max(kAPVConstantsSize, ProbeReferenceVolume.CellSize(15) + 1)];
+        int[] m_TmpUpdater = new int[ProbeReferenceVolume.CellSize(kMaxSubdivisionLevels)];
 #endif
-        private Dictionary<Vector3Int, List<VoxelMeta>> m_VoxelToBricks;
-        private Dictionary<RegId, BrickMeta>            m_BricksToVoxels;
-        private int                                     m_VoxelSubdivLevel = 3;
+        Dictionary<Vector3Int, List<VoxelMeta>> m_VoxelToBricks;
+        Dictionary<RegId, BrickMeta>            m_BricksToVoxels;
+        int                                     m_VoxelSubdivLevel = 3;
+
+        bool m_NeedUpdateIndexComputeBuffer;
+
+        internal Vector3Int GetIndexDimension() { return m_IndexDim; }
 
         internal ProbeBrickIndex(Vector3Int indexDimensions)
         {
             Profiler.BeginSample("Create ProbeBrickIndex");
-            int index_size = kAPVConstantsSize + indexDimensions.x * (indexDimensions.y + 1) * indexDimensions.z;
+            int index_size = indexDimensions.x * indexDimensions.y * indexDimensions.z;
             m_CenterRS     = new Vector3Int(0, 0, 0);
             m_IndexDim     = indexDimensions;
             m_CenterIS     = indexDimensions / 2;
@@ -80,16 +82,33 @@ namespace UnityEngine.Rendering
 #else
             m_IndexBuffer = new ComputeBuffer(index_size, sizeof(int), ComputeBufferType.Structured);
 #endif
-            m_HeightRanges = new HeightRange[indexDimensions.x * indexDimensions.z];
+            m_IndexBufferData = new int[index_size];
+            m_NeedUpdateIndexComputeBuffer = false;
             // Should be done by a compute shader
             Clear();
             Profiler.EndSample();
         }
 
+        void UpdateIndexData(int[] data, int dataStartIndex, int dstStartIndex, int count)
+        {
+            Debug.Assert(count <= data.Length);
+            Debug.Assert(m_IndexBufferData.Length >= dstStartIndex + count);
+            Array.Copy(data, dataStartIndex, m_IndexBufferData, dstStartIndex, count);
+
+            // We made some modifications, we need to update the compute buffer before is used.
+            m_NeedUpdateIndexComputeBuffer = true;
+        }
+
+        internal void UploadIndexData()
+        {
+            m_IndexBuffer.SetData(m_IndexBufferData);
+            m_NeedUpdateIndexComputeBuffer = false;
+        }
+
         internal void Clear()
         {
             Profiler.BeginSample("Clear Index");
-            int index_size = kAPVConstantsSize + m_IndexDim.x * (m_IndexDim.y + 1) * m_IndexDim.z;
+            int index_size = m_IndexDim.x * m_IndexDim.y * m_IndexDim.z;
 #if USE_INDEX_NATIVE_ARRAY
             NativeArray<int> arr = m_IndexBuffer.BeginWrite<int>(0, index_size);
             for (int i = 0; i < index_size; i++)
@@ -99,14 +118,10 @@ namespace UnityEngine.Rendering
             for (int i = 0; i < m_TmpUpdater.Length; i++)
                 m_TmpUpdater[i] = -1;
 
+            // TODO: Replace with Array.Fill when available.
             for (int i = 0; i < m_IndexBuffer.count; i += m_TmpUpdater.Length)
-                m_IndexBuffer.SetData(m_TmpUpdater, 0, i, Mathf.Min(m_TmpUpdater.Length, m_IndexBuffer.count - i));
+                UpdateIndexData(m_TmpUpdater, 0, i, Mathf.Min(m_TmpUpdater.Length, m_IndexBuffer.count - i));
 #endif
-
-            HeightRange hr = new HeightRange() { min = -1, cnt = 0 };
-            for (int i = 0; i < m_HeightRanges.Length; i++)
-                m_HeightRanges[i] = hr;
-
             m_VoxelToBricks.Clear();
             m_BricksToVoxels.Clear();
 
@@ -116,7 +131,7 @@ namespace UnityEngine.Rendering
         public void AddBricks(RegId id, List<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight)
         {
             Debug.Assert(bricks.Count <= ushort.MaxValue, "Cannot add more than 65K bricks per RegId.");
-            int largest_cell = ProbeReferenceVolume.CellSize(15);
+            int largest_cell = ProbeReferenceVolume.CellSize(kMaxSubdivisionLevels);
 
             // create a new copy
             BrickMeta bm = new BrickMeta();
@@ -134,7 +149,7 @@ namespace UnityEngine.Rendering
                 {
                     Brick brick = bricks[brick_idx];
 
-                    int cellSize = ProbeReferenceVolume.CellSize(brick.size);
+                    int cellSize = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
                     Debug.Assert(cellSize <= largest_cell, "Cell sizes are not correctly sorted.");
                     largest_cell = Mathf.Min(largest_cell, cellSize);
 
@@ -142,7 +157,7 @@ namespace UnityEngine.Rendering
 
                     ReservedBrick rbrick = new ReservedBrick();
                     rbrick.brick = brick;
-                    rbrick.flattenedIdx = MergeIndex(alloc.flattenIndex(poolWidth, poolHeight), brick.size);
+                    rbrick.flattenedIdx = MergeIndex(alloc.flattenIndex(poolWidth, poolHeight), brick.subdivisionLevel);
                     bm.bricks.Add(rbrick);
 
                     foreach (var v in bm.voxels)
@@ -173,10 +188,9 @@ namespace UnityEngine.Rendering
                 }
             }
 
-
             foreach (var voxel in bm.voxels)
             {
-                UpdateIndex(voxel);
+                UpdateIndexForVoxel(voxel);
             }
         }
 
@@ -195,7 +209,7 @@ namespace UnityEngine.Rendering
                     vm_list.RemoveAt(idx);
                     if (vm_list.Count > 0)
                     {
-                        UpdateIndex(v);
+                        UpdateIndexForVoxel(v);
                     }
                     else
                     {
@@ -207,14 +221,14 @@ namespace UnityEngine.Rendering
             m_BricksToVoxels.Remove(id);
         }
 
-        private void MapBrickToVoxels(ProbeBrickIndex.Brick brick, HashSet<Vector3Int> voxels)
+        void MapBrickToVoxels(ProbeBrickIndex.Brick brick, HashSet<Vector3Int> voxels)
         {
             // create a list of all voxels this brick will touch
-            int brick_subdiv = brick.size;
+            int brick_subdiv = brick.subdivisionLevel;
             int voxels_touched_cnt = (int)Mathf.Pow(3, Mathf.Max(0, brick_subdiv - m_VoxelSubdivLevel));
 
             Vector3Int ipos = brick.position;
-            int        brick_size = ProbeReferenceVolume.CellSize(brick.size);
+            int        brick_size = ProbeReferenceVolume.CellSize(brick.subdivisionLevel);
             int        voxel_size = ProbeReferenceVolume.CellSize(m_VoxelSubdivLevel);
 
             if (voxels_touched_cnt <= 1)
@@ -232,7 +246,7 @@ namespace UnityEngine.Rendering
                     }
         }
 
-        private void UpdateIndex(Vector3Int voxel)
+        void UpdateIndexForVoxel(Vector3Int voxel)
         {
             ClearVoxel(voxel);
             List<VoxelMeta> vm_list = m_VoxelToBricks[voxel];
@@ -241,89 +255,24 @@ namespace UnityEngine.Rendering
                 // get the list of bricks and indices
                 List<ReservedBrick> bricks = m_BricksToVoxels[vm.id].bricks;
                 List<ushort>        indcs = vm.brickIndices;
-                UpdateIndex(voxel, bricks, indcs);
+                UpdateIndexForVoxel(voxel, bricks, indcs);
             }
         }
 
-        private void ClearVoxel(Vector3Int pos)
+        void ClearVoxel(Vector3Int pos)
         {
             // clip voxel to index space
             Vector3Int volMin, volMax;
             ClipToIndexSpace(pos, m_VoxelSubdivLevel, out volMin, out volMax);
 
-            int base_offset = kAPVConstantsSize + m_IndexDim.x * m_IndexDim.z;
-            int volCellSize = ProbeReferenceVolume.CellSize(m_VoxelSubdivLevel);
+            Vector3Int bSize = volMax - volMin;
+            Vector3Int posIS = m_CenterIS + volMin;
 
-            int bsize_x = volMax.x - volMin.x;
-            int bsize_z = volMax.z - volMin.z;
-
-            if (bsize_x <= 0 || bsize_z <= 0)
-                return;
-
-
-            for (int idx = 0; idx < volCellSize; idx++)
-                m_TmpUpdater[idx] = -1;
-
-            int posIS_x = m_CenterIS.x + volMin.x;
-            int posIS_z = m_CenterIS.z + volMin.z;
-            // iterate over z then x, as y needs special handling for updating the base offset
-            for (int z = 0; z < bsize_z; z++)
-            {
-                for (int x = 0; x < bsize_x; x++)
-                {
-                    int mx = (posIS_x + x) % m_IndexDim.x;
-                    int mz = (posIS_z + z) % m_IndexDim.z;
-
-                    int hoff_idx = mz * m_IndexDim.x + mx;
-                    HeightRange hr = m_HeightRanges[hoff_idx];
-
-                    if (hr.min == -1)
-                        continue;
-
-
-                    m_IndexBuffer.GetData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
-                    int start = volMin.y - hr.min;
-                    int end = Mathf.Min(start + volCellSize, m_IndexDim.y);
-                    start = Mathf.Max(start, 0);
-                    for (int i = start; i < end; i++)
-                        m_TmpUpdater[i] = -1;
-
-                    int hmin = m_IndexDim.y, hmax = -1;
-                    for (int i = 0; i < m_IndexDim.y; i++)
-                    {
-                        if (m_TmpUpdater[i] != -1)
-                        {
-                            hmin = Mathf.Min(hmin, i);
-                            hmax = Mathf.Max(hmax, i);
-                        }
-                    }
-                    bool all_cleared = hmin == m_IndexDim.y;
-                    if (all_cleared)
-                    {
-                        hr.min = -1;
-                        hr.cnt = 0;
-                        m_IndexBuffer.SetData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), m_IndexDim.y);
-                    }
-                    else
-                    {
-                        hr.min += hmin;
-                        hr.cnt  = hmax - hmin;
-                        m_IndexBuffer.SetData(m_TmpUpdater, hmin, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), m_IndexDim.y - hmin);
-                        m_IndexBuffer.SetData(m_TmpUpdater,    0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hmin);
-                    }
-
-                    // update the column offset
-                    m_HeightRanges[hoff_idx] = hr;
-                    m_TmpUpdater[m_TmpUpdater.Length - 1] = hr.min;
-                    m_IndexBuffer.SetData(m_TmpUpdater, m_TmpUpdater.Length - 1, kAPVConstantsSize + hoff_idx, 1);
-                }
-            }
+            UpdateIndexData(posIS, bSize, -1);
         }
 
-        private void UpdateIndex(Vector3Int voxel, List<ReservedBrick> bricks, List<ushort> indices)
+        void UpdateIndexForVoxel(Vector3Int voxel, List<ReservedBrick> bricks, List<ushort> indices)
         {
-            int base_offset = kAPVConstantsSize + m_IndexDim.x * m_IndexDim.z;
-
             // clip voxel to index space
             Vector3Int vx_min, vx_max;
             ClipToIndexSpace(voxel, m_VoxelSubdivLevel, out vx_min, out vx_max);
@@ -331,7 +280,7 @@ namespace UnityEngine.Rendering
             foreach (var rbrick in bricks)
             {
                 // clip brick to clipped voxel
-                int brick_cell_size = ProbeReferenceVolume.CellSize(rbrick.brick.size);
+                int brick_cell_size = ProbeReferenceVolume.CellSize(rbrick.brick.subdivisionLevel);
                 Vector3Int brick_min = rbrick.brick.position;
                 Vector3Int brick_max = rbrick.brick.position + Vector3Int.one * brick_cell_size;
                 brick_min.x = Mathf.Max(vx_min.x, brick_min.x - m_CenterRS.x);
@@ -341,73 +290,37 @@ namespace UnityEngine.Rendering
                 brick_max.y = Mathf.Min(vx_max.y, brick_max.y);
                 brick_max.z = Mathf.Min(vx_max.z, brick_max.z - m_CenterRS.z);
 
-                int bsize_x = brick_max.x - brick_min.x;
-                int bsize_z = brick_max.z - brick_min.z;
+                Vector3Int bSize = brick_max - brick_min;
+                Vector3Int posIS = m_CenterIS + brick_min;
 
-                if (bsize_x <= 0 || bsize_z <= 0)
-                    continue;
-
-
-                for (int idx = 0; idx < brick_cell_size; idx++)
-                    m_TmpUpdater[idx] = rbrick.flattenedIdx;
-
-                int posIS_x = m_CenterIS.x + brick_min.x;
-                int posIS_z = m_CenterIS.z + brick_min.z;
-                // iterate over z then x, as y needs special handling for updating the base offset
-                for (int z = 0; z < bsize_z; z++)
-                {
-                    for (int x = 0; x < bsize_x; x++)
-                    {
-                        int mx = (posIS_x + x) % m_IndexDim.x;
-                        int mz = (posIS_z + z) % m_IndexDim.z;
-
-                        int hoff_idx = mz * m_IndexDim.x + mx;
-                        HeightRange hr = m_HeightRanges[hoff_idx];
-
-                        if (hr.min == -1) // untouched column
-                        {
-                            hr.min = brick_min.y;
-                            hr.cnt = Mathf.Min(brick_cell_size, m_IndexDim.y);
-                            m_IndexBuffer.SetData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
-                        }
-                        else
-                        {
-                            // shift entire column upwards, but without pushing out existing indices
-                            int lowest_limit  = hr.min - (m_IndexDim.y - hr.cnt);
-                            lowest_limit  = Mathf.Max(brick_min.y, lowest_limit);
-                            int shift_cnt     = Mathf.Max(0, hr.min - lowest_limit);
-                            int highest_limit = hr.min + m_IndexDim.y;
-
-                            if (shift_cnt == 0)
-                            {
-                                hr.cnt = Mathf.Min(m_IndexDim.y, brick_min.y + brick_cell_size - hr.min);
-                                m_IndexBuffer.SetData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, brick_min.y - hr.min, mz)), Mathf.Min(brick_cell_size, highest_limit - brick_min.y));
-                            }
-                            else
-                            {
-                                m_IndexBuffer.GetData(m_TmpUpdater, shift_cnt, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
-
-                                hr.min = lowest_limit;
-                                hr.cnt += shift_cnt;
-
-                                m_IndexBuffer.SetData(m_TmpUpdater, 0, base_offset + TranslateIndex(new Vector3Int(mx, 0, mz)), hr.cnt);
-
-                                // restore pool idx array
-                                for (int cidx = shift_cnt; cidx < brick_cell_size; cidx++)
-                                    m_TmpUpdater[cidx] = rbrick.flattenedIdx;
-                            }
-                        }
-
-                        // update the column offset
-                        m_HeightRanges[hoff_idx] = hr;
-                        m_TmpUpdater[m_TmpUpdater.Length - 1] = hr.min;
-                        m_IndexBuffer.SetData(m_TmpUpdater, m_TmpUpdater.Length - 1, kAPVConstantsSize + hoff_idx, 1);
-                    }
-                }
+                UpdateIndexData(posIS, bSize, rbrick.flattenedIdx);
             }
         }
 
-        private void ClipToIndexSpace(Vector3Int pos, int subdiv, out Vector3Int outMinpos, out Vector3Int outMaxpos)
+        void UpdateIndexData(in Vector3Int pos, in Vector3Int size, int value)
+        {
+            if (size.x <= 0 || size.y <= 0 || size.z <= 0)
+                return;
+
+            for (int z = 0; z < size.z; z++)
+            {
+                for (int y = 0; y < size.y; y++)
+                {
+                    for (int x = 0; x < size.x; x++)
+                    {
+                        int mx = (pos.x + x) % m_IndexDim.x;
+                        int my = (pos.y + y) % m_IndexDim.y;
+                        int mz = (pos.z + z) % m_IndexDim.z;
+                        int indexTrans = TranslateIndex(mx, my, mz);
+                        m_IndexBufferData[indexTrans] = value;
+                    }
+                }
+            }
+
+            m_NeedUpdateIndexComputeBuffer = true;
+        }
+
+        void ClipToIndexSpace(Vector3Int pos, int subdiv, out Vector3Int outMinpos, out Vector3Int outMaxpos)
         {
             // to relative coordinates
             int cellSize = ProbeReferenceVolume.CellSize(subdiv);
@@ -420,71 +333,37 @@ namespace UnityEngine.Rendering
             int maxpos_z = minpos_z + cellSize;
             // clip to index region
             minpos_x = Mathf.Max(minpos_x, -m_IndexDim.x / 2);
+            minpos_y = Mathf.Max(minpos_y, -m_IndexDim.y / 2);
             minpos_z = Mathf.Max(minpos_z, -m_IndexDim.z / 2);
             maxpos_x = Mathf.Min(maxpos_x,  m_IndexDim.x / 2);
+            maxpos_y = Mathf.Min(maxpos_y,  m_IndexDim.y / 2);
             maxpos_z = Mathf.Min(maxpos_z,  m_IndexDim.z / 2);
 
             outMinpos = new Vector3Int(minpos_x, minpos_y, minpos_z);
             outMaxpos = new Vector3Int(maxpos_x, maxpos_y, maxpos_z);
         }
 
-        private int TranslateIndex(Vector3Int pos)
+        int TranslateIndex(int posX, int posY, int posZ)
         {
-            return pos.z * (m_IndexDim.x * m_IndexDim.y) + pos.x * m_IndexDim.y + pos.y;
+            return posZ * (m_IndexDim.x * m_IndexDim.y) + posX * m_IndexDim.y + posY;
         }
 
-        private int MergeIndex(int index, int size)
+        int MergeIndex(int index, int size)
         {
             const int mask = kMaxSubdivisionLevels;
             const int shift = 28;
             return (index & ~(mask << shift)) | ((size & mask) << shift);
         }
 
-        private static int Asint(float val) { unsafe { return *((int*)&val); } }
-
-        internal void WriteConstants(ref ProbeReferenceVolume.RefVolTransform refTrans, Vector3Int poolDim, float normalBias)
+        internal void GetRuntimeResources(ref ProbeReferenceVolume.RuntimeResources rr)
         {
-#if USE_INDEX_NATIVE_ARRAY
-            NativeArray<int> dst = m_IndexBuffer.BeginWrite<int>(0, kAPVConstantsSize);
-#else
-            int[] dst = m_TmpUpdater;
-#endif
-            Matrix4x4 WStoRS = Matrix4x4.Inverse(refTrans.refSpaceToWS);
-
-            dst[0] = Asint(WStoRS[0, 0]);
-            dst[1] = Asint(WStoRS[1, 0]);
-            dst[2] = Asint(WStoRS[2, 0]);
-            dst[3] = Asint(WStoRS[0, 1]);
-            dst[4] = Asint(WStoRS[1, 1]);
-            dst[5] = Asint(WStoRS[2, 1]);
-            dst[6] = Asint(WStoRS[0, 2]);
-            dst[7] = Asint(WStoRS[1, 2]);
-            dst[8] = Asint(WStoRS[2, 2]);
-            dst[9] = Asint(WStoRS[0, 3]);
-            dst[10] = Asint(WStoRS[1, 3]);
-            dst[11] = Asint(WStoRS[2, 3]);
-            dst[12] = Asint(normalBias);
-            dst[13] = m_CenterRS.x;
-            dst[14] = m_CenterRS.y;
-            dst[15] = m_CenterRS.z;
-            dst[16] = m_CenterIS.x;
-            dst[17] = m_CenterIS.y;
-            dst[18] = m_CenterIS.z;
-            dst[19] = m_IndexDim.x;
-            dst[20] = m_IndexDim.y;
-            dst[21] = m_IndexDim.z;
-            dst[22] = poolDim.x;
-            dst[23] = poolDim.y;
-            dst[24] = poolDim.z;
-
-#if USE_INDEX_NATIVE_ARRAY
-            m_IndexBuffer.EndWrite<int>(kAPVConstantsSize);
-#else
-            m_IndexBuffer.SetData(dst, 0, 0, kAPVConstantsSize);
-#endif
+            // If we are pending an update of the actual compute buffer we do it here
+            if (m_NeedUpdateIndexComputeBuffer)
+            {
+                UploadIndexData();
+            }
+            rr.index = m_IndexBuffer;
         }
-
-        internal void GetRuntimeResources(ref ProbeReferenceVolume.RuntimeResources rr) { rr.index = m_IndexBuffer; }
 
         internal void Cleanup()
         {

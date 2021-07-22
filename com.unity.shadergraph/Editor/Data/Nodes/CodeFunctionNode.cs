@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireScreenPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
+        , IMayRequirePositionPredisplacement
         , IMayRequireVertexColor
     {
         [NonSerialized]
@@ -71,6 +72,9 @@ namespace UnityEditor.ShaderGraph
         {}
 
         protected struct DynamicDimensionMatrix
+        {}
+
+        protected struct PropertyConnectionState
         {}
 
         protected enum Binding
@@ -223,6 +227,11 @@ namespace UnityEditor.ShaderGraph
             {
                 return SlotValueType.DynamicMatrix;
             }
+            if (t == typeof(PropertyConnectionState))
+            {
+                return SlotValueType.PropertyConnectionState;
+            }
+
             throw new ArgumentException("Unsupported type " + t);
         }
 
@@ -491,6 +500,18 @@ namespace UnityEditor.ShaderGraph
                 var binding = NeededCoordinateSpace.None;
                 foreach (var slot in tempSlots)
                     binding |= slot.RequiresPosition();
+                return binding;
+            }
+        }
+
+        public NeededCoordinateSpace RequiresPositionPredisplacement(ShaderStageCapability stageCapability)
+        {
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(tempSlots);
+                var binding = NeededCoordinateSpace.None;
+                foreach (var slot in tempSlots)
+                    binding |= slot.RequiresPositionPredisplacement();
                 return binding;
             }
         }

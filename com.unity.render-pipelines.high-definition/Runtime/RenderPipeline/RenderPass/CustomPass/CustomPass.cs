@@ -251,6 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             outputColorBuffer,
                             customPass.currentRenderTarget.depthBufferRG,
                             customPass.currentRenderTarget.normalBufferRG,
+                            customPass.currentRenderTarget.motionVectorBufferRG,
                             customPass.currentRenderTarget.customColorBuffer,
                             customPass.currentRenderTarget.customDepthBuffer,
                             ctx.renderGraphPool.GetTempMaterialPropertyBlock()
@@ -287,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool IsMSAAEnabled(HDCamera hdCamera)
         {
             // if MSAA is enabled and the current injection point is before transparent.
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool msaa = hdCamera.msaaEnabled;
             msaa &= injectionPoint == CustomPassInjectionPoint.BeforePreRefraction
                 || injectionPoint == CustomPassInjectionPoint.BeforeTransparent
                 || injectionPoint == CustomPassInjectionPoint.AfterOpaqueDepthAndNormal;

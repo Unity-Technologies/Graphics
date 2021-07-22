@@ -7,23 +7,23 @@ using UnityEditorInternal;
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(UniversalRenderPipelineAsset))]
-    [MovedFrom("UnityEditor.Rendering.LWRP")] public class UniversalRenderPipelineAssetEditor : Editor
+    public class UniversalRenderPipelineAssetEditor : Editor
     {
         internal class Styles
         {
             // Groups
-            public static GUIContent generalSettingsText = EditorGUIUtility.TrTextContent("General");
-            public static GUIContent qualitySettingsText = EditorGUIUtility.TrTextContent("Quality");
-            public static GUIContent lightingSettingsText = EditorGUIUtility.TrTextContent("Lighting");
-            public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows");
-            public static GUIContent postProcessingSettingsText = EditorGUIUtility.TrTextContent("Post-processing");
+            public static GUIContent generalSettingsText = EditorGUIUtility.TrTextContent("General", "Settings that control the core part of the pipeline rendered frame.");
+            public static GUIContent qualitySettingsText = EditorGUIUtility.TrTextContent("Quality", "Settings that control the quality level of the Render pipeline, improving performance and graphics quality.");
+            public static GUIContent lightingSettingsText = EditorGUIUtility.TrTextContent("Lighting", "Settings that affect the lighting in the Scene");
+            public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows", "Settings that configure how shadows look and behave, and can be used to balance between the visual quality and performance of shadows.");
+            public static GUIContent postProcessingSettingsText = EditorGUIUtility.TrTextContent("Post-processing", "Settings that allow for fine tuning of post-processing effects in the Scene when this Render Pipeline Asset is in use.");
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
             public static GUIContent adaptivePerformanceText = EditorGUIUtility.TrTextContent("Adaptive Performance");
 
             // General
-            public static GUIContent rendererHeaderText = EditorGUIUtility.TrTextContent("Renderer List", "Lists all the renderers available to this Render Pipeline Asset.");
-            public static GUIContent rendererDefaultText = EditorGUIUtility.TrTextContent("Default", "This renderer is currently the default for the render pipeline.");
-            public static GUIContent rendererSetDefaultText = EditorGUIUtility.TrTextContent("Set Default", "Makes this renderer the default for the render pipeline.");
+            public static GUIContent rendererHeaderText = EditorGUIUtility.TrTextContent("Renderer List", "The assigned Renderers that will be available for cameras to select from within the scene.");
+            public static GUIContent rendererDefaultText = EditorGUIUtility.TrTextContent("Default", "The current default Renderer that is used for this Renderer Pipeline Asset.");
+            public static GUIContent rendererSetDefaultText = EditorGUIUtility.TrTextContent("Set Default", "Set this Renderer as the current default for for this Render Pipeline Asset.");
             public static GUIContent rendererSettingsText = EditorGUIUtility.TrIconContent("_Menu", "Opens settings for this renderer.");
             public static GUIContent rendererMissingText = EditorGUIUtility.TrIconContent("console.warnicon.sml", "Renderer missing. Click this to select a new renderer.");
             public static GUIContent rendererDefaultMissingText = EditorGUIUtility.TrIconContent("console.erroricon.sml", "Default renderer missing. Click this to select a new renderer.");
@@ -33,20 +33,20 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent supportsTerrainHolesText = EditorGUIUtility.TrTextContent("Terrain Holes", "When disabled, Universal Rendering Pipeline removes all Terrain hole Shader variants when you build for the Unity Player. This decreases build time.");
 
             // Quality
-            public static GUIContent hdrText = EditorGUIUtility.TrTextContent("HDR", "Controls the global HDR settings.");
-            public static GUIContent msaaText = EditorGUIUtility.TrTextContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
+            public static GUIContent hdrText = EditorGUIUtility.TrTextContent("HDR", "Enable this to allow rendering in High Dynamic Range by default for every camera in your Scene. HDR gives a wider range of light intensities, so lighting will look more realistic.");
+            public static GUIContent msaaText = EditorGUIUtility.TrTextContent("Anti Aliasing (MSAA)", "Enable this to allow Multi Sample Anti-aliasing by default for every Camera in your Scene. MSAA softens the edges of geometry, so they’re not jagged or flickering.");
             public static GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
 
             // Main light
-            public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Main light is the brightest directional light.");
-            public static GUIContent supportsMainLightShadowsText = EditorGUIUtility.TrTextContent("Cast Shadows", "If enabled the main light can be a shadow casting light.");
-            public static GUIContent mainLightShadowmapResolutionText = EditorGUIUtility.TrTextContent("Shadow Resolution", "Resolution of the main light shadowmap texture. If cascades are enabled, cascades will be packed into an atlas and this setting controls the maximum shadows atlas resolution.");
+            public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Settings that affect the main Directional Light in the Scene. Usually either the Sun Source or the brightest Directional Light in the Scene.");
+            public static GUIContent supportsMainLightShadowsText = EditorGUIUtility.TrTextContent("Cast Shadows", "Enable the main light to cast shadows in the Scene.");
+            public static GUIContent mainLightShadowmapResolutionText = EditorGUIUtility.TrTextContent("Shadow Resolution", "Controls how large the shadow map texture for the main light is.");
 
             // Additional lights
-            public static GUIContent addditionalLightsRenderingModeText = EditorGUIUtility.TrTextContent("Additional Lights", "Additional lights support.");
+            public static GUIContent addditionalLightsRenderingModeText = EditorGUIUtility.TrTextContent("Additional Lights", "Enable the use of additional lights to supplement your main light.");
             public static GUIContent perObjectLimit = EditorGUIUtility.TrTextContent("Per Object Limit", "Maximum amount of additional lights. These lights are sorted and culled per-object.");
             public static GUIContent supportsAdditionalShadowsText = EditorGUIUtility.TrTextContent("Cast Shadows", "If enabled shadows will be supported for spot lights.\n");
-            public static GUIContent additionalLightsShadowmapResolution = EditorGUIUtility.TrTextContent("Shadow Atlas Resolution", "All additional lights are packed into a single shadowmap atlas. This setting controls the atlas size.");
+            public static GUIContent additionalLightsShadowmapResolution = EditorGUIUtility.TrTextContent("Shadow Atlas Resolution", "This controls the size of the textures that cast directional shadows for the additional lights.");
             public static GUIContent additionalLightsShadowResolutionTiers = EditorGUIUtility.TrTextContent("Shadow Resolution Tiers", $"Additional Lights Shadow Resolution Tiers. Rounded to the next power of two, and clamped to be at least {UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution}.");
             public static GUIContent[] additionalLightsShadowResolutionTierNames =
             {
@@ -54,13 +54,22 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Medium"),
                 new GUIContent("High")
             };
+            public static GUIContent additionalLightsCookieResolution = EditorGUIUtility.TrTextContent("Cookie Atlas Resolution", "All additional lights are packed into a single cookie atlas. This setting controls the atlas size.");
+            public static GUIContent additionalLightsCookieFormat = EditorGUIUtility.TrTextContent("Cookie Atlas Format", "All additional lights are packed into a single cookie atlas. This setting controls the atlas format.");
+
+            // Reflection Probes
+            public static GUIContent reflectionProbesSettingsText = EditorGUIUtility.TrTextContent("Reflection Probes");
+            public static GUIContent reflectionProbeBlendingText = EditorGUIUtility.TrTextContent("Probe Blending", "If enabled smooth transitions will be created between reflection probes.");
+            public static GUIContent reflectionProbeBoxProjectionText = EditorGUIUtility.TrTextContent("Box Projection", "If enabled reflections appear based on the object’s position within the probe’s box, while still using a single probe as the source of the reflection.");
 
             // Shadow settings
             public static GUIContent shadowDistanceText = EditorGUIUtility.TrTextContent("Max Distance", "Maximum shadow rendering distance.");
+            public static GUIContent shadowWorkingUnitText = EditorGUIUtility.TrTextContent("Working Unit", "The unit in which Unity measures the shadow cascade distances. The exception is Max Distance, which will still be in meters.");
             public static GUIContent shadowCascadesText = EditorGUIUtility.TrTextContent("Cascade Count", "Number of cascade splits used for directional shadows.");
             public static GUIContent shadowDepthBias = EditorGUIUtility.TrTextContent("Depth Bias", "Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts.");
             public static GUIContent shadowNormalBias = EditorGUIUtility.TrTextContent("Normal Bias", "Controls distance at which the shadow casting surfaces will be shrunk along the surface normal. Useful for avoiding false self-shadowing artifacts.");
-            public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
+            public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "Enable extra processing of the shadow maps to give shadows a smoother look.");
+
 
             // Post-processing
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
@@ -71,11 +80,14 @@ namespace UnityEditor.Rendering.Universal
             public static string colorGradingLutSizeWarning = "The minimal recommended LUT size for the high dynamic range color grading mode is 32. Using lower values will potentially result in color banding and posterization effects.";
 
             // Advanced settings
-            public static GUIContent srpBatcher = EditorGUIUtility.TrTextContent("SRP Batcher", "If enabled, the render pipeline uses the SRP batcher.");
+            public static GUIContent srpBatcher = EditorGUIUtility.TrTextContent("SRP Batcher", "The SRP Batcher speeds up CPU rendering without affecting the GPU performance.");
             public static GUIContent dynamicBatching = EditorGUIUtility.TrTextContent("Dynamic Batching", "If enabled, the render pipeline will batch drawcalls with few triangles together by copying their vertex buffers into a shared buffer on a per-frame basis.");
             public static GUIContent mixedLightingSupportLabel = EditorGUIUtility.TrTextContent("Mixed Lighting", "Makes the render pipeline include mixed-lighting Shader Variants in the build.");
+            public static GUIContent supportsLightLayers = EditorGUIUtility.TrTextContent("Light Layers", "When enabled, UniversalRP uses rendering layers instead of culling mask for the purpose of selecting how lights affect groups of geometry. For deferred rendering, an extra render target is allocated.");
             public static GUIContent debugLevel = EditorGUIUtility.TrTextContent("Debug Level", "Controls the level of debug information generated by the render pipeline. When Profiling is selected, the pipeline provides detailed profiling tags.");
             public static GUIContent shaderVariantLogLevel = EditorGUIUtility.TrTextContent("Shader Variant Log Level", "Controls the level logging in of shader variants information is outputted when a build is performed. Information will appear in the Unity console when the build finishes.");
+            public static GUIContent storeActionsOptimizationText = EditorGUIUtility.TrTextContent("Store Actions", "Sets the store actions policy on tile based GPUs. Affects render targets memory usage and will impact performance.");
+            public static GUIContent volumeFrameworkUpdateMode = EditorGUIUtility.TrTextContent("Volume Update Mode", "Select how Unity updates Volumes: every frame or when triggered via scripting. In the Editor, Unity updates Volumes every frame when not in the Play mode.");
 
             // Adaptive performance settings
             public static GUIContent useAdaptivePerformance = EditorGUIUtility.TrTextContent("Use adaptive performance", "Allows Adaptive Performance to adjust rendering quality during runtime");
@@ -89,11 +101,14 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.TrTextContent("Missing Default Renderer\nThere is no default renderer assigned, so Unity can’t perform any rendering. Set another renderer to be the new Default, or assign a renderer to the Default slot.");
             public static GUIContent rendererMissingMessage =
                 EditorGUIUtility.TrTextContent("Missing Renderer(s)\nOne or more renderers are either missing or unassigned.  Switching to these renderers at runtime can cause issues.");
+            public static GUIContent lightlayersUnsupportedMessage =
+                EditorGUIUtility.TrTextContent("Some Graphics API(s) in the Player Graphics APIs list are incompatible with Light Layers.  Switching to these Graphics APIs at runtime can cause issues: ");
             public static GUIContent rendererUnsupportedAPIMessage =
                 EditorGUIUtility.TrTextContent("Some Renderer(s) in the Renderer List are incompatible with the Player Graphics APIs list.  Switching to these renderers at runtime can cause issues.\n\n");
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
+            public static string[] volumeFrameworkUpdateOptions = { "Every Frame", "Via Scripting" };
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
 
@@ -113,6 +128,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_RequireOpaqueTextureProp;
         SerializedProperty m_OpaqueDownsamplingProp;
         SerializedProperty m_SupportsTerrainHolesProp;
+        SerializedProperty m_StoreActionsOptimizationProperty;
 
         SerializedProperty m_HDR;
         SerializedProperty m_MSAA;
@@ -131,6 +147,12 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalLightsShadowResolutionTierMediumProp;
         SerializedProperty m_AdditionalLightsShadowResolutionTierHighProp;
 
+        SerializedProperty m_AdditionalLightCookieResolutionProp;
+        SerializedProperty m_AdditionalLightCookieFormatProp;
+
+        SerializedProperty m_ReflectionProbeBlendingProp;
+        SerializedProperty m_ReflectionProbeBoxProjectionProp;
+
         SerializedProperty m_ShadowDistanceProp;
         SerializedProperty m_ShadowCascadeCountProp;
         SerializedProperty m_ShadowCascade2SplitProp;
@@ -145,9 +167,11 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_SRPBatcher;
         SerializedProperty m_SupportsDynamicBatching;
         SerializedProperty m_MixedLightingSupportedProp;
+        SerializedProperty m_SupportsLightLayers;
         SerializedProperty m_DebugLevelProp;
 
         SerializedProperty m_ShaderVariantLogLevel;
+        SerializedProperty m_VolumeFrameworkUpdateModeProp;
 
         SerializedProperty m_ColorGradingMode;
         SerializedProperty m_ColorGradingLutSize;
@@ -211,6 +235,12 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalLightsShadowResolutionTierMediumProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierMedium");
             m_AdditionalLightsShadowResolutionTierHighProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierHigh");
 
+            m_AdditionalLightCookieResolutionProp = serializedObject.FindProperty("m_AdditionalLightsCookieResolution");
+            m_AdditionalLightCookieFormatProp = serializedObject.FindProperty("m_AdditionalLightsCookieFormat");
+
+            m_ReflectionProbeBlendingProp = serializedObject.FindProperty("m_ReflectionProbeBlending");
+            m_ReflectionProbeBoxProjectionProp = serializedObject.FindProperty("m_ReflectionProbeBoxProjection");
+
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
 
             m_ShadowCascadeCountProp = serializedObject.FindProperty("m_ShadowCascadeCount");
@@ -225,9 +255,13 @@ namespace UnityEditor.Rendering.Universal
             m_SRPBatcher = serializedObject.FindProperty("m_UseSRPBatcher");
             m_SupportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");
             m_MixedLightingSupportedProp = serializedObject.FindProperty("m_MixedLightingSupported");
+            m_SupportsLightLayers = serializedObject.FindProperty("m_SupportsLightLayers");
             m_DebugLevelProp = serializedObject.FindProperty("m_DebugLevel");
 
             m_ShaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
+            m_VolumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
+
+            m_StoreActionsOptimizationProperty = serializedObject.FindProperty("m_StoreActionsOptimization");
 
             m_ColorGradingMode = serializedObject.FindProperty("m_ColorGradingMode");
             m_ColorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");
@@ -342,7 +376,25 @@ namespace UnityEditor.Rendering.Universal
                 DrawShadowResolutionTierSettings();
                 EditorGUI.EndDisabledGroup();
 
+                EditorGUILayout.Space();
+                disableGroup = m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
+
+                EditorGUI.BeginDisabledGroup(disableGroup);
+                EditorGUILayout.PropertyField(m_AdditionalLightCookieResolutionProp, Styles.additionalLightsCookieResolution);
+                EditorGUI.EndDisabledGroup();
+
+                EditorGUI.BeginDisabledGroup(disableGroup);
+                EditorGUILayout.PropertyField(m_AdditionalLightCookieFormatProp, Styles.additionalLightsCookieFormat);
+                EditorGUI.EndDisabledGroup();
+
                 EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+
+                // Reflection Probes
+                EditorGUILayout.LabelField(Styles.reflectionProbesSettingsText);
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_ReflectionProbeBlendingProp, Styles.reflectionProbeBlendingText);
+                EditorGUILayout.PropertyField(m_ReflectionProbeBoxProjectionProp, Styles.reflectionProbeBoxProjectionText);
                 EditorGUI.indentLevel--;
 
                 EditorGUILayout.Space();
@@ -400,7 +452,7 @@ namespace UnityEditor.Rendering.Universal
                 if (m_ShadowCascadeCountProp.intValue != 0)
                 {
                     EditorGUI.BeginChangeCheck();
-                    unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Working Unit", "Except Max Distance which will be still in meter."), m_State.value);
+                    unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(Styles.shadowWorkingUnitText, m_State.value);
                     if (EditorGUI.EndChangeCheck())
                     {
                         m_State.value = unit;
@@ -462,14 +514,14 @@ namespace UnityEditor.Rendering.Universal
                 if (useMetric)
                 {
                     float valueMetric = value * baseMetric;
-                    valueMetric = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), valueMetric, 0f, baseMetric, null);
+                    valueMetric = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", "The distance where this cascade ends and the next one starts."), valueMetric, 0f, baseMetric, null);
 
                     shadowCascadeSplit[i] = Mathf.Clamp(valueMetric * invBaseMetric, minimum, maximum);
                 }
                 else
                 {
                     float valueProcentage = value * 100f;
-                    valueProcentage = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), valueProcentage, 0f, 100f, null);
+                    valueProcentage = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", "The distance where this cascade ends and the next one starts."), valueProcentage, 0f, 100f, null);
 
                     shadowCascadeSplit[i] = Mathf.Clamp(valueProcentage * 0.01f, minimum, maximum);
                 }
@@ -493,14 +545,14 @@ namespace UnityEditor.Rendering.Universal
                 var lastCascadeSplitSize = splitCount == 0 ? baseMetric : (1.0f - shadowCascadeSplit[splitCount - 1]) * baseMetric;
                 var invLastCascadeSplitSize = lastCascadeSplitSize == 0 ? 0 : 1f / lastCascadeSplitSize;
                 float valueMetric = borderValue * lastCascadeSplitSize;
-                valueMetric = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Last Border", ""), valueMetric, 0f, lastCascadeSplitSize, null);
+                valueMetric = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Last Border", "The distance of the last cascade."), valueMetric, 0f, lastCascadeSplitSize, null);
 
                 borderValue = valueMetric * invLastCascadeSplitSize;
             }
             else
             {
                 float valueProcentage = borderValue * 100f;
-                valueProcentage = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Last Border", ""), valueProcentage, 0f, 100f, null);
+                valueProcentage = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Last Border", "The distance of the last cascade."), valueProcentage, 0f, 100f, null);
 
                 borderValue = valueProcentage * 0.01f;
             }
@@ -604,12 +656,21 @@ namespace UnityEditor.Rendering.Universal
             m_AdvancedSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_AdvancedSettingsFoldout.value, Styles.advancedSettingsText);
             if (m_AdvancedSettingsFoldout.value)
             {
+                UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
+                string unsupportedGraphicsApisMessage;
+
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_SRPBatcher, Styles.srpBatcher);
                 EditorGUILayout.PropertyField(m_SupportsDynamicBatching, Styles.dynamicBatching);
                 EditorGUILayout.PropertyField(m_MixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
+                EditorGUILayout.PropertyField(m_SupportsLightLayers, Styles.supportsLightLayers);
+
+                if (m_SupportsLightLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(asset, out unsupportedGraphicsApisMessage))
+                    EditorGUILayout.HelpBox(Styles.lightlayersUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
                 EditorGUILayout.PropertyField(m_DebugLevelProp, Styles.debugLevel);
                 EditorGUILayout.PropertyField(m_ShaderVariantLogLevel, Styles.shaderVariantLogLevel);
+                EditorGUILayout.PropertyField(m_StoreActionsOptimizationProperty, Styles.storeActionsOptimizationText);
+                CoreEditorUtils.DrawPopup(Styles.volumeFrameworkUpdateMode, m_VolumeFrameworkUpdateModeProp, Styles.volumeFrameworkUpdateOptions);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
@@ -783,6 +844,29 @@ namespace UnityEditor.Rendering.Universal
                         unsupportedGraphicsApisMessage += System.String.Format("{0} at index {1} does not support {2}.\n", renderer, i, unsupportedAPIs[apiIndex]);
                 }
             }
+
+            return unsupportedGraphicsApisMessage == null;
+        }
+
+        bool ValidateRendererGraphicsAPIsForLightLayers(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)
+        {
+            unsupportedGraphicsApisMessage = null;
+
+            BuildTarget platform = EditorUserBuildSettings.activeBuildTarget;
+            GraphicsDeviceType[] graphicsAPIs = PlayerSettings.GetGraphicsAPIs(platform);
+
+            for (int apiIndex = 0; apiIndex < graphicsAPIs.Length; apiIndex++)
+            {
+                if (!RenderingUtils.SupportsLightLayers(graphicsAPIs[apiIndex]))
+                {
+                    if (unsupportedGraphicsApisMessage != null)
+                        unsupportedGraphicsApisMessage += ", ";
+                    unsupportedGraphicsApisMessage += System.String.Format("{0}", graphicsAPIs[apiIndex]);
+                }
+            }
+
+            if (unsupportedGraphicsApisMessage != null)
+                unsupportedGraphicsApisMessage += ".";
 
             return unsupportedGraphicsApisMessage == null;
         }

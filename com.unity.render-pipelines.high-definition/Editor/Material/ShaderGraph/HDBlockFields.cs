@@ -7,6 +7,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     internal static class HDBlockFields
     {
         [GenerateBlocks("High Definition Render Pipeline")]
+        public struct VertexDescription
+        {
+            public static string name = "VertexDescription";
+
+            // TODO: In the future we may have proper ShaderStage for tessellation, this will need to be revisit then
+            public static BlockFieldDescriptor TessellationFactor = new BlockFieldDescriptor(VertexDescription.name, "TessellationFactor", "Tessellation Factor", "VERTEXDESCRIPTION_TESSELLATIONFACTOR",
+                new FloatControl(1.0f), ShaderStage.Vertex);
+            public static BlockFieldDescriptor TessellationDisplacement = new BlockFieldDescriptor(VertexDescription.name, "TessellationDisplacement", "Tessellation Displacement", "VERTEXDESCRIPTION_TESSELLATIONDISPLACEMENT",
+                new Vector3Control(new Vector3(0.0f, 0.0f, 0.0f)), ShaderStage.Vertex);
+        }
+
+        [GenerateBlocks("High Definition Render Pipeline")]
         public struct SurfaceDescription
         {
             public static string name = "SurfaceDescription";
@@ -111,6 +123,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(0.5f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SecondarySpecularShift = new BlockFieldDescriptor(SurfaceDescription.name, "SecondarySpecularShift", "Secondary Specular Shift", "SURFACEDESCRIPTION_SECONDARYSPECULARSHIFT",
                 new FloatControl(-0.1f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor RadialSmoothness = new BlockFieldDescriptor(SurfaceDescription.name, "RadialSmoothness", "Radial Smoothness", "SURFACEDESCRIPTION_RADIALSMOOTHNESS",
+                new FloatControl(0.5f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor CuticleAngle = new BlockFieldDescriptor(SurfaceDescription.name, "CuticleAngle", "Cuticle Angle", "SURFACEDESCRIPTION_CUTICLEANGLE",
+                new FloatControl(3f), ShaderStage.Fragment);
 
             // --------------------------------------------------
             // StackLit

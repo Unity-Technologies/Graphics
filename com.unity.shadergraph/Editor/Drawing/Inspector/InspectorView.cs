@@ -34,6 +34,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         Label m_MaxItemsMessageLabel;
 
+        internal static bool forceNodeView = true;
+
         void RegisterPropertyDrawer(Type newPropertyDrawerType)
         {
             if (typeof(IPropertyDrawer).IsAssignableFrom(newPropertyDrawerType) == false)
@@ -80,6 +82,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_NodeSettingsContainer = m_GraphInspectorView.Q<VisualElement>("NodeSettingsContainer");
             m_MaxItemsMessageLabel = m_GraphInspectorView.Q<Label>("maxItemsMessageLabel");
             m_ContentContainer.Add(m_GraphInspectorView);
+            m_ScrollView = this.Q<ScrollView>();
+            m_GraphInspectorView.Q<TabButton>("GraphSettingsButton").OnSelect += SetScrollModeHorizontal;
+            m_GraphInspectorView.Q<TabButton>("NodeSettingsButton").OnSelect += SetScrollModeHorizontalVertical;
 
             isWindowScrollable = true;
             isWindowResizable = true;
@@ -95,6 +100,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("GraphSettingsButton"));
         }
 
+        void SetScrollModeHorizontal(TabButton button)
+        {
+            m_ScrollView.mode = ScrollViewMode.Vertical;
+        }
+
+        void SetScrollModeHorizontalVertical(TabButton button)
+        {
+            m_ScrollView.mode = ScrollViewMode.VerticalAndHorizontal;
+        }
+
         public void InitializeGraphSettings()
         {
             ShowGraphSettings_Internal(m_GraphSettingsContainer);
@@ -105,7 +120,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         public void TriggerInspectorUpdate(IEnumerable<ISelectable> selectionList)
         {
             // An optimization that prevents inspector updates from getting triggered every time a selection event is issued in the event of large selections
-            // As beyond a certain number of selections
             if (selectionList?.Count() > k_InspectorElementLimit)
                 return;
             doesInspectorNeedUpdate = true;
@@ -129,10 +143,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         m_CurrentlyInspectedElementsCount++;
                         anySelectables = true;
                     }
+
                     if (m_CurrentlyInspectedElementsCount == k_InspectorElementLimit)
+                    {
                         m_NodeSettingsContainer.Add(m_MaxItemsMessageLabel);
+                        m_MaxItemsMessageLabel.style.visibility = Visibility.Visible;
+                        break;
+                    }
                 }
-                if (anySelectables)
+                if (anySelectables && forceNodeView)
                 {
                     // Anything selectable in the graph (GraphSettings not included) is only ever interacted with through the
                     // Node Settings tab so we can make the assumption they want to see that tab

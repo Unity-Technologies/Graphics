@@ -2,7 +2,7 @@
 
 The High Definition Render Pipeline (HDRP) includes the **HDRP Wizard** to help you configure your Unity Project so that it is compatible with HDRP.
 
-To open the **Render Pipeline Wizard**, go to **Window > Render Pipeline** and select **HDRP Wizard**.
+To open the **Render Pipeline Wizard**, go to **Window > Rendering** and select **HDRP Wizard**.
 
 ![](Images/RenderPipelineWizard1.png)
 
@@ -53,6 +53,7 @@ This tab provides you with configuration options to help you make your Unity Pro
 | **Diffusion Profile**          | Checks to make sure that your HDRP Asset references a [**Diffusion Profile**](Diffusion-Profile.md) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **Default Volume Profile** | Checks to make sure you have assigned a **Default Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Settings** that is not the one included in the **High Definition RP** package.<br/>This check only needs to pass if you want to modify the **Default Volume Profile Asset**.<br/>Press the **Fix** button to copy the **Default Volume Profile Asset** from the **High Definition RP** package into the **Default Resource Folder** and assign it. |
 | **LookDev Volume Profile** | Checks to make sure you have assigned a **LookDev Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Settings** that is not the one included in the **High Definition RP** package.<br/>This check only needs to pass if you want to use LookDev and modify the profile used in it.<br/>Press the **Fix** button to copy the **LookDev Volume Profile Asset** from the **High Definition RP**  package into the **Default Resource Folder** and assign it. |
+| **Assets Migration** | Checks to make sure all **HDRenderPipelineAsset** used in quality levels and the current **HDRenderPipelineGlobalSettings** have been upgraded to current version of High Definition Render Pipeline. <br />Press the **Fix** button to upgrade any asset that require it. Asset that have been migrated will be logged in the console. You still need to save your project to save the changes. |
 
 **Current Quality:**
 

@@ -46,6 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public Func<object> customGetter;
             public Action<object> customSetter;
             public object overridedDefaultValue;
+            public bool hideFromUI;
             /// <summary>
             /// Use this field to force displaying mixed values in the UI.
             ///
@@ -99,7 +100,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return area;
         }
 
-        public void AmmendInfo(FrameSettingsField field, Func<bool> overrideable = null, bool ignoreDependencies = false, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null, string labelOverride = null, bool hasMixedValues = false)
+        public void AmmendInfo(FrameSettingsField field, Func<bool> overrideable = null, bool ignoreDependencies = false, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null, string labelOverride = null, bool hasMixedValues = false, bool hideInUI = false)
         {
             var matchIndex = fields.FindIndex(f => f.field == field);
 
@@ -119,6 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (labelOverride != null)
                 match.label.text = labelOverride;
             match.hasMixedValues = hasMixedValues;
+            match.hideFromUI = hideInUI;
             fields[matchIndex] = match;
         }
 
@@ -148,7 +150,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (withOverride & GUI.enabled)
                 OverridesHeaders();
             for (int i = 0; i < fields.Count; ++i)
-                DrawField(fields[i], withOverride);
+            {
+                if (!fields[i].hideFromUI)
+                    DrawField(fields[i], withOverride);
+            }
         }
 
         void DrawField(Field field, bool withOverride)
@@ -248,6 +253,8 @@ namespace UnityEditor.Rendering.HighDefinition
                                 bool newBool = (bool)DrawFieldShape(fieldRect, oldBool);
                                 if (oldBool ^ newBool)
                                 {
+                                    if (field.field == FrameSettingsField.Decals || field.field == FrameSettingsField.DecalLayers)
+                                        HDGlobalSettingsPanelIMGUI.needRefreshVfxErrors = true;
                                     Undo.RecordObject(serializedFrameSettings.serializedObject.targetObject, "Changed FrameSettings " + field.field);
                                     serializedFrameSettings.SetEnabled(field.field, newBool);
                                 }
@@ -334,7 +341,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else if (field is Enum)
                 return EditorGUI.EnumPopup(rect, (Enum)field);
             else if (field is LayerMask)
-                return EditorGUI.MaskField(rect, (LayerMask)field, GraphicsSettings.currentRenderPipeline.renderingLayerMaskNames);
+                return EditorGUI.MaskField(rect, (LayerMask)field, GraphicsSettings.currentRenderPipeline.prefixedRenderingLayerMaskNames);
             else if (field is UnityEngine.Object)
                 return EditorGUI.ObjectField(rect, (UnityEngine.Object)field, field.GetType(), true);
             else if (field is SerializedProperty)

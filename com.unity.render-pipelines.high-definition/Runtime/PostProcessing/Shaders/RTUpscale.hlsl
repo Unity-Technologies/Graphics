@@ -43,7 +43,7 @@ void WeightedAcc(CTYPE value, float weight, inout CTYPE accumulated, inout float
 // TODO: Revisit derivation.
 CTYPE Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV, float2 textureSize)
 {
-    const float epsilon = 0.0000000001;
+    const float epsilon = 1e-6;
     const float a = 3.0;     // Lanczos 3
 
     float2 TexSize = textureSize.xy;
