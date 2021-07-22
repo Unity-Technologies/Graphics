@@ -55,7 +55,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.shadowMask = half4(1, 1, 1, 1);
 }
 
-Varyings UniversalVertexUnlit(Attributes input)
+Varyings UnlitPassVertex(Attributes input)
 {
     Varyings output = (Varyings)0;
 
@@ -89,7 +89,7 @@ Varyings UniversalVertexUnlit(Attributes input)
     return output;
 }
 
-half4 UniversalFragmentUnlit(Varyings input) : SV_Target
+half4 UnlitPassFragment(Varyings input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);

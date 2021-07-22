@@ -16,9 +16,9 @@ using UnityEngine.SceneManagement;
 [ExecuteAlways]
 public class HDRP_TestSettings : GraphicsTestSettings
 {
-	public UnityEngine.Events.UnityEvent doBeforeTest;
-	public int captureFramerate = 0;
-	public int waitFrames = 0;
+    public UnityEngine.Events.UnityEvent doBeforeTest;
+    public int captureFramerate = 0;
+    public int waitFrames = 0;
     public bool xrCompatible = true;
 
     [UnityEngine.Range(1.0f, 10.0f)]
