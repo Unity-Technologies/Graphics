@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added OverridablePropertyScope (for VolumeComponentEditor child class only) to handle the Additional Property, the override checkbox and disable display and decorator attributes in one scope.
 - Added IndentLevelScope (for VolumeComponentEditor child class only) to handle indentation of the field and the checkbox.
 - Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
+- Added new APIs for array resizing helpers (ArrayUtils), native array and TransformAccessArray resizing.
 
 ### Fixed
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
@@ -71,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error when change Lens Flare Element Count followed by undo (1346894)
 - Fixed Lens Flare Thumbnails
 - Fixed Lens Flare 'radialScreenAttenuationCurve invisible'
+- Fixed Lens Flare rotation for Curve Distribution
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
@@ -91,6 +93,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - LensFlare (SRP) tooltips now refer to meters.
 - Serialize the Probe Volume asset as binary to improve footprint on disk and loading speed.
 - LensFlare Element editor now have Thumbnail preview
+- Improved IntegrateLDCharlie() to use uniform stratified sampling for faster convergence towards the ground truth
 
 ## [11.0.0] - 2020-10-21
 

@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph
                 if (update)
                 {
                     var graphData = GetGraphData(importer);
-                    var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null);
+                    var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null, true);
                     if (!GraphUtil.WriteToFile(path, generator.generatedShader))
                         open = false;
                 }
@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph
                     string path = String.Format("Temp/GeneratedFromGraph-{0}-Preview.shader", assetName.Replace(" ", ""));
 
                     var graphData = GetGraphData(importer);
-                    var generator = new Generator(graphData, null, GenerationMode.Preview, $"{assetName}-Preview", null);
+                    var generator = new Generator(graphData, null, GenerationMode.Preview, $"{assetName}-Preview", null, true);
                     if (GraphUtil.WriteToFile(path, generator.generatedShader))
                         GraphUtil.OpenFile(path);
                 }
@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph
                 string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
 
                 var graphData = GetGraphData(importer);
-                var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null);
+                var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null, true);
                 GUIUtility.systemCopyBuffer = generator.generatedShader;
             }
 

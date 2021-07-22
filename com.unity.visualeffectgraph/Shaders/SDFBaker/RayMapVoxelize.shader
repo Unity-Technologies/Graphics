@@ -5,7 +5,7 @@ Shader "Hidden/VoxelizeShader"
     {
 
         HLSLINCLUDE
-        #include "SdfUtils.hlsl"
+        #include "Packages/com.unity.visualeffectgraph/Shaders/SDFBaker/SdfUtils.hlsl"
         #define AABB_EPS 1e-5
 
     // Vertex input attributes
