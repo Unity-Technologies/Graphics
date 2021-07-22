@@ -10,16 +10,16 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// GUI for HDRP Terrain Lit materials (does not include ShaderGraphs)
+    /// GUI for HDRP Terrain materials
     /// </summary>
-    class TerrainLitGUI : HDShaderGUI, ITerrainLayerCustomUI
+    class TerrainGUI : HDShaderGUI, ITerrainLayerCustomUI
     {
         const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveDecal;
 
         [Flags]
         enum Expandable
         {
-            Terrain     = 1 << 1,
+            Terrain = 1 << 1,
         }
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static StylesLayer s_Styles = null;
         private static StylesLayer styles { get { if (s_Styles == null) s_Styles = new StylesLayer(); return s_Styles; } }
 
-        public TerrainLitGUI()
+        public TerrainGUI()
         {
         }
 
@@ -124,30 +124,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static public void SetupTerrainKeywords(Material material)
-        {
-            // TODO: planar/triplannar support
-            //SetupLayersMappingKeywords(material);
-
-            bool enableHeightBlend = material.HasProperty(kEnableHeightBlend) && material.GetFloat(kEnableHeightBlend) > 0;
-            CoreUtils.SetKeyword(material, "_TERRAIN_BLEND_HEIGHT", enableHeightBlend);
-
-            bool enableInstancedPerPixelNormal = material.HasProperty(kEnableInstancedPerPixelNormal) && material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
-            CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);
-
-            int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
-            CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", specOcclusionMode == 0);
-        }
-
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupTerrainLitKeywordsAndPass(Material material)
+        static public void SetupTerrainKeywordsAndPass(Material material)
         {
-            BaseLitGUI.SetupBaseLitKeywords(material);
-            BaseLitGUI.SetupBaseLitMaterialPass(material);
-            bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
-                : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
-            BaseLitGUI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
-
             // TODO: planar/triplannar support
             //SetupLayersMappingKeywords(material);
 
@@ -157,7 +136,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool enableInstancedPerPixelNormal = material.HasProperty(kEnableInstancedPerPixelNormal) && material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
             CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);
 
-            int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
+            int specOcclusionMode = material.HasProperty(kSpecularOcclusionMode) ? material.GetInt(kSpecularOcclusionMode) : 0;
             CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", specOcclusionMode == 0);
         }
 
@@ -221,7 +200,8 @@ namespace UnityEditor.Rendering.HighDefinition
             return false;
         }
 
-        bool ITerrainLayerCustomUI.OnTerrainLayerGUI(TerrainLayer terrainLayer, Terrain terrain)
+        // TODO: Find a good way to split this between TerrainGUI and TerrainLitGUI.
+        internal virtual bool TerrainLayerGUI(TerrainLayer terrainLayer, Terrain terrain)
         {
             var terrainLayers = terrain.terrainData.terrainLayers;
             if (!DoesTerrainUseMaskMaps(terrainLayers))
@@ -385,6 +365,11 @@ namespace UnityEditor.Rendering.HighDefinition
             return true;
         }
 
-        public override void ValidateMaterial(Material material) => SetupTerrainLitKeywordsAndPass(material);
+        bool ITerrainLayerCustomUI.OnTerrainLayerGUI(TerrainLayer terrainLayer, Terrain terrain)
+        {
+            return TerrainLayerGUI(terrainLayer, terrain);
+        }
+
+        public override void ValidateMaterial(Material material) => SetupTerrainKeywordsAndPass(material);
     }
 } // namespace UnityEditor

@@ -46,6 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         static readonly GUID kSourceCodeGuid = new GUID("f4df7e8f9b8c23648ae50cbca0221e47"); // SurfaceSubTarget.cs
+        static string kTerrainTags = " \"TerrainCompatible\" = \"True\"";
 
         public override void Setup(ref TargetSetupContext context)
         {
@@ -70,7 +71,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return new SubShaderDescriptor
             {
                 generatesPreview = true,
-                passes = GetPasses()
+                passes = GetPasses(),
+                customTags = TargetsTerrain() ? kTerrainTags : "",
             };
 
             PassCollection GetPasses()

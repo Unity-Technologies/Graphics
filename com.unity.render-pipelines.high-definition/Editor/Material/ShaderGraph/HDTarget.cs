@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (!string.IsNullOrEmpty(m_CustomEditorGUI))
                 context.AddCustomEditorForRenderPipeline(m_CustomEditorGUI, typeof(HDRenderPipelineAsset));
             else if (SupportsTerrain())
-                context.AddCustomEditorForRenderPipeline("UnityEditor.Rendering.HighDefinition.TerrainLitGUI", typeof(HDRenderPipelineAsset));
+                context.AddCustomEditorForRenderPipeline("UnityEditor.Rendering.HighDefinition.TerrainGUI", typeof(HDRenderPipelineAsset));
 
 
             // Setup the active SubTarget
