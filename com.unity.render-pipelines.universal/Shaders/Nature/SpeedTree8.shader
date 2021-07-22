@@ -61,7 +61,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
-            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
 
             #pragma multi_compile_fog
@@ -97,7 +96,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma fragment SpeedTree8FragDepth
 
             #pragma multi_compile _ LOD_FADE_CROSSFADE
-            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling maxcount:50
 
@@ -131,7 +129,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ LOD_FADE_CROSSFADE
-            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
@@ -169,7 +166,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma fragment SpeedTree8FragDepth
 
             #pragma multi_compile _ LOD_FADE_CROSSFADE
-            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling maxcount:50
 
@@ -205,7 +201,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma fragment SpeedTree8FragDepth
 
             #pragma multi_compile _ LOD_FADE_CROSSFADE
-            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling maxcount:50
 
@@ -238,7 +233,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
 
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_instancing
-            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #pragma instancing_options assumeuniformscaling maxcount:50
 
