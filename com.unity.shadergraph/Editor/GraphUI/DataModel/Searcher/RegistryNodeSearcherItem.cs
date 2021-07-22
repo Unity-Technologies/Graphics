@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Searcher;
 using UnityEditor.ShaderGraph.GraphUI.Utilities;
+using UnityEditor.ShaderGraph.Registry.Experimental;
 
 namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 {
@@ -12,11 +13,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
     /// </summary>
     public class RegistryNodeSearcherItem : GraphNodeModelSearcherItem
     {
-        public readonly PlaceholderRegistryKey registryKey;
+        public readonly RegistryKey registryKey;
 
         public RegistryNodeSearcherItem(
             IGraphModel graphModel,
-            PlaceholderRegistryKey registryKey,
+            RegistryKey registryKey,
             string name,
             ISearcherItemData data = null,
             List<SearcherItem> children = null,

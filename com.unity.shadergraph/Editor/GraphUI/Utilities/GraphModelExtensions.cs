@@ -1,4 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.Registry.Experimental;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -8,7 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Utilities
     {
         public static RegistryNodeModel CreateRegistryNode(
             this IGraphModel graphModel,
-            PlaceholderRegistryKey registryKey, // FIXME
+            RegistryKey registryKey,
             string nodeName = "",
             Vector2 position = default,
             SerializableGUID guid = default,
@@ -26,7 +27,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Utilities
 
         public static RegistryNodeModel CreateRegistryNode(
             this GraphNodeCreationData graphNodeCreationData,
-            PlaceholderRegistryKey registryKey, // FIXME
+            RegistryKey registryKey,
             string nodeName = ""
         )
         {
