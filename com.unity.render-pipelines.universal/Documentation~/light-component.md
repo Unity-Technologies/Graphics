@@ -68,4 +68,4 @@ The Light Inspector includes the following groups of properties:
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Near Plane| Use the slider to control the value for the near clip plane when rendering shadows, defined as a value between 0.1 and 10. This value is clamped to 0.1 units or 1% of the light’s __Range__ property, whichever is lower. This is set to 0.2 by default. |
 
 ## Preset
-When using Preset of Light Component, only a subset of properties are supported.
+When using Preset of Light Component, only a subset of properties are supported. Unsupported properties are hidden.
