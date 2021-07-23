@@ -32,6 +32,19 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
+        public static void CacheValues()
+        {
+            if (shadowCasterGroups != null)
+            {
+                for (int i = 0; i < shadowCasterGroups.Count; i++)
+                {
+                    if (shadowCasterGroups[i] != null)
+                        shadowCasterGroups[i].CacheValues();
+                }
+            }
+        }
+
+
         public static void AddShadowCasterGroupToList(ShadowCasterGroup2D shadowCaster, List<ShadowCasterGroup2D> list)
         {
             int positionToInsert = 0;
