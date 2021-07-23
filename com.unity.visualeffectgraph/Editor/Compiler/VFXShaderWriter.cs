@@ -64,28 +64,38 @@ namespace UnityEditor.VFX
                     value = value.ToString().ToLower();
                     break;
                 case VFXValueType.Float:
-                    value = ((float)value).ToString("G9", CultureInfo.InvariantCulture);
+                    value = FormatFloat((float)value);
                     break;
                 case VFXValueType.Float2:
-                    value = $"({((Vector2)value).x.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector2)value).y.ToString("G9", CultureInfo.InvariantCulture)})";
+                    value = $"({FormatFloat(((Vector2)value).x)}, {FormatFloat(((Vector2)value).y)})";
                     break;
                 case VFXValueType.Float3:
-                    value = $"({((Vector3)value).x.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector3)value).y.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector3)value).z.ToString("G9", CultureInfo.InvariantCulture)})";
+                    value = $"({FormatFloat(((Vector3)value).x)}, {FormatFloat(((Vector3)value).y)}, {FormatFloat(((Vector3)value).z)})";
                     break;
                 case VFXValueType.Float4:
-                    value = $"({((Vector4)value).x.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector4)value).y.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector4)value).z.ToString("G9", CultureInfo.InvariantCulture)}, {((Vector4)value).w.ToString("G9", CultureInfo.InvariantCulture)})";
+                    value = $"({FormatFloat(((Vector4)value).x)}, {FormatFloat(((Vector4)value).y)}, {FormatFloat(((Vector4)value).z)}, {FormatFloat(((Vector4)value).w)})";
                     break;
                 case VFXValueType.Matrix4x4:
                 {
                     var matrix = ((Matrix4x4)value).transpose;
                     value = "(";
                     for (int i = 0; i < 16; ++i)
-                        value += string.Format(CultureInfo.InvariantCulture, i == 15 ? "{0}" : "{0},", matrix[i].ToString("G9", CultureInfo.InvariantCulture));
+                        value += string.Format(CultureInfo.InvariantCulture, i == 15 ? "{0}" : "{0},", FormatFloat(matrix[i]));
                     value += ")";
                 }
                 break;
             }
             return string.Format(CultureInfo.InvariantCulture, format, VFXExpression.TypeToCode(type), value);
+        }
+
+        private static string FormatFloat(float f)
+        {
+            if (float.IsInfinity(f))
+                return f > 0.0f ? "VFX_INFINITY" : "-VFX_INFINITY";
+            else if (float.IsNaN(f))
+                return "VFX_NAN";
+            else
+                return f.ToString("G9", CultureInfo.InvariantCulture);
         }
 
         public static string GetMultilineWithPrefix(string str, string linePrefix)

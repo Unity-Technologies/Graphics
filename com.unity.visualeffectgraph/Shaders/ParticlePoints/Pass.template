@@ -26,7 +26,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 
 	if (!attributes.alive)
 	{
-		o.pos.x = asfloat(0xFFFFFFFF);
+		o.pos.x = VFX_NAN;
 		return o; // cull
 	}
 
