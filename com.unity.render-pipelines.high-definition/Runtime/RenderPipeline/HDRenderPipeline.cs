@@ -662,7 +662,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             base.Dispose(disposing);
 
-            HDLightEntityCollection.Cleanup();
+            HDLightEntityCollection.instance.Cleanup();
             ReleaseScreenSpaceShadows();
 
             if (m_RayTracingSupported)

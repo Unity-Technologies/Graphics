@@ -5,7 +5,7 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    internal struct HDLightEntity 
+    internal struct HDLightEntity
     {
         public int index;
         public int version;
@@ -15,12 +15,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool valid { get { return index != -1; } }
     }
 
-    internal class HDLightSoAComponents : IDisposable
+    internal class HDLightSoAComponents
     {
         public const int ArrayCapacity = 100;
         private int m_Capacity = ArrayCapacity;
-        private HDLightEntity[]  m_LightEntities    = new HDLightEntity[ArrayCapacity];
-        private LightAccessArray m_LightAccessArray = new LightAccessArray(ArrayCapacity);
+        private HDLightEntity[]  m_LightEntities    = null;
+        private LightAccessArray m_LightAccessArray;
 
         public void Dispose()
         {
@@ -29,18 +29,32 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public int Allocate(Light light)
         {
-            int nextIndex = m_LightAccessArray.length;
-
-            if (m_LightAccessArray.length == m_Capacity)
+            if (!m_LightAccessArray.isCreated)
+            {
+                m_LightAccessArray = new LightAccessArray(ArrayCapacity);
+                m_LightEntities = new HDLightEntity[ArrayCapacity];
+            }
+            else if (m_LightAccessArray.length == m_Capacity)
             {
                 m_Capacity *= 2;
                 m_LightAccessArray.capacity = m_Capacity;
                 Array.Resize(ref m_LightEntities, m_Capacity);
             }
 
+            int nextIndex = m_LightAccessArray.length;
             m_LightEntities[nextIndex] = HDLightEntity.Invalid;
             m_LightAccessArray.Add(light);
             return nextIndex;
+        }
+
+        public void DeleteArrays()
+        {
+            if (!m_LightAccessArray.isCreated)
+                return;
+
+            m_LightAccessArray.Dispose();
+            m_LightEntities = null;
+            m_Capacity = ArrayCapacity;
         }
 
         public void SetEntity(int arrayIndex, HDLightEntity entity)
@@ -55,32 +69,40 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var entity = m_LightEntities[lastIndex];
             m_LightEntities[removeIndexAt] = entity;
-            return m_LightAccessArray.length == 0 ? HDLightEntity.Invalid : entity;
+            if (m_LightAccessArray.length == 0)
+            {
+                DeleteArrays();
+                return HDLightEntity.Invalid;
+            }
+
+            return entity;
         }
+
         public ref LightAccessArray GetLightAccessArray()
         {
             return ref m_LightAccessArray;
         }
+
+        ~HDLightSoAComponents()
+        {
+            DeleteArrays();
+        }
     }
 
-    internal class HDLightEntityCollection : IDisposable
+    internal class HDLightEntityCollection
     {
-        private static HDLightEntityCollection s_Instance = new HDLightEntityCollection();
+        private static HDLightEntityCollection s_Instance = null;
 
         static public HDLightEntityCollection instance
         {
             get
             {
+                if (s_Instance == null)
+                    s_Instance = new HDLightEntityCollection();
                 return s_Instance;
             }
         }
 
-        public static void Cleanup()
-        {
-            s_Instance.Dispose();
-        }
-
-        private bool m_Disposed = false;
         private List<EntityItem> m_Entities = new List<EntityItem>();
         private Queue<int> m_FreeIndices = new Queue<int>();
         private HDLightSoAComponents m_LightComponents = new HDLightSoAComponents();
@@ -98,7 +120,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return m_Entities[entity.index].version == entity.version;
         }
-
 
         public HDLightEntity CreateEntity(Light light)
         {
@@ -125,8 +146,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 version = newVersion
             };
 
-            entity = new HDLightEntity() 
-            { 
+            entity = new HDLightEntity()
+            {
                 index = entityIndex,
                 version = newVersion,
             };
@@ -142,9 +163,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void DestroyEntity(HDLightEntity entity)
         {
-            if (m_Disposed)
-                return;
-
             Assert.IsTrue(IsValid(entity));
             var entityData = m_Entities[entity.index];
 
@@ -159,7 +177,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var item = m_Entities[entity.index];
             item.version++;
             m_Entities[entity.index] = item;
-
         }
 
         public void UpdateIndex(HDLightEntity entity, int newArrayIndex)
@@ -170,13 +187,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Entities[entity.index] = item;
         }
 
-        public void Dispose()
+        public void Cleanup()
         {
-            if (m_Disposed)
-                return;
-
-            m_Disposed = true;
-            m_LightComponents.Dispose();
+            //Do not dispose of the arrays, since lights could outlive the pipeline.
+            //Cleanup here any shaders / resources specific to the render pipeline.
         }
 
         private struct TestJob : IJobParallelForLight
@@ -189,11 +203,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Test()
         {
+            if (!m_LightComponents.GetLightAccessArray().isCreated)
+                return;
+
             var job = new TestJob();
-            var jobHandle = job.ScheduleReadOnly(m_LightComponents.GetLightAccessArray(), 32);
-            //var jobHandle = job.Schedule(m_LightComponents.GetLightAccessArray());
+            var jobHandle = job.ScheduleReadOnly(m_LightComponents.GetLightAccessArray());
             jobHandle.Complete();
         }
     }
-
 }
