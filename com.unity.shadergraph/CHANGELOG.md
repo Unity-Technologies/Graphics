@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added `Sprite` option to Main Preview, which is similar to `Quad` but does not allow rotation. `Sprite` is used as the default preview for URP Sprite shaders.
   - Added Tessellation Option to PositionNode settings, to provide access to the pre-displaced tessellated position.
   - Added visible errors for invalid stage capability connections to shader graph.
+  - Added a ShaderGraph animated preview framerate throttle.
 
 ### Changed
 - Properties and Keywords are no longer separated by type on the blackboard. Categories allow for any combination of properties and keywords to be grouped together as the user defines.

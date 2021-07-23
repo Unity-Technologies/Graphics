@@ -1303,7 +1303,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         if (hdCamera.camera.cameraType != CameraType.SceneView || customPP.visibleInSceneView)
                         {
-                            using (var builder = renderGraph.AddRenderPass<CustomPostProcessData>(customPP.name, out var passData))
+                            // By default custom post process volume name is empty, so we take the type name instead for debug markers.
+                            string passName = String.IsNullOrEmpty(customPP.name) ? customPP.typeName : customPP.name;
+                            using (var builder = renderGraph.AddRenderPass<CustomPostProcessData>(passName, out var passData))
                             {
                                 // TODO RENDERGRAPH
                                 // These buffer are always bound in custom post process for now.
