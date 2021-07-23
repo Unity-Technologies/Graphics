@@ -153,7 +153,11 @@ float4 unity_MotionVectorsParams;
 CBUFFER_END
 
 #if defined(USING_STEREO_MATRICES)
+#if defined(USING_BUILTIN_STEREO_MATRICES)
+CBUFFER_START(UnityStereoGlobals) // XRTODO : Port the skybox renderpass to URP (instead of using the built-in skybox renderpass)
+#else
 CBUFFER_START(UnityStereoViewBuffer)
+#endif
 float4x4 unity_StereoMatrixP[2];
 float4x4 unity_StereoMatrixInvP[2];
 float4x4 unity_StereoMatrixV[2];
