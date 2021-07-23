@@ -20,9 +20,6 @@ HLSLPROGRAM
 // Pragmas
 $splice(PassPragmas)
 
-//TODOPAUL : Remove this
-#pragma enable_d3d11_debug_symbols
-
 $splice(DotsInstancingOptions)
 $splice(HybridV1InjectedBuiltinProperties)
 
@@ -89,10 +86,7 @@ $splice(PreGraphIncludes)
 // custom interpolators pre packing
 $splice(CustomInterpolatorPrePacking)
 
-//TODOPAUL : in URP PassStructs also contains PackVayring ? Not sure to follow this generation path.
-//#ifndef HAVE_VFX_MODIFICATION
 $splice(PassStructs)
-//#endif
 
 $splice(InterpolatorPack)
 
