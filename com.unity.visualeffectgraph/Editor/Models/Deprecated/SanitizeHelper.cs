@@ -349,7 +349,7 @@ namespace UnityEditor.VFX
         {
             var inlineHeight = ScriptableObject.CreateInstance<VFXInlineOperator>();
             inlineHeight.SetSettingValue("m_Type", (SerializableType)typeof(float));
-            inlineHeight.position = basePosition - new Vector2(128.0f, 128.0f);
+            inlineHeight.position = basePosition - new Vector2(700.0f, -151.0f);
             VFXSlot.CopyLinksAndValue(inlineHeight.inputSlots[0], height, true);
             graph.AddChild(inlineHeight);
 
@@ -358,12 +358,12 @@ namespace UnityEditor.VFX
             halfHeight.SetOperandType(1, typeof(float));
             halfHeight.inputSlots[0].Link(inlineHeight.outputSlots[0]);
             halfHeight.inputSlots[1].value = 0.5f;
-            halfHeight.position = basePosition - new Vector2(128.0f, 96.0f);
+            halfHeight.position = basePosition - new Vector2(480.0f, -111.0f);
             graph.AddChild(halfHeight);
 
             var inlinePosition = ScriptableObject.CreateInstance<VFXInlineOperator>();
             inlinePosition.SetSettingValue("m_Type", (SerializableType)typeof(Position));
-            inlinePosition.position = basePosition - new Vector2(96.0f, 128.0f);
+            inlinePosition.position = basePosition - new Vector2(555.0f, -20.0f);
             VFXSlot.CopyLinksAndValue(inlinePosition.inputSlots[0], center, true);
             graph.AddChild(inlinePosition);
 
@@ -374,7 +374,7 @@ namespace UnityEditor.VFX
             VFXSlot.CopySpace(correctedPosition.inputSlots[1], inlinePosition.outputSlots[0], true);
             correctedPosition.inputSlots[0].Link(inlinePosition.outputSlots[0]);
             correctedPosition.inputSlots[1][0][1].Link(halfHeight.outputSlots[0]);
-            correctedPosition.position = basePosition - new Vector2(96.0f, 96.0f);
+            correctedPosition.position = basePosition - new Vector2(282.0f, -20.0f);
             graph.AddChild(correctedPosition);
 
             return correctedPosition.outputSlots[0];
