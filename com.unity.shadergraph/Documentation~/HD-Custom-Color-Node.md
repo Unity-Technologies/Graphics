@@ -13,7 +13,7 @@ The Custom Color Node accesses the custom pass color buffer allocated by HDRP.
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | **UV** | Input | Vector 4 | Screen Position | Sets the normalized screen coordinates to sample. |
-| **Output** | Output      |    Vector 4 | None | The value in the custom pass color buffer at the sampled coordinates |
+| **Output** | Output      |    Vector 4 | None | The value the custom pass color buffer contains at the sampled coordinates. |
 
 ## Generated Code Example
 
