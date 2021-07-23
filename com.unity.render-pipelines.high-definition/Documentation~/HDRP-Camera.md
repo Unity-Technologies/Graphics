@@ -98,4 +98,4 @@ The Camera Inspector includes the following groups of properties:
 | **ViewPort Rect**  | Set the position and size of this Camera's output on the screen.<br />&#8226; **X**: The beginning horizontal position of the output.<br />&#8226; **Y**: The beginning vertical position of the output.<br />&#8226; **W**: The width of the output.<br />&#8226; **H**: The height of the output. |
 
 ## Preset
-When using Preset of a HD Camera, only a subset of properties are supported.
+When using Preset of a HD Camera, only a subset of properties are supported. Unsupported properties are hidden.
