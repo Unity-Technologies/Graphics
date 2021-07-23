@@ -177,7 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 filterParams.historyValidity = historyValidity;
                 filterParams.occluderMotionRejection = aoSettings.occluderMotionRejection.value;
                 filterParams.receiverMotionRejection = aoSettings.receiverMotionRejection.value;
-                filterParams.exposureControl = 0.0f;
+                filterParams.exposureControl = false;
                 TextureHandle denoisedRTAO = GetTemporalFilter().Denoise(renderGraph, hdCamera, filterParams,
                     traceAOResult.signalBuffer, traceAOResult.velocityBuffer, historyBuffer,
                     depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);

@@ -397,7 +397,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // PB Sun/Sky settings
             var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
             cb._PhysicallyBasedSun =  visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased ? 1 : 0;
-            Light currentSun = GetCurrentSunLight();
+            Light currentSun = GetMainLight();
             if (currentSun != null)
             {
                 // Grab the target sun additional data
@@ -425,7 +425,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Compute the theta angle for the wind direction
-            float theta = settings.orientation.value / 180.0f * Mathf.PI;
+            float theta = settings.orientation.GetValue(hdCamera) / 180.0f * Mathf.PI;
             // We apply a minus to see something moving in the right direction
             cb._WindDirection = new Vector2(-Mathf.Cos(theta), -Mathf.Sin(theta));
             cb._WindVector = hdCamera.volumetricCloudsAnimationData.cloudOffset;
@@ -617,7 +617,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.worley32RGB = m_Asset.renderPipelineResources.textures.worleyNoise32RGB;
             BlueNoise blueNoise = GetBlueNoiseManager();
             parameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
-            parameters.sunLight = GetCurrentSunLight();
+            parameters.sunLight = GetMainLight();
             parameters.enableExposureControl = hdCamera.exposureControlFS;
 
             // Update the constant buffer
@@ -888,14 +888,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 float delaTime = hdCamera.time - hdCamera.volumetricCloudsAnimationData.lastTime;
 
                 // Compute the theta angle for the wind direction
-                float theta = settings.orientation.value / 180.0f * Mathf.PI;
+                float theta = settings.orientation.GetValue(hdCamera) / 180.0f * Mathf.PI;
 
                 // Compute the wind direction
                 Vector2 windDirection = new Vector2(Mathf.Cos(theta), Mathf.Sin(theta));
 
                 // Conversion  from km/h to m/s  is the 0.277778f factor
                 // We apply a minus to see something moving in the right direction
-                Vector2 windVector = -windDirection * settings.globalWindSpeed.value * delaTime * 0.277778f;
+                Vector2 windVector = -windDirection * settings.globalWindSpeed.GetValue(hdCamera) * delaTime * 0.277778f;
 
                 // Animate the offset
                 hdCamera.volumetricCloudsAnimationData.cloudOffset += windVector;

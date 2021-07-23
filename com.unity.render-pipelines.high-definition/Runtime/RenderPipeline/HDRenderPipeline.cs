@@ -1071,6 +1071,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             m_GlobalSettings.GetOrCreateDefaultVolume();
 
+
+            DecalSystem.instance.StartDecalUpdateJobs();
+
             // This function should be called once every render (once for all camera)
             LightLoopNewRender();
 
@@ -2517,7 +2520,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetCurrentSunLight(), cmd);
+            m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetMainLight(), cmd);
         }
 
         /// <summary>
