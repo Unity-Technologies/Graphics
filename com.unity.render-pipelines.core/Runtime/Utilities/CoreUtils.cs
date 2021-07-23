@@ -1365,6 +1365,7 @@ namespace UnityEngine.Rendering
                 hash = 23 * hash + texture.filterMode.GetHashCode();
                 hash = 23 * hash + texture.anisoLevel.GetHashCode();
                 hash = 23 * hash + texture.mipmapCount.GetHashCode();
+                hash = 23 * hash + texture.updateCount.GetHashCode();
             }
 
             return hash;
