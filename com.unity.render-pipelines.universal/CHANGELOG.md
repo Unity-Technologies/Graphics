@@ -150,6 +150,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
 - VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
 - Fixed issue with legacy stereo matrices with XR multipass. [case 1342416]
+- Fixed unlit shader function name ambiguity
+- Fixed Terrain holes not appearing in shadows [case 1349305]
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph

@@ -178,8 +178,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader preIntegratedFGD_WardPS;
             [Reload("Runtime/Material/AxF/PreIntegratedFGD_CookTorrance.shader")]
             public Shader preIntegratedFGD_CookTorrancePS;
-            [Reload("Runtime/Material/Hair/PreIntegratedAzimuthalScattering.shader")]
-            public Shader preIntegratedAzimuthalScatteringPS;
 
             // Utilities / Core
             [Reload("Runtime/Core/CoreResources/EncodeBC6H.compute")]
@@ -413,6 +411,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture2D rankingTile256SPP;
             [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile256SPP.png")]
             public Texture2D scramblingTile256SPP;
+
+            // Pre-integration LUTs
+            [Reload("Runtime/RenderPipelineResources/Texture/PreintegratedAzimuthalScattering.exr")]
+            public Texture2D preintegratedAzimuthalScattering;
 
             // Clouds textures
             [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/CloudLutRainAO.png")]
