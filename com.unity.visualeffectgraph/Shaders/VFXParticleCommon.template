@@ -75,6 +75,7 @@ if (index >= asuint(nbMax) - deadCount)
 #if USE_GEOMETRY_SHADER
 	return; // cull
 #else
+	o.pos.x = VFX_NAN;
 	return o; // cull
 #endif
 
@@ -88,7 +89,10 @@ ${VFXLoadAttributes}
 ${VFXLoadAttributes:{alive}}
 #if !HAS_STRIPS
 if (!attributes.alive)
+{
+	o.pos.x = VFX_NAN;
 	return o;
+}
 #endif
 	
 ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
