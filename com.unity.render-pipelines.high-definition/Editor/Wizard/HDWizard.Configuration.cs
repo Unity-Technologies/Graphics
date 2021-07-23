@@ -642,7 +642,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var selectedBuildTarget = CalculateSelectedBuildTarget();
             return (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 || (selectedBuildTarget == BuildTarget.PS5)) && !HDUserSettings.wizardNeedRestartAfterChangingToDX12;
         }
-        
+
         void FixDXRDirect3D12(bool fromAsyncUnused)
         {
             if (GetSupportedGraphicsAPIs(CalculateSelectedBuildTarget()).Contains(GraphicsDeviceType.Direct3D12))
