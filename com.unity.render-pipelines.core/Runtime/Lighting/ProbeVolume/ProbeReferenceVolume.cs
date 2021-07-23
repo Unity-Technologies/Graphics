@@ -774,8 +774,13 @@ namespace UnityEngine.Experimental.Rendering
 
         void LoadAsset(ProbeVolumeAsset asset)
         {
-            var path = asset.GetSerializedFullPath();
+            if (asset.Version != (int)ProbeVolumeAsset.AssetVersion.Current)
+            {
+                Debug.LogWarning($"Trying to load an asset {asset.GetSerializedFullPath()} that has been baked with a previous version of the system. Please re-bake the data.");
+                return;
+            }
 
+            var path = asset.GetSerializedFullPath();
 
             for (int i = 0; i < asset.cells.Count; ++i)
             {

@@ -14,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering
             First,
             AddProbeVolumesAtlasEncodingModes,
             PV2,
+            ChunkBasedIndex,
             Max,
             Current = Max - 1
         }
