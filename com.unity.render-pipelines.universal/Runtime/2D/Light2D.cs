@@ -304,7 +304,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal Bounds UpdateSpriteMesh()
         {
-            if(m_LightCookieSprite == null && (m_Vertices.Length != 1 || m_Triangles.Length != 1))
+            if (m_LightCookieSprite == null && (m_Vertices.Length != 1 || m_Triangles.Length != 1))
             {
                 m_Vertices = new LightUtility.LightMeshVertex[1];
                 m_Triangles = new ushort[1];
