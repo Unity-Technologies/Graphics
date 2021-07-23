@@ -376,6 +376,20 @@ namespace UnityEditor.VFX
             return m_Nodes.FirstOrDefault(t => t.id == id);
         }
 
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+
+            var type = this.type;
+            if (Deprecated.s_Types.Contains(type))
+            {
+                manager.RegisterError(
+                    "DeprecatedTypeParameter",
+                    VFXErrorType.Warning,
+                    string.Format("The structure of the '{0}' has changed, the position property has been moved to a transform type. You should consider to recreate this parameter.", type.Name));
+            }
+        }
+
         protected sealed override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             base.OnInvalidate(model, cause);

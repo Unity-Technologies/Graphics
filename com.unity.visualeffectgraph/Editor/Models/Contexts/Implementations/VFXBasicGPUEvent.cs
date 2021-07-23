@@ -5,7 +5,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXType]
+    [VFXType(VFXTypeAttribute.Usage.ExcludeFromProperty)]
     struct GPUEvent
     {
         /* expected emptiness */
