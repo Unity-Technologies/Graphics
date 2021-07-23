@@ -147,6 +147,7 @@ namespace UnityEngine.Rendering.Universal
         [Range(0, 1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.75f;
 
+
         Mesh m_Mesh;
 
         [SerializeField]
@@ -161,6 +162,8 @@ namespace UnityEngine.Rendering.Universal
 
         // Transients
         int m_PreviousLightCookieSprite;
+        internal Vector3 m_CachedPosition;
+
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
@@ -180,6 +183,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal bool hasCachedMesh => (vertices.Length > 1 && indices.Length > 1);
+
 
         /// <summary>
         /// The light's current type
@@ -280,6 +284,12 @@ namespace UnityEngine.Rendering.Universal
         public NormalMapQuality normalMapQuality => m_NormalMapQuality;
 
         public bool renderVolumetricShadows => volumetricShadowsEnabled && shadowVolumeIntensity > 0;
+
+
+        internal void CacheValues()
+        {
+            m_CachedPosition = transform.position;
+        }
 
         internal int GetTopMostLitLayer()
         {

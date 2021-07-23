@@ -26,7 +26,7 @@ public class UniversalGraphicsTests
         // Always wait one frame for scene load
         yield return null;
 
-        var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
+        var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x => x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
@@ -47,7 +47,7 @@ public class UniversalGraphicsTests
         // otherwise the screenshot is just a black screen
         if (!wasFirstSceneRan)
         {
-            for(int i = 0; i < firstSceneAdditionalFrames; i++)
+            for (int i = 0; i < firstSceneAdditionalFrames; i++)
             {
                 yield return new WaitForEndOfFrame();
             }
@@ -87,6 +87,7 @@ public class UniversalGraphicsTests
     {
         XRGraphicsAutomatedTests.running = false;
     }
+
 #endif
 #endif
 }
