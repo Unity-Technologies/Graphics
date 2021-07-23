@@ -486,6 +486,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
+
+                EditorGUILayout.PropertyField(serialized.showMissingDiffusionProfiles, Styles.showMissingDiffusionProfilesContentLabel);
             }
             EditorGUIUtility.labelWidth = oldWidth;
         }

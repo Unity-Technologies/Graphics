@@ -809,6 +809,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool supportRuntimeDebugDisplay = false;
 
+        /// <summary>
+        /// Controls whether window for adding missing diffusion profiles is displayed on import.
+        /// </summary>
+        public bool showMissingDiffusionProfiles = true;
+
         #endregion
 
         #region APV
