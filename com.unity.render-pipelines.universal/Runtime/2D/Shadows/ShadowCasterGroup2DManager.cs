@@ -9,6 +9,18 @@ namespace UnityEngine.Rendering.Universal
         public static List<ShadowCasterGroup2D> shadowCasterGroups { get { return s_ShadowCasterGroups; } }
 
 
+        public static void CacheValues()
+        {
+            if (shadowCasterGroups != null)
+            {
+                for (int i = 0; i < shadowCasterGroups.Count; i++)
+                {
+                    if (shadowCasterGroups[i] != null)
+                        shadowCasterGroups[i].CacheValues();
+                }
+            }
+        }
+
         public static void AddShadowCasterGroupToList(ShadowCasterGroup2D shadowCaster, List<ShadowCasterGroup2D> list)
         {
             int positionToInsert = 0;
