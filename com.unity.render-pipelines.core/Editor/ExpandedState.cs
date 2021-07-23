@@ -10,7 +10,10 @@ namespace UnityEditor.Rendering
     {
         EditorPrefBoolFlags<TState> m_State;
 
-        /// <summary>Constructor will create the key to store in the EditorPref the state given generic type passed.</summary>
+        /// <summary>
+        ///     Constructor will create the key to store in the EditorPref the state given generic type passed.
+        ///     The key will be formated as such prefix:TTarget:TState:UI_State.
+        /// </summary>
         /// <param name="defaultValue">If key did not exist, it will be created with this value for initialization.</param>
         /// <param name="prefix">[Optional] Prefix scope of the key (Default is CoreRP)</param>
         public ExpandedState(TState defaultValue, string prefix = "CoreRP")
