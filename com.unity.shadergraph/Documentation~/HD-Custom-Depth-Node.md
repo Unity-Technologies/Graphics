@@ -12,15 +12,15 @@ The Custom Depth Node accesses the custom pass color buffer allocated by HDRP.
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| **UV** | Input | Vector 4 | Screen Position | Sets the normalized screen coordinates to sample. |
-| **Output** | Output      |    Vector 4 | None | Output value |
+| **UV** | Input | Vector 4 | Screen Position | Sets the normalized screen coordinates that this node samples. |
+| **Output** | Output      |    Vector 4 | None | The output value of this node. |
 
 ## Depth Sampling modes
 | Name     | Description                        |
 |----------|------------------------------------|
-| Linear01 | Linear depth value between 0 and 1 |
-| Raw      | Raw depth value                    |
-| Eye      | Depth converted to eye space units |
+| Linear01 | The linear depth value between 0 and 1. |
+| Raw      | The raw depth value.                    |
+| Eye      | The depth value converted to eye space units. |
 
 ## Generated Code Example
 
