@@ -682,7 +682,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsTAAUEnabled()
         {
-            return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
+            return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU && !IsDLSSEnabled();
         }
 
         internal bool UpsampleHappensBeforePost()
