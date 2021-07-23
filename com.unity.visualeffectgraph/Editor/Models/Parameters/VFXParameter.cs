@@ -673,23 +673,39 @@ namespace UnityEditor.VFX
                     }
                 }
                 // if there are some links in the output slots that are in not found in the infos, find or create a node for them.
-                if (links.Count > 0)
+                foreach (var link in links)
                 {
                     Node newInfos = null;
-
-                    if (nodes.Count > 0)
+                    if (nodes.Any())
                     {
-                        newInfos = nodes[0];
+                        var refPosition = Vector2.zero;
+                        object refOwner = link.inputSlot.owner;
+                        //TODO : Clarify this code
+                        while (refOwner != null)
+                        {
+                            if (refOwner is VFXModel)
+                            {
+                                refPosition = (refOwner as VFXModel).position;
+                                if (!(refOwner is VFXBlock))
+                                {
+                                    break;
+                                }
+                                refOwner = (refOwner as VFXModel).GetParent();
+                            }
+                            else
+                                refOwner = null;
+                        }
+                        newInfos = nodes.OrderBy(o => (refPosition - o.position).SqrMagnitude()).First();
                     }
                     else
                     {
                         newInfos = NewNode();
+                        newInfos.position = Vector2.zero;
                         m_Nodes.Add(newInfos);
                     }
-                    newInfos.position = Vector2.zero;
                     if (newInfos.linkedSlots == null)
                         newInfos.linkedSlots = new List<NodeLinkedSlot>();
-                    newInfos.linkedSlots.AddRange(links);
+                    newInfos.linkedSlots.Add(link);
                     newInfos.expandedSlots = new List<VFXSlot>();
                 }
             }
