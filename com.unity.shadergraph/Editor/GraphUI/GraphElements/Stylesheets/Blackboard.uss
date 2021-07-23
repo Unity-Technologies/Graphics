@@ -10,7 +10,9 @@
 }
 
 #content > .ge-blackboard {
-    position:absolute;
+    position:relative;
+    left: 0;
+    right: 50%;
     border-radius: 5px;
     flex-direction: column;
     border-width: 1px;

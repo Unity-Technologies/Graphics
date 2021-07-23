@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.Overlays;
 using UnityEditor.ShaderGraph.GraphUI.Controllers;
@@ -14,13 +15,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
         protected override bool CanHandleAssetType(IGraphAssetModel asset) => asset is ShaderGraphAssetModel;
 
         InspectorController m_InspectorController;
-        ModelInspectorView m_InspectorView => m_InspectorController.View;
+        ModelInspectorView m_InspectorView => m_InspectorController?.View;
 
         BlackboardController m_BlackboardController;
-        Blackboard m_BlackboardView => m_BlackboardController.View;
+        Blackboard m_BlackboardView => m_BlackboardController?.View;
 
         PreviewController m_PreviewController;
-        Preview m_Preview => m_PreviewController.View;
+        Preview m_Preview => m_PreviewController?.View;
 
         public VisualElement GetGraphSubWindow<T>()
         {
@@ -41,9 +42,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
         }
 
         [MenuItem("Window/Shaders/ShaderGraph", false)]
-        public static void ShowRecipeGraphWindow()
+        public static void ShowShaderGraphWindow()
         {
-            FindOrCreateGraphWindow<ShaderGraphEditorWindow>();
+            var shaderGraphEditorWindow = CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
+            shaderGraphEditorWindow.Show();
+            shaderGraphEditorWindow.Focus();
         }
 
         void InitializeSubWindows()
@@ -60,12 +63,28 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
 
             base.OnEnable();
 
-            InitializeSubWindows();
-
             // Needed to ensure that graph view takes up full window when overlay canvas is present
             rootVisualElement.style.position = new StyleEnum<Position>(Position.Absolute);
             rootVisualElement.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
             rootVisualElement.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
+
+            InitializeSubWindows();
+
+            m_BlackboardController.InitializeWindowPosition();
+        }
+
+        protected void OnBecameVisible()
+        {
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
 
         }
 

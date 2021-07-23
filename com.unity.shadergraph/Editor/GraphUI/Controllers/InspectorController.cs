@@ -12,5 +12,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.Controllers
         {
             View = new ModelInspectorView(dispatcher);
         }
+
+        public void InitializeWindowPosition()
+        {
+
+        }
     }
 }

@@ -2,6 +2,7 @@
 using UnityEditor.Overlays;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows;
 using UnityEditor.ShaderGraph.GraphUI.Utilities;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Views
@@ -17,6 +18,17 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Views
         {
             base.OnPanelContentAttached(evt);
             this.displayed = true;
+            this.floatingPositionChanged += OnfloatingPositionChanged;
+        }
+
+        void OnfloatingPositionChanged(Vector3 newPosition)
+        {
+            Debug.Log(newPosition);
+            if (newPosition.x < 0)
+            {
+                var oldRect = this.containerWindow.position;
+                this.containerWindow.position = new Rect(0, oldRect.y, oldRect.width, oldRect.height);
+            }
         }
     }
 }

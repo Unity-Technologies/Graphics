@@ -32,16 +32,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Views
             return m_OverlayRoot;
         }
 
-        public override void OnCreated()
-        {
-            base.OnCreated();
-        }
-
-        public override void OnWillBeDestroyed()
-        {
-            base.OnWillBeDestroyed();
-        }
-
         protected virtual void OnPanelContentAttached(AttachToPanelEvent evt)
         {
             var parent = (ShaderGraphEditorWindow) containerWindow;

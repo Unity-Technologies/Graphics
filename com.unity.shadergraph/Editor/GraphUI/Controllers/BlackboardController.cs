@@ -1,5 +1,6 @@
 ﻿using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphUI.Controllers
 {
@@ -11,6 +12,17 @@ namespace UnityEditor.ShaderGraph.GraphUI.Controllers
         {
             View = new Blackboard();
             View.SetupBuildAndUpdate(View.Model, dispatcher, parentGraphView);
+        }
+
+        public void InitializeWindowPosition()
+        {
+            var oldRect = Overlay.containerWindow.position;
+            Overlay.Undock();
+            Overlay.floatingPosition = new Vector2(0, m_ParentWindow.position.height * 0.15f);
+        }
+
+        public void Update()
+        {
         }
     }
 }

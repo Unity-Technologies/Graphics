@@ -39,6 +39,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.Controllers
         // Reference to the containing GraphView
         protected GraphView m_ParentGraphView;
 
+        protected EditorWindow m_ParentWindow;
+
         // TODO: Handle layout serialization/deserialization
 
         protected GraphSubWindowController(CommandDispatcher dispatcher, GraphView parentGraphView, EditorWindow parentWindow)
@@ -53,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Controllers
             else
                 AssertHelpers.Fail("Failed to find matching Overlay for GraphSubWindowController.");
 
-
+            m_ParentWindow = parentWindow;
         }
     }
 }
