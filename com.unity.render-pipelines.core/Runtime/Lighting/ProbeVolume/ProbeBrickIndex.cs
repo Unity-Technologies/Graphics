@@ -209,7 +209,7 @@ namespace UnityEngine.Experimental.Rendering
             int firstValidChunk = -1;
             for (int i = 0; i < m_IndexInChunks; ++i)
             {
-                if (!m_IndexChunks[i])
+                if (!m_IndexChunks[i] && (i + numberOfChunks) < m_IndexInChunks)
                 {
                     int emptySlotsStartingHere = 0;
                     for (int k = i; k < (i + numberOfChunks); ++k)
