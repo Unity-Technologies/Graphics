@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
             var p = new ProcessStartInfo("cmd.exe")
             {
                 Arguments = args.ToString(),
-                Verb = !IsUserAdministrator() ? "runas" : string.Empty,
+                Verb = "runas",
             };
             var proc = new Process
             {

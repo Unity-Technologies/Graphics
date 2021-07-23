@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
             if (!links.AreSymbolicLinks())
             {
                 if (!SymbolicLinkUtilities.CreateSymbolicLinks(links, targets))
-                    throw new Exception("Failed to create symbolic links");
+                    throw new Exception("Failed to create packages symlinks in ProjectFolder/Library/ShaderAnalysis/PackageSymlinks/Packages/*. Please check if you have sufficient privileges to create symlinks or manually create the symlinks for each package.");
             }
         }
 
