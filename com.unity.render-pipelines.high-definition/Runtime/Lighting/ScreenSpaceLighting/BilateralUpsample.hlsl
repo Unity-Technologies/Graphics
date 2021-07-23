@@ -1,4 +1,4 @@
-#define _UpsampleTolerance 1e-9f
+#define _UpsampleTolerance 1e-5f
 #define _NoiseFilterStrength 0.99999999f
 
 

@@ -23,13 +23,11 @@
 // Density blow wich we consider the density is zero (optimization reasons)
 #define CLOUD_DENSITY_TRESHOLD 0.001f
 // Number of steps before we start the large steps
-#define EMPTY_STEPS_BEFORE_LARGE_STEPS 4
+#define EMPTY_STEPS_BEFORE_LARGE_STEPS 8
 // Forward eccentricity
 #define FORWARD_ECCENTRICITY 0.7
 // Forward eccentricity
 #define BACKWARD_ECCENTRICITY 0.7
-// Minimal size of a step
-#define MINIMAL_RAY_MARCHING_STEP 100.0f
 // Distance until which the erosion texture i used
 #define MIN_EROSION_DISTANCE 3000.0
 #define MAX_EROSION_DISTANCE 300000.0
@@ -671,8 +669,8 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
             cloudRay.envLighting = EvaluateEnvironmentLighting(cloudRay, cloudRay.origin + rayMarchRange.start * cloudRay.direction);
 
             // Evaluate our integration step
-            float stepS = max(totalDistance / (float)_NumPrimarySteps, MINIMAL_RAY_MARCHING_STEP);
-            int numRealSteps = max((int)(totalDistance / MINIMAL_RAY_MARCHING_STEP), 32);
+            float stepS = max(totalDistance / (float)_NumPrimarySteps, (_HighestCloudAltitude -_LowestCloudAltitude) / 16);
+            int numRealSteps = max((int)(totalDistance / stepS), 32);
 
             // Evaluate cos of the theta angle between the view and light vectors
             float cosAngle = dot(cloudRay.direction, cloudRay.envLighting.sunDirection);
