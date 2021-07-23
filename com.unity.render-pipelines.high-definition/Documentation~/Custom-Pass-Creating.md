@@ -398,7 +398,9 @@ To change the buffer format of the Custom Pass component in your HDRP asset, go 
 
 ![](Images/Custom_Pass_HDRPAsset_CBF.png)
 
-In Shader Graph, there are two nodes for sampling the custom color and depth buffers. For more information about these nodes, see the Shader Graph documentation: [Custom Color Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/HD-Custom-Color-Node.html), [Custom Depth Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/HD-Custom-Depth-Node.html).
+You can sample the custom color and depth buffers in Shader Graph using the following nodes: 
+- [Custom Color Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/HD-Custom-Color-Node.html)
+- [Custom Depth Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/HD-Custom-Depth-Node.html)
 
 ## Disabling custom passes
 
