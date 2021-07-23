@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.Universal
         internal readonly Matrix4x4 viewMatrix;
         internal readonly Rect viewport;
         internal readonly Mesh occlusionMesh;
+        internal readonly Mesh visibilityMesh;
         internal readonly int textureArraySlice;
 
         internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int dstSlice)
@@ -45,6 +46,7 @@ namespace UnityEngine.Rendering.Universal
             viewMatrix = view;
             viewport = vp;
             occlusionMesh = null;
+            visibilityMesh = null;
             textureArraySlice = dstSlice;
         }
 
@@ -54,6 +56,7 @@ namespace UnityEngine.Rendering.Universal
             viewMatrix = renderParameter.view;
             viewport = renderParameter.viewport;
             occlusionMesh = renderParameter.occlusionMesh;
+            visibilityMesh = renderParameter.visibilityMesh;
             textureArraySlice = renderParameter.textureArraySlice;
 
             // Convert viewport from normalized to screen space
@@ -103,9 +106,12 @@ namespace UnityEngine.Rendering.Universal
         Mesh occlusionMeshCombined = null;
         int occlusionMeshCombinedHashCode = 0;
 
+        Mesh visibilityMeshCombined = null;
+        int visibilityMeshCombinedHashCode = 0;
+
+
         internal bool isOcclusionMeshSupported { get => enabled && xrSdkEnabled && occlusionMeshMaterial != null; }
-        // CHANGE TO VIS MESH ONCE FIXED
-        internal bool isVisibilityMeshSupported { get => enabled && xrSdkEnabled; }
+        internal bool isVisibilityMeshSupported { get => enabled; }
 
         internal bool hasValidOcclusionMesh
         {
@@ -123,6 +129,21 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal bool hasValidVisibilityMesh
+        {
+            get
+            {
+                if (isVisibilityMeshSupported)
+                {
+                    if (singlePassEnabled)
+                        return visibilityMeshCombined != null;
+                    else
+                        return views[0].visibilityMesh != null;
+                }
+                return false;
+            }
+        }
+
         internal bool isVisibilityMeshEnabled { get; set; }
 
         internal Mesh visibilityMesh
@@ -132,9 +153,9 @@ namespace UnityEngine.Rendering.Universal
                 if (hasValidOcclusionMesh)
                 {
                     if (singlePassEnabled)
-                        return occlusionMeshCombined;
+                        return views[0].visibilityMesh;
                     else
-                        return views[0].occlusionMesh;
+                        return views[0].visibilityMesh;
                 }
                 return null;
             }
@@ -287,6 +308,23 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal void UpdateVisibilityMesh()
+        {
+            if (isVisibilityMeshSupported && singlePassEnabled && TryGetVisibilityMeshCombinedHashCode(out var hashCode))
+            {
+                if (visibilityMeshCombined == null || hashCode != visibilityMeshCombinedHashCode)
+                {
+                    CreateVisibilityMeshCombined();
+                    visibilityMeshCombinedHashCode = hashCode;
+                }
+            }
+            else
+            {
+                visibilityMeshCombined = null;
+                visibilityMeshCombinedHashCode = 0;
+            }
+        }
+
         private bool TryGetOcclusionMeshCombinedHashCode(out int hashCode)
         {
             hashCode = 17;
@@ -296,6 +334,27 @@ namespace UnityEngine.Rendering.Universal
                 if (views[viewId].occlusionMesh != null)
                 {
                     hashCode = hashCode * 23 + views[viewId].occlusionMesh.GetHashCode();
+                }
+                else
+                {
+                    hashCode = 0;
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+
+        private bool TryGetVisibilityMeshCombinedHashCode(out int hashCode)
+        {
+            hashCode = 17;
+
+            for (int viewId = 0; viewId < viewCount; ++viewId)
+            {
+                if (views[viewId].visibilityMesh != null)
+                {
+                    hashCode = hashCode * 23 + views[viewId].visibilityMesh.GetHashCode();
                 }
                 else
                 {
@@ -361,6 +420,63 @@ namespace UnityEngine.Rendering.Universal
 
             occlusionMeshCombined.vertices = vertices;
             occlusionMeshCombined.SetIndices(indices, MeshTopology.Triangles, 0);
+        }
+
+
+        // Create a new mesh that contains the visibility mesh data data from all views
+        private void CreateVisibilityMeshCombined()
+        {
+            visibilityMeshCombined = new Mesh();
+            visibilityMeshCombined.indexFormat = IndexFormat.UInt16;
+
+            int combinedVertexCount = 0;
+            uint combinedIndexCount = 0;
+
+            for (int viewId = 0; viewId < viewCount; ++viewId)
+            {
+                Mesh mesh = views[viewId].visibilityMesh;
+
+                Debug.Assert(mesh != null);
+                Debug.Assert(mesh.subMeshCount == 1);
+                Debug.Assert(mesh.indexFormat == IndexFormat.UInt16);
+
+                combinedVertexCount += mesh.vertexCount;
+                combinedIndexCount += mesh.GetIndexCount(0);
+            }
+
+            Vector3[] vertices = new Vector3[combinedVertexCount];
+            ushort[] indices = new ushort[combinedIndexCount];
+            int vertexStart = 0;
+            int indexStart = 0;
+
+            for (int viewId = 0; viewId < viewCount; ++viewId)
+            {
+                Mesh mesh = views[viewId].visibilityMesh;
+                var meshIndices = mesh.GetIndices(0);
+
+                // Encore the viewId into the z channel
+                {
+                    mesh.vertices.CopyTo(vertices, vertexStart);
+
+                    for (int i = 0; i < mesh.vertices.Length; i++)
+                        vertices[vertexStart + i].z = viewId;
+                }
+
+                // Combine indices into one buffer
+                for (int i = 0; i < meshIndices.Length; i++)
+                {
+                    int newIndex = vertexStart + meshIndices[i];
+                    Debug.Assert(meshIndices[i] < ushort.MaxValue);
+
+                    indices[indexStart + i] = (ushort)newIndex;
+                }
+
+                vertexStart += mesh.vertexCount;
+                indexStart += meshIndices.Length;
+            }
+
+            visibilityMeshCombined.vertices = vertices;
+            visibilityMeshCombined.SetIndices(indices, MeshTopology.Triangles, 0);
         }
 
         internal void StartSinglePass(CommandBuffer cmd)

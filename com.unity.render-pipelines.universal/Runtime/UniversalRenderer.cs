@@ -634,7 +634,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.hasValidOcclusionMesh)
             {
-               // EnqueuePass(m_XROcclusionMeshPass);
+             //   EnqueuePass(m_XROcclusionMeshPass);
             }
 
 #endif

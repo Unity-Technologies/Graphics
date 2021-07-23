@@ -367,6 +367,7 @@ namespace UnityEngine.Rendering.Universal
         internal void AddPassToFrame(XRPass xrPass)
         {
             xrPass.UpdateOcclusionMesh();
+            xrPass.UpdateVisibilityMesh();
             framePasses.Add(xrPass);
         }
 

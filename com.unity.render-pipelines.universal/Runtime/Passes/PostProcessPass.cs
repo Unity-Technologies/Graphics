@@ -98,7 +98,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_Data = data;
             m_Materials = new MaterialLibrary(data);
             m_BlitMaterial = blitMaterial;
-          //  ConfigureClear(ClearFlag.Color, Color.black);
             // Texture format pre-lookup
             if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
             {
@@ -241,8 +240,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ColorAdjustments    = stack.GetComponent<ColorAdjustments>();
             m_Tonemapping         = stack.GetComponent<Tonemapping>();
             m_FilmGrain           = stack.GetComponent<FilmGrain>();
-            m_UseVisibilityMesh = renderingData.cameraData.xr.isVisibilityMeshEnabled;
-            m_UseDrawProcedural = renderingData.cameraData.xr.enabled && !m_UseVisibilityMesh;
+            m_UseVisibilityMesh   = renderingData.cameraData.xr.hasValidVisibilityMesh;
+            m_UseDrawProcedural   = renderingData.cameraData.xr.enabled && !m_UseVisibilityMesh;
             m_UseFastSRGBLinearConversion = renderingData.postProcessingData.useFastSRGBLinearConversion;
 
             if (m_IsFinalPass)
@@ -313,15 +312,16 @@ namespace UnityEngine.Rendering.Universal.Internal
             Vector4 scaleBias = new Vector4(1, 1, 0, 0);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
             if (m_UseVisibilityMesh)
             {
-                cmd.SetRenderTarget(destination,
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
                     colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
                 cmd.DrawMesh(cameraData.xr.visibilityMesh, Matrix4x4.identity, material, 0, passIndex);
             }
             else if (m_UseDrawProcedural)
             {
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                 cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
                     colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
                 cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
@@ -334,13 +334,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        private void DrawFullscreenMesh(CommandBuffer cmd, Material material, int passIndex, in CameraData cameraData, Vector4? scaleBias = null)
+        private void DrawFullscreenMesh(CommandBuffer cmd, Material material, int passIndex, in CameraData cameraData, bool useCustomMesh = false, Vector4? scaleBias = null)
         {
             Vector4 realScaleBias = scaleBias ?? new Vector4(1, 1, 0, 0);
             if (m_UseVisibilityMesh)
             {
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBias, realScaleBias);
-                cmd.DrawMesh(cameraData.xr.visibilityMesh, Matrix4x4.identity, material, 0, passIndex);
+                
+                if (useCustomMesh)
+                    cmd.DrawMesh(cameraData.xr.visibilityMesh, Matrix4x4.identity, material, 0, passIndex);
+                else
+                {
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.UseVisibilityMesh);
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                    cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings.UseVisibilityMesh);
+                }
             }
             else if (m_UseDrawProcedural)
             {
@@ -418,14 +428,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                    
                     if (m_UseVisibilityMesh)
                     {
-                        Vector4 scaleBias = new Vector4(1, 1, 0, 0);
                         cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
-                        cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                        cmd.SetRenderTarget(destination,
+                        cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
                             RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                             RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                         cmd.ClearRenderTarget(RTClearFlags.ColorStencil, Color.clear, 1.0f, 0);
-                        cmd.DrawMesh(cameraData.xr.visibilityMesh, Matrix4x4.identity, m_Materials.stopNaN, 0, 0);
+                      //  cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                        DrawFullscreenMesh(cmd, m_Materials.stopNaN, 0, in cameraData, false);
+                       // cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
                     }
                     else
                     {
@@ -591,7 +601,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
 
 
-                    DrawFullscreenMesh(cmd, m_Materials.uber, 0, in cameraData, scaleBias);
+                    DrawFullscreenMesh(cmd, m_Materials.uber, 0, in cameraData, m_UseVisibilityMesh, scaleBias );
                   
 
                     //TODO: Implement swapbuffer in 2DRenderer so we can remove this
@@ -604,8 +614,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source, 0, CubemapFace.Unknown, -1),
                             colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
-
-                        DrawFullscreenMesh(cmd, m_BlitMaterial, 0, in cameraData);
+                        DrawFullscreenMesh(cmd, m_BlitMaterial, 0, in cameraData, m_UseVisibilityMesh);
                     }
                 }
                 else
@@ -716,7 +725,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
             cmd.ClearRenderTarget(RTClearFlags.ColorStencil, Color.clear, 1.0f, 0);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
-            DrawFullscreenMesh(cmd, material, 0, cameraData);
+            DrawFullscreenMesh(cmd, material, 0, cameraData, m_UseVisibilityMesh);
 
             // Pass 2: Blend weights
             cmd.SetRenderTarget(new RenderTargetIdentifier(ShaderConstants._BlendTexture, 0, CubemapFace.Unknown, -1),
@@ -724,7 +733,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare);
             cmd.ClearRenderTarget(false, true, Color.clear);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._EdgeTexture);
-            DrawFullscreenMesh(cmd, material, 1, cameraData);
+            DrawFullscreenMesh(cmd, material, 1, cameraData, m_UseVisibilityMesh);
 
             // Pass 3: Neighborhood blending
             cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
@@ -732,7 +741,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._BlendTexture, ShaderConstants._BlendTexture);
-            DrawFullscreenMesh(cmd, material, 2, cameraData);
+            DrawFullscreenMesh(cmd, material, 2, cameraData, m_UseVisibilityMesh);
 
             // Cleanup
             cmd.ReleaseTemporaryRT(ShaderConstants._EdgeTexture);
@@ -794,7 +803,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, ShaderConstants._FullCoCTexture);
             cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture, 0, CubemapFace.Unknown, -1);
-            DrawFullscreenMesh(cmd, material, 1, cameraData);
+            DrawFullscreenMesh(cmd, material, 1, cameraData, m_UseVisibilityMesh);
 
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
@@ -1421,8 +1430,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                     colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmd.SetViewport(cameraData.pixelRect);
-
-                DrawFullscreenMesh(cmd, material, 0, in cameraData, scaleBias);
+                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                DrawFullscreenMesh(cmd, material, 0, in cameraData, false, scaleBias);
+                cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
             }
             else
 #endif

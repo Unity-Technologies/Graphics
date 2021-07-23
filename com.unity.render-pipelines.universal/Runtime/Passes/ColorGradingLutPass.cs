@@ -157,6 +157,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 material.SetTexture(ShaderConstants._CurveLumVsSat, curves.lumVsSat.value.GetTexture());
                 material.SetTexture(ShaderConstants._CurveSatVsSat, curves.satVsSat.value.GetTexture());
 
+                
+
                 // Tonemapping (baked into the lut for HDR)
                 if (hdr)
                 {
@@ -173,6 +175,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 renderingData.cameraData.xr.StopSinglePass(cmd);
 
                 // Render the lut
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, new Vector4(1, 1, 0, 0));
                 cmd.Blit(null, m_InternalLut.id, material);
 
                 renderingData.cameraData.xr.StartSinglePass(cmd);

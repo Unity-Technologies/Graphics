@@ -30,6 +30,13 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+float4x4 testMat = 
+{
+    1, 0, 0, 0,
+    0, 1, 0, 0, 
+    0, 0, 1, 0,
+    0, 0, 0, 1,
+};
 
 Varyings FullscreenVert(Attributes input)
 {
@@ -42,10 +49,11 @@ Varyings FullscreenVert(Attributes input)
     output.uv = GetQuadTexCoord(input.vertexID) * _ScaleBias.xy + _ScaleBias.zw;
 #elif _USE_VISIBILITY_MESH
     output.positionCS = float4(input.positionOS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), UNITY_NEAR_CLIP_VALUE, 1.0f);
+    output.positionCS = mul(testMat, output.positionCS);
     output.uv = input.positionOS.xy * _ScaleBias.xy + _ScaleBias.zw;
 #else
     output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-    output.uv = input.uv * _ScaleBias.xy + _ScaleBias.zw;
+    output.uv = input.uv;
 #endif 
 
     return output;

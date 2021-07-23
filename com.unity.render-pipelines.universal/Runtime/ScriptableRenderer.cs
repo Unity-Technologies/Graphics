@@ -1215,7 +1215,7 @@ namespace UnityEngine.Rendering.Universal
 
                 cameraData.xr.StartSinglePass(cmd);
 
-                if (cameraData.xr.isVisibilityMeshSupported)
+                if (cameraData.xr.hasValidVisibilityMesh)
                 {
                     cameraData.xr.isVisibilityMeshEnabled = true;
                     cmd.EnableShaderKeyword(ShaderKeywordStrings.UseVisibilityMesh);

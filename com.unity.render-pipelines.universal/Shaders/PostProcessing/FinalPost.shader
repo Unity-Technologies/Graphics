@@ -8,6 +8,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL _USE_VISIBILITY_MESH
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
+#pragma enable_d3d11_debug_symbols
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
