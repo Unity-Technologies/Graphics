@@ -624,17 +624,27 @@ void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLu
 // ---------------------------------------------------
 // Filter main color
 // ---------------------------------------------------
-
+#define APPROX_WEIGHT 1
 float GetSampleWeight(NeighbourhoodSamples samples, int neighbourIdx, float4 filterParameters, bool centralPixel = false)
 {
 #ifdef UPSAMPLE
-    // Very spiky gaussian (See for honor presentation)
-    const float rcpStdDev2 = filterParameters.x;  // (1/(sigma*sigma))
-    const float resolutionScale2 = filterParameters.y * filterParameters.y;
-    const float2 inputToOutputVec = filterParameters.zw;
 
+    const float2 inputToOutputVec = filterParameters.zw;
+    const float resolutionScale2 = filterParameters.y * filterParameters.y;
     float2 d = (centralPixel ? 0 : samples.offsets[neighbourIdx]) - inputToOutputVec;
+
+#if APPROX_WEIGHT
+    // A bit fatter and shorter tail, but significantly cheaper and close enough for the use case.
+    // https://www.desmos.com/calculator/g2hr2hzj84
+    float x2 = saturate(resolutionScale2 * dot(d, d));
+    float f = 0.9656852f * x2 - 1;
+    return f * f;
+#else
+    // Spiky gaussian (See for honor presentation)
+    const float rcpStdDev2 = filterParameters.x;  // (1/(sigma*sigma))
     return exp2(-0.5f * dot(d, d) * resolutionScale2 * rcpStdDev2);
+#endif
+
 #else
     return 1;
 #endif
