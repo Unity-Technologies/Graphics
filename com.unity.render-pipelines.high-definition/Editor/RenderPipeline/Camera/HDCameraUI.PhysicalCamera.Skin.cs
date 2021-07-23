@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     static partial class HDCameraUI
     {
-        partial class PhysicalCamera
+        public partial class PhysicalCamera
         {
             class Styles
             {
