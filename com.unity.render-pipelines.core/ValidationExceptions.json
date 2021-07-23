@@ -5,7 +5,7 @@
         {
              "ValidationTest": "API Validation",
 			 "ExceptionError": "Breaking changes require a new major version.",
-             "PackageVersion": "7.6.0"
+             "PackageVersion": "7.7.1"
         }
     ]
 }
