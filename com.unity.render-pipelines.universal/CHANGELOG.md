@@ -80,6 +80,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed additional camera data help url
 - Fixed additional light data help url
 - Fixed Opacity as Density blending artifacts on Terrain that that caused Terrain to have modified splat weights of zero in some areas and greater than one in others. [case 1283124](https://issuetracker.unity3d.com/product/unity/issues/guid/1283124/)
+- Fixed an issue where Sprite type Light2Ds would throw an exeception if missing a sprite
+- Fixed an issue where Sprite type Light2Ds were missing a default sprite
 - Fixed an issue where ShadowCasters were sometimes being rendered twice in the editor while in playmode.
 - Fixed an issue where ShadowCaster2D was generating garbage when running in the editor. [case 1304158](https://issuetracker.unity3d.com/product/unity/issues/guid/1304158/)
 - Fixed an issue where 2D lighting was incorrectly calculated when using a perspective camera.
