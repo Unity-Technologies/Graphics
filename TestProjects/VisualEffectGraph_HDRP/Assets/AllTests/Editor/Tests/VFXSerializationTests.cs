@@ -461,6 +461,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(8, graph.children.OfType<VFXParameter>().Count());
             Assert.AreEqual(11, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Count());
             Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => o.position == Vector2.zero).Count());
+            Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => !o.linkedSlots.Any()).Count());
             yield return null;
 
             var window = VFXViewWindow.GetWindow<VFXViewWindow>();
@@ -471,6 +472,15 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(8, graph.children.OfType<VFXParameter>().Count());
             Assert.AreEqual(11, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Count());
             Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => o.position == Vector2.zero).Count(), "Fail after window.LoadAsset");
+            foreach (var param in graph.children.OfType<VFXParameter>())
+            {
+                var nodes = param.nodes.Where(o => !o.linkedSlots.Any());
+                if (nodes.Any())
+                {
+                    Assert.Fail(param.name + "as an orphan node");
+                }
+            }
+            Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => !o.linkedSlots.Any()).Count()); //Orphan link
         }
 
         [OneTimeSetUpAttribute]
