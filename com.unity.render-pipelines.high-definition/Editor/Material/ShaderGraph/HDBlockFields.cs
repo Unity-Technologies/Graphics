@@ -123,14 +123,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(0.5f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SecondarySpecularShift = new BlockFieldDescriptor(SurfaceDescription.name, "SecondarySpecularShift", "Secondary Specular Shift", "SURFACEDESCRIPTION_SECONDARYSPECULARSHIFT",
                 new FloatControl(-0.1f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor LongitudinalRoughness = new BlockFieldDescriptor(SurfaceDescription.name, "LongitudinalRoughness", "Longitudinal Roughness", "SURFACEDESCRIPTION_LONGITUDINALROUGHNESS",
+            public static BlockFieldDescriptor RadialSmoothness = new BlockFieldDescriptor(SurfaceDescription.name, "RadialSmoothness", "Radial Smoothness", "SURFACEDESCRIPTION_RADIALSMOOTHNESS",
                 new FloatControl(0.5f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor AzimuthalRoughness = new BlockFieldDescriptor(SurfaceDescription.name, "AzimuthalRoughness", "Azimuthal Roughness", "SURFACEDESCRIPTION_AZIMUTHALROUGHNESS",
-                new FloatControl(0.5f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor PrimaryReflectionRoughness = new BlockFieldDescriptor(SurfaceDescription.name, "PrimaryReflectionRoughness", "Primary Reflection Roughness", "SURFACEDESCRIPTION_PRIMARYREFLECTIONROUGHNESS",
-                new FloatControl(1f), ShaderStage.Fragment);
             public static BlockFieldDescriptor CuticleAngle = new BlockFieldDescriptor(SurfaceDescription.name, "CuticleAngle", "Cuticle Angle", "SURFACEDESCRIPTION_CUTICLEANGLE",
-                new FloatControl(1.55f), ShaderStage.Fragment);
+                new FloatControl(3f), ShaderStage.Fragment);
 
             // --------------------------------------------------
             // StackLit

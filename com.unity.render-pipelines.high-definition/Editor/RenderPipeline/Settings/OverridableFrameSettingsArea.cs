@@ -253,6 +253,8 @@ namespace UnityEditor.Rendering.HighDefinition
                                 bool newBool = (bool)DrawFieldShape(fieldRect, oldBool);
                                 if (oldBool ^ newBool)
                                 {
+                                    if (field.field == FrameSettingsField.Decals || field.field == FrameSettingsField.DecalLayers)
+                                        HDGlobalSettingsPanelIMGUI.needRefreshVfxErrors = true;
                                     Undo.RecordObject(serializedFrameSettings.serializedObject.targetObject, "Changed FrameSettings " + field.field);
                                     serializedFrameSettings.SetEnabled(field.field, newBool);
                                 }
