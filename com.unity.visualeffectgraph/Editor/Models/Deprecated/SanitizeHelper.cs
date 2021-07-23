@@ -120,6 +120,8 @@ namespace UnityEditor.VFX
             VFXSlot.CopySpace(to, refSlot, true);
             if (from.HasLink(false) || forceHasLink)
             {
+                //TODO : This behavior leads to an UX issue with if the parent owner of refslot is VFXParameter
+                //This is the same issue than OnCopyLinksMySlot/OnCopyLinksOtherSlot needed in VFXSlot.CopyLinks
                 var parentCenter = refSlot[0];
                 var parentRadius = refSlot[1];
 
