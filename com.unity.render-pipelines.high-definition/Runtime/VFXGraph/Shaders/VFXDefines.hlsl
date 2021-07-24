@@ -47,7 +47,4 @@
 #define VFXSamplerCameraBuffer VFXSampler2D
 #endif
 
-#define VFX_INFINITY  (1.0f/0.0f)
-#define VFX_NAN       asfloat(~0u)
-
 #define UNITY_ACCESS_HYBRID_INSTANCED_PROP(name, type) name
