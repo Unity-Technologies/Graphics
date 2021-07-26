@@ -14,8 +14,6 @@
 //#define WITHOUT_LDS
 //#pragma enable_d3d11_debug_symbols
 
-// The vertical distortion as upper strat-clouds move faster than lower strats
-#define MOTION_DISTORTION 0.05
 // The number of octaves for the multi-scattering
 #define NUM_MULTI_SCATTERING_OCTAVES 2
 // Global offset to the high frequency noise
@@ -25,13 +23,11 @@
 // Density blow wich we consider the density is zero (optimization reasons)
 #define CLOUD_DENSITY_TRESHOLD 0.001f
 // Number of steps before we start the large steps
-#define EMPTY_STEPS_BEFORE_LARGE_STEPS 4
+#define EMPTY_STEPS_BEFORE_LARGE_STEPS 8
 // Forward eccentricity
 #define FORWARD_ECCENTRICITY 0.7
 // Forward eccentricity
 #define BACKWARD_ECCENTRICITY 0.7
-// Minimal size of a step
-#define MINIMAL_RAY_MARCHING_STEP 100.0f
 // Distance until which the erosion texture i used
 #define MIN_EROSION_DISTANCE 3000.0
 #define MAX_EROSION_DISTANCE 300000.0
@@ -65,7 +61,7 @@ Texture2D<float3> _CloudLutTexture;
 
 // Noise textures for adding details
 Texture3D<float> _Worley128RGBA;
-Texture3D<float> _Worley32RGB;
+Texture3D<float> _ErosionNoise;
 
 // Texture that has just been traced
 TEXTURE2D_X(_CloudsLightingTexture);
@@ -490,7 +486,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     float3 baseNoiseSamplingCoordinates = float3(AnimateBaseNoisePosition(positionWS).xzy / NOISE_TEXTURE_NORMALIZATION_FACTOR) * _ShapeScale - float3(_ShapeNoiseOffset.x, _ShapeNoiseOffset.y, 0);
 
     // Evaluate the coordinates at which the noise will be sampled and apply wind displacement
-    baseNoiseSamplingCoordinates += properties.height * float3(_WindDirection.x, 0.0f, _WindDirection.y) * MOTION_DISTORTION;
+    baseNoiseSamplingCoordinates += properties.height * float3(_WindDirection.x, _WindDirection.y, 0.0f) * _AltitudeDistortion;
 
     // Read the low frequency Perlin-Worley and Worley noises
     float lowFrequencyNoise = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_trilinear_repeat_sampler, baseNoiseSamplingCoordinates.xyz, noiseMipOffset);
@@ -533,10 +529,9 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     if (!cheapVersion)
     {
         float3 fineNoiseSamplingCoordinates = AnimateFineNoisePosition(positionWS) / NOISE_TEXTURE_NORMALIZATION_FACTOR * _ErosionScale;
-        float highFrequencyNoise = 1.0 - SAMPLE_TEXTURE3D_LOD(_Worley32RGB, s_linear_repeat_sampler, fineNoiseSamplingCoordinates, CLOUD_DETAIL_MIP_OFFSET + erosionMipOffset).x;
-
+        float highFrequencyNoise = 1.0 - SAMPLE_TEXTURE3D_LOD(_ErosionNoise, s_linear_repeat_sampler, fineNoiseSamplingCoordinates, CLOUD_DETAIL_MIP_OFFSET + erosionMipOffset).x;
         // Compute the weight of the low frequency noise
-        highFrequencyNoise = lerp(0.0, highFrequencyNoise, erosionFactor * 0.75f * cloudCoverageData.coverage.x);
+        highFrequencyNoise = lerp(0.0, highFrequencyNoise, erosionFactor * 0.75f * cloudCoverageData.coverage.x * _ErosionFactorCompensation);
         base_cloud = remap(base_cloud, highFrequencyNoise, 1.0, 0.0, 1.0);
         properties.ambientOcclusion = saturate(properties.ambientOcclusion - sqrt(highFrequencyNoise * _ErosionOcclusion));
     }
@@ -618,7 +613,6 @@ struct VolumetricRayResult
     bool invalidRay;
 };
 
-
 void EvaluateCloud(CloudProperties cloudProperties, CloudRay cloudRay,  float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES],
                 float3 currentPosition, float stepSize, float cosAngle,
                 inout VolumetricRayResult volumetricRay)
@@ -675,12 +669,8 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
             cloudRay.envLighting = EvaluateEnvironmentLighting(cloudRay, cloudRay.origin + rayMarchRange.start * cloudRay.direction);
 
             // Evaluate our integration step
-            float stepS = max(totalDistance / (float)_NumPrimarySteps, MINIMAL_RAY_MARCHING_STEP);
-            int numRealSteps = max((int)(totalDistance / MINIMAL_RAY_MARCHING_STEP), 32);
-
-            // Offset the starting point using our dithering pattern.
-            rayMarchRange.start += stepS * cloudRay.integrationNoise;
-            rayMarchRange.distance -= stepS * cloudRay.integrationNoise;
+            float stepS = max(totalDistance / (float)_NumPrimarySteps, (_HighestCloudAltitude -_LowestCloudAltitude) / 16);
+            int numRealSteps = max((int)(totalDistance / stepS), 32);
 
             // Evaluate cos of the theta angle between the view and light vectors
             float cosAngle = dot(cloudRay.direction, cloudRay.envLighting.sunDirection);
@@ -705,10 +695,10 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
             float meanDistanceDivider = 0.0f;
 
             // Current position for the evaluation
-            float3 currentPosition = cloudRay.origin + (rayMarchRange.start + stepS) * cloudRay.direction;
+            float3 currentPosition = cloudRay.origin + rayMarchRange.start * cloudRay.direction;
 
             // Current Distance that has been marched
-            float currentDistance = stepS;
+            float currentDistance = 0;
 
             // Initialize the values for the optimized ray marching
             bool activeSampling = true;
@@ -751,9 +741,11 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                     // If it has been more than EMPTY_STEPS_BEFORE_LARGE_STEPS, disable active sampling and start large steps
                     if (sequentialEmptySamples == EMPTY_STEPS_BEFORE_LARGE_STEPS)
                         activeSampling = false;
+
                     // Do the next step
-                    currentPosition += cloudRay.direction * stepS;
-                    currentDistance += stepS;
+                    float relativeStepSize = lerp(cloudRay.integrationNoise, 1.0, saturate(currentIndex));
+                    currentPosition += cloudRay.direction * stepS * relativeStepSize;
+                    currentDistance += stepS * relativeStepSize;
                 }
                 else
                 {
@@ -777,6 +769,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                         sequentialEmptySamples = 0;
                     }
                 }
+
                 currentIndex++;
             }
 
@@ -994,9 +987,9 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
             // Structure that will hold everything
             NeighborhoodUpsampleData3x3 upsampleData;
             #ifdef WITHOUT_LDS
-            FillCloudReprojectionNeighborhoodData_NOLDS(traceCoord, upsampleData);
+            FillCloudReprojectionNeighborhoodData_NOLDS(traceCoord, localIndex, upsampleData);
             #else
-            FillCloudReprojectionNeighborhoodData(groupThreadId, upsampleData);
+            FillCloudReprojectionNeighborhoodData(groupThreadId, localIndex, upsampleData);
             #endif
             // Make sure that at least one of the pixels in the neighborhood can be used
             float rejectNeighborhood = 0.0f;
@@ -1108,11 +1101,14 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     // Grab the depth value of the pixel
     float highDepth = LOAD_TEXTURE2D_X(_DepthTexture, finalCoord.xy).x;
 
+    // Compute the index of the pixel in the 2x2 region (L->R, T->B)
+    uint subRegionIndex = (finalCoord.x & 1) + (finalCoord.y & 1) * 2;
+
     // Structure that will hold everything
     NeighborhoodUpsampleData3x3 upsampleData;
 
     // Fill the sample data
-    FillCloudUpscaleNeighborhoodData(groupThreadId.xy, upsampleData);
+    FillCloudUpscaleNeighborhoodData(groupThreadId.xy, subRegionIndex, upsampleData);
 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
     // Flag that tells us which pixel holds valid information
