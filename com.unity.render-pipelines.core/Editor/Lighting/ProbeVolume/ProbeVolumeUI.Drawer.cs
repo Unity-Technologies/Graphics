@@ -139,7 +139,8 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.BeginChangeCheck();
             if ((serialized.serializedObject.targetObject as ProbeVolume).mightNeedRebaking)
             {
-                EditorGUILayout.HelpBox("The probe volume has changed since last baking or the data was never baked.\nPlease bake lighting in the lighting panel to update the lighting data.", MessageType.Warning, wide: true);
+                var helpBoxRect = GUILayoutUtility.GetRect(new GUIContent(Styles.s_ProbeVolumeChangedMessage, EditorGUIUtility.IconContent("Warning@2x").image), EditorStyles.helpBox);
+                EditorGUI.HelpBox(helpBoxRect, Styles.s_ProbeVolumeChangedMessage, MessageType.Warning);
             }
 
             EditorGUILayout.PropertyField(serialized.globalVolume, Styles.s_GlobalVolume);
