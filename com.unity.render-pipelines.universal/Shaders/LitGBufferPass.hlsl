@@ -71,6 +71,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
         inputData.positionWS = input.positionWS;
     #endif
 
+    inputData.positionCS = input.positionCS;
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
     #if defined(_NORMALMAP) || defined(_DETAIL)
         float sgn = input.tangentWS.w;      // should be either +1 or -1
@@ -194,6 +195,10 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
+
+#ifdef _DBUFFER
+    ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
+#endif
 
     // Stripped down version of UniversalFragmentPBR().
 

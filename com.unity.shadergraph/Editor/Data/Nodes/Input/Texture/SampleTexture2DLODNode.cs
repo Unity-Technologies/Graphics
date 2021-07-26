@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderGraph
             }
             sb.AppendLine("#else");
             {
-                var result = string.Format("  $precision4 {0} = SAMPLE_TEXTURE2D_LOD({1}.tex, {2}.samplerstate, {3}, {4});"
+                var result = string.Format("  $precision4 {0} = SAMPLE_TEXTURE2D_LOD({1}.tex, {2}.samplerstate, {1}.GetTransformedUV({3}), {4});"
                     , GetVariableNameForSlot(OutputSlotRGBAId)
                     , id
                     , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id

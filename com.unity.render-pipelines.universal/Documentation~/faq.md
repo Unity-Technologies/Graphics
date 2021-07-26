@@ -7,7 +7,7 @@ For information about the High Definition Render Pipeline (HDRP), see the [HDRP 
 No. They're both built with the Scriptable Render Pipeline (SRP), but their render paths and light models are different.
 
 ## Can I convert from one pipeline to the other?
-You can convert from the Built-in Render Pipeline to URP. To do so, you'll have to re-write your Assets and redo the lighting in your game or app. See this upgrade guide on [installing URP into an existing Project](InstallURPIntoAProject).
+You can convert from the Built-in Render Pipeline to URP. To do so, you'll have to re-write your Assets and redo the lighting in your game or app. See this upgrade guide on [installing URP into an existing Project](InstallURPIntoAProject.md).
 
 You can use our upgrader to [upgrade Built-in Shaders to the URP Shaders](upgrading-your-shaders.md). For custom Shaders, you'll have to upgrade them manually.
 
@@ -49,8 +49,6 @@ You can open bugs by using the [bug reporter system](https://unity3d.com/unity/q
 ## I’ve upgraded my Project from the Built-in render pipeline to URP, but it’s not running faster. Why?
 
 URP and the Built-in Render Pipeline have different quality settings. While the Built-in Render Pipeline configures many settings in different places like the Quality Settings, Graphics Settings, and Player Settings, all URP settings are stored in the URP Asset. The first thing to do is to check whether your URP Asset settings match the settings your Built-in render pipeline Project. For example, if you disabled MSAA or HDR in your Built-in render pipeline Project, make sure they are disabled in the URP Asset in your URP Project. For advice on configuring URP Assets, see documentation on the [URP Asset](universalrp-asset.md).
-
-Also, make sure you are doing a fair comparison in terms of renderers. For this release, URP only supports a forward renderer, so make sure your Built-in render pipeline Project is using the forward renderer as well.
 
 If, after comparing the settings, you still experience worse performance with URP, please [open a bug report](https://unity3d.com/unity/qa/bug-reporting) and attach your Project.
 ## URP doesn’t run on device X or platform Y. Is this expected?

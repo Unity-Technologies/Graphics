@@ -65,7 +65,23 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_OutputNode == null)
             {
-                return m_GraphData.activeTargets.ToArray();
+                var targets = m_GraphData.activeTargets.ToList();
+                // Sort the built-in target to be last. This is currently a requirement otherwise it'll get picked up for other passes incorrectly
+                targets.Sort(delegate(Target target0, Target target1)
+                {
+                    var result = target0.displayName.CompareTo(target1.displayName);
+                    // If only one value is built-in, then sort it last
+                    if (result != 0)
+                    {
+                        if (target0.displayName == "Built-In")
+                            result = 1;
+                        if (target1.displayName == "Built-In")
+                            result = -1;
+                    }
+
+                    return result;
+                });
+                return targets.ToArray();
             }
             else
             {
@@ -125,12 +141,24 @@ namespace UnityEditor.ShaderGraph
             m_GraphData.CollectShaderProperties(shaderProperties, m_Mode);
             m_GraphData.CollectShaderKeywords(shaderKeywords, m_Mode);
 
+            var graphInputOrderData = new List<GraphInputData>();
+            foreach (var cat in m_GraphData.categories)
+            {
+                foreach (var input in cat.Children)
+                {
+                    graphInputOrderData.Add(new GraphInputData()
+                    {
+                        isKeyword = input is ShaderKeyword,
+                        referenceName = input.referenceName
+                    });
+                }
+            }
+            string path = AssetDatabase.GUIDToAssetPath(m_GraphData.assetGuid);
             if (m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
                 string graphName = "";
                 if (m_GraphData.owner != null)
                 {
-                    string path = AssetDatabase.GUIDToAssetPath(m_GraphData.owner.AssetGuid);
                     if (path != null)
                     {
                         graphName = Path.GetFileNameWithoutExtension(path);
@@ -163,7 +191,7 @@ namespace UnityEditor.ShaderGraph
             m_Builder.AppendLine(@"Shader ""{0}""", m_Name);
             using (m_Builder.BlockScope())
             {
-                GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
+                GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode, graphInputOrderData);
 
                 for (int i = 0; i < m_Targets.Length; i++)
                 {
@@ -188,6 +216,8 @@ namespace UnityEditor.ShaderGraph
                     {
                         m_Builder.AppendLine($"CustomEditorForRenderPipeline \"{rpCustomEditor.shaderGUI}\" \"{rpCustomEditor.renderPipelineAssetType}\"");
                     }
+
+                    m_Builder.AppendLine("CustomEditor \"" + typeof(GenericShaderGraphMaterialGUI).FullName + "\"");
                 }
 
                 m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");
@@ -540,6 +570,13 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
+                // Enable this to turn on shader debugging
+                bool debugShader = false;
+                if (debugShader)
+                {
+                    passPragmaBuilder.AppendLine("#pragma enable_d3d11_debug_symbols");
+                }
+
                 string command = GenerationUtils.GetSpliceCommand(passPragmaBuilder.ToCodeBlock(), "PassPragmas");
                 spliceCommands.Add("PassPragmas", command);
             }
@@ -612,7 +649,9 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, out interpolatorBuilder);
+                        ShaderStringBuilder localInterpolatorBuilder; // GenerateInterpolatorFunctions do the allocation
+                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, out localInterpolatorBuilder);
+                        interpolatorBuilder.Concat(localInterpolatorBuilder);
                     }
                     //using interp index from functions, generate packed struct descriptor
                     GenerationUtils.GeneratePackedStruct(shaderStruct, activeFields, out packStruct);

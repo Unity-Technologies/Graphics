@@ -95,6 +95,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 material.SetFloat(Property.ZTest, (float)target.zTestMode);
             }
 
+            // We always need these properties regardless of whether the material is allowed to override
+            // Queue control & offset enable correct automatic render queue behavior
+            // Control == 0 is automatic, 1 is user-specified render queue
+            material.SetFloat(Property.QueueOffset, 0.0f);
+            material.SetFloat(Property.QueueControl, (float)BaseShaderGUI.QueueControl.Auto);
+
             // call the full unlit material setup function
             ShaderGraphLitGUI.UpdateMaterial(material, MaterialUpdateType.CreatedNewMaterial);
         }
@@ -157,6 +163,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
                 collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
             }
+
+            // We always need these properties regardless of whether the material is allowed to override other shader properties.
+            // Queue control & offset enable correct automatic render queue behavior.  Control == 0 is automatic, 1 is user-specified.
+            // We initialize queue control to -1 to indicate to UpdateMaterial that it needs to initialize it properly on the material.
+            collector.AddFloatProperty(Property.QueueOffset, 0.0f);
+            collector.AddFloatProperty(Property.QueueControl, -1.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -283,9 +295,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.mayWriteDepth)
                     result.passes.Add(PassVariant(CorePasses.DepthOnly(target),      CorePragmas.DOTSInstanced));
 
-                result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
+                if (complexLit)
+                    result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
+                else
+                    result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.DOTSInstanced));
                 result.passes.Add(PassVariant(LitPasses.Meta(target),            CorePragmas.DOTSDefault));
                 result.passes.Add(PassVariant(LitPasses._2D(target),             CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(CorePasses.ScenePicking(target),   CorePragmas.DOTSDefault));
 
                 return result;
             }
@@ -319,9 +336,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (target.mayWriteDepth)
                     result.passes.Add(CorePasses.DepthOnly(target));
 
-                result.passes.Add(LitPasses.DepthNormalOnly(target));
+                if (complexLit)
+                    result.passes.Add(CorePasses.DepthNormalOnly(target));
+                else
+                    result.passes.Add(CorePasses.DepthNormal(target));
                 result.passes.Add(LitPasses.Meta(target));
                 result.passes.Add(LitPasses._2D(target));
+                result.passes.Add(CorePasses.SceneSelection(target));
+                result.passes.Add(CorePasses.ScenePicking(target));
 
                 return result;
             }
@@ -505,7 +527,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.Meta,
                     pragmas = CorePragmas.Default,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection(),
+                    keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
                     includes = LitIncludes.Meta,
 
                     // Custom Interpolator Support
@@ -553,13 +575,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return result;
             }
 
-            public static PassDescriptor DepthNormalOnly(UniversalTarget target)
+            public static PassDescriptor DepthNormal(UniversalTarget target)
             {
                 var result = new PassDescriptor()
                 {
                     // Definition
                     displayName = "DepthNormals",
-                    referenceName = "SHADERPASS_DEPTHNORMALSONLY",
+                    referenceName = "SHADERPASS_DEPTHNORMALS",
                     lightMode = "DepthNormals",
                     useInPreview = false,
 
@@ -569,11 +591,50 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Port Mask
                     validVertexBlocks = CoreBlockMasks.Vertex,
-                    validPixelBlocks = LitBlockMasks.FragmentDepthNormals,
+                    validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
 
                     // Fields
                     structs = CoreStructCollections.Default,
-                    requiredFields = LitRequiredFields.DepthNormals,
+                    requiredFields = CoreRequiredFields.DepthNormals,
+                    fieldDependencies = CoreFieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = CoreRenderStates.DepthNormalsOnly(target),
+                    pragmas = CorePragmas.Instanced,
+                    defines = new DefineCollection(),
+                    keywords = new KeywordCollection(),
+                    includes = CoreIncludes.DepthNormalsOnly,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
+                };
+
+                CorePasses.AddAlphaClipControlToPass(ref result, target);
+
+                return result;
+            }
+
+            public static PassDescriptor DepthNormalOnly(UniversalTarget target)
+            {
+                var result = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "DepthNormalsOnly",
+                    referenceName = "SHADERPASS_DEPTHNORMALSONLY",
+                    lightMode = "DepthNormalsOnly",
+                    useInPreview = false,
+
+                    // Template
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
+                    sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
+
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = CoreRequiredFields.DepthNormals,
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
@@ -636,15 +697,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
-
-            public static readonly BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
-            {
-                BlockFields.SurfaceDescription.NormalOS,
-                BlockFields.SurfaceDescription.NormalTS,
-                BlockFields.SurfaceDescription.NormalWS,
-                BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.AlphaClipThreshold,
-            };
         }
         #endregion
 
@@ -681,17 +733,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
 
-            public static readonly FieldCollection DepthNormals = new FieldCollection()
-            {
-                StructFields.Attributes.uv1,                            // needed for meta vertex position
-                StructFields.Varyings.normalWS,
-                StructFields.Varyings.tangentWS,                        // needed for vertex lighting
-            };
-
             public static readonly FieldCollection Meta = new FieldCollection()
             {
+                StructFields.Attributes.positionOS,
+                StructFields.Attributes.normalOS,
+                StructFields.Attributes.uv0,                            //
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
-                StructFields.Attributes.uv2,                            //needed for meta vertex position
+                StructFields.Attributes.uv2,                            // needed for meta UVs
+                StructFields.Attributes.instanceID,                     // needed for rendering instanced terrain
+                StructFields.Varyings.positionCS,
+                StructFields.Varyings.texCoord0,                        // needed for meta UVs
+                StructFields.Varyings.texCoord1,                        // VizUV
+                StructFields.Varyings.texCoord2,                        // LightCoord
             };
         }
         #endregion
@@ -732,15 +785,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 scope = KeywordScope.Local,
             };
 
-            public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
-            {
-                displayName = "GBuffer normal octahedron encoding",
-                referenceName = "_GBUFFER_NORMALS_OCT",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.MultiCompile,
-                scope = KeywordScope.Global,
-            };
-
             public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
             {
                 displayName = "Screen Space Ambient Occlusion",
@@ -764,8 +808,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
+                { CoreKeywordDescriptors.DBuffer },
                 { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.DebugDisplay },
+                { CoreKeywordDescriptors.LightCookies },
+                { CoreKeywordDescriptors.ClusteredRendering },
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
@@ -779,9 +826,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { CoreKeywordDescriptors.DBuffer },
+                { CoreKeywordDescriptors.GBufferNormalsOct },
                 { CoreKeywordDescriptors.LightLayers },
+                { CoreKeywordDescriptors.RenderPassEnabled },
                 { CoreKeywordDescriptors.DebugDisplay },
-                { GBufferNormalsOct },
             };
         }
         #endregion
@@ -803,6 +852,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
+                { CoreIncludes.DBufferPregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -815,6 +865,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
+                { CoreIncludes.DBufferPregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },

@@ -107,8 +107,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     color = "_BaseColor";
 
                 var col = material.GetColor(color);
-                col.a = material.GetFloat("_Smoothness");
-                material.SetColor(color, col);
+                float smoothness = material.GetFloat("_Smoothness");
+                if (smoothness != col.a)
+                {
+                    col.a = smoothness;
+                    material.SetColor(color, col);
+                }
             }
         }
     }

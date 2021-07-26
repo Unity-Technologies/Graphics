@@ -24,10 +24,15 @@ namespace UnityEditor.Rendering.HighDefinition
             // CAUTION: Pass Name and Lightmode name must match in master node and .shader.
             // HDRP use LightMode to do drawRenderer and pass name is use here for stripping!
 
+            var globalSettings = HDRenderPipelineGlobalSettings.Ensure();
+
             // Remove editor only pass
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
             bool isScenePickingPass = snippet.passName == "ScenePickingPass";
-            if (isSceneSelectionPass || isScenePickingPass)
+            bool metaPassUnused = (snippet.passName == "META") && (SupportedRenderingFeatures.active.enlighten == false ||
+                ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0);
+            bool editorVisualization = inputData.shaderKeywordSet.IsEnabled(m_EditorVisualization);
+            if (isSceneSelectionPass || isScenePickingPass || metaPassUnused || editorVisualization)
                 return true;
 
             // CAUTION: We can't identify transparent material in the stripped in a general way.
@@ -63,7 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // If requested by the render pipeline settings, or if we are in a release build,
             // don't compile fullscreen debug display variant
             bool isFullScreenDebugPass = snippet.passName == "FullScreenDebug";
-            if (isFullScreenDebugPass && (!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay))
+            if (isFullScreenDebugPass && (!Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay))
                 return true;
 
             // Debug Display shader is currently the longest shader to compile, so we allow users to disable it at runtime.
@@ -72,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // we allow user to make explicit request for it and it bypass other request
             if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
             {
-                if ((!Debug.isDebugBuild || !hdrpAsset.currentPlatformRenderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+                if ((!Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                     return true;
             }
 
@@ -154,6 +159,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) && !hdrpAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask)
                     return true;
+
+                // Remove the surface gradient blending if not enabled
+                if (inputData.shaderKeywordSet.IsEnabled(m_DecalSurfaceGradient) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportSurfaceGradient)
+                    return true;
             }
             else
             {
@@ -168,15 +177,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 // If no decal support, remove decal variant
                 if (inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) || inputData.shaderKeywordSet.IsEnabled(m_Decals4RT))
                     return true;
+
+                // Remove the surface gradient blending
+                if (inputData.shaderKeywordSet.IsEnabled(m_DecalSurfaceGradient))
+                    return true;
             }
 
             // Global Illumination
             if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL1) &&
-                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL1))
+                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || !globalSettings.supportProbeVolumes || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL1))
                 return true;
 
             if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL2) &&
-                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
+                (!hdrpAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || !globalSettings.supportProbeVolumes || hdrpAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
                 return true;
 
             return false;

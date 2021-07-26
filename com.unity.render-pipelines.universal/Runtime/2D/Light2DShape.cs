@@ -1,4 +1,4 @@
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class Light2D
     {
@@ -16,11 +16,33 @@ namespace UnityEngine.Experimental.Rendering.Universal
         int       m_PreviousShapePathHash                     = -1;
         LightType m_PreviousLightType                         = LightType.Parametric;
 
+        /// <summary>
+        /// The number of sides in the parametric shape.
+        /// </summary>
         public int              shapeLightParametricSides       => m_ShapeLightParametricSides;
+
+        /// <summary>
+        /// The offset of the shape from the light's origin.
+        /// </summary>
         public float            shapeLightParametricAngleOffset => m_ShapeLightParametricAngleOffset;
-        public float            shapeLightParametricRadius      => m_ShapeLightParametricRadius;
+
+        /// <summary>
+        /// The size of the shape.
+        /// </summary>
+        public float            shapeLightParametricRadius
+        {
+            get { return m_ShapeLightParametricRadius; }
+            internal set { m_ShapeLightParametricRadius = value; }
+        }
+
+        /// <summary>
+        /// The size of the fall-off area. Bigger value corresponds to bigger fall off size.
+        /// </summary>
         public float            shapeLightFalloffSize           => m_ShapeLightFalloffSize;
 
+        /// <summary>
+        /// Returns the path that represents the shape light. Values are in object space.
+        /// </summary>
         public Vector3[] shapePath
         {
             get { return m_ShapePath; }

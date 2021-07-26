@@ -37,10 +37,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty supportDecals;
         public SerializedProperty supportDecalLayers;
+        public SerializedProperty supportSurfaceGradient;
+        public SerializedProperty decalNormalBufferHP;
 
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
-        public SerializedProperty supportRuntimeDebugDisplay;
         public SerializedProperty supportRuntimeAOVAPI;
         public SerializedProperty supportDitheringCrossFade;
         public SerializedProperty supportTerrainHole;
@@ -96,9 +97,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
             supportDecalLayers              = root.Find((RenderPipelineSettings s) => s.supportDecalLayers);
+            supportSurfaceGradient          = root.Find((RenderPipelineSettings s) => s.supportSurfaceGradient);
+            decalNormalBufferHP             = root.Find((RenderPipelineSettings s) => s.decalNormalBufferHP);
             MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportMotionVectors            = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
-            supportRuntimeDebugDisplay      = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
             supportRuntimeAOVAPI            = root.Find((RenderPipelineSettings s) => s.supportRuntimeAOVAPI);
             supportDitheringCrossFade       = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
             supportTerrainHole              = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);

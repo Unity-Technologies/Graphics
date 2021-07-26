@@ -4,31 +4,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
-
-#if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
-    #define ENABLE_TERRAIN_PERPIXEL_NORMAL
-#endif
-
-#ifdef UNITY_INSTANCING_ENABLED
-    TEXTURE2D(_TerrainHeightmapTexture);
-    TEXTURE2D(_TerrainNormalmapTexture);
-    SAMPLER(sampler_TerrainNormalmapTexture);
-#endif
-
-UNITY_INSTANCING_BUFFER_START(Terrain)
-    UNITY_DEFINE_INSTANCED_PROP(float4, _TerrainPatchInstanceData)  // float4(xBase, yBase, skipScale, ~)
-UNITY_INSTANCING_BUFFER_END(Terrain)
-
-#ifdef _ALPHATEST_ON
-TEXTURE2D(_TerrainHolesTexture);
-SAMPLER(sampler_TerrainHolesTexture);
-
-void ClipHoles(float2 uv)
-{
-    float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
-    clip(hole == 0.0f ? -1 : 1);
-}
-#endif
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 
 struct Attributes
 {
@@ -75,60 +51,66 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
+void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
 {
-    input = (InputData)0;
+    inputData = (InputData)0;
 
-    input.positionWS = IN.positionWS;
+    inputData.positionWS = IN.positionWS;
+    inputData.positionCS = IN.clipPos;
 
     #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
-        input.tangentToWorld = half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz);
-        input.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
-        half3 SH = SampleSH(input.normalWS.xyz);
+        inputData.tangentToWorld = half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz);
+        inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
+        half3 SH = SampleSH(inputData.normalWS.xyz);
     #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
         float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
         half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
         half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
-        input.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
-        half3 SH = SampleSH(input.normalWS.xyz);
+        inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
+        half3 SH = SampleSH(inputData.normalWS.xyz);
     #else
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
-        input.normalWS = IN.normal;
+        inputData.normalWS = IN.normal;
         half3 SH = IN.vertexSH;
     #endif
 
-    input.normalWS = NormalizeNormalPerPixel(input.normalWS);
-    input.viewDirectionWS = viewDirWS;
+    inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
+    inputData.viewDirectionWS = viewDirWS;
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-        input.shadowCoord = IN.shadowCoord;
+        inputData.shadowCoord = IN.shadowCoord;
     #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-        input.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
+        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
     #else
-        input.shadowCoord = float4(0, 0, 0, 0);
+        inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-    input.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactorAndVertexLight.x);
-        input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
+        inputData.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactorAndVertexLight.x);
+        inputData.vertexLighting = IN.fogFactorAndVertexLight.yzw;
     #else
-    input.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactor);
+    inputData.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactor);
     #endif
 
 #if defined(DYNAMICLIGHTMAP_ON)
-    input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, SH, input.normalWS);
+    inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, SH, inputData.normalWS);
 #else
-    input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
+    inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, inputData.normalWS);
 #endif
-    input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
-    input.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
+    inputData.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
 
+    #if defined(DEBUG_DISPLAY)
+    #if defined(DYNAMICLIGHTMAP_ON)
+    inputData.dynamicLightmapUV = IN.dynamicLightmapUV;
+    #endif
     #if defined(LIGHTMAP_ON)
-    input.lightmapUV = IN.uvMainAndLM.zw;
+    inputData.staticLightmapUV = IN.uvMainAndLM.zw;
     #else
-    input.vertexSH = SH;
+    inputData.vertexSH = SH;
+    #endif
     #endif
 }
 
@@ -244,33 +226,6 @@ void SplatmapFinalColor(inout half4 color, half fogCoord)
     #endif
 
     #endif
-}
-
-void TerrainInstancing(inout float4 positionOS, inout float3 normal, inout float2 uv)
-{
-#ifdef UNITY_INSTANCING_ENABLED
-    float2 patchVertex = positionOS.xy;
-    float4 instanceData = UNITY_ACCESS_INSTANCED_PROP(Terrain, _TerrainPatchInstanceData);
-
-    float2 sampleCoords = (patchVertex.xy + instanceData.xy) * instanceData.z; // (xy + float2(xBase,yBase)) * skipScale
-    float height = UnpackHeightmap(_TerrainHeightmapTexture.Load(int3(sampleCoords, 0)));
-
-    positionOS.xz = sampleCoords * _TerrainHeightmapScale.xz;
-    positionOS.y = height * _TerrainHeightmapScale.y;
-
-    #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
-        normal = float3(0, 1, 0);
-    #else
-        normal = _TerrainNormalmapTexture.Load(int3(sampleCoords, 0)).rgb * 2 - 1;
-    #endif
-    uv = sampleCoords * _TerrainHeightmapRecipSize.zw;
-#endif
-}
-
-void TerrainInstancing(inout float4 positionOS, inout float3 normal)
-{
-    float2 uv = { 0, 0 };
-    TerrainInstancing(positionOS, normal, uv);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -422,6 +377,17 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, IN.uvMainAndLM.xy, _BaseMap);
+
+#if defined(_DBUFFER)
+    half3 specular = half3(0.0h, 0.0h, 0.0h);
+    ApplyDecal(IN.clipPos,
+        albedo,
+        specular,
+        inputData.normalWS,
+        metallic,
+        occlusion,
+        smoothness);
+#endif
 
 #ifdef TERRAIN_GBUFFER
 

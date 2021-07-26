@@ -62,10 +62,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _PrevCamPosRWS_Internal;
 #endif
         public Vector4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
+        public Vector4 _PostProcessScreenSize;      // { w, h, 1.0 / w, 1.0 / h }
 
         // Those two uniforms are specific to the RTHandle system
-        public Vector4 _RTHandleScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
-        public Vector4 _RTHandleScaleHistory; // Same as above but the RTHandle handle size is that of the history buffer
+        public Vector4 _RTHandleScale;                      // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
+        public Vector4 _RTHandleScaleHistory;               // Same as above but the RTHandle handle size is that of the history buffer
+        public Vector4 _RTHandlePostProcessScale;           // { postProcessWidth / RTHandle.maxWidth, postProcessWidth / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
+        public Vector4 _RTHandlePostProcessScaleHistory;    // Same as above but the RTHandle handle size for post process is that of the history buffer
 
         // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
         // x = 1 - f/n
@@ -125,8 +128,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _MaxFogDistance;
         public Vector4  _FogColor; // color in rgb
         public float    _FogColorMode;
-        public float    _Pad0;
-        public float    _Pad1;
+        public float    _GlobalMipBias;
+        public float    _GlobalMipBiasPow2;
         public float    _Pad2;
         public Vector4  _MipFogParameters;
         public Vector4  _HeightFogBaseScattering;
@@ -241,8 +244,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint     _EnableDecals;
         public uint     _DecalCount;
 
-        public uint _OffScreenRendering;
-        public uint _OffScreenDownsampleFactor;
+        public float _OffScreenDownsampleFactor;
+        public uint  _OffScreenRendering;
         public uint _XRViewCount;
         public int  _FrameCount;
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Rendering.Universal.Converters;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -10,12 +11,17 @@ namespace UnityEditor.Rendering.Universal
     {
         public override string name => "Material Upgrade";
         public override string info => "This will upgrade your materials.";
-        public override Type conversion => typeof(BuiltInToURPConverterContainer);
+        public override int priority => - 1000;
+        public override Type container => typeof(BuiltInToURPConverterContainer);
+
+        List<string> m_AssetsToConvert = new List<string>();
 
         private List<GUID> m_MaterialGUIDs = new();
 
         static List<MaterialUpgrader> m_Upgraders;
         private static HashSet<string> m_ShaderNamesToIgnore;
+
+        public IReadOnlyList<MaterialUpgrader> upgraders => m_Upgraders;
         static UniversalRenderPipelineMaterialUpgrader()
         {
             m_Upgraders = new List<MaterialUpgrader>();
@@ -25,7 +31,6 @@ namespace UnityEditor.Rendering.Universal
             GetShaderNamesToIgnore(ref m_ShaderNamesToIgnore);
         }
 
-        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority)]
         private static void UpgradeProjectMaterials()
         {
             m_Upgraders = new List<MaterialUpgrader>();
@@ -35,9 +40,10 @@ namespace UnityEditor.Rendering.Universal
             GetShaderNamesToIgnore(ref m_ShaderNamesToIgnore);
 
             MaterialUpgrader.UpgradeProjectFolder(m_Upgraders, m_ShaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
+            // TODO: return upgrade paths and pass to AnimationClipUpgrader
+            AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(m_Upgraders, "Upgrade Animation Clips to URP Materials");
         }
 
-        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 1)]
         private static void UpgradeSelectedMaterials()
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
@@ -47,6 +53,8 @@ namespace UnityEditor.Rendering.Universal
             GetShaderNamesToIgnore(ref shaderNamesToIgnore);
 
             MaterialUpgrader.UpgradeSelection(upgraders, shaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
+            // TODO: return upgrade paths and pass to AnimationClipUpgrader
+            AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(upgraders, "Upgrade Animation Clips to URP Materials");
         }
 
         private static void GetShaderNamesToIgnore(ref HashSet<string> shadersToIgnore)
@@ -195,7 +203,7 @@ namespace UnityEditor.Rendering.Universal
             return !shaderNamesToIgnore.Contains(material.shader.name);
         }
 
-        public override void OnInitialize(InitializeConverterContext context)
+        public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
             foreach (string path in AssetDatabase.GetAllAssetPaths())
             {
@@ -209,6 +217,8 @@ namespace UnityEditor.Rendering.Universal
                     GUID guid = AssetDatabase.GUIDFromAssetPath(path);
                     m_MaterialGUIDs.Add(guid);
 
+                    m_AssetsToConvert.Add(path);
+
                     ConverterItemDescriptor desc = new ConverterItemDescriptor()
                     {
                         name = m.name,
@@ -220,6 +230,7 @@ namespace UnityEditor.Rendering.Universal
                     context.AddAssetToConvert(desc);
                 }
             }
+            callback.Invoke();
         }
 
         public override void OnRun(ref RunItemContext context)
@@ -233,8 +244,12 @@ namespace UnityEditor.Rendering.Universal
                 context.info = message;
             }
         }
-    }
 
+        public override void OnClicked(int index)
+        {
+            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Material>(m_AssetsToConvert[index]));
+        }
+    }
 
     public static class SupportedUpgradeParams
     {

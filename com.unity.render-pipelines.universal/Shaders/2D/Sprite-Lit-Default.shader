@@ -18,7 +18,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
     {
         Tags {"Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
 
-        Blend SrcAlpha OneMinusSrcAlpha
+        Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
         Cull Off
         ZWrite Off
 
@@ -93,7 +93,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.positionWS = TransformObjectToWorld(v.positionOS);
                 #endif
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                o.lightingUV = ComputeScreenPos(o.positionCS);
+                o.lightingUV = half2(ComputeScreenPos(o.positionCS / o.positionCS.w).xy);
 
                 o.color = v.color;
                 return o;

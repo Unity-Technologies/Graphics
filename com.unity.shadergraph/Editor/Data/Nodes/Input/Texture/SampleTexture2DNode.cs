@@ -33,6 +33,9 @@ namespace UnityEditor.ShaderGraph
         const string kTextureInputName = "Texture";
         const string kUVInputName = "UV";
         const string kSamplerInputName = "Sampler";
+        const string kDefaultSampleMacro = "SAMPLE_TEXTURE2D";
+        const string kSampleMacroNoBias  = "PLATFORM_SAMPLE_TEXTURE2D";
+
 
         public override bool hasPreview { get { return true; } }
 
@@ -78,6 +81,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        private bool m_EnableGlobalMipBias = true;
+        internal bool enableGlobalMipBias
+        {
+            set { m_EnableGlobalMipBias = value; }
+            get { return m_EnableGlobalMipBias; }
+        }
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector4MaterialSlot(OutputSlotRGBAId, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
@@ -108,8 +119,9 @@ namespace UnityEditor.ShaderGraph
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
             var id = GetSlotValue(TextureInputId, generationMode);
-            var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE2D({1}.tex, {2}.samplerstate, {3});"
+            var result = string.Format("$precision4 {0} = {1}({2}.tex, {3}.samplerstate, {2}.GetTransformedUV({4}));"
                 , GetVariableNameForSlot(OutputSlotRGBAId)
+                , m_EnableGlobalMipBias ? kDefaultSampleMacro : kSampleMacroNoBias
                 , id
                 , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id
                 , uvName);
@@ -129,6 +141,8 @@ namespace UnityEditor.ShaderGraph
             }
 
             sb.AppendLine(string.Format("$precision {0} = {1}.r;", GetVariableNameForSlot(OutputSlotRId), GetVariableNameForSlot(OutputSlotRGBAId)));
+
+
             sb.AppendLine(string.Format("$precision {0} = {1}.g;", GetVariableNameForSlot(OutputSlotGId), GetVariableNameForSlot(OutputSlotRGBAId)));
             sb.AppendLine(string.Format("$precision {0} = {1}.b;", GetVariableNameForSlot(OutputSlotBId), GetVariableNameForSlot(OutputSlotRGBAId)));
             sb.AppendLine(string.Format("$precision {0} = {1}.a;", GetVariableNameForSlot(OutputSlotAId), GetVariableNameForSlot(OutputSlotRGBAId)));

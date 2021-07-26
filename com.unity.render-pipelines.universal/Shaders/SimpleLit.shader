@@ -85,7 +85,10 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile _ _CLUSTERED_RENDERING
 
             // -------------------------------------
             // Unity defined keywords
@@ -93,7 +96,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
-            #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
             //--------------------------------------
             // GPU Instancing
@@ -179,6 +182,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
 
             // -------------------------------------
@@ -187,6 +191,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 
             //--------------------------------------
             // GPU Instancing
@@ -280,6 +285,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMetaSimple
+            #pragma shader_feature EDITOR_VISUALIZATION
 
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
@@ -351,6 +357,8 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile _ _CLUSTERED_RENDERING
 
 
             // -------------------------------------
@@ -359,7 +367,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
-            #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
             #pragma vertex LitPassVertexSimple
             #pragma fragment LitPassFragmentSimple
@@ -476,6 +484,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _SPECGLOSSMAP
+            #pragma shader_feature EDITOR_VISUALIZATION
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitMetaPass.hlsl"

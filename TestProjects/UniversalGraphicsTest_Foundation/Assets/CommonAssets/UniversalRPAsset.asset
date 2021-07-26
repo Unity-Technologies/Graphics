@@ -29,11 +29,22 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 90dbc806728374698a956debefdf11a2, type: 2}
   - {fileID: 11400000, guid: 590f3c2dabc9147698f7027e50b2ecd6, type: 2}
   - {fileID: 11400000, guid: 33768f1904a5640658411475990e6a10, type: 2}
+  - {fileID: 11400000, guid: 5f97406b61886ac45a3d5fe7e5c352bc, type: 2}
+  - {fileID: 11400000, guid: 167f2480a006ef14f903dc65eb5b474d, type: 2}
+  - {fileID: 11400000, guid: adbdcedb560f6cf4085b03ba7218e899, type: 2}
+  - {fileID: 11400000, guid: 73e47dc1b5a4ddd4e9b3738a03fe9525, type: 2}
+  - {fileID: 11400000, guid: 9a26b2a5c669cc1409605b459d1696ea, type: 2}
+  - {fileID: 11400000, guid: 44c1717b6468947409aaeb8bec9b287c, type: 2}
+  - {fileID: 11400000, guid: ca5f242d5388d4263931bab3bc614312, type: 2}
+  - {fileID: 11400000, guid: 2db0ce930f34f41c3b2aad53e6336a24, type: 2}
+  - {fileID: 11400000, guid: da4df2f1951704ee7aa560ed78d91c24, type: 2}
+  - {fileID: 11400000, guid: efad480a4aa014a0fa578c4c317c3690, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
   m_OpaqueDownsampling: 1
   m_SupportsTerrainHoles: 1
+  m_StoreActionsOptimization: 0
   m_SupportsHDR: 1
   m_MSAA: 4
   m_RenderScale: 1
@@ -58,9 +69,12 @@ MonoBehaviour:
   m_ShadowDepthBias: 1
   m_ShadowNormalBias: 1
   m_SoftShadowsSupported: 1
+  m_AdditionalLightsCookieResolution: 2048
+  m_AdditionalLightsCookieFormat: 3
   m_UseSRPBatcher: 1
   m_SupportsDynamicBatching: 0
   m_MixedLightingSupported: 0
+  m_SupportsLightLayers: 0
   m_DebugLevel: 0
   m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 0
@@ -72,4 +86,5 @@ MonoBehaviour:
   m_MaxPixelLights: 4
   m_ShadowAtlasResolution: 2048
   m_ShaderVariantLogLevel: 0
+  m_VolumeFrameworkUpdateMode: 0
   m_ShadowCascades: 3

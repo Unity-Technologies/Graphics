@@ -4,12 +4,15 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.InputSystem.EnhancedTouch;
 #endif
+using System.Collections;
 using UnityEngine.EventSystems;
 
 namespace UnityEngine.Rendering
 {
     class DebugUpdater : MonoBehaviour
     {
+        ScreenOrientation m_Orientation;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void RuntimeInit()
         {
@@ -17,7 +20,7 @@ namespace UnityEngine.Rendering
                 return;
 
             var go = new GameObject { name = "[Debug Updater]" };
-            go.AddComponent<DebugUpdater>();
+            var debugUpdater = go.AddComponent<DebugUpdater>();
 
             var es = GameObject.FindObjectOfType<EventSystem>();
             if (es == null)
@@ -28,13 +31,43 @@ namespace UnityEngine.Rendering
                 // component is initialized while the GameObject is active. So we deactivate it temporarily.
                 // See https://fogbugz.unity3d.com/f/cases/1323566/
                 go.SetActive(false);
-                go.AddComponent<InputSystemUIInputModule>();
+                var uiModule = go.AddComponent<InputSystemUIInputModule>();
+
+                // FIXME: In order to activate default input actions in player builds (required for touch input to work),
+                // we need to call InputSystemUIInputModule.AssignDefaultActions() which was added in com.unity.inputsystem@1.1.0-pre.5.
+                // However, there is a problem in InputSystem package version ordering, where it sorts this version as an
+                // older version than it should be. Hence we cannot write a version define to conditionally compile this function call.
+                // Instead, we use reflection to see if the function is there and can be invoked.
+                //
+                // Once com.unity.inputsystem@1.1.0 is available, create an INPUTSYSTEM_1_1_0_OR_GREATER version define and use it
+                // to conditionally call AssignDefaultActions().
+                System.Reflection.MethodInfo assignDefaultActionsMethod = uiModule.GetType().GetMethod("AssignDefaultActions");
+                if (assignDefaultActionsMethod != null)
+                {
+                    assignDefaultActionsMethod.Invoke(uiModule, null);
+                }
+
                 go.SetActive(true);
-                EnhancedTouchSupport.Enable();
 #else
                 go.AddComponent<StandaloneInputModule>();
 #endif
             }
+            else
+            {
+#if USE_INPUT_SYSTEM
+                if (es.GetComponent<InputSystemUIInputModule>() == null)
+                    Debug.LogWarning("Found a game object with EventSystem component but no corresponding InputSystemUIInputModule component - Debug UI input may not work correctly.");
+#else
+                if (es.GetComponent<StandaloneInputModule>() == null)
+                    Debug.LogWarning("Found a game object with EventSystem component but no corresponding StandaloneInputModule component - Debug UI input may not work correctly.");
+#endif
+            }
+
+#if USE_INPUT_SYSTEM
+            EnhancedTouchSupport.Enable();
+#endif
+            debugUpdater.m_Orientation = Screen.orientation;
+
             DontDestroyOnLoad(go);
         }
 
@@ -50,10 +83,26 @@ namespace UnityEngine.Rendering
                 debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
             }
 
-            if (debugManager.displayRuntimeUI && debugManager.GetAction(DebugAction.ResetAll) != 0.0f)
+            if (debugManager.displayRuntimeUI)
             {
-                debugManager.Reset();
+                if (debugManager.GetAction(DebugAction.ResetAll) != 0.0f)
+                    debugManager.Reset();
+
+                if (debugManager.GetActionReleaseScrollTarget())
+                    debugManager.SetScrollTarget(null); // Allow mouse wheel scroll without causing auto-scroll
             }
+
+            if (m_Orientation != Screen.orientation)
+            {
+                StartCoroutine(RefreshRuntimeUINextFrame());
+                m_Orientation = Screen.orientation;
+            }
+        }
+
+        static IEnumerator RefreshRuntimeUINextFrame()
+        {
+            yield return null; // Defer runtime UI refresh to next frame to allow canvas to update first.
+            DebugManager.instance.ReDrawOnScreenDebug();
         }
     }
 }

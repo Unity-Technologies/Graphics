@@ -29,6 +29,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 90dbc806728374698a956debefdf11a2, type: 2}
   - {fileID: 11400000, guid: 590f3c2dabc9147698f7027e50b2ecd6, type: 2}
   - {fileID: 11400000, guid: 33768f1904a5640658411475990e6a10, type: 2}
+  - {fileID: 11400000, guid: 5f97406b61886ac45a3d5fe7e5c352bc, type: 2}
+  - {fileID: 11400000, guid: 167f2480a006ef14f903dc65eb5b474d, type: 2}
+  - {fileID: 11400000, guid: adbdcedb560f6cf4085b03ba7218e899, type: 2}
+  - {fileID: 11400000, guid: 73e47dc1b5a4ddd4e9b3738a03fe9525, type: 2}
+  - {fileID: 11400000, guid: 9a26b2a5c669cc1409605b459d1696ea, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 0
   m_RequireOpaqueTexture: 0

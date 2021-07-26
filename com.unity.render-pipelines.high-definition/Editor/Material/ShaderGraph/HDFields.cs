@@ -5,6 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition
     static class HDFields
     {
         #region Tags
+        public const string kFeatures = "features";
         public const string kMaterial = "Material";
         public const string kDots = "Dots";
         public const string kSpecular = "Specular";
@@ -63,6 +64,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor RayTracing =              new FieldDescriptor(string.Empty, "RayTracing", string.Empty);
         public static FieldDescriptor Unlit =                   new FieldDescriptor(string.Empty, "Unlit", string.Empty);
         public static FieldDescriptor EmissionOverriden =       new FieldDescriptor(string.Empty, "EmissionOverriden", string.Empty);
+
+        // Tessellation
+        public static FieldDescriptor TessellationFactor =      new FieldDescriptor(string.Empty, "TessellationFactor", "_TESSELLATION_FACTOR 1");
+        public static FieldDescriptor TessellationDisplacement = new FieldDescriptor(string.Empty, "TessellationDisplacement", "_TESSELLATION_DISPLACEMENT 1");
+        public static FieldDescriptor GraphTessellation =       new FieldDescriptor(kFeatures, "graphTessellation", "FEATURES_GRAPH_TESSELLATION");
+
         #endregion
     }
 }

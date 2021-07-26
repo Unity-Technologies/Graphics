@@ -1,14 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEditor.AnimatedValues;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -18,81 +14,26 @@ namespace UnityEditor.Rendering.Universal
     [CanEditMultipleObjects]
     class UniversalRenderPipelineCameraEditor : CameraEditor
     {
-        internal enum BackgroundType
-        {
-            Skybox = 0,
-            SolidColor,
-            DontCare,
-        }
-
         ReorderableList m_LayerList;
 
-        public Camera camera { get { return target as Camera; } }
-        static List<Camera> k_Cameras;
+        public Camera camera => target as Camera;
 
         List<Camera> validCameras = new List<Camera>();
         List<Camera> m_TypeErrorCameras = new List<Camera>();
         List<Camera> m_OutputWarningCameras = new List<Camera>();
-        Texture2D m_ErrorIcon;
-        Texture2D m_WarningIcon;
-
-        // Temporary saved bools for foldout header
-        SavedBool m_CommonCameraSettingsFoldout;
-        SavedBool m_EnvironmentSettingsFoldout;
-        SavedBool m_OutputSettingsFoldout;
-        SavedBool m_RenderingSettingsFoldout;
-        SavedBool m_StackSettingsFoldout;
-
-        // Animation Properties
-        public bool isSameClearFlags { get { return !settings.clearFlags.hasMultipleDifferentValues; } }
-        public bool isSameOrthographic { get { return !settings.orthographic.hasMultipleDifferentValues; } }
-
-        readonly AnimBool m_ShowBGColorAnim = new AnimBool();
-        readonly AnimBool m_ShowOrthoAnim = new AnimBool();
-        readonly AnimBool m_ShowTargetEyeAnim = new AnimBool();
 
         UniversalRenderPipelineSerializedCamera m_SerializedCamera;
-
-        void SetAnimationTarget(AnimBool anim, bool initialize, bool targetValue)
-        {
-            if (initialize)
-            {
-                anim.value = targetValue;
-                anim.valueChanged.AddListener(Repaint);
-            }
-            else
-            {
-                anim.target = targetValue;
-            }
-        }
-
-        void UpdateAnimationValues(bool initialize)
-        {
-            SetAnimationTarget(m_ShowBGColorAnim, initialize, isSameClearFlags && (camera.clearFlags == CameraClearFlags.SolidColor || camera.clearFlags == CameraClearFlags.Skybox));
-            SetAnimationTarget(m_ShowOrthoAnim, initialize, isSameOrthographic && camera.orthographic);
-            SetAnimationTarget(m_ShowTargetEyeAnim, initialize, settings.targetEye.intValue != (int)StereoTargetEyeMask.Both);
-        }
 
         public new void OnEnable()
         {
             base.OnEnable();
             settings.OnEnable();
 
-            m_SerializedCamera = new UniversalRenderPipelineSerializedCamera(serializedObject);
+            m_SerializedCamera = new UniversalRenderPipelineSerializedCamera(serializedObject, settings);
 
-            m_CommonCameraSettingsFoldout = new SavedBool($"{target.GetType()}.CommonCameraSettingsFoldout", false);
-            m_EnvironmentSettingsFoldout = new SavedBool($"{target.GetType()}.EnvironmentSettingsFoldout", false);
-            m_OutputSettingsFoldout = new SavedBool($"{target.GetType()}.OutputSettingsFoldout", false);
-            m_RenderingSettingsFoldout = new SavedBool($"{target.GetType()}.RenderingSettingsFoldout", false);
-            m_StackSettingsFoldout = new SavedBool($"{target.GetType()}.StackSettingsFoldout", false);
-
-            m_ErrorIcon = LoadConsoleIcon(true);
-            m_WarningIcon = LoadConsoleIcon(false);
             validCameras.Clear();
             m_TypeErrorCameras.Clear();
             m_OutputWarningCameras.Clear();
-
-            UpdateAnimationValues(true);
 
             UpdateCameras();
         }
@@ -184,12 +125,12 @@ namespace UnityEditor.Rendering.Universal
 
                 GUIContent nameContent =
                     outputWarning ?
-                    EditorGUIUtility.TrTextContent(cam.name, "Output properties do not match base camera", m_WarningIcon) :
+                    EditorGUIUtility.TrTextContent(cam.name, "Output properties do not match base camera", CoreEditorStyles.iconWarn) :
                     EditorGUIUtility.TrTextContent(cam.name);
 
                 GUIContent typeContent =
                     typeError ?
-                    EditorGUIUtility.TrTextContent(type.GetName(), "Not a supported type", m_ErrorIcon) :
+                    EditorGUIUtility.TrTextContent(type.GetName(), "Not a supported type", CoreEditorStyles.iconFail) :
                     EditorGUIUtility.TrTextContent(type.GetName());
 
                 EditorGUI.BeginProperty(rect, GUIContent.none, m_SerializedCamera.cameras.GetArrayElementAtIndex(index));
@@ -316,24 +257,6 @@ namespace UnityEditor.Rendering.Universal
         public new void OnDisable()
         {
             base.OnDisable();
-            m_ShowBGColorAnim.valueChanged.RemoveListener(Repaint);
-            m_ShowOrthoAnim.valueChanged.RemoveListener(Repaint);
-            m_ShowTargetEyeAnim.valueChanged.RemoveListener(Repaint);
-        }
-
-        BackgroundType GetBackgroundType(CameraClearFlags clearFlags)
-        {
-            switch (clearFlags)
-            {
-                case CameraClearFlags.Skybox:
-                    return BackgroundType.Skybox;
-                case CameraClearFlags.Nothing:
-                    return BackgroundType.DontCare;
-
-                // DepthOnly is not supported by design in UniversalRP. We upgrade it to SolidColor
-                default:
-                    return BackgroundType.SolidColor;
-            }
         }
 
         public override void OnInspectorGUI()
@@ -346,40 +269,13 @@ namespace UnityEditor.Rendering.Universal
             }
 
             m_SerializedCamera.Update();
-            UpdateAnimationValues(false);
 
-            // Get the type of Camera we are using
-            CameraRenderType camType = DrawCameraType();
+            UniversalRenderPipelineCameraUI.Inspector.Draw(m_SerializedCamera, this);
 
-            EditorGUILayout.Space();
-            // If we have different cameras selected that are of different types we do not allow multi editing and we do not draw any more UI.
-            if (m_SerializedCamera.cameraType.hasMultipleDifferentValues)
-            {
-                EditorGUILayout.HelpBox("Cannot multi edit cameras of different types.", MessageType.Info);
-                return;
-            }
-
-            EditorGUI.indentLevel++;
-
-            DrawCommonSettings();
-            DrawRenderingSettings(camType, rpAsset);
-            DrawEnvironmentSettings(camType);
-
-            if (camType == CameraRenderType.Base)
-            {
-                // Settings only relevant to base cameras
-                EditorGUI.BeginChangeCheck();
-                DrawOutputSettings(rpAsset);
-                if (EditorGUI.EndChangeCheck())
-                    UpdateStackCamerasOutput();
-                DrawStackSettings();
-            }
-
-            EditorGUI.indentLevel--;
             m_SerializedCamera.Apply();
         }
 
-        private void UpdateStackCemerasToOverlay()
+        private void UpdateStackCamerasToOverlay()
         {
             int cameraCount = m_SerializedCamera.cameras.arraySize;
             for (int i = 0; i < cameraCount; ++i)
@@ -537,35 +433,8 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        void DrawCommonSettings()
+        internal void DrawStackSettings()
         {
-            m_CommonCameraSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_CommonCameraSettingsFoldout.value, Styles.projectionSettingsText);
-            if (m_CommonCameraSettingsFoldout.value)
-            {
-                UnityEngine.Experimental.Rendering.Universal.PixelPerfectCamera pixelPerfectCamera;
-                camera.TryGetComponent<UnityEngine.Experimental.Rendering.Universal.PixelPerfectCamera>(out pixelPerfectCamera);
-                bool pixelPerfectEnabled = pixelPerfectCamera != null && pixelPerfectCamera.enabled;
-
-                if (pixelPerfectEnabled)
-                {
-                    EditorGUILayout.HelpBox(Styles.pixelPerfectInfo, MessageType.Info);
-                    EditorGUI.BeginDisabledGroup(true);
-                    settings.DrawProjection();
-                    EditorGUI.EndDisabledGroup();
-                }
-                else
-                    settings.DrawProjection();
-
-                settings.DrawClippingPlanes();
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
-        }
-
-        void DrawStackSettings()
-        {
-            m_StackSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_StackSettingsFoldout.value, Styles.stackSettingsText);
             if (m_SerializedCamera.cameras.hasMultipleDifferentValues)
             {
                 EditorGUILayout.HelpBox("Cannot multi edit stack of multiple cameras.", MessageType.Info);
@@ -583,513 +452,40 @@ namespace UnityEditor.Rendering.Universal
                 return;
             }
 
-            if (m_StackSettingsFoldout.value)
+            EditorGUILayout.Space();
+
+            m_LayerList.DoLayoutList();
+            m_SerializedCamera.Apply();
+
+            EditorGUI.indentLevel--;
+            if (m_TypeErrorCameras.Any())
             {
-                m_LayerList.DoLayoutList();
-                m_SerializedCamera.Apply();
-
-                EditorGUI.indentLevel--;
-                if (m_TypeErrorCameras.Any())
+                var message = new StringBuilder();
+                message.Append("The type of the following Cameras must be Overlay render type: ");
+                foreach (var cam in m_TypeErrorCameras)
                 {
-                    var message = new StringBuilder();
-                    message.Append("The type of the following Cameras must be Overlay render type: ");
-                    foreach (var camera in m_TypeErrorCameras)
-                    {
-                        message.Append(camera.name);
-                        if (camera != m_TypeErrorCameras.Last())
-                            message.Append(", ");
-                        else
-                            message.Append(".");
-                    }
-
-                    CoreEditorUtils.DrawFixMeBox(message.ToString(), MessageType.Error, () => UpdateStackCemerasToOverlay());
+                    message.Append(cam.name);
+                    message.Append(cam != m_TypeErrorCameras.Last() ? ", " : ".");
                 }
 
-                if (m_OutputWarningCameras.Any())
-                {
-                    var message = new StringBuilder();
-                    message.Append("The output properties of this Camera do not match the output properties of the following Cameras: ");
-                    foreach (var camera in m_OutputWarningCameras)
-                    {
-                        message.Append(camera.name);
-                        if (camera != m_OutputWarningCameras.Last())
-                            message.Append(", ");
-                        else
-                            message.Append(".");
-                    }
-
-                    CoreEditorUtils.DrawFixMeBox(message.ToString(), MessageType.Warning, () => UpdateStackCamerasOutput());
-                }
-                EditorGUI.indentLevel++;
-
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
+                CoreEditorUtils.DrawFixMeBox(message.ToString(), MessageType.Error, UpdateStackCamerasToOverlay);
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
-        }
 
-        void DrawEnvironmentSettings(CameraRenderType camType)
-        {
-            m_EnvironmentSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_EnvironmentSettingsFoldout.value, Styles.environmentSettingsText);
-            if (m_EnvironmentSettingsFoldout.value)
+            if (m_OutputWarningCameras.Any())
             {
-                if (camType == CameraRenderType.Base)
+                var message = new StringBuilder();
+                message.Append("The output properties of this Camera do not match the output properties of the following Cameras: ");
+                foreach (var cam in m_OutputWarningCameras)
                 {
-                    DrawClearFlags();
-                    if (!settings.clearFlags.hasMultipleDifferentValues)
-                    {
-                        if (GetBackgroundType((CameraClearFlags)settings.clearFlags.intValue) == BackgroundType.SolidColor)
-                        {
-                            using (var group = new EditorGUILayout.FadeGroupScope(m_ShowBGColorAnim.faded))
-                            {
-                                if (group.visible)
-                                {
-                                    settings.DrawBackgroundColor();
-                                }
-                            }
-                        }
-                    }
-                }
-                DrawVolumes();
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
-        }
-
-        void DrawRenderingSettings(CameraRenderType camType, UniversalRenderPipelineAsset rpAsset)
-        {
-            m_RenderingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_RenderingSettingsFoldout.value, Styles.renderingSettingsText);
-            if (m_RenderingSettingsFoldout.value)
-            {
-                DrawRenderer(rpAsset);
-
-                if (camType == CameraRenderType.Base)
-                {
-                    DrawPostProcessing(rpAsset);
-                }
-                else if (camType == CameraRenderType.Overlay)
-                {
-                    DrawPostProcessingOverlay(rpAsset);
-                    EditorGUILayout.PropertyField(m_SerializedCamera.clearDepth, Styles.clearDepth);
-                    m_SerializedCamera.Apply();
+                    message.Append(cam.name);
+                    message.Append(cam != m_OutputWarningCameras.Last() ? ", " : ".");
                 }
 
-                DrawRenderShadows();
-
-                if (camType == CameraRenderType.Base)
-                {
-                    DrawPriority();
-                    DrawOpaqueTexture();
-                    DrawDepthTexture();
-                }
-
-                settings.DrawCullingMask();
-                settings.DrawOcclusionCulling();
-
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
+                CoreEditorUtils.DrawFixMeBox(message.ToString(), MessageType.Warning, () => UpdateStackCamerasOutput());
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
-        }
+            EditorGUI.indentLevel++;
 
-        private bool IsAnyRendererHasPostProcessingEnabled(UniversalRenderPipelineAsset rpAsset)
-        {
-            int selectedRendererOption = m_SerializedCamera.renderer.intValue;
-
-            if (selectedRendererOption < -1 || selectedRendererOption > rpAsset.m_RendererDataList.Length || m_SerializedCamera.renderer.hasMultipleDifferentValues)
-                return false;
-
-            var rendererData = selectedRendererOption == -1 ? rpAsset.m_RendererData : rpAsset.m_RendererDataList[selectedRendererOption];
-
-            var fowardRendererData = rendererData as UniversalRendererData;
-            if (fowardRendererData != null && fowardRendererData.postProcessData == null)
-                return true;
-
-            var fenderer2DData = rendererData as UnityEngine.Experimental.Rendering.Universal.Renderer2DData;
-            if (fenderer2DData != null && fenderer2DData.postProcessData == null)
-                return true;
-
-            return false;
-        }
-
-        private static Texture2D LoadConsoleIcon(bool isError)
-        {
-            string pathToIcon = "icons/";
-
-            // Handle different skin
-            if (EditorGUIUtility.isProSkin)
-                pathToIcon += "d_";
-
-            // Handle different icon
-            if (isError)
-                pathToIcon += "console.erroricon";
-            else
-                pathToIcon += "console.warnicon";
-
-            // Handle different resolution
-            if (EditorGUIUtility.pixelsPerPoint > 1.0f)
-            {
-                pathToIcon += "@2x";
-            }
-
-            pathToIcon += ".png";
-
-            Texture2D icon = EditorGUIUtility.Load(pathToIcon) as Texture2D;
-
-            return icon;
-        }
-
-        void DrawPostProcessingOverlay(UniversalRenderPipelineAsset rpAsset)
-        {
-            bool isPostProcessingEnabled = IsAnyRendererHasPostProcessingEnabled(rpAsset) && m_SerializedCamera.renderPostProcessing.boolValue;
-
-            EditorGUILayout.PropertyField(m_SerializedCamera.renderPostProcessing, Styles.renderPostProcessing);
-
-            if (isPostProcessingEnabled)
-                EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
-        }
-
-        void DrawOutputSettings(UniversalRenderPipelineAsset rpAsset)
-        {
-            m_OutputSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_OutputSettingsFoldout.value, Styles.outputSettingsText);
-            if (m_OutputSettingsFoldout.value)
-            {
-                DrawTargetTexture(rpAsset);
-
-                if (camera.targetTexture == null)
-                {
-                    DrawHDR();
-                    DrawMSAA();
-                    settings.DrawNormalizedViewPort();
-                    settings.DrawDynamicResolution();
-                    settings.DrawMultiDisplay();
-                }
-                else
-                {
-                    settings.DrawNormalizedViewPort();
-                }
-#if ENABLE_VR && ENABLE_XR_MODULE
-                DrawXRRendering();
-#endif
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
-        }
-
-        CameraRenderType DrawCameraType()
-        {
-            int selectedRenderer = m_SerializedCamera.renderer.intValue;
-            ScriptableRenderer scriptableRenderer = UniversalRenderPipeline.asset.GetRenderer(selectedRenderer);
-            UniversalRenderer renderer = scriptableRenderer as UniversalRenderer;
-            bool isDeferred = renderer != null ? renderer.renderingMode == RenderingMode.Deferred : false;
-
-            EditorGUI.BeginChangeCheck();
-
-            //EditorGUILayout.PropertyField(m_AdditionalCameraDataCameraTypeProp, Styles.cameraType);
-
-            CameraRenderType originalCamType = (CameraRenderType)m_SerializedCamera.cameraType.intValue;
-            CameraRenderType camType = (originalCamType != CameraRenderType.Base && isDeferred) ? CameraRenderType.Base : originalCamType;
-
-            camType = (CameraRenderType)EditorGUILayout.EnumPopup(
-                Styles.cameraType,
-                camType,
-                e =>
-                {
-                    return isDeferred ? (CameraRenderType)e != CameraRenderType.Overlay : true;
-                },
-                false
-            );
-
-            if (EditorGUI.EndChangeCheck() || camType != originalCamType)
-            {
-                m_SerializedCamera.cameraType.intValue = (int)camType;
-                UpdateCameras();
-            }
-
-            return camType;
-        }
-
-        void DrawClearFlags()
-        {
-            // Converts between ClearFlags and Background Type.
-            BackgroundType backgroundType = GetBackgroundType((CameraClearFlags)settings.clearFlags.intValue);
-            EditorGUI.showMixedValue = settings.clearFlags.hasMultipleDifferentValues;
-
-            EditorGUI.BeginChangeCheck();
-            Rect controlRect = EditorGUILayout.GetControlRect(true);
-            EditorGUI.BeginProperty(controlRect, Styles.backgroundType, settings.clearFlags);
-
-            BackgroundType selectedType = (BackgroundType)EditorGUI.IntPopup(controlRect, Styles.backgroundType, (int)backgroundType,
-                Styles.cameraBackgroundType, Styles.cameraBackgroundValues);
-            EditorGUI.EndProperty();
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                CameraClearFlags selectedClearFlags;
-                switch (selectedType)
-                {
-                    case BackgroundType.Skybox:
-                        selectedClearFlags = CameraClearFlags.Skybox;
-                        break;
-
-                    case BackgroundType.DontCare:
-                        selectedClearFlags = CameraClearFlags.Nothing;
-                        break;
-
-                    default:
-                        selectedClearFlags = CameraClearFlags.SolidColor;
-                        break;
-                }
-
-                settings.clearFlags.intValue = (int)selectedClearFlags;
-            }
-        }
-
-        void DrawPriority()
-        {
-            EditorGUILayout.PropertyField(settings.depth, Styles.priority);
-        }
-
-        void DrawHDR()
-        {
-            Rect controlRect = EditorGUILayout.GetControlRect(true);
-            EditorGUI.BeginProperty(controlRect, Styles.allowHDR, settings.HDR);
-            int selectedValue = !settings.HDR.boolValue ? 0 : 1;
-            settings.HDR.boolValue = EditorGUI.IntPopup(controlRect, Styles.allowHDR, selectedValue, Styles.displayedCameraOptions, Styles.cameraOptions) == 1;
-            EditorGUI.EndProperty();
-        }
-
-        void DrawMSAA()
-        {
-            Rect controlRect = EditorGUILayout.GetControlRect(true);
-            EditorGUI.BeginProperty(controlRect, Styles.allowMSAA, settings.allowMSAA);
-            int selectedValue = !settings.allowMSAA.boolValue ? 0 : 1;
-            settings.allowMSAA.boolValue = EditorGUI.IntPopup(controlRect, Styles.allowMSAA, selectedValue, Styles.displayedCameraOptions, Styles.cameraOptions) == 1;
-            EditorGUI.EndProperty();
-        }
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-        void DrawXRRendering()
-        {
-            Rect controlRect = EditorGUILayout.GetControlRect(true);
-            EditorGUI.BeginProperty(controlRect, Styles.xrTargetEye, m_SerializedCamera.allowXRRendering);
-            int selectedValue = !m_SerializedCamera.allowXRRendering.boolValue ? 0 : 1;
-            m_SerializedCamera.allowXRRendering.boolValue = EditorGUI.IntPopup(controlRect, Styles.xrTargetEye, selectedValue, Styles.xrTargetEyeOptions, Styles.xrTargetEyeValues) == 1;
-            EditorGUI.EndProperty();
-        }
-
-#endif
-
-        void DrawTargetTexture(UniversalRenderPipelineAsset rpAsset)
-        {
-            EditorGUILayout.PropertyField(settings.targetTexture, Styles.targetTextureLabel);
-
-            if (!settings.targetTexture.hasMultipleDifferentValues && rpAsset != null)
-            {
-                var texture = settings.targetTexture.objectReferenceValue as RenderTexture;
-                int pipelineSamplesCount = rpAsset.msaaSampleCount;
-
-                if (texture && texture.antiAliasing > pipelineSamplesCount)
-                {
-                    string pipelineMSAACaps = (pipelineSamplesCount > 1)
-                        ? String.Format("is set to support {0}x", pipelineSamplesCount)
-                        : "has MSAA disabled";
-                    EditorGUILayout.HelpBox(String.Format("Camera target texture requires {0}x MSAA. Universal pipeline {1}.", texture.antiAliasing, pipelineMSAACaps),
-                        MessageType.Warning, true);
-                }
-            }
-        }
-
-        void DrawVolumes()
-        {
-            bool hasChanged = false;
-            LayerMask selectedVolumeLayerMask;
-            Transform selectedVolumeTrigger;
-            if (m_SerializedCamera == null)
-            {
-                selectedVolumeLayerMask = 1; // "Default"
-                selectedVolumeTrigger = null;
-            }
-            else
-            {
-                selectedVolumeLayerMask = m_SerializedCamera.volumeLayerMask.intValue;
-                selectedVolumeTrigger = (Transform)m_SerializedCamera.volumeTrigger.objectReferenceValue;
-            }
-
-            hasChanged |= DrawLayerMask(m_SerializedCamera.volumeLayerMask, ref selectedVolumeLayerMask, Styles.volumeLayerMask);
-            hasChanged |= DrawObjectField(m_SerializedCamera.volumeTrigger, ref selectedVolumeTrigger, Styles.volumeTrigger);
-
-            if (hasChanged)
-            {
-                m_SerializedCamera.volumeLayerMask.intValue = selectedVolumeLayerMask;
-                m_SerializedCamera.volumeTrigger.objectReferenceValue = selectedVolumeTrigger;
-                m_SerializedCamera.Apply();
-            }
-        }
-
-        void DrawRenderer(UniversalRenderPipelineAsset rpAsset)
-        {
-            int selectedRendererOption = m_SerializedCamera.renderer.intValue;
-            EditorGUI.BeginChangeCheck();
-
-            Rect controlRect = EditorGUILayout.GetControlRect(true);
-            EditorGUI.BeginProperty(controlRect, Styles.rendererType, m_SerializedCamera.renderer);
-
-            EditorGUI.showMixedValue = m_SerializedCamera.renderer.hasMultipleDifferentValues;
-            int selectedRenderer = EditorGUI.IntPopup(controlRect, Styles.rendererType, selectedRendererOption, rpAsset.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
-            EditorGUI.EndProperty();
-            if (!rpAsset.ValidateRendererDataList())
-            {
-                EditorGUILayout.HelpBox(Styles.noRendererError, MessageType.Error);
-            }
-            else if (!rpAsset.ValidateRendererData(selectedRendererOption))
-            {
-                EditorGUILayout.HelpBox(Styles.missingRendererWarning, MessageType.Warning);
-                var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect());
-                if (GUI.Button(rect, "Select Render Pipeline Asset"))
-                {
-                    Selection.activeObject = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(AssetDatabase.GetAssetPath(UniversalRenderPipeline.asset));
-                }
-                GUILayout.Space(5);
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                m_SerializedCamera.renderer.intValue = selectedRenderer;
-                m_SerializedCamera.Apply();
-            }
-        }
-
-        void DrawPostProcessing(UniversalRenderPipelineAsset rpAsset)
-        {
-            // We want to show post processing warning only once and below the first option
-            // This way we will avoid cluttering the camera UI
-            bool showPostProcessWarning = IsAnyRendererHasPostProcessingEnabled(rpAsset);
-
-            EditorGUILayout.PropertyField(m_SerializedCamera.renderPostProcessing, Styles.renderPostProcessing);
-            showPostProcessWarning &= !ShowPostProcessingWarning(showPostProcessWarning && m_SerializedCamera.renderPostProcessing.boolValue);
-
-            // Draw Final Post-processing
-            DrawIntPopup(m_SerializedCamera.antialiasing, Styles.antialiasing, Styles.antialiasingOptions, Styles.antialiasingValues);
-
-            // If AntiAliasing has mixed value we do not draw the sub menu
-            if (!m_SerializedCamera.antialiasing.hasMultipleDifferentValues)
-            {
-                var selectedAntialiasing = (AntialiasingMode)m_SerializedCamera.antialiasing.intValue;
-
-                if (selectedAntialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_SerializedCamera.antialiasingQuality, Styles.antialiasingQuality);
-                    if (CoreEditorUtils.buildTargets.Contains(GraphicsDeviceType.OpenGLES2))
-                        EditorGUILayout.HelpBox("Sub-pixel Morphological Anti-Aliasing isn't supported on GLES2 platforms.", MessageType.Warning);
-                    EditorGUI.indentLevel--;
-                }
-                showPostProcessWarning &= !ShowPostProcessingWarning(showPostProcessWarning && selectedAntialiasing != AntialiasingMode.None);
-
-                EditorGUILayout.PropertyField(m_SerializedCamera.stopNaNs, Styles.stopNaN);
-                showPostProcessWarning &= !ShowPostProcessingWarning(showPostProcessWarning && m_SerializedCamera.stopNaNs.boolValue);
-                EditorGUILayout.PropertyField(m_SerializedCamera.dithering, Styles.dithering);
-                ShowPostProcessingWarning(showPostProcessWarning && m_SerializedCamera.dithering.boolValue);
-            }
-        }
-
-        private bool ShowPostProcessingWarning(bool condition)
-        {
-            if (!condition)
-                return false;
-            EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
-            return true;
-        }
-
-        bool DrawLayerMask(SerializedProperty prop, ref LayerMask mask, GUIContent style)
-        {
-            var layers = InternalEditorUtility.layers;
-            bool hasChanged = false;
-            var controlRect = BeginProperty(prop, style);
-
-            EditorGUI.BeginChangeCheck();
-
-            // LayerMask needs to be converted to be used in a MaskField...
-            int field = 0;
-            for (int c = 0; c < layers.Length; c++)
-                if ((mask & (1 << LayerMask.NameToLayer(layers[c]))) != 0)
-                    field |= 1 << c;
-
-            field = EditorGUI.MaskField(controlRect, style, field, InternalEditorUtility.layers);
-            if (EditorGUI.EndChangeCheck())
-                hasChanged = true;
-
-            // ...and converted back.
-            mask = 0;
-            for (int c = 0; c < layers.Length; c++)
-                if ((field & (1 << c)) != 0)
-                    mask |= 1 << LayerMask.NameToLayer(layers[c]);
-
-            EndProperty();
-            return hasChanged;
-        }
-
-        bool DrawObjectField<T>(SerializedProperty prop, ref T value, GUIContent style)
-            where T : Object
-        {
-            var defaultVal = value;
-            bool hasChanged = false;
-            var controlRect = BeginProperty(prop, style);
-
-            EditorGUI.BeginChangeCheck();
-            value = (T)EditorGUI.ObjectField(controlRect, style, value, typeof(T), true);
-            if (EditorGUI.EndChangeCheck() && !Equals(defaultVal, value))
-            {
-                hasChanged = true;
-            }
-
-            EndProperty();
-            return hasChanged;
-        }
-
-        void DrawDepthTexture()
-        {
-            EditorGUILayout.PropertyField(m_SerializedCamera.renderDepth, Styles.requireDepthTexture);
-        }
-
-        void DrawOpaqueTexture()
-        {
-            EditorGUILayout.PropertyField(m_SerializedCamera.renderOpaque, Styles.requireOpaqueTexture);
-        }
-
-        void DrawIntPopup(SerializedProperty prop, GUIContent style, GUIContent[] optionNames, int[] optionValues)
-        {
-            var controlRect = BeginProperty(prop, style);
-
-            EditorGUI.BeginChangeCheck();
-            var value = EditorGUI.IntPopup(controlRect, style, prop.intValue, optionNames, optionValues);
-            if (EditorGUI.EndChangeCheck())
-            {
-                prop.intValue = value;
-            }
-
-            EndProperty();
-        }
-
-        Rect BeginProperty(SerializedProperty prop, GUIContent style)
-        {
-            var controlRect = EditorGUILayout.GetControlRect(true);
-            EditorGUI.BeginProperty(controlRect, style, prop);
-            return controlRect;
-        }
-
-        void DrawRenderShadows()
-        {
-            EditorGUILayout.PropertyField(m_SerializedCamera.renderShadows, Styles.renderingShadows);
-        }
-
-        void EndProperty()
-        {
-            if (m_SerializedCamera != null)
-                EditorGUI.EndProperty();
+            EditorGUILayout.Space();
         }
     }
 
