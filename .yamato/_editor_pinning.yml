@@ -27,25 +27,8 @@ editor-pinning-update:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  git checkout $GIT_BRANCH
-      -  python3 .yamato/script/editor_scripts/update_revisions.py --track trunk --ono-branch $ONO_BRANCH_TRUNK --api-key $ONO_API_KEY --commit-and-push
+      -  python3 .yamato/script/editor_scripts/update_revisions.py --commit-and-push
     triggers:
         recurring:
           -  branch: master
              frequency: 23 * * ?
-editor-pinning-store-green:
-    name: Store green job revisions
-    agent:
-        type: Unity::VM
-        image: package-ci/ubuntu:stable
-        flavor: b1.small
-    commands:
-      -  pip3 config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  pip3 install ruamel.yaml
-      -  git config --global user.name "noreply@unity3d.com"
-      -  git config --global user.email "noreply@unity3d.com"
-      -  git checkout $GIT_BRANCH
-      -  python3 .yamato/script/editor_scripts/store_green_revisions.py --target-branch $GIT_BRANCH --track trunk --apikey $YAMATO_KEY
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: 7 * * ?

@@ -18,7 +18,6 @@ PR_URPUpdate_trunk:
       -  path: .yamato/all-urpupdate_top_asset_store.yml#PR_URPUpdate_Top_Asset_Store_trunk
          rerun: on_new_revision
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
@@ -29,7 +28,6 @@ Nightly_URPUpdate_trunk:
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_trunk
          rerun: on_new_revision
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master

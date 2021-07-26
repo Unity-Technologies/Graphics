@@ -9,7 +9,6 @@ editors: # applied for all yml files
   - track: trunk
     name: trunk
     rerun_strategy: on_new_revision
-    ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
       enabled: True
       green_abv_required: False
