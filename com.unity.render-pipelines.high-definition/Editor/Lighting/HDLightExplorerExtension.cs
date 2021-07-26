@@ -429,7 +429,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         shadowRes = defaultValue[shadowResolution.level];
                     }
 
-                    if (lightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(lightData) || HDCachedShadowManager.instance.WouldFitInAtlas(shadowRes, lightType))
+                    if (lightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(lightData))
                     {
                         EditorGUI.LabelField(r, "Yes");
                     }
@@ -462,7 +462,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             shadowRes = defaultValue[shadowResolution.level];
                         }
 
-                        bool lFit = lLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(lLightData) || HDCachedShadowManager.instance.WouldFitInAtlas(shadowRes, lightType);
+                        bool lFit = lLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(lLightData);
 
                         shadowResolution = rLightData.shadowResolution;
                         lightType = rLightData.type;
@@ -477,7 +477,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             shadowRes = defaultValue[shadowResolution.level];
                         }
 
-                        bool rFit = lLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(rLightData) || HDCachedShadowManager.instance.WouldFitInAtlas(shadowRes, lightType);
+                        bool rFit = lLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(rLightData);
 
                         return rFit.CompareTo(lFit);
                     }),
