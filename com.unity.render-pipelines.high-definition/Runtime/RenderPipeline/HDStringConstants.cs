@@ -478,7 +478,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _HistoryVolumetricClouds0Texture = Shader.PropertyToID("_HistoryVolumetricClouds0Texture");
         public static readonly int _HistoryVolumetricClouds1Texture = Shader.PropertyToID("_HistoryVolumetricClouds1Texture");
         public static readonly int _Worley128RGBA = Shader.PropertyToID("_Worley128RGBA");
-        public static readonly int _Worley32RGB = Shader.PropertyToID("_Worley32RGB");
+        public static readonly int _ErosionNoise = Shader.PropertyToID("_ErosionNoise");
         public static readonly int _CloudMapTexture = Shader.PropertyToID("_CloudMapTexture");
         public static readonly int _CloudMapTextureRW = Shader.PropertyToID("_CloudMapTextureRW");
         public static readonly int _CloudLutTexture = Shader.PropertyToID("_CloudLutTexture");
@@ -643,7 +643,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CurrentFrameTexture             = Shader.PropertyToID("_CurrentFrameTexture");
         public static readonly int _AccumulatedFrameTexture         = Shader.PropertyToID("_AccumulatedFrameTexture");
         public static readonly int _TemporalAccumuationWeight       = Shader.PropertyToID("_TemporalAccumuationWeight");
-        public static readonly int _SpatialFilterRadius             = Shader.PropertyToID("_SpatialFilterRadius");
         public static readonly int _RaytracingHitDistanceTexture    = Shader.PropertyToID("_RaytracingHitDistanceTexture");
         public static readonly int _RaytracingVSNormalTexture       = Shader.PropertyToID("_RaytracingVSNormalTexture");
         public static readonly int _RaytracingReflectionTexture     = Shader.PropertyToID("_RaytracingReflectionTexture");
