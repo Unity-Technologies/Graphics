@@ -158,7 +158,13 @@ namespace UnityEditor.Rendering
                     m_ActionDrawers[i](data, owner);
 
                 if (m_Anim != null)
+                {
                     CoreEditorUtils.EndAdditionalPropertiesHighlight();
+
+                    // While the highlight is being changed, force the Repaint of the editor
+                    if (m_Anim.value > -Mathf.Epsilon)
+                        owner.Repaint();
+                }
             }
         }
 
