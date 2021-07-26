@@ -477,7 +477,7 @@ namespace UnityEditor.VFX.Test
                 var nodes = param.nodes.Where(o => !o.linkedSlots.Any());
                 if (nodes.Any())
                 {
-                    Assert.Fail(param.name + "as an orphan node");
+                    Assert.Fail(param.exposedName + " as an orphan node");
                 }
             }
             Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => !o.linkedSlots.Any()).Count()); //Orphan link

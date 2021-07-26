@@ -678,11 +678,12 @@ namespace UnityEditor.VFX
                     Node newInfos = null;
                     if (nodes.Any())
                     {
+                        //There are already some nodes, choose the closest one to restore the link
                         var refPosition = Vector2.zero;
                         object refOwner = link.inputSlot.owner;
                         while (refOwner is VFXModel model && refPosition == Vector2.zero)
                         {
-                            refPosition = model.position;
+                            refPosition = model is VFXBlock ? Vector2.zero : model.position;
                             refOwner = model.GetParent();
                         }
                         newInfos = nodes.OrderBy(o => (refPosition - o.position).SqrMagnitude()).First();
@@ -690,7 +691,6 @@ namespace UnityEditor.VFX
                     else
                     {
                         newInfos = NewNode();
-                        newInfos.position = Vector2.zero;
                         m_Nodes.Add(newInfos);
                     }
                     if (newInfos.linkedSlots == null)
