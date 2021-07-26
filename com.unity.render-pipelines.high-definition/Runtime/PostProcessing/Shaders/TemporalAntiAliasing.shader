@@ -219,11 +219,9 @@ Shader "Hidden/HDRP/TemporalAA"
 #if ORTHOGRAPHIC
             float2 closestOffset = 0;
 #else
-            int2 samplePos;
+            int2 samplePos = input.positionCS.xy;
 #ifdef TAA_UPSCALE
             samplePos = outputPixInInput;
-#else
-            samplePos = input.positionCS.xy;
 #endif
             float2 closestOffset = GetClosestFragmentOffset(_DepthTexture, samplePos);
 #endif
