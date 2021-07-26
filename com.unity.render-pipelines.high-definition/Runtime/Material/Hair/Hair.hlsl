@@ -240,10 +240,10 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.cuticleAngleTRT =  cuticleAngle * 3.0 * 0.5;
 
         // Longitudinal Roughness
-        const float roughnessL = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-        bsdfData.roughnessR   = roughnessL;
-        bsdfData.roughnessTT  = roughnessL * 0.5;
-        bsdfData.roughnessTRT = roughnessL * 2.0;
+        const float roughnessL = bsdfData.perceptualRoughness;
+        bsdfData.roughnessR   = PerceptualRoughnessToRoughness(roughnessL);
+        bsdfData.roughnessTT  = PerceptualRoughnessToRoughness(roughnessL * 0.5);
+        bsdfData.roughnessTRT = PerceptualRoughnessToRoughness(roughnessL * 2.0);
 
         // Azimuthal Roughness
     #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
@@ -520,7 +520,7 @@ void GetMarschnerAngle(float3 T, float3 V, float3 L,
     // Projection onto the normal plane, and since phi is the relative angle, we take the cosine in this projection.
     float3 LProj = L - sinThetaI * T;
     float3 VProj = V - sinThetaR * T;
-    cosPhi = dot(LProj, VProj) * rsqrt(dot(LProj, LProj) * dot(VProj, VProj));
+    cosPhi = dot(LProj, VProj) * rsqrt(dot(LProj, LProj) * dot(VProj, VProj) + 0.0001);
 }
 
 CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
@@ -677,8 +677,12 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     #if _USE_DENSITY_VOLUME_SCATTERING
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING))
         {
-            // Debug Dual Scattering
-            cbsdf.specR = preLightData.scatteringData.globalScattering;
+            // Debug Dual Scattering Components
+            // cbsdf.specR = preLightData.scatteringData.globalScattering;
+            // cbsdf.specR = preLightData.scatteringData.localScattering;
+
+            // Nan
+            cbsdf.specR = max(cbsdf.specR, 0);
         }
     #else
     #if _USE_LIGHT_FACING_NORMAL
