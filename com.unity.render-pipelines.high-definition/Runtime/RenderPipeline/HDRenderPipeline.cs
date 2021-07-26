@@ -648,6 +648,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="disposing">Is disposing.</param>
         protected override void Dispose(bool disposing)
         {
+            Graphics.ClearRandomWriteTargets();
+            Graphics.SetRenderTarget(null);
             DisposeProbeCameraPool();
 
             UnsetRenderingFeatures();
