@@ -27,9 +27,6 @@ path-ignore=<<EOT
  |TestProjects\/SRP_SmokeTest
  |TestProjects\/UniversalGfxTestStereo
  |TestProjects\/UniversalHybridTest
- |TestProjects\/UniversalGraphicsTest_2D
- |TestProjects\/UniversalGraphicsTest_PostPro
- |TestProjects\/UniversalGraphicsTest_Terrain
  |TestProjects\/VisualEffectGraph_HDRP
  |TestProjects\/VisualEffectGraph_URP
 )/|

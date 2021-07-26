@@ -234,6 +234,8 @@ MonoBehaviour:
       type: 3}
     VTFeedbackDownsample: {fileID: 7200000, guid: 32d963548086c2c439aeb23a93e9a00a,
       type: 3}
+    robustContrastAdaptiveSharpenCS: {fileID: 7200000, guid: d907373e407ff65479c449a66c04443d, type: 3}
+    edgeAdaptiveSpatialUpsamplingCS: {fileID: 7200000, guid: f054fa9fe2c85bb42b9489e2f9ffb643, type: 3}
     accumulationCS: {fileID: 7200000, guid: ed80add7a217efa468d137d6f7c668f3, type: 3}
     alphaInjectionPS: {fileID: 4800000, guid: 4edd96259a5e8b44c90479928f0cd11e, type: 3}
     chromaKeyingPS: {fileID: 4800000, guid: 49feb6b111e82ec4eb6d3d08e4b6903e, type: 3}
@@ -330,6 +332,7 @@ MonoBehaviour:
     worleyNoise128RGBA: {fileID: 11700000, guid: 1fe54a721d0e2504e89f121c723404a8,
       type: 3}
     worleyNoise32RGB: {fileID: 11700000, guid: ec156c314a242914dbb706f73ad78cf2, type: 3}
+    perlinNoise32RGB: {fileID: 11700000, guid: d1aae012f8a4f23478471851f17ff915, type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
     - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}
