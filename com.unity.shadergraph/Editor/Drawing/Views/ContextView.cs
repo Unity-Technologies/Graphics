@@ -40,7 +40,8 @@ namespace UnityEditor.ShaderGraph
             if (evt.target is MaterialNodeView) return;
 
             // If the user didn't click on a block node (i.e. the stack frame), include the "Add Block Node" item.
-            InsertCreateNodeAction(evt, childCount);
+            InsertCreateNodeAction(evt, childCount, 0);
+            evt.menu.InsertSeparator(null, 1);
         }
 
         public ContextData contextData => m_ContextData;
@@ -118,10 +119,10 @@ namespace UnityEditor.ShaderGraph
         protected override void OnSeparatorContextualMenuEvent(ContextualMenuPopulateEvent evt, int separatorIndex)
         {
             base.OnSeparatorContextualMenuEvent(evt, separatorIndex);
-            InsertCreateNodeAction(evt, separatorIndex);
+            InsertCreateNodeAction(evt, separatorIndex, 0);
         }
 
-        void InsertCreateNodeAction(ContextualMenuPopulateEvent evt, int separatorIndex, int itemIndex = 0)
+        void InsertCreateNodeAction(ContextualMenuPopulateEvent evt, int separatorIndex, int itemIndex)
         {
             //we need to arbitrarily add the editor position values because node creation context
             //exptects a non local coordinate
