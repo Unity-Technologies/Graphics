@@ -36,8 +36,6 @@ pack_hdrp_template_Win_2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-hd
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_hdrp_template_Win_2019.4
     artifacts:
         packages:
             paths:
@@ -90,8 +88,6 @@ pack_hdrp_template_OSX_2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-hd
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_hdrp_template_OSX_2019.4
     artifacts:
         packages:
             paths:
@@ -182,8 +178,6 @@ pack_hdrp_template_Win_fast-2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-hd
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_hdrp_template_Win_fast-2019.4
     artifacts:
         packages:
             paths:
@@ -236,8 +230,6 @@ pack_hdrp_template_OSX_fast-2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-hd
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_hdrp_template_OSX_fast-2019.4
     artifacts:
         packages:
             paths:
@@ -328,8 +320,6 @@ pack_hdrp_template_Win_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-hd
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_hdrp_template_Win_CUSTOM-REVISION
     artifacts:
         packages:
             paths:
@@ -382,8 +372,6 @@ pack_hdrp_template_OSX_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-hd
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_hdrp_template_OSX_CUSTOM-REVISION
     artifacts:
         packages:
             paths:
@@ -474,8 +462,6 @@ pack_universal_template_Win_2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-universal
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_universal_template_Win_2019.4
     artifacts:
         packages:
             paths:
@@ -528,8 +514,6 @@ pack_universal_template_OSX_2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-universal
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_universal_template_OSX_2019.4
     artifacts:
         packages:
             paths:
@@ -620,8 +604,6 @@ pack_universal_template_Win_fast-2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-universal
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_universal_template_Win_fast-2019.4
     artifacts:
         packages:
             paths:
@@ -674,8 +656,6 @@ pack_universal_template_OSX_fast-2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-universal
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_universal_template_OSX_fast-2019.4
     artifacts:
         packages:
             paths:
@@ -766,8 +746,6 @@ pack_universal_template_Win_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-universal
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_universal_template_Win_CUSTOM-REVISION
     artifacts:
         packages:
             paths:
@@ -820,8 +798,6 @@ pack_universal_template_OSX_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-universal
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_universal_template_OSX_CUSTOM-REVISION
     artifacts:
         packages:
             paths:
