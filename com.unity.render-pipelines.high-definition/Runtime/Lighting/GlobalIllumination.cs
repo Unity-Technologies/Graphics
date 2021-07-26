@@ -211,24 +211,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Full Resolution")]
         private BoolParameter m_FullResolution = new BoolParameter(false);
 
-        /// <summary>
-        /// Defines what radius value should be used to pre-filter the signal.
-        /// </summary>
-        public int upscaleRadius
-        {
-            get
-            {
-                if (!UsesQualitySettings())
-                    return m_UpscaleRadius.value;
-                else
-                    return GetLightingQualitySettings().RTGIUpScaleRadius[(int)quality.value];
-            }
-            set { m_UpscaleRadius.value = value; }
-        }
-        [SerializeField, FormerlySerializedAs("upscaleRadius")]
-        [Tooltip("Upscale Radius")]
-        private ClampedIntParameter m_UpscaleRadius = new ClampedIntParameter(2, 2, 4);
-
         // Quality
         /// <summary>
         /// Number of samples for evaluating the effect.

@@ -315,6 +315,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with reflection probe normalization via APV when no probes are in scene.
 - Fixed Volumetric Clouds not updated when using RenderTexture as input for cloud maps.
 - Fixed custom post process name not displayed correctly in GPU markers.
+- Fixed objects disappearing from Lookdev window when entering playmode (case 1309368).
+- Fixed rendering of objects just after the TAA pass (before post process injection point).
+- Fixed tiled artifacts in refraction at borders between two reflection probes.
+- Fixed the FreeCamera and SimpleCameraController mouse rotation unusable at low framerate (case 1340344).
+- Fixed warning "Releasing render texture that is set to be RenderTexture.active!" on pipeline disposal / hdrp live editing.
+- Fixed a null ref exception when adding a new environment to the Look Dev library.
+- Fixed a nullref in volume system after deleting a volume object (case 1348374).
+- Fixed the APV UI loosing focus when the helpbox about baking appears in the probe volume.
 - Fixed enabling a lensflare in playmode.
 
 ### Changed
@@ -416,6 +424,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved a bit the area cookie behavior for higher smoothness values to reduce artifacts.
 - Improved volumetric clouds (added new noise for erosion, reduced ghosting while flying through, altitude distortion, ghosting when changing from local to distant clouds, fix issue in wind distortion along the Z axis).
 - Fixed upscaling issue that is exagerated by DLSS (case 1347250).
+- Improvements to the RTGI denoising.
 
 ## [11.0.0] - 2020-10-21
 
