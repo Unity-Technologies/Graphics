@@ -164,17 +164,14 @@ namespace UnityEngine.Rendering.PostProcessing
             return m_InternalProfile != null;
         }
 
-        internal int previousLayer => m_PreviousLayer;
-
-        int m_PreviousLayer;
-        float m_PreviousPriority;
+        PostProcessVolumeMeta m_PreviousMeta;
         List<Collider> m_TempColliders;
         PostProcessProfile m_InternalProfile;
 
         void OnEnable()
         {
-            PostProcessManager.instance.Register(this);
-            m_PreviousLayer = gameObject.layer;
+            m_PreviousMeta = ComputeMeta();
+            PostProcessManager.instance.Register(this, m_PreviousMeta);
             m_TempColliders = new List<Collider>();
         }
 
@@ -189,21 +186,15 @@ namespace UnityEngine.Rendering.PostProcessing
             // real-time as the user could change it at any time in the editor or at runtime.
             // Because no event is raised when the layer changes, we have to track it on every
             // frame :/
-            int layer = gameObject.layer;
-            if (layer != m_PreviousLayer)
-            {
-                PostProcessManager.instance.UpdateVolumeLayer(this, m_PreviousLayer, layer);
-                m_PreviousLayer = layer;
-            }
 
             // Same for `priority`. We could use a property instead, but it doesn't play nice with
             // the serialization system. Using a custom Attribute/PropertyDrawer for a property is
             // possible but it doesn't work with Undo/Redo in the editor, which makes it useless.
-            if (priority != m_PreviousPriority)
-            {
-                PostProcessManager.instance.SetLayerDirty(layer);
-                m_PreviousPriority = priority;
-            }
+            var meta = ComputeMeta();
+            if (meta == m_PreviousMeta) return;
+
+            PostProcessManager.instance.UpdateVolumeLayerMeta(this, meta);
+            m_PreviousMeta = meta;
         }
 
         // TODO: Look into a better volume previsualization system
@@ -274,6 +265,11 @@ namespace UnityEngine.Rendering.PostProcessing
             }
 
             colliders.Clear();
+        }
+
+        PostProcessVolumeMeta ComputeMeta()
+        {
+            return new(priority, gameObject.layer);
         }
     }
 }
