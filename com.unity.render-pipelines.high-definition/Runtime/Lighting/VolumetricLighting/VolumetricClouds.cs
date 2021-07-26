@@ -129,6 +129,31 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Controls the erosion noise used for the clouds.
+        /// </summary>
+        public enum CloudErosionNoise
+        {
+            /// <summary>The erosion noise will be a 32x32x32 worley texture.</summary>
+            Worley32,
+            /// <summary>The erosion noise will be a 32x32x32 perlin texture.</summary>
+            Perlin32,
+        }
+
+        /// <summary>
+        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudErosionNoise"/> value.
+        /// </summary>
+        [Serializable]
+        public sealed class CloudErosionNoiseParameter : VolumeParameter<CloudErosionNoise>
+        {
+            /// <summary>
+            /// Creates a new <see cref="CloudErosionNoiseParameter"/> instance.
+            /// </summary>
+            /// <param name="value">The initial value to store in the parameter.</param>
+            /// <param name="overrideState">The initial override state for the parameter.</param>
+            public CloudErosionNoiseParameter(CloudErosionNoise value, bool overrideState = false) : base(value, overrideState) {}
+        }
+
+        /// <summary>
         /// Enable/Disable the volumetric clouds effect.
         /// </summary>
         [Tooltip("Enable/Disable the volumetric clouds effect.")]
@@ -330,7 +355,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the size of the smaller noise passing through the cloud coverage.
         /// </summary>
         [Tooltip("Controls the size of the smaller noise passing through the cloud coverage.")]
-        public MinFloatParameter erosionScale = new MinFloatParameter(30.0f, 1.0f);
+        public MinFloatParameter erosionScale = new MinFloatParameter(50.0f, 1.0f);
+
+        /// <summary>
+        /// Controls the type of noise used to generate the smaller noise passing through the cloud coverage.
+        /// </summary>
+        [Tooltip("Controls the type of noise used to generate the smaller noise passing through the cloud coverage.")]
+        [AdditionalProperty]
+        public CloudErosionNoiseParameter erosionNoiseType = new CloudErosionNoiseParameter(CloudErosionNoise.Perlin32);
 
         /// <summary>
         /// Controls the influence of the light probes on the cloud volume. A lower value will suppress the ambient light and produce darker clouds overall.
@@ -355,6 +387,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the orientation of the wind relative to the X world vector.\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.")]
         public WindOrientationParameter orientation = new WindOrientationParameter();
+
+        /// <summary>
+        /// Controls the intensity of the wind-based altitude distortion of the clouds.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Controls the intensity of the wind-based altitude distortion of the clouds.")]
+        public ClampedFloatParameter altitudeDistortion = new ClampedFloatParameter(0.5f, -1.0f, 1.0f);
 
         /// <summary>
         /// Controls the multiplier to the speed of the cloud map.
