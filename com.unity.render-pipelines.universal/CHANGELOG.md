@@ -151,6 +151,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with legacy stereo matrices with XR multipass. [case 1342416]
 - Fixed unlit shader function name ambiguity
 - Fixed Terrain holes not appearing in shadows [case 1349305]
+- Fixed shadowCascadeBlendCullingFactor to be 1.0
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
