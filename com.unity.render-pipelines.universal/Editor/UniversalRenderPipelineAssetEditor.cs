@@ -122,67 +122,14 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedProperty m_RendererDataProp;
         SerializedProperty m_DefaultRendererProp;
+
         ReorderableList m_RendererDataList;
 
-        SerializedProperty m_RequireDepthTextureProp;
-        SerializedProperty m_RequireOpaqueTextureProp;
-        SerializedProperty m_OpaqueDownsamplingProp;
-        SerializedProperty m_SupportsTerrainHolesProp;
-        SerializedProperty m_StoreActionsOptimizationProperty;
-
-        SerializedProperty m_HDR;
-        SerializedProperty m_MSAA;
-        SerializedProperty m_RenderScale;
-
-        SerializedProperty m_MainLightRenderingModeProp;
-        SerializedProperty m_MainLightShadowsSupportedProp;
-        SerializedProperty m_MainLightShadowmapResolutionProp;
-
-        SerializedProperty m_AdditionalLightsRenderingModeProp;
-        SerializedProperty m_AdditionalLightsPerObjectLimitProp;
-        SerializedProperty m_AdditionalLightShadowsSupportedProp;
-        SerializedProperty m_AdditionalLightShadowmapResolutionProp;
-
-        SerializedProperty m_AdditionalLightsShadowResolutionTierLowProp;
-        SerializedProperty m_AdditionalLightsShadowResolutionTierMediumProp;
-        SerializedProperty m_AdditionalLightsShadowResolutionTierHighProp;
-
-        SerializedProperty m_AdditionalLightCookieResolutionProp;
-        SerializedProperty m_AdditionalLightCookieFormatProp;
-
-        SerializedProperty m_ReflectionProbeBlendingProp;
-        SerializedProperty m_ReflectionProbeBoxProjectionProp;
-
-        SerializedProperty m_ShadowDistanceProp;
-        SerializedProperty m_ShadowCascadeCountProp;
-        SerializedProperty m_ShadowCascade2SplitProp;
-        SerializedProperty m_ShadowCascade3SplitProp;
-        SerializedProperty m_ShadowCascade4SplitProp;
-        SerializedProperty m_ShadowCascadeBorderProp;
-        SerializedProperty m_ShadowDepthBiasProp;
-        SerializedProperty m_ShadowNormalBiasProp;
-
-        SerializedProperty m_SoftShadowsSupportedProp;
-
-        SerializedProperty m_SRPBatcher;
-        SerializedProperty m_SupportsDynamicBatching;
-        SerializedProperty m_MixedLightingSupportedProp;
-        SerializedProperty m_SupportsLightLayers;
-        SerializedProperty m_DebugLevelProp;
-
-        SerializedProperty m_ShaderVariantLogLevel;
-        SerializedProperty m_VolumeFrameworkUpdateModeProp;
-
-        SerializedProperty m_ColorGradingMode;
-        SerializedProperty m_ColorGradingLutSize;
-        SerializedProperty m_UseFastSRGBLinearConversion;
-
-        SerializedProperty m_UseAdaptivePerformance;
-        EditorPrefBoolFlags<EditorUtils.Unit> m_State;
+        private SerializedUniversalRenderPipelineAsset m_SerializedURPAsset;
 
         public override void OnInspectorGUI()
         {
-            serializedObject.Update();
+            m_SerializedURPAsset.Update();
 
             DrawGeneralSettings();
             DrawQualitySettings();
@@ -194,11 +141,13 @@ namespace UnityEditor.Rendering.Universal
             DrawAdaptivePerformance();
 #endif
 
-            serializedObject.ApplyModifiedProperties();
+            m_SerializedURPAsset.Apply();
         }
 
         void OnEnable()
         {
+            m_SerializedURPAsset = new SerializedUniversalRenderPipelineAsset(serializedObject);
+
             m_GeneralSettingsFoldout = new SavedBool($"{target.GetType()}.GeneralSettingsFoldout", false);
             m_QualitySettingsFoldout = new SavedBool($"{target.GetType()}.QualitySettingsFoldout", false);
             m_LightingSettingsFoldout = new SavedBool($"{target.GetType()}.LightingSettingsFoldout", false);
@@ -212,66 +161,6 @@ namespace UnityEditor.Rendering.Universal
             m_RendererDataList = new ReorderableList(serializedObject, m_RendererDataProp, true, true, true, true);
 
             DrawRendererListLayout(m_RendererDataList, m_RendererDataProp);
-
-            m_RequireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
-            m_RequireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
-            m_OpaqueDownsamplingProp = serializedObject.FindProperty("m_OpaqueDownsampling");
-            m_SupportsTerrainHolesProp = serializedObject.FindProperty("m_SupportsTerrainHoles");
-
-            m_HDR = serializedObject.FindProperty("m_SupportsHDR");
-            m_MSAA = serializedObject.FindProperty("m_MSAA");
-            m_RenderScale = serializedObject.FindProperty("m_RenderScale");
-
-            m_MainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
-            m_MainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
-            m_MainLightShadowmapResolutionProp = serializedObject.FindProperty("m_MainLightShadowmapResolution");
-
-            m_AdditionalLightsRenderingModeProp = serializedObject.FindProperty("m_AdditionalLightsRenderingMode");
-            m_AdditionalLightsPerObjectLimitProp = serializedObject.FindProperty("m_AdditionalLightsPerObjectLimit");
-            m_AdditionalLightShadowsSupportedProp = serializedObject.FindProperty("m_AdditionalLightShadowsSupported");
-            m_AdditionalLightShadowmapResolutionProp = serializedObject.FindProperty("m_AdditionalLightsShadowmapResolution");
-
-            m_AdditionalLightsShadowResolutionTierLowProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierLow");
-            m_AdditionalLightsShadowResolutionTierMediumProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierMedium");
-            m_AdditionalLightsShadowResolutionTierHighProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierHigh");
-
-            m_AdditionalLightCookieResolutionProp = serializedObject.FindProperty("m_AdditionalLightsCookieResolution");
-            m_AdditionalLightCookieFormatProp = serializedObject.FindProperty("m_AdditionalLightsCookieFormat");
-
-            m_ReflectionProbeBlendingProp = serializedObject.FindProperty("m_ReflectionProbeBlending");
-            m_ReflectionProbeBoxProjectionProp = serializedObject.FindProperty("m_ReflectionProbeBoxProjection");
-
-            m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
-
-            m_ShadowCascadeCountProp = serializedObject.FindProperty("m_ShadowCascadeCount");
-            m_ShadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
-            m_ShadowCascade3SplitProp = serializedObject.FindProperty("m_Cascade3Split");
-            m_ShadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
-            m_ShadowCascadeBorderProp = serializedObject.FindProperty("m_CascadeBorder");
-            m_ShadowDepthBiasProp = serializedObject.FindProperty("m_ShadowDepthBias");
-            m_ShadowNormalBiasProp = serializedObject.FindProperty("m_ShadowNormalBias");
-            m_SoftShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
-
-            m_SRPBatcher = serializedObject.FindProperty("m_UseSRPBatcher");
-            m_SupportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");
-            m_MixedLightingSupportedProp = serializedObject.FindProperty("m_MixedLightingSupported");
-            m_SupportsLightLayers = serializedObject.FindProperty("m_SupportsLightLayers");
-            m_DebugLevelProp = serializedObject.FindProperty("m_DebugLevel");
-
-            m_ShaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
-            m_VolumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
-
-            m_StoreActionsOptimizationProperty = serializedObject.FindProperty("m_StoreActionsOptimization");
-
-            m_ColorGradingMode = serializedObject.FindProperty("m_ColorGradingMode");
-            m_ColorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");
-
-            m_UseFastSRGBLinearConversion = serializedObject.FindProperty("m_UseFastSRGBLinearConversion");
-
-            m_UseAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");
-
-            string Key = "Universal_Shadow_Setting_Unit:UI_State";
-            m_State = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
         }
 
         void DrawGeneralSettings()
@@ -296,14 +185,14 @@ namespace UnityEditor.Rendering.Universal
                 else if (!ValidateRendererGraphicsAPIs(asset, out unsupportedGraphicsApisMessage))
                     EditorGUILayout.HelpBox(Styles.rendererUnsupportedAPIMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
 
-                EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTextureText);
-                EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTextureText);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.requireDepthTextureProp, Styles.requireDepthTextureText);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.requireOpaqueTextureProp, Styles.requireOpaqueTextureText);
                 EditorGUI.indentLevel++;
-                EditorGUI.BeginDisabledGroup(!m_RequireOpaqueTextureProp.boolValue);
-                EditorGUILayout.PropertyField(m_OpaqueDownsamplingProp, Styles.opaqueDownsamplingText);
+                EditorGUI.BeginDisabledGroup(!m_SerializedURPAsset.requireOpaqueTextureProp.boolValue);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.opaqueDownsamplingProp, Styles.opaqueDownsamplingText);
                 EditorGUI.EndDisabledGroup();
                 EditorGUI.indentLevel--;
-                EditorGUILayout.PropertyField(m_SupportsTerrainHolesProp, Styles.supportsTerrainHolesText);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.supportsTerrainHolesProp, Styles.supportsTerrainHolesText);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
@@ -318,9 +207,9 @@ namespace UnityEditor.Rendering.Universal
             if (m_QualitySettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_HDR, Styles.hdrText);
-                EditorGUILayout.PropertyField(m_MSAA, Styles.msaaText);
-                m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, m_RenderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.hdr, Styles.hdrText);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.msaa, Styles.msaaText);
+                m_SerializedURPAsset.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, m_SerializedURPAsset.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
@@ -338,53 +227,53 @@ namespace UnityEditor.Rendering.Universal
                 // Main Light
                 bool disableGroup = false;
                 EditorGUI.BeginDisabledGroup(disableGroup);
-                CoreEditorUtils.DrawPopup(Styles.mainLightRenderingModeText, m_MainLightRenderingModeProp, Styles.mainLightOptions);
+                CoreEditorUtils.DrawPopup(Styles.mainLightRenderingModeText, m_SerializedURPAsset.mainLightRenderingModeProp, Styles.mainLightOptions);
                 EditorGUI.EndDisabledGroup();
 
                 EditorGUI.indentLevel++;
-                disableGroup |= !m_MainLightRenderingModeProp.boolValue;
+                disableGroup |= !m_SerializedURPAsset.mainLightRenderingModeProp.boolValue;
 
                 EditorGUI.BeginDisabledGroup(disableGroup);
-                EditorGUILayout.PropertyField(m_MainLightShadowsSupportedProp, Styles.supportsMainLightShadowsText);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.mainLightShadowsSupportedProp, Styles.supportsMainLightShadowsText);
                 EditorGUI.EndDisabledGroup();
 
-                disableGroup |= !m_MainLightShadowsSupportedProp.boolValue;
+                disableGroup |= !m_SerializedURPAsset.mainLightShadowsSupportedProp.boolValue;
                 EditorGUI.BeginDisabledGroup(disableGroup);
-                EditorGUILayout.PropertyField(m_MainLightShadowmapResolutionProp, Styles.mainLightShadowmapResolutionText);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.mainLightShadowmapResolutionProp, Styles.mainLightShadowmapResolutionText);
                 EditorGUI.EndDisabledGroup();
 
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
 
                 // Additional light
-                EditorGUILayout.PropertyField(m_AdditionalLightsRenderingModeProp, Styles.addditionalLightsRenderingModeText);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.additionalLightsRenderingModeProp, Styles.addditionalLightsRenderingModeText);
                 EditorGUI.indentLevel++;
 
-                disableGroup = m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
+                disableGroup = m_SerializedURPAsset.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
                 EditorGUI.BeginDisabledGroup(disableGroup);
-                m_AdditionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, m_AdditionalLightsPerObjectLimitProp.intValue, 0, UniversalRenderPipeline.maxPerObjectLights);
+                m_SerializedURPAsset.additionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, m_SerializedURPAsset.additionalLightsPerObjectLimitProp.intValue, 0, UniversalRenderPipeline.maxPerObjectLights);
                 EditorGUI.EndDisabledGroup();
 
-                disableGroup |= (m_AdditionalLightsPerObjectLimitProp.intValue == 0 || m_AdditionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel);
+                disableGroup |= (m_SerializedURPAsset.additionalLightsPerObjectLimitProp.intValue == 0 || m_SerializedURPAsset.additionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel);
                 EditorGUI.BeginDisabledGroup(disableGroup);
-                EditorGUILayout.PropertyField(m_AdditionalLightShadowsSupportedProp, Styles.supportsAdditionalShadowsText);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.additionalLightShadowsSupportedProp, Styles.supportsAdditionalShadowsText);
                 EditorGUI.EndDisabledGroup();
 
-                disableGroup |= !m_AdditionalLightShadowsSupportedProp.boolValue;
+                disableGroup |= !m_SerializedURPAsset.additionalLightShadowsSupportedProp.boolValue;
                 EditorGUI.BeginDisabledGroup(disableGroup);
-                EditorGUILayout.PropertyField(m_AdditionalLightShadowmapResolutionProp, Styles.additionalLightsShadowmapResolution);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.additionalLightShadowmapResolutionProp, Styles.additionalLightsShadowmapResolution);
                 DrawShadowResolutionTierSettings();
                 EditorGUI.EndDisabledGroup();
 
                 EditorGUILayout.Space();
-                disableGroup = m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
+                disableGroup = m_SerializedURPAsset.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
 
                 EditorGUI.BeginDisabledGroup(disableGroup);
-                EditorGUILayout.PropertyField(m_AdditionalLightCookieResolutionProp, Styles.additionalLightsCookieResolution);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.additionalLightCookieResolutionProp, Styles.additionalLightsCookieResolution);
                 EditorGUI.EndDisabledGroup();
 
                 EditorGUI.BeginDisabledGroup(disableGroup);
-                EditorGUILayout.PropertyField(m_AdditionalLightCookieFormatProp, Styles.additionalLightsCookieFormat);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.additionalLightCookieFormatProp, Styles.additionalLightsCookieFormat);
                 EditorGUI.EndDisabledGroup();
 
                 EditorGUI.indentLevel--;
@@ -393,8 +282,8 @@ namespace UnityEditor.Rendering.Universal
                 // Reflection Probes
                 EditorGUILayout.LabelField(Styles.reflectionProbesSettingsText);
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_ReflectionProbeBlendingProp, Styles.reflectionProbeBlendingText);
-                EditorGUILayout.PropertyField(m_ReflectionProbeBoxProjectionProp, Styles.reflectionProbeBoxProjectionText);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.reflectionProbeBlendingProp, Styles.reflectionProbeBlendingText);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.reflectionProbeBoxProjectionProp, Styles.reflectionProbeBoxProjectionText);
                 EditorGUI.indentLevel--;
 
                 EditorGUILayout.Space();
@@ -413,7 +302,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginChangeCheck();
 
             const int k_ShadowResolutionTiersCount = 3;
-            var values = new[] { m_AdditionalLightsShadowResolutionTierLowProp, m_AdditionalLightsShadowResolutionTierMediumProp, m_AdditionalLightsShadowResolutionTierHighProp};
+            var values = new[] { m_SerializedURPAsset.additionalLightsShadowResolutionTierLowProp, m_SerializedURPAsset.additionalLightsShadowResolutionTierMediumProp, m_SerializedURPAsset.additionalLightsShadowResolutionTierHighProp };
 
             var num = contentRect.width / (float)k_ShadowResolutionTiersCount;  // space allocated for every field including the label
 
@@ -447,25 +336,25 @@ namespace UnityEditor.Rendering.Universal
             if (m_ShadowSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
-                m_ShadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, m_ShadowDistanceProp.floatValue));
+                m_SerializedURPAsset.shadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, m_SerializedURPAsset.shadowDistanceProp.floatValue));
                 EditorUtils.Unit unit = EditorUtils.Unit.Metric;
-                if (m_ShadowCascadeCountProp.intValue != 0)
+                if (m_SerializedURPAsset.shadowCascadeCountProp.intValue != 0)
                 {
                     EditorGUI.BeginChangeCheck();
-                    unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(Styles.shadowWorkingUnitText, m_State.value);
+                    unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(Styles.shadowWorkingUnitText, m_SerializedURPAsset.state.value);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        m_State.value = unit;
+                        m_SerializedURPAsset.state.value = unit;
                     }
                 }
 
-                EditorGUILayout.IntSlider(m_ShadowCascadeCountProp, UniversalRenderPipelineAsset.k_ShadowCascadeMinCount, UniversalRenderPipelineAsset.k_ShadowCascadeMaxCount, Styles.shadowCascadesText);
+                EditorGUILayout.IntSlider(m_SerializedURPAsset.shadowCascadeCountProp, UniversalRenderPipelineAsset.k_ShadowCascadeMinCount, UniversalRenderPipelineAsset.k_ShadowCascadeMaxCount, Styles.shadowCascadesText);
 
-                int cascadeCount = m_ShadowCascadeCountProp.intValue;
+                int cascadeCount = m_SerializedURPAsset.shadowCascadeCountProp.intValue;
                 EditorGUI.indentLevel++;
 
                 bool useMetric = unit == EditorUtils.Unit.Metric;
-                float baseMetric = m_ShadowDistanceProp.floatValue;
+                float baseMetric = m_SerializedURPAsset.shadowDistanceProp.floatValue;
                 int cascadeSplitCount = cascadeCount - 1;
 
                 DrawCascadeSliders(cascadeSplitCount, useMetric, baseMetric);
@@ -474,9 +363,9 @@ namespace UnityEditor.Rendering.Universal
                 DrawCascades(cascadeCount, useMetric, baseMetric);
                 EditorGUI.indentLevel++;
 
-                m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
-                m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
-                EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
+                m_SerializedURPAsset.shadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_SerializedURPAsset.shadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
+                m_SerializedURPAsset.shadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_SerializedURPAsset.shadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.softShadowsSupportedProp, Styles.supportsSoftShadows);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
@@ -488,11 +377,11 @@ namespace UnityEditor.Rendering.Universal
         {
             Vector4 shadowCascadeSplit = Vector4.one;
             if (splitCount == 3)
-                shadowCascadeSplit = new Vector4(m_ShadowCascade4SplitProp.vector3Value.x, m_ShadowCascade4SplitProp.vector3Value.y, m_ShadowCascade4SplitProp.vector3Value.z, 1);
+                shadowCascadeSplit = new Vector4(m_SerializedURPAsset.shadowCascade4SplitProp.vector3Value.x, m_SerializedURPAsset.shadowCascade4SplitProp.vector3Value.y, m_SerializedURPAsset.shadowCascade4SplitProp.vector3Value.z, 1);
             else if (splitCount == 2)
-                shadowCascadeSplit = new Vector4(m_ShadowCascade3SplitProp.vector2Value.x, m_ShadowCascade3SplitProp.vector2Value.y, 1, 0);
+                shadowCascadeSplit = new Vector4(m_SerializedURPAsset.shadowCascade3SplitProp.vector2Value.x, m_SerializedURPAsset.shadowCascade3SplitProp.vector2Value.y, 1, 0);
             else if (splitCount == 1)
-                shadowCascadeSplit = new Vector4(m_ShadowCascade2SplitProp.floatValue, 1, 0, 0);
+                shadowCascadeSplit = new Vector4(m_SerializedURPAsset.shadowCascade2SplitProp.floatValue, 1, 0, 0);
 
             float splitBias = 0.001f;
             float invBaseMetric = baseMetric == 0 ? 0 : 1f / baseMetric;
@@ -530,14 +419,14 @@ namespace UnityEditor.Rendering.Universal
             if (EditorGUI.EndChangeCheck())
             {
                 if (splitCount == 3)
-                    m_ShadowCascade4SplitProp.vector3Value = shadowCascadeSplit;
+                    m_SerializedURPAsset.shadowCascade4SplitProp.vector3Value = shadowCascadeSplit;
                 else if (splitCount == 2)
-                    m_ShadowCascade3SplitProp.vector2Value = shadowCascadeSplit;
+                    m_SerializedURPAsset.shadowCascade3SplitProp.vector2Value = shadowCascadeSplit;
                 else if (splitCount == 1)
-                    m_ShadowCascade2SplitProp.floatValue = shadowCascadeSplit.x;
+                    m_SerializedURPAsset.shadowCascade2SplitProp.floatValue = shadowCascadeSplit.x;
             }
 
-            var borderValue = m_ShadowCascadeBorderProp.floatValue;
+            var borderValue = m_SerializedURPAsset.shadowCascadeBorderProp.floatValue;
 
             EditorGUI.BeginChangeCheck();
             if (useMetric)
@@ -559,7 +448,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (EditorGUI.EndChangeCheck())
             {
-                m_ShadowCascadeBorderProp.floatValue = borderValue;
+                m_SerializedURPAsset.shadowCascadeBorderProp.floatValue = borderValue;
             }
         }
 
@@ -569,13 +458,13 @@ namespace UnityEditor.Rendering.Universal
 
             Vector3 shadowCascadeSplit = Vector3.zero;
             if (cascadeCount == 4)
-                shadowCascadeSplit = m_ShadowCascade4SplitProp.vector3Value;
+                shadowCascadeSplit = m_SerializedURPAsset.shadowCascade4SplitProp.vector3Value;
             else if (cascadeCount == 3)
-                shadowCascadeSplit = m_ShadowCascade3SplitProp.vector2Value;
+                shadowCascadeSplit = m_SerializedURPAsset.shadowCascade3SplitProp.vector2Value;
             else if (cascadeCount == 2)
-                shadowCascadeSplit.x = m_ShadowCascade2SplitProp.floatValue;
+                shadowCascadeSplit.x = m_SerializedURPAsset.shadowCascade2SplitProp.floatValue;
             else
-                shadowCascadeSplit.x = m_ShadowCascade2SplitProp.floatValue;
+                shadowCascadeSplit.x = m_SerializedURPAsset.shadowCascade2SplitProp.floatValue;
 
             float lastCascadePartitionSplit = 0;
             for (int i = 0; i < cascadeCount - 1; ++i)
@@ -595,7 +484,7 @@ namespace UnityEditor.Rendering.Universal
             cascades[lastCascade] = new ShadowCascadeGUI.Cascade()
             {
                 size = lastCascade == 0 ? 1.0f : 1 - shadowCascadeSplit[lastCascade - 1], // Calculate the size of cascade
-                borderSize = m_ShadowCascadeBorderProp.floatValue,
+                borderSize = m_SerializedURPAsset.shadowCascadeBorderProp.floatValue,
                 cascadeHandleState = ShadowCascadeGUI.HandleState.Hidden,
                 borderHandleState = ShadowCascadeGUI.HandleState.Enabled,
             };
@@ -605,20 +494,20 @@ namespace UnityEditor.Rendering.Universal
             if (EditorGUI.EndChangeCheck())
             {
                 if (cascadeCount == 4)
-                    m_ShadowCascade4SplitProp.vector3Value = new Vector3(
+                    m_SerializedURPAsset.shadowCascade4SplitProp.vector3Value = new Vector3(
                         cascades[0].size,
                         cascades[0].size + cascades[1].size,
                         cascades[0].size + cascades[1].size + cascades[2].size
                     );
                 else if (cascadeCount == 3)
-                    m_ShadowCascade3SplitProp.vector2Value = new Vector2(
+                    m_SerializedURPAsset.shadowCascade3SplitProp.vector2Value = new Vector2(
                         cascades[0].size,
                         cascades[0].size + cascades[1].size
                     );
                 else if (cascadeCount == 2)
-                    m_ShadowCascade2SplitProp.floatValue = cascades[0].size;
+                    m_SerializedURPAsset.shadowCascade2SplitProp.floatValue = cascades[0].size;
 
-                m_ShadowCascadeBorderProp.floatValue = cascades[lastCascade].borderSize;
+                m_SerializedURPAsset.shadowCascadeBorderProp.floatValue = cascades[lastCascade].borderSize;
             }
         }
 
@@ -627,22 +516,22 @@ namespace UnityEditor.Rendering.Universal
             m_PostProcessingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_PostProcessingSettingsFoldout.value, Styles.postProcessingSettingsText);
             if (m_PostProcessingSettingsFoldout.value)
             {
-                bool isHdrOn = m_HDR.boolValue;
+                bool isHdrOn = m_SerializedURPAsset.hdr.boolValue;
 
                 EditorGUI.indentLevel++;
 
-                EditorGUILayout.PropertyField(m_ColorGradingMode, Styles.colorGradingMode);
-                if (!isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.colorGradingMode, Styles.colorGradingMode);
+                if (!isHdrOn && m_SerializedURPAsset.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
                     EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);
-                else if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
+                else if (isHdrOn && m_SerializedURPAsset.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
                     EditorGUILayout.HelpBox(Styles.colorGradingModeSpecInfo, MessageType.Info);
 
-                EditorGUILayout.DelayedIntField(m_ColorGradingLutSize, Styles.colorGradingLutSize);
-                m_ColorGradingLutSize.intValue = Mathf.Clamp(m_ColorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
-                if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && m_ColorGradingLutSize.intValue < 32)
+                EditorGUILayout.DelayedIntField(m_SerializedURPAsset.colorGradingLutSize, Styles.colorGradingLutSize);
+                m_SerializedURPAsset.colorGradingLutSize.intValue = Mathf.Clamp(m_SerializedURPAsset.colorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
+                if (isHdrOn && m_SerializedURPAsset.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && m_SerializedURPAsset.colorGradingLutSize.intValue < 32)
                     EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
 
-                EditorGUILayout.PropertyField(m_UseFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.useFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
 
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
@@ -660,17 +549,17 @@ namespace UnityEditor.Rendering.Universal
                 string unsupportedGraphicsApisMessage;
 
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_SRPBatcher, Styles.srpBatcher);
-                EditorGUILayout.PropertyField(m_SupportsDynamicBatching, Styles.dynamicBatching);
-                EditorGUILayout.PropertyField(m_MixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
-                EditorGUILayout.PropertyField(m_SupportsLightLayers, Styles.supportsLightLayers);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.srpBatcher, Styles.srpBatcher);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.supportsDynamicBatching, Styles.dynamicBatching);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.mixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.supportsLightLayers, Styles.supportsLightLayers);
 
-                if (m_SupportsLightLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(asset, out unsupportedGraphicsApisMessage))
+                if (m_SerializedURPAsset.supportsLightLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(asset, out unsupportedGraphicsApisMessage))
                     EditorGUILayout.HelpBox(Styles.lightlayersUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
-                EditorGUILayout.PropertyField(m_DebugLevelProp, Styles.debugLevel);
-                EditorGUILayout.PropertyField(m_ShaderVariantLogLevel, Styles.shaderVariantLogLevel);
-                EditorGUILayout.PropertyField(m_StoreActionsOptimizationProperty, Styles.storeActionsOptimizationText);
-                CoreEditorUtils.DrawPopup(Styles.volumeFrameworkUpdateMode, m_VolumeFrameworkUpdateModeProp, Styles.volumeFrameworkUpdateOptions);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.debugLevelProp, Styles.debugLevel);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.shaderVariantLogLevel, Styles.shaderVariantLogLevel);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
+                CoreEditorUtils.DrawPopup(Styles.volumeFrameworkUpdateMode, m_SerializedURPAsset.volumeFrameworkUpdateModeProp, Styles.volumeFrameworkUpdateOptions);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
@@ -684,7 +573,7 @@ namespace UnityEditor.Rendering.Universal
             if (m_AdaptivePerformanceFoldout.value)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_UseAdaptivePerformance, Styles.useAdaptivePerformance);
+                EditorGUILayout.PropertyField(m_SerializedURPAsset.useAdaptivePerformance, Styles.useAdaptivePerformance);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
@@ -821,7 +710,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        bool ValidateRendererGraphicsAPIs(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)
+        internal static bool ValidateRendererGraphicsAPIs(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)
         {
             // Check the list of Renderers against all Graphics APIs the player is built with.
             unsupportedGraphicsApisMessage = null;
@@ -848,7 +737,7 @@ namespace UnityEditor.Rendering.Universal
             return unsupportedGraphicsApisMessage == null;
         }
 
-        bool ValidateRendererGraphicsAPIsForLightLayers(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)
+        internal static bool ValidateRendererGraphicsAPIsForLightLayers(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)
         {
             unsupportedGraphicsApisMessage = null;
 
