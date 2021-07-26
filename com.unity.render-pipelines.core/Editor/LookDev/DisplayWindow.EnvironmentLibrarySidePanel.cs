@@ -291,6 +291,7 @@ namespace UnityEditor.Rendering.LookDev
                     m_EnvironmentListToolbar.style.visibility = Visibility.Visible;
                     m_NoEnvironmentList.style.display = DisplayStyle.None;
                 }
+                m_EnvironmentList.RefreshItems();
             }
         }
 
