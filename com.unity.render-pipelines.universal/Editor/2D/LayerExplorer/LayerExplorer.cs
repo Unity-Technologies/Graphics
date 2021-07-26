@@ -18,6 +18,8 @@ using Random = UnityEngine.Random;
  */
 internal class LayerExplorer : EditorWindow
 {
+    private const string ResourcePath = "Packages/com.unity.render-pipelines.universal/Editor/2D/LayerExplorer/";
+
     public class LayerBatch
     {
         public string[] LayerNames;
@@ -107,7 +109,7 @@ internal class LayerExplorer : EditorWindow
         infoContainer.Clear();
 
         // load it
-        var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/LayerExplorer/LayerBatchInfoView.uxml");
+        var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ResourcePath + "LayerBatchInfoView.uxml");
         infoView = visualTree.Instantiate();
         infoContainer.Add(infoView);
 
@@ -186,7 +188,7 @@ internal class LayerExplorer : EditorWindow
         // Each editor window contains a root VisualElement object
         var root = rootVisualElement;
 
-        var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/LayerExplorer/LayerExplorer.uxml");
+        var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ResourcePath + "LayerExplorer.uxml");
         var templateRoot = visualTree.Instantiate();
         templateRoot.style.flexGrow = 1;
         root.Add(templateRoot);
@@ -194,7 +196,7 @@ internal class LayerExplorer : EditorWindow
         MakeFakeData();
         var colors = MakeColors();
 
-        var batchElement = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/LayerExplorer/LayerBatch.uxml");
+        var batchElement = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ResourcePath + "LayerBatch.uxml");
         Func<VisualElement> makeItem = () => batchElement.Instantiate();
 
         Action<VisualElement, int> bindItem = (e, i) =>
