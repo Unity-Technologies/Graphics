@@ -279,12 +279,21 @@ namespace UnityEngine.Rendering.Universal
             m_Input = passInput;
         }
 
+        /// <summary>
+        /// Configures the Store Action for a color attachment of this render pass.
+        /// </summary>
+        /// <param name="storeAction">RenderBufferStoreAction to use</param>
+        /// <param name="attachmentIndex">Index of the color attachment</param>
         public void ConfigureColorStoreAction(RenderBufferStoreAction storeAction, uint attachmentIndex = 0)
         {
             m_ColorStoreActions[attachmentIndex] = storeAction;
             m_OverriddenColorStoreActions[attachmentIndex] = true;
         }
 
+        /// <summary>
+        /// Configures the Store Actions for all the color attachments of this render pass.
+        /// </summary>
+        /// <param name="storeActions">Array of RenderBufferStoreActions to use</param>
         public void ConfigureColorStoreActions(RenderBufferStoreAction[] storeActions)
         {
             int count = Math.Min(storeActions.Length, m_ColorStoreActions.Length);
@@ -295,6 +304,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Configures the Store Action for the depth attachment of this render pass.
+        /// </summary>
+        /// <param name="storeAction">RenderBufferStoreAction to use</param>
         public void ConfigureDepthStoreAction(RenderBufferStoreAction storeAction)
         {
             m_DepthStoreAction = storeAction;
