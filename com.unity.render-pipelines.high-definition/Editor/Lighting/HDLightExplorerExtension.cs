@@ -406,7 +406,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         Undo.RecordObject(tLightData, "Changed shadow update mode");
                         tLightData.shadowUpdateMode = sLightData.shadowUpdateMode;
                     }),
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Name, HDStyles.ShadowFitAtlas, "m_Intensity", 130, (r, prop, dep) =>         // 13: Shadow Fit atlas
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Int, HDStyles.ShadowFitAtlas, "m_Intensity", 130, (r, prop, dep) =>         // 13: Shadow Fit atlas
                 {
                     if (!TryGetAdditionalLightData(prop, out var lightData))
                     {
