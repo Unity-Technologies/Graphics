@@ -1685,9 +1685,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             RTHandle stencil = data.stencilBuffer;
                             if (stencil.rt.stencilFormat == GraphicsFormat.None)  // We are accessing MSAA resolved version and not the depth stencil buffer directly.
-                                mpb.SetTexture(HDShaderIDs._StencilTexture, stencilBuffer);
+                                mpb.SetTexture(HDShaderIDs._StencilTexture, stencil);
                             else
-                                mpb.SetTexture(HDShaderIDs._StencilTexture, stencilBuffer, RenderTextureSubElement.Stencil);
+                                mpb.SetTexture(HDShaderIDs._StencilTexture, stencil, RenderTextureSubElement.Stencil);
 
 
                             HDUtils.DrawFullScreen(ctx.cmd, rect, data.temporalAAMaterial, data.destination, mpb, taauPass);
