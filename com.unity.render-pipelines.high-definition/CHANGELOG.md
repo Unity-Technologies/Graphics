@@ -79,8 +79,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a better support for LODs in the ray tracing acceleration structure.
 - Added a property on the HDRP asset to allow users to avoid ray tracing effects running at too low percentages (case 1342588).
 - Added dependency to mathematics and burst, HDRP now will utilize this to improve on CPU cost. First implementation of burstified decal projector is here.
-- Added Blend factor control for TAA.
-- Added Experimental Temporal Upscaling.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -311,6 +309,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed conflicting runtime debug menu command with an option to disable runtime debug window hotkey.
 - Fixed screen-space shadows with XR single-pass and camera relative rendering (1348260).
 - Fixed ghosting issues if the exposure changed too much (RTGI).
+- Fixed misc TAA issue: Slightly improved TAA flickering, Reduced ringing of TAA sharpening, tweak TAA High quality central color filtering.
+- Fixed TAA upsampling algorithm, now work properly
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -409,9 +409,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Various improvements to SSGI (case 1340851, case 1339297, case 1327919).
 - Changed the NVIDIA install button to the standard FixMeButton.
 - Improved a bit the area cookie behavior for higher smoothness values to reduce artifacts.
-- Slightly improved TAA flickering.
-- Reduced ringing of TAA sharpening.
-- Improved TAA High quality central color filtering.
 
 ## [11.0.0] - 2020-10-21
 
