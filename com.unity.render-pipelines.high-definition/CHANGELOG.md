@@ -309,6 +309,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed conflicting runtime debug menu command with an option to disable runtime debug window hotkey.
 - Fixed screen-space shadows with XR single-pass and camera relative rendering (1348260).
 - Fixed ghosting issues if the exposure changed too much (RTGI).
+- Fixed failures on platforms that do not support ray tracing due to an engine behavior change.
+- Fixed infinite propagation of nans for RTGI and SSGI (case 1349738).
+- Fixed access to main directional light from script.
+- Fixed an issue with reflection probe normalization via APV when no probes are in scene.
+- Fixed Volumetric Clouds not updated when using RenderTexture as input for cloud maps.
+- Fixed custom post process name not displayed correctly in GPU markers.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -407,6 +413,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Various improvements to SSGI (case 1340851, case 1339297, case 1327919).
 - Changed the NVIDIA install button to the standard FixMeButton.
 - Improved a bit the area cookie behavior for higher smoothness values to reduce artifacts.
+- Improved volumetric clouds (added new noise for erosion, reduced ghosting while flying through, altitude distortion, ghosting when changing from local to distant clouds, fix issue in wind distortion along the Z axis).
+- Fixed upscaling issue that is exagerated by DLSS (case 1347250).
+- Improvements to the RTGI denoising.
 
 ## [11.0.0] - 2020-10-21
 
