@@ -448,36 +448,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                         var hdrp = HDRenderPipeline.currentAsset;
 
-                        var shadowResolution = lLightData.shadowResolution;
-                        int shadowRes = 0;
                         var lightType = lLightData.type;
-
-                        if (shadowResolution.useOverride)
-                        {
-                            shadowRes = shadowResolution.@override;
-                        }
-                        else
-                        {
-                            var defaultValue = HDLightUI.ScalableSettings.ShadowResolution(lightType, hdrp);
-                            shadowRes = defaultValue[shadowResolution.level];
-                        }
 
                         bool lFit = lLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(lLightData);
 
-                        shadowResolution = rLightData.shadowResolution;
                         lightType = rLightData.type;
 
-                        if (shadowResolution.useOverride)
-                        {
-                            shadowRes = shadowResolution.@override;
-                        }
-                        else
-                        {
-                            var defaultValue = HDLightUI.ScalableSettings.ShadowResolution(lightType, hdrp);
-                            shadowRes = defaultValue[shadowResolution.level];
-                        }
-
-                        bool rFit = lLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(rLightData);
+                        bool rFit = rLightData.ShadowIsUpdatedEveryFrame() || HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(rLightData);
 
                         return rFit.CompareTo(lFit);
                     }),
