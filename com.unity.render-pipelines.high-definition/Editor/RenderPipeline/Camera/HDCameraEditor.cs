@@ -50,6 +50,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            if(HDUtils.IsPresetEditor(this))
+            {
+                EditorGUILayout.HelpBox("Presets of HD Camera is not supported.",MessageType.Info);
+                return;
+            }
+
             m_SerializedCamera.Update();
 
             HDCameraUI.Inspector.Draw(m_SerializedCamera, this);

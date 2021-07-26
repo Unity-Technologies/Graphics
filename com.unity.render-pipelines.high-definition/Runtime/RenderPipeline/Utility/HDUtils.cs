@@ -1201,5 +1201,11 @@ namespace UnityEngine.Rendering.HighDefinition
             ComponentSingleton<HDAdditionalLightData>.Release();
             ComponentSingleton<HDAdditionalCameraData>.Release();
         }
+
+        // IsPreset is an internal API - lets reuse the usable part of this function
+        static internal bool IsPresetEditor(UnityEditor.Editor editor)
+        {
+            return (int)((editor.target as Component).gameObject.hideFlags) == 93;
+        }
     }
 }

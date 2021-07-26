@@ -66,6 +66,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            if(HDUtils.IsPresetEditor(this))
+            {
+                EditorGUILayout.HelpBox("Presets of HD Lights is not supported.",MessageType.Info);
+                return;
+            }
+
             m_SerializedHDLight.Update();
 
             // Add space before the first collapsible area
