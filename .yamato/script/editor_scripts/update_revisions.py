@@ -32,12 +32,11 @@ def parse_args(flags):
     parser.add_argument("--track", required=True, help='Which editor track the script is targeting')
     parser.add_argument("--ono-branch", required=True, help='Which Ono branch to target via API')
     parser.add_argument("--api-key", required=True, help='Ono API key')
-    parser.add_argument("--nr-commits-to-retrieve", required=False, help='Ono API key', default=100)
     args = parser.parse_args(flags)
     return args
 
 
-def get_last_revisions_from_ono(api_key, last_retrieved_revision, ono_branch, nr_commits_to_retrieve):
+def get_last_revisions_from_ono(api_key, last_retrieved_revision, ono_branch):
     """Calls Ono Api to get n latest revisions."""
     try:
         headers = {
@@ -48,7 +47,7 @@ def get_last_revisions_from_ono(api_key, last_retrieved_revision, ono_branch, nr
         ono_query = '''
         {
             repository(name: "unity/unity") {
-                changelog(branch: "ONO_BRANCH", limit: nr_commits_to_retrieve) {
+                changelog(branch: "ONO_BRANCH", limit: 100) {
                         nodes{
                             id
                             date
@@ -57,7 +56,6 @@ def get_last_revisions_from_ono(api_key, last_retrieved_revision, ono_branch, nr
             }
         }'''
         ono_query = ono_query.replace('ONO_BRANCH', ono_branch)
-        ono_query = ono_query.replace('nr_commits_to_retrieve', nr_commits_to_retrieve)
         response = requests.get(url=f'{ono_endpoint}?query={ono_query}', headers=headers)
         if response.status_code != 200:
             raise Exception(f'!! ERROR: Got {response.status_code}')
@@ -109,7 +107,7 @@ def main(argv):
 
     try:
         # fetch all ono revisions up until the last revision in the file
-        last_revisions_nodes = get_last_revisions_from_ono(args.api_key, last_retrieved_revision, args.ono_branch, args.nr_commits_to_retrieve)
+        last_revisions_nodes = get_last_revisions_from_ono(args.api_key, last_retrieved_revision, args.ono_branch)
         if len(last_revisions_nodes) == 0:
             print(f'INFO: No revisions to update.')
             return 0

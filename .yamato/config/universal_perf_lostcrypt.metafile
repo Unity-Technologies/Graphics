@@ -7,12 +7,8 @@ project:
 
 reuse_blocks:
   unity_config:
-    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]:
-      - command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-        retries: 3
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]:
-      - command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
-        retries: 3
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
 
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
@@ -64,7 +60,6 @@ reuse_blocks:
 test_platforms:
   - type: Standalone
     name: performance_playmode_runtime
-    allow_cache: False
     commands:
       - [OSX_Metal]: <reuse_blocks.unity_config>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
@@ -98,12 +93,8 @@ test_platforms:
 
     commands_build:
       - <reuse_blocks.unity_config>
-      - [iPhone_Metal]:
-        - command: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-          retries: 2
-      - [iPhone_Metal]:
-        - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
-          retries: 2
+      - [iPhone_Metal]: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      - [iPhone_Metal]: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
@@ -134,7 +125,6 @@ test_platforms:
 
   - type: playmode
     name: performance_playmode_editor
-    allow_cache: False
     commands:
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
@@ -160,7 +150,6 @@ test_platforms:
           - [all]: --testfilter=High
   - type: editmode
     name: performance_build_editmode
-    allow_cache: False
     commands:
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
@@ -187,7 +176,8 @@ test_platforms:
           - [all]: --performance-project-id=LostCryptLostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=High
-
+expression_trigger:
+  expression: ""
 platforms:
   - name: Win
     apis:
@@ -204,7 +194,7 @@ platforms:
       default:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
+        flavor: b1.large
         model: rtx2080
       standalone_build:
         type: Unity::VM
@@ -256,7 +246,7 @@ platforms:
         flavor: b1.medium
       standalone_build:
         type: Unity::VM::osx
-        image: mobile/macos-10.15-testing:stable
+        image: mobile/macos-10.13-testing:stable
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM::osx
@@ -276,52 +266,54 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-
-jobs:
-  - name: <PROJECT_NAME>
-    dependencies:
-      - platform: Win
-        api: DX11
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - performance_playmode_runtime
-          - performance_playmode_editor
-          - performance_build_editmode
-      - platform: Win
-        api: Vulkan
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - performance_playmode_runtime
-          #- performance_playmode_editor
-          - performance_build_editmode
-      - platform: Win
-        api: DX12
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - performance_playmode_runtime
-          - performance_playmode_editor
-          - performance_build_editmode
-      - platform: Android
-        api: OpenGLES3
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - performance_playmode_runtime
-          - performance_build_editmode
-      - platform: Android
-        api: Vulkan
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - performance_playmode_runtime
-          - performance_build_editmode
-      - platform: iPhone
-        api: Metal
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - performance_playmode_runtime
-          - performance_build_editmode
+pr:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_playmode_editor
+        - performance_build_editmode
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        #- performance_playmode_editor
+        - performance_build_editmode
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_playmode_editor
+        - performance_build_editmode
+    - platform: Android
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_build_editmode
+    - platform: Android
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_build_editmode
+    - platform: iPhone
+      api: Metal
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_build_editmode
+nightly:
+  dependencies:
+    - project: URP_Performance_LostCrypt
+      pr: true

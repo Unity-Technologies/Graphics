@@ -4,7 +4,6 @@
 name: postprocessing
 test_editors:
   - trunk
-  - 2021.2
   - 2021.1
   - 2020.2
   - 2019.4
@@ -48,7 +47,7 @@ test_platforms:
       paths:
         - "upm-ci~/test-results/**/*"
   dependencies:
-    - .yamato/postprocessing_publish.yml#{{ name }}_pack
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_pack
 {% endfor %}
 {% endfor %}
 
@@ -68,10 +67,10 @@ test_platforms:
       paths:
         - "upm-ci~/packages/**/*"
   dependencies:
-    - .yamato/postprocessing_publish.yml#{{ name }}_pack
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_pack
     {% for editor in test_editors %}
     {% for platform in test_platforms %}
-    - .yamato/postprocessing_publish.yml#{{ name }}_test_{{platform.name}}_{{editor}}
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_test_{{platform.name}}_{{editor}}
     {% endfor %}
     {% endfor %}
 
@@ -89,10 +88,10 @@ test_platforms:
       paths:
         - "upm-ci~/packages/*.tgz"
   dependencies:
-    - .yamato/postprocessing_publish.yml#{{ name }}_pack
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_pack
     {% for editor in test_editors %}
     {% for platform in test_platforms %}
-    - .yamato/postprocessing_publish.yml#{{ name }}_test_{{ platform.name }}_{{ editor }}
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_test_{{ platform.name }}_{{ editor }}
     {% endfor %}
     {% endfor %}
 
@@ -111,9 +110,9 @@ test_platforms:
       paths:
         - "upm-ci~/packages/*.tgz"
   dependencies:
-    - .yamato/postprocessing_publish.yml#{{ name }}_pack
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_pack
     {% for editor in test_editors %}
     {% for platform in test_platforms %}
-    - .yamato/postprocessing_publish.yml#{{ name }}_test_{{ platform.name }}_{{ editor }}
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_test_{{ platform.name }}_{{ editor }}
     {% endfor %}
     {% endfor %}

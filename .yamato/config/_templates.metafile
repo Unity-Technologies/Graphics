@@ -23,8 +23,4 @@ platforms:
 agent_pack: package_ci_win_large
 agent_publish: package_ci_win_large
 agent_test:  package_ci_win_large
-<<<<<<< HEAD
-=======
-agent_publish:  package_ci_win_large
->>>>>>> 72444a5fbdac5237d8a9818a45a93831def76b34
 agent_all_ci: package_ci_win_large

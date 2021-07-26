@@ -6,8 +6,7 @@ editor_pin_agent: package_ci_ubuntu_small
 
 trunk_track: '2021.1' # track running on trunk: this must match across all release branches
 editor_tracks: # specifies tracks which go in _latest_editor_versions: this must differ per release branches
-# - trunk
-- 2021.2
+- trunk
 
 editor_versions_file: .yamato/_latest_editor_versions_TRACK.metafile
 green_revisions_file: .yamato/_green_job_revisions_TRACK.metafile
@@ -39,7 +38,7 @@ platforms: # Components to have unity-downloader-cli to trigger.
     components:
       - editor
       - il2cpp
-      - android
+      - android      
   - name: iPhone
     os: macos
     components:
@@ -58,7 +57,7 @@ yamato_project_id: 902
 nightly_job_definition: .yamato%252F_abv.yml%2523all_project_ci_nightly_trunk
 green_revision_jobs:
   - _Nightly ABV against trunk
-
+  
   - Nightly Universal_Split - trunk
   - Universal_Split PR Job - trunk
 
@@ -76,15 +75,15 @@ green_revision_jobs:
 
   - Nightly URP_Terrain - trunk
   - URP_Terrain PR Job - trunk
-
+  
   - Nightly HDRP - trunk
   - HDRP PR Job - trunk
-
+  
   - Nightly ShaderGraph - trunk
   - ShaderGraph PR Job - trunk
-
+  
   - Nightly VFX_HDRP - trunk
   - VFX_HDRP PR Job - trunk
-
+  
   - Nightly VFX_URP - trunk
   - VFX_URP PR Job - trunk

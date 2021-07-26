@@ -1,0 +1,113 @@
+abv:
+  dependencies:
+    - project: Universal_Split
+      pr: true
+    - project: ShaderGraph
+      pr: true
+    - project: HDRP
+      pr: true
+    - project: VFX_HDRP
+      pr: true
+    - project: VFX_URP
+      pr: true
+  expression_trigger:
+    # expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+    expression: ''
+weekly:
+  dependencies:
+    []
+nightly:
+  dependencies:
+    - project: Universal_Split
+      nightly: true
+    - project: ShaderGraph
+      nightly: true
+    - project: HDRP
+      nightly: true
+    - project: VFX_HDRP
+      nightly: true
+    - project: VFX_URP
+      nightly: true
+    - project: URP_Performance_BoatAttack
+      pr: true
+    - project: URP_Performance_LostCrypt
+      pr: true
+    - project: HDRP_PerformanceTests
+      pr: true
+    - project: VikingVillage_BuiltIn
+      pr: true
+    - project: VikingVillage_URP
+      pr: true
+trunk_verification: # jobs to include in trunk verification job
+  dependencies:
+    - project: URP_2D
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: URP_Foundation
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: URP_Lighting
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: URP_PostPro
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: URP_Terrain
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: ShaderGraph
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: HDRP
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: VFX_HDRP
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: VFX_URP
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
