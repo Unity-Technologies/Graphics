@@ -1,6 +1,9 @@
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor")]
 
 namespace UnityEditor.Rendering.Universal
 {

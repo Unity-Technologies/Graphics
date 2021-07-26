@@ -5,8 +5,10 @@ using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.Build;
+using UnityEditor.Rendering.Universal;
 using UnityEditor.TextCore.Text;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
@@ -20,10 +22,10 @@ internal class LayerExplorer : EditorWindow
 {
     private const string ResourcePath = "Packages/com.unity.render-pipelines.universal/Editor/2D/LayerExplorer/";
 
-    public class LayerBatch
+    private class LayerBatch
     {
-        public string[] LayerNames;
-        public string[] Lights;
+        public List<string> LayerNames = new List<string>();
+        public List<Light2D> Lights = new List<Light2D>();
         public int batchId;
         public int color;
 
@@ -36,7 +38,7 @@ internal class LayerExplorer : EditorWindow
         wnd.titleContent = new GUIContent("Layer Explorer");
     }
 
-    Color[] MakeColors()
+    private Color[] MakeColors()
     {
         return new[]
         {
@@ -49,56 +51,57 @@ internal class LayerExplorer : EditorWindow
     private List<LayerBatch> batchList;
     private int primaryIndex;
 
-    void MakeFakeData()
+    private void PopulateData()
     {
-        const int itemCount = 10;
+        batchList = new List<LayerBatch>();
+        var renderer = Light2DEditorUtility.GetRenderer2DData();
+        if (renderer == null || renderer.lightCullResult == null)
+            return;
 
-        batchList = new List<LayerBatch>(itemCount);
-        for (var i = 0; i < itemCount; i++)
+        var layers = Light2DManager.GetCachedSortingLayer();
+        var batches = LayerUtility.CalculateBatches(renderer.lightCullResult, out var batchCount);
+
+        for (var i = 0; i < batchCount; i++)
         {
-            batchList.Add(new LayerBatch
+            var batchInfo = new LayerBatch
             {
                 batchId = i
-            });
-        }
+            };
 
-        foreach (var batch in batchList)
-        {
-            var count = Random.Range(1, 5);
-            batch.LayerNames = new string[count];
-            for (var j = 0; j < count; j++)
+            var batch = batches[i];
+            // get the lights
+            foreach (var light in renderer.lightCullResult.visibleLights)
             {
-                batch.LayerNames[j] = $"Batch{batch.batchId} Layer{j}";
+                // If the lit layers are different, or if they are lit but this is a shadow casting light then don't batch.
+                if (light.IsLitLayer(batch.startLayerID))
+                    batchInfo.Lights.Add(light);
             }
-        }
 
-        foreach (var batch in batchList)
-        {
-            var count = Random.Range(1, 10);
-            batch.Lights = new string[count];
-            for (var j = 0; j < count; j++)
+            for (var batchIndex = batch.startIndex; batchIndex <= batch.endIndex; batchIndex++)
             {
-                batch.Lights[j] = $"Light_{j}";
+                batchInfo.LayerNames.Add(layers[batchIndex].name);
             }
+
+            batchList.Add(batchInfo);
         }
     }
 
-    VisualElement MakeLightPill(string name)
+    private VisualElement MakeLightPill(Light2D light)
     {
         var bubble = new Button();
         bubble.AddToClassList("Pill");
-        bubble.text = name;
+        bubble.text = light.name;
         // bubble.Add(new Label{text = name});
 
         bubble.clicked += () =>
         {
-            Debug.Log($"Clicked {name}");
+            Selection.activeObject = light;
         };
 
         return bubble;
     }
 
-    VisualElement GetOrCreateInfoView()
+    private VisualElement GetOrCreateInfoView()
     {
         var root = rootVisualElement;
         var infoView = root.Query<VisualElement>("InfoScroller").First();
@@ -116,7 +119,7 @@ internal class LayerExplorer : EditorWindow
         return infoView;
     }
 
-    void ViewBatch(int index)
+    private void ViewBatch(int index)
     {
         var root = rootVisualElement;
         var infoView = GetOrCreateInfoView();
@@ -146,7 +149,7 @@ internal class LayerExplorer : EditorWindow
         desc.text = "";
     }
 
-    void CompareBatch(int index1, int index2)
+    private void CompareBatch(int index1, int index2)
     {
         // Each editor window contains a root VisualElement object
         var root = rootVisualElement;
@@ -193,7 +196,7 @@ internal class LayerExplorer : EditorWindow
         templateRoot.style.flexGrow = 1;
         root.Add(templateRoot);
 
-        MakeFakeData();
+        PopulateData();
         var colors = MakeColors();
 
         var batchElement = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ResourcePath + "LayerBatch.uxml");
