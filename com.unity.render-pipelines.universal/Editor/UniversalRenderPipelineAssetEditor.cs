@@ -1,8 +1,7 @@
-using UnityEngine;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.Rendering;
-using UnityEngine.Scripting.APIUpdating;
 using UnityEditorInternal;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using Styles = UnityEditor.Rendering.Universal.UniversalRenderPipelineAssetUI.Styles;
 
 namespace UnityEditor.Rendering.Universal
