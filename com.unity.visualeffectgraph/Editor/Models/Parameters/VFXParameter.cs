@@ -680,20 +680,10 @@ namespace UnityEditor.VFX
                     {
                         var refPosition = Vector2.zero;
                         object refOwner = link.inputSlot.owner;
-                        //TODO : Clarify this code
-                        while (refOwner != null)
+                        while (refOwner is VFXModel model && refPosition == Vector2.zero)
                         {
-                            if (refOwner is VFXModel)
-                            {
-                                refPosition = (refOwner as VFXModel).position;
-                                if (!(refOwner is VFXBlock))
-                                {
-                                    break;
-                                }
-                                refOwner = (refOwner as VFXModel).GetParent();
-                            }
-                            else
-                                refOwner = null;
+                            refPosition = model.position;
+                            refOwner = model.GetParent();
                         }
                         newInfos = nodes.OrderBy(o => (refPosition - o.position).SqrMagnitude()).First();
                     }
