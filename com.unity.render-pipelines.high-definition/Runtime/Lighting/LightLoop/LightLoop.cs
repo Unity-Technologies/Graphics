@@ -636,7 +636,12 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_CurrentShadowSortedSunLightIndex = -1;
         HDAdditionalLightData m_CurrentSunLightAdditionalLightData;
         DirectionalLightData m_CurrentSunLightDirectionalLightData;
-        internal Light GetCurrentSunLight() { return m_CurrentSunLight; }
+
+        /// <summary>
+        /// Main directional Light for the HD Render Pipeline.
+        /// </summary>
+        /// <returns>The main directional Light.</returns>
+        public Light GetMainLight() { return m_CurrentSunLight; }
 
         // Screen space shadow data
         struct ScreenSpaceShadowData
@@ -1178,7 +1183,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeHeight),
                 position = light.GetPosition()
             };
-            if (lightComponent == GetCurrentSunLight())
+            if (lightComponent == GetMainLight())
             {
                 // If this is the current sun light and volumetric cloud shadows are enabled we need to render the shadows
                 if (HasVolumetricCloudsShadows_IgnoreSun(hdCamera))
@@ -1186,7 +1191,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 else if (m_SkyManager.TryGetCloudSettings(hdCamera, out var cloudSettings, out var cloudRenderer))
                 {
                     if (cloudRenderer.GetSunLightCookieParameters(cloudSettings, ref cookieParams))
-                        cloudRenderer.RenderSunLightCookie(cloudSettings, lightComponent, cmd);
+                    {
+                        var builtinParams = new BuiltinSunCookieParameters
+                        {
+                            cloudSettings = cloudSettings,
+                            sunLight = lightComponent,
+                            hdCamera = hdCamera,
+                            commandBuffer = cmd
+                        };
+                        cloudRenderer.RenderSunLightCookie(builtinParams);
+                    }
                 }
             }
 
@@ -1918,6 +1932,16 @@ namespace UnityEngine.Rendering.HighDefinition
             envLightData.influencePositionRWS = influenceToWorld.GetColumn(3);
 
             envLightData.envIndex = envIndex;
+
+            envLightData.normalizeWithAPV = hdCamera.frameSettings.IsEnabled(FrameSettingsField.NormalizeReflectionProbeWithProbeVolume) ? 1 : 0;
+            if (envLightData.normalizeWithAPV > 0)
+            {
+                if (!probe.GetSHForNormalization(out envLightData.L0L1, out envLightData.L2_1, out envLightData.L2_2))
+                {
+                    // We don't have valid data, hence we disable the feature.
+                    envLightData.normalizeWithAPV = 0;
+                }
+            }
 
             // Proxy data
             var proxyToWorld = probe.proxyToWorld;

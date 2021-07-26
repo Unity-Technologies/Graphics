@@ -478,7 +478,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _HistoryVolumetricClouds0Texture = Shader.PropertyToID("_HistoryVolumetricClouds0Texture");
         public static readonly int _HistoryVolumetricClouds1Texture = Shader.PropertyToID("_HistoryVolumetricClouds1Texture");
         public static readonly int _Worley128RGBA = Shader.PropertyToID("_Worley128RGBA");
-        public static readonly int _Worley32RGB = Shader.PropertyToID("_Worley32RGB");
+        public static readonly int _ErosionNoise = Shader.PropertyToID("_ErosionNoise");
         public static readonly int _CloudMapTexture = Shader.PropertyToID("_CloudMapTexture");
         public static readonly int _CloudMapTextureRW = Shader.PropertyToID("_CloudMapTextureRW");
         public static readonly int _CloudLutTexture = Shader.PropertyToID("_CloudLutTexture");
@@ -960,6 +960,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Sharpness                      = Shader.PropertyToID("Sharpness");
         public static readonly int _InputTextureDimensions         = Shader.PropertyToID("InputTextureDimensions");
         public static readonly int _OutputTextureDimensions        = Shader.PropertyToID("OutputTextureDimensions");
+
+        // Robust Contrast Adaptive Sharpening
+        public static readonly int _RCASScale                      = Shader.PropertyToID("_RCASScale");
+        public static readonly int _RCasParameters                 = Shader.PropertyToID("_RCasParameters");
+
+        // Edge Adaptive Spatial Upsampling
+        public static readonly int _EASUViewportSize               = Shader.PropertyToID("_EASUViewportSize");
+        public static readonly int _EASUInputImageSize             = Shader.PropertyToID("_EASUInputImageSize");
+        public static readonly int _EASUOutputSize                 = Shader.PropertyToID("_EASUOutputSize");
+        public static readonly int _EASUParameters                 = Shader.PropertyToID("_EASUParameters");
+
 
         // BlitCubeTextureFace.shader
         public static readonly int _InputTex                       = Shader.PropertyToID("_InputTex");
