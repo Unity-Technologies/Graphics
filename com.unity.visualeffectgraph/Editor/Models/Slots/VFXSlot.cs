@@ -871,7 +871,7 @@ namespace UnityEditor.VFX
             PropagateToChildren(func);
         }
 
-        virtual protected void UpdateLinkSlotManualConversion(VFXSlot fromSlot)
+        virtual protected void ConvertExpressionsFromLink(VFXSlot fromSlot)
         {
             throw new NotImplementedException(string.Format("Missing slot conversion implementation from {0} to {1}", fromSlot.property.type, property.type));
         }
@@ -902,7 +902,7 @@ namespace UnityEditor.VFX
             }
             else
             {
-                destSlot.UpdateLinkSlotManualConversion(refSlot);
+                destSlot.ConvertExpressionsFromLink(refSlot);
             }
         }
 
