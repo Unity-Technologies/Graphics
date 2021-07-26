@@ -183,6 +183,18 @@ float NormalFiltering(float perceptualSmoothness, float variance, float threshol
     return RoughnessToPerceptualSmoothness(sqrt(squaredRoughness));
 }
 
+float ProjectedSpaceNormalFiltering(float perceptualSmoothness, float variance, float threshold)
+{
+    float roughness = PerceptualSmoothnessToRoughness(perceptualSmoothness);
+    // Ref: Stable Geometric Specular Antialiasing with Projected-Space NDF Filtering - https://yusuketokuyoshi.com/papers/2021/Tokuyoshi2021SAA.pdf
+    float squaredRoughness = roughness * roughness;
+    float projRoughness2 = squaredRoughness / (1.0 - squaredRoughness);
+    float filteredProjRoughness2 = saturate(projRoughness2 + min(2.0 * variance, threshold * threshold));
+    squaredRoughness = filteredProjRoughness2 / (filteredProjRoughness2 + 1.0f);
+
+    return RoughnessToPerceptualSmoothness(sqrt(squaredRoughness));
+}
+
 // Reference: Error Reduction and Simplification for Shading Anti-Aliasing
 // Specular antialiasing for geometry-induced normal (and NDF) variations: Tokuyoshi / Kaplanyan et al.'s method.
 // This is the deferred approximation, which works reasonably well so we keep it for forward too for now.
@@ -201,6 +213,12 @@ float GeometricNormalFiltering(float perceptualSmoothness, float3 geometricNorma
 {
     float variance = GeometricNormalVariance(geometricNormalWS, screenSpaceVariance);
     return NormalFiltering(perceptualSmoothness, variance, threshold);
+}
+
+float ProjectedSpaceGeometricNormalFiltering(float perceptualSmoothness, float3 geometricNormalWS, float screenSpaceVariance, float threshold)
+{
+    float variance = GeometricNormalVariance(geometricNormalWS, screenSpaceVariance);
+    return ProjectedSpaceNormalFiltering(perceptualSmoothness, variance, threshold);
 }
 
 // Normal map filtering based on The Order : 1886 SIGGRAPH course notes implementation.

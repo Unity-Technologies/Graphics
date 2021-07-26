@@ -648,6 +648,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="disposing">Is disposing.</param>
         protected override void Dispose(bool disposing)
         {
+            Graphics.ClearRandomWriteTargets();
+            Graphics.SetRenderTarget(null);
             DisposeProbeCameraPool();
 
             UnsetRenderingFeatures();
@@ -2520,7 +2522,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetCurrentSunLight(), cmd);
+            m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetMainLight(), cmd);
         }
 
         /// <summary>

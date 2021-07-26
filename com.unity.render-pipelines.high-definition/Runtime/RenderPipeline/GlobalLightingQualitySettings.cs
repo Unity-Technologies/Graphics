@@ -90,13 +90,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RTGIFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = false;
             RTGIFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
 
-            RTGIClampValue[(int)ScalableSettingLevelParameter.Level.Low] = 0.5f;
-            RTGIClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 0.8f;
-            RTGIClampValue[(int)ScalableSettingLevelParameter.Level.High] = 1.5f;
-
-            RTGIUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Low] = 4;
-            RTGIUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 4;
-            RTGIUpScaleRadius[(int)ScalableSettingLevelParameter.Level.High] = 4;
+            RTGIClampValue[(int)ScalableSettingLevelParameter.Level.Low] = 2.0f;
+            RTGIClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 3.0f;
+            RTGIClampValue[(int)ScalableSettingLevelParameter.Level.High] = 5.0f;
 
             RTGIRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 32;
             RTGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 48;
@@ -110,9 +106,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RTGIHalfResDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = false;
             RTGIHalfResDenoise[(int)ScalableSettingLevelParameter.Level.High] = false;
 
-            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 0.75f;
-            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 0.5f;
-            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 0.25f;
+            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 1.0f;
+            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 1.0f;
+            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 1.0f;
 
             RTGISecondDenoise[(int)ScalableSettingLevelParameter.Level.Low] = true;
             RTGISecondDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = true;
@@ -232,9 +228,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Clamp value used to reduce the variance in the integration signal. The array must have one entry per scalable setting level, and elements must be between 0.001 and 10.</summary>
         [Range(0.001f, 10.0f)]
         public float[] RTGIClampValue = new float[s_QualitySettingCount];
-        /// <summary>Radius for the up-sample pass. The array must have one entry per scalable setting level, and elements must be between 2 and 4.</summary>
-        [Range(2, 4)]
-        public int[] RTGIUpScaleRadius = new int[s_QualitySettingCount];
         /// <summary>Controls the number of ray steps for hybrid tracing. The array must have one entry per scalable setting level, and elements must above 0.</summary>
         [Min(0)]
         public int[] RTGIRaySteps = new int[s_QualitySettingCount];

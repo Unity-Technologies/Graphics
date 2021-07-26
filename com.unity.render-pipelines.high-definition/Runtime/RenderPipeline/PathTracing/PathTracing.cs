@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky for Path Tracing", out var passData))
             {
                 passData.visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-                passData.sunLight = GetCurrentSunLight();
+                passData.sunLight = GetMainLight();
                 passData.hdCamera = hdCamera;
                 passData.colorBuffer = builder.WriteTexture(skyBuffer);
                 passData.depthTexture = builder.WriteTexture(CreateDepthBuffer(renderGraph, true, MSAASamples.None));

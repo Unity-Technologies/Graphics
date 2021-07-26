@@ -129,12 +129,17 @@ namespace UnityEngine.Experimental.Rendering
         private SerializedProperty m_DilationInvSquaredWeight;
         private SerializedProperty m_VolumeAsset;
 
+        private SerializedProperty m_EnableVirtualOffset;
+        private SerializedProperty m_VirtualOffsetGeometrySearchMultiplier;
+        private SerializedProperty m_VirtualOffsetBiasOutOfGeometry;
+
         private SerializedProperty m_Profile;
 
         internal static readonly GUIContent s_DataAssetLabel = new GUIContent("Data asset", "The asset which serializes all probe related data in this volume.");
         internal static readonly GUIContent s_ProfileAssetLabel = new GUIContent("Profile", "The asset which determines the characteristics of the probe reference volume.");
 
         private static bool DilationGroupEnabled;
+        private static bool VirtualOffsetGroupEnabled;
 
         private float DilationValidityThresholdInverted;
 
@@ -149,6 +154,9 @@ namespace UnityEngine.Experimental.Rendering
             m_MaxDilationSampleDistance = serializedObject.FindProperty("m_MaxDilationSampleDistance");
             m_DilationValidityThreshold = serializedObject.FindProperty("m_DilationValidityThreshold");
             m_VolumeAsset = serializedObject.FindProperty("volumeAsset");
+            m_EnableVirtualOffset = serializedObject.FindProperty("m_EnableVirtualOffset");
+            m_VirtualOffsetGeometrySearchMultiplier = serializedObject.FindProperty("m_VirtualOffsetGeometrySearchMultiplier");
+            m_VirtualOffsetBiasOutOfGeometry = serializedObject.FindProperty("m_VirtualOffsetBiasOutOfGeometry");
 
             DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;
         }
@@ -247,6 +255,19 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
 
+                VirtualOffsetGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(VirtualOffsetGroupEnabled, "Virtual Offset (Proof of Concept)");
+                if (VirtualOffsetGroupEnabled)
+                {
+                    GUIContent virtualOffsetGUI = EditorGUIUtility.TrTextContent("Use Virtual Offset", "Push invalid probes out of geometry. Please note, this feature is currently a proof of concept, it is fairly slow and not optimal in quality.");
+                    m_EnableVirtualOffset.boolValue = EditorGUILayout.Toggle(virtualOffsetGUI, m_EnableVirtualOffset.boolValue);
+                    EditorGUI.BeginDisabledGroup(!m_EnableVirtualOffset.boolValue);
+                    m_VirtualOffsetGeometrySearchMultiplier.floatValue = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("Search multiplier", "A multiplier to be applied on the distance between two probes to derive the search distance out of geometry."), m_VirtualOffsetGeometrySearchMultiplier.floatValue);
+                    m_VirtualOffsetBiasOutOfGeometry.floatValue = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("Bias out geometry", "Determines how much a probe is pushed out of the geometry on top of the distance to closest hit."), m_VirtualOffsetBiasOutOfGeometry.floatValue);
+
+                    EditorGUI.EndDisabledGroup();
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
+
                 if (EditorGUI.EndChangeCheck())
                 {
                     Constrain();
@@ -263,6 +284,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_MaxDilationSampleDistance.floatValue = Mathf.Max(m_MaxDilationSampleDistance.floatValue, 0);
             m_DilationValidityThreshold.floatValue = 1f - DilationValidityThresholdInverted;
+            m_VirtualOffsetGeometrySearchMultiplier.floatValue = Mathf.Clamp(m_VirtualOffsetGeometrySearchMultiplier.floatValue, 0.0f, 1.0f);
         }
     }
 }
