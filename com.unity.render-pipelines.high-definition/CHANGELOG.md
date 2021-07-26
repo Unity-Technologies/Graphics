@@ -324,6 +324,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a nullref in volume system after deleting a volume object (case 1348374).
 - Fixed the APV UI loosing focus when the helpbox about baking appears in the probe volume.
 
+
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
 - Removed the material pass probe volumes evaluation mode.
