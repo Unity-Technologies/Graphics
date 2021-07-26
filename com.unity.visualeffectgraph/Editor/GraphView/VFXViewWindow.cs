@@ -29,7 +29,7 @@ namespace  UnityEditor.VFX.UI
                     {Event.KeyboardEvent("o"), view.FrameOrigin },
                     {Event.KeyboardEvent("^#>"), view.FramePrev },
                     {Event.KeyboardEvent("^>"), view.FrameNext },
-                    {Event.KeyboardEvent("F7"), view.Compile},
+                    {Event.KeyboardEvent("F7"), view.OnCompile},
                     {Event.KeyboardEvent("#d"), view.OutputToDot},
                     {Event.KeyboardEvent("^&d"), view.DuplicateSelectionWithEdges},
                     {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
@@ -308,19 +308,6 @@ namespace  UnityEditor.VFX.UI
                 VFXViewModificationProcessor.assetMoved = false;
             }
             titleContent.text = filename;
-
-            if (graphView?.controller?.model?.visualEffectObject != null)
-            {
-                graphView.checkoutButton.visible = true;
-                if (!graphView.IsAssetEditable() && Provider.isActive && Provider.enabled)
-                {
-                    graphView.checkoutButton.SetEnabled(true);
-                }
-                else
-                {
-                    graphView.checkoutButton.SetEnabled(false);
-                }
-            }
         }
 
         [SerializeField]
