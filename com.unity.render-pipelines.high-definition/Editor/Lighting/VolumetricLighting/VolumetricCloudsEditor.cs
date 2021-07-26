@@ -47,6 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ShapeOffsetZ;
         SerializedDataParameter m_ErosionFactor;
         SerializedDataParameter m_ErosionScale;
+        SerializedDataParameter m_ErosionNoiseType;
 
         // Lighting
         SerializedDataParameter m_ScatteringTint;
@@ -61,6 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_CloudMapSpeedMultiplier;
         SerializedDataParameter m_ShapeSpeedMultiplier;
         SerializedDataParameter m_ErosionSpeedMultiplier;
+        SerializedDataParameter m_AltitudeDistortion;
 
         // Quality
         SerializedDataParameter m_TemporalAccumulationFactor;
@@ -117,6 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShapeOffsetZ = Unpack(o.Find(x => x.shapeOffsetZ));
             m_ErosionFactor = Unpack(o.Find(x => x.erosionFactor));
             m_ErosionScale = Unpack(o.Find(x => x.erosionScale));
+            m_ErosionNoiseType = Unpack(o.Find(x => x.erosionNoiseType));
 
             // Lighting
             m_ScatteringTint = Unpack(o.Find(x => x.scatteringTint));
@@ -131,6 +134,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CloudMapSpeedMultiplier = Unpack(o.Find(x => x.cloudMapSpeedMultiplier));
             m_ShapeSpeedMultiplier = Unpack(o.Find(x => x.shapeSpeedMultiplier));
             m_ErosionSpeedMultiplier = Unpack(o.Find(x => x.erosionSpeedMultiplier));
+            m_AltitudeDistortion = Unpack(o.Find(x => x.altitudeDistortion));
 
             // Quality
             m_TemporalAccumulationFactor = Unpack(o.Find(x => x.temporalAccumulationFactor));
@@ -215,6 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_ShapeOffsetZ);
                         PropertyField(m_ErosionFactor);
                         PropertyField(m_ErosionScale);
+                        PropertyField(m_ErosionNoiseType);
                         if (controlMode == VolumetricClouds.CloudControl.Simple)
                         {
                             PropertyField(m_CustomErosionCurve);
@@ -237,13 +242,16 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_GlobalWindSpeed);
             using (new IndentLevelScope())
             {
-                PropertyField(m_Orientation);
                 if (hasCloudMap)
                     PropertyField(m_CloudMapSpeedMultiplier);
                 PropertyField(m_ShapeSpeedMultiplier);
                 PropertyField(m_ErosionSpeedMultiplier);
             }
-
+            PropertyField(m_Orientation);
+            using (new IndentLevelScope())
+            {
+                PropertyField(m_AltitudeDistortion);
+            }
             DrawHeader("Lighting");
             {
                 PropertyField(m_AmbientLightProbeDimmer);
