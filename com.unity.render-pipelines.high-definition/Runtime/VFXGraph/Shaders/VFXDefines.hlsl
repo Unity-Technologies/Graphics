@@ -39,7 +39,4 @@
 // this is only necessary for the old VFXTarget pathway
 // it defines the macro used to access hybrid instanced properties
 // (new HDRP/URP Target pathway overrides the type so this is never used)
-#define VFX_INFINITY  (1.0f/0.0f)
-#define VFX_NAN       asfloat(~0u)
-
 #define UNITY_ACCESS_HYBRID_INSTANCED_PROP(name, type) name
