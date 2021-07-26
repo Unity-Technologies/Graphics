@@ -1268,9 +1268,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 shadows.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.ShadowRangeMinimumValue, getter = () => data.lightingDebugSettings.shadowMinValue, setter = value => data.lightingDebugSettings.shadowMinValue = value });
                 shadows.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.ShadowRangeMaximumValue, getter = () => data.lightingDebugSettings.shadowMaxValue, setter = value => data.lightingDebugSettings.shadowMaxValue = value });
-#if UNITY_EDITOR
-                shadows.children.Add(new DebugUI.Button { nameAndTooltip = LightingStrings.LogCachedShadowAtlasStatus, action = () => HDCachedShadowManager.instance.PrintLightStatusInCachedAtlas() });
-#endif
                 list.Add(shadows);
             }
 
