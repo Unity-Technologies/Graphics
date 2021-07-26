@@ -35,8 +35,12 @@ namespace UnityEditor.ShaderGraph
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            // Disable the context menu for the stack. This prevents a duplicate "disconnect all"
+            // Disable the context menu for block nodes. This prevents a duplicate "disconnect all"
             // option from getting registered which grays out stack block node's option.
+            if (evt.target is MaterialNodeView) return;
+
+            // If the user didn't click on a block node (i.e. the stack frame), include the "Add Block Node" item.
+            InsertCreateNodeAction(evt, childCount);
         }
 
         public ContextData contextData => m_ContextData;
@@ -113,16 +117,20 @@ namespace UnityEditor.ShaderGraph
 
         protected override void OnSeparatorContextualMenuEvent(ContextualMenuPopulateEvent evt, int separatorIndex)
         {
+            base.OnSeparatorContextualMenuEvent(evt, separatorIndex);
+            InsertCreateNodeAction(evt, separatorIndex);
+        }
+
+        void InsertCreateNodeAction(ContextualMenuPopulateEvent evt, int separatorIndex, int itemIndex = 0)
+        {
             //we need to arbitrarily add the editor position values because node creation context
             //exptects a non local coordinate
-            Vector2 mousePosition = evt.mousePosition + m_EditorWindow.position.position;
-            base.OnSeparatorContextualMenuEvent(evt, separatorIndex);
-
+            var mousePosition = evt.mousePosition + m_EditorWindow.position.position;
             var graphView = GetFirstAncestorOfType<MaterialGraphView>();
 
-            evt.menu.InsertAction(0, "Create Node", (e) =>
+            evt.menu.InsertAction(itemIndex, "Add Block Node", (e) =>
             {
-                var context = new NodeCreationContext()
+                var context = new NodeCreationContext
                 {
                     screenMousePosition = mousePosition,
                     target = this,
