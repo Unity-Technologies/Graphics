@@ -31,7 +31,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Performance
         SerializedDataParameter m_FullResolution;
-        SerializedDataParameter m_UpscaleRadius;
 
         // Quality
         SerializedDataParameter m_SampleCount;
@@ -76,7 +75,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Performance
             m_FullResolution = Unpack(o.Find(x => x.fullResolution));
-            m_UpscaleRadius = Unpack(o.Find(x => x.upscaleRadius));
 
             // Quality
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
@@ -140,7 +138,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_RayLength, k_RayLengthText);
                 PropertyField(m_ClampValue);
                 PropertyField(m_FullResolution);
-                PropertyField(m_UpscaleRadius);
                 if (mixed)
                     PropertyField(m_MaxMixedRaySteps, k_MaxMixedRaySteps);
                 DenoiserGUI();
@@ -253,7 +250,6 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Save<float>(m_RayLength);
             settings.Save<float>(m_ClampValue);
             settings.Save<bool>(m_FullResolution);
-            settings.Save<int>(m_UpscaleRadius);
             settings.Save<int>(m_MaxMixedRaySteps);
             settings.Save<bool>(m_Denoise);
             settings.Save<bool>(m_HalfResolutionDenoiser);
@@ -279,7 +275,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 settings.TryLoad<float>(ref m_RayLength);
                 settings.TryLoad<float>(ref m_ClampValue);
                 settings.TryLoad<bool>(ref m_FullResolution);
-                settings.TryLoad<int>(ref m_UpscaleRadius);
                 settings.TryLoad<int>(ref m_MaxMixedRaySteps);
                 settings.TryLoad<bool>(ref m_Denoise);
                 settings.TryLoad<bool>(ref m_HalfResolutionDenoiser);
@@ -306,7 +301,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTGIRayLength[level]);
                 CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTGIClampValue[level]);
                 CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTGIFullResolution[level]);
-                CopySetting(ref m_UpscaleRadius, settings.lightingQualitySettings.RTGIUpScaleRadius[level]);
                 CopySetting(ref m_MaxMixedRaySteps, settings.lightingQualitySettings.RTGIRaySteps[level]);
                 CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTGIDenoise[level]);
                 CopySetting(ref m_HalfResolutionDenoiser, settings.lightingQualitySettings.RTGIHalfResDenoise[level]);

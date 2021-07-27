@@ -52,6 +52,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_DBufferMeshStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh];
         /// <summary>Decal Mesh Forward Emissive pass name.</summary>
         public static readonly string s_DecalMeshForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive];
+        /// <summary>DBuffer VFX Decal pass name</summary>
+        public static readonly string s_DBufferVFXDecalStr = "DBufferVFX";
+
 
         // ShaderPass name
         /// <summary>Empty shader tag id.</summary>
@@ -91,6 +94,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_DBufferMeshName = new ShaderTagId(s_DBufferMeshStr);
         /// <summary>Decal Mesh Forward Emissive shader tag id.</summary>
         public static readonly ShaderTagId s_DecalMeshForwardEmissiveName = new ShaderTagId(s_DecalMeshForwardEmissiveStr);
+        /// <summary>DBuffer VFX Decal shader tag id.</summary>
+        public static readonly ShaderTagId s_DBufferVFXDecalName = new ShaderTagId(s_DBufferVFXDecalStr);
 
         // Legacy name
         internal static readonly ShaderTagId s_AlwaysName = new ShaderTagId("Always");
@@ -473,7 +478,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _HistoryVolumetricClouds0Texture = Shader.PropertyToID("_HistoryVolumetricClouds0Texture");
         public static readonly int _HistoryVolumetricClouds1Texture = Shader.PropertyToID("_HistoryVolumetricClouds1Texture");
         public static readonly int _Worley128RGBA = Shader.PropertyToID("_Worley128RGBA");
-        public static readonly int _Worley32RGB = Shader.PropertyToID("_Worley32RGB");
+        public static readonly int _ErosionNoise = Shader.PropertyToID("_ErosionNoise");
         public static readonly int _CloudMapTexture = Shader.PropertyToID("_CloudMapTexture");
         public static readonly int _CloudMapTextureRW = Shader.PropertyToID("_CloudMapTextureRW");
         public static readonly int _CloudLutTexture = Shader.PropertyToID("_CloudLutTexture");
@@ -619,6 +624,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DistanceTexture                 = Shader.PropertyToID("_DistanceTexture");
         public static readonly int _JitterFramePeriod               = Shader.PropertyToID("_JitterFramePeriod");
         public static readonly int _SingleReflectionBounce          = Shader.PropertyToID("_SingleReflectionBounce");
+        public static readonly int _RoughnessBasedDenoising         = Shader.PropertyToID("_RoughnessBasedDenoising");
         public static readonly int _HistoryBufferSize               = Shader.PropertyToID("_HistoryBufferSize");
         public static readonly int _CurrentEffectResolution         = Shader.PropertyToID("_CurrentEffectResolution");
         public static readonly int _SampleCountTextureRW            = Shader.PropertyToID("_SampleCountTextureRW");
@@ -637,7 +643,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CurrentFrameTexture             = Shader.PropertyToID("_CurrentFrameTexture");
         public static readonly int _AccumulatedFrameTexture         = Shader.PropertyToID("_AccumulatedFrameTexture");
         public static readonly int _TemporalAccumuationWeight       = Shader.PropertyToID("_TemporalAccumuationWeight");
-        public static readonly int _SpatialFilterRadius             = Shader.PropertyToID("_SpatialFilterRadius");
         public static readonly int _RaytracingHitDistanceTexture    = Shader.PropertyToID("_RaytracingHitDistanceTexture");
         public static readonly int _RaytracingVSNormalTexture       = Shader.PropertyToID("_RaytracingVSNormalTexture");
         public static readonly int _RaytracingReflectionTexture     = Shader.PropertyToID("_RaytracingReflectionTexture");
@@ -816,6 +821,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _OutputAlphaTexture             = Shader.PropertyToID("_OutputAlphaTexture");
         public static readonly int _InputNearAlphaTexture          = Shader.PropertyToID("_InputNearAlphaTexture");
         public static readonly int _CoCTargetScale                 = Shader.PropertyToID("_CoCTargetScale");
+        public static readonly int _DepthMinMaxAvg                 = Shader.PropertyToID("_DepthMinMaxAvg");
 
         public static readonly int _FlareTex                       = Shader.PropertyToID("_FlareTex");
         public static readonly int _FlareColorValue                = Shader.PropertyToID("_FlareColorValue");
@@ -954,6 +960,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Sharpness                      = Shader.PropertyToID("Sharpness");
         public static readonly int _InputTextureDimensions         = Shader.PropertyToID("InputTextureDimensions");
         public static readonly int _OutputTextureDimensions        = Shader.PropertyToID("OutputTextureDimensions");
+
+        // Robust Contrast Adaptive Sharpening
+        public static readonly int _RCASScale                      = Shader.PropertyToID("_RCASScale");
+        public static readonly int _RCasParameters                 = Shader.PropertyToID("_RCasParameters");
+
+        // Edge Adaptive Spatial Upsampling
+        public static readonly int _EASUViewportSize               = Shader.PropertyToID("_EASUViewportSize");
+        public static readonly int _EASUInputImageSize             = Shader.PropertyToID("_EASUInputImageSize");
+        public static readonly int _EASUOutputSize                 = Shader.PropertyToID("_EASUOutputSize");
+        public static readonly int _EASUParameters                 = Shader.PropertyToID("_EASUParameters");
+
 
         // BlitCubeTextureFace.shader
         public static readonly int _InputTex                       = Shader.PropertyToID("_InputTex");
