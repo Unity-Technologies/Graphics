@@ -1518,7 +1518,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"x":0.0,"y":0.0,"z":0.0}'
+      m_SerializableObject: '{"x":1.0,"y":0.0,"z":0.0}'
     m_Space: 2147483647
   m_Property:
     name: InnerSpherePosition
@@ -1651,7 +1651,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0
+      m_SerializableObject: 1.09
     m_Space: 2147483647
   m_Property:
     name: InnherSphereRadius

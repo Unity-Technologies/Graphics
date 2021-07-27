@@ -194,6 +194,7 @@ namespace UnityEditor.VFX.URP
             var surfaceDescriptionInputWithVFX = new StructDescriptor
             {
                 name = StructFields.SurfaceDescriptionInputs.name,
+                populateWithCustomInterpolators = true,
                 fields = GenerateFragInputs_Special_URP(context, data).ToArray()
             };
 
