@@ -156,6 +156,7 @@ namespace UnityEditor.VFX.UI
 
             contentContainer.AddStyleSheetPath("VFXComponentBoard");
 
+            m_RootElement = this.Query<VisualElement>("component-container");
             m_Subtitle = this.Query<Label>("subTitleLabel");
             m_Stop = this.Query<Button>("stop");
             m_Stop.clickable.clicked += EffectStop;
@@ -477,6 +478,7 @@ namespace UnityEditor.VFX.UI
 
         public void Detach()
         {
+            m_RootElement.SetEnabled(false);
             m_Subtitle.text = string.Empty;
 
             if (m_AttachedComponent != null)
@@ -519,8 +521,8 @@ namespace UnityEditor.VFX.UI
 
         public void Attach(VisualEffect effect = null)
         {
-            VisualEffect target = effect != null ? effect : Selection.activeGameObject.GetComponent<VisualEffect>();
-            if (target != null)
+            VisualEffect target = effect != null ? effect : Selection.activeGameObject?.GetComponent<VisualEffect>();
+            if (target != null && m_View.controller?.graph != null)
             {
                 m_AttachedComponent = target;
                 m_Subtitle.text = m_AttachedComponent.name;
@@ -544,6 +546,8 @@ namespace UnityEditor.VFX.UI
                 m_DebugUI.SetVisualEffect(m_AttachedComponent);
                 m_DebugUI.SetDebugMode(debugMode, this, true);
 
+                
+                m_RootElement.SetEnabled(true);
                 UpdateBoundsRecorder();
                 UpdateRecordingButton();
                 RefreshInitializeErrors();
@@ -638,13 +642,13 @@ namespace UnityEditor.VFX.UI
         }
 
         VisualElement m_EventsContainer;
+        VisualElement m_RootElement;
 
         Label m_Subtitle;
         Button m_Stop;
         Button m_Play;
         Button m_Step;
         Button m_Restart;
-
         Slider m_PlayRateSlider;
         IntegerField m_PlayRateField;
 
@@ -683,28 +687,25 @@ namespace UnityEditor.VFX.UI
             return evt == VisualEffectAsset.PlayEventName || evt == VisualEffectAsset.StopEventName;
         }
 
-        IEnumerable<String> GetEventNames()
+        IEnumerable<string> GetEventNames()
         {
-            foreach (var context in controller.contexts.Select(t => t.model).OfType<VFXContext>())
-            {
-                foreach (var name in RecurseGetEventNames(context))
-                    yield return name;
-            }
+            return controller?.contexts.SelectMany(x => this.RecurseGetEventNames(x.model)) ?? Enumerable.Empty<string>();
         }
 
-        IEnumerable<String> RecurseGetEventNames(VFXContext context)
+        IEnumerable<string> RecurseGetEventNames(VFXContext context)
         {
-            if (context is VFXBasicEvent)
+            switch (context)
             {
-                if (!IsDefaultEvent(name))
-                    yield return (context as VFXBasicEvent).eventName;
-            }
-            else if (context is VFXSubgraphContext)
-            {
-                foreach (var subContext in (context as VFXSubgraphContext).subChildren.OfType<VFXContext>())
+                case VFXBasicEvent basicEvent when !IsDefaultEvent(name):
+                    yield return basicEvent.eventName;
+                    break;
+                case VFXSubgraphContext subgraphContext:
                 {
-                    foreach (var name in RecurseGetEventNames(subContext))
-                        yield return name;
+                    foreach (var eventName in subgraphContext.subChildren.OfType<VFXContext>().SelectMany(RecurseGetEventNames))
+                    {
+                        yield return eventName;
+                    }
+                    break;
                 }
             }
         }
