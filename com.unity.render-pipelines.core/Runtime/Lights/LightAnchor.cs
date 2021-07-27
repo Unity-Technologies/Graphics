@@ -10,7 +10,6 @@ namespace UnityEngine
     /// Represents camera-space light controls around a virtual pivot point.
     /// </summary>
     [AddComponentMenu("Rendering/Light Anchor")]
-    [RequireComponent(typeof(Light))]
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [CoreRPHelpURLAttribute("View-Lighting-Tool")]
