@@ -96,7 +96,10 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The filter that is used to upscale the rendering result to the native resolution.
         /// </summary>
-        public DynamicResUpscaleFilter filter { get; set; }
+        public DynamicResUpscaleFilter filter { get; private set; }
+
+        // Used to detect the filters set via user API
+        static Dictionary<int, DynamicResUpscaleFilter> s_CameraUpscaleFilters = new Dictionary<int, DynamicResUpscaleFilter>();
 
         /// <summary>
         /// The viewport of the final buffer. This is likely the resolution the dynamic resolution starts from before any scaling. Note this is NOT the target resolution the rendering will happen in
@@ -176,6 +179,7 @@ namespace UnityEngine.Rendering
                     {
                         instance = recycledInstance;
                         s_CameraInstances.Remove(recycledInstanceKey);
+                        s_CameraUpscaleFilters.Remove(recycledInstanceKey);
                     }
                 }
 
@@ -261,7 +265,10 @@ namespace UnityEngine.Rendering
                 float maxScreenFrac = Mathf.Clamp(settings.maxPercentage / 100.0f, m_MinScreenFraction, 3.0f);
                 m_MaxScreenFraction = maxScreenFrac;
 
-                filter = settings.upsampleFilter;
+                // Check if a filter has been set via user API, if so we use that, otherwise we use the default from the GlobalDynamicResolutionSettings
+                bool hasUserRequestedFilter = s_CameraUpscaleFilters.TryGetValue(s_ActiveCameraId, out DynamicResUpscaleFilter requestedFilter);
+
+                filter = hasUserRequestedFilter ? requestedFilter : settings.upsampleFilter;
                 m_ForcingRes = settings.forceResolution;
 
                 if (m_ForcingRes)
@@ -343,6 +350,24 @@ namespace UnityEngine.Rendering
             s_ActiveInstance = s_DefaultInstance;
             s_ActiveCameraId = 0;
             s_ActiveInstanceDirty = true;
+        }
+
+        /// <summary>
+        /// Set the Upscale filter used by the camera when dynamic resolution is run.
+        /// </summary>
+        /// <param name="camera">The camera for which the upscale filter is set.</param>
+        /// <param name="filter">The filter to be used by the camera to upscale to final resolution.</param>
+        static public void SetUpscaleFilter(Camera camera, DynamicResUpscaleFilter filter)
+        {
+            var cameraID = camera.GetInstanceID();
+            if (s_CameraUpscaleFilters.ContainsKey(cameraID))
+            {
+                s_CameraUpscaleFilters[cameraID] = filter;
+            }
+            else
+            {
+                s_CameraUpscaleFilters.Add(cameraID, filter);
+            }
         }
 
         /// <summary>

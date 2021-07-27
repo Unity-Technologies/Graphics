@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>The type of dynamic resolution method.</summary>
         public DynamicResolutionType dynResType;
-        /// <summary>The type of upscaling filter to use.</summary>
+        /// <summary>The default of upscaling filter used. It can be overridden via the API DynamicResolutionHandler.SetUpscaleFilter </summary>
         public DynamicResUpscaleFilter upsampleFilter;
 
         /// <summary>Select whether dynamic resolution system will force a specific resolution percentage.</summary>
