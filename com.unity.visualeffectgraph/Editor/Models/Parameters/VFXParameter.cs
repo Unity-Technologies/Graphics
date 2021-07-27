@@ -673,23 +673,29 @@ namespace UnityEditor.VFX
                     }
                 }
                 // if there are some links in the output slots that are in not found in the infos, find or create a node for them.
-                if (links.Count > 0)
+                foreach (var link in links)
                 {
                     Node newInfos = null;
-
-                    if (nodes.Count > 0)
+                    if (nodes.Any())
                     {
-                        newInfos = nodes[0];
+                        //There are already some nodes, choose the closest one to restore the link
+                        var refPosition = Vector2.zero;
+                        object refOwner = link.inputSlot.owner;
+                        while (refOwner is VFXModel model && refPosition == Vector2.zero)
+                        {
+                            refPosition = model is VFXBlock ? Vector2.zero : model.position;
+                            refOwner = model.GetParent();
+                        }
+                        newInfos = nodes.OrderBy(o => (refPosition - o.position).SqrMagnitude()).First();
                     }
                     else
                     {
                         newInfos = NewNode();
                         m_Nodes.Add(newInfos);
                     }
-                    newInfos.position = Vector2.zero;
                     if (newInfos.linkedSlots == null)
                         newInfos.linkedSlots = new List<NodeLinkedSlot>();
-                    newInfos.linkedSlots.AddRange(links);
+                    newInfos.linkedSlots.Add(link);
                     newInfos.expandedSlots = new List<VFXSlot>();
                 }
             }

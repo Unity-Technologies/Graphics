@@ -13,6 +13,7 @@ using Object = UnityEngine.Object;
 using System.IO;
 using UnityEngine.TestTools;
 using System.Collections;
+using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX.Test
 {
@@ -449,6 +450,38 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        //Cover case 1352832, extension of Sanitize_Shape_To_TShape
+        [UnityTest]
+        public IEnumerator Sanitize_Shape_To_TShape_And_Check_VFXParameter_State()
+        {
+            var kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSanitizeTShape.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+            yield return null;
+
+            Assert.AreEqual(8, graph.children.OfType<VFXParameter>().Count());
+            Assert.AreEqual(11, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Count());
+            Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => o.position == Vector2.zero).Count());
+            Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => !o.linkedSlots.Any()).Count());
+            yield return null;
+
+            var window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            var resource = graph.GetResource();
+            window.LoadAsset(resource.asset, null);
+            yield return null;
+
+            Assert.AreEqual(8, graph.children.OfType<VFXParameter>().Count());
+            Assert.AreEqual(11, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Count());
+            Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => o.position == Vector2.zero).Count(), "Fail after window.LoadAsset");
+            foreach (var param in graph.children.OfType<VFXParameter>())
+            {
+                var nodes = param.nodes.Where(o => !o.linkedSlots.Any());
+                if (nodes.Any())
+                {
+                    Assert.Fail(param.exposedName + " as an orphan node");
+                }
+            }
+            Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => !o.linkedSlots.Any()).Count()); //Orphan link
+        }
 
         [OneTimeSetUpAttribute]
         public void OneTimeSetUpAttribute()

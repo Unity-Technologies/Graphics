@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
             return base.CanConvertFrom(type) || type == typeof(TSphere);
         }
 
-        sealed protected override void UpdateLinkSlotManualConversion(VFXSlot fromSlot)
+        sealed protected override void ConvertExpressionsFromLink(VFXSlot fromSlot)
         {
             if (fromSlot.property.type == typeof(TSphere))
             {
