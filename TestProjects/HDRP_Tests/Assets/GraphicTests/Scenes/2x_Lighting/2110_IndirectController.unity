@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000002, guid: 2cd6e2ca4c39fcc4e8e65468c7f8d797,
+  m_LightingDataAsset: {fileID: 112000004, guid: ea47f1d6f2614b64fabdcaaf20e64d6b,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 68c4d5fbd236351459122940c1e483b5,
     type: 2}
@@ -1767,6 +1767,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: 2405-cornellbox (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 5014687273863800559, guid: 6a0ac56780970b245a10530bad74c665,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6a0ac56780970b245a10530bad74c665, type: 3}
 --- !u!1 &1301223921
@@ -2101,7 +2106,7 @@ MonoBehaviour:
       viewerScale: 1
     type: 1
     mode: 1
-    realtimeMode: 0
+    realtimeMode: 1
     lighting:
       multiplier: 1
       weight: 1
