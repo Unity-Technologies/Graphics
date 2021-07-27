@@ -68,7 +68,7 @@ public sealed class GrayScale : CustomPostProcessVolumeComponent, IPostProcessCo
 
 }
 ```
-Firstly, the example code uses a ClampedFloatParameter which is a type that you may not be familiar with. This type is a float which you can clamp to a range. In the constructor:
+This example code uses a `ClampedFloatParameter` that you can clamp to a range. In the constructor:
 
 * The first parameter is the default value of the property.
 
@@ -76,26 +76,30 @@ Firstly, the example code uses a ClampedFloatParameter which is a type that you 
 
 * The third parameter represents the maximum value to clamp the property to.
 
-Next, there is the **IsActive()** function. HDRP calls this function before the **Render** function make sure it is possible to process the effect. If this function returns `false`, HDRP does not process the effect. It is good practice to check every property configuration where the effect either breaks or does nothing. In this example, **IsActive()** makes sure that it can find the **GrayScale.shader** and that the intensity is greater than 0.
+HDRP calls the `IsActive()`function before the `Render` function to process the effect. If this function returns `false`, HDRP does not process the effect. It is good practice to check every property configuration where the effect either breaks or does nothing. In this example, `IsActive()` makes sure that HDRP can find the `GrayScale.shader` and that the intensity is greater than 0.
 
-The **injectionPoint** override allows you to specify where in the pipeline HDRP executes the effect. There are currently three injection points:
+The `injectionPoint` override allows you to specify where in the pipeline HDRP executes the effect. You can choose from the following injection points:
 
-* **AfterOpaqueAndSky.**
+* **AfterOpaqueAndSky**
 
-* **BeforeTAA.**
+* **BeforeTAA**
 
-* **BeforePostProcess.**
+* **BeforePostProcess**
 
-* **AfterPostProcess**.
+* **AfterPostProcess**
 
-For more detailed information on where HDRP injects the custom post-process passes, see the following diagram:
+The following diagram gives more information on where HDRP injects custom post-process passes:
 ![](Images/HDRP-frame-graph-diagram.png)
+
+
 
 **Note**: When you enable [Temporal anti-aliasing (TAA)](Anti-Aliasing.md#TAA), HDRP applies TAA between the injection points **BeforeTAA** and **beforePostProcess**. When you use [Depth Of Field](Post-Processing-Depth-of-Field.md) and enable its **Physically Based** property, HDRP performs a second TAA pass to perform temporal accumulation for this effect.
 
-Now there are the **Setup**, **Render**, and **Cleanup** functions. These are here to respectively allocate, use, and release the resources that the effect needs. The only resource that the example uses is a single Material. The example creates the Material in **Setup** and, in **Cleanup**, uses CoreUtils.Destroy() to release the Material. In the **Render** function, you have access to a [CommandBuffer](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.html) which you can use to enqueue tasks for HDRP to execute. Here you can use [CommandBuffer.Blit](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.Blit.html) to render a fullscreen quad. When the Blit function is used, the source buffer in parameter will be bound to the `_MainTex` property in the shader, the _MainTex property also needs to be declared in the [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) section of the shader.
+The `Setup`, `Render`, and `Cleanup` functions allocate, use, and release the resources that the effect needs. The only resource that the above script example uses is a single Material. This example creates the Material in `Setup` and, in `Cleanup`, uses `CoreUtils.Destroy()` to release the Material.
 
-Alternatively you can also use the [HDUtils.DrawFullscreen](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/api/UnityEngine.Rendering.HighDefinition.HDUtils.html#UnityEngine_Rendering_HighDefinition_HDUtils_DrawFullScreen_UnityEngine_Rendering_CommandBuffer_UnityEngine_Material_UnityEngine_Rendering_RTHandle_UnityEngine_MaterialPropertyBlock_System_Int32_) method but in the shader, the `input.texcoord` needs to be multiplied by the `_RTHandleScale.xy` property to account for dynamic scaling.
+In the `Render` function, you have access to a [CommandBuffer](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.html) which you can use to enqueue tasks for HDRP to execute. You can use [CommandBuffer.Blit](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.Blit.html) here to render a fullscreen quad. When you use the `Blit` function, Unity binds the source buffer in parameter to the `_MainTex` property in the shader. For this to happen, you need to declare the `_MainTex` property in the [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) section of the shader.
+
+**Note**: You can also use the [HDUtils.DrawFullscreen](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/api/UnityEngine.Rendering.HighDefinition.HDUtils.html#UnityEngine_Rendering_HighDefinition_HDUtils_DrawFullScreen_UnityEngine_Rendering_CommandBuffer_UnityEngine_Material_UnityEngine_Rendering_RTHandle_UnityEngine_MaterialPropertyBlock_System_Int32_) method. To do this, you need to multiply the `input.texcoord` by the `_RTHandleScale.xy` property to account for dynamic scaling.
 
 <a name="Shader"></a>
 
