@@ -19,7 +19,7 @@ namespace UnityEngine
         const float k_ArcRadius = 5;
         const float k_AxisLength = 10;
 
-        [SerializeField]
+        [SerializeField, Min(0)]
         float m_Distance = 0f;
         [SerializeField]
         UpDirection m_FrameSpace = UpDirection.World;
@@ -69,8 +69,8 @@ namespace UnityEngine
         /// </summary>
         public float distance
         {
-            get { return m_Distance; }
-            set { m_Distance = Mathf.Max(value, .01f); }
+            get { return Mathf.Max(m_Distance, 0.0001f); }
+            set { m_Distance = value; }
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace UnityEngine
         /// </summary>
         public Vector3 anchorPosition
         {
-            get { return transform.position + transform.forward * m_Distance; }
+            get { return transform.position + transform.forward * distance; }
         }
 
         struct Axes
@@ -229,7 +229,7 @@ namespace UnityEngine
         {
             Quaternion worldYawRot = Quaternion.AngleAxis(m_Yaw, up);
             Quaternion worldPitchRot = Quaternion.AngleAxis(m_Pitch, right);
-            Vector3 worldPosition = anchor + (worldYawRot * worldPitchRot) * forward * m_Distance;
+            Vector3 worldPosition = anchor + (worldYawRot * worldPitchRot) * forward * distance;
             transform.position = worldPosition;
 
             Vector3 lookAt = (anchor - worldPosition).normalized;

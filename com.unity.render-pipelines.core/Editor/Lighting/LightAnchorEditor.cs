@@ -30,6 +30,9 @@ namespace UnityEditor
         VisualElement m_GameViewRootElement;
         VisualElement m_ClickCatcher;
 
+        SerializedProperty m_DistanceProperty;
+        SerializedProperty m_FrameSpaceProperty;
+
         LightAnchor manipulator
         {
             get { return target as LightAnchor; }
@@ -125,13 +128,15 @@ namespace UnityEditor
                 }
                 EditorGUILayout.Space();
 
+                // TODO: warning box when distance is at 0 (can't set rotation (or can we?))
                 EditorGUI.BeginChangeCheck();
-                m_Distance = EditorGUILayout.FloatField(LightAnchorStyles.distanceProperty, manipulator.distance);
+                EditorGUILayout.PropertyField(m_DistanceProperty, LightAnchorStyles.distanceProperty);
                 distanceChanged = EditorGUI.EndChangeCheck();
 
                 EditorGUI.BeginChangeCheck();
-                var dropRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
-                m_FrameSpace = (LightAnchor.UpDirection)EditorGUI.EnumPopup(dropRect, LightAnchorStyles.upDirectionProperty, manipulator.frameSpace);
+                // var dropRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
+                // m_FrameSpace = (LightAnchor.UpDirection)EditorGUI.EnumPopup(dropRect, LightAnchorStyles.upDirectionProperty, manipulator.frameSpace);
+                EditorGUILayout.PropertyField(m_FrameSpaceProperty, LightAnchorStyles.upDirectionProperty);
                 upChanged = EditorGUI.EndChangeCheck();
 
                 if (m_FoldoutPreset = EditorGUILayout.Foldout(m_FoldoutPreset, "Common"))
@@ -266,7 +271,7 @@ namespace UnityEditor
                 {
                     Undo.RecordObjects(new UnityEngine.Object[] { target, manipulator.transform }, "Light Anchor Change");
 
-                    manipulator.frameSpace = m_FrameSpace;
+                    manipulator.frameSpace = (LightAnchor.UpDirection)m_FrameSpaceProperty.enumValueIndex;
                     manipulator.SynchronizeOnTransform(camera);
                     UpdateCache();
                 }
@@ -281,7 +286,7 @@ namespace UnityEditor
                     if (rollChanged)
                         manipulator.roll = m_Roll;
                     if (distanceChanged)
-                        manipulator.distance = m_Distance;
+                        manipulator.distance = m_DistanceProperty.floatValue;
 
                     manipulator.UpdateTransform(camera, anchor);
                     IsCacheInvalid(manipulator);
@@ -321,6 +326,9 @@ namespace UnityEditor
                     EnableClickCatcher(m_EnableClickCatcher);
                 }
             }
+
+            m_DistanceProperty = serializedObject.FindProperty("m_Distance");
+            m_FrameSpaceProperty = serializedObject.FindProperty("m_FrameSpace");
         }
 
         void EditorToolsOnactiveToolChanged()
