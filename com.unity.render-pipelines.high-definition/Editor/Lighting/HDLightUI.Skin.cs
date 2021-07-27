@@ -160,6 +160,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Warnings
             public readonly string unsupportedLightShapeWarning = "This light shape is not supported by Realtime Global Illumination.";
+            public readonly string unsupportedFieldsPresetInfoBox = "When using Preset of Light Component, only a subset of properties are supported.  Unsupported properties are hidden.";
 
             public Styles()
             {

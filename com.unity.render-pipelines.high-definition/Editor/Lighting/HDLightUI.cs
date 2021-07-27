@@ -743,85 +743,82 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUI.BeginChangeCheck(); // For GI we need to detect any change on additional data and call SetLightDirty
 
-            if (!isInPreset)
+            if (lightType != HDLightType.Area)
             {
-                if (lightType != HDLightType.Area)
-                {
-                    serialized.settings.DrawCookie();
+                serialized.settings.DrawCookie();
 
-                    if (serialized.settings.cookie is Texture cookie && cookie != null)
+                if (serialized.settings.cookie is Texture cookie && cookie != null)
+                {
+                    // When directional light use a cookie, it can control the size
+                    if (lightType == HDLightType.Directional)
                     {
-                        // When directional light use a cookie, it can control the size
-                        if (lightType == HDLightType.Directional)
+                        EditorGUI.indentLevel++;
+                        EditorGUI.BeginChangeCheck();
+                        var size = new Vector2(serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
+                        size = EditorGUILayout.Vector2Field(s_Styles.cookieSize, size);
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            EditorGUI.indentLevel++;
-                            EditorGUI.BeginChangeCheck();
-                            var size = new Vector2(serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
-                            size = EditorGUILayout.Vector2Field(s_Styles.cookieSize, size);
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                serialized.shapeWidth.floatValue = size.x;
-                                serialized.shapeHeight.floatValue = size.y;
-                            }
-                            EditorGUI.indentLevel--;
+                            serialized.shapeWidth.floatValue = size.x;
+                            serialized.shapeHeight.floatValue = size.y;
                         }
-                        else if (lightType == HDLightType.Point && cookie.dimension != TextureDimension.Cube)
-                        {
-                            Debug.LogError($"The cookie texture '{cookie.name}' isn't compatible with the Point Light type. Only Cube textures are supported.");
-                            serialized.settings.cookieProp.objectReferenceValue = null;
-                        }
-                        else if (lightType == HDLightType.Spot && cookie.dimension != TextureDimension.Tex2D)
-                        {
-                            Debug.LogError($"The cookie texture '{cookie.name}' isn't compatible with the Spot Light type. Only 2D textures are supported.");
-                            serialized.settings.cookieProp.objectReferenceValue = null;
-                        }
+                        EditorGUI.indentLevel--;
                     }
-
-                    ShowCookieTextureWarnings(serialized.settings.cookie, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
-                }
-                else if (serialized.areaLightShape == AreaLightShape.Rectangle || serialized.areaLightShape == AreaLightShape.Disc)
-                {
-                    EditorGUILayout.ObjectField(serialized.areaLightCookie, s_Styles.areaLightCookie);
-                    ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
-                }
-                if (serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot || (serialized.type == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
-                {
-                    EditorGUI.BeginChangeCheck();
-                    UnityEngine.Object iesAsset = EditorGUILayout.ObjectField(
-                        s_Styles.iesTexture,
-                        serialized.type == HDLightType.Point ? serialized.iesPoint.objectReferenceValue : serialized.iesSpot.objectReferenceValue,
-                        typeof(IESObject), false);
-                    if (EditorGUI.EndChangeCheck())
+                    else if (lightType == HDLightType.Point && cookie.dimension != TextureDimension.Cube)
                     {
-                        SerializedProperty pointTex = serialized.iesPoint;
-                        SerializedProperty spotTex = serialized.iesSpot;
-                        if (iesAsset == null)
+                        Debug.LogError($"The cookie texture '{cookie.name}' isn't compatible with the Point Light type. Only Cube textures are supported.");
+                        serialized.settings.cookieProp.objectReferenceValue = null;
+                    }
+                    else if (lightType == HDLightType.Spot && cookie.dimension != TextureDimension.Tex2D)
+                    {
+                        Debug.LogError($"The cookie texture '{cookie.name}' isn't compatible with the Spot Light type. Only 2D textures are supported.");
+                        serialized.settings.cookieProp.objectReferenceValue = null;
+                    }
+                }
+
+                ShowCookieTextureWarnings(serialized.settings.cookie, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
+            }
+            else if (serialized.areaLightShape == AreaLightShape.Rectangle || serialized.areaLightShape == AreaLightShape.Disc)
+            {
+                EditorGUILayout.ObjectField(serialized.areaLightCookie, s_Styles.areaLightCookie);
+                ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
+            }
+            if (serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot || (serialized.type == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
+            {
+                EditorGUI.BeginChangeCheck();
+                UnityEngine.Object iesAsset = EditorGUILayout.ObjectField(
+                    s_Styles.iesTexture,
+                    serialized.type == HDLightType.Point ? serialized.iesPoint.objectReferenceValue : serialized.iesSpot.objectReferenceValue,
+                    typeof(IESObject), false);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    SerializedProperty pointTex = serialized.iesPoint;
+                    SerializedProperty spotTex = serialized.iesSpot;
+                    if (iesAsset == null)
+                    {
+                        pointTex.objectReferenceValue = null;
+                        spotTex.objectReferenceValue = null;
+                    }
+                    else
+                    {
+                        string guid;
+                        long localID;
+                        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(iesAsset, out guid, out localID);
+                        string path = AssetDatabase.GUIDToAssetPath(guid);
+                        UnityEngine.Object[] textures = AssetDatabase.LoadAllAssetRepresentationsAtPath(path);
+                        foreach (var subAsset in textures)
                         {
-                            pointTex.objectReferenceValue = null;
-                            spotTex.objectReferenceValue = null;
-                        }
-                        else
-                        {
-                            string guid;
-                            long localID;
-                            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(iesAsset, out guid, out localID);
-                            string path = AssetDatabase.GUIDToAssetPath(guid);
-                            UnityEngine.Object[] textures = AssetDatabase.LoadAllAssetRepresentationsAtPath(path);
-                            foreach (var subAsset in textures)
+                            if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-Cube-IES"))
                             {
-                                if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-Cube-IES"))
-                                {
-                                    pointTex.objectReferenceValue = subAsset;
-                                }
-                                else if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-2D-IES"))
-                                {
-                                    spotTex.objectReferenceValue = subAsset;
-                                }
+                                pointTex.objectReferenceValue = subAsset;
+                            }
+                            else if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-2D-IES"))
+                            {
+                                spotTex.objectReferenceValue = subAsset;
                             }
                         }
-                        serialized.iesPoint.serializedObject.ApplyModifiedProperties();
-                        serialized.iesSpot.serializedObject.ApplyModifiedProperties();
                     }
+                    serialized.iesPoint.serializedObject.ApplyModifiedProperties();
+                    serialized.iesSpot.serializedObject.ApplyModifiedProperties();
                 }
 
                 if (serialized.type == HDLightType.Spot &&
@@ -1022,7 +1019,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static bool DrawEnableShadowMap(SerializedHDLight serialized, Editor owne)
+        static bool DrawEnableShadowMap(SerializedHDLight serialized, Editor owner)
         {
             Rect lineRect = EditorGUILayout.GetControlRect();
             bool newShadowsEnabled;
@@ -1039,6 +1036,12 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.EndProperty();
 
             return newShadowsEnabled;
+        }
+
+        // Needed to work around the need for CED Group with no return value
+        internal static void DrawEnableShadowMapInternal(SerializedHDLight serialized, Editor owner)
+        {
+            DrawEnableShadowMap(serialized, owner);
         }
 
         static void DrawShadowMapContent(SerializedHDLight serialized, Editor owner)

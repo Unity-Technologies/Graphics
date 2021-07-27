@@ -58,7 +58,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDCameraUIPreset.Inspector.Draw(m_SerializedCamera, this);
             }
             else
+            {
                 HDCameraUI.Inspector.Draw(m_SerializedCamera, this);
+            }
 
             m_SerializedCamera.Apply();
         }

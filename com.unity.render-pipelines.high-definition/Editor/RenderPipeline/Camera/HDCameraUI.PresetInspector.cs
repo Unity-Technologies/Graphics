@@ -28,8 +28,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 Expandable.Projection,
                 k_ExpandedState,
                 FoldoutOption.Indent,
-                CED.Group(CameraUI.Drawer_Projection), HDCameraUI.PhysicalCamera.DrawerPreset),
-            HDCameraUI.Rendering.DrawerPreset
+                CED.Group(CameraUI.Drawer_Projection),
+                HDCameraUI.PhysicalCamera.DrawerPreset
+                ),
+            HDCameraUI.Rendering.DrawerPreset,
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
+            CED.Group((serialized, owner) =>
+                EditorGUILayout.HelpBox(CameraUI.Styles.unsupportedFieldsPresetInfoBox, MessageType.Info))
         );
     }
 }
