@@ -4,7 +4,9 @@ project:
 
 reuse_blocks:
   setup_with_utr:
-    - [all]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-Testing
+    - [all]:
+      - command: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-Testing
+        retries: 3
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.core" /Y
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.universal" /Y
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.shadergraph" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.shadergraph" /Y
@@ -20,8 +22,7 @@ test_platforms:
   - type: editmode
     commands:
       - <reuse_blocks.setup_with_utr>
-expression_trigger: 
-  expression: ""
+
 platforms:
   - name: Win
     apis:
@@ -39,16 +40,21 @@ platforms:
 #      - name: mono
 #    color_spaces:
 #      - Linear
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - editmode
-        - playmode
-nightly:
-  dependencies:
-    - project: URPUpdate_BoatAttack
-      pr: true
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - editmode
+          - playmode
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      []
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

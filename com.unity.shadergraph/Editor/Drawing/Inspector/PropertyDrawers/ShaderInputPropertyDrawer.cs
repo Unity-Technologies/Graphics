@@ -112,9 +112,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         void BuildPropertyNameLabel(PropertySheet propertySheet)
         {
             if (shaderInput is ShaderKeyword)
-                propertySheet.Add(PropertyDrawerUtils.CreateLabel($"Keyword: {shaderInput.displayName}", 0, FontStyle.Bold));
+                propertySheet.headerContainer.Add(PropertyDrawerUtils.CreateLabel($"Keyword: {shaderInput.displayName}", 0, FontStyle.Bold));
             else
-                propertySheet.Add(PropertyDrawerUtils.CreateLabel($"Property: {shaderInput.displayName}", 0, FontStyle.Bold));
+                propertySheet.headerContainer.Add(PropertyDrawerUtils.CreateLabel($"Property: {shaderInput.displayName}", 0, FontStyle.Bold));
         }
 
         void BuildExposedField(PropertySheet propertySheet)

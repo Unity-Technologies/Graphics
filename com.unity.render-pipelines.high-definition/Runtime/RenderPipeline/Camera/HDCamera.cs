@@ -136,6 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricHistoryIsValid = false;
             volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
+            dofHistoryIsValid = false;
         }
 
         /// <summary>
@@ -562,6 +563,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
 
+#if ENABLE_VIRTUALTEXTURES
+        VTBufferManager virtualTextureFeedback = new VTBufferManager();
+#endif
+
         internal HDCamera(Camera cam)
         {
             camera = cam;
@@ -810,6 +815,10 @@ namespace UnityEngine.Rendering.HighDefinition
             SetupCurrentMaterialQuality(cmd);
 
             SetupExposureTextures();
+
+#if ENABLE_VIRTUALTEXTURES
+            virtualTextureFeedback.BeginRender(this);
+#endif
         }
 
         internal void UpdateAllViewConstants(bool jitterProjectionMatrix)
@@ -1615,6 +1624,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (visualSky != null)
                 visualSky.Cleanup();
+
+#if ENABLE_VIRTUALTEXTURES
+            virtualTextureFeedback?.Cleanup();
+#endif
         }
 
         // BufferedRTHandleSystem API expects an allocator function. We define it here.
@@ -1671,6 +1684,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if ENABLE_VIRTUALTEXTURES
+        internal void ResolveVirtualTextureFeedback(RenderGraph renderGraph, TextureHandle vtFeedbackBuffer)
+        {
+            virtualTextureFeedback.Resolve(renderGraph, this, vtFeedbackBuffer);
+        }
+
+#endif
         #endregion
     }
 }

@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an info box for micro shadow editor (case 1322830).
 - Added support for alpha channel in FXAA (case 1323941).
 - Added support for lighting full screen debug mode in automated tests.
+- Added support of motion vector buffer in custom postprocess
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -188,6 +189,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material Emission properties not begin animated when recording an animation (case 1328108).
 - Fixed issue with history buffer allocation for AOVs when the request does not come in first frame.
 - Fix for wrong cached area light initialization.
+- Fixed an issue where enabling GPU Instancing on a ShaderGraph Material would cause compile failures [1338695].
+- Fixed issue with velocity rejection when using physically-based DoF.
+- Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -229,6 +233,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disable TAA sharpening on alpha channel.
 - Default black texture XR is now opaque (alpha = 1).
 - Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
+- DoF is using now the min depth of the per-pixel MSAA samples when MSAA is enabled. This removes 1-pixel ringing from in focus objects (case 1347291).
 
 ## [10.3.0] - 2020-12-01
 
