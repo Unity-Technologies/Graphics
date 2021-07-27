@@ -78,7 +78,8 @@ namespace UnityEngine.Rendering.Universal
 
         public ShaderResources shaders = null;
 
-        [SerializeField] int m_AssetVersion = 1;
+        const int k_LatestAssetVersion = 1;
+        [SerializeField] int m_AssetVersion = 0;
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
@@ -268,15 +269,39 @@ namespace UnityEngine.Rendering.Universal
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
+            m_AssetVersion = k_LatestAssetVersion;
         }
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
-            if (m_AssetVersion == 0)
+            if (m_AssetVersion <= 0)
             {
-                m_IntermediateTextureMode = IntermediateTextureMode.Always;
-                m_AssetVersion = 1;
+                var anyNonUrpRendererFeatures = false;
+
+                foreach (var feature in m_RendererFeatures)
+                {
+                    try
+                    {
+                        if (feature.GetType().Assembly == typeof(UniversalRendererData).Assembly)
+                        {
+                            continue;
+                        }
+                    }
+                    catch
+                    {
+                        // If we hit any exceptions while poking around assemblies,
+                        // conservatively assume there was a non URP renderer feature.
+                    }
+
+                    anyNonUrpRendererFeatures = true;
+                }
+
+                // Replicate old intermediate texture behaviour in case of any non-URP renderer features,
+                // where we cannot know if they properly declare needed inputs.
+                m_IntermediateTextureMode = anyNonUrpRendererFeatures ? IntermediateTextureMode.Always : IntermediateTextureMode.WhenNeeded;
             }
+
+            m_AssetVersion = k_LatestAssetVersion;
         }
     }
 }
