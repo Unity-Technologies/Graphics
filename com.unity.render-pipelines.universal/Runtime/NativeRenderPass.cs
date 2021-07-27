@@ -29,6 +29,13 @@ namespace UnityEngine.Rendering.Universal
         };
         AttachmentDescriptor m_ActiveDepthAttachmentDescriptor;
 
+        internal RenderBufferStoreAction[] m_FinalColorStoreAction = new RenderBufferStoreAction[]
+        {
+            RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store,
+            RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store
+        };
+        internal RenderBufferStoreAction m_FinalDepthStoreAction = RenderBufferStoreAction.Store;
+
         private static partial class Profiling
         {
             public static readonly ProfilingSampler setMRTAttachmentsList = new ProfilingSampler($"NativeRenderPass {nameof(SetNativeRenderPassMRTAttachmentList)}");
@@ -135,6 +142,47 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal void UpdateFinalStoreActions(int[] currentMergeablePasses, CameraData cameraData)
+        {
+            for (int i = 0; i < m_FinalColorStoreAction.Length; ++i)
+                m_FinalColorStoreAction[i] = RenderBufferStoreAction.Store;
+            m_FinalDepthStoreAction = RenderBufferStoreAction.Store;
+
+            foreach (var passIdx in currentMergeablePasses)
+            {
+                if (!m_UseOptimizedStoreActions)
+                    break;
+
+                if (passIdx == -1)
+                    break;
+
+                ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
+
+                var samples = pass.renderTargetSampleCount != -1
+                    ? pass.renderTargetSampleCount
+                    : cameraData.cameraTargetDescriptor.msaaSamples;
+
+                // only override existing non destructive actions
+                for (int i = 0; i < m_FinalColorStoreAction.Length; ++i)
+                {
+                    if (m_FinalColorStoreAction[i] == RenderBufferStoreAction.Store || m_FinalColorStoreAction[i] == RenderBufferStoreAction.StoreAndResolve || pass.overriddenColorStoreActions[i])
+                        m_FinalColorStoreAction[i] = pass.colorStoreActions[i];
+
+                    if (samples > 1)
+                    {
+                        if (m_FinalColorStoreAction[i] == RenderBufferStoreAction.Store)
+                            m_FinalColorStoreAction[i] = RenderBufferStoreAction.StoreAndResolve;
+                        else if (m_FinalColorStoreAction[i] == RenderBufferStoreAction.DontCare)
+                            m_FinalColorStoreAction[i] = RenderBufferStoreAction.Resolve;
+                    }
+                }
+
+                // only override existing store
+                if (m_FinalDepthStoreAction == RenderBufferStoreAction.Store || (m_FinalDepthStoreAction == RenderBufferStoreAction.StoreAndResolve && pass.depthStoreAction == RenderBufferStoreAction.Resolve) || pass.overriddenDepthStoreAction)
+                    m_FinalDepthStoreAction = pass.depthStoreAction;
+            }
+        }
+
         internal void SetNativeRenderPassMRTAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, bool needCustomCameraColorClear, ClearFlag clearFlag)
         {
             using (new ProfilingScope(null, Profiling.setMRTAttachmentsList))
@@ -148,6 +196,8 @@ namespace UnityEngine.Rendering.Universal
                     return;
 
                 m_RenderPassesAttachmentCount[currentPassHash] = 0;
+
+                UpdateFinalStoreActions(currentMergeablePasses, cameraData);
 
                 int currentAttachmentIdx = 0;
                 foreach (var passIdx in currentMergeablePasses)
@@ -163,24 +213,23 @@ namespace UnityEngine.Rendering.Universal
                         pass.m_InputAttachmentIndices[i] = -1;
 
                     uint validColorBuffersCount = RenderingUtils.GetValidColorBufferCount(pass.colorAttachments);
-                    // TODO: review the lastPassToBB logic to mak it work with merged passes
-                    bool isLastPassToBB = false;
 
                     for (int i = 0; i < validColorBuffersCount; ++i)
                     {
                         AttachmentDescriptor currentAttachmentDescriptor =
                             new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None ? pass.renderTargetFormat[i] : GetDefaultGraphicsFormat(cameraData));
 
-                        // if this is the current camera's last pass, also check if one of the RTs is the backbuffer (BuiltinRenderTextureType.CameraTarget)
-                        isLastPassToBB |=  pass.isLastPass && (pass.colorAttachments[i] == BuiltinRenderTextureType.CameraTarget);
+                        var colorTarget = pass.overrideCameraTarget ? pass.colorAttachments[i] : m_CameraColorTarget;
+                        int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(colorTarget, m_ActiveColorAttachmentDescriptors);
 
-                        int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(pass.colorAttachments[i], m_ActiveColorAttachmentDescriptors);
+                        if (m_UseOptimizedStoreActions)
+                            currentAttachmentDescriptor.storeAction = m_FinalColorStoreAction[i];
 
                         if (existingAttachmentIndex == -1)
                         {
                             // add a new attachment
                             m_ActiveColorAttachmentDescriptors[currentAttachmentIdx] = currentAttachmentDescriptor;
-                            m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureTarget(pass.colorAttachments[i],  (pass.clearFlag & ClearFlag.Color) == 0, true);
+                            m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureTarget(colorTarget, (pass.clearFlag & ClearFlag.Color) == 0, true);
 
                             if (pass.colorAttachments[i] == m_CameraColorTarget && needCustomCameraColorClear && (clearFlag & ClearFlag.Color) != 0)
                                 m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(cameraData.camera.backgroundColor), 1.0f, 0);
@@ -202,12 +251,30 @@ namespace UnityEngine.Rendering.Universal
                         SetupInputAttachmentIndices(pass);
 
                     // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
-                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
-                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(pass.depthAttachment, (clearFlag & ClearFlag.DepthStencil) == 0, !isLastPassToBB);
+                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
+                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(pass.overrideCameraTarget ? pass.depthAttachment : m_CameraDepthTarget, (clearFlag & ClearFlag.DepthStencil) == 0, true);
+
                     if ((clearFlag & ClearFlag.DepthStencil) != 0)
                         m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
+
+                    if (m_UseOptimizedStoreActions)
+                        m_ActiveDepthAttachmentDescriptor.storeAction = m_FinalDepthStoreAction;
                 }
             }
+        }
+
+        bool IsDepthOnlyRenderTexture(RenderTexture t)
+        {
+            if (t.graphicsFormat == GraphicsFormat.None ||
+#pragma warning disable 0618 // Disable deprecation warnings. If you get here once these formats are really gone, the code in this #pragma can simply be removed
+                t.graphicsFormat == GraphicsFormat.DepthAuto ||
+                t.graphicsFormat == GraphicsFormat.ShadowAuto
+#pragma warning restore 0618
+            )
+            {
+                return true;
+            }
+            return false;
         }
 
         internal void SetNativeRenderPassAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, RenderTargetIdentifier passColorAttachment, RenderTargetIdentifier passDepthAttachment, ClearFlag finalClearFlag, Color finalClearColor)
@@ -224,6 +291,8 @@ namespace UnityEngine.Rendering.Universal
 
                 m_RenderPassesAttachmentCount[currentPassHash] = 0;
 
+                UpdateFinalStoreActions(currentMergeablePasses, cameraData);
+
                 int currentAttachmentIdx = 0;
                 foreach (var passIdx in currentMergeablePasses)
                 {
@@ -236,15 +305,15 @@ namespace UnityEngine.Rendering.Universal
 
                     AttachmentDescriptor currentAttachmentDescriptor;
                     var usesTargetTexture = cameraData.targetTexture != null;
-                    var depthOnly = renderPass.depthOnly || (usesTargetTexture && cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
+                    var depthOnly = renderPass.depthOnly || (usesTargetTexture && IsDepthOnlyRenderTexture(cameraData.targetTexture));
                     // Offscreen depth-only cameras need this set explicitly
                     if (depthOnly && usesTargetTexture)
                     {
-                        if (cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto && !pass.overrideCameraTarget)
+                        if (IsDepthOnlyRenderTexture(cameraData.targetTexture) && !pass.overrideCameraTarget)
                             passColorAttachment = new RenderTargetIdentifier(cameraData.targetTexture);
                         else
                             passColorAttachment = renderPass.colorAttachment;
-                        currentAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
+                        currentAttachmentDescriptor = new AttachmentDescriptor(SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
                     }
                     else
                         currentAttachmentDescriptor =
@@ -268,19 +337,15 @@ namespace UnityEngine.Rendering.Universal
                             ? new RenderTargetIdentifier(cameraData.targetTexture.depthBuffer)
                             : BuiltinRenderTextureType.Depth);
 
-                    // TODO: review the lastPassToBB logic to mak it work with merged passes
-                    // keep track if this is the current camera's last pass and the RT is the backbuffer (BuiltinRenderTextureType.CameraTarget)
-                    // knowing isLastPassToBB can help decide the optimal store action as it gives us additional information about the current frame
-                    bool isLastPassToBB = pass.isLastPass && (colorAttachmentTarget == BuiltinRenderTextureType.CameraTarget);
-                    currentAttachmentDescriptor.ConfigureTarget(colorAttachmentTarget, ((uint)finalClearFlag & (uint)ClearFlag.Color) == 0, !(samples > 1 && isLastPassToBB));
+                    currentAttachmentDescriptor.ConfigureTarget(colorAttachmentTarget, ((uint)finalClearFlag & (uint)ClearFlag.Color) == 0, true);
 
                     if (PassHasInputAttachments(pass))
                         SetupInputAttachmentIndices(pass);
 
                     // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
-                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
+                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget,
-                        ((uint)finalClearFlag & (uint)ClearFlag.Depth) == 0, !isLastPassToBB);
+                        ((uint)finalClearFlag & (uint)ClearFlag.Depth) == 0, true);
 
                     if (finalClearFlag != ClearFlag.None)
                     {
@@ -294,6 +359,12 @@ namespace UnityEngine.Rendering.Universal
                     // resolving to the implicit color target's resolve surface TODO: handle m_CameraResolveTarget if present?
                     if (samples > 1)
                         currentAttachmentDescriptor.ConfigureResolveTarget(colorAttachmentTarget);
+
+                    if (m_UseOptimizedStoreActions)
+                    {
+                        currentAttachmentDescriptor.storeAction = m_FinalColorStoreAction[0];
+                        m_ActiveDepthAttachmentDescriptor.storeAction = m_FinalDepthStoreAction;
+                    }
 
                     int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(currentAttachmentIdx,
                         currentAttachmentDescriptor, m_ActiveColorAttachmentDescriptors);
@@ -352,7 +423,7 @@ namespace UnityEngine.Rendering.Universal
                 // keep track if this is the current camera's last pass and the RT is the backbuffer (BuiltinRenderTextureType.CameraTarget)
                 bool isLastPassToBB = isLastPass && (m_ActiveColorAttachmentDescriptors[0].loadStoreTarget ==
                     BuiltinRenderTextureType.CameraTarget);
-                var depthOnly = renderPass.depthOnly || (cameraData.targetTexture != null && cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
+                var depthOnly = renderPass.depthOnly || (cameraData.targetTexture != null && IsDepthOnlyRenderTexture(cameraData.targetTexture));
                 bool useDepth = depthOnly || (!renderPass.overrideCameraTarget || (renderPass.overrideCameraTarget && renderPass.depthAttachment != BuiltinRenderTextureType.CameraTarget)) &&
                     (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
 
@@ -453,8 +524,10 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Assume input attachment has to be transient as ScriptableRenderPass currently has only setters for StoreAction
+                // We also change the target of the descriptor for it to be initialized engine-side as a transient resource.
                 m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].loadAction = RenderBufferLoadAction.DontCare;
                 m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].storeAction = RenderBufferStoreAction.DontCare;
+                m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].loadStoreTarget = BuiltinRenderTextureType.None;
             }
         }
 
@@ -579,12 +652,13 @@ namespace UnityEngine.Rendering.Universal
             return CreateRenderPassHash(desc.w, desc.h, desc.depthID, desc.samples, hashIndex);
         }
 
-        private static RenderPassDescriptor InitializeRenderPassDescriptor(CameraData cameraData, ScriptableRenderPass renderPass)
+        private RenderPassDescriptor InitializeRenderPassDescriptor(CameraData cameraData, ScriptableRenderPass renderPass)
         {
             var w = (renderPass.renderTargetWidth != -1) ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
             var h = (renderPass.renderTargetHeight != -1) ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
             var samples = (renderPass.renderTargetSampleCount != -1) ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
-            var depthID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : renderPass.depthAttachment.GetHashCode();
+            var depthTarget = renderPass.overrideCameraTarget ? renderPass.depthAttachment : m_CameraDepthTarget;
+            var depthID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : depthTarget.GetHashCode();
             return new RenderPassDescriptor(w, h, samples, depthID);
         }
 

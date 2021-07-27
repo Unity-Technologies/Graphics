@@ -5,9 +5,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the ambient occlusion.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Sky/Volumetric Clouds")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Sky/Volumetric Clouds", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Override-Volumetric-Clouds")]
-    public sealed class VolumetricClouds : VolumeComponent
+    public sealed partial class VolumetricClouds : VolumeComponent
     {
         /// <summary>
         /// Control mode for the volumetric clouds.
@@ -129,6 +129,31 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Controls the erosion noise used for the clouds.
+        /// </summary>
+        public enum CloudErosionNoise
+        {
+            /// <summary>The erosion noise will be a 32x32x32 worley texture.</summary>
+            Worley32,
+            /// <summary>The erosion noise will be a 32x32x32 perlin texture.</summary>
+            Perlin32,
+        }
+
+        /// <summary>
+        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudErosionNoise"/> value.
+        /// </summary>
+        [Serializable]
+        public sealed class CloudErosionNoiseParameter : VolumeParameter<CloudErosionNoise>
+        {
+            /// <summary>
+            /// Creates a new <see cref="CloudErosionNoiseParameter"/> instance.
+            /// </summary>
+            /// <param name="value">The initial value to store in the parameter.</param>
+            /// <param name="overrideState">The initial override state for the parameter.</param>
+            public CloudErosionNoiseParameter(CloudErosionNoise value, bool overrideState = false) : base(value, overrideState) {}
+        }
+
+        /// <summary>
         /// Enable/Disable the volumetric clouds effect.
         /// </summary>
         [Tooltip("Enable/Disable the volumetric clouds effect.")]
@@ -168,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the thickness of the volumetric clouds volume in meters.
         /// </summary>
         [Tooltip("Controls the thickness of the volumetric clouds volume in meters.")]
-        public MinFloatParameter cloudThickness = new MinFloatParameter(6000.0f, 100.0f);
+        public MinFloatParameter cloudThickness = new MinFloatParameter(8000.0f, 100.0f);
 
         /// <summary>
         /// Controls the number of steps when evaluating the clouds' transmittance.
@@ -258,13 +283,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the density (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
         /// </summary>
         [Tooltip("Controls the density (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
-        public AnimationCurveParameter customDensityCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.2f, 1.0f), new Keyframe(0.8f, 1.0f), new Keyframe(1.0f, 0.0f)), false);
+        public AnimationCurveParameter customDensityCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0.2f, 1.0f), new Keyframe(0.5f, 0.7f), new Keyframe(0.8f, 1.0f), new Keyframe(1.0f, 0.0f)), false);
 
         /// <summary>
         /// Controls the erosion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
         /// </summary>
         [Tooltip("Controls the erosion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.")]
-        public AnimationCurveParameter customErosionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(0f, 1f), new Keyframe(1.0f, 1.0f)), false);
+        public AnimationCurveParameter customErosionCurve = new AnimationCurveParameter(new AnimationCurve(new Keyframe(0f, 0.9f), new Keyframe(0.2f, 1.0f), new Keyframe(0.8f, 1.0f), new Keyframe(1.0f, 0.9f)), false);
 
         /// <summary>
         /// Controls the ambient occlusion (Y axis) of the volumetric clouds as a function of the height (X Axis) inside the cloud volume.
@@ -282,7 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the amount of local scattering in the clouds. A value of 1 may provide a more powdery aspect.
         /// </summary>
         [Tooltip("Controls the amount of local scattering in the clouds. A value of 1 may provide a more powdery aspect.")]
-        public ClampedFloatParameter powderEffectIntensity = new ClampedFloatParameter(0.8f, 0.0f, 1.0f);
+        public ClampedFloatParameter powderEffectIntensity = new ClampedFloatParameter(0.7f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the amount of multi-scattering inside the cloud.
@@ -300,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the larger noise passing through the cloud coverage. A higher value will yield less cloud coverage and smaller clouds.
         /// </summary>
         [Tooltip("Controls the larger noise passing through the cloud coverage. A higher value will yield less cloud coverage and smaller clouds.")]
-        public ClampedFloatParameter shapeFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        public ClampedFloatParameter shapeFactor = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the size of the larger noise passing through the cloud coverage.
@@ -330,7 +355,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the size of the smaller noise passing through the cloud coverage.
         /// </summary>
         [Tooltip("Controls the size of the smaller noise passing through the cloud coverage.")]
-        public MinFloatParameter erosionScale = new MinFloatParameter(25.0f, 1.0f);
+        public MinFloatParameter erosionScale = new MinFloatParameter(50.0f, 1.0f);
+
+        /// <summary>
+        /// Controls the type of noise used to generate the smaller noise passing through the cloud coverage.
+        /// </summary>
+        [Tooltip("Controls the type of noise used to generate the smaller noise passing through the cloud coverage.")]
+        [AdditionalProperty]
+        public CloudErosionNoiseParameter erosionNoiseType = new CloudErosionNoiseParameter(CloudErosionNoise.Perlin32);
 
         /// <summary>
         /// Controls the influence of the light probes on the cloud volume. A lower value will suppress the ambient light and produce darker clouds overall.
@@ -342,34 +374,40 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes.
         /// </summary>
         [Tooltip("Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes.")]
-        public ClampedFloatParameter erosionOcclusion = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        public ClampedFloatParameter erosionOcclusion = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         /// <summary>
-        /// Sets the global wind speed in kilometers per hour.
+        /// Sets the global wind speed in kilometers per hour. This value can be relative to the Global Wind Speed defined in the Visual Environment.
         /// </summary>
-        [Tooltip("Sets the global wind speed in kilometers per hour.")]
-        public MinFloatParameter globalWindSpeed = new MinFloatParameter(100.0f, 0.0f);
+        [Tooltip("Sets the global wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.")]
+        public WindSpeedParameter globalWindSpeed = new WindSpeedParameter();
 
         /// <summary>
-        /// Controls the orientation of the wind relative to the X world vector.
+        /// Controls the orientation of the wind relative to the X world vector. This value can be relative to the Global Wind Orientation defined in the Visual Environment.
         /// </summary>
-        [Tooltip("Controls the orientation of the wind relative to the X world vector.")]
+        [Tooltip("Controls the orientation of the wind relative to the X world vector.\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.")]
+        public WindOrientationParameter orientation = new WindOrientationParameter();
+
+        /// <summary>
+        /// Controls the intensity of the wind-based altitude distortion of the clouds.
+        /// </summary>
         [AdditionalProperty]
-        public ClampedFloatParameter orientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+        [Tooltip("Controls the intensity of the wind-based altitude distortion of the clouds.")]
+        public ClampedFloatParameter altitudeDistortion = new ClampedFloatParameter(0.5f, -1.0f, 1.0f);
 
         /// <summary>
         /// Controls the multiplier to the speed of the cloud map.
         /// </summary>
         [Tooltip("Controls the multiplier to the speed of the cloud map.")]
         [AdditionalProperty]
-        public ClampedFloatParameter cloudMapSpeedMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter cloudMapSpeedMultiplier = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the multiplier to the speed of the larger cloud shapes.
         /// </summary>
         [Tooltip("Controls the multiplier to the speed of the larger cloud shapes.")]
         [AdditionalProperty]
-        public ClampedFloatParameter shapeSpeedMultiplier = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        public ClampedFloatParameter shapeSpeedMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the multiplier to the speed of the erosion cloud shapes.
@@ -414,7 +452,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the opacity of the volumetric clouds shadow.")]
         [AdditionalProperty]
-        public ClampedFloatParameter shadowOpacity = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        public ClampedFloatParameter shadowOpacity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the shadow opacity when outside the area covered by the volumetric clouds shadow.
@@ -425,7 +463,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         VolumetricClouds()
         {
-            displayName = "Volumetric Clouds (Preview)";
+            displayName = "Volumetric Clouds";
         }
     }
 }

@@ -92,8 +92,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Index for which of the 4 local pixels should be evaluated
         public int _SubPixelIndex;
 
-        [HLSLArray(7, typeof(Vector4))]
-        public fixed float _AmbientProbeCoeffs[7 * 4];  // 3 bands of SH, packed, rescaled and convolved with the phase function
+        // Current ambient probe evaluated for both directions of the vertical axis
+        public Vector4 _AmbientProbeTop;
+        public Vector4 _AmbientProbeBottom;
 
         // Right direction of the sun
         public Vector4 _SunRight;
@@ -121,8 +122,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _CameraInverseViewProjection_NO;
         public Matrix4x4 _CameraPrevViewProjection_NO;
 
+        // Controls the intensity of the wind distortion at high altitudes
+        public float _AltitudeDistortion;
+        // Internal parameters that compensates the erosion factor to match between the different erosion noises
+        public float _ErosionFactorCompensation;
         // Fast tonemapping settings
-        public Vector3 _Padding2;
-        public int     _EnableFastToneMapping;
+        public int _EnableFastToneMapping;
+        // Padding
+        public float _Padding;
+
+        [HLSLArray(3 * 4, typeof(Vector4))]
+        public fixed float _DistanceBasedWeights[12 * 4];
     }
 }

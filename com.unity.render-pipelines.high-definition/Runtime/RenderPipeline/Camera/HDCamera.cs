@@ -211,15 +211,27 @@ namespace UnityEngine.Rendering.HighDefinition
             Count
         }
 
+        internal enum HistoryEffectFlags
+        {
+            FullResolution = 1 << 0,
+            RayTraced = 1 << 1,
+            ExposureControl = 1 << 2,
+            CustomBit0 = 1 << 3,
+            CustomBit1 = 1 << 4,
+            CustomBit2 = 1 << 5,
+            CustomBit3 = 1 << 6,
+            CustomBit4 = 1 << 7,
+        }
+
         /// <summary>
         // Generic structure that captures various history validity states.
         /// </summary>
         internal struct HistoryEffectValidity
         {
+            // The last internal camera frame count at which this effect was set
             public int frameCount;
-            public bool fullResolution;
-            public bool rayTraced;
-            public bool exposureControlEnabled;
+            // A combination of masks that define the validity state of the history
+            public int flagMask;
         }
 
         /// <summary>
@@ -561,6 +573,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDAdditionalCameraData.TAAQualityLevel TAAQuality { get; private set; } = HDAdditionalCameraData.TAAQualityLevel.Medium;
 
         internal bool resetPostProcessingHistory = true;
+        internal bool didResetPostProcessingHistoryInLastFrame = false;
 
         internal bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
@@ -601,20 +614,18 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowHistoryUsage[screenSpaceShadowIndex].lightType = lightType;
         }
 
-        internal bool EffectHistoryValidity(HistoryEffectSlot slot, bool fullResolution, bool rayTraced)
+        internal bool EffectHistoryValidity(HistoryEffectSlot slot, int flagMask)
         {
+            flagMask |= exposureControlFS ? (int)HistoryEffectFlags.ExposureControl : 0;
             return (historyEffectUsage[(int)slot].frameCount == (cameraFrameCount - 1))
-                && (historyEffectUsage[(int)slot].fullResolution == fullResolution)
-                && (historyEffectUsage[(int)slot].rayTraced == rayTraced)
-                && (historyEffectUsage[(int)slot].exposureControlEnabled == exposureControlFS);
+                && (historyEffectUsage[(int)slot].flagMask == flagMask);
         }
 
-        internal void PropagateEffectHistoryValidity(HistoryEffectSlot slot, bool fullResolution, bool rayTraced)
+        internal void PropagateEffectHistoryValidity(HistoryEffectSlot slot, int flagMask)
         {
-            historyEffectUsage[(int)slot].fullResolution = fullResolution;
+            flagMask |= exposureControlFS ? (int)HistoryEffectFlags.ExposureControl : 0;
             historyEffectUsage[(int)slot].frameCount = (int)cameraFrameCount;
-            historyEffectUsage[(int)slot].rayTraced = rayTraced;
-            historyEffectUsage[(int)slot].exposureControlEnabled = exposureControlFS;
+            historyEffectUsage[(int)slot].flagMask = flagMask;
         }
 
         internal uint GetCameraFrameCount()
@@ -1296,7 +1307,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
-                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_AO Packed history_{1}", id, frameIndex));
+                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_AO Packed history_{1}", id, frameIndex));
             }
         }
 

@@ -76,3 +76,11 @@ From 2021.2, the range for **Sorting Priority** values has decreased from betwee
 If you used transparent materials (**Surface Type** set to **Transparent**) with a sorting priority lower than -50 or greater than 50, you must remap them to within the new range.
 
  HDRP does not clamp the Sorting Priority to the new range until you edit the Sorting Priority property.
+
+## RendererList API
+
+From 2021.2, HDRP includes an updated `RendererList` API in the `UnityEngine.Rendering.RendererUtils` namespace. This API performs fewer operations than the previous version of the `RendererList` API when it submits the RendererList for drawing. You can use this new version to query if the list of visible objects is empty.
+
+The previous version of the API in the `UnityEngine.Experimental.Rendering` namespace is still available for compatibility purposes but is now deprecated.
+
+When the **Dynamic Render Pass Culling** option is enabled in the HDRP Global Settings, HDRP will use the new API to dynamically skip certain drawing passes based on the type of currently visible objects. For example if no objects with distortion are drawn, the Render Graph passes that draw the distortion effect (and their dependencies - like the color pyramid generation) will be skipped.

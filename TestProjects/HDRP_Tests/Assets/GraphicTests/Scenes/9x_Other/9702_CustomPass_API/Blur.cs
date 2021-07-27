@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
@@ -46,6 +46,6 @@ class Blur : CustomPass
 
     protected override void Cleanup()
     {
-        halfResTarget.Release();   
+        halfResTarget.Release();
     }
 }
