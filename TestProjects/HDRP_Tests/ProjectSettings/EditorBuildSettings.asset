@@ -782,4 +782,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2213_PlanarReflection_VolumetricFog.unity
     guid: e35341f1401aaa0459bfeadafd941cb1
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2110_IndirectController.unity
+    guid: 443ac92abc2bd6a4d94e9e673dbcc29f
   m_configObjects: {}
