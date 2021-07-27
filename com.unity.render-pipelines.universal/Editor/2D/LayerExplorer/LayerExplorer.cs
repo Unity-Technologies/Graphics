@@ -1,16 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
-using Unity.Mathematics;
 using UnityEditor;
-using UnityEditor.Build;
 using UnityEditor.Rendering.Universal;
-using UnityEditor.TextCore.Text;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
-using Random = UnityEngine.Random;
 
 /**
  * Todos:
@@ -50,13 +45,14 @@ internal class LayerExplorer : EditorWindow
 
     private List<LayerBatch> batchList;
     private int primaryIndex;
+    private bool isDataPopulated;
 
-    private void PopulateData()
+    private bool PopulateData()
     {
         batchList = new List<LayerBatch>();
         var renderer = Light2DEditorUtility.GetRenderer2DData();
         if (renderer == null || renderer.lightCullResult == null)
-            return;
+            return false;
 
         var layers = Light2DManager.GetCachedSortingLayer();
         var batches = LayerUtility.CalculateBatches(renderer.lightCullResult, out var batchCount);
@@ -84,6 +80,9 @@ internal class LayerExplorer : EditorWindow
 
             batchList.Add(batchInfo);
         }
+
+        isDataPopulated = true;
+        return true;
     }
 
     private VisualElement MakeLightPill(Light2D light)
@@ -155,48 +154,84 @@ internal class LayerExplorer : EditorWindow
         var root = rootVisualElement;
         var infoView = GetOrCreateInfoView();
 
-        var batch1 = batchList[index1];
-        var batch2 = batchList[index2];
+        LayerBatch batch1;
+        LayerBatch batch2;
+
+        if (batchList[index1].batchId < batchList[index2].batchId)
+        {
+            batch1 = batchList[index1];
+            batch2 = batchList[index2];
+        }
+        else
+        {
+            batch1 = batchList[index2];
+            batch2 = batchList[index1];
+        }
+
+        var lightSet1 = new HashSet<Light2D>();
+        foreach(var light in batch1.Lights)
+            lightSet1.Add(light);
+
+        var lightSet2 = new HashSet<Light2D>();
+        foreach(var light in batch2.Lights)
+            lightSet2.Add(light);
+
 
         // populate
         var title = root.Query<Label>("InfoTitle").First();
-        title.text = "Comparing Batch 2 and Batch 3";
+        title.text = $"Comparing Batch {batch1.batchId} and Batch {batch2.batchId}";
 
         var label1 = infoView.Query<Label>("InfoLabel1").First();
-        label1.text = "Lights in Batch 2 but not in Batch 3";
+        label1.text = $"Lights in Batch {batch1.batchId} but not in Batch {batch2.batchId}";
 
         var bubble1 = infoView.Query<VisualElement>("InfoBubble1").First();
         bubble1.Clear();
         foreach(var light in batch1.Lights)
         {
-            bubble1.Add(MakeLightPill(light));
+            if(!lightSet2.Contains(light))
+                bubble1.Add(MakeLightPill(light));
         }
 
         var label2 = infoView.Query<Label>("InfoLabel2").First();
-        label2.text = "Lights in Batch 3 but not in Batch 2";
+        label2.text = $"Lights in Batch {batch2.batchId} but not in Batch {batch1.batchId}";
 
         var bubble2 = infoView.Query<VisualElement>("InfoBubble2").First();
         bubble2.Clear();
         foreach(var light in batch2.Lights)
         {
-            bubble2.Add(MakeLightPill(light));
+            if(!lightSet1.Contains(light))
+                bubble2.Add(MakeLightPill(light));
         }
 
         var desc = root.Query<Label>("Description").First();
-        desc.text = "Layers 2 and 3 are not batched together because they do not share the same set of lights.";
+        desc.text = $"Batch {batch1.batchId} and {batch2.batchId} are not batched together because they do not share the same set of lights.";
+    }
+
+    void OnEnable()
+    {
+        AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
+    }
+
+    private void OnAfterAssemblyReload()
+    {
+        isDataPopulated = false;
     }
 
     public void CreateGUI()
     {
-        // Each editor window contains a root VisualElement object
+
+        if (!PopulateData())
+            return;
+
         var root = rootVisualElement;
+        root.Clear();
 
         var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ResourcePath + "LayerExplorer.uxml");
         var templateRoot = visualTree.Instantiate();
         templateRoot.style.flexGrow = 1;
         root.Add(templateRoot);
 
-        PopulateData();
+
         var colors = MakeColors();
 
         var batchElement = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ResourcePath + "LayerBatch.uxml");
@@ -253,5 +288,11 @@ internal class LayerExplorer : EditorWindow
                     break;
             }
         };
+    }
+
+    private void OnGUI()
+    {
+        if(!isDataPopulated)
+            CreateGUI();
     }
 }
