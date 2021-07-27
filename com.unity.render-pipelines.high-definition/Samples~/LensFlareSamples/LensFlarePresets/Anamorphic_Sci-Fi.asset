@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Anamorphic_Sci-Fi
   m_EditorClassIdentifier: 
   elements:
-  - position: 0
+  - visible: 1
+    position: 0
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
@@ -147,7 +148,33 @@ MonoBehaviour:
     m_SideCount: 6
     m_SdfRoundness: 0
     inverseSDF: 0
-  - position: 0
+    uniformAngle: 0
+    uniformAngleCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  - visible: 1
+    position: 0
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
@@ -281,26 +308,52 @@ MonoBehaviour:
     m_SideCount: 6
     m_SdfRoundness: 0
     inverseSDF: 0
-  - position: 0
+    uniformAngle: 0
+    uniformAngleCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  - visible: 1
+    position: 0
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
     m_LocalIntensity: 1
-    lensFlareTexture: {fileID: 2800000, guid: 57bb5846aaf6f144d99efd4f8439bb63, type: 3}
+    lensFlareTexture: {fileID: 0}
     uniformScale: 1
-    sizeXY: {x: 8.6, y: 20}
-    allowMultipleElement: 0
-    m_Count: 5
+    sizeXY: {x: 1.88, y: 8.4}
+    allowMultipleElement: 1
+    m_Count: 4
     preserveAspectRatio: 0
-    rotation: 35.42
+    rotation: 38.94
     tint: {r: 1, g: 1, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 0
-    flareType: 0
+    flareType: 2
     modulateByLightColor: 1
     isFoldOpened: 0
-    distribution: 0
-    lengthSpread: 1
+    distribution: 2
+    lengthSpread: 0
     positionCurve:
       serializedVersion: 2
       m_Curve:
@@ -331,25 +384,52 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 0
         value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
+        inSlope: 5.22057
+        outSlope: 5.22057
+        tangentMode: 34
         weightedMode: 0
         inWeight: 0
-        outWeight: 0
+        outWeight: 0.33333334
       - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
+        time: 0.192342
+        value: 2.004135
+        inSlope: 1.271781
+        outSlope: 1.271781
+        tangentMode: 34
         weightedMode: 0
-        inWeight: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.508941
+        value: 1.1565968
+        inSlope: -0.39030373
+        outSlope: -0.39030373
+        tangentMode: 34
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.7719535
+        value: 1.6553739
+        inSlope: -0.29963195
+        outSlope: -0.29963195
+        tangentMode: 34
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1.0132141
+        value: 1.0532684
+        inSlope: -2.4956646
+        outSlope: -2.4956646
+        tangentMode: 34
+        weightedMode: 0
+        inWeight: 0.33333334
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    seed: 0
+    seed: 15
     colorGradient:
       serializedVersion: 2
       key0: {r: 1, g: 1, b: 1, a: 1}
@@ -379,12 +459,12 @@ MonoBehaviour:
       m_Mode: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
-    m_IntensityVariation: 0
-    positionVariation: {x: 0, y: 0}
-    scaleVariation: 0
-    rotationVariation: 0
+    m_IntensityVariation: 0.75
+    positionVariation: {x: 1, y: 0}
+    scaleVariation: 1.21
+    rotationVariation: 7.15
     enableRadialDistortion: 0
-    targetSizeDistortion: {x: 1, y: 1}
+    targetSizeDistortion: {x: 4, y: 6.46}
     distortionCurve:
       serializedVersion: 2
       m_Curve:
@@ -409,9 +489,34 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    distortionRelativeToCenter: 0
-    m_FallOff: 1
-    m_EdgeOffset: 0.1
-    m_SideCount: 6
+    distortionRelativeToCenter: 1
+    m_FallOff: 0.778
+    m_EdgeOffset: 0.958
+    m_SideCount: 4
     m_SdfRoundness: 0
     inverseSDF: 0
+    uniformAngle: 0
+    uniformAngleCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0.11498545
+        outSlope: 0.11498545
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0.1059322
+      - serializedVersion: 3
+        time: 0.9844055
+        value: 0.5260925
+        inSlope: 0.5344266
+        outSlope: 0.5344266
+        tangentMode: 34
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
