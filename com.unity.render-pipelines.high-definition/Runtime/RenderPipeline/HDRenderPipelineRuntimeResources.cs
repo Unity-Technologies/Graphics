@@ -457,7 +457,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public sealed class ShaderGraphResources
         {
             [Reload("Runtime/ShaderLibrary/SolidColor.shadergraph")]
-            public Shader solidColorPS;
+            public Shader objectIDPS;
         }
 
         [Serializable, ReloadGroup]

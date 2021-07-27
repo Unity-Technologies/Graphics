@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 index++;
             }
 
-            overrideMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaderGraphs.solidColorPS);
+            overrideMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaderGraphs.objectIDPS);
             overrideMaterialPassName = "ForwardOnly";
         }
     }
