@@ -12,15 +12,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         //public NodeRef AddNode(NodeType nodeType)
 
-        //public void RemoveNode(NodeRef nodeRef)
+        public void RemoveNode(INodeRef nodeRef);
 
         //public NodeType GetNodeType(NodeRef nodeRef)
 
-        public IEnumerable<NodeRef> GetNodes();
+        public IEnumerable<INodeRef> GetNodes();
 
-        //public List<PortRef> GetInputPorts(NodeRef nodeRef)
+        public IEnumerable<IPortRef> GetInputPorts(INodeRef nodeRef);
 
-        //public List<PortRef> GetOutputPorts(NodeRef nodeRef)
+        public IEnumerable<IPortRef> GetOutputPorts(INodeRef nodeRef);
 
         //public bool CanConnect(PortRef outputPort, PortRef inputPort)
 

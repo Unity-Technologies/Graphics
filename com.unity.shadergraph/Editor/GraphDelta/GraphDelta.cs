@@ -1,32 +1,55 @@
+using System;
 using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     internal sealed class GraphDelta : IGraphHandler
     {
-        private GraphStorage m_data;
+        internal readonly GraphStorage m_data;
 
         public GraphDelta()
         {
             m_data = new GraphStorage();
         }
 
-        public NodeRef AddNode(string name)
+        public INodeRef AddNode(string id)
         {
-            return m_data.AddNode(name);
+            return m_data.AddNode(id);
         }
 
-        public NodeRef GetNode(string name)
+        public INodeRef GetNode(string id)
         {
-            return m_data.GetNode(name);
+            return m_data.GetNode(id);
         }
 
-        public IEnumerable<NodeRef> GetNodes()
+        public IEnumerable<INodeRef> GetNodes()
         {
-            foreach(var node in m_data.nodes)
-            {
-                yield return new NodeRef(node);
-            }
+            return m_data.GetNodes();
+        }
+
+        internal void RemoveNode(string id)
+        {
+            m_data.RemoveNode(id);
+        }
+
+        public void RemoveNode(INodeRef node)
+        {
+            node.Remove();
+        }
+
+        public bool TryMakeConnection(IPortRef output, IPortRef input)
+        {
+            return m_data.TryConnectPorts(output, input);
+        }
+
+        public IEnumerable<IPortRef> GetInputPorts(INodeRef nodeRef)
+        {
+            return nodeRef.GetInputPorts();
+        }
+
+        public IEnumerable<IPortRef> GetOutputPorts(INodeRef nodeRef)
+        {
+            return nodeRef.GetOutputPorts();
         }
     }
 }

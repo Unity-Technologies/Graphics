@@ -1,20 +1,23 @@
 using System;
-using static UnityEditor.ShaderGraph.GraphDelta.ContextLayeredDataStorage;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    public sealed class NodeRef : IDisposable
+    public interface INodeRef : IDisposable
     {
-        private WeakReference<Element> m_node;
+        public IPortRef AddInputPort(string portID);
 
-        public void Dispose()
-        {
-            m_node = null;
-        }
+        public IPortRef AddOutputPort(string portID);
 
-        internal NodeRef(Element elem)
-        {
-            m_node = new WeakReference<Element>(elem);
-        }
+        public IPortRef GetInputPort(string portID);
+
+        public IPortRef GetOutputPort(string portID);
+
+        public IEnumerable<IPortRef> GetInputPorts();
+
+        public IEnumerable<IPortRef> GetOutputPorts();
+
+        public void Remove();
     }
 }

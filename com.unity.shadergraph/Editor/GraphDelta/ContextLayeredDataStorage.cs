@@ -2,26 +2,43 @@ using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
+    public interface IDataElement
+    {
+        public bool TryGetData<T>(out T data);
+        public string ID { get; }
+
+        public IEnumerator<IDataElement> Children { get; }
+
+        public IDataElement Parent { get; }
+    }
+
     internal class ContextLayeredDataStorage
     {
-        public class Element
+        protected class Element : IDataElement
         {
-            public string id;
-            public List<Element> children;
-            public Element parent;
 
-            internal Element()
+            internal string m_id;
+            public string ID => m_id;
+
+            internal List<Element> m_children;
+            public IEnumerator<IDataElement> Children => m_children.GetEnumerator();
+
+            internal Element m_parent;
+            public IDataElement Parent => m_parent;
+
+            internal ContextLayeredDataStorage owner;
+
+            internal Element(ContextLayeredDataStorage owner)
             {
-                id = "";
-                parent = null;
-                children = new List<Element>();
+                m_id = "";
+                m_parent = null;
+                m_children = new List<Element>();
+                this.owner = owner;
             }
 
-            internal Element(string id)
+            internal Element(string id, ContextLayeredDataStorage owner) : this(owner)
             {
-                this.id = id;
-                parent = null;
-                children = new List<Element>();
+                m_id = id;
             }
 
             //It is a path id if there are any '.' characters
@@ -32,8 +49,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public void AddChild(Element child)
             {
-                child.parent = this;
-                children.Add(child);
+                child.m_parent = this;
+                m_children.Add(child);
+            }
+
+            public void LinkElement(Element other)
+            {
+                other.AddChild(this);
+                this.AddChild(other);
             }
 
             public Element<T> AddData<T>(string id, T data)
@@ -41,22 +64,22 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 //not a path? Add it directly as a child
                 if (!IsPath(id))
                 {
-                    var output = new Element<T>(id, data);
+                    var output = new Element<T>(id, data, owner);
                     AddChild(output);
                     return output;
                 }
                 else
                 {
                     //is a path? see if it matches any children
-                    foreach (Element child in children)
+                    foreach (Element child in m_children)
                     {
-                        if (id.IndexOf(child.id) == 0)
+                        if (id.IndexOf(child.ID) == 0)
                         {
-                            return child.AddData(id.Substring(child.id.Length).TrimStart('.'), data);
+                            return child.AddData(id.Substring(child.m_id.Length).TrimStart('.'), data);
                         }
                     }
                     //otherwise, add as child with full name
-                    var output = new Element<T>(id, data);
+                    var output = new Element<T>(id, data, owner);
                     AddChild(output);
                     return output;
                 }
@@ -67,22 +90,22 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 //not a path? Add it directly as a child
                 if (!IsPath(id))
                 {
-                    var output = new Element(id);
+                    var output = new Element(id, owner);
                     AddChild(output);
                     return output;
                 }
                 else
                 {
                     //is a path? see if it matches any children
-                    foreach (Element child in children)
+                    foreach (Element child in m_children)
                     {
-                        if (id.IndexOf(child.id) == 0)
+                        if (id.IndexOf(child.m_id) == 0)
                         {
-                            return child.AddData(id.Substring(child.id.Length).TrimStart('.'));
+                            return child.AddData(id.Substring(child.m_id.Length).TrimStart('.'));
                         }
                     }
                     //otherwise, add as child with full name
-                    var output = new Element(id);
+                    var output = new Element(id, owner);
                     AddChild(output);
                     return output;
                 }
@@ -90,46 +113,66 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public void RemoveChild(Element child)
             {
-                child.parent = null;
-                children.Remove(child);
+                child.m_parent = null;
+                m_children.Remove(child);
             }
             public void Remove()
             {
-                foreach (var child in children)
+                foreach (var child in m_children)
                 {
-                    child.id = $"{id}.{child.id}";
-                    if (parent != null)
+                    child.m_id = $"{m_id}.{child.m_id}";
+                    if (m_parent != null)
                     {
-                        parent.AddChild(child);
+                        RemoveChild(child);
+                        m_parent.AddChild(child);
+                        break;
+
                     }
                 }
-                parent.RemoveChild(this);
+                if (m_parent != null)
+                {
+                    m_parent.RemoveChild(this);
+                }
             }
 
-            public T GetData<T>()
+            public void RemoveWithoutFix()
+            {
+                if(m_parent != null)
+                {
+                    m_parent.RemoveChild(this);
+                }
+            }
+
+            public bool TryGetData<T>(out T data)
             {
                 var isDataHolder = this as Element<T>;
                 if(isDataHolder != null)
                 {
-                    return isDataHolder.data;
+                    data = isDataHolder.data;
+                    return true;
                 }
                 else
                 {
-                    return default(T);
+                    data = default(T);
+                    return false;
                 }
             }
         }
 
-        public class Element<T> : Element
+        protected class Element<T> : Element, IDataElement
         {
             public T data;
 
-            internal Element(string id, T data) : base(id)
+            internal Element(string id, T data, ContextLayeredDataStorage owner) : base(id,owner)
             {
                 this.data = data;
             }
         }
 
+        public struct LayerID
+        {
+            public string name;
+        }
 
         private class ReverseIntComparer : IComparer<int>
         {
@@ -137,11 +180,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             public int Compare(int x, int y) => x.CompareTo(y) * -1;
         }
 
-        private readonly SortedList<int, (string name, Element element)> m_layerList;
+        private readonly SortedList<int, (LayerID layerID, Element element)> m_layerList;
         public ContextLayeredDataStorage()
         {
-            m_layerList = new SortedList<int, (string name, Element element)>(new ReverseIntComparer());
-            m_layerList.Add(-1, ("Root", new Element()));
+            m_layerList = new SortedList<int, (LayerID layerID, Element element)>(new ReverseIntComparer());
+            m_layerList.Add(-1, (new LayerID() { name = "Root" }, new Element(this)));
         }
 
         public void AddNewTopLayer(string layerName)
@@ -150,53 +193,76 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 throw new System.ArgumentException("Cannor use a null or empty layer name", "layerName");
             }
-            m_layerList.Add(m_layerList.Keys[0] + 1, (layerName, new Element()));
+            m_layerList.Add(m_layerList.Keys[0] + 1, (new LayerID() { name = layerName }, new Element(this)));
         }
 
         //AddData with no specified layer gets added to the topmost layer
-        public Element<T> AddData<T>(string id, T data)
+        protected void AddData<T>(string id, T data, out Element<T> elem)
         {
-            return AddData(m_layerList[m_layerList.Keys[0]].element, id, data);
+            AddData(m_layerList[m_layerList.Keys[0]].element, id, data, out elem);
         }
 
-        public Element AddData(string id)
+        public IDataElement AddData<T>(string id, T data)
         {
-            return AddData(m_layerList[m_layerList.Keys[0]].element, id);
+            AddData(id, data, out Element<T> element);
+            return element;
         }
 
-        public Element<T> AddData<T>(string layer, string id, T data)
+        protected void AddData(string id, out Element elem)
         {
+            AddData(m_layerList[m_layerList.Keys[0]].element, id, out elem);
+        }
+
+        public IDataElement AddData(string id)
+        {
+            AddData(id, out Element elem);
+            return elem;
+        }
+
+        protected void AddData<T>(LayerID layer, string id, T data, out Element<T> elem)
+        {
+            elem = null;
             foreach(var l in m_layerList)
             {
-                if(string.CompareOrdinal(l.Value.name, layer) == 0)
+                if(string.CompareOrdinal(l.Value.layerID.name, layer.name) == 0)
                 {
-                    return AddData(l.Value.element, id, data);
+                    AddData(l.Value.element, id, data, out elem);
                 }
             }
-            return null;
         }
 
-        public Element AddData(string layer, string id)
+        public IDataElement AddData<T>(string layer, string id, T data)
         {
+            AddData(new LayerID() { name = layer }, id, data, out Element<T> elem);
+            return elem;
+        }
+
+        protected void AddData(LayerID layer, string id, out Element elem)
+        {
+            elem = null;
             foreach (var l in m_layerList)
             {
-                if (string.CompareOrdinal(l.Value.name, layer) == 0)
+                if (string.CompareOrdinal(l.Value.layerID.name, layer.name) == 0)
                 {
-                    return AddData(l.Value.element, id);
+                    AddData(l.Value.element, id, out elem);
                 }
             }
-            return null;
         }
 
-
-        public Element<T> AddData<T>(Element elem, string id, T data)
+        public IDataElement AddData(LayerID layer, string id)
         {
-            return elem.AddData(id, data);
+            AddData(layer, id, out Element elem);
+            return elem;
         }
 
-        public Element AddData(Element elem, string id)
+        protected void AddData<T>(Element elem, string id, T data, out Element<T> output)
         {
-            return elem.AddData(id);
+            output = elem.AddData(id, data);
+        }
+
+        protected void AddData(Element elem, string id, out Element output)
+        {
+            output = elem.AddData(id);
         }
 
         public void RemoveData(string id)
@@ -205,19 +271,24 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 throw new System.ArgumentException("Cannot remove a null or empty string id", "id");
             }
-            Search(id)?.Remove();
+            SearchInternal(id)?.Remove();
         }
 
-        public void RemoveData(Element elem)
+        protected void RemoveData(Element elem)
         {
-            if(elem.id.Length == 0 && elem.parent == null)
+            if(elem.m_id.Length == 0 && elem.m_parent == null)
             {
                 throw new System.ArgumentException("Cannot remove the root element of a layer", "elem");
             }
             elem.Remove();
         }
 
-        public Element Search(string lookup)
+        public IDataElement Search(string lookup)
+        {
+            return SearchInternal(lookup);
+        }
+
+        protected Element SearchInternal(string lookup)
         {
             foreach(var layer in m_layerList)
             {
@@ -233,16 +304,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         //may rewrite as non recursive
         private Element SearchRecurse(Element elem, string lookup)
         {
-            if (string.CompareOrdinal(elem.id, lookup) == 0)
+            if (string.CompareOrdinal(elem.m_id, lookup) == 0)
             {
                 return elem;
             }
 
-            if(lookup.IndexOf(elem.id) == 0 && elem.children.Count > 0)
+            if(lookup.IndexOf(elem.m_id) == 0 && elem.m_children.Count > 0)
             {
                 Element output = null;
-                string nextLookup = lookup.Substring(elem.id.Length).TrimStart('.');
-                foreach(Element child in elem.children)
+                string nextLookup = lookup.Substring(elem.m_id.Length).TrimStart('.');
+                foreach(Element child in elem.m_children)
                 {
                     output = SearchRecurse(child, nextLookup);
                     if(output != null)
@@ -252,6 +323,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
             }
             return null;
+        }
+
+        protected bool Contains(Element elem)
+        {
+            return elem.owner == this;
         }
     }
 }
