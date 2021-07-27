@@ -225,7 +225,7 @@ HDRP processes effects from the top of the list to the bottom and the order of e
 
 4. After Post Process Blurs.
 
-4. After Post Process.
+5. After Post Process.
 
 <a name="CustomEditor"></a>
 
