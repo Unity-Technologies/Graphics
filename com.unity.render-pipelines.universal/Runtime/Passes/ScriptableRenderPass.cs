@@ -124,12 +124,12 @@ namespace UnityEngine.Rendering.Universal
             get => m_DepthAttachment;
         }
 
-        public RenderBufferStoreAction[] colorStoreActions
+        internal RenderBufferStoreAction[] colorStoreActions
         {
             get => m_ColorStoreActions;
         }
 
-        public RenderBufferStoreAction depthStoreAction
+        internal RenderBufferStoreAction depthStoreAction
         {
             get => m_DepthStoreAction;
         }
@@ -153,18 +153,10 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
-<<<<<<< HEAD
-        /// A ProfilingSampler for the entire pass. Used by higher level objects such as ScriptableRenderer etc.
-=======
         RenderBufferStoreAction[] m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store };
         RenderBufferStoreAction m_DepthStoreAction = RenderBufferStoreAction.Store;
 
-        /// <summary>
-        /// A ProfilingSampler for the entire render pass. Used as a profiling name by <c>ScriptableRenderer</c> when executing the pass.
-        /// Default is <c>Unnamed_ScriptableRenderPass</c>.
-        /// Set <c>base.profilingSampler</c> from the sub-class constructor to set a profiling name for a custom <c>ScriptableRenderPass</c>.
-        /// </summary>
->>>>>>> 1caf37beaf... [Universal] MSAA store actions optimizations for forward renderer Drawobjects pass (#4161)
+        /// A ProfilingSampler for the entire pass. Used by higher level objects such as ScriptableRenderer etc.
         protected internal ProfilingSampler profilingSampler { get; set; }
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
@@ -200,12 +192,12 @@ namespace UnityEngine.Rendering.Universal
             m_Input = passInput;
         }
 
-        public void ConfigureColorStoreAction(RenderBufferStoreAction storeAction, uint attachmentIndex = 0)
+        internal void ConfigureColorStoreAction(RenderBufferStoreAction storeAction, uint attachmentIndex = 0)
         {
             m_ColorStoreActions[attachmentIndex] = storeAction;
         }
 
-        public void ConfigureColorStoreActions(RenderBufferStoreAction[] storeActions)
+        internal void ConfigureColorStoreActions(RenderBufferStoreAction[] storeActions)
         {
             int count = Math.Min(storeActions.Length, m_ColorStoreActions.Length);
             for (uint i = 0; i < count; ++i)
@@ -214,7 +206,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void ConfigureDepthStoreAction(RenderBufferStoreAction storeAction)
+        internal void ConfigureDepthStoreAction(RenderBufferStoreAction storeAction)
         {
             m_DepthStoreAction = storeAction;
         }

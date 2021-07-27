@@ -321,7 +321,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int AfterRendering = 3;
         }
 
-        private StoreActionsOptimization m_StoreActionsOptimizationSetting = StoreActionsOptimization.Auto;
         private static bool m_UseOptimizedStoreActions = false;
 
         const int k_RenderPassBlockCount = 4;
@@ -343,8 +342,6 @@ namespace UnityEngine.Rendering.Universal
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
 
-<<<<<<< HEAD
-=======
         private static RenderBufferStoreAction[] m_ActiveColorStoreActions = new RenderBufferStoreAction[]
         {
             RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store,
@@ -353,15 +350,6 @@ namespace UnityEngine.Rendering.Universal
 
         private static RenderBufferStoreAction m_ActiveDepthStoreAction = RenderBufferStoreAction.Store;
 
-        static AttachmentDescriptor[] m_ActiveColorAttachmentDescriptors = new AttachmentDescriptor[]
-        {
-            RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment,
-            RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment,
-            RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment
-        };
-        static AttachmentDescriptor m_ActiveDepthAttachmentDescriptor;
-
->>>>>>> 1caf37beaf... [Universal] MSAA store actions optimizations for forward renderer Drawobjects pass (#4161)
         // CommandBuffer.SetRenderTarget(RenderTargetIdentifier[] colors, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace, int depthSlice);
         // called from CoreUtils.SetRenderTarget will issue a warning assert from native c++ side if "colors" array contains some invalid RTIDs.
         // To avoid that warning assert we trim the RenderTargetIdentifier[] arrays we pass to CoreUtils.SetRenderTarget.
@@ -404,10 +392,7 @@ namespace UnityEngine.Rendering.Universal
             Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
 
-            if (UniversalRenderPipeline.asset)
-                m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
-
-            m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
+            m_UseOptimizedStoreActions = true;
         }
 
         public void Dispose()
@@ -691,7 +676,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
-            if (count > 0 && m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
+            if (count > 0 )
                 m_UseOptimizedStoreActions = false;
         }
 
@@ -933,9 +918,10 @@ namespace UnityEngine.Rendering.Universal
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
 
                 // Only setup render target if current render pass attachments are different from the active ones
-                if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
+                if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None ||
+                        renderPass.colorStoreActions[0] != m_ActiveColorStoreActions[0] || renderPass.depthStoreAction != m_ActiveDepthStoreAction)
                 {
-                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, renderPass.colorStoreActions[0], renderPass.depthStoreAction);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                     if (cameraData.xr.enabled)
@@ -945,29 +931,6 @@ namespace UnityEngine.Rendering.Universal
                         bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
                         cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
                     }
-<<<<<<< HEAD
-=======
-
-                    if (samples > 1)
-                        m_ActiveColorAttachmentDescriptors[0].ConfigureResolveTarget(m_CameraResolveTarget);
-                }
-                else
-                {
-                    // Only setup render target if current render pass attachments are different from the active ones
-                    if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None ||
-                        renderPass.colorStoreActions[0] != m_ActiveColorStoreActions[0] || renderPass.depthStoreAction != m_ActiveDepthStoreAction)
-                    {
-                        SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, renderPass.colorStoreActions[0], renderPass.depthStoreAction);
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-                        if (cameraData.xr.enabled)
-                        {
-                            // SetRenderTarget might alter the internal device state(winding order).
-                            // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                            bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
-                            cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
-                        }
->>>>>>> 1caf37beaf... [Universal] MSAA store actions optimizations for forward renderer Drawobjects pass (#4161)
 #endif
                 }
             }
@@ -1022,10 +985,6 @@ namespace UnityEngine.Rendering.Universal
                 depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor);
         }
 
-<<<<<<< HEAD
-        static void SetRenderTarget(
-            CommandBuffer cmd,
-=======
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor, RenderBufferStoreAction colorStoreAction, RenderBufferStoreAction depthStoreAction)
         {
             m_ActiveColorAttachments[0] = colorAttachment;
@@ -1060,7 +1019,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         static void SetRenderTarget(CommandBuffer cmd,
->>>>>>> 1caf37beaf... [Universal] MSAA store actions optimizations for forward renderer Drawobjects pass (#4161)
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
             RenderBufferStoreAction colorStoreAction,
