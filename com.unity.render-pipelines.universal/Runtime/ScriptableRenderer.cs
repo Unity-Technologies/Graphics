@@ -675,7 +675,7 @@ namespace UnityEngine.Rendering.Universal
                     activeRenderPassQueue.RemoveAt(i);
             }
 
-            // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
+            // if any pass was injected, disable the optimized load actions
             if (count > 0 )
                 m_UseOptimizedStoreActions = false;
         }
@@ -1042,7 +1042,8 @@ namespace UnityEngine.Rendering.Universal
             // XRTODO: Revisit the logic. Why treat CameraTarget depth specially?
             if (depthAttachment == BuiltinRenderTextureType.CameraTarget)
             {
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction, clearFlags, clearColor);
+                cmd.SetRenderTarget(colorAttachment, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
+                CoreUtils.ClearRenderTarget(cmd, clearFlags, clearColor);
             }
             else
             {
