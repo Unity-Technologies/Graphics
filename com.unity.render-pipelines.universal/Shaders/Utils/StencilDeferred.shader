@@ -173,8 +173,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 {
                     #if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)
                         float4 shadowCoord = float4(screen_uv, 0.0, 1.0);
-                    #else
+                    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
                         float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
+                    #else
+                        float4 shadowCoord = float4(0, 0, 0, 0);
                     #endif
                     unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
                 }
