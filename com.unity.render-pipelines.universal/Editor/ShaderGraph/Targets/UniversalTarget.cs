@@ -603,16 +603,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
 #endif
 
+        public bool CanSupportVFX()
+        {
+            if (m_ActiveSubTarget.value == null)
+                return false;
+
+            //TODOPAUL : Filter correctly unsupported target
+            return true;
+        }
+
         public bool SupportsVFX()
         {
 #if HAS_VFX_GRAPH
-            /* TODOPAUL : See if it's relevant
-             *
-             * if (m_ActiveSubTarget.value == null)
+            if (!CanSupportVFX())
                 return false;
-
-            if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
-                return false;*/
 
             return m_SupportVFX;
 #else
