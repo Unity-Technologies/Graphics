@@ -79,6 +79,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a better support for LODs in the ray tracing acceleration structure.
 - Added a property on the HDRP asset to allow users to avoid ray tracing effects running at too low percentages (case 1342588).
 - Added dependency to mathematics and burst, HDRP now will utilize this to improve on CPU cost. First implementation of burstified decal projector is here.
+- Added warning for when a light is not fitting in the cached shadow atlas and added option to set maximum resolution that would fit.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -323,9 +324,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a null ref exception when adding a new environment to the Look Dev library.
 - Fixed a nullref in volume system after deleting a volume object (case 1348374).
 - Fixed the APV UI loosing focus when the helpbox about baking appears in the probe volume.
+- Fixed enabling a lensflare in playmode.
+- Fixed white flashes when history is reset due to changes on type of upsampler.
 - Fixed misc TAA issue: Slightly improved TAA flickering, Reduced ringing of TAA sharpening, tweak TAA High quality central color filtering.
 - Fixed TAA upsampling algorithm, now work properly
-
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
