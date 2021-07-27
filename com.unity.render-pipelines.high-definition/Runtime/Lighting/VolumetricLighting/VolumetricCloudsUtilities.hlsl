@@ -128,11 +128,12 @@ float PowderEffect(float cloudDensity, float cosAngle, float intensity)
     return lerp(1.0, lerp(1.0, powderEffect, smoothstep(0.5, -0.5, cosAngle)), intensity);
 }
 
-int RaySphereIntersection(float3 start, float3 dir, float radius, out float2 result)
+int RaySphereIntersection(float3 startWS, float3 dir, float radius, out float2 result)
 {
+    float3 startPS = startWS + float3(0, _EarthRadius, 0);
     float a = dot(dir, dir);
-    float b = 2.0 * dot(dir, start);
-    float c = dot(start, start) - (radius * radius);
+    float b = 2.0 * dot(dir, startPS);
+    float c = dot(startPS, startPS) - (radius * radius);
     float d = (b*b) - 4.0*a*c;
     result = 0.0;
     int numSolutions = 0;
@@ -140,9 +141,8 @@ int RaySphereIntersection(float3 start, float3 dir, float radius, out float2 res
     {
         // Compute the values required for the solution eval
         float sqrtD = sqrt(d);
-        float rcp2a = 1.0 / (2.0 * a);
-        result = float2((-b - sqrtD) * rcp2a, (-b + sqrtD) * rcp2a);
-
+        float q = -0.5*(b + FastSign(b) * sqrtD);
+        result = float2(c/q, q/a);
         // Remove the solutions we do not want
         numSolutions = 2;
         if (result.x < 0.0)
@@ -157,20 +157,20 @@ int RaySphereIntersection(float3 start, float3 dir, float radius, out float2 res
     return numSolutions;
 }
 
-bool RaySphereIntersection(float3 start, float3 dir, float radius)
+bool RaySphereIntersection(float3 startWS, float3 dir, float radius)
 {
+    float3 startPS = startWS + float3(0, _EarthRadius, 0);
     float a = dot(dir, dir);
-    float b = 2.0 * dot(dir, start);
-    float c = dot(start, start) - (radius * radius);
-    float d = (b*b) - 4.0*a*c;
-
+    float b = 2.0 * dot(dir, startPS);
+    float c = dot(startPS, startPS) - (radius * radius);
+    float d = (b * b) - 4.0 * a * c;
     bool flag = false;
     if (d >= 0.0)
     {
         // Compute the values required for the solution eval
         float sqrtD = sqrt(d);
-        float rcp2a = 1.0 / (2.0 * a);
-        float2 result = float2((-b - sqrtD) * rcp2a, (-b + sqrtD) * rcp2a);
+        float q = -0.5 * (b + FastSign(b) * sqrtD);
+        float2 result = float2(c/q, q/a);
         flag = result.x > 0.0 || result.y > 0.0;
     }
     return flag;
