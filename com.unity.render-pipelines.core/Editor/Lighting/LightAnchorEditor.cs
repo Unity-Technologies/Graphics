@@ -128,14 +128,11 @@ namespace UnityEditor
                 }
                 EditorGUILayout.Space();
 
-                // TODO: warning box when distance is at 0 (can't set rotation (or can we?))
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_DistanceProperty, LightAnchorStyles.distanceProperty);
                 distanceChanged = EditorGUI.EndChangeCheck();
 
                 EditorGUI.BeginChangeCheck();
-                // var dropRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
-                // m_FrameSpace = (LightAnchor.UpDirection)EditorGUI.EnumPopup(dropRect, LightAnchorStyles.upDirectionProperty, manipulator.frameSpace);
                 EditorGUILayout.PropertyField(m_FrameSpaceProperty, LightAnchorStyles.upDirectionProperty);
                 upChanged = EditorGUI.EndChangeCheck();
 
