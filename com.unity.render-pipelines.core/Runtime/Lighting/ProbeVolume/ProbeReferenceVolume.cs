@@ -183,6 +183,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             Lightmapping.bakeCompleted -= OnAdditionalProbesBakeCompleted;
 
+            if (m_RequestPositions.Count == 0) return;
+
             var sh = new NativeArray<SphericalHarmonicsL2>(m_RequestPositions.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var validity = new NativeArray<float>(m_RequestPositions.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var bakedProbeOctahedralDepth = new NativeArray<float>(m_RequestPositions.Count * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
