@@ -21,6 +21,19 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             base.Setup(renderContext, cmd);
 
+            AssignObjectIDs();
+
+            overrideMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaderGraphs.objectIDPS);
+            overrideMaterialPassName = "ForwardOnly";
+        }
+
+        /// <summary>
+        /// Used to assign an ObjectID (in the form of a color) to every renderer in the scene.
+        /// If a scene uses dynamic objects or procedural object placement, then the user script should call
+        /// this function to assign Object IDs to the new objects.
+        /// </summary>
+        public void AssignObjectIDs()
+        {
             var rendererList = Resources.FindObjectsOfTypeAll(typeof(Renderer));
 
             int index = 0;
@@ -32,9 +45,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderer.SetPropertyBlock(propertyBlock);
                 index++;
             }
-
-            overrideMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaderGraphs.objectIDPS);
-            overrideMaterialPassName = "ForwardOnly";
         }
     }
 }
