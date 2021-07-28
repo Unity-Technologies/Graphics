@@ -71,7 +71,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Stripping shader variants per renderer features instead of combined renderer features.
 - When MSAA is enabled and a depth texture is required, the opaque pass depth will be copied instead of scheduling a depth prepass.
 - URP Asset Inspector - Advanced settings have been reordered under `Show Additional Properties` on each section.
-- Change the default name when a new urp asset is created.
+- Changed the default name when a new urp asset is created.
 - URP Asset Inspector - `General` section has been renamed to `Rendering`.
 
 ### Fixed
