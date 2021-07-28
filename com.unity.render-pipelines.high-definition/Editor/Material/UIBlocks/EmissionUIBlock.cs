@@ -12,6 +12,8 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public class EmissionUIBlock : MaterialUIBlock
     {
+        static float s_MaxEvValue = Mathf.Floor(LightUtils.ConvertLuminanceToEv(float.MaxValue));
+
         /// <summary>Options for emission block features. Use this to control which fields are visible.</summary>
         [Flags]
         public enum Features
@@ -131,7 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
         {
-            Color emissiveColorLDRLinear = emissiveColorLDR.colorValue / emissiveIntensity.floatValue;
+            Color emissiveColorLDRLinear = emissiveColor.colorValue / emissiveIntensity.floatValue;
             emissiveColorLDR.colorValue = emissiveColorLDRLinear.gamma;
         }
 
@@ -156,7 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
                         evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
-                        evValue = Mathf.Clamp(evValue, 0, float.MaxValue);
+                        evValue = Mathf.Clamp(evValue, 0, s_MaxEvValue);
                         emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
                     }
                     else
