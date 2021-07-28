@@ -22,6 +22,8 @@ namespace UnityEngine
         float m_Distance = 0f;
         [SerializeField]
         UpDirection m_FrameSpace = UpDirection.World;
+        [SerializeField]
+        Transform m_AnchorPositionOverride;
 
         float m_Yaw;
         float m_Pitch;
@@ -68,8 +70,8 @@ namespace UnityEngine
         /// </summary>
         public float distance
         {
-            get { return Mathf.Max(m_Distance, 0.0001f); }
-            set { m_Distance = value; }
+            get => m_Distance;
+            set => m_Distance = Mathf.Max(0, value);
         }
 
         /// <summary>
@@ -101,7 +103,13 @@ namespace UnityEngine
         /// </summary>
         public Vector3 anchorPosition
         {
-            get { return transform.position + transform.forward * distance; }
+            get
+            {
+                if (anchorPositionOverride != null)
+                    return anchorPositionOverride.position;
+                else
+                    return transform.position + transform.forward * distance;
+            }
         }
 
         struct Axes
@@ -109,6 +117,16 @@ namespace UnityEngine
             public Vector3 up;
             public Vector3 right;
             public Vector3 forward;
+        }
+
+        /// <summary>
+        /// Overrides the pivot of used to compute the light position. This is useful to track an existing object in the scene.
+        /// The transform of the light will be automatically updated by the Update() method of the LightAnchor.
+        /// </summary>
+        public Transform anchorPositionOverride
+        {
+            get => m_AnchorPositionOverride;
+            set => m_AnchorPositionOverride = value;
         }
 
         /// <summary>
@@ -181,6 +199,15 @@ namespace UnityEngine
             };
         }
 
+        void Update()
+        {
+            if (anchorPositionOverride == null || Camera.main == null)
+                return;
+
+            if (anchorPositionOverride.hasChanged)
+                UpdateTransform(Camera.main, anchorPosition);
+        }
+
         void OnDrawGizmosSelected()
         {
             var camera = Camera.main;
@@ -231,7 +258,7 @@ namespace UnityEngine
             Vector3 worldPosition = anchor + (worldYawRot * worldPitchRot) * forward * distance;
             transform.position = worldPosition;
 
-            Vector3 lookAt = (anchor - worldPosition).normalized;
+            Vector3 lookAt = -((worldYawRot * worldPitchRot) * forward).normalized;
             Vector3 angles = Quaternion.LookRotation(lookAt, up).eulerAngles;
             angles.z = m_Roll;
             transform.eulerAngles = angles;

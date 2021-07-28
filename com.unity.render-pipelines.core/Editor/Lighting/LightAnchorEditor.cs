@@ -32,6 +32,7 @@ namespace UnityEditor
 
         SerializedProperty m_DistanceProperty;
         SerializedProperty m_FrameSpaceProperty;
+        SerializedProperty m_AnchorPositionOverrideProperty;
 
         LightAnchor manipulator
         {
@@ -57,14 +58,11 @@ namespace UnityEditor
                 UpdateCache();
             }
 
-            // anchor is cached for it cannot be changed from the inspector,
-            // we have a dedicated editor tool to move the anchor
-            var anchor = manipulator.anchorPosition;
-
             bool yawChanged = false;
             bool pitchChanged = false;
             bool rollChanged = false;
             bool distanceChanged = false;
+            bool positionOverrideChanged = false;
             bool upChanged = false;
 
             using (var change = new EditorGUI.ChangeCheckScope())
@@ -135,6 +133,10 @@ namespace UnityEditor
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_FrameSpaceProperty, LightAnchorStyles.upDirectionProperty);
                 upChanged = EditorGUI.EndChangeCheck();
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_AnchorPositionOverrideProperty, LightAnchorStyles.anchorPositionOverrideProperty);
+                positionOverrideChanged = EditorGUI.EndChangeCheck();
 
                 if (m_FoldoutPreset = EditorGUILayout.Foldout(m_FoldoutPreset, "Common"))
                 {
@@ -272,7 +274,7 @@ namespace UnityEditor
                     manipulator.SynchronizeOnTransform(camera);
                     UpdateCache();
                 }
-                if (yawChanged || pitchChanged || rollChanged || distanceChanged)
+                if (yawChanged || pitchChanged || rollChanged || distanceChanged || positionOverrideChanged)
                 {
                     Undo.RecordObjects(new UnityEngine.Object[] { target, manipulator.transform }, "Light Anchor Change");
 
@@ -284,8 +286,10 @@ namespace UnityEditor
                         manipulator.roll = m_Roll;
                     if (distanceChanged)
                         manipulator.distance = m_DistanceProperty.floatValue;
+                    if (positionOverrideChanged)
+                        manipulator.anchorPositionOverride = m_AnchorPositionOverrideProperty.objectReferenceValue as Transform;
 
-                    manipulator.UpdateTransform(camera, anchor);
+                    manipulator.UpdateTransform(camera, manipulator.anchorPosition);
                     IsCacheInvalid(manipulator);
                 }
             }
@@ -326,6 +330,7 @@ namespace UnityEditor
 
             m_DistanceProperty = serializedObject.FindProperty("m_Distance");
             m_FrameSpaceProperty = serializedObject.FindProperty("m_FrameSpace");
+            m_AnchorPositionOverrideProperty = serializedObject.FindProperty("m_AnchorPositionOverride");
         }
 
         void EditorToolsOnactiveToolChanged()
@@ -566,6 +571,7 @@ namespace UnityEditor
         static public GUIContent presetTextureRimRight = EditorGUIUtility.TrTextContent("", "Rim Right", UnityEditor.Rendering.CoreEditorUtils.LoadIcon(LightAnchorStyles.k_IconFolder, "PresetRim_Right", ".png", false));
         static public GUIContent distanceProperty = EditorGUIUtility.TrTextContent("Distance", "Controls how far 'back', the light is placed from its anchor");
         static public GUIContent upDirectionProperty = EditorGUIUtility.TrTextContent("Up direction", "Specifies the space in which the up direction of the anchor is defined. Local is relative to the camera.");
+        static public GUIContent anchorPositionOverrideProperty = EditorGUIUtility.TrTextContent("Anchor Position Override", "Specifies the anchor position manually instead of relying on the angles, distance and transform position to compute the anchor position.");
         static public GUIContent[] angleSubContent = new[]
         {
             EditorGUIUtility.TrTextContent("Orbit"),
