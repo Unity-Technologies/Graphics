@@ -281,8 +281,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
 
         public static readonly int _TaaPostParameters = Shader.PropertyToID("_TaaPostParameters");
+        public static readonly int _TaaPostParameters1 = Shader.PropertyToID("_TaaPostParameters1");
         public static readonly int _TaaHistorySize = Shader.PropertyToID("_TaaHistorySize");
         public static readonly int _TaaFilterWeights = Shader.PropertyToID("_TaaFilterWeights");
+        public static readonly int _TaaFilterWeights1 = Shader.PropertyToID("_TaaFilterWeights1");
+        public static readonly int _TaauParameters = Shader.PropertyToID("_TaauParameters");
+        public static readonly int _TaaScales = Shader.PropertyToID("_TaaScales");
 
         public static readonly int _WorldSpaceCameraPos1 = Shader.PropertyToID("_WorldSpaceCameraPos1");
         public static readonly int _ViewMatrix1 = Shader.PropertyToID("_ViewMatrix1");
@@ -624,6 +628,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DistanceTexture                 = Shader.PropertyToID("_DistanceTexture");
         public static readonly int _JitterFramePeriod               = Shader.PropertyToID("_JitterFramePeriod");
         public static readonly int _SingleReflectionBounce          = Shader.PropertyToID("_SingleReflectionBounce");
+        public static readonly int _RoughnessBasedDenoising         = Shader.PropertyToID("_RoughnessBasedDenoising");
         public static readonly int _HistoryBufferSize               = Shader.PropertyToID("_HistoryBufferSize");
         public static readonly int _CurrentEffectResolution         = Shader.PropertyToID("_CurrentEffectResolution");
         public static readonly int _SampleCountTextureRW            = Shader.PropertyToID("_SampleCountTextureRW");
