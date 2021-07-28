@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Shader/AfterPPBlurs"
+Shader "Hidden/Shader/AfterPPBlurs"
 {
     HLSLINCLUDE
 
