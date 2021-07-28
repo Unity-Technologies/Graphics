@@ -145,6 +145,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public bool SupportsVFX() => true;
+        public bool CanSupportVFX() => true;
     }
 }
 #endif
