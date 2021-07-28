@@ -97,7 +97,11 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
 #if defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, SH, inputData.normalWS);
 #else
-    inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, inputData.normalWS);
+    #if !defined(LIGHTMAP_ON) && !SHADER_HINT_NICE_QUALITY
+        inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, inputData.normalWS) / 2;
+    #else
+        inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, inputData.normalWS);
+    #endif
 #endif
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
     inputData.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
