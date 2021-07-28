@@ -17,7 +17,8 @@ namespace UnityEditor.Rendering
 
         private static readonly List<ICoreRenderPipelinePreferencesProvider> s_Providers = new();
 
-        static CoreRenderPipelinePreferences()
+        [InitializeOnLoadMethod]
+        static void InitPreferenceProviders()
         {
             foreach (var provider in TypeCache.GetTypesDerivedFrom<ICoreRenderPipelinePreferencesProvider>())
             {

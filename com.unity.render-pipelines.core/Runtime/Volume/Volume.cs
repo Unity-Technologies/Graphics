@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering
 {
@@ -8,13 +9,20 @@ namespace UnityEngine.Rendering
     [CoreRPHelpURL("Volumes", "com.unity.render-pipelines.high-definition")]
     [ExecuteAlways]
     [AddComponentMenu("Miscellaneous/Volume")]
-    public class Volume : MonoBehaviour
+    public class Volume : MonoBehaviour, IVolume
     {
+        [SerializeField, FormerlySerializedAs("isGlobal")]
+        private bool m_IsGlobal = true;
+
         /// <summary>
         /// Specifies whether to apply the Volume to the entire Scene or not.
         /// </summary>
-        [Tooltip("When enabled, HDRP applies this Volume to the entire Scene.")]
-        public bool isGlobal = true;
+        [Tooltip("When enabled, the Volume is applied to the entire Scene.")]
+        public bool isGlobal
+        {
+            get => m_IsGlobal;
+            set => m_IsGlobal = value;
+        }
 
         /// <summary>
         /// The Volume priority in the stack. A higher value means higher priority. This supports negative values.
@@ -82,6 +90,13 @@ namespace UnityEngine.Rendering
             set => m_InternalProfile = value;
         }
 
+        internal List<Collider> m_Colliders = new List<Collider>();
+
+        /// <summary>
+        /// The colliders of the volume if <see cref="isGlobal"/> is false
+        /// </summary>
+        public List<Collider> colliders => m_Colliders;
+
         internal VolumeProfile profileRef => m_InternalProfile == null ? sharedProfile : m_InternalProfile;
 
         /// <summary>
@@ -101,6 +116,8 @@ namespace UnityEngine.Rendering
         {
             m_PreviousLayer = gameObject.layer;
             VolumeManager.instance.Register(this, m_PreviousLayer);
+
+            GetComponents(m_Colliders);
         }
 
         void OnDisable()
@@ -125,6 +142,11 @@ namespace UnityEngine.Rendering
                 VolumeManager.instance.SetLayerDirty(gameObject.layer);
                 m_PreviousPriority = priority;
             }
+
+#if UNITY_EDITOR
+            // In the editor, we refresh the list of colliders at every frame because it's frequent to add/remove them
+            GetComponents(m_Colliders);
+#endif
         }
 
         internal void UpdateLayer()

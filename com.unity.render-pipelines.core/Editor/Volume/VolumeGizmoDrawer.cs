@@ -1,39 +1,53 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    /// <summary>
-    /// Draws Volumes Gizmos
-    /// </summary>
-    public class VolumeGizmoDrawer
+    class VolumeGizmoDrawer
     {
-        private static List<Collider> s_TempColliders = new List<Collider>();
+        #region GizmoCallbacks
+        static readonly Dictionary<Type, IVolumeAdditionalGizmo> s_AdditionalGizmoCallbacks = new();
+
+        [InitializeOnLoadMethod]
+        static void InitVolumeGizmoCallbacks()
+        {
+            foreach (var additionalGizmoCallback in TypeCache.GetTypesDerivedFrom<IVolumeAdditionalGizmo>())
+            {
+                if (additionalGizmoCallback.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null) == null)
+                    continue;
+                var instance = Activator.CreateInstance(additionalGizmoCallback) as IVolumeAdditionalGizmo;
+                s_AdditionalGizmoCallbacks.Add(instance.type, instance);
+            }
+        }
+
+        #endregion
 
         [DrawGizmo(GizmoType.Active | GizmoType.Selected | GizmoType.NonSelected)]
-        static void OnDrawGizmos(Volume scr, GizmoType gizmoType)
+        static void OnDrawGizmos(IVolume scr, GizmoType gizmoType)
         {
-            if (!scr.enabled)
+            if (scr is not MonoBehaviour monoBehaviour)
                 return;
 
-            s_TempColliders.Clear();
+            if (!monoBehaviour.enabled)
+                return;
 
-            var colliders = s_TempColliders;
-            scr.GetComponents(colliders);
-
-            if (scr.isGlobal || colliders == null)
+            if (scr.isGlobal || scr.colliders == null)
                 return;
 
             // Store the computation of the lossyScale
-            var lossyScale = scr.transform.lossyScale;
-            Gizmos.matrix = Matrix4x4.TRS(scr.transform.position, scr.transform.rotation, lossyScale);
+            var lossyScale = monoBehaviour.transform.lossyScale;
+            Gizmos.matrix = Matrix4x4.TRS(monoBehaviour.transform.position, monoBehaviour.transform.rotation, lossyScale);
             Gizmos.color = VolumesPreferences.volumeGizmoColor;
 
+            s_AdditionalGizmoCallbacks.TryGetValue(scr.GetType(), out var callback);
+
             // Draw a separate gizmo for each collider
-            foreach (var collider in colliders)
+            foreach (var collider in scr.colliders)
             {
-                if (!collider.enabled)
+                if (!collider || !collider.enabled)
                     continue;
 
                 // We'll just use scaling as an approximation for volume skin. It's far from being
@@ -50,14 +64,22 @@ namespace UnityEditor.Rendering
                             Gizmos.DrawWireCube(c.center, c.size);
                         if (VolumesPreferences.drawSolid)
                             Gizmos.DrawCube(c.center, c.size);
+
+                        callback?.OnBoxColliderDraw(scr, c);
                         break;
                     case SphereCollider c:
+                        Matrix4x4 oldMatrix = Gizmos.matrix;
                         // For sphere the only scale that is used is the transform.x
-                        Gizmos.matrix = Matrix4x4.TRS(scr.transform.position, scr.transform.rotation, Vector3.one * lossyScale.x);
+                        Gizmos.matrix = Matrix4x4.TRS(monoBehaviour.transform.position, monoBehaviour.transform.rotation, Vector3.one * lossyScale.x);
+
                         if (VolumesPreferences.drawWireFrame)
                             Gizmos.DrawWireSphere(c.center, c.radius);
                         if (VolumesPreferences.drawSolid)
                             Gizmos.DrawSphere(c.center, c.radius);
+
+                        callback?.OnSphereColliderDraw(scr, c);
+
+                        Gizmos.matrix = oldMatrix;
                         break;
                     case MeshCollider c:
                         // Only convex mesh m_Colliders are allowed
@@ -69,6 +91,8 @@ namespace UnityEditor.Rendering
                         if (VolumesPreferences.drawSolid)
                             // Mesh pivot should be centered or this won't work
                             Gizmos.DrawMesh(c.sharedMesh);
+
+                        callback?.OnMeshColliderDraw(scr, c);
                         break;
                     default:
                         // Nothing for capsule (DrawCapsule isn't exposed in Gizmo), terrain, wheel and
@@ -76,8 +100,6 @@ namespace UnityEditor.Rendering
                         break;
                 }
             }
-
-            colliders.Clear();
         }
     }
 }

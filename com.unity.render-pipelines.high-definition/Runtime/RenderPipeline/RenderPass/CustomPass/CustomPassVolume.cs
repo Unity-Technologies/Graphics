@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using System.Linq;
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -11,12 +12,19 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [ExecuteAlways]
     [HDRPHelpURLAttribute("Custom-Pass")]
-    public class CustomPassVolume : MonoBehaviour
+    public class CustomPassVolume : MonoBehaviour, IVolume
     {
+        [SerializeField, FormerlySerializedAs("isGlobal")]
+        private bool m_IsGlobal = true;
+
         /// <summary>
         /// Whether or not the volume is global. If true, the component will ignore all colliders attached to it
         /// </summary>
-        public bool isGlobal = true;
+        public bool isGlobal
+        {
+            get => m_IsGlobal;
+            set => m_IsGlobal = value;
+        }
 
         /// <summary>
         /// Distance where the volume start to be rendered, the fadeValue field in C# will be updated to the normalized blend factor for your custom C# passes
@@ -85,6 +93,12 @@ namespace UnityEngine.Rendering.HighDefinition
         static List<CustomPassVolume>       m_OverlappingPassVolumes = new List<CustomPassVolume>();
 
         internal List<Collider>          m_Colliders = new List<Collider>();
+
+        /// <summary>
+        /// The colliders of the volume if <see cref="isGlobal"/> is false
+        /// </summary>
+        public List<Collider> colliders => m_Colliders;
+
         List<Collider>          m_OverlappingColliders = new List<Collider>();
 
         static List<CustomPassInjectionPoint> m_InjectionPoints;
