@@ -330,6 +330,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed misc TAA issue: Slightly improved TAA flickering, Reduced ringing of TAA sharpening, tweak TAA High quality central color filtering.
 - Fixed TAA upsampling algorithm, now work properly
 - Fixed custom post process template not working with Blit method.
+- Fixed support for instanced motion vector rendering
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
