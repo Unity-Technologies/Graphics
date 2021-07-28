@@ -301,8 +301,25 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return null;
         }
 
+        protected Element SearchRelative(Element elem, string lookup)
+        {
+            if(elem.m_children.Count > 0)
+            {
+                Element output = null;
+                foreach(Element child in elem.m_children)
+                {
+                    output = SearchRecurse(child, lookup);
+                    if(output != null)
+                    {
+                        return output;
+                    }
+                }
+            }
+            return null;
+        }
+
         //may rewrite as non recursive
-        private Element SearchRecurse(Element elem, string lookup)
+        protected Element SearchRecurse(Element elem, string lookup)
         {
             if (string.CompareOrdinal(elem.m_id, lookup) == 0)
             {
