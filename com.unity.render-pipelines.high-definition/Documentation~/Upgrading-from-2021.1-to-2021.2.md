@@ -84,3 +84,7 @@ From 2021.2, HDRP includes an updated `RendererList` API in the `UnityEngine.Ren
 The previous version of the API in the `UnityEngine.Experimental.Rendering` namespace is still available for compatibility purposes but is now deprecated.
 
 When the **Dynamic Render Pass Culling** option is enabled in the HDRP Global Settings, HDRP will use the new API to dynamically skip certain drawing passes based on the type of currently visible objects. For example if no objects with distortion are drawn, the Render Graph passes that draw the distortion effect (and their dependencies - like the color pyramid generation) will be skipped.
+
+## Dynamic Resolution
+
+From 2021.2, Bilinear and Lanczos upscale filters as they are mostly redundant with other better options. If using those filters also consider the newly added filters TAA Upscale and FidelityFX Super Resolution 1.0.
