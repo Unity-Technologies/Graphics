@@ -325,6 +325,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the APV UI loosing focus when the helpbox about baking appears in the probe volume.
 - Fixed update order in Graphics Compositor causing jumpy camera updates (case 1345566).
 - Fixed material inspector that allowed setting intensity to an infinite value.
+- Fixed issue with the LayerMaskParameter class storing an erroneous mask value (case 1345515).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
