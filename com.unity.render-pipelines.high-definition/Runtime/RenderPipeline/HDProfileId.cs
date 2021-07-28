@@ -222,9 +222,12 @@ namespace UnityEngine.Rendering.HighDefinition
         FinalImageHistogram,
         CustomPostProcessBeforeTAA,
         CustomPostProcessBeforePP,
+        CustomPostProcessAfterPPBlurs,
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
         ContrastAdaptiveSharpen,
+        RobustContrastAdaptiveSharpen,
+        EdgeAdaptiveSpatialUpsampling,
         PrepareProbeVolumeList,
         ProbeVolumeDebug,
 

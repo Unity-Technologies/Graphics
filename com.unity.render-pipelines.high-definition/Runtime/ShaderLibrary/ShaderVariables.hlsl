@@ -175,6 +175,14 @@ TEXTURE2D(_PrevExposureTexture);
         #endif
     #endif
 
+    #ifdef PLATFORM_SAMPLE_TEXTURE2D_GRAD
+        #ifdef  SAMPLE_TEXTURE2D_GRAD
+            #undef  SAMPLE_TEXTURE2D_GRAD
+            #define SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2, dpdx, dpdy) \
+                PLATFORM_SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2, (dpdx * _GlobalMipBiasPow2), (dpdy * _GlobalMipBiasPow2))
+        #endif
+    #endif
+
     //2d texture arrays bias manipulation
     #ifdef PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS
         #ifdef  SAMPLE_TEXTURE2D_ARRAY
@@ -399,7 +407,7 @@ float2 ClampAndScaleUVForBilinearPostProcessTexture(float2 UV, float2 texelSize)
     return ClampAndScaleUV(UV, texelSize, 0.5f, _RTHandlePostProcessScale.xy);
 }
 
-// This is assuming an upsampled texture used in post processing, with original screen size and a half a texel offset for the clamping.
+// This is assuming an upsampled texture used in post processing, with original screen size and numberOfTexels offset for the clamping.
 float2 ClampAndScaleUVPostProcessTexture(float2 UV, float2 texelSize, float numberOfTexels)
 {
     return ClampAndScaleUV(UV, texelSize, numberOfTexels, _RTHandlePostProcessScale.xy);
@@ -415,6 +423,21 @@ float2 ClampAndScaleUVPostProcessTextureForPoint(float2 UV)
     return min(UV, 1.0f) * _RTHandlePostProcessScale.xy;
 }
 
+// IMPORTANT: This is expecting the corner not the center.
+float2 FromOutputPosSSToPreupsampleUV(int2 posSS)
+{
+    return (posSS + 0.5f) * _PostProcessScreenSize.zw;
+}
+
+// IMPORTANT: This is expecting the corner not the center.
+float2 FromOutputPosSSToPreupsamplePosSS(float2 posSS)
+{
+    float2 uv = FromOutputPosSSToPreupsampleUV(posSS);
+    return floor(uv * _ScreenSize.xy);
+}
+
+
+
 uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize, uint eye)
 {
     // We need to shift the index to look up the right eye info.
@@ -429,11 +452,15 @@ uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
 // Define Model Matrix Macro
 // Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject
 // We need to declare inline function. Using uniform directly mean they are expand with the macro
-float4x4 GetRawUnityObjectToWorld() { return unity_ObjectToWorld; }
-float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
+float4x4 GetRawUnityObjectToWorld()     { return unity_ObjectToWorld; }
+float4x4 GetRawUnityWorldToObject()     { return unity_WorldToObject; }
+float4x4 GetRawUnityPrevObjectToWorld() { return unity_MatrixPreviousM; }
+float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
 
-#define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
-#define UNITY_MATRIX_I_M   ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
+#define UNITY_MATRIX_M         ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
+#define UNITY_MATRIX_I_M       ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
+#define UNITY_PREV_MATRIX_M    ApplyCameraTranslationToMatrix(GetRawUnityPrevObjectToWorld())
+#define UNITY_PREV_MATRIX_I_M  ApplyCameraTranslationToInverseMatrix(GetRawUnityPrevWorldToObject())
 
 // To get instancing working, we must use UNITY_MATRIX_M / UNITY_MATRIX_I_M as UnityInstancing.hlsl redefine them
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld

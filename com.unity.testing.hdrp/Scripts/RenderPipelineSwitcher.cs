@@ -8,37 +8,38 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEngine.Experimental.Rendering.HDPipelineTest
 {
     [ExecuteInEditMode]
-	public class RenderPipelineSwitcher : MonoBehaviour
-	{
-	    HDRenderPipelineAsset previousPipeline = null;
-	    public HDRenderPipelineAsset targetPipeline = null;
+    public class RenderPipelineSwitcher : MonoBehaviour
+    {
+        HDRenderPipelineAsset previousPipeline = null;
+        public HDRenderPipelineAsset targetPipeline = null;
 
-		void OnEnable ()
-	    {
-	    	if(previousPipeline == null)
-	    	{
-	        	previousPipeline = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
-	    	}
+        void OnEnable()
+        {
+            if (previousPipeline == null)
+            {
+                previousPipeline = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
+            }
             if (targetPipeline != null && GraphicsSettings.renderPipelineAsset != targetPipeline)
             {
                 GraphicsSettings.renderPipelineAsset = targetPipeline;
             }
         }
+
         void Update()
         {
             if (previousPipeline == null)
             {
                 previousPipeline = (GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset);
             }
-	        if(targetPipeline != null && GraphicsSettings.renderPipelineAsset != targetPipeline)
-	        {
-	        	GraphicsSettings.renderPipelineAsset = targetPipeline;
-	        }
-		}
+            if (targetPipeline != null && GraphicsSettings.renderPipelineAsset != targetPipeline)
+            {
+                GraphicsSettings.renderPipelineAsset = targetPipeline;
+            }
+        }
 
-		void OnDisable()
-		{
-        	GraphicsSettings.renderPipelineAsset = previousPipeline;
-		}
-	}
+        void OnDisable()
+        {
+            GraphicsSettings.renderPipelineAsset = previousPipeline;
+        }
+    }
 }

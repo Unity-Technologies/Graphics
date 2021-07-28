@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using UnityEditor.ShaderGraph;
+using UnityEditor.UIElements;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -28,10 +29,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             bool useLegacyBlocks = !descs.Contains(BlockFields.SurfaceDescription.BaseColor) && !descs.Contains(BlockFields.SurfaceDescription.Alpha);
             context.AddField(CoreFields.UseLegacySpriteBlocks, useLegacyBlocks);
 
-            // Surface Type & Blend Mode
+            // Surface Type
             context.AddField(UniversalFields.SurfaceTransparent);
-            context.AddField(Fields.BlendAlpha);
             context.AddField(Fields.DoubleSided);
+
+            // Blend Mode
+            switch (target.alphaMode)
+            {
+                case AlphaMode.Premultiply:
+                    context.AddField(UniversalFields.BlendPremultiply);
+                    break;
+                case AlphaMode.Additive:
+                    context.AddField(UniversalFields.BlendAdd);
+                    break;
+                case AlphaMode.Multiply:
+                    context.AddField(UniversalFields.BlendMultiply);
+                    break;
+                default:
+                    context.AddField(Fields.BlendAlpha);
+                    break;
+            }
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -47,6 +64,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
+            context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, (evt) =>
+            {
+                if (Equals(target.alphaMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Blend");
+                target.alphaMode = (AlphaMode)evt.newValue;
+                onChange();
+            });
         }
 
         #region SubShader
@@ -102,7 +128,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
-                // keywords = SpriteLitKeywords.Lit,
+                keywords = SpriteLitKeywords.Lit,
                 includes = SpriteLitIncludes.Lit,
             };
 
@@ -152,6 +178,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Fields
                 structs = CoreStructCollections.Default,
                 requiredFields = SpriteLitRequiredFields.Forward,
+                keywords = SpriteLitKeywords.Forward,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
@@ -198,6 +225,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static FieldCollection Lit = new FieldCollection()
             {
                 StructFields.Varyings.color,
+                StructFields.Varyings.positionWS,
                 StructFields.Varyings.texCoord0,
                 StructFields.Varyings.screenPosition,
             };
@@ -211,7 +239,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static FieldCollection Forward = new FieldCollection()
             {
                 StructFields.Varyings.color,
+                StructFields.Varyings.positionWS,
                 StructFields.Varyings.texCoord0,
+            };
+        }
+        #endregion
+
+        #region Keywords
+        static class SpriteLitKeywords
+        {
+            public static KeywordCollection Lit = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.DebugDisplay },
+            };
+
+            public static KeywordCollection Forward = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.DebugDisplay },
             };
         }
         #endregion

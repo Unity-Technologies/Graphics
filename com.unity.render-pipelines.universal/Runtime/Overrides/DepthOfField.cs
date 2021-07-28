@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
         Bokeh
     }
 
-    [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Depth Of Field", typeof(UniversalRenderPipeline))]
     public sealed class DepthOfField : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Use \"Gaussian\" for a faster but non physical depth of field; \"Bokeh\" for a more realistic but slower depth of field.")]
