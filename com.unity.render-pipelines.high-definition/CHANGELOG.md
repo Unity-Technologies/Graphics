@@ -328,6 +328,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed white flashes when history is reset due to changes on type of upsampler.
 - Fixed misc TAA issue: Slightly improved TAA flickering, Reduced ringing of TAA sharpening, tweak TAA High quality central color filtering.
 - Fixed TAA upsampling algorithm, now work properly
+- Fixed custom post process template not working with Blit method.
 - Fixed light anchor min distance value + properties not working with prefabs (case 1345509).
 
 ### Changed
