@@ -4,6 +4,7 @@
 # Read more under .yamato/docs/readme.md
 
 {% metadata_file .yamato/_cache_config.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
@@ -11,8 +12,10 @@
 All_Ref_Images_for_ShaderGraph_ref_trunk:
     name: All Ref Images for ShaderGraph_ref on trunk
     variables:
+        CUSTOM_REVISION: '{{trunk.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     triggers:
         expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
@@ -70,12 +73,77 @@ All_Ref_Images_for_ShaderGraph_ref_trunk:
          rerun: on_new_revision
       -  path: .yamato/shadergraph_ref-win-vulkan.yml#ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_trunk
          rerun: on_new_revision
+All_Ref_Images_for_ShaderGraph_ref_2021.2:
+    name: All Ref Images for ShaderGraph_ref on 2021.2
+    variables:
+        CUSTOM_REVISION: '{{2021_2.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    triggers:
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+    dependencies:
+      -  path: .yamato/shadergraph_ref-android-opengles3.yml#ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-android-opengles3.yml#ShaderGraph_ref_Android_OpenGLES3_playmode_ref_images_il2cpp_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-android-opengles3.yml#ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-android-vulkan.yml#ShaderGraph_ref_Android_Vulkan_Standalone_ref_images_il2cpp_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-android-vulkan.yml#ShaderGraph_ref_Android_Vulkan_playmode_ref_images_il2cpp_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-android-vulkan.yml#ShaderGraph_ref_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-iphone-metal.yml#ShaderGraph_ref_iPhone_Metal_Standalone_ref_images_il2cpp_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-iphone-metal.yml#ShaderGraph_ref_iPhone_Metal_playmode_ref_images_il2cpp_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-iphone-metal.yml#ShaderGraph_ref_iPhone_Metal_Standalone_cache_ref_images_il2cpp_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-linux-openglcore.yml#ShaderGraph_ref_Linux_OpenGLCore_Standalone_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-linux-openglcore.yml#ShaderGraph_ref_Linux_OpenGLCore_playmode_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-linux-openglcore.yml#ShaderGraph_ref_Linux_OpenGLCore_Standalone_cache_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-linux-vulkan.yml#ShaderGraph_ref_Linux_Vulkan_Standalone_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-linux-vulkan.yml#ShaderGraph_ref_Linux_Vulkan_playmode_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-linux-vulkan.yml#ShaderGraph_ref_Linux_Vulkan_Standalone_cache_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-osx-metal.yml#ShaderGraph_ref_OSX_Metal_Standalone_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-osx-metal.yml#ShaderGraph_ref_OSX_Metal_playmode_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-osx-metal.yml#ShaderGraph_ref_OSX_Metal_Standalone_cache_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-osx-openglcore.yml#ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-osx-openglcore.yml#ShaderGraph_ref_OSX_OpenGLCore_playmode_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-osx-openglcore.yml#ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-win-dx11.yml#ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-win-dx11.yml#ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-win-dx11.yml#ShaderGraph_ref_Win_DX11_Standalone_cache_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-win-vulkan.yml#ShaderGraph_ref_Win_Vulkan_Standalone_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-win-vulkan.yml#ShaderGraph_ref_Win_Vulkan_playmode_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/shadergraph_ref-win-vulkan.yml#ShaderGraph_ref_Win_Vulkan_Standalone_cache_ref_images_mono_Linear_2021.2
+         rerun: on_new_revision
 All_Ref_Images_for_ShaderGraph_ref_CUSTOM-REVISION:
     name: All Ref Images for ShaderGraph_ref on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/shadergraph_ref-android-opengles3.yml#ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision

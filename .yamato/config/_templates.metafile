@@ -21,6 +21,6 @@ platforms:
   - name: Win
   - name: OSX
 agent_pack: package_ci_win_large
-agent_publish: package_ci_win_large
 agent_test:  package_ci_win_large
+agent_publish:  package_ci_win_large
 agent_all_ci: package_ci_win_large
