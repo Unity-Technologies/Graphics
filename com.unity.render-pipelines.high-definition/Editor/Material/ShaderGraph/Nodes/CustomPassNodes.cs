@@ -46,9 +46,9 @@ namespace UnityEditor.Rendering.HighDefinition
             string uv = GetSlotValue(kUvInputSlotId, generationMode);
 
             if (generationMode.IsPreview())
-                sb.AppendLine($"$precision3 {GetVariableNameForSlot(kColorOutputSlotId)} = 1;");
+                sb.AppendLine($"$precision4 {GetVariableNameForSlot(kColorOutputSlotId)} = 1;");
             else
-                sb.AppendLine($"$precision3 {GetVariableNameForSlot(kColorOutputSlotId)} = SampleCustomColor({uv}.xy);");
+                sb.AppendLine($"$precision4 {GetVariableNameForSlot(kColorOutputSlotId)} = SampleCustomColor({uv}.xy);");
         }
 
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
@@ -86,20 +86,20 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kUvInputSlotId = 0;
         const string kUvInputSlotName = "UV";
 
-        const int kColorOutputSlotId = 1;
-        const string kColorOutputSlotName = "Output";
+        const int kDepthOutputSlotId = 1;
+        const string kDepthOutputSlotName = "Output";
 
         public override bool hasPreview => false;
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new ScreenPositionMaterialSlot(kUvInputSlotId, kUvInputSlotName, kUvInputSlotName, ScreenSpaceType.Default));
-            AddSlot(new Vector1MaterialSlot(kColorOutputSlotId, kColorOutputSlotName, kColorOutputSlotName , SlotType.Output, 0));
+            AddSlot(new Vector1MaterialSlot(kDepthOutputSlotId, kDepthOutputSlotName, kDepthOutputSlotName , SlotType.Output, 0));
 
             RemoveSlotsNameNotMatching(new[]
             {
                 kUvInputSlotId,
-                kColorOutputSlotId,
+                kDepthOutputSlotId,
             });
         }
 
@@ -115,9 +115,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 depthValue = $"Linear01Depth({depthValue}, _ZBufferParams)";
 
             if (generationMode.IsPreview())
-                sb.AppendLine($"$precision3 {GetVariableNameForSlot(kColorOutputSlotId)} = 0;");
+                sb.AppendLine($"$precision {GetVariableNameForSlot(kDepthOutputSlotId)} = 0;");
             else
-                sb.AppendLine($"$precision3 {GetVariableNameForSlot(kColorOutputSlotId)} = {depthValue};");
+                sb.AppendLine($"$precision {GetVariableNameForSlot(kDepthOutputSlotId)} = {depthValue};");
         }
 
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All) => true;
