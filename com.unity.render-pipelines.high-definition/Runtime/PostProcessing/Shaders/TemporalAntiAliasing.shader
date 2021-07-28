@@ -216,10 +216,12 @@ Shader "Hidden/HDRP/TemporalAA"
             // --------------- Get closest motion vector ---------------
             float2 motionVector;
 
+            int2 samplePos = input.positionCS.xy;
+
 #if ORTHOGRAPHIC
             float2 closestOffset = 0;
 #else
-            int2 samplePos = input.positionCS.xy;
+
 #ifdef TAA_UPSCALE
             samplePos = outputPixInInput;
 #endif
