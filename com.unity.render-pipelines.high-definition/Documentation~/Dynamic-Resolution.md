@@ -28,76 +28,71 @@ The example below shows how to call this function. In a real production environm
 ```c#
 
 using System.Collections;
-
 using System.Collections.Generic;
-
 using UnityEngine;
-
 using UnityEngine.Rendering;
 
 public class DynamicRes : MonoBehaviour
-
 {
-
     public float secondsToNextChange = 1.0f;
-
     public float fractionDeltaStep = 0.1f;
-
     private float currentScale = 1.0f;
-
     private float directionOfChange = -1.0f;
-
     private float elapsedTimeSinceChange = 0.0f;
 
     // Simple example of a policy that scales the resolution every secondsToNextChange seconds.
-
     // Since this call uses DynamicResScalePolicyType.ReturnsMinMaxLerpFactor, HDRP uses currentScale in the following context:
-
     // finalScreenPercentage = Mathf.Lerp(minScreenPercentage, maxScreenPercentage, currentScale);
-
     public float SetDynamicResolutionScale()
-
     {
-
         elapsedTimeSinceChange += Time.deltaTime;
 
         // Waits for secondsToNextChange seconds then requests a change of resolution.
-
         if (elapsedTimeSinceChange >= secondsToNextChange)
-
         {
-
             currentScale += directionOfChange * fractionDeltaStep;
 
             // When currenScale reaches the minimum or maximum resolution, this switches the direction of resolution change.
-
             if (currentScale <= 0.0f || currentScale >= 1.0f)
-
             {
-
                 directionOfChange *= -1.0f;
-
             }
 
-
-
             elapsedTimeSinceChange = 0.0f;
-
         }
-
         return currentScale;
-
     }
 
     void Start()
 
     {
-
         // Binds the dynamic resolution policy defined above.
-
         DynamicResolutionHandler.SetDynamicResScaler(SetDynamicResolutionScale, DynamicResScalePolicyType.ReturnsMinMaxLerpFactor);
-
     }
-
 }
 ```
+
+## Choosing an upscale filter
+
+The upscale filter used can be set on the [HDRP Asset ](HDRP-Asset.md#DynamicResolution). It is possible to override what is set in the asset via script on a per-camera basis with: `DynamicResolutionHandler.SetUpscaleFilter(Camera camera, DynamicResUpscaleFilter filter)`, once the filter is overridden this way, the value in the HDRP asset is ignored for the given camera.
+
+HDRP offers many filters:
+
+| **Upscale Filter Name**         | Description                                                  |
+| ------------------------------- | ------------------------------------------------------------ |
+| Bilinear                        | A fairly low quality and simple filter, but by far the cheapest option in terms of performance. It can result in blurry images post-upscaling and can let through more aliasing than other filters, its usage is suggested only for situations in which any overhead of the other filters cannot be afforded. |
+| Catmull-Rom                     | A bicubic upscale filter performed with 4 taps. It produces better quality than Bilinear, but can still result is blurry images post-upscaling. It is the second cheapest filter in terms of performance impact after the Bilinear one. |
+| Lanczos                         | A Lanczos filter that produces a significantly sharper final image than with Bilinear and Catmull-Rom, however at a measurable cost increase. Note that due to the nature of the filter it can cause artifacts when used together with extremely low screen percentages as the sharpening that the filter causes can lead to ringing (i.e. unnaturally dark edges). |
+| Contrast Adaptive Sharpen       | An ultra-sharp upsample. It produces very sharp post-upscale image via an aggressive sharpening. This option is not meant to be used when screen percentage is less than 50%.  This uses **FidelityFX (CAS) AMD™**. For information about FidelityFX and Contrast Adaptive Sharpening, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx). |
+| FidelityFX Super Resolution 1.0 | A spatial super resolution technology that leverages cutting-edge algorithms to produce very good upscaling quality and relatively fast performance. For more information, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx). |
+| TAA Upscale                     |                                                              |
+
+HDRP also supports NVIDIA Deep Learning Super Sampling (DLSS)  for GPU that support it, more informations about DLSS on the [dedicated documentation page](deep-learning-super-sampling-in-hdrp.md).
+
+
+
+While
+
+
+
+## Notes on TAA Upscale
