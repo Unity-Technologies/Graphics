@@ -323,7 +323,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a null ref exception when adding a new environment to the Look Dev library.
 - Fixed a nullref in volume system after deleting a volume object (case 1348374).
 - Fixed the APV UI loosing focus when the helpbox about baking appears in the probe volume.
-- Fixed issue when switching between cameras when path tarcing is enabled (case 1337843).
+- Fixed issue when switching between non-persistent cameras when path tarcing is enabled (case 1337843).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
