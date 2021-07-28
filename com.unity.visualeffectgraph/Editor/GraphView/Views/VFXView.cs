@@ -114,7 +114,7 @@ namespace UnityEditor.VFX.UI
 
         public AttachPanel(VFXView vfxView)
         {
-            this.m_vfxView = vfxView;
+            m_vfxView = vfxView;
         }
 
         public override Vector2 GetWindowSize()
@@ -127,17 +127,17 @@ namespace UnityEditor.VFX.UI
             EditorGUILayout.Space();
             using (new GUILayout.VerticalScope(GUILayout.Height(120)))
             {
-                var isAttached = this.m_vfxView.attachedComponent != null;
+                var isAttached = m_vfxView.attachedComponent != null;
                 GUI.enabled = isAttached || Selection.activeGameObject?.GetComponent<VisualEffect>() != null;
                 if (GUILayout.Button(isAttached ? VFXView.Contents.detach : VFXView.Contents.attachToSelection, GUILayout.Height(24)))
                 {
                     if (isAttached)
                     {
-                        this.m_vfxView.Detach();
+                        m_vfxView.Detach();
                     }
                     else
                     {
-                        this.m_vfxView.AttachToSelection();
+                        m_vfxView.AttachToSelection();
                     }
                 }
 
@@ -145,18 +145,18 @@ namespace UnityEditor.VFX.UI
                 GUILayout.FlexibleSpace();
 
                 EditorGUILayout.LabelField(VFXView.Contents.pickATarget);
-                if (EditorGUILayout.ObjectField(this.m_vfxView.attachedComponent, typeof(VisualEffect), true, GUILayout.ExpandWidth(true)) is VisualEffect visualEffect)
+                if (EditorGUILayout.ObjectField(m_vfxView.attachedComponent, typeof(VisualEffect), true, GUILayout.ExpandWidth(true)) is VisualEffect visualEffect)
                 {
-                    if (visualEffect != this.m_vfxView.attachedComponent)
+                    if (visualEffect != m_vfxView.attachedComponent)
                     {
-                        this.m_vfxView.AttachTo(visualEffect);
+                        m_vfxView.AttachTo(visualEffect);
                     }
                 }
 
                 GUI.enabled = isAttached;
                 GUILayout.FlexibleSpace();
-                var attachedButtonLabel = this.m_vfxView.attachedComponent != null && this.m_vfxView.attachedComponent.name != null
-                    ? new GUIContent(this.m_vfxView.attachedComponent.name, VFXView.Contents.clickToSelect.text)
+                var attachedButtonLabel = m_vfxView.attachedComponent != null && m_vfxView.attachedComponent.name != null
+                    ? new GUIContent(m_vfxView.attachedComponent.name, VFXView.Contents.clickToSelect.text)
                     : VFXView.Contents.noSelection;
 
                 using (new GUILayout.HorizontalScope())
@@ -166,7 +166,7 @@ namespace UnityEditor.VFX.UI
                     GUI.enabled = isAttached;
                     if (GUILayout.Button(attachedButtonLabel, GUILayout.Height(24), GUILayout.MinWidth(60)))
                     {
-                        Selection.activeObject = this.m_vfxView.attachedComponent != null ? this.m_vfxView.attachedComponent.gameObject : null;
+                        Selection.activeObject = m_vfxView.attachedComponent != null ? m_vfxView.attachedComponent.gameObject : null;
                     }
                 }
 
@@ -192,7 +192,8 @@ namespace UnityEditor.VFX.UI
         }
 
         public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
-        public bool isLocked;
+
+        public bool locked { get; private set; }
 
         void IControllerListener.OnControllerEvent(ControllerEvent e)
         {
@@ -379,7 +380,7 @@ namespace UnityEditor.VFX.UI
                         ConnectController();
                     }
                     NewControllerSet();
-                    this.AttachToSelection();
+                    AttachToSelection();
                 }
             }
         }
@@ -551,7 +552,7 @@ namespace UnityEditor.VFX.UI
 
             m_LockToggle = new ToolbarToggle();
             m_LockToggle.style.unityTextAlign = TextAnchor.MiddleLeft;
-            m_LockToggle.tooltip = this.isLocked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
+            m_LockToggle.tooltip = locked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
             m_LockToggle.name = "lock-auto-attach";
             m_LockToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleLock);
             m_Toolbar.Add(m_LockToggle);
@@ -666,7 +667,7 @@ namespace UnityEditor.VFX.UI
 
         private void OnOpenAttachMenu()
         {
-            PopupWindow.Show(this.m_AttachDropDownButton.worldBound, this.m_attachPopupContent, null);
+            PopupWindow.Show(m_AttachDropDownButton.worldBound, m_attachPopupContent, null);
         }
 
         void OnRefreshUI(DropdownMenuAction action)
@@ -842,41 +843,41 @@ namespace UnityEditor.VFX.UI
 
         public void AttachToSelection()
         {
-            this.AttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>());
+            AttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>());
         }
 
         public void AttachTo(VisualEffect selectedAsset)
         {
-            if (this.controller?.graph.visualEffectResource.asset == selectedAsset?.visualEffectAsset)
+            if (controller?.graph.visualEffectResource.asset == selectedAsset?.visualEffectAsset)
             {
-                this.m_ComponentBoard.Attach(selectedAsset);
+                m_ComponentBoard.Attach(selectedAsset);
             }
 
-            this.UpdateToolbarButtons();
+            UpdateToolbarButtons();
         }
 
         internal void Detach()
         {
-            this.m_ComponentBoard.Detach();
-            this.UpdateToolbarButtons();
+            m_ComponentBoard.Detach();
+            UpdateToolbarButtons();
         }
 
         private void UpdateToolbarButtons()
         {
-            if (this.attachedComponent != null)
+            if (attachedComponent != null)
             {
-                this.m_AttachDropDownButton.AddToClassList("checked");
+                m_AttachDropDownButton.AddToClassList("checked");
             }
             else
             {
-                this.m_AttachDropDownButton.RemoveFromClassList("checked");
+                m_AttachDropDownButton.RemoveFromClassList("checked");
             }
 
-            this.m_LockToggle.tooltip = this.isLocked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
+            m_LockToggle.tooltip = locked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
 
-            if (this.attachedComponent != null && !string.IsNullOrEmpty(this.attachedComponent.name))
+            if (attachedComponent != null && !string.IsNullOrEmpty(attachedComponent.name))
             {
-                this.m_LockToggle.tooltip += $"\nAttached to {this.attachedComponent.name}";
+                m_LockToggle.tooltip += $"\nAttached to {attachedComponent.name}";
             }
         }
 
@@ -890,14 +891,14 @@ namespace UnityEditor.VFX.UI
 
         void OnToggleLock(ChangeEvent<bool> evt)
         {
-            this.isLocked = !this.isLocked;
-            if (!this.isLocked)
+            locked = !locked;
+            if (!locked)
             {
-                this.AttachToSelection();
+                AttachToSelection();
             }
             else
             {
-                this.UpdateToolbarButtons();
+                UpdateToolbarButtons();
             }
         }
 
@@ -974,13 +975,13 @@ namespace UnityEditor.VFX.UI
 
         void Delete(string cmd, AskUser askUser)
         {
-            var selection = this.selection.ToArray();
+            var currentSelection = selection.ToArray();
             var parametersToRemove = Enumerable.Empty<VFXParameterController>();
-            foreach (var category in selection.OfType<VFXBlackboardCategory>())
+            foreach (var category in currentSelection.OfType<VFXBlackboardCategory>())
             {
                 parametersToRemove = parametersToRemove.Concat(controller.RemoveCategory(m_Blackboard.GetCategoryIndex(category)));
             }
-            controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller).Concat(parametersToRemove.Cast<Controller>()), true);
+            controller.Remove(currentSelection.OfType<IControlledElement>().Select(t => t.controller).Concat(parametersToRemove.Cast<Controller>()), true);
         }
 
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
@@ -2257,8 +2258,8 @@ namespace UnityEditor.VFX.UI
         {
             if (evt.keyCode == KeyCode.D && evt.modifiers == EventModifiers.Control)
             {
-                this.DuplicateBlackboardFieldSelection();
-                this.DuplicateBlackBoardCategorySelection();
+                DuplicateBlackboardFieldSelection();
+                DuplicateBlackBoardCategorySelection();
             }
         }
 
@@ -2479,7 +2480,7 @@ namespace UnityEditor.VFX.UI
 
         private void OnDuplicateBlackBoardCategory(DropdownMenuAction obj)
         {
-            this.DuplicateBlackBoardCategorySelection();
+            DuplicateBlackBoardCategorySelection();
         }
 
         void CollapseOperator(DropdownMenuAction a)
@@ -2744,22 +2745,22 @@ namespace UnityEditor.VFX.UI
         {
             foreach (var blackboardField in selection.OfType<VFXBlackboardField>())
             {
-                this.DuplicateBlackboardField(blackboardField);
+                DuplicateBlackboardField(blackboardField);
             }
 
-            this.m_Controller.graph.SetExpressionValueDirty();
+            m_Controller.graph.SetExpressionValueDirty();
         }
 
         private void DuplicateBlackBoardCategorySelection()
         {
             foreach (var blackboardCategory in selection.OfType<VFXBlackboardCategory>())
             {
-                var newCategory = this.blackboard.AddCategory(blackboardCategory.title);
+                var newCategory = blackboard.AddCategory(blackboardCategory.title);
 
                 var parameters = blackboardCategory
                     .Children()
                     .OfType<VFXBlackboardRow>()
-                    .Select(x => this.DuplicateBlackboardField(x.field))
+                    .Select(x => DuplicateBlackboardField(x.field))
                     .ToList();
                 parameters.ForEach(x => x.model.category = newCategory.title);
                 newCategory.SyncParameters(new HashSet<VFXParameterController>(parameters));
@@ -2770,10 +2771,10 @@ namespace UnityEditor.VFX.UI
         {
             var copyName  = blackboardField.controller.MakeNameUnique(blackboardField.controller.exposedName);
             var newVfxParameter = VFXParameter.Duplicate(copyName, blackboardField.controller.model);
-            this.controller.AddVFXModel(Vector2.zero, newVfxParameter);
+            controller.AddVFXModel(Vector2.zero, newVfxParameter);
 
             bool groupChanged = false;
-            this.controller.SyncControllerFromModel(ref groupChanged);
+            controller.SyncControllerFromModel(ref groupChanged);
 
             var newParameterController = blackboard.controller.parameterControllers.Single(x => x.model == newVfxParameter);
 

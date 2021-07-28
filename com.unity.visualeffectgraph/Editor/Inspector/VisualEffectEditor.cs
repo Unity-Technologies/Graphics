@@ -102,13 +102,13 @@ namespace UnityEditor.VFX
                 .ToArray();
 
             // Reset play rate for unselected visual effects
-            this.selectedVisualEffects
+            selectedVisualEffects
                 .Where(x => x != null)
                 .Except(newSelection)
                 .ToList()
                 .ForEach(x => x.playRate = 1f);
-            this.selectedVisualEffects.Clear();
-            this.selectedVisualEffects.AddRange(newSelection);
+            selectedVisualEffects.Clear();
+            selectedVisualEffects.AddRange(newSelection);
         }
 
         protected void OnEnable()
@@ -136,7 +136,7 @@ namespace UnityEditor.VFX
 
         protected void OnDisable()
         {
-            foreach (var effect in this.targets.Cast<VisualEffect>().Where(x => x != null))
+            foreach (var effect in targets.Cast<VisualEffect>().Where(x => x != null))
             {
                 effect.pause = false;
                 effect.playRate = 1.0f;
@@ -487,7 +487,7 @@ namespace UnityEditor.VFX
 
         protected virtual void SceneViewGUICallback()
         {
-            List<VisualEffect> effects = targets
+            var effects = targets
                 .OfType<VisualEffect>()
                 .Where(x => x != null)
                 .ToList();

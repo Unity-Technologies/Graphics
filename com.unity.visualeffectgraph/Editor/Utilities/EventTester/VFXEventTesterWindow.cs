@@ -295,9 +295,9 @@ namespace UnityEditor.VFX
                 }
 
                 // then send event with attributes
-                if (name == "OnPlay")
+                if (name == VisualEffectAsset.PlayEventName)
                     visualEffect.Play(attrib);
-                else if (name == "OnStop")
+                else if (name == VisualEffectAsset.StopEventName)
                     visualEffect.Stop(attrib);
                 else
                     visualEffect.SendEvent(name, attrib);
