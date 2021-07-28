@@ -25,6 +25,9 @@ namespace UnityEngine.Experimental.Rendering
         public Dictionary<int, List<Scene>> cellIndex2SceneReferences = new Dictionary<int, List<Scene>>();
         public List<BakingCell> cells = new List<BakingCell>();
         public Dictionary<Vector3, int> uniquePositions = new Dictionary<Vector3, int>();
+        // Allow to get a mapping to subdiv level with the unique positions. It stores the minimum subdiv level found for a given position.
+        // Can be probably done cleaner.
+        public Dictionary<Vector3, int> uniqueBrickSubdiv = new Dictionary<Vector3, int>();
 
         private BakingBatch() {}
 
@@ -231,8 +234,29 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
+            var refVol = ProbeReferenceVolume.instance;
+
+            AddOccluders();
 
             RunPlacement();
+        }
+
+        static void CellCountInDirections(out Vector3Int minCellPositionXYZ, out Vector3Int maxCellPositionXYZ, float cellSizeInMeters)
+        {
+            minCellPositionXYZ = Vector3Int.zero;
+            maxCellPositionXYZ = Vector3Int.zero;
+
+            Vector3 center = Vector3.zero;
+            var centeredMin = globalBounds.min - center;
+            var centeredMax = globalBounds.max - center;
+
+            minCellPositionXYZ.x = Mathf.FloorToInt(centeredMin.x / cellSizeInMeters);
+            minCellPositionXYZ.y = Mathf.FloorToInt(centeredMin.y / cellSizeInMeters);
+            minCellPositionXYZ.z = Mathf.FloorToInt(centeredMin.z / cellSizeInMeters);
+
+            maxCellPositionXYZ.x = Mathf.CeilToInt(centeredMax.x / cellSizeInMeters);
+            maxCellPositionXYZ.y = Mathf.CeilToInt(centeredMax.y / cellSizeInMeters);
+            maxCellPositionXYZ.z = Mathf.CeilToInt(centeredMax.z / cellSizeInMeters);
         }
 
         static void BrickCountInDirections(out Vector3Int cellsInXYZ, float brickSizeInMeter)
@@ -386,6 +410,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
             UnityEngine.Profiling.Profiler.BeginSample("OnAdditionalProbesBakeCompleted");
+
+            var probeRefVolume = ProbeReferenceVolume.instance;
             var bakingCells = m_BakingBatch.cells;
             var numCells = bakingCells.Count;
 
@@ -422,11 +448,15 @@ namespace UnityEngine.Experimental.Rendering
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
+                cell.minSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision();
 
                 for (int i = 0; i < numProbes; ++i)
                 {
                     int j = bakingCells[c].probeIndices[i];
                     SphericalHarmonicsL2 shv = sh[j];
+
+                    int brickIdx = i / 64;
+                    cell.minSubdiv = Mathf.Min(cell.minSubdiv, cell.bricks[brickIdx].subdivisionLevel);
 
                     // Compress the range of all coefficients but the DC component to [0..1]
                     // Upper bounds taken from http://ppsloan.org/publications/Sig20_Advances.pptx
@@ -483,7 +513,7 @@ namespace UnityEngine.Experimental.Rendering
                     cell.validity[i] = validity[j];
                 }
 
-                ProbeReferenceVolume.instance.cells[cell.index] = cell;
+                probeRefVolume.cells[cell.index] = cell;
                 UnityEngine.Profiling.Profiler.EndSample();
             }
 
@@ -506,7 +536,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // Put cells into the respective assets
-            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            foreach (var cell in probeRefVolume.cells.Values)
             {
                 foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
                 {
@@ -516,22 +546,8 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         var asset = refVol2Asset[refVol];
                         asset.cells.Add(cell);
-                        if (hasFoundBounds)
-                        {
-                            BrickCountInDirections(out asset.maxCellIndex, refVol.profile.minBrickSize);
-                        }
-                        else
-                        {
-                            foreach (var p in cell.probePositions)
-                            {
-                                float x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.minBrickSize;
-                                float y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.minBrickSize;
-                                float z = Mathf.Abs((float)p.z + refVol.transform.position.z) / refVol.profile.minBrickSize;
-                                asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, Mathf.CeilToInt(x * 2));
-                                asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, Mathf.CeilToInt(y * 2));
-                                asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, Mathf.CeilToInt(z * 2));
-                            }
-                        }
+                        CellCountInDirections(out asset.minCellPosition, out asset.maxCellPosition, refVol.profile.cellSizeInMeters);
+                        asset.globalBounds = globalBounds;
                     }
                 }
             }
@@ -559,7 +575,7 @@ namespace UnityEngine.Experimental.Rendering
 
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
-            ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = false;
+            probeRefVolume.clearAssetsOnVolumeClear = false;
 
             foreach (var refVol in refVol2Asset.Keys)
             {
@@ -576,7 +592,8 @@ namespace UnityEngine.Experimental.Rendering
             Clear();
         }
 
-        private static void DeduplicateProbePositions(in Vector3[] probePositions, Dictionary<Vector3, int> uniquePositions, out int[] indices)
+        private static void DeduplicateProbePositions(in Vector3[] probePositions, in int[] brickSubdivLevel, Dictionary<Vector3, int> uniquePositions,
+            Dictionary<Vector3, int> uniqueBrickSubdiv, out int[] indices)
         {
             indices = new int[probePositions.Length];
             int uniqueIndex = uniquePositions.Count;
@@ -584,15 +601,20 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = 0; i < probePositions.Length; i++)
             {
                 var pos = probePositions[i];
+                var brickSubdiv = brickSubdivLevel[i];
 
                 if (uniquePositions.TryGetValue(pos, out var index))
                 {
                     indices[i] = index;
+                    int oldBrickLevel = uniqueBrickSubdiv[pos];
+                    int newBrickLevel = Math.Min(oldBrickLevel, brickSubdiv);
+                    uniqueBrickSubdiv[pos] = newBrickLevel;
                 }
                 else
                 {
                     uniquePositions[pos] = uniqueIndex;
                     indices[i] = uniqueIndex;
+                    uniqueBrickSubdiv[pos] = brickSubdiv;
                     uniqueIndex++;
                 }
             }
@@ -605,6 +627,7 @@ namespace UnityEngine.Experimental.Rendering
                 // Dequeue the call if something has failed.
                 UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
+                CleanupOccluders();
             }
         }
 
@@ -612,6 +635,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             onAdditionalProbesBakeCompletedCalled = false;
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
+            AdditionalGIBakeRequestsManager.instance.AddRequestsToLightmapper();
             UnityEditor.Lightmapping.bakeCompleted += OnBakeCompletedCleanup;
 
             ClearBakingBatch();
@@ -638,18 +662,9 @@ namespace UnityEngine.Experimental.Rendering
             return ctx;
         }
 
-        static void TrackSceneRefs(Scene origin, Dictionary<Scene, int> sceneRefs)
-        {
-            if (!sceneRefs.ContainsKey(origin))
-                sceneRefs[origin] = 0;
-            else
-                sceneRefs[origin] += 1;
-        }
-
         public static ProbeSubdivisionResult BakeBricks(ProbeSubdivisionContext ctx)
         {
             var result = new ProbeSubdivisionResult();
-            var sceneRefs = new Dictionary<Scene, int>();
 
             if (ctx.probeVolumes.Count == 0)
                 return result;
@@ -659,7 +674,7 @@ namespace UnityEngine.Experimental.Rendering
                 // subdivide all the cells and generate brick positions
                 foreach (var cell in ctx.cells)
                 {
-                    sceneRefs.Clear();
+                    var scenesInCell = new HashSet<Scene>();
 
                     // Calculate overlaping probe volumes to avoid unnecessary work
                     var overlappingProbeVolumes = new List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)>();
@@ -668,7 +683,7 @@ namespace UnityEngine.Experimental.Rendering
                         if (ProbeVolumePositioning.OBBIntersect(probeVolume.volume, cell.volume))
                         {
                             overlappingProbeVolumes.Add(probeVolume);
-                            TrackSceneRefs(probeVolume.component.gameObject.scene, sceneRefs);
+                            scenesInCell.Add(probeVolume.component.gameObject.scene);
                         }
                     }
 
@@ -688,7 +703,7 @@ namespace UnityEngine.Experimental.Rendering
                                 if ((probeVolume.component.objectLayerMask & rendererLayerMask) != 0)
                                 {
                                     validRenderers.Add(renderer);
-                                    TrackSceneRefs(go.scene, sceneRefs);
+                                    scenesInCell.Add(go.scene);
                                 }
                             }
                         }
@@ -700,15 +715,9 @@ namespace UnityEngine.Experimental.Rendering
 
                     var bricks = ProbePlacement.SubdivideCell(cell.volume, ctx, gpuResources, validRenderers, overlappingProbeVolumes);
 
-                    // Each cell keeps a number of references it has to each scene it was influenced by
-                    // We use this list to determine which scene's ProbeVolume asset to assign this cells data to
-                    var sortedRefs = new SortedDictionary<int, Scene>();
-                    foreach (var item in sceneRefs)
-                        sortedRefs[-item.Value] = item.Key;
-
                     result.cellPositions.Add(cell.position);
                     result.bricksPerCells[cell.position] = bricks;
-                    result.sortedRefs = sortedRefs;
+                    result.scenesPerCells[cell.position] = scenesInCell;
                 }
             }
 
@@ -716,7 +725,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Converts brick information into positional data at kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim resolution
-        internal static void ConvertBricksToPositions(List<Brick> bricks, Vector3[] outProbePositions, Matrix4x4 refToWS)
+        internal static void ConvertBricksToPositions(List<Brick> bricks, Vector3[] outProbePositions, Matrix4x4 refToWS, int[] outBrickSubdiv)
         {
             Matrix4x4 m = refToWS;
             int posIdx = 0;
@@ -757,6 +766,7 @@ namespace UnityEngine.Experimental.Rendering
                                 Mathf.Round(probePosition.y / minDist) * minDist,
                                 Mathf.Round(probePosition.z / minDist) * minDist);
                             outProbePositions[posIdx] = roundedPosition;
+                            outBrickSubdiv[posIdx] = b.subdivisionLevel;
                             posIdx++;
                         }
                     }
@@ -783,10 +793,11 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     // Convert bricks to positions
                     var probePositionsArr = new Vector3[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
-                    ConvertBricksToPositions(bricks, probePositionsArr, refToWS);
+                    var brickSubdivLevels = new int[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
+                    ConvertBricksToPositions(bricks, probePositionsArr, refToWS, brickSubdivLevels);
 
                     int[] indices = null;
-                    DeduplicateProbePositions(in probePositionsArr, m_BakingBatch.uniquePositions, out indices);
+                    DeduplicateProbePositions(in probePositionsArr, in brickSubdivLevels, m_BakingBatch.uniquePositions, m_BakingBatch.uniqueBrickSubdiv, out indices);
 
                     cell.probePositions = probePositionsArr;
                     cell.bricks = bricks;
@@ -796,11 +807,29 @@ namespace UnityEngine.Experimental.Rendering
                     bakingCell.probeIndices = indices;
 
                     m_BakingBatch.cells.Add(bakingCell);
-                    m_BakingBatch.cellIndex2SceneReferences[cell.index] = new List<Scene>(results.sortedRefs.Values);
+                    m_BakingBatch.cellIndex2SceneReferences[cell.index] = results.scenesPerCells[cellPos].ToList();
                 }
             }
 
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, m_BakingBatch.uniquePositions.Keys.ToArray());
+
+            // Move positions before sending them
+            var positions = m_BakingBatch.uniquePositions.Keys.ToArray();
+            VirtualOffsetSettings voSettings = m_BakingReferenceVolumeAuthoring.GetVirtualOffsetSettings();
+            if (voSettings.useVirtualOffset)
+            {
+                for (int i = 0; i < positions.Length; ++i)
+                {
+                    int subdivLevel = 0;
+                    m_BakingBatch.uniqueBrickSubdiv.TryGetValue(positions[i], out subdivLevel);
+                    float brickSize = ProbeReferenceVolume.CellSize(subdivLevel);
+                    float searchDistance = (brickSize * m_BakingReferenceVolumeAuthoring.brickSize) / ProbeBrickPool.kBrickCellCount;
+
+                    float scaleForSearchDist = voSettings.searchMultiplier;
+                    positions[i] = PushPositionOutOfGeometry(positions[i], scaleForSearchDist * searchDistance, voSettings.outOfGeoOffset);
+                }
+            }
+
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, positions);
         }
     }
 }

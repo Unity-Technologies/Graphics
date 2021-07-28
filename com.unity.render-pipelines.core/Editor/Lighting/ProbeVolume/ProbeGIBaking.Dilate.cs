@@ -104,6 +104,7 @@ namespace UnityEngine.Experimental.Rendering
         static readonly int _DilationParameters2 = Shader.PropertyToID("_DilationParameters2");
         static readonly int _OutputProbes = Shader.PropertyToID("_OutputProbes");
         static readonly int _APVResIndex = Shader.PropertyToID("_APVResIndex");
+        static readonly int _APVResCellIndices = Shader.PropertyToID("_APVResCellIndices");
         static readonly int _APVResL0_L1Rx = Shader.PropertyToID("_APVResL0_L1Rx");
         static readonly int _APVResL1G_L1Ry = Shader.PropertyToID("_APVResL1G_L1Ry");
         static readonly int _APVResL1B_L1Rz = Shader.PropertyToID("_APVResL1B_L1Rz");
@@ -135,6 +136,7 @@ namespace UnityEngine.Experimental.Rendering
             if (validResources)
             {
                 cmd.SetGlobalBuffer(_APVResIndex, rr.index);
+                cmd.SetGlobalBuffer(_APVResCellIndices, rr.cellIndices);
 
                 cmd.SetGlobalTexture(_APVResL0_L1Rx, rr.L0_L1rx);
                 cmd.SetGlobalTexture(_APVResL1G_L1Ry, rr.L1_G_ry);
