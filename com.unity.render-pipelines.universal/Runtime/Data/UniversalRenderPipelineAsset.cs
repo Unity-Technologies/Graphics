@@ -85,6 +85,8 @@ namespace UnityEngine.Rendering.Universal
         Disabled,
         OnlyURPShaders,
         AllShaders,
+        [Obsolete("OnlyUniversalRPShaders is deprecated, use OnlyURPShaders instead (UnityUpgradable) -> OnlyURPShaders", true)]
+        OnlyUniversalRPShaders,
     }
 
     [Obsolete("PipelineDebugLevel is unused and has no effect.", false)]

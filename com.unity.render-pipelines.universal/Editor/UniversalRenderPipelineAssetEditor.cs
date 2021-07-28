@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_RendererDataProp;
         SerializedProperty m_DefaultRendererProp;
 
-        public ReorderableList rendererList => m_RendererDataList;
+        internal ReorderableList rendererList => m_RendererDataList;
         ReorderableList m_RendererDataList;
 
         private SerializedUniversalRenderPipelineAsset m_SerializedURPAsset;
@@ -37,26 +37,26 @@ namespace UnityEditor.Rendering.Universal
             {
                 drawElementCallback = OnDrawElement,
                 drawHeaderCallback = (Rect rect) => EditorGUI.LabelField(rect, Styles.rendererHeaderText),
-                onCanRemoveCallback = li => li.count > 1,
+                onCanRemoveCallback = reorderableList => reorderableList.count > 1,
                 onRemoveCallback = OnRemoveElement,
                 onReorderCallbackWithDetails = (reorderableList, index, newIndex) => UpdateDefaultRendererValue(index, newIndex) // Need to update the default renderer index
             };
         }
 
-        void OnRemoveElement(ReorderableList li)
+        void OnRemoveElement(ReorderableList reorderableList)
         {
             bool shouldUpdateIndex = false;
             // Checking so that the user is not deleting  the default renderer
-            if (li.index != m_DefaultRendererProp.intValue)
+            if (reorderableList.index != m_DefaultRendererProp.intValue)
             {
                 // Need to add the undo to the removal of our assets here, for it to work properly.
-                Undo.RecordObject(target, $"Deleting renderer at index {li.index}");
+                Undo.RecordObject(target, $"Deleting renderer at index {reorderableList.index}");
 
-                if (m_RendererDataProp.GetArrayElementAtIndex(li.index).objectReferenceValue == null)
+                if (m_RendererDataProp.GetArrayElementAtIndex(reorderableList.index).objectReferenceValue == null)
                 {
                     shouldUpdateIndex = true;
                 }
-                m_RendererDataProp.DeleteArrayElementAtIndex(li.index);
+                m_RendererDataProp.DeleteArrayElementAtIndex(reorderableList.index);
             }
             else
             {
@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (shouldUpdateIndex)
             {
-                UpdateDefaultRendererValue(li.index);
+                UpdateDefaultRendererValue(reorderableList.index);
             }
 
             EditorUtility.SetDirty(target);

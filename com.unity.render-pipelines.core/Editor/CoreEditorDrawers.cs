@@ -162,7 +162,7 @@ namespace UnityEditor.Rendering
                     CoreEditorUtils.EndAdditionalPropertiesHighlight();
 
                     // While the highlight is being changed, force the Repaint of the editor
-                    if (m_Anim.value > Mathf.Epsilon)
+                    if (m_Anim.value > 0.0f)
                         owner.Repaint();
                 }
             }
