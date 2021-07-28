@@ -13,12 +13,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             Assert.NotNull(graphHandler);
         }
 
-        /*
         [Test]
         public void CanAddEmptyNode()
         {
             GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
-            using (INodeRef node = graphHandler.AddNode("foo"))
+            using (INodeWriter node = graphHandler.AddNode("foo"))
             {
                 Assert.NotNull(node);
             }
@@ -45,35 +44,37 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
         public void CanAddNodeAndPorts()
         {
             GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
-            using(INodeRef node = graphHandler.AddNode("Add"))
+            using(INodeWriter node = graphHandler.AddNode("Add"))
             {
-                node.AddInputPort("A");
-                node.AddInputPort("B");
-                node.AddOutputPort("Out");
+                node.TryAddPort("A", true, true, out IPortWriter _);
+                node.TryAddPort("B", true, true, out IPortWriter _);
+                node.TryAddPort("Out", false, true, out IPortWriter _);
             }
 
             var nodeRef = graphHandler.GetNode("Add");
             Assert.NotNull(nodeRef);
-            var portRef = nodeRef.GetInputPort("A");
-            Assert.NotNull(portRef);
-            portRef = nodeRef.GetInputPort("B");
-            Assert.NotNull(portRef);
-            portRef = nodeRef.GetOutputPort("Out");
-            Assert.NotNull(portRef);
+            Assert.IsTrue(nodeRef.TryGetPort("A", out IPortReader portReader));
+            Assert.NotNull(portReader);
+            Assert.IsTrue(nodeRef.TryGetPort("B", out portReader));
+            Assert.NotNull(portReader);
+            Assert.IsTrue(nodeRef.TryGetPort("Out", out portReader));
+            Assert.NotNull(portReader);
         }
 
         [Test]
         public void CanAddTwoNodesAndConnect()
         {
             GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
-            using(INodeRef foo = graphHandler.AddNode("Foo"))
-            using(INodeRef bar = graphHandler.AddNode("Bar"))
+            using(INodeWriter foo = graphHandler.AddNode("Foo"))
+            using(INodeWriter bar = graphHandler.AddNode("Bar"))
             {
-                foo.AddInputPort("A");
-                foo.AddInputPort("B");
-                var output = foo.AddOutputPort("Out");
-                var input = bar.AddInputPort("A");
-                Assert.True(graphHandler.TryMakeConnection(output, input));
+                Assert.IsTrue(foo.TryAddPort("A", true, true, out IPortWriter _));
+                Assert.IsTrue(foo.TryAddPort("B", true, true, out IPortWriter _));
+                Assert.IsTrue(foo.TryAddPort("Out", false, true, out IPortWriter output));
+                Assert.IsTrue(bar.TryAddPort("A", true, true, out IPortWriter input));
+                Assert.IsNotNull(output);
+                Assert.IsNotNull(input);
+                Assert.IsTrue(output.TryAddConnection(input));
             }
             var thruEdge = graphHandler.m_data.Search("Foo.Out.A");
             var normSearch = graphHandler.m_data.Search("Bar.A");
@@ -81,7 +82,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             Assert.NotNull(normSearch);
             Assert.AreEqual(thruEdge, normSearch);
         }
-        */
     }
 
     [TestFixture]

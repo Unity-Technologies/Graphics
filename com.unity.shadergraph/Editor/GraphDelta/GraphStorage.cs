@@ -8,14 +8,29 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     internal sealed class GraphStorage : ContextLayeredDataStorage
     {
+
+        private struct PortFlagsStruct : ISerializable 
+        {
+            public bool isInput;
+            public bool isHorizontal;
+
+            public void GetObjectData(SerializationInfo info, StreamingContext context)
+            {
+                info.AddValue("isInput", isInput, typeof(bool));
+                info.AddValue("isHorizontal", isHorizontal, typeof(bool));
+            }
+
+            public PortFlagsStruct(SerializationInfo info, StreamingContext context)
+            {
+                isInput = info.GetBoolean("isInput");
+                isHorizontal = info.GetBoolean("isHorizontal");
+            }
+        }
+
+
         private class GraphReader : IDisposable, INodeReader, IPortReader, IFieldReader
         {
 
-            private struct PortFlagsStruct 
-            {
-                public bool isInput;
-                public bool isHorizontal;
-            }
 
             private bool IsPortReader(Element element)
             {
@@ -75,7 +90,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 if (elementReference.TryGetTarget(out Element element))
                 {
-                    Element maybeElement = storageReference.SearchRecurse(element, searchKey);
+                    Element maybeElement = storageReference.SearchRelative(element, searchKey);
                     if (maybeElement != null)
                     {
                         graphReader = new GraphReader(maybeElement, this.storageReference);
@@ -146,7 +161,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 if(elementReference.TryGetTarget(out Element element))
                 {
-                    Element maybePort = storageReference.SearchRecurse(element, portKey);
+                    Element maybePort = storageReference.SearchRelative(element, portKey);
                     if(IsPortReader(maybePort))
                     {
                         portReader = new GraphReader(maybePort, this.storageReference);
@@ -161,7 +176,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 if (elementReference.TryGetTarget(out Element element))
                 {
-                    Element maybeField = storageReference.SearchRecurse(element, fieldKey);
+                    Element maybeField = storageReference.SearchRelative(element, fieldKey);
                     if (!IsPortReader(maybeField))
                     {
                         fieldReader = new GraphReader(maybeField, this.storageReference);
@@ -191,98 +206,200 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         }
 
-        private class GraphRef
+        private class GraphWriter : IDisposable, INodeWriter, IPortWriter, IFieldWriter
         {
-            public WeakReference<Element> element;
-            public GraphStorage storage;
 
-            public GraphRef(Element element, GraphStorage storage)
-            {
-                this.element = new WeakReference<Element>(element);
-                this.storage = storage;
-            }
-
-            public bool IsInput
-            {
-                get
-                {
-                    if(element.TryGetTarget(out Element elem) && elem.TryGetData(out bool isInput))
-                    {
-                        return isInput;
-                    }
-                    return false;
-                }
-            }
-
-            /*
-            public GraphRef AddInputPort(string portID)
-            {
-                return storage.AddPort(this, portID, true);
-            }
-
-            public GraphRef AddOutputPort(string portID)
-            {
-                return storage.AddPort(this, portID, false);
-            }
-
+            public WeakReference<Element> elementReference;
+            public GraphStorage storageReference;
             public void Dispose()
             {
-                element = null;
+                elementReference = null;
+                storageReference = null;
             }
 
-            public IPortReader GetInputPort(string portID)
+            public GraphWriter(Element element, GraphStorage storage)
             {
-                return storage.GetPortOnNode(this, portID, true);
+                elementReference = new WeakReference<Element>(element);
+                storageReference = storage;
             }
 
-            public GraphRef GetOutputPort(string portID)
-            {
-                return storage.GetPortOnNode(this, portID, false);
-            }
 
-            public IEnumerable<GraphRef> GetInputPorts()
+            private bool TryAddSubWriter(string key, out GraphWriter graphWriter)
             {
-                foreach(var port in storage.GetAllPortsOnNode(this))
+                if (elementReference.TryGetTarget(out Element element))
                 {
-                    if(port.IsInput)
+                    Element addedData = element.AddData(key);
+                    if (addedData != null)
                     {
-                        yield return port;
+                        graphWriter = new GraphWriter(addedData, this.storageReference);
+                        return true;
                     }
                 }
+                graphWriter = null;
+                return false;
             }
 
-            public IEnumerable<GraphRef> GetOutputPorts()
+            private bool TryAddSubWriter<T>(string key, out GraphWriter<T> graphWriter) where T : ISerializable
             {
-                foreach(var port in storage.GetAllPortsOnNode(this))
+                if (elementReference.TryGetTarget(out Element element))
                 {
-                    if(!port.IsInput)
+                    Element<T> addedData = element.AddData(key, default(T));
+                    if (addedData != null)
                     {
-                        yield return port;
+                        graphWriter = new GraphWriter<T>(addedData, this.storageReference);
+                        return true;
                     }
                 }
+                graphWriter = null;
+                return false;
             }
-*/
-            public void Remove()
+
+            private bool TryGetSubWriter(string key, out GraphWriter graphWriter)
             {
-                if(storage.ReferenceIsValid(this, out Element elem))
+                if (elementReference.TryGetTarget(out Element element))
                 {
-                    elem.RemoveWithoutFix();
+                    var subElement = storageReference.SearchRelative(element, key);
+                    if(subElement != null)
+                    {
+                        graphWriter = new GraphWriter(subElement, this.storageReference);
+                        return true;
+                    }
                 }
+                graphWriter = null;
+                return false;
+            }
+
+            private bool TryGetSubWriter<T>(string key, out GraphWriter<T> graphWriter) where T : ISerializable
+            {
+                if (elementReference.TryGetTarget(out Element element))
+                {
+                    var subElement = storageReference.SearchRelative(element, key);
+                    if(subElement != null && subElement is Element<T> typedSubElement)
+                    {
+                        graphWriter = new GraphWriter<T>(typedSubElement, this.storageReference);
+                        return true;
+                    }
+                }
+                graphWriter = null;
+                return false;
+            }
+
+
+
+            #region interfaceImplementations
+            public bool TryAddConnection(IPortWriter other)
+            {
+                GraphWriter otherWriter = other as GraphWriter;
+                if(other != null
+                && elementReference.TryGetTarget(out Element element) && element is Element<PortFlagsStruct> portElement 
+                && otherWriter.elementReference.TryGetTarget(out Element otherElement) && otherElement is Element<PortFlagsStruct> otherPortElement)
+                {
+                    if (portElement.data.isInput != otherPortElement.data.isInput && portElement.data.isHorizontal == otherPortElement.data.isHorizontal)
+                    {
+                        element.LinkElement(otherElement);
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            public bool TryAddField<T>(string fieldKey, out IFieldWriter<T> fieldWriter) where T : ISerializable
+            {
+                var output = TryAddSubWriter(fieldKey, out GraphWriter<T> graphWriter);
+                fieldWriter = graphWriter;
+                return output;
+            }
+
+            public bool TryAddField(string fieldKey, out IFieldWriter fieldWriter)
+            {
+                var output = TryAddSubWriter(fieldKey, out GraphWriter graphWriter);
+                fieldWriter = graphWriter;
+                return output;
+            }
+
+            public bool TryAddPort(string portKey, bool isInput, bool isHorizontal, out IPortWriter portWriter)
+            {
+                var output = TryAddSubWriter(portKey, out GraphWriter<PortFlagsStruct> graphWriter);
+                graphWriter.TryWriteData(new PortFlagsStruct() { isInput = isInput, isHorizontal = isHorizontal });
+                portWriter = graphWriter;
+                return output;
+            }
+
+            public bool TryAddSubField(string subFieldKey, out IFieldWriter subFieldWriter) => TryAddField(subFieldKey, out subFieldWriter);
+
+            public bool TryAddSubField<T>(string subFieldKey, out IFieldWriter<T> subFieldWriter) where T : ISerializable => TryAddField<T>(subFieldKey, out subFieldWriter);
+
+            public bool TryAddTransientNode<T>(string transientNodeKey, IFieldWriter<T> fieldWriter) where T : ISerializable
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool TryGetField<T>(string fieldKey, out IFieldWriter<T> fieldWriter) where T : ISerializable
+            {
+                var output = TryGetSubWriter(fieldKey, out GraphWriter<T> subWriter);
+                fieldWriter = subWriter;
+                return output;
+            }
+
+            public bool TryGetField(string fieldKey, out IFieldWriter fieldWriter)
+            {
+                var output = TryGetSubWriter(fieldKey, out GraphWriter subWriter);
+                fieldWriter = subWriter;
+                return output;
+            }
+
+            public bool TryGetPort(string portKey, out IPortWriter portWriter)
+            {
+                var output = TryGetSubWriter(portKey, out GraphWriter<PortFlagsStruct> subWriter);
+                portWriter = subWriter;
+                return output;
+            }
+
+            public bool TryGetSubField(string subFieldKey, out IFieldWriter subFieldWriter) => TryGetField(subFieldKey, out subFieldWriter);
+
+            public bool TryGetSubField<T>(string subFieldKey, out IFieldWriter<T> subFieldWriter) where T : ISerializable => TryGetField<T>(subFieldKey, out subFieldWriter);
+
+            public bool TryGetTypedFieldWriter<T>(out IFieldWriter<T> typedFieldWriter) where T : ISerializable
+            {
+                if (elementReference.TryGetTarget(out Element element) && element is Element<T> typedElement)
+                {
+                    typedFieldWriter = new GraphWriter<T>(typedElement, this.storageReference);
+                    return true;
+                }
+                typedFieldWriter = null;
+                return false;
+            }
+
+            #endregion
+        }
+
+        private class GraphWriter<T> : GraphWriter, IFieldWriter<T> where T : ISerializable 
+        {
+            public GraphWriter(Element<T> element, GraphStorage storage) : base(element, storage) { }
+
+            public bool TryWriteData(T data)
+            {
+                if(elementReference.TryGetTarget(out Element element) && element is Element<T> typedElement)
+                {
+                    typedElement.data = data;
+                    return true;
+                }
+                return false;
             }
         }
 
 
         private List<Element> m_nodes = new List<Element>();
-        /*
-        public INodeRef AddNode(string id)
+        
+        public INodeWriter AddNode(string id)
         {
             AddData(id, out Element elem);
             m_nodes.Add(elem);
-            GraphRef output = new GraphRef(elem, this);
+            GraphWriter output = new GraphWriter(elem, this);
             return output;
         }
 
-        */
+        
         public INodeReader GetNode(string id)
         {
             Element n = SearchInternal(id);
@@ -320,48 +437,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             //(ports, edges, settings, etc) can just be GC'd
             elem.RemoveWithoutFix();
         }
-
-        private bool ReferenceIsValid(GraphRef graphRef, out Element elem)
-        {
-            elem = null;
-            if(graphRef != null && graphRef.element.TryGetTarget(out elem))
-            {
-                return true;
-            }
-            return false;
-        }
-
-        private bool ReferenceIsValid(INodeReader node, out Element elem)
-        {
-            if(node == null)
-            {
-                elem = null;
-                return false;
-            }
-            return ReferenceIsValid(node as GraphRef, out elem);
-        }
-
-        private bool ReferenceIsValid(IPortReader port, out Element elem)
-        {
-            if(port == null)
-            {
-                elem = null;
-                return false;
-            }
-            return ReferenceIsValid(port as GraphRef, out elem);
-        }
-
-        /*
-        private IPortRef AddPort(GraphRef node, string portID, bool isInput)
-        {
-            if (ReferenceIsValid(node, out Element elem))
-            {
-                Element port = elem.AddData(portID, isInput);
-                return new GraphRef(port, this);
-            }
-            return null;
-        }
-        */
 
     }
 }
