@@ -268,7 +268,7 @@ namespace UnityEditor
                 {
                     Undo.RecordObjects(new UnityEngine.Object[] { target, manipulator.transform }, "Light Anchor Change");
 
-                    manipulator.frameSpace = (LightAnchor.UpDirection)m_FrameSpaceProperty.enumValueIndex;
+                    manipulator.frameSpace = (LightAnchor.UpDirection)m_FrameSpaceProperty.intValue;
                     manipulator.SynchronizeOnTransform(camera);
                     UpdateCache();
                 }
