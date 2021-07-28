@@ -173,6 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
         System.Random m_Random;
 
         bool m_DLSSPassEnabled = false;
+        Material m_DLSSBiasColorMaskMaterial;
         DLSSPass m_DLSSPass = null;
         void InitializePostProcess()
         {
@@ -180,6 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ClearBlackMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.clearBlackPS);
             m_SMAAMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.SMAAPS);
             m_TemporalAAMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.temporalAntialiasingPS);
+            m_DLSSBiasColorMaskMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.DLSSBiasColorMaskPS);
 
             // Lens Flare
             m_LensFlareDataDrivenShader = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lensFlareDataDrivenPS);
@@ -470,7 +472,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_DLSSPassEnabled && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
                 {
-                    source = DoDLSSPass(renderGraph, hdCamera, inputColor, depthBuffer, motionVectors);
+                    TextureHandle colorBiasMask = DoDLSSColorMaskPass(renderGraph, hdCamera, depthBuffer);
+                    source = DoDLSSPass(renderGraph, hdCamera, inputColor, depthBuffer, motionVectors, colorBiasMask);
                     SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
                 }
 
@@ -635,6 +638,46 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region DLSS
+        class DLSSColorMaskPassData
+        {
+            public Material colorMaskMaterial;
+            public int destWidth;
+            public int destHeight;
+        }
+
+        TextureHandle DoDLSSColorMaskPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputDepth)
+        {
+            TextureHandle output = TextureHandle.nullHandle;
+            using (var builder = renderGraph.AddRenderPass<DLSSColorMaskPassData>("DLSS Color Mask", out var passData, ProfilingSampler.Get(HDProfileId.DeepLearningSuperSamplingColorMask)))
+            {
+                output = builder.UseColorBuffer(renderGraph.CreateTexture(
+                    new TextureDesc(Vector2.one, true, true)
+                    {
+                        colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
+                        clearBuffer = true,
+                        clearColor = Color.black, name = "DLSS Color Mask"
+                    }), 0);
+                builder.UseDepthBuffer(inputDepth, DepthAccess.Read);
+
+                passData.colorMaskMaterial = m_DLSSBiasColorMaskMaterial;
+
+                passData.destWidth = hdCamera.actualWidth;
+                passData.destHeight = hdCamera.actualHeight;
+
+                builder.SetRenderFunc(
+                    (DLSSColorMaskPassData data, RenderGraphContext ctx) =>
+                    {
+                        Rect targetViewport = new Rect(0.0f, 0.0f, data.destWidth, data.destHeight);
+                        data.colorMaskMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
+                        data.colorMaskMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
+                        ctx.cmd.SetViewport(targetViewport);
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.colorMaskMaterial, 0, MeshTopology.Triangles, 3, 1, null);
+                    });
+            }
+
+            return output;
+        }
+
         class DLSSData
         {
             public DLSSPass.Parameters parameters;
@@ -643,7 +686,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle DoDLSSPass(
             RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle source, TextureHandle depthBuffer, TextureHandle motionVectors)
+            TextureHandle source, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle biasColorMask)
         {
             using (var builder = renderGraph.AddRenderPass<DLSSData>("Deep Learning Super Sampling", out var passData, ProfilingSampler.Get(HDProfileId.DeepLearningSuperSampling)))
             {
@@ -656,6 +699,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 viewHandles.output = builder.WriteTexture(GetPostprocessUpsampledOutputHandle(renderGraph, "DLSS destination"));
                 viewHandles.depth = builder.ReadTexture(depthBuffer);
                 viewHandles.motionVectors = builder.ReadTexture(motionVectors);
+
+                if (biasColorMask.IsValid())
+                    viewHandles.biasColorMask = builder.ReadTexture(biasColorMask);
+                else
+                    viewHandles.biasColorMask = TextureHandle.nullHandle;
+
                 passData.resourceHandles = DLSSPass.CreateCameraResources(hdCamera, renderGraph, builder, viewHandles);
 
                 source = viewHandles.output;
