@@ -13,9 +13,7 @@ editors: # applied for all yml files
     ono_branch_var: ONO_BRANCH_2021_1
     editor_pinning:
       enabled: True
-      green_abv_required: False
       nr_commits_to_retrieve: 1
-      store_green_revisions: False
     allow_triggers: True
     variables:
       CACHE_ARGS: '{{cache.flags}}'
@@ -24,7 +22,6 @@ editors: # applied for all yml files
     rerun_strategy: on_new_revision
     editor_pinning:
       enabled: False
-      green_abv_required: False
     fast: False
     allow_triggers: False
     variables:
