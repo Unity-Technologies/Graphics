@@ -1177,7 +1177,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
 
-                var aoAlloc = new CustomHistoryAllocator(new Vector2(scaleFactor, scaleFactor), GraphicsFormat.R32_UInt, "AO Packed history");
+                var aoAlloc = new CustomHistoryAllocator(new Vector2(scaleFactor, scaleFactor), GraphicsFormat.R8G8B8A8_UNorm, "AO Packed history");
                 AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion, aoAlloc.Allocator, 2);
 
                 m_AmbientOcclusionResolutionScale = scaleFactor;
