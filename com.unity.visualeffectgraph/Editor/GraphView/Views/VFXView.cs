@@ -848,7 +848,7 @@ namespace UnityEditor.VFX.UI
 
         public void AttachTo(VisualEffect selectedAsset)
         {
-            if (controller?.graph.visualEffectResource.asset == selectedAsset?.visualEffectAsset)
+            if (selectedAsset != null && controller?.graph.visualEffectResource.asset == selectedAsset.visualEffectAsset)
             {
                 m_ComponentBoard.Attach(selectedAsset);
             }

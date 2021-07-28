@@ -699,7 +699,7 @@ namespace UnityEditor.VFX.UI
                 case VFXBasicEvent basicEvent when !IsDefaultEvent(name):
                     yield return basicEvent.eventName;
                     break;
-                case VFXSubgraphContext subgraphContext:
+                case VFXSubgraphContext subgraphContext when subgraphContext.subChildren != null:
                 {
                     foreach (var eventName in subgraphContext.subChildren.OfType<VFXContext>().SelectMany(RecurseGetEventNames))
                     {
