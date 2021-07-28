@@ -84,15 +84,24 @@ HDRP offers many filters:
 | Catmull-Rom                     | A bicubic upscale filter performed with 4 taps. It produces better quality than Bilinear, but can still result is blurry images post-upscaling. It is the second cheapest filter in terms of performance impact after the Bilinear one. |
 | Lanczos                         | A Lanczos filter that produces a significantly sharper final image than with Bilinear and Catmull-Rom, however at a measurable cost increase. Note that due to the nature of the filter it can cause artifacts when used together with extremely low screen percentages as the sharpening that the filter causes can lead to ringing (i.e. unnaturally dark edges). |
 | Contrast Adaptive Sharpen       | An ultra-sharp upsample. It produces very sharp post-upscale image via an aggressive sharpening. This option is not meant to be used when screen percentage is less than 50%.  This uses **FidelityFX (CAS) AMD™**. For information about FidelityFX and Contrast Adaptive Sharpening, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx). |
-| FidelityFX Super Resolution 1.0 | A spatial super resolution technology that leverages cutting-edge algorithms to produce very good upscaling quality and relatively fast performance. For more information, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx). |
-| TAA Upscale                     |                                                              |
+| FidelityFX Super Resolution 1.0 | A spatial super resolution technology that leverages cutting-edge algorithms to produce very good upscaling quality and fast performance. For more information, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx). |
+| TAA Upscale                     | A temporal upscaling, uses temporal integration to perform temporal super resolution. This upscale method produce very clear and sharp images post-upscale, moreover it is tunable the same way normal TAA is.  The algorithm is performance effective as it performed alongside the normal anti-aliasing. <br />The algorithm takes place before post processing alongside TAA and as such forces TAA as the anti-aliasing algorithm of choice. This is the main drawback of the method as it is not compatible with other anti-aliasing algorithms and suffers from the usual TAA drawbacks. <br />More information on [Notes on TAA Upscale](Dynamic-Resolution.md#Notes on TAA Upscale) section. |
 
 HDRP also supports NVIDIA Deep Learning Super Sampling (DLSS)  for GPU that support it, more informations about DLSS on the [dedicated documentation page](deep-learning-super-sampling-in-hdrp.md).
 
 
 
-While
+The final choice of the upscaling filter is ultimately dependent on the project,
 
 
 
 ## Notes on TAA Upscale
+
+Temporal Anti-Aliasing Upscaling replaces Temporal Anti-Aliasing in the pipeline. This has a few important implications:
+
+- Temporal Anti-Aliasing is forced as the anti-aliasing method of choice, no other post-process anti-aliasing option is supported.
+- The Post-process pipeline runs at final resolution and not the downscaled resolution at which the pipeline runs up until TAA Upscale. This lead to more precise post-processing, but also comes at an increased cost of the post-processing pipeline
+
+Moreover, as Temporal Anti-Aliasing Upscaling is based TAA High quality preset, currently no other preset is selectable.
+
+Any option that is used to tune TAA is going to tune TAA Upscaling, however it is important to  remember that the source of current frame is lower resolution than the final image/history buffer; this is especially relevant when setting up speed rejection. Speed rejection heavily reduces the influence of the history in favour of current frame, this mean that at lower screen percentages speed rejection can lead to a fairly low resolution looking image.
