@@ -163,8 +163,6 @@ Shader "Hidden/Shader/GrayScale"
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-        // NOTE: As of 12.x beta, for new custom post-processes to be compatible with Dynamic resolution, please use _PostProcessScreenSize.xy as the reference size of our source textures.
-        // You must use this size for color / normal and velocity. Otherwise, your custom post-process won't work when dynamic resolution or DLSS is enabled.
         float3 sourceColor = SAMPLE_TEXTURE2D_X(_MainTex, s_linear_clamp_sampler, input.texcoord).xyz;
 
         // Apply greyscale effect
