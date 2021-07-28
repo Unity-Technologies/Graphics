@@ -1190,20 +1190,20 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
 
     // Here the plane is guaranteed to intersect, we don't need to test the result
     float t;
-    IntersectPlane(float3(0, _EarthRadius, 0), _SunDirection.xyz, shadowPlaneOrigin, shadowPlaneNormal, t);
+    IntersectPlane(0, _SunDirection.xyz, shadowPlaneOrigin, shadowPlaneNormal, t);
 
     // Compute the position of the shadow plane
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
-    float3 shadowCookieCenter = float3(_WorldSpaceShadowCenter.x, _EarthRadius + _ShadowPlaneOffset, _WorldSpaceShadowCenter.y) + t * _SunDirection.xyz;
+    float3 shadowCookieCenterWS = float3(_WorldSpaceShadowCenter.x, _ShadowPlaneOffset, _WorldSpaceShadowCenter.y) + t * _SunDirection.xyz;
 #else
-    float3 shadowCookieCenter = float3(0, _EarthRadius, 0) + t * _SunDirection.xyz;
+    float3 shadowCookieCenterWS = t * _SunDirection.xyz;
 #endif
 
     // Compute the normalized coordinate on the shadow plane
     float2 normalizedCoord = (currentCoords.xy - _ShadowCookieResolution * 0.5f) / (_ShadowCookieResolution * 0.5f);
 
     // Compute the origin of the ray properties  in the planet space
-    float3 rayOrigin = (normalizedCoord.x * _SunRight.xyz * _ShadowRegionSize.x + normalizedCoord.y * _SunUp.xyz * _ShadowRegionSize.y) + shadowCookieCenter;
+    float3 rayOriginWS = (normalizedCoord.x * _SunRight.xyz * _ShadowRegionSize.x + normalizedCoord.y * _SunUp.xyz * _ShadowRegionSize.y) + shadowCookieCenterWS;
     float3 rayDirection = -_SunDirection.xyz;
 
     // Compute the attenuation
@@ -1211,8 +1211,8 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
 
     // Intersect the outer sphere
     float2 intersectionO, intersectionI;
-    int numIntersectionO = RaySphereIntersection(rayOrigin, rayDirection, _HighestCloudAltitude + _EarthRadius, intersectionO);
-    int numIntersectionI = RaySphereIntersection(rayOrigin, rayDirection, _LowestCloudAltitude + _EarthRadius, intersectionI);
+    int numIntersectionO = RaySphereIntersection(rayOriginWS, rayDirection, _HighestCloudAltitude + _EarthRadius, intersectionO);
+    int numIntersectionI = RaySphereIntersection(rayOriginWS, rayDirection, _LowestCloudAltitude + _EarthRadius, intersectionI);
     if (numIntersectionO != 0 && numIntersectionI != 0)
     {
         // Compute the integration range
@@ -1224,7 +1224,7 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
         for (int i = 1; i <= 8; ++i)
         {
             // Compute the sphere intersection position
-            float3 positionWS = rayOrigin + rayDirection * (intersectionO.x + stepSize * i);
+            float3 positionWS = rayOriginWS + rayDirection * (intersectionO.x + stepSize * i);
 
             // Get the coverage at intersection point
             CloudCoverageData cloudCoverageData;

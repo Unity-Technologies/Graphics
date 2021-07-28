@@ -176,14 +176,15 @@ bool RaySphereIntersection(float3 startWS, float3 dir, float radius)
     return flag;
 }
 
-bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 pos, float3 normal, out float t)
+bool IntersectPlane(float3 ray_originWS, float3 ray_dir, float3 pos, float3 normal, out float t)
 {
+    float3 ray_originPS = ray_originWS + float3(0, _EarthRadius, 0);
     float denom = dot(normal, ray_dir);
     bool flag = false;
     t = -1.0f;
     if (abs(denom) > 1e-6)
     {
-        float3 d = pos - ray_origin;
+        float3 d = pos - ray_originPS;
         t = dot(d, normal) / denom;
         flag = (t >= 0);
     }
