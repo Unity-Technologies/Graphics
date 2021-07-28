@@ -325,6 +325,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, ringing artifacts (dark or strangely saturated edges) caused by history sharpening will be improved. This comes at a potential loss of sharpness upon motion.</summary>
         public bool taaAntiHistoryRinging = false;
 
+        /// <summary> Determines how much the history buffer is blended together with current frame result. Higher values means more history contribution. </summary>
+        [Range(0.6f, 0.95f)]
+        public float taaBaseBlendFactor = 0.875f;
+
         /// <summary>Physical camera parameters.</summary>
         [ValueCopy] // reference should not be same. only content.
         public HDPhysicalCamera physicalParameters = HDPhysicalCamera.GetDefaults();
@@ -591,6 +595,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.taaAntiFlicker = taaAntiFlicker;
             data.taaMotionVectorRejection = taaMotionVectorRejection;
             data.taaAntiHistoryRinging = taaAntiHistoryRinging;
+            data.taaBaseBlendFactor = taaBaseBlendFactor;
             data.flipYMode = flipYMode;
             data.fullscreenPassthrough = fullscreenPassthrough;
             data.allowDynamicResolution = allowDynamicResolution;
