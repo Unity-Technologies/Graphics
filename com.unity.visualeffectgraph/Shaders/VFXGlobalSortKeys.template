@@ -44,7 +44,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
         Kvp output;
 #if VFX_CUSTOM_SORT_KEY
         ${VFXLoadParameter:{sortKey}}
-        output.sortKey = sortKey;
+        output.sortKey = -1.0f * sortKey; //Lowest values are rendered first
 #elif VFX_DISTANCE_SORT_KEY
 #if VFX_LOCAL_SPACE
         float3 posRWS = TransformObjectToWorld(attributes.position);
