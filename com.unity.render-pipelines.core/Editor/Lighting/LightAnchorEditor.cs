@@ -58,6 +58,10 @@ namespace UnityEditor
                 UpdateCache();
             }
 
+            // anchor is cached for it cannot be changed from the inspector,
+            // we have a dedicated editor tool to move the anchor
+            var anchor = manipulator.anchorPosition;
+
             bool yawChanged = false;
             bool pitchChanged = false;
             bool rollChanged = false;
@@ -289,7 +293,10 @@ namespace UnityEditor
                     if (positionOverrideChanged)
                         manipulator.anchorPositionOverride = m_AnchorPositionOverrideProperty.objectReferenceValue as Transform;
 
-                    manipulator.UpdateTransform(camera, manipulator.anchorPosition);
+                    if (manipulator.anchorPositionOverride != null)
+                        anchor = manipulator.anchorPosition;
+
+                    manipulator.UpdateTransform(camera, anchor);
                     IsCacheInvalid(manipulator);
                 }
             }
