@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering
     {
     }
 
-    internal class AdditionalPropertiesPreferences : ICoreRenderPipelinePreferencesProvider
+    class AdditionalPropertiesPreferences : ICoreRenderPipelinePreferencesProvider
     {
         class Styles
         {
