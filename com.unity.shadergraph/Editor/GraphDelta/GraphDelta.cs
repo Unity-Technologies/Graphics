@@ -12,21 +12,24 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_data = new GraphStorage();
         }
 
+        /*
         public INodeRef AddNode(string id)
         {
             return m_data.AddNode(id);
         }
+        */
 
-        public INodeRef GetNode(string id)
+        public INodeReader GetNode(string id)
         {
             return m_data.GetNode(id);
         }
 
-        public IEnumerable<INodeRef> GetNodes()
+        public IEnumerable<INodeReader> GetNodes()
         {
             return m_data.GetNodes();
         }
 
+        /*
         internal void RemoveNode(string id)
         {
             m_data.RemoveNode(id);
@@ -41,15 +44,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             return m_data.TryConnectPorts(output, input);
         }
-
-        public IEnumerable<IPortRef> GetInputPorts(INodeRef nodeRef)
-        {
-            return nodeRef.GetInputPorts();
-        }
-
-        public IEnumerable<IPortRef> GetOutputPorts(INodeRef nodeRef)
-        {
-            return nodeRef.GetOutputPorts();
-        }
+        */
     }
 }

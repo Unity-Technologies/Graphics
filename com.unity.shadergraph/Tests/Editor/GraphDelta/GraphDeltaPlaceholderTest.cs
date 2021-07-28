@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             Assert.NotNull(graphHandler);
         }
 
+        /*
         [Test]
         public void CanAddEmptyNode()
         {
@@ -80,6 +81,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             Assert.NotNull(normSearch);
             Assert.AreEqual(thruEdge, normSearch);
         }
+        */
     }
 
     [TestFixture]

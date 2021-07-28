@@ -302,7 +302,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
 
         //may rewrite as non recursive
-        private Element SearchRecurse(Element elem, string lookup)
+        protected Element SearchRecurse(Element elem, string lookup)
         {
             if (string.CompareOrdinal(elem.m_id, lookup) == 0)
             {
