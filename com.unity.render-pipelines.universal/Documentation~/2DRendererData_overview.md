@@ -24,7 +24,7 @@ This option is enabled by default. Clear this option to disable the Depth/[Stenc
 
 ## Camera Sorting Layer Texture
 
-The __2D Renderer Data__ can specify how to supply the shader variable _CameraSortingLayerTexture for use in custom shaders.
+The __2D Renderer Data__ can specify how to supply the shader variable _CameraSortingLayerTexture for use in custom shaders. This data should be used in the same frame, and can be used on following layers.
 
 ### Foremost Sorting Layer
 All Layers captured for use in the supplied Texture will be drawn from the very back Layer until and including the Layer specified by __Foremost Sorting Layer__
