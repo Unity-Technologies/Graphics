@@ -15,11 +15,12 @@ namespace UnityEditor.Rendering
             internal const string volumeGizmosVisibility = "General.VolumeGizmosVisibility";
         }
 
+        [Flags]
         public enum VolumeGizmoVisibility
         {
-            Wireframe = 0,
-            Solid = 1,
-            Everything
+            Wireframe = 1,
+            Solid = 2,
+            Everything = Wireframe | Solid
         }
 
         class Styles
@@ -48,11 +49,12 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Returns if the Volume Gizmos should render the wireframe edges
         /// </summary>
-        public static bool drawWireFrame => volumeGizmosVisibilityOption is VolumeGizmoVisibility.Wireframe or VolumeGizmoVisibility.Everything;
+        public static bool drawWireFrame => (volumeGizmosVisibilityOption & VolumeGizmoVisibility.Wireframe) == VolumeGizmoVisibility.Wireframe;
+
         /// <summary>
         /// Returns if the Volume Gizmos should render the solid faces
         /// </summary>
-        public static bool drawSolid => volumeGizmosVisibilityOption is VolumeGizmoVisibility.Solid or VolumeGizmoVisibility.Everything;
+        public static bool drawSolid => (volumeGizmosVisibilityOption & VolumeGizmoVisibility.Solid) == VolumeGizmoVisibility.Solid;
 
         static Color s_VolumeGizmoColorDefault = new Color(0.2f, 0.8f, 0.1f, 0.125f);
         private static Func<Color> GetColorPrefVolumeGizmoColor;
