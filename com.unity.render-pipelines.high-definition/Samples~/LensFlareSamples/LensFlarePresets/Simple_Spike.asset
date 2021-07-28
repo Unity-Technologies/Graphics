@@ -13,16 +13,17 @@ MonoBehaviour:
   m_Name: Simple_Spike
   m_EditorClassIdentifier: 
   elements:
-  - position: 0
+  - visible: 1
+    position: 0
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    localIntensity: 2
+    m_LocalIntensity: 2
     lensFlareTexture: {fileID: 2800000, guid: ca6ab6b6493b415439b6e31928ab43ee, type: 3}
     uniformScale: 5
     sizeXY: {x: 1, y: 1}
     allowMultipleElement: 1
-    count: 2
+    m_Count: 2
     preserveAspectRatio: 0
     rotation: 14.22
     tint: {r: 1, g: 1, b: 1, a: 0.5}
@@ -111,7 +112,7 @@ MonoBehaviour:
       m_Mode: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
-    intensityVariation: 1
+    m_IntensityVariation: 1
     positionVariation: {x: 0, y: 0}
     scaleVariation: 1.36
     rotationVariation: 6.1
@@ -142,8 +143,33 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 1
-    edgeOffset: 0.1
-    sideCount: 6
-    sdfRoundness: 0
+    m_FallOff: 1
+    m_EdgeOffset: 0.1
+    m_SideCount: 6
+    m_SdfRoundness: 0
     inverseSDF: 0
+    uniformAngle: 0
+    uniformAngleCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4

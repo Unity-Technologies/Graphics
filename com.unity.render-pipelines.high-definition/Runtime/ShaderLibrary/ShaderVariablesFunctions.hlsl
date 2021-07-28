@@ -145,18 +145,17 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
 float3 TransformPreviousObjectToWorldNormal(float3 normalOS)
 {
 #ifdef UNITY_ASSUME_UNIFORM_SCALING
-    return normalize(mul((float3x3)unity_MatrixPreviousM, normalOS));
+    return normalize(mul((float3x3)UNITY_PREV_MATRIX_M, normalOS));
 #else
     // Normal need to be multiply by inverse transpose
-    return normalize(mul(normalOS, (float3x3)unity_MatrixPreviousMI));
+    return normalize(mul(normalOS, (float3x3)UNITY_PREV_MATRIX_I_M));
 #endif
 }
 
 // Transforms local position to camera relative world space
 float3 TransformPreviousObjectToWorld(float3 positionOS)
 {
-    float4x4 previousModelMatrix = ApplyCameraTranslationToMatrix(unity_MatrixPreviousM);
-    return mul(previousModelMatrix, float4(positionOS, 1.0)).xyz;
+    return mul(UNITY_PREV_MATRIX_M,  float4(positionOS, 1.0)).xyz;
 }
 
 

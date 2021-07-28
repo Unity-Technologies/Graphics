@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a property on the HDRP asset to allow users to avoid ray tracing effects running at too low percentages (case 1342588).
 - Added dependency to mathematics and burst, HDRP now will utilize this to improve on CPU cost. First implementation of burstified decal projector is here.
 - Added warning for when a light is not fitting in the cached shadow atlas and added option to set maximum resolution that would fit.
+- Added a custom post process injection point AfterPostProcessBlurs executing after depth of field and motion blur.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -326,6 +327,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the APV UI loosing focus when the helpbox about baking appears in the probe volume.
 - Fixed enabling a lensflare in playmode.
 - Fixed white flashes when history is reset due to changes on type of upsampler.
+- Fixed misc TAA issue: Slightly improved TAA flickering, Reduced ringing of TAA sharpening, tweak TAA High quality central color filtering.
+- Fixed TAA upsampling algorithm, now work properly
+- Fixed custom post process template not working with Blit method.
+- Fixed support for instanced motion vector rendering
+- Fixed an issue that made Custom Pass buffers inaccessible in ShaderGraph.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
