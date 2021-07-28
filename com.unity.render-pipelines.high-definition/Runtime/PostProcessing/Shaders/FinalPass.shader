@@ -86,7 +86,7 @@ Shader "Hidden/HDRP/FinalPass"
             positionSS = positionSS * _UVTransform.xy + _UVTransform.zw * (_ScreenSize.xy - 1.0);
             positionNDC = positionNDC * _UVTransform.xy + _UVTransform.zw;
 
-            #ifdef(CATMULL_ROM_4)
+            #ifdef CATMULL_ROM_4
             CTYPE outColor = UpscaledResult(positionNDC.xy);
             #elif defined(BYPASS)
             CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, ((input.texcoord.xy * _UVTransform.xy) + _UVTransform.zw) * _ViewPortSize.xy).CTYPE_SWIZZLE;

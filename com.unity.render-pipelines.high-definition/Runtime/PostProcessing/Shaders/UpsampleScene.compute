@@ -25,9 +25,9 @@ void MainUpsample (uint3 dti : SV_DispatchThreadID)
 
     float2 uvs = ((float2)dti.xy + 0.5f) * _ViewPortSize.zw;
 #if defined(UPSAMPLE_COLOR)
-    _OutputTexture[COORD_TEXTURE2D_X(dti.xy)] = Bilinear(_InputTexture, uvs);
+    _OutputTexture[COORD_TEXTURE2D_X(dti.xy)] = Sample(TEXTURE2D_X_ARGS(_InputTexture, s_linear_clamp_sampler), uvs);
 #endif
 
     _OutputDepthTexture[COORD_TEXTURE2D_X(dti.xy)] = Nearest(_InputDepthTexture, uvs).x;
-    _OutputMotionVectorTexture[COORD_TEXTURE2D_X(dti.xy)] = Bilinear(_CameraMotionVectorsTexture, uvs).xy;
+    _OutputMotionVectorTexture[COORD_TEXTURE2D_X(dti.xy)] = Sample(TEXTURE2D_X_ARGS(_CameraMotionVectorsTexture, s_linear_clamp_sampler), uvs);
 }
