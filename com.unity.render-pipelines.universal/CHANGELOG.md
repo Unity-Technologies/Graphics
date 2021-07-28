@@ -84,6 +84,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Sprite type Light2Ds were missing a default sprite
 - Fixed an issue where ShadowCasters were sometimes being rendered twice in the editor while in playmode.
 - Fixed an issue where ShadowCaster2D was generating garbage when running in the editor. [case 1304158](https://issuetracker.unity3d.com/product/unity/issues/guid/1304158/)
+- Fixed an issue where the 2D Renderer was not rendering depth and stencil in the normal rendering pass
 - Fixed an issue where 2D lighting was incorrectly calculated when using a perspective camera.
 - Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
 - Fixed an issue where filtering in the scene view would not properly highlight the filtered objects. case 1324359
