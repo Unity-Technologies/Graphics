@@ -1476,7 +1476,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool TAAU = camera.IsTAAUEnabled();
 
-            passData.taaParameters = new Vector4(TAAU && postDoF ? 0.25f : camera.taaHistorySharpening, postDoF ? maxAntiflicker : Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
+            float antiFlickerLerpFactor = camera.taaAntiFlicker;
+            float historySharpening = TAAU && postDoF ? 0.25f : camera.taaHistorySharpening;
+
+            if (camera.camera.cameraType == CameraType.SceneView)
+            {
+                // Force settings for scene view.
+                historySharpening = 0.25f;
+                antiFlickerLerpFactor = 0.7f;
+            }
+            float antiFlicker = postDoF ? maxAntiflicker : Mathf.Lerp(minAntiflicker, maxAntiflicker, antiFlickerLerpFactor);
+
+            passData.taaParameters = new Vector4(historySharpening, antiFlicker, motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
 
             // Precompute weights used for the Blackman-Harris filter.
             float totalWeight = 0;
@@ -1495,7 +1506,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 taaSampleWeights[i] /= totalWeight;
             }
 
-            passData.taaParameters1 = new Vector4(1.0f - camera.taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTAA, 0);
+            passData.taaParameters1 = new Vector4(camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - camera.taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTAA, 0);
             passData.taaFilterWeights = new Vector4(taaSampleWeights[1], taaSampleWeights[2], taaSampleWeights[3], taaSampleWeights[4]);
             passData.taaFilterWeights1 = new Vector4(taaSampleWeights[5], taaSampleWeights[6], taaSampleWeights[7], taaSampleWeights[8]);
 
