@@ -4,19 +4,20 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.Toolbars;
+using UnityEditor.VersionControl;
+
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEditor.VFX;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEngine.Profiling;
-using System.Reflection;
-using UnityEditor.Toolbars;
-using UnityEditor.VersionControl;
 
 using PositionType = UnityEngine.UIElements.Position;
+using Task = UnityEditor.VersionControl.Task;
 
 namespace UnityEditor.VFX.UI
 {
@@ -844,6 +845,19 @@ namespace UnityEditor.VFX.UI
         public void AttachToSelection()
         {
             AttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>());
+            var box = new Box();
+            var notification = new TextElement();
+            box.Add(notification);
+            box.style.backgroundColor = new StyleColor(new Color(0.216f, 0.216f, 0.216f));
+            box.style.borderLeftColor = box.style.borderRightColor = box.style.borderTopColor = box.style.borderBottomColor = new StyleColor(new Color(0.098f, 0.098f, 0.098f));
+            box.style.position = PositionType.Absolute;
+            box.style.left = m_AttachDropDownButton.resolvedStyle.left + 0;
+            box.style.top = m_AttachDropDownButton.resolvedStyle.height + 4;
+            box.style.paddingLeft = box.style.paddingRight = box.style.paddingTop = box.style.paddingBottom = 4;
+            notification.text = $"Attached to {Selection.activeObject.name}";
+            Add(box);
+
+            System.Threading.Tasks.Task.Delay(3000).ContinueWith(x => Remove(box), TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         public void AttachTo(VisualEffect selectedAsset)
