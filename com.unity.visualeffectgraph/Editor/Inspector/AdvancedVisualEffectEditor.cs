@@ -110,7 +110,7 @@ namespace UnityEditor.VFX
             base.OnEnable();
             EditMode.editModeStarted += OnEditModeStart;
             EditMode.editModeEnded += OnEditModeEnd;
-            Selection.selectionChanged += this.OnHierarchySelectionChanged;
+            Selection.selectionChanged += OnHierarchySelectionChanged;
 
             // Force rebuilding the parameterinfos
             VisualEffect effect = ((VisualEffect)targets[0]);
@@ -142,7 +142,7 @@ namespace UnityEditor.VFX
             m_ContextsPerComponent.Clear();
             EditMode.editModeStarted -= OnEditModeStart;
             EditMode.editModeEnded -= OnEditModeEnd;
-            Selection.selectionChanged -= this.OnHierarchySelectionChanged;
+            Selection.selectionChanged -= OnHierarchySelectionChanged;
         }
 
         public override void OnInspectorGUI()
@@ -153,7 +153,7 @@ namespace UnityEditor.VFX
 
         private void OnHierarchySelectionChanged()
         {
-            this.AutoAttachToSelection();
+            AutoAttachToSelection();
         }
 
         void OnEditModeStart(IToolModeOwner owner, EditMode.SceneViewEditMode mode)
@@ -746,7 +746,7 @@ namespace UnityEditor.VFX
             if (EditorWindow.HasOpenInstances<VFXViewWindow>())
             {
                 VFXViewWindow window = EditorWindow.GetWindowDontShow<VFXViewWindow>();
-                if (window.graphView?.isLocked == false)
+                if (window.graphView?.locked == false)
                 {
                     window.graphView.AttachToSelection();
                 }

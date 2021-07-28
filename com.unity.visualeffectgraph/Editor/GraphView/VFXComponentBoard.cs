@@ -156,20 +156,8 @@ namespace UnityEditor.VFX.UI
 
             contentContainer.AddStyleSheetPath("VFXComponentBoard");
 
-            m_AttachButton = this.Query<Button>("attach");
-            m_AttachButton.clickable.clicked += ToggleAttach;
-
-            m_SelectButton = this.Query<Button>("select");
-            m_SelectButton.clickable.clicked += Select;
-
-            m_ComponentPath = this.Query<Label>("component-path");
-
-            m_ComponentContainer = this.Query("component-container");
-            m_ComponentContainerParent = m_ComponentContainer.parent;
-
-            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
-            RegisterCallback<DetachFromPanelEvent>(OnDetachToPanel);
-
+            m_RootElement = this.Query<VisualElement>("component-container");
+            m_Subtitle = this.Query<Label>("subTitleLabel");
             m_Stop = this.Query<Button>("stop");
             m_Stop.clickable.clicked += EffectStop;
             m_Play = this.Query<Button>("play");
@@ -227,8 +215,6 @@ namespace UnityEditor.VFX.UI
 
             SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.componentBoard, defaultRect));
         }
-
-        VisualElement m_ComponentContainerParent;
 
         public void ValidatePosition()
         {
@@ -454,7 +440,6 @@ namespace UnityEditor.VFX.UI
 
         public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
         {
-            OnSelectionChanged();
             if (m_AttachedComponent != null
                 && visualEffects.Contains(m_AttachedComponent)
                 && m_AttachedComponent.visualEffectAsset != controller.graph.visualEffectResource.asset)
@@ -464,39 +449,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnAttachToPanel(AttachToPanelEvent e)
-        {
-            OnSelectionChanged();
-            Selection.selectionChanged += OnSelectionChanged;
-        }
-
-        void OnDetachToPanel(DetachFromPanelEvent e)
-        {
-            Selection.selectionChanged -= OnSelectionChanged;
-        }
-
-        VisualEffect m_SelectionCandidate;
-
         VisualEffect m_AttachedComponent;
 
         public VisualEffect GetAttachedComponent()
         {
             return m_AttachedComponent;
-        }
-
-        void OnSelectionChanged()
-        {
-            if (Selection.activeGameObject != null && controller != null)
-            {
-                m_SelectionCandidate = null;
-                m_SelectionCandidate = Selection.activeGameObject.GetComponent<VisualEffect>();
-                if (m_SelectionCandidate != null && m_SelectionCandidate.visualEffectAsset != controller.graph.visualEffectResource.asset)
-                {
-                    m_SelectionCandidate = null;
-                }
-            }
-
-            UpdateAttachButton();
         }
 
         bool m_LastKnownPauseState;
@@ -519,15 +476,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void UpdateAttachButton()
-        {
-            m_AttachButton.SetEnabled(m_SelectionCandidate != null || m_AttachedComponent != null && controller != null);
-
-            m_AttachButton.text = m_AttachedComponent != null ? "Detach" : "Attach";
-        }
-
         public void Detach()
         {
+            m_RootElement.SetEnabled(false);
+            m_Subtitle.text = string.Empty;
+
             if (m_AttachedComponent != null)
             {
                 m_AttachedComponent.playRate = 1;
@@ -538,13 +491,9 @@ namespace UnityEditor.VFX.UI
             {
                 m_UpdateItem.Pause();
             }
-            m_ComponentContainer.RemoveFromHierarchy();
-            m_ComponentPath.text = "";
-            UpdateAttachButton();
             if (m_EventsContainer != null)
                 m_EventsContainer.Clear();
             m_Events.Clear();
-            m_SelectButton.visible = false;
             if (m_DebugUI != null)
                 m_DebugUI.Clear();
 
@@ -572,12 +521,11 @@ namespace UnityEditor.VFX.UI
 
         public void Attach(VisualEffect effect = null)
         {
-            VisualEffect target = effect != null ? effect : m_SelectionCandidate;
-            if (target != null)
+            VisualEffect target = effect != null ? effect : Selection.activeGameObject?.GetComponent<VisualEffect>();
+            if (target != null && m_View.controller?.graph != null)
             {
-                m_SelectionCandidate = target; // allow reattaching if effet != null;
                 m_AttachedComponent = target;
-                UpdateAttachButton();
+                m_Subtitle.text = m_AttachedComponent.name;
                 m_LastKnownPauseState = !m_AttachedComponent.pause;
                 UpdatePlayButton();
 
@@ -585,10 +533,7 @@ namespace UnityEditor.VFX.UI
                     m_UpdateItem = schedule.Execute(Update).Every(100);
                 else
                     m_UpdateItem.Resume();
-                if (m_ComponentContainer.parent == null)
-                    m_ComponentContainerParent.Add(m_ComponentContainer);
                 UpdateEventList();
-                m_SelectButton.visible = true;
 
                 var debugMode = VFXUIDebug.Modes.None;
                 if (m_DebugUI != null)
@@ -601,6 +546,8 @@ namespace UnityEditor.VFX.UI
                 m_DebugUI.SetVisualEffect(m_AttachedComponent);
                 m_DebugUI.SetDebugMode(debugMode, this, true);
 
+                
+                m_RootElement.SetEnabled(true);
                 UpdateBoundsRecorder();
                 UpdateRecordingButton();
                 RefreshInitializeErrors();
@@ -644,9 +591,6 @@ namespace UnityEditor.VFX.UI
             {
                 path = m_AttachedComponent.gameObject.scene.name + " : " + path;
             }
-
-            if (m_ComponentPath.text != path)
-                m_ComponentPath.text = path;
 
             if (m_ParticleCount != null)
             {
@@ -697,17 +641,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        Button m_AttachButton;
-        Button m_SelectButton;
-        Label m_ComponentPath;
-        VisualElement m_ComponentContainer;
         VisualElement m_EventsContainer;
+        VisualElement m_RootElement;
 
+        Label m_Subtitle;
         Button m_Stop;
         Button m_Play;
         Button m_Step;
         Button m_Restart;
-
         Slider m_PlayRateSlider;
         IntegerField m_PlayRateField;
 
@@ -746,28 +687,25 @@ namespace UnityEditor.VFX.UI
             return evt == VisualEffectAsset.PlayEventName || evt == VisualEffectAsset.StopEventName;
         }
 
-        IEnumerable<String> GetEventNames()
+        IEnumerable<string> GetEventNames()
         {
-            foreach (var context in controller.contexts.Select(t => t.model).OfType<VFXContext>())
-            {
-                foreach (var name in RecurseGetEventNames(context))
-                    yield return name;
-            }
+            return controller?.contexts.SelectMany(x => this.RecurseGetEventNames(x.model)) ?? Enumerable.Empty<string>();
         }
 
-        IEnumerable<String> RecurseGetEventNames(VFXContext context)
+        IEnumerable<string> RecurseGetEventNames(VFXContext context)
         {
-            if (context is VFXBasicEvent)
+            switch (context)
             {
-                if (!IsDefaultEvent(name))
-                    yield return (context as VFXBasicEvent).eventName;
-            }
-            else if (context is VFXSubgraphContext)
-            {
-                foreach (var subContext in (context as VFXSubgraphContext).subChildren.OfType<VFXContext>())
+                case VFXBasicEvent basicEvent when !IsDefaultEvent(name):
+                    yield return basicEvent.eventName;
+                    break;
+                case VFXSubgraphContext subgraphContext:
                 {
-                    foreach (var name in RecurseGetEventNames(subContext))
-                        yield return name;
+                    foreach (var eventName in subgraphContext.subChildren.OfType<VFXContext>().SelectMany(RecurseGetEventNames))
+                    {
+                        yield return eventName;
+                    }
+                    break;
                 }
             }
         }
