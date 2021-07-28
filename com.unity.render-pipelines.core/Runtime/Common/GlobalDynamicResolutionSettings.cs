@@ -23,17 +23,17 @@ namespace UnityEngine.Rendering
     public enum DynamicResUpscaleFilter : byte
     {
         /// <summary>
-        /// Bilinear upscaling filter.
+        /// Bilinear upscaling filter. Obsolete and not supported.
         /// </summary>
-        Bilinear,
+        [Obsolete("Bilinear upscale filter is considered obsolete and is not supported anymore, please use CatmullRom for a very cheap, but blurry filter.", false)]  Bilinear,
         /// <summary>
         /// Bicubic Catmull-Rom upscaling filter.
         /// </summary>
         CatmullRom,
         /// <summary>
-        /// Lanczos upscaling filter.
+        /// Lanczos upscaling filter. Obsolete and not supported.
         /// </summary>
-        Lanczos,
+        [Obsolete("Lanczos upscale filter is considered obsolete and is not supported anymore, please use Contrast Adaptive Sharpening for very sharp filter or FidelityFX Super Resolution 1.0.", false)]  Lanczos,
         /// <summary>
         /// Contrast Adaptive Sharpening upscaling filter.
         /// </summary>

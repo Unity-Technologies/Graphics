@@ -4796,14 +4796,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 switch (data.dynamicResFilter)
                                 {
-                                    case DynamicResUpscaleFilter.Bilinear:
-                                        finalPassMaterial.EnableKeyword("BILINEAR");
-                                        break;
                                     case DynamicResUpscaleFilter.CatmullRom:
                                         finalPassMaterial.EnableKeyword("CATMULL_ROM_4");
-                                        break;
-                                    case DynamicResUpscaleFilter.Lanczos:
-                                        finalPassMaterial.EnableKeyword("LANCZOS");
                                         break;
                                     case DynamicResUpscaleFilter.ContrastAdaptiveSharpen:
                                     case DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres:
