@@ -175,6 +175,14 @@ TEXTURE2D(_PrevExposureTexture);
         #endif
     #endif
 
+    #ifdef PLATFORM_SAMPLE_TEXTURE2D_GRAD
+        #ifdef  SAMPLE_TEXTURE2D_GRAD
+            #undef  SAMPLE_TEXTURE2D_GRAD
+            #define SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2, dpdx, dpdy) \
+                PLATFORM_SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, coord2, (dpdx * _GlobalMipBiasPow2), (dpdy * _GlobalMipBiasPow2))
+        #endif
+    #endif
+
     //2d texture arrays bias manipulation
     #ifdef PLATFORM_SAMPLE_TEXTURE2D_ARRAY_BIAS
         #ifdef  SAMPLE_TEXTURE2D_ARRAY
@@ -399,7 +407,7 @@ float2 ClampAndScaleUVForBilinearPostProcessTexture(float2 UV, float2 texelSize)
     return ClampAndScaleUV(UV, texelSize, 0.5f, _RTHandlePostProcessScale.xy);
 }
 
-// This is assuming an upsampled texture used in post processing, with original screen size and a half a texel offset for the clamping.
+// This is assuming an upsampled texture used in post processing, with original screen size and numberOfTexels offset for the clamping.
 float2 ClampAndScaleUVPostProcessTexture(float2 UV, float2 texelSize, float numberOfTexels)
 {
     return ClampAndScaleUV(UV, texelSize, numberOfTexels, _RTHandlePostProcessScale.xy);
@@ -414,6 +422,21 @@ float2 ClampAndScaleUVPostProcessTextureForPoint(float2 UV)
 {
     return min(UV, 1.0f) * _RTHandlePostProcessScale.xy;
 }
+
+// IMPORTANT: This is expecting the corner not the center.
+float2 FromOutputPosSSToPreupsampleUV(int2 posSS)
+{
+    return (posSS + 0.5f) * _PostProcessScreenSize.zw;
+}
+
+// IMPORTANT: This is expecting the corner not the center.
+float2 FromOutputPosSSToPreupsamplePosSS(float2 posSS)
+{
+    float2 uv = FromOutputPosSSToPreupsampleUV(posSS);
+    return floor(uv * _ScreenSize.xy);
+}
+
+
 
 uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize, uint eye)
 {

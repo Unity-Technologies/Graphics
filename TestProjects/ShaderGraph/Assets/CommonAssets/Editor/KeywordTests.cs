@@ -204,7 +204,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void CanGetPermutationDeclaration()
         {
-            var sb =  new ShaderStringBuilder();
+            var sb =  new ShaderStringBuilder(humanReadable: true);
             KeywordUtil.GetKeywordPermutationDeclarations(sb, m_Collector.permutations);
 
             Assert.AreEqual(kExpectedPermutationDeclaration.Replace("\r\n", "\n"), sb.ToString(), "Keyword permutation snippet was invalid");
