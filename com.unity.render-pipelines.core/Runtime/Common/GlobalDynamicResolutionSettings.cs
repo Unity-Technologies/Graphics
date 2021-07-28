@@ -39,10 +39,15 @@ namespace UnityEngine.Rendering
         /// </summary>
         ContrastAdaptiveSharpen,
         /// <summary>
-        /// Edge Adaptive Scaling Upres.
+        /// FidelityFX Super Resolution 1.0
         /// </summary>
-        [InspectorName("Edge Adaptive Scaling Upres")]
-        EdgeAdaptiveScalingUpres
+        [InspectorName("FidelityFX Super Resolution 1.0")]
+        EdgeAdaptiveScalingUpres,
+        /// <summary>
+        /// Temporal Upscaling.
+        /// </summary>
+        [InspectorName("TAA Upscale")]
+        TAAU
     }
 
     /// <summary>User-facing settings for dynamic resolution.</summary>

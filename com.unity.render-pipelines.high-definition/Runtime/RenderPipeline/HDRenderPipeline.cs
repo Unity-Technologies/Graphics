@@ -147,6 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId[] m_ForwardErrorPassNames = { HDShaderPassNames.s_AlwaysName, HDShaderPassNames.s_ForwardBaseName, HDShaderPassNames.s_DeferredName, HDShaderPassNames.s_PrepassBaseName, HDShaderPassNames.s_VertexName, HDShaderPassNames.s_VertexLMRGBMName, HDShaderPassNames.s_VertexLMName };
         ShaderTagId[] m_SinglePassName = new ShaderTagId[1];
         ShaderTagId[] m_MeshDecalsPassNames = { HDShaderPassNames.s_DBufferMeshName };
+        ShaderTagId[] m_VfxDecalsPassNames = { HDShaderPassNames.s_DBufferVFXDecalName };
 
         RenderStateBlock m_DepthStateOpaque;
         RenderStateBlock m_DepthStateNoWrite;
@@ -382,6 +383,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
                     sceneBounds = m_GlobalSettings.GetOrCreateAPVSceneBounds()
                 });
+                RegisterRetrieveOfProbeVolumeExtraDataAction();
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
@@ -646,6 +648,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="disposing">Is disposing.</param>
         protected override void Dispose(bool disposing)
         {
+            Graphics.ClearRandomWriteTargets();
+            Graphics.SetRenderTarget(null);
             DisposeProbeCameraPool();
 
             UnsetRenderingFeatures();
@@ -1069,6 +1073,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             m_GlobalSettings.GetOrCreateDefaultVolume();
 
+
+            DecalSystem.instance.StartDecalUpdateJobs();
+
             // This function should be called once every render (once for all camera)
             LightLoopNewRender();
 
@@ -1181,7 +1188,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
-                    dynResHandler.runUpscalerFilterOnFullResolution = hdCam != null && hdCam.cameraCanRenderDLSS;
+                    dynResHandler.runUpscalerFilterOnFullResolution = (hdCam != null && hdCam.cameraCanRenderDLSS) || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
 
                     RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
 
@@ -2515,7 +2522,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetCurrentSunLight(), cmd);
+            m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetMainLight(), cmd);
         }
 
         /// <summary>
