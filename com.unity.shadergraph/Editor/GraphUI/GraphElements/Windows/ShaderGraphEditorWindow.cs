@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.Overlays;
+using UnityEditor.ShaderGraph.GraphUI.Controllers;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
@@ -12,7 +14,26 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
     {
         protected override bool CanHandleAssetType(IGraphAssetModel asset) => asset is ShaderGraphAssetModel;
 
-        public ModelInspectorView nodeInspector { get; private set; }
+        InspectorController m_InspectorController;
+        ModelInspectorView m_InspectorView => m_InspectorController?.View;
+
+        BlackboardController m_BlackboardController;
+        Blackboard m_BlackboardView => m_BlackboardController?.View;
+
+        PreviewController m_PreviewController;
+        Preview m_Preview => m_PreviewController?.View;
+
+        public VisualElement GetGraphSubWindow<T>()
+        {
+            if (typeof(T) == typeof(Blackboard))
+                return m_BlackboardView;
+            if (typeof(T) == typeof(ModelInspectorView))
+                return m_InspectorView;
+            if (typeof(T) == typeof(Preview))
+                return m_Preview;
+
+            return null;
+        }
 
         [InitializeOnLoadMethod]
         static void RegisterTool()
@@ -21,9 +42,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
         }
 
         [MenuItem("Window/Shaders/ShaderGraph", false)]
-        public static void ShowRecipeGraphWindow()
+        public static void ShowShaderGraphWindow()
         {
-            FindOrCreateGraphWindow<ShaderGraphEditorWindow>();
+            var shaderGraphEditorWindow = CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
+            shaderGraphEditorWindow.Show();
+            shaderGraphEditorWindow.Focus();
+        }
+
+        void InitializeSubWindows()
+        {
+            m_InspectorController = new InspectorController(CommandDispatcher, GraphView, this);
+            m_BlackboardController = new BlackboardController(CommandDispatcher, GraphView, this);
+            m_PreviewController = new PreviewController(CommandDispatcher, GraphView, this);
         }
 
         protected override void OnEnable()
@@ -38,8 +68,24 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
             rootVisualElement.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
             rootVisualElement.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
 
-            // TODO: See if we can eventually use m_SidePanel instead
-            nodeInspector = CreateModelInspectorView();
+            InitializeSubWindows();
+
+            m_BlackboardController.InitializeWindowPosition();
+        }
+
+        protected void OnBecameVisible()
+        {
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+
         }
 
         protected override GraphView CreateGraphView()

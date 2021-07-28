@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:sg="UnityEditor.ShaderGraph.GraphUI">
+    <ui:VisualElement name="content">
+    </ui:VisualElement>
+</ui:UXML>

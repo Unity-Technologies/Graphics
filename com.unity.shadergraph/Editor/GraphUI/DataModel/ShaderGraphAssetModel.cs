@@ -20,8 +20,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             var asset = AssetDatabase.LoadAssetAtPath<ShaderGraphAssetModel>(path);
             if (asset == null) return false;
 
-            var window = GraphViewEditorWindow.FindOrCreateGraphWindow<ShaderGraphEditorWindow>();
-            return window != null;
+            var shaderGraphEditorWindow = EditorWindow.CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
+            shaderGraphEditorWindow.Show();
+            shaderGraphEditorWindow.Focus();
+            return shaderGraphEditorWindow != null;
         }
     }
 }
