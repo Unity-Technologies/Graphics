@@ -7,9 +7,9 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>The 2D cookie texture to use.</summary>
         public Texture texture;
-        /// <summary>The size size of the projected cookie texture in pixels.</summary>
+        /// <summary>The size of the projected cookie texture in pixels.</summary>
         public Vector2 size;
-        /// <summary>The wrold space position to use as projection origin.</summary>
+        /// <summary>The world space position to use as projection origin.</summary>
         public Vector3 position;
     }
 
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="settings">Current cloud settings.</param>
         /// <param name="sunLight">The main directional light of the scene.</param>
         /// <param name="cmd">Command buffer used for rendering.</param>
-        public virtual void RenderSunLightCookie(CloudSettings settings, Light sunLight, CommandBuffer cmd) {}
+        public virtual void RenderSunLightCookie(BuiltinSunCookieParameters builtinParams) {}
 
         /// <summary>
         /// HDRP calls this function once every frame. Implement it if your CloudRenderer needs to iterate independently of the user defined update frequency (see CloudSettings UpdateMode).
