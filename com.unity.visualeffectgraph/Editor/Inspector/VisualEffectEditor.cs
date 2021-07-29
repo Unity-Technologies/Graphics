@@ -642,7 +642,6 @@ namespace UnityEditor.VFX
             if (displayFoldout)
             {
                 rect.x += 14;
-                rect.y += 2;
                 rect.width -= 2;
                 result = EditorGUI.Toggle(rect, foldoutState, Styles.foldoutStyle);
             }
@@ -1265,6 +1264,10 @@ namespace UnityEditor.VFX
             {
                 m_SerializedRenderers.Update();
 
+                EditorGUI.indentLevel += 1;
+                // Ugly hack to indent the header group because "indentLevel" is not taken into account
+                var x = EditorStyles.inspectorDefaultMargins.padding.left;
+                EditorStyles.inspectorDefaultMargins.padding.left -= 24;
                 bool showProbesCategory = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShowProbesCategory, Contents.probeSettings);
                 if (showProbesCategory != m_ShowProbesCategory)
                 {
@@ -1383,6 +1386,8 @@ namespace UnityEditor.VFX
                     }
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
+                EditorStyles.inspectorDefaultMargins.padding.left = x;
+                EditorGUI.indentLevel -= 1;
 
                 m_SerializedRenderers.ApplyModifiedProperties();
             }
