@@ -207,7 +207,7 @@ namespace UnityEditor.Rendering.Universal
             using (new EditorGUI.IndentLevelScope())
             {
                 EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
-                EditorGUILayout.PropertyField(serialized.stripPostProcssingShaderVariants, Styles.stripPostProcssingShaderVariantsLabel);
+                EditorGUILayout.PropertyField(serialized.stripPostProcessingShaderVariants, Styles.stripPostProcessingShaderVariantsLabel);
                 EditorGUILayout.PropertyField(serialized.stripDisabledKeywordVariants, Styles.stripDisabledKeywordVariantsLabel);
                 EditorGUILayout.PropertyField(serialized.stripBuiltinShaders, Styles.stripBuiltinShadersLabel);
             }

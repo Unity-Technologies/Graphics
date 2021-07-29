@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly GUIContent miscSettingsLabel = EditorGUIUtility.TrTextContent("Miscellaneous", "Miscellaneous settings");
             public static readonly GUIContent supportRuntimeDebugDisplayContentLabel = EditorGUIUtility.TrTextContent("Runtime Debug Shaders", "When disabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but prevents the use of Rendering Debugger in Player builds.");
-            public static readonly GUIContent stripPostProcssingShaderVariantsLabel = EditorGUIUtility.TrTextContent("Strip Post Processing Variants", "Controls whether strips automatically post processing shader variants based on VolumeProfile components. It strips based on VolumeProfiles in project and not scenes that actually uses it.");
+            public static readonly GUIContent stripPostProcessingShaderVariantsLabel = EditorGUIUtility.TrTextContent("Strip Post Processing Variants", "Controls whether strips automatically post processing shader variants based on VolumeProfile components. It strips based on VolumeProfiles in project and not scenes that actually uses it.");
             public static readonly GUIContent stripDisabledKeywordVariantsLabel = EditorGUIUtility.TrTextContent("Strip Disabled Keyword Variants", "Controls whether strip disabled keyword variants if the feature is enabled.");
             public static readonly GUIContent stripBuiltinShadersLabel = EditorGUIUtility.TrTextContent("Strip Builtin Shaders", "Controls whether strip builtin render pipeline specific shaders.");
             
