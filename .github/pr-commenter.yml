@@ -33,6 +33,9 @@ comment:
       body: |
         **Shader Graph**
         `/.yamato%252Fall-shadergraph.yml%2523PR_ShaderGraph_2021.2`
+        Depending on your PR, you may also want
+        `/.yamato%252Fall-shadergraph_builtin_foundation.yml%2523PR_ShaderGraph_BuiltIn_Foundation_2021.2`
+        `/.yamato%252Fall-shadergraph_builtin_lighting.yml%2523PR_ShaderGraph_BuiltIn_Lighting_2021.2`
     - id: VFX
       files:
         - com.unity.visualeffectgraph/**/*

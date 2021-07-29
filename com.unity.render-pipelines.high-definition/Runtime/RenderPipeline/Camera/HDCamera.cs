@@ -115,6 +115,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool               dofHistoryIsValid = false;  // used to invalidate DoF accumulation history when switching DoF modes
 
+        // State needed to handle TAAU.
+        internal bool               previousFrameWasTAAUpsampled = false;
+
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
         /// <summary>
@@ -211,15 +214,27 @@ namespace UnityEngine.Rendering.HighDefinition
             Count
         }
 
+        internal enum HistoryEffectFlags
+        {
+            FullResolution = 1 << 0,
+            RayTraced = 1 << 1,
+            ExposureControl = 1 << 2,
+            CustomBit0 = 1 << 3,
+            CustomBit1 = 1 << 4,
+            CustomBit2 = 1 << 5,
+            CustomBit3 = 1 << 6,
+            CustomBit4 = 1 << 7,
+        }
+
         /// <summary>
         // Generic structure that captures various history validity states.
         /// </summary>
         internal struct HistoryEffectValidity
         {
+            // The last internal camera frame count at which this effect was set
             public int frameCount;
-            public bool fullResolution;
-            public bool rayTraced;
-            public bool exposureControlEnabled;
+            // A combination of masks that define the validity state of the history
+            public int flagMask;
         }
 
         /// <summary>
@@ -237,6 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float                  taaHistorySharpening;
         internal float                  taaAntiFlicker;
         internal float                  taaMotionVectorRejection;
+        internal float                  taaBaseBlendFactor;
         internal bool                   taaAntiRinging;
 
         internal Vector4                zBufferParams;
@@ -245,7 +261,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Vector4                screenParams;
         internal int                    volumeLayerMask;
         internal Transform              volumeAnchor;
-        internal Rect                   finalViewport; // This will have the correct viewport position and the size will be full resolution (ie : not taking dynamic rez into account)
+        internal Rect                   finalViewport = new Rect(Vector2.zero, -1.0f * Vector2.one); // This will have the correct viewport position and the size will be full resolution (ie : not taking dynamic rez into account)
+        internal Rect                   prevFinalViewport;
         internal int                    colorPyramidHistoryMipCount = 0;
         internal VBufferParameters[]    vBufferParams;            // Double-buffered; needed even if reprojection is off
         internal RTHandle[]             volumetricHistoryBuffers; // Double-buffered; only used for reprojection
@@ -561,6 +578,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDAdditionalCameraData.TAAQualityLevel TAAQuality { get; private set; } = HDAdditionalCameraData.TAAQualityLevel.Medium;
 
         internal bool resetPostProcessingHistory = true;
+        internal bool didResetPostProcessingHistoryInLastFrame = false;
 
         internal bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
@@ -601,20 +619,18 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowHistoryUsage[screenSpaceShadowIndex].lightType = lightType;
         }
 
-        internal bool EffectHistoryValidity(HistoryEffectSlot slot, bool fullResolution, bool rayTraced)
+        internal bool EffectHistoryValidity(HistoryEffectSlot slot, int flagMask)
         {
+            flagMask |= exposureControlFS ? (int)HistoryEffectFlags.ExposureControl : 0;
             return (historyEffectUsage[(int)slot].frameCount == (cameraFrameCount - 1))
-                && (historyEffectUsage[(int)slot].fullResolution == fullResolution)
-                && (historyEffectUsage[(int)slot].rayTraced == rayTraced)
-                && (historyEffectUsage[(int)slot].exposureControlEnabled == exposureControlFS);
+                && (historyEffectUsage[(int)slot].flagMask == flagMask);
         }
 
-        internal void PropagateEffectHistoryValidity(HistoryEffectSlot slot, bool fullResolution, bool rayTraced)
+        internal void PropagateEffectHistoryValidity(HistoryEffectSlot slot, int flagMask)
         {
-            historyEffectUsage[(int)slot].fullResolution = fullResolution;
+            flagMask |= exposureControlFS ? (int)HistoryEffectFlags.ExposureControl : 0;
             historyEffectUsage[(int)slot].frameCount = (int)cameraFrameCount;
-            historyEffectUsage[(int)slot].rayTraced = rayTraced;
-            historyEffectUsage[(int)slot].exposureControlEnabled = exposureControlFS;
+            historyEffectUsage[(int)slot].flagMask = flagMask;
         }
 
         internal uint GetCameraFrameCount()
@@ -674,6 +690,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderDLSS;
         }
 
+        internal bool IsTAAUEnabled()
+        {
+            return DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU && !IsDLSSEnabled();
+        }
+
+        internal bool UpsampleHappensBeforePost()
+        {
+            return IsDLSSEnabled() || IsTAAUEnabled();
+        }
+
         internal bool allowDeepLearningSuperSampling => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.allowDeepLearningSuperSampling;
         internal bool deepLearningSuperSamplingUseCustomQualitySettings => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.deepLearningSuperSamplingUseCustomQualitySettings;
         internal uint deepLearningSuperSamplingQuality => m_AdditionalCameraData == null ? 0 : m_AdditionalCameraData.deepLearningSuperSamplingQuality;
@@ -683,7 +709,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool RequiresCameraJitter()
         {
-            return antialiasing == AntialiasingMode.TemporalAntialiasing || IsDLSSEnabled();
+            return antialiasing == AntialiasingMode.TemporalAntialiasing || IsDLSSEnabled() || IsTAAUEnabled();
         }
 
         internal bool IsSSREnabled(bool transparent = false)
@@ -773,8 +799,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UpdateAntialiasing();
 
-            // ORDER is importand: we read the upsamplerSchedule when we decide if we need to refresh the history buffers, so be careful when moving this
-            DynamicResolutionHandler.instance.upsamplerSchedule = IsDLSSEnabled() ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
+            // ORDER is important: we read the upsamplerSchedule when we decide if we need to refresh the history buffers, so be careful when moving this
+            DynamicResolutionHandler.instance.upsamplerSchedule = UpsampleHappensBeforePost() ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
 
             // Handle memory allocation.
             if (allocateHistoryBuffers)
@@ -819,7 +845,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // If we change the upscale schedule, refresh the history buffers. We need to do this, because if postprocess is after upscale, the size of some buffers needs to change.
-                if (m_PrevUpsamplerSchedule != DynamicResolutionHandler.instance.upsamplerSchedule)
+                if (m_PrevUpsamplerSchedule != DynamicResolutionHandler.instance.upsamplerSchedule || previousFrameWasTAAUpsampled != IsTAAUEnabled())
                 {
                     forceReallocPyramid = true;
                     m_PrevUpsamplerSchedule = DynamicResolutionHandler.instance.upsamplerSchedule;
@@ -870,6 +896,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Update viewport
             {
+                prevFinalViewport = finalViewport;
+
                 if (xr.enabled)
                 {
                     finalViewport = xr.GetViewport();
@@ -893,7 +921,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
                 actualWidth = scaledSize.x;
                 actualHeight = scaledSize.y;
-                globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, IsDLSSEnabled());
+                globalMipBias += DynamicResolutionHandler.instance.CalculateMipBias(scaledSize, nonScaledViewport, UpsampleHappensBeforePost());
                 lowResScale = DynamicResolutionHandler.instance.GetLowResMultiplier(lowResScale);
             }
 
@@ -1149,7 +1177,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
 
-                var aoAlloc = new AmbientOcclusionAllocator(scaleFactor);
+                var aoAlloc = new CustomHistoryAllocator(new Vector2(scaleFactor, scaleFactor), GraphicsFormat.R8G8B8A8_UNorm, "AO Packed history");
                 AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion, aoAlloc.Allocator, 2);
 
                 m_AmbientOcclusionResolutionScale = scaleFactor;
@@ -1165,27 +1193,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation);
 
-                var ssrAlloc = new ScreenSpaceAccumulationAllocator(scaleFactor);
+                var ssrAlloc = new CustomHistoryAllocator(new Vector2(scaleFactor, scaleFactor), GraphicsFormat.R16G16B16A16_SFloat, "SSR_Accum Packed history");
                 AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation, ssrAlloc.Allocator, 2);
 
                 m_ScreenSpaceAccumulationResolutionScale = scaleFactor;
             }
         }
-
-        #region Private API
-        // Workaround for the Allocator callback so it doesn't allocate memory because of the capture of scaleFactor.
-        struct ScreenSpaceAllocator
-        {
-            float scaleFactor;
-
-            public ScreenSpaceAllocator(float scaleFactor) => this.scaleFactor = scaleFactor;
-
-            public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-            {
-                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_ScreenSpaceReflection history_{1}", id, frameIndex));
-            }
-        }
-        #endregion
 
         internal void ReleaseHistoryFrameRT(int id)
         {
@@ -1284,33 +1297,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void OverridePixelRect(Rect newPixelRect) => m_OverridePixelRect = newPixelRect;
         internal void ResetPixelRect() => m_OverridePixelRect = null;
+
+        // Workaround for the Allocator callback so it doesn't allocate memory because of the capture of scaleFactor.
+        internal struct CustomHistoryAllocator
+        {
+            Vector2 scaleFactor;
+            GraphicsFormat format;
+            string name;
+
+            public CustomHistoryAllocator(Vector2 scaleFactor, GraphicsFormat format, string name)
+            {
+                this.scaleFactor = scaleFactor;
+                this.format = format;
+                this.name = name;
+            }
+
+            public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
+            {
+                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: format, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_{1}_{2}", id, name, frameIndex));
+            }
+        }
         #endregion
 
+
         #region Private API
-        // Workaround for the Allocator callback so it doesn't allocate memory because of the capture of scaleFactor.
-        struct AmbientOcclusionAllocator
-        {
-            float scaleFactor;
 
-            public AmbientOcclusionAllocator(float scaleFactor) => this.scaleFactor = scaleFactor;
-
-            public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-            {
-                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_AO Packed history_{1}", id, frameIndex));
-            }
-        }
-
-        struct ScreenSpaceAccumulationAllocator
-        {
-            float scaleFactor;
-
-            public ScreenSpaceAccumulationAllocator(float scaleFactor) => this.scaleFactor = scaleFactor;
-
-            public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-            {
-                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_SSR_Accum Packed history_{1}", id, frameIndex));
-            }
-        }
 
         static Dictionary<(Camera, int), HDCamera> s_Cameras = new Dictionary<(Camera, int), HDCamera>();
         static List<(Camera, int)> s_Cleanup = new List<(Camera, int)>(); // Recycled to reduce GC pressure
@@ -1382,6 +1393,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     taaAntiFlicker = m_AdditionalCameraData.taaAntiFlicker;
                     taaAntiRinging = m_AdditionalCameraData.taaAntiHistoryRinging;
                     taaMotionVectorRejection = m_AdditionalCameraData.taaMotionVectorRejection;
+                    taaBaseBlendFactor = m_AdditionalCameraData.taaBaseBlendFactor;
                 }
                 else
                     antialiasing = AntialiasingMode.None;
@@ -1392,6 +1404,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 taaFrameIndex = 0;
                 taaJitter = Vector4.zero;
             }
+
+            // If we have TAAU enabled, we need to force TAA to make it work.
+            if (IsTAAUEnabled())
+                antialiasing = AntialiasingMode.TemporalAntialiasing;
 
             // When changing antialiasing mode to TemporalAA we must reset the history, otherwise we get one frame of garbage
             if ((previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)

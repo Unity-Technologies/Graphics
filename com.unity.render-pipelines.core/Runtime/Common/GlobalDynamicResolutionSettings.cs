@@ -39,10 +39,15 @@ namespace UnityEngine.Rendering
         /// </summary>
         ContrastAdaptiveSharpen,
         /// <summary>
-        /// Edge Adaptive Scaling Upres.
+        /// FidelityFX Super Resolution 1.0
         /// </summary>
-        [InspectorName("Edge Adaptive Scaling Upres")]
-        EdgeAdaptiveScalingUpres
+        [InspectorName("FidelityFX Super Resolution 1.0")]
+        EdgeAdaptiveScalingUpres,
+        /// <summary>
+        /// Temporal Upscaling.
+        /// </summary>
+        [InspectorName("TAA Upscale")]
+        TAAU
     }
 
     /// <summary>User-facing settings for dynamic resolution.</summary>
@@ -61,6 +66,7 @@ namespace UnityEngine.Rendering
             upsampleFilter = DynamicResUpscaleFilter.CatmullRom,
             forcedPercentage = 100.0f,
             lowResTransparencyMinimumThreshold = 0.0f,
+            rayTracingHalfResThreshold = 50.0f,
 
             //Defaults for dlss
             enableDLSS = false,
@@ -106,5 +112,8 @@ namespace UnityEngine.Rendering
 
         /// <summary>The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.</summary>
         public float lowResTransparencyMinimumThreshold;
+
+        /// <summary>The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution.</summary>
+        public float rayTracingHalfResThreshold;
     }
 }

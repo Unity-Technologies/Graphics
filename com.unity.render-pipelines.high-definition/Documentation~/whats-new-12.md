@@ -22,6 +22,29 @@ From HDRP 12.0, you can enable [tessellation](Tessellation.md) on any HDRP [Mast
 
 For more information about tessellation, see the [Tessellation documentation](Tessellation.md).
 
+### Cloud System
+
+![](Images/HDRPFeatures-CloudLayer.png)
+
+From HDRP 12.0, HDRP introduces a cloud system, which can be controlled through the volume framework in a similar way to the sky system.
+
+HDRP includes a Cloud Layer volume override which renders a cloud texture on top of the sky. For more information, see the [Cloud Layer](Override-Cloud-Layer.md) documentation.
+
+For detailed steps on how to create your custom cloud solution, see the documentation about [creating custom clouds](Creating-Custom-Clouds.md).
+
+### Lens Flares
+
+![](Images/LensFlareSamples2.png)
+
+From HDRP 12.0, HDRP (and URP) introduces a new Lens Flare system. You can attach a Lens Flare (SRP) component to any GameObject.
+Some Lens Flare properties only appear when you attach this component to a light. Each Lens Flare can have with multiple elements that you can control individually. HDRP also provides a [new asset](lens-flare-data-driven-asset.md) and a [new component](lens-flare-data-driven-component.md) which you can attach to any GameObject.
+
+### Light Anchor
+
+![](Images/LightAnchor0.png)
+
+From HDRP 12.0, HDRP (and URP) introduces a new [Light Anchor](light-anchor.md) component. You can attach this component to any light to control the light in Main Camera view.
+
 ## Improvements
 
 ### Area Lights
@@ -39,16 +62,6 @@ The size limit of 32x32x32 for the mask textures has also been replaced by a set
 There is a new field to change the falloff HDRP applies when it blends the volume using the Blend Distance property. You can choose either Linear which is the default and previous technique, or Exponential which is more realistic.
 
 Finally, the minimal value of the **Fog Distance** parameter was lowered to 0.05 instead of 1 and now allows thicker fog effects to be created.
-
-### Cloud System
-
-![](Images/HDRPFeatures-CloudLayer.png)
-
-From HDRP 12.0, HDRP introduces a cloud system, which can be controlled through the volume framework in a similar way to the sky system.
-
-HDRP includes a Cloud Layer volume override which renders a cloud texture on top of the sky. For more information, see the [Cloud Layer](Override-Cloud-Layer.md) documentation.
-
-For detailed steps on how to create your custom cloud solution, see the documentation about [creating custom clouds](Creating-Custom-Clouds.md).
 
 ### Dynamic Resolution Scale
 This version of HDRP introduces multiple improvements to Dynamic Resolution Scaling:
@@ -75,6 +88,7 @@ From HDRP 12.0, More Options have become Additional Properties. The way to acces
 ![](Images/HDRPFeatures-FabricPT.png)
 
 HDRP path tracing now supports the following Materials:
+
 - Fabric: Cotton/wool and silk variants.
 - AxF: SVBRDF and car paint variants.
 - Stacklit.
@@ -116,19 +130,6 @@ HDRP 12.0 includes the following physical camera improvements:
 
 Improved the quality of the physically-based Depth Of Field.
 ![](Images/HDRPFeatures-BetterDoF.png)
-
-### Lens Flares
-
-![](Images/LensFlareSamples2.png)
-
-From HDRP 12.0, HDRP (and URP) introduces a new Lens Flare system. You can attach a Lens Flare (SRP) component to any GameObject.
-Some Lens Flare properties only appear when you attach this component to a light. Each Lens Flare can have with multiple elements that you can control individually. HDRP also provides a [new asset](lens-flare-data-driven-asset.md) and a [new component](lens-flare-data-driven-component.md) which you can attach to any GameObject.
-
-### Light Anchor
-
-![](Images/LightAnchor0.png)
-
-From HDRP 12.0, HDRP (and URP) introduces a new [Light Anchor](light-anchor.md) component. You can attach this component to any light to control the light in Main Camera view.
 
 ## Issues resolved
 

@@ -366,12 +366,17 @@ namespace UnityEditor.Rendering
 
         /// <summary>
         /// Sets the label for the component header. Override this method to provide
-        /// a custom label. If you don't, Unity automatically inferres one from the class name.
+        /// a custom label. If you don't, Unity automatically obtains one from the class name.
         /// </summary>
         /// <returns>A label to display in the component header.</returns>
-        public virtual string GetDisplayTitle()
+        public virtual GUIContent GetDisplayTitle()
         {
-            return target.displayName == "" ? ObjectNames.NicifyVariableName(target.GetType().Name) : target.displayName;
+            var targetType = target.GetType();
+            string title = string.IsNullOrEmpty(target.displayName) ? ObjectNames.NicifyVariableName(target.GetType().Name) : target.displayName;
+            string tooltip = targetType.GetCustomAttribute(typeof(VolumeComponentMenuForRenderPipeline), false) is VolumeComponentMenuForRenderPipeline supportedOn
+                ? string.Join(", ", supportedOn.pipelineTypes.Select(t => ObjectNames.NicifyVariableName(t.Name)))
+                : string.Empty;
+            return EditorGUIUtility.TrTextContent(title, tooltip);
         }
 
         void AddToogleState(GUIContent content, bool state)
@@ -460,7 +465,8 @@ namespace UnityEditor.Rendering
         /// <returns>true if the property field has been rendered</returns>
         protected bool PropertyField(SerializedDataParameter property)
         {
-            var title = EditorGUIUtility.TrTextContent(property.displayName);
+            var title = EditorGUIUtility.TrTextContent(property.displayName,
+                property.GetAttribute<TooltipAttribute>()?.tooltip); // avoid property from getting the tooltip of another one with the same name
             return PropertyField(property, title);
         }
 
@@ -511,6 +517,21 @@ namespace UnityEditor.Rendering
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Get indentation from Indent attribute
+        /// </summary>
+        /// <param name="property">The property to obtain the attributes</param>
+        /// <returns>The relative indent level change</returns>
+        int HandleRelativeIndentation(SerializedDataParameter property)
+        {
+            foreach (var attr in property.attributes)
+            {
+                if (attr is VolumeComponent.Indent indent)
+                    return indent.relativeAmount;
+            }
+            return 0;
         }
 
         /// <summary>
@@ -632,6 +653,7 @@ namespace UnityEditor.Rendering
             bool isAdditionalProperty;
             VolumeComponentEditor editor;
             IDisposable disabledScope;
+            IDisposable indentScope;
             internal bool haveCustomOverrideCheckbox { get; private set; }
             internal VolumeParameterDrawer drawer { get; private set; }
             /// <summary>
@@ -652,6 +674,7 @@ namespace UnityEditor.Rendering
             public OverridablePropertyScope(SerializedDataParameter property, GUIContent label, VolumeComponentEditor editor)
             {
                 disabledScope = null;
+                indentScope = null;
                 haveCustomOverrideCheckbox = false;
                 drawer = null;
                 displayed = false;
@@ -671,6 +694,7 @@ namespace UnityEditor.Rendering
             public OverridablePropertyScope(SerializedDataParameter property, string label, VolumeComponentEditor editor)
             {
                 disabledScope = null;
+                indentScope = null;
                 haveCustomOverrideCheckbox = false;
                 drawer = null;
                 displayed = false;
@@ -697,20 +721,27 @@ namespace UnityEditor.Rendering
                     || VolumeParameter.IsObjectParameter(property.referenceType);
 
                 if (displayed)
+                {
                     editor.HandleDecorators(property, label);
 
-                if (!haveCustomOverrideCheckbox && displayed)
-                {
-                    EditorGUILayout.BeginHorizontal();
-                    editor.DrawOverrideCheckbox(property);
+                    int relativeIndentation = editor.HandleRelativeIndentation(property);
+                    if (relativeIndentation != 0)
+                        indentScope = new IndentLevelScope(relativeIndentation * 15);
 
-                    disabledScope = new EditorGUI.DisabledScope(!property.overrideState.boolValue);
+                    if (!haveCustomOverrideCheckbox)
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        editor.DrawOverrideCheckbox(property);
+
+                        disabledScope = new EditorGUI.DisabledScope(!property.overrideState.boolValue);
+                    }
                 }
             }
 
             void IDisposable.Dispose()
             {
                 disabledScope?.Dispose();
+                indentScope?.Dispose();
 
                 if (!haveCustomOverrideCheckbox && displayed)
                     EditorGUILayout.EndHorizontal();
