@@ -646,7 +646,7 @@ namespace UnityEngine.Experimental.Rendering
         /// Get approximate video memory impact, in bytes, of the system.
         /// </summary>
         /// <returns>An approximation of the video memory impact, in bytes, of the system<returns>
-        public int GetVMemCost()
+        public int GetVideoMemoryCost()
         {
             if (!m_ProbeReferenceVolumeInit)
                 return 0;

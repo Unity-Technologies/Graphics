@@ -220,7 +220,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
 
-                int estimatedVMemCost = ProbeReferenceVolume.instance.GetVMemCost();
+                int estimatedVMemCost = ProbeReferenceVolume.instance.GetVideoMemoryCost();
                 if (estimatedVMemCost == 0)
                 {
                     EditorGUILayout.HelpBox($"Estimated GPU Memory cost 0.\nProbe reference volume is not used in the scene and resources haven't been allocated yet.", MessageType.Info, wide: true);
