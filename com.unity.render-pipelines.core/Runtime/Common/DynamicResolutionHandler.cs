@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering
             m_PrevHWScaleWidth = 1.0f;
             m_PrevHWScaleHeight = 1.0f;
             m_LastScaledSize = new Vector2Int(0, 0);
-            filter = DynamicResUpscaleFilter.Bilinear;
+            filter = DynamicResUpscaleFilter.CatmullRom;
         }
 
         private struct ScalerContainer
