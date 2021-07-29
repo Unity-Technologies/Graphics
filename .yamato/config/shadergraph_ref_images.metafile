@@ -5,7 +5,8 @@ test_platforms:
   - type: Standalone
     name: Standalone_ref_images
     utr_flags:
-      - [OSX_Metal]: --timeout=2400
+      - [all]: --player-save-path=players --testfilter="Individual"
+      - [OSX_Metal]: --timeout=2400 --player-save-path=players
     commands:
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
@@ -30,7 +31,7 @@ test_platforms:
   - type: playmode
     name: playmode_ref_images
     utr_flags:
-    - [all]: --extra-editor-arg="-logfile C:/build/output/Unity-Technologies/Graphics/TestProjects/ShaderGraph/Logs/Editor.log" --testfilter="Individual"
+    - [all]: --player-save-path=players --testfilter="Individual"
     commands:
     - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
     - [all]: <shared.platform.commands.setup_utr>
@@ -53,6 +54,7 @@ test_platforms:
   - type: Standalone
     name: Standalone_cache_ref_images
     utr_flags_build:
+    - [all]: --player-save-path=players --testfilter="Individual"
     - [all]: --timeout=3000
     - [all]: --extra-editor-arg="-adb2"
     - [all]: --extra-editor-arg="-enableCacheServer"
