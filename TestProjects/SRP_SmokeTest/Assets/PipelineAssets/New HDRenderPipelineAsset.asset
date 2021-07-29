@@ -40,9 +40,10 @@ MonoBehaviour:
         m_Id: With3Levels
     supportDecals: 1
     supportDecalLayers: 0
+    supportSurfaceGradient: 0
+    decalNormalBufferHP: 0
     msaaSampleCount: 1
     supportMotionVectors: 1
-    supportRuntimeDebugDisplay: 1
     supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
@@ -118,12 +119,19 @@ MonoBehaviour:
       bufferFormat: 74
     dynamicResolutionSettings:
       enabled: 0
+      useMipBias: 0
+      enableDLSS: 0
+      DLSSPerfQualitySetting: 0
+      DLSSUseOptimalSettings: 1
+      DLSSSharpness: 0.5
       maxPercentage: 100
       minPercentage: 100
       dynResType: 1
       upsampleFilter: 1
       forceResolution: 0
       forcedPercentage: 100
+      lowResTransparencyMinimumThreshold: 0
+      rayTracingHalfResThreshold: 50
     lowresTransparentSettings:
       enabled: 1
       checkerboardDepthBuffer: 1
@@ -153,7 +161,7 @@ MonoBehaviour:
       ChromaticAberrationMaxSamples: 03000000060000000c000000
     lightSettings:
       useContactShadow:
-        m_Values: 
+        m_Values: 000000
         m_SchemaId:
           m_Id: 
     maximumLODLevel:
@@ -176,7 +184,13 @@ MonoBehaviour:
       ContactShadowSampleCount: 060000000a00000010000000
       SSRMaxRaySteps: 100000002000000040000000
       SSGIRaySteps: 200000004000000080000000
-      SSGIFilterRadius: 100000000e0000000c000000
+      SSGIDenoise: 010101
+      SSGIHalfResDenoise: 010000
+      SSGIDenoiserRadius:
+      - 0.75
+      - 0.5
+      - 0.5
+      SSGISecondDenoise: 010101
       RTAORayLength:
       - 0.5
       - 3
@@ -196,7 +210,7 @@ MonoBehaviour:
       - 0.5
       - 0.8
       - 1.5
-      RTGIUpScaleRadius: 040000000400000004000000
+      RTGIRaySteps: 200000003000000040000000
       RTGIDenoise: 010101
       RTGIHalfResDenoise: 010000
       RTGIDenoiserRadius:
@@ -221,6 +235,7 @@ MonoBehaviour:
       - 1
       - 1.2
       RTRFullResolution: 000001
+      RTRRayMaxIterations: 200000003000000040000000
       RTRDenoise: 010101
       RTRDenoiserRadius: 080000000c00000010000000
       RTRSmoothDenoising: 010000
@@ -249,6 +264,7 @@ MonoBehaviour:
     m_ObsoleteDecalLayerName5: 
     m_ObsoleteDecalLayerName6: 
     m_ObsoleteDecalLayerName7: 
+    m_ObsoleteSupportRuntimeDebugDisplay: 1
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
   availableMaterialQualityLevels: -1
@@ -260,7 +276,7 @@ MonoBehaviour:
     - format: 0
       sizeInMegaBytes: 128
   m_UseRenderGraph: 1
-  m_Version: 19
+  m_Version: 21
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -413,6 +429,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    msaaMode: 0
     materialQuality: 0
   m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings:
     bitDatas:
@@ -427,6 +444,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    msaaMode: 0
     materialQuality: 0
   m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings:
     bitDatas:
@@ -441,6 +459,7 @@ MonoBehaviour:
     sssQualityMode: 0
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
+    msaaMode: 0
     materialQuality: 0
   m_ObsoleteRenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
