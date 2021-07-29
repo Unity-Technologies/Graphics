@@ -112,8 +112,11 @@ namespace UnityEditor.VFX
             EditMode.editModeEnded += OnEditModeEnd;
             Selection.selectionChanged += OnHierarchySelectionChanged;
 
-            // Force rebuilding the parameterinfos
-            VisualEffect effect = ((VisualEffect)targets[0]);
+            // Try to auto attach because the selection could have changed while the VFX editor was disabled
+            AutoAttachToSelection();
+
+            // Force rebuilding the parameter infos
+            VisualEffect effect = (VisualEffect)targets[0];
 
             var asset = effect.visualEffectAsset;
             if (asset != null && asset.GetResource() != null)
