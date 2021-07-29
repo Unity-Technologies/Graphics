@@ -1,12 +1,8 @@
-using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
-using UnityEditor.ShaderGraph.GraphUI.Utilities;
 using UnityEditor.ShaderGraph.Registry;
-using UnityEditor.ShaderGraph.Registry.Exploration;
 using UnityEngine;
-using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
 {
@@ -39,18 +35,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var registry = stencil.GetRegistry();
             var reader = registry.GetDefaultTopology(registryKey);
 
-            if (reader != null)
+            if (reader == null) return;
+            foreach (var portReader in reader.GetPorts())
             {
-                AddPortFromReader(reader, "out");
+                AddPortFromReader(portReader);
             }
         }
 
-        void AddPortFromReader(GraphDelta.INodeReader reader, string name)
+        void AddPortFromReader(GraphDelta.IPortReader portReader)
         {
-            if (!reader.TryGetPort(name, out var portReader)) return;
-
-
-
             var isInput = portReader.GetFlags().isInput;
             var orientation = portReader.GetFlags().isHorizontal
                 ? PortOrientation.Horizontal
@@ -59,9 +52,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetRegistryKey());
 
             if (isInput)
-                this.AddDataInputPort(name, type, orientation: orientation);
+                this.AddDataInputPort(portReader.GetName(), type, orientation: orientation);
             else
-                this.AddDataOutputPort(name, type, orientation: orientation);
+                this.AddDataOutputPort(portReader.GetName(), type, orientation: orientation);
         }
     }
 }
