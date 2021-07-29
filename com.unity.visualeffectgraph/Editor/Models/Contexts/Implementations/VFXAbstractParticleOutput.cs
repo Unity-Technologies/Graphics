@@ -656,9 +656,39 @@ namespace UnityEditor.VFX
                             || attr.attrib.name.Contains("scale")
                             || attr.attrib.name.Contains("pivot")));
                 if (modifiedBounds && CanBeCompiled())
-                    manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning, $"Bounds computation during recording is based on Position and Size in the Update Context." +
+                    manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning,
+                        $"Bounds computation during recording is based on Position and Size in the Update Context." +
                         $" Changing these properties now could lead to incorrect bounds." +
                         $" Use padding to mitigate this discrepancy.");
+            }
+
+            if (HasSorting() && !needsOwnSort)
+            {
+                var modifiedAttributes = children.SelectMany(b => b.attributes)
+                    .Where(a => a.mode.HasFlag(VFXAttributeMode.Write)).Select(a => a.attrib);
+                bool isCriterionModified = false;
+
+                if (HasCustomSortingCriterion())
+                {
+                    HashSet<VFXExpression> sortKeyExpressions = new HashSet<VFXExpression>();
+                    var sortKeyExp = inputSlots.First(s => s.name == "sortKey").GetExpression();
+                    VFXExpression.CollectParentExpressionRecursively(sortKeyExp, sortKeyExpressions);
+
+                    foreach (var modifiedAttribute in modifiedAttributes)
+                        isCriterionModified |=
+                            sortKeyExpressions.Contains(new VFXAttributeExpression(modifiedAttribute));
+                }
+                else
+                {
+                    var usedAttributesInSorting = VFXSortingUtility.GetSortingDependantAttributes(sortCriterion);
+                    isCriterionModified = usedAttributesInSorting.Intersect(modifiedAttributes).Any();
+                }
+                if (isCriterionModified)
+                {
+                    manager.RegisterError("SortingKeyOverriden", VFXErrorType.Warning,
+                        $"Sorting happens in Update, before the attributes were modified in the Output context." +
+                        $" All the modifications made in this context won't be taken into account during sorting.");
+                }
             }
         }
     }

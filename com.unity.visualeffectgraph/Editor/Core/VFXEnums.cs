@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
         Output                      = UnityEngine.VFX.VFXTaskType.Output,
 
         // updates
-        CameraSort                  = UnityEngine.VFX.VFXTaskType.CameraSort, //TODO : update in C++ side
+        CameraSort                  = UnityEngine.VFX.VFXTaskType.CameraSort,
         GlobalSort                  = UnityEngine.VFX.VFXTaskType.GlobalSort,
         PerCameraUpdate             = UnityEngine.VFX.VFXTaskType.PerCameraUpdate,
         PerOutputSort               = UnityEngine.VFX.VFXTaskType.PerOutputSort,
