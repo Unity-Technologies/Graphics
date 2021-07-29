@@ -21,13 +21,12 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: DecalAngleFade
-  m_Shader: {fileID: -6465566751694194690, guid: 991dcb8005bafed45a437afc9a13a381,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 991dcb8005bafed45a437afc9a13a381, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 1950
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -107,14 +106,14 @@ Material:
     - _Cull: 2
     - _Cutoff: 0.5
     - _DecalAngleFadeSupported: 1
-    - _DecalMeshBiasType: 1
-    - _DecalMeshDepthBias: 1.93
-    - _DecalMeshViewBias: 12.84
+    - _DecalMeshBiasType: 0
+    - _DecalMeshDepthBias: -0.001
+    - _DecalMeshViewBias: 0
     - _DecalStencilRef: 0
     - _DecalStencilWriteMask: 0
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
-    - _DrawOrder: -50
+    - _DrawOrder: 0
     - _DstBlend: 0
     - _EnvironmentReflections: 1
     - _GlossMapScale: 0
