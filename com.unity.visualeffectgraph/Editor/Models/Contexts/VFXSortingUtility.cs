@@ -47,19 +47,6 @@ namespace UnityEditor.VFX
                 case SortCriteria.Depth:
                 case SortCriteria.Distance:
                     yield return VFXAttribute.Position;
-                    yield return VFXAttribute.AxisX;
-                    yield return VFXAttribute.AxisY;
-                    yield return VFXAttribute.AxisZ;
-                    yield return VFXAttribute.AngleX;
-                    yield return VFXAttribute.AngleY;
-                    yield return VFXAttribute.AngleZ;
-                    yield return VFXAttribute.PivotX;
-                    yield return VFXAttribute.PivotY;
-                    yield return VFXAttribute.PivotZ;
-                    yield return VFXAttribute.Size;
-                    yield return VFXAttribute.ScaleX;
-                    yield return VFXAttribute.ScaleY;
-                    yield return VFXAttribute.ScaleZ;
                     break;
                 case SortCriteria.YoungestInFront:
                 case SortCriteria.OldestInFront:
