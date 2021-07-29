@@ -845,19 +845,21 @@ namespace UnityEditor.VFX.UI
         public void AttachToSelection()
         {
             AttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>());
-            var box = new Box();
-            var notification = new TextElement();
-            box.Add(notification);
-            box.style.backgroundColor = new StyleColor(new Color(0.216f, 0.216f, 0.216f));
-            box.style.borderLeftColor = box.style.borderRightColor = box.style.borderTopColor = box.style.borderBottomColor = new StyleColor(new Color(0.098f, 0.098f, 0.098f));
-            box.style.position = PositionType.Absolute;
-            box.style.left = m_AttachDropDownButton.resolvedStyle.left + 0;
-            box.style.top = m_AttachDropDownButton.resolvedStyle.height + 4;
-            box.style.paddingLeft = box.style.paddingRight = box.style.paddingTop = box.style.paddingBottom = 4;
-            notification.text = $"Attached to {Selection.activeObject.name}";
-            Add(box);
+            VFXViewWindow.currentWindow.ShowNotification(new GUIContent($"Attached to {Selection.activeObject.name}"), 3);
 
-            System.Threading.Tasks.Task.Delay(3000).ContinueWith(x => Remove(box), TaskScheduler.FromCurrentSynchronizationContext());
+            //var box = new Box();
+            //var notification = new TextElement();
+            //box.Add(notification);
+            //box.style.backgroundColor = new StyleColor(new Color(0.216f, 0.216f, 0.216f));
+            //box.style.borderLeftColor = box.style.borderRightColor = box.style.borderTopColor = box.style.borderBottomColor = new StyleColor(new Color(0.098f, 0.098f, 0.098f));
+            //box.style.position = PositionType.Absolute;
+            //box.style.left = m_AttachDropDownButton.resolvedStyle.left + 0;
+            //box.style.top = m_AttachDropDownButton.resolvedStyle.height + 4;
+            //box.style.paddingLeft = box.style.paddingRight = box.style.paddingTop = box.style.paddingBottom = 4;
+            //notification.text = $"Attached to {Selection.activeObject.name}";
+            //Add(box);
+
+            //System.Threading.Tasks.Task.Delay(3000).ContinueWith(x => Remove(box), TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         public void AttachTo(VisualEffect selectedAsset)
