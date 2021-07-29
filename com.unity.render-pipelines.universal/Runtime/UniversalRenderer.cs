@@ -641,8 +641,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (this.actualRenderingMode == RenderingMode.Deferred)
             {
-                if (m_DeferredLights.UseRenderPass && (RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent || !useRenderPassEnabled))
-                    m_DeferredLights.DisableFramebufferFetchInput();
+                // if (m_DeferredLights.UseRenderPass && (RenderPassEvent.AfterRenderingGbuffer == renderPassInputs.requiresDepthNormalAtEvent || !useRenderPassEnabled))
+                //     m_DeferredLights.DisableFramebufferFetchInput();
 
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, renderPassInputs.requiresNormalsTexture, mainLightShadows, additionalLightShadows);
             }
@@ -677,7 +677,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
-            if (requiresDepthCopyPass)
+            // Also skip if Deferred+RenderPass as CameraDepthTexture is used and filled by the GBufferPass
+            if (requiresDepthCopyPass && !(this.actualRenderingMode == RenderingMode.Deferred && useRenderPassEnabled))
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
 

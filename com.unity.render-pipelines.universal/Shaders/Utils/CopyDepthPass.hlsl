@@ -106,7 +106,7 @@ float SampleDepth(float2 uv)
 #endif
 }
 
-float frag(Varyings input) : SV_Depth
+float frag(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     return SampleDepth(input.uv);

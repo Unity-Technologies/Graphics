@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             "_GBuffer1",
             "_GBuffer2",
             "_GBuffer3",
-            "_GBuffer4",
+            "_CameraDepthTexture",
             "_GBuffer5",
             "_GBuffer6"
         };

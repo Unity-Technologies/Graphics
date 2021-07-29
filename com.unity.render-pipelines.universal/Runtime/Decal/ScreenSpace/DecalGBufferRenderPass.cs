@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier);
+            ConfigureTarget(new RenderTargetIdentifier[] {m_DeferredLights.GbufferAttachmentIdentifiers[0], m_DeferredLights.GbufferAttachmentIdentifiers[1], m_DeferredLights.GbufferAttachmentIdentifiers[2], m_DeferredLights.GbufferAttachmentIdentifiers[3]  }, m_DeferredLights.DepthAttachmentIdentifier);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

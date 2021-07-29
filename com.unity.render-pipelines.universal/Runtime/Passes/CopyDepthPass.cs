@@ -43,14 +43,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            descriptor.colorFormat = RenderTextureFormat.Depth;
-            descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
+            // descriptor.colorFormat = RenderTextureFormat.Depth;
+            descriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
+            descriptor.depthBufferBits = 0; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
             if (this.AllocateRT)
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
+            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples, false);
             ConfigureClear(ClearFlag.None, Color.black);
         }
 

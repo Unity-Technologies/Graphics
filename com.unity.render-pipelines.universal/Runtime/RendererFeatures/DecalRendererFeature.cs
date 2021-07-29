@@ -378,6 +378,7 @@ namespace UnityEngine.Rendering.Universal
                 case DecalTechnique.GBuffer:
 
                     m_DeferredLights = universalRenderer.deferredLights;
+                    //m_DeferredLights.DisableFramebufferFetchInput();
 
                     m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, m_DBufferClearMaterial);
                     m_DrawGBufferSystem = new DecalDrawGBufferSystem(m_DecalEntityManager);
@@ -481,6 +482,11 @@ namespace UnityEngine.Rendering.Universal
                     renderer.EnqueuePass(m_ForwardEmissivePass);
                     break;
             }
+        }
+
+        internal override bool SupportsNativeRenderPass()
+        {
+            return m_Technique == DecalTechnique.GBuffer;
         }
 
         protected override void Dispose(bool disposing)

@@ -70,14 +70,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                         continue;
 
                     // No need to setup temporaryRTs if we are using input attachments as they will be Memoryless
-                    if (m_DeferredLights.UseRenderPass && i != m_DeferredLights.GBufferShadowMask && i != m_DeferredLights.GBufferRenderingLayers)
+                    if (m_DeferredLights.UseRenderPass && i != m_DeferredLights.GBufferShadowMask && i != m_DeferredLights.GBufferRenderingLayers && i != m_DeferredLights.GbufferDepthIndex)
                         continue;
 
                     RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
                     gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
                     gbufferSlice.stencilFormat = GraphicsFormat.None;
                     gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
-                    cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
+
+                    cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice, FilterMode.Point);
                 }
             }
 
@@ -127,6 +128,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Input attachments will only be used when this is not needed so safe to skip in that case
                 if (!m_DeferredLights.UseRenderPass)
                     gbufferCommands.SetGlobalTexture(s_CameraNormalsTextureID, m_DeferredLights.GbufferAttachmentIdentifiers[m_DeferredLights.GBufferNormalSmoothnessIndex]);
+               // gbufferCommands.SetGlobalTexture("_GBuffer4", m_DeferredLights.GbufferAttachmentIdentifiers[4]);
             }
 
             context.ExecuteCommandBuffer(gbufferCommands);

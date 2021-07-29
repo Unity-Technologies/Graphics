@@ -509,9 +509,15 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
 
+                m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].loadAction = RenderBufferLoadAction.DontCare;
+
+				// If the attachment doesn't require store - it should be transient
+				if (i >= 3)
+				{
+					return;
+				}
                 // Assume input attachment has to be transient as ScriptableRenderPass currently has only setters for StoreAction
                 // We also change the target of the descriptor for it to be initialized engine-side as a transient resource.
-                m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].loadAction = RenderBufferLoadAction.DontCare;
                 m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].storeAction = RenderBufferStoreAction.DontCare;
                 m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].loadStoreTarget = BuiltinRenderTextureType.None;
             }
