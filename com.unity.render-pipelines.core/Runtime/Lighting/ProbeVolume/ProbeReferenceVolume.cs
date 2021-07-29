@@ -623,6 +623,7 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
+        /// <summary>
         /// Cleanup the Probe Volume system.
         /// </summary>
         public void Cleanup()
@@ -636,6 +637,18 @@ namespace UnityEngine.Experimental.Rendering
             CleanupLoadedData();
             CleanupDebug();
             m_IsInitialized = false;
+        }
+
+        /// <summary>
+        /// Get approximate video memory impact, in bytes, of the system.
+        /// </summary>
+        /// <returns>An approximation of the video memory impact, in bytes, of the system<returns>
+        public int GetVMemCost()
+        {
+            if (!m_ProbeReferenceVolumeInit)
+                return 0;
+
+            return m_Pool.estimatedVMemCost + m_Index.estimatedVMemCost + m_CellIndices.estimatedVMemCost;
         }
 
         void RemoveCell(Cell cell)
@@ -905,7 +918,8 @@ namespace UnityEngine.Experimental.Rendering
                 var path = sortInfo.sourceAsset;
 
                 bool compressed = false;
-                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2);
+                int allocatedBytes = 0;
+                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2, out allocatedBytes);
                 ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, ProbeVolumeSHBands.SphericalHarmonicsL2);
 
                 cell.flatIdxInCellIndices = m_CellIndices.GetFlatIdxForCell(cell.position);
