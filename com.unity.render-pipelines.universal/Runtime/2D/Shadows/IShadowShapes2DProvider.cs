@@ -23,6 +23,6 @@ namespace UnityEngine.U2D
         }
 
 
-        void SetShadowShape(ref ShadowShapes2D persistantShapeData);
+        void SetShadowShape(ShadowShapes2D persistantShapeData);
     }
 }

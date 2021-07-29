@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent selfShadows = EditorGUIUtility.TrTextContent("Self Shadows", "When enabled, the Renderer casts shadows on itself.");
             public static GUIContent castsShadows = EditorGUIUtility.TrTextContent("Casts Shadows", "Specifies if this renderer will cast shadows");
             public static GUIContent sortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply shadows to the specified sorting layers.");
-            public static GUIContent shadowShapeOverride = EditorGUIUtility.TrTextContent("Shape Provider", "This allows a selected component provide a different shape from the Shadow Caster 2D shape. This component must implement IShadowShape2DProvider");
+            public static GUIContent shadowShapeProvider = EditorGUIUtility.TrTextContent("Shape Provider", "This allows a selected component provide a different shape from the Shadow Caster 2D shape. This component must implement IShadowShape2DProvider");
             public static GUIContent shadowShapeContract = EditorGUIUtility.TrTextContent("Contract Edge", "This contracts the edge of the shape given by the shape provider by the specified amount");
             
             public static GUIContent castingSource = EditorGUIUtility.TrTextContent("Casting Source", "Specifies the source of the shape used for projected shadows");
@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_UseRendererSilhouette;
         SerializedProperty m_CastsShadows;
         SerializedProperty m_SelfShadows;
-        SerializedProperty m_ShadowShapeOverride;
+        SerializedProperty m_ShadowShapeProvider;
         SerializedProperty m_ShadowShapeContract;
         SerializedProperty m_CastingSource;
 
@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.Universal
             m_UseRendererSilhouette = serializedObject.FindProperty("m_UseRendererSilhouette");
             m_SelfShadows = serializedObject.FindProperty("m_SelfShadows");
             m_CastsShadows = serializedObject.FindProperty("m_CastsShadows");
-            m_ShadowShapeOverride = serializedObject.FindProperty("m_ShadowShapeOverride");
+            m_ShadowShapeProvider = serializedObject.FindProperty("m_ShadowShapeProvider");
             m_ShadowShapeContract = serializedObject.FindProperty("m_ShadowShapeContract");
             m_CastingSource = serializedObject.FindProperty("m_ShadowCastingSource");
 
@@ -148,7 +148,7 @@ namespace UnityEditor.Rendering.Universal
 
             if ((ShadowCaster2D.CastingSources)m_CastingSource.intValue == ShadowCaster2D.CastingSources.ShapeProvider)
             {
-                EditorGUILayout.PropertyField(m_ShadowShapeOverride, Styles.shadowShapeOverride);
+                EditorGUILayout.PropertyField(m_ShadowShapeProvider, Styles.shadowShapeProvider);
                 EditorGUILayout.PropertyField(m_ShadowShapeContract, Styles.shadowShapeContract);
             }
             else if ((ShadowCaster2D.CastingSources)m_CastingSource.intValue == ShadowCaster2D.CastingSources.ShapeEditor)
