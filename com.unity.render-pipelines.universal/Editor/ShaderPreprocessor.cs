@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.Universal
         internal static event Action<Shader, ShaderSnippetData, int, double> shaderPreprocessed;
         private static readonly System.Diagnostics.Stopwatch m_stripTimer = new System.Diagnostics.Stopwatch();
 
-        /*LocalKeyword m_MainLightShadows;
+        LocalKeyword m_MainLightShadows;
         LocalKeyword m_MainLightShadowsCascades;
         LocalKeyword m_MainLightShadowsScreen;
         LocalKeyword m_AdditionalLightsVertex;
@@ -114,82 +114,21 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_LocalDetailMulx2;
         LocalKeyword m_LocalDetailScaled;
         LocalKeyword m_LocalClearCoat;
-        LocalKeyword m_LocalClearCoatMap;*/
+        LocalKeyword m_LocalClearCoatMap;
 
-        ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
-        ShaderKeyword m_MainLightShadowsCascades = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
-        ShaderKeyword m_MainLightShadowsScreen = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowScreen);
-        ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
-        ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
-        ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
-        ShaderKeyword m_ReflectionProbeBlending = new ShaderKeyword(ShaderKeywordStrings.ReflectionProbeBlending);
-        ShaderKeyword m_ReflectionProbeBoxProjection = new ShaderKeyword(ShaderKeywordStrings.ReflectionProbeBoxProjection);
-        ShaderKeyword m_CastingPunctualLightShadow = new ShaderKeyword(ShaderKeywordStrings.CastingPunctualLightShadow);
-        ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
-        ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
-        ShaderKeyword m_LightmapShadowMixing = new ShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
-        ShaderKeyword m_ShadowsShadowMask = new ShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
-        ShaderKeyword m_Lightmap = new ShaderKeyword(ShaderKeywordStrings.LIGHTMAP_ON);
-        ShaderKeyword m_DynamicLightmap = new ShaderKeyword(ShaderKeywordStrings.DYNAMICLIGHTMAP_ON);
-        ShaderKeyword m_DirectionalLightmap = new ShaderKeyword(ShaderKeywordStrings.DIRLIGHTMAP_COMBINED);
-        ShaderKeyword m_AlphaTestOn = new ShaderKeyword(ShaderKeywordStrings._ALPHATEST_ON);
-        ShaderKeyword m_DeferredStencil = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_STENCIL);
-        ShaderKeyword m_GbufferNormalsOct = new ShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
-        ShaderKeyword m_UseDrawProcedural = new ShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
-        ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
-        ShaderKeyword m_UseFastSRGBLinearConversion = new ShaderKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
-        ShaderKeyword m_LightLayers = new ShaderKeyword(ShaderKeywordStrings.LightLayers);
-        ShaderKeyword m_RenderPassEnabled = new ShaderKeyword(ShaderKeywordStrings.RenderPassEnabled);
-        ShaderKeyword m_DebugDisplay = new ShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
-        ShaderKeyword m_DBufferMRT1 = new ShaderKeyword(ShaderKeywordStrings.DBufferMRT1);
-        ShaderKeyword m_DBufferMRT2 = new ShaderKeyword(ShaderKeywordStrings.DBufferMRT2);
-        ShaderKeyword m_DBufferMRT3 = new ShaderKeyword(ShaderKeywordStrings.DBufferMRT3);
-        ShaderKeyword m_DecalNormalBlendLow = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendLow);
-        ShaderKeyword m_DecalNormalBlendMedium = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendMedium);
-        ShaderKeyword m_DecalNormalBlendHigh = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendHigh);
-        ShaderKeyword m_ClusteredRendering = new ShaderKeyword(ShaderKeywordStrings.ClusteredRendering);
-        ShaderKeyword m_EditorVisualization = new ShaderKeyword(ShaderKeywordStrings.EDITOR_VISUALIZATION);
-
-        ShaderKeyword m_LocalDetailMulx2;
-        ShaderKeyword m_LocalDetailScaled;
-        ShaderKeyword m_LocalClearCoat;
-        ShaderKeyword m_LocalClearCoatMap;
+        LocalKeyword m_LensDistortion;
+        LocalKeyword m_ChromaticAberration;
+        LocalKeyword m_BloomLQ;
+        LocalKeyword m_BloomHQ;
+        LocalKeyword m_BloomLQDirt;
+        LocalKeyword m_BloomHQDirt;
+        LocalKeyword m_HdrGrading;
+        LocalKeyword m_ToneMapACES;
+        LocalKeyword m_ToneMapNeutral;
+        LocalKeyword m_FilmGrain;
 
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
-
-        LocalKeyword m_LocalMainLightShadows;
-        LocalKeyword m_LocalMainLightShadowsCascades;
-        LocalKeyword m_LocalMainLightShadowsScreen;
-        LocalKeyword m_LocalSoftShadows;
-        LocalKeyword m_LocalLightCookies;
-        LocalKeyword m_LocalLightLayers;
-        LocalKeyword m_LocalAdditionalLightShadows;
-        LocalKeyword m_LocalReflectionProbeBlending;
-        LocalKeyword m_LocalReflectionProbeBoxProjection;
-        LocalKeyword m_LocalCastingPunctualLightShadow;
-        LocalKeyword m_LocalAdditionalLightsVertex;
-        LocalKeyword m_LocalAdditionalLightsPixel;
-        LocalKeyword m_LocalDBufferMRT1;
-        LocalKeyword m_LocalDBufferMRT2;
-        LocalKeyword m_LocalDBufferMRT3;
-        LocalKeyword m_LocalScreenSpaceOcclusion;
-        LocalKeyword m_LocalUseDrawProcedural;
-        LocalKeyword m_LocalUseFastSRGBLinearConversion;
-        LocalKeyword m_LocalGbufferNormalsOct;
-        LocalKeyword m_LocalRenderPassEnabled;
-        LocalKeyword m_LocalLensDistortion;
-        LocalKeyword _CHROMATIC_ABERRATION;
-        LocalKeyword m_LocalBloomLq;
-        LocalKeyword m_LocalBloomHq;
-        LocalKeyword m_LocalBloomLqDirt;
-        LocalKeyword m_LocalBloomHqDirt;
-        LocalKeyword _HDR_GRADING;
-        LocalKeyword _TONEMAP_ACES;
-        LocalKeyword _TONEMAP_NEUTRAL;
-        LocalKeyword _FILM_GRAIN;
-
-        HashSet<string> m_ContainedKeywordNames;
 
         // Multiple callback may be implemented.
         // The first one executed is the one where callbackOrder is returning the smallest number.
@@ -202,104 +141,56 @@ namespace UnityEditor.Rendering.Universal
 
         void InitializeLocalShaderKeywords(Shader shader)
         {
-            /*var names = shader.keywordSpace.keywordNames;
-            var nameHash = new HashSet<string>();
-            foreach (var name in names)
-                nameHash.Add(name);
-            if (nameHash.Contains(ShaderKeywordStrings.MainLightShadows))
-                m_MainLightShadows = new LocalKeyword(shader, ShaderKeywordStrings.MainLightShadows);
-            if (nameHash.Contains(ShaderKeywordStrings.MainLightShadowCascades))
-                m_MainLightShadowsCascades = new LocalKeyword(shader, ShaderKeywordStrings.MainLightShadowCascades);
-            if (nameHash.Contains(ShaderKeywordStrings.MainLightShadowScreen))
-                m_MainLightShadowsScreen = new LocalKeyword(shader, ShaderKeywordStrings.MainLightShadowScreen);
-            if (nameHash.Contains(ShaderKeywordStrings.AdditionalLightsVertex))
-                m_AdditionalLightsVertex = new LocalKeyword(shader, ShaderKeywordStrings.AdditionalLightsVertex);
-            if (nameHash.Contains(ShaderKeywordStrings.AdditionalLightsPixel))
-                m_AdditionalLightsPixel = new LocalKeyword(shader, ShaderKeywordStrings.AdditionalLightsPixel);
-            if (nameHash.Contains(ShaderKeywordStrings.AdditionalLightShadows))
-                m_AdditionalLightShadows = new LocalKeyword(shader, ShaderKeywordStrings.AdditionalLightShadows);
-            if (nameHash.Contains(ShaderKeywordStrings.ReflectionProbeBlending))
-                m_ReflectionProbeBlending = new LocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeBlending);
-            if (nameHash.Contains(ShaderKeywordStrings.ReflectionProbeBoxProjection))
-                m_ReflectionProbeBoxProjection = new LocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeBoxProjection);
-            if (nameHash.Contains(ShaderKeywordStrings.CastingPunctualLightShadow))
-                m_CastingPunctualLightShadow = new LocalKeyword(shader, ShaderKeywordStrings.CastingPunctualLightShadow);
-            if (nameHash.Contains(ShaderKeywordStrings.SoftShadows))
-                m_SoftShadows = new LocalKeyword(shader, ShaderKeywordStrings.SoftShadows);
-            if (nameHash.Contains(ShaderKeywordStrings.MixedLightingSubtractive))
-                m_MixedLightingSubtractive = new LocalKeyword(shader, ShaderKeywordStrings.MixedLightingSubtractive);
-            if (nameHash.Contains(ShaderKeywordStrings.LightmapShadowMixing))
-                m_LightmapShadowMixing = new LocalKeyword(shader, ShaderKeywordStrings.LightmapShadowMixing);
-            if (nameHash.Contains(ShaderKeywordStrings.ShadowsShadowMask))
-                m_ShadowsShadowMask = new LocalKeyword(shader, ShaderKeywordStrings.ShadowsShadowMask);
-             m_Lightmap = new LocalKeyword(shader, ShaderKeywordStrings.LIGHTMAP_ON);
-             m_DynamicLightmap = new LocalKeyword(shader, ShaderKeywordStrings.DYNAMICLIGHTMAP_ON);
-             m_DirectionalLightmap = new LocalKeyword(shader, ShaderKeywordStrings.DIRLIGHTMAP_COMBINED);
-             m_AlphaTestOn = new LocalKeyword(shader, ShaderKeywordStrings._ALPHATEST_ON);
-             m_DeferredStencil = new LocalKeyword(shader, ShaderKeywordStrings._DEFERRED_STENCIL);
-             m_GbufferNormalsOct = new LocalKeyword(shader, ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
-             m_UseDrawProcedural = new LocalKeyword(shader, ShaderKeywordStrings.UseDrawProcedural);
-             m_ScreenSpaceOcclusion = new LocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceOcclusion);
-             m_UseFastSRGBLinearConversion = new LocalKeyword(shader, ShaderKeywordStrings.UseFastSRGBLinearConversion);
-             m_LightLayers = new LocalKeyword(shader, ShaderKeywordStrings.LightLayers);
-             m_RenderPassEnabled = new LocalKeyword(shader, ShaderKeywordStrings.RenderPassEnabled);
-             m_DebugDisplay = new LocalKeyword(shader, ShaderKeywordStrings.DEBUG_DISPLAY);
-             m_DBufferMRT1 = new LocalKeyword(shader, ShaderKeywordStrings.DBufferMRT1);
-             m_DBufferMRT2 = new LocalKeyword(shader, ShaderKeywordStrings.DBufferMRT2);
-             m_DBufferMRT3 = new LocalKeyword(shader, ShaderKeywordStrings.DBufferMRT3);
-             m_DecalNormalBlendLow = new LocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendLow);
-             m_DecalNormalBlendMedium = new LocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendMedium);
-             m_DecalNormalBlendHigh = new LocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendHigh);
-             m_ClusteredRendering = new LocalKeyword(shader, ShaderKeywordStrings.ClusteredRendering);
-             m_EditorVisualization = new LocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
+            m_MainLightShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.MainLightShadows);
+            m_MainLightShadowsCascades = TryGetLocalKeyword(shader, ShaderKeywordStrings.MainLightShadowCascades);
+            m_MainLightShadowsScreen = TryGetLocalKeyword(shader, ShaderKeywordStrings.MainLightShadowScreen);
+            m_AdditionalLightsVertex = TryGetLocalKeyword(shader, ShaderKeywordStrings.AdditionalLightsVertex);
+            m_AdditionalLightsPixel = TryGetLocalKeyword(shader, ShaderKeywordStrings.AdditionalLightsPixel);
+            m_AdditionalLightShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.AdditionalLightShadows);
+            m_ReflectionProbeBlending = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeBlending);
+            m_ReflectionProbeBoxProjection = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeBoxProjection);
+            m_CastingPunctualLightShadow = TryGetLocalKeyword(shader, ShaderKeywordStrings.CastingPunctualLightShadow);
+            m_SoftShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadows);
+            m_MixedLightingSubtractive = TryGetLocalKeyword(shader, ShaderKeywordStrings.MixedLightingSubtractive);
+            m_LightmapShadowMixing = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightmapShadowMixing);
+            m_ShadowsShadowMask = TryGetLocalKeyword(shader, ShaderKeywordStrings.ShadowsShadowMask);
+            m_Lightmap = TryGetLocalKeyword(shader, ShaderKeywordStrings.LIGHTMAP_ON);
+            m_DynamicLightmap = TryGetLocalKeyword(shader, ShaderKeywordStrings.DYNAMICLIGHTMAP_ON);
+            m_DirectionalLightmap = TryGetLocalKeyword(shader, ShaderKeywordStrings.DIRLIGHTMAP_COMBINED);
+            m_AlphaTestOn = TryGetLocalKeyword(shader, ShaderKeywordStrings._ALPHATEST_ON);
+            m_DeferredStencil = TryGetLocalKeyword(shader, ShaderKeywordStrings._DEFERRED_STENCIL);
+            m_GbufferNormalsOct = TryGetLocalKeyword(shader, ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
+            m_UseDrawProcedural = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseDrawProcedural);
+            m_ScreenSpaceOcclusion = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceOcclusion);
+            m_UseFastSRGBLinearConversion = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseFastSRGBLinearConversion);
+            m_LightLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightLayers);
+            m_RenderPassEnabled = TryGetLocalKeyword(shader, ShaderKeywordStrings.RenderPassEnabled);
+            m_DebugDisplay = TryGetLocalKeyword(shader, ShaderKeywordStrings.DEBUG_DISPLAY);
+            m_DBufferMRT1 = TryGetLocalKeyword(shader, ShaderKeywordStrings.DBufferMRT1);
+            m_DBufferMRT2 = TryGetLocalKeyword(shader, ShaderKeywordStrings.DBufferMRT2);
+            m_DBufferMRT3 = TryGetLocalKeyword(shader, ShaderKeywordStrings.DBufferMRT3);
+            m_DecalNormalBlendLow = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendLow);
+            m_DecalNormalBlendMedium = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendMedium);
+            m_DecalNormalBlendHigh = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendHigh);
+            m_ClusteredRendering = TryGetLocalKeyword(shader, ShaderKeywordStrings.ClusteredRendering);
+            m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
 
-            m_LocalDetailMulx2 = new LocalKeyword(shader, ShaderKeywordStrings._DETAIL_MULX2);
-            m_LocalDetailScaled = new LocalKeyword(shader, ShaderKeywordStrings._DETAIL_SCALED);
-            m_LocalClearCoat = new LocalKeyword(shader, ShaderKeywordStrings._CLEARCOAT);
-            m_LocalClearCoatMap = new LocalKeyword(shader, ShaderKeywordStrings._CLEARCOATMAP);*/
+            m_LocalDetailMulx2 = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_MULX2);
+            m_LocalDetailScaled = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_SCALED);
+            m_LocalClearCoat = TryGetLocalKeyword(shader, ShaderKeywordStrings._CLEARCOAT);
+            m_LocalClearCoatMap = TryGetLocalKeyword(shader, ShaderKeywordStrings._CLEARCOATMAP);
 
-            /*var names = shader.keywordSpace.keywordNames;
-            m_ContainedKeywordNames = new HashSet<string>();
-            foreach (var name in names)
-                m_ContainedKeywordNames.Add(name);*/
-
-            m_LocalDetailMulx2 = new ShaderKeyword(shader, ShaderKeywordStrings._DETAIL_MULX2);
-            m_LocalDetailScaled = new ShaderKeyword(shader, ShaderKeywordStrings._DETAIL_SCALED);
-            m_LocalClearCoat = new ShaderKeyword(shader, ShaderKeywordStrings._CLEARCOAT);
-            m_LocalClearCoatMap = new ShaderKeyword(shader, ShaderKeywordStrings._CLEARCOATMAP);
-
-            m_LocalMainLightShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.MainLightShadows);
-            m_LocalMainLightShadowsCascades = TryGetLocalKeyword(shader, ShaderKeywordStrings.MainLightShadowCascades);
-            m_LocalMainLightShadowsScreen = TryGetLocalKeyword(shader, ShaderKeywordStrings.MainLightShadowScreen);
-            m_LocalSoftShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadows);
-            m_LocalLightCookies = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightCookies);
-            m_LocalLightLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightLayers);
-            m_LocalAdditionalLightShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.AdditionalLightShadows);
-            m_LocalReflectionProbeBlending = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeBlending);
-            m_LocalReflectionProbeBoxProjection = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeBoxProjection);
-            m_LocalCastingPunctualLightShadow = TryGetLocalKeyword(shader, ShaderKeywordStrings.CastingPunctualLightShadow);
-            m_LocalAdditionalLightsVertex = TryGetLocalKeyword(shader, ShaderKeywordStrings.AdditionalLightsVertex);
-            m_LocalAdditionalLightsPixel = TryGetLocalKeyword(shader, ShaderKeywordStrings.AdditionalLightsPixel);
-            m_LocalDBufferMRT1 = TryGetLocalKeyword(shader, ShaderKeywordStrings.DBufferMRT1);
-            m_LocalDBufferMRT2 = TryGetLocalKeyword(shader, ShaderKeywordStrings.DBufferMRT2);
-            m_LocalDBufferMRT3 = TryGetLocalKeyword(shader, ShaderKeywordStrings.DBufferMRT3);
-            m_LocalScreenSpaceOcclusion = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceOcclusion);
-            m_LocalUseDrawProcedural = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseDrawProcedural);
-            m_LocalUseFastSRGBLinearConversion = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseFastSRGBLinearConversion);
-            m_LocalGbufferNormalsOct = TryGetLocalKeyword(shader, ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
-            m_LocalRenderPassEnabled = TryGetLocalKeyword(shader, ShaderKeywordStrings.RenderPassEnabled);
-
-            m_LocalLensDistortion = TryGetLocalKeyword(shader, "_DISTORTION");
-            _CHROMATIC_ABERRATION = TryGetLocalKeyword(shader, "_CHROMATIC_ABERRATION");
-            m_LocalBloomLq = TryGetLocalKeyword(shader, "_BLOOM_LQ");
-            m_LocalBloomHq = TryGetLocalKeyword(shader, "_BLOOM_HQ");
-            m_LocalBloomLqDirt = TryGetLocalKeyword(shader, "_BLOOM_LQ_DIRT");
-            m_LocalBloomHqDirt = TryGetLocalKeyword(shader, "_BLOOM_HQ_DIRT");
-
-            _HDR_GRADING = TryGetLocalKeyword(shader, "_HDR_GRADING");
-            _TONEMAP_ACES = TryGetLocalKeyword(shader, "_TONEMAP_ACES");
-            _TONEMAP_NEUTRAL = TryGetLocalKeyword(shader, "_TONEMAP_NEUTRAL");
-            _FILM_GRAIN = TryGetLocalKeyword(shader, "_FILM_GRAIN");
+            // Post processing
+            m_LensDistortion = TryGetLocalKeyword(shader, ShaderKeywordStrings.Distortion);
+            m_ChromaticAberration = TryGetLocalKeyword(shader, ShaderKeywordStrings.ChromaticAberration);
+            m_BloomLQ = TryGetLocalKeyword(shader, ShaderKeywordStrings.BloomLQ);
+            m_BloomHQ = TryGetLocalKeyword(shader, ShaderKeywordStrings.BloomHQ);
+            m_BloomLQDirt = TryGetLocalKeyword(shader, ShaderKeywordStrings.BloomLQDirt);
+            m_BloomHQDirt = TryGetLocalKeyword(shader, ShaderKeywordStrings.BloomHQDirt);
+            m_HdrGrading = TryGetLocalKeyword(shader, ShaderKeywordStrings.HDRGrading);
+            m_ToneMapACES = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapACES);
+            m_ToneMapNeutral = TryGetLocalKeyword(shader, ShaderKeywordStrings.TonemapNeutral);
+            m_FilmGrain = TryGetLocalKeyword(shader, ShaderKeywordStrings.FilmGrain);
         }
 
         bool IsFeatureEnabled(ShaderFeatures featureMask, ShaderFeatures feature)
@@ -455,141 +346,6 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        bool StripUnusedFeaturesOld(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
-        {
-            var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
-            bool stripDebugDisplayShaders = !Debug.isDebugBuild || (globalSettings == null || !globalSettings.supportRuntimeDebugDisplay);
-
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
-            var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
-            if (buildTargetSettings != null && buildTargetSettings.AssignedSettings != null && buildTargetSettings.AssignedSettings.activeLoaders.Count > 0)
-            {
-                stripDebugDisplayShaders = true;
-            }
-#endif
-
-            if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
-            {
-                return true;
-            }
-
-            // strip main light shadows, cascade and screen variants
-            if (!IsFeatureEnabled(features, ShaderFeatures.MainLightShadows))
-            {
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadows))
-                    return true;
-
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades))
-                    return true;
-
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
-                    return true;
-
-                if (snippetData.passType == PassType.ShadowCaster && !compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
-                    return true;
-            }
-
-
-            bool isSoftShadow = compilerData.shaderKeywordSet.IsEnabled(m_LocalSoftShadows);
-            if (!IsFeatureEnabled(features, ShaderFeatures.SoftShadows) && isSoftShadow)
-                return true;
-
-            // Left for backward compatibility
-            if (compilerData.shaderKeywordSet.IsEnabled(m_MixedLightingSubtractive) &&
-                !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
-                return true;
-
-            if (compilerData.shaderKeywordSet.IsEnabled(m_UseFastSRGBLinearConversion) &&
-                !IsFeatureEnabled(features, ShaderFeatures.UseFastSRGBLinearConversion))
-                return true;
-
-            // Strip here only if mixed lighting is disabled
-            // No need to check here if actually used by scenes as this taken care by builtin stripper
-            if ((compilerData.shaderKeywordSet.IsEnabled(m_LightmapShadowMixing) ||
-                 compilerData.shaderKeywordSet.IsEnabled(m_ShadowsShadowMask)) &&
-                !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
-                return true;
-
-            if (compilerData.shaderKeywordSet.IsEnabled(m_LightLayers) &&
-                !IsFeatureEnabled(features, ShaderFeatures.LightLayers))
-                return true;
-
-            if (compilerData.shaderKeywordSet.IsEnabled(m_RenderPassEnabled) &&
-                !IsFeatureEnabled(features, ShaderFeatures.RenderPassEnabled))
-                return true;
-
-            // No additional light shadows
-            bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
-            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
-                return true;
-
-            bool isReflectionProbeBlending = compilerData.shaderKeywordSet.IsEnabled(m_ReflectionProbeBlending);
-            if (!IsFeatureEnabled(features, ShaderFeatures.ReflectionProbeBlending) && isReflectionProbeBlending)
-                return true;
-
-            bool isReflectionProbeBoxProjection = compilerData.shaderKeywordSet.IsEnabled(m_ReflectionProbeBoxProjection);
-            if (!IsFeatureEnabled(features, ShaderFeatures.ReflectionProbeBoxProjection) && isReflectionProbeBoxProjection)
-                return true;
-
-            bool isPunctualLightShadowCasterPass = (snippetData.passType == PassType.ShadowCaster) && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow);
-            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isPunctualLightShadowCasterPass)
-                return true;
-
-            // Additional light are shaded per-vertex or per-pixel.
-            bool isFeaturePerPixelLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.AdditionalLights);
-            bool isFeaturePerVertexLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.VertexLighting);
-            bool clusteredRendering = IsFeatureEnabled(features, ShaderFeatures.ClusteredRendering);
-            bool isAdditionalLightPerPixel = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel);
-            bool isAdditionalLightPerVertex = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex);
-
-            // Strip if Per-Pixel lighting is NOT used in the project and the
-            // Per-Pixel (_ADDITIONAL_LIGHTS) variant is enabled in the shader.
-            if (!isFeaturePerPixelLightingEnabled && isAdditionalLightPerPixel)
-                return true;
-
-            // Strip if Per-Vertex lighting is NOT used in the project and the
-            // Per-Vertex (_ADDITIONAL_LIGHTS_VERTEX) variant is enabled in the shader.
-            if (!isFeaturePerVertexLightingEnabled && isAdditionalLightPerVertex)
-                return true;
-
-            if (!clusteredRendering && compilerData.shaderKeywordSet.IsEnabled(m_ClusteredRendering))
-                return true;
-
-            // Screen Space Shadows
-            if (!IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceShadows) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
-                return true;
-
-            // Screen Space Occlusion
-            if (!IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceOcclusion) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_ScreenSpaceOcclusion))
-                return true;
-
-            // Decal DBuffer
-            if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT1) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT1))
-                return true;
-            if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT2) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT2))
-                return true;
-            if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT3) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT3))
-                return true;
-
-            // Decal Normal Blend
-            if (!IsFeatureEnabled(features, ShaderFeatures.DecalNormalBlendLow) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_DecalNormalBlendLow))
-                return true;
-            if (!IsFeatureEnabled(features, ShaderFeatures.DecalNormalBlendMedium) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_DecalNormalBlendMedium))
-                return true;
-            if (!IsFeatureEnabled(features, ShaderFeatures.DecalNormalBlendHigh) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_DecalNormalBlendHigh))
-                return true;
-
-            return false;
-        }
-
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
@@ -608,62 +364,27 @@ namespace UnityEditor.Rendering.Universal
                 return true;
             }
 
-            bool stripDisabledKeywords = globalSettings != null && globalSettings.stripDisabledKeywordVariants;
-
+            var stripDisabledKeywords = globalSettings != null && globalSettings.stripDisabledKeywordVariants;
             var stripTool = new StripTool(shader, stripDisabledKeywords, features, snippetData, compilerData.shaderKeywordSet);
 
             // strip main light shadows, cascade and screen variants
-            /*if (!IsFeatureEnabled(features, ShaderFeatures.MainLightShadows))
-            {
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadows))
-                    return true;
-
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades))
-                    return true;
-
-                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
-                    return true;
-
-                if (snippetData.passType == PassType.ShadowCaster && !compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
-                    return true;
-            }*/
-            
-            // Can not strip disabled variants as they can be used if no main light is present   
+            // TODO: Strip disabled keyword once no light will re-use same variant  
             if (stripTool.StripFeatureKeepDisabled(
-                m_LocalMainLightShadows, ShaderFeatures.MainLightShadows,
-                m_LocalMainLightShadowsCascades, ShaderFeatures.MainLightShadowsCascade,
-                m_LocalMainLightShadowsScreen, ShaderFeatures.ScreenSpaceShadows))
+                m_MainLightShadows, ShaderFeatures.MainLightShadows,
+                m_MainLightShadowsCascades, ShaderFeatures.MainLightShadowsCascade,
+                m_MainLightShadowsScreen, ShaderFeatures.ScreenSpaceShadows))
                 return true;
 
-            //if (stripTool.StripFeature(m_LocalLightCookies, globalSettings.supportLightCookies))
-            //    return true;
-
-            //bool isSoftShadow = compilerData.shaderKeywordSet.IsEnabled(m_LocalSoftShadows);
-            //if (!IsFeatureEnabled(features, ShaderFeatures.SoftShadows) && isSoftShadow)
-            //    return true;
-            /*if (snippetData.passName == kPassNameGBuffer)
-            {
-                if (stripTool.StripFeature(m_LocalSoftShadows, ShaderFeatures.SoftShadows))
-                    return true;
-            }
-            else
-            {
-                if (stripTool.StripFeature(m_LocalSoftShadows, ShaderFeatures.SoftShadows))
-                    return true;
-            }*/
-            if (stripTool.StripFeatureKeepDisabled(m_LocalSoftShadows, ShaderFeatures.SoftShadows))
+            // TODO: Strip disabled keyword once we support global soft shadows option
+            if (stripTool.StripFeatureKeepDisabled(m_SoftShadows, ShaderFeatures.SoftShadows))
                 return true;
-                
 
             // Left for backward compatibility
             if (compilerData.shaderKeywordSet.IsEnabled(m_MixedLightingSubtractive) &&
                 !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
                 return true;
 
-            //if (compilerData.shaderKeywordSet.IsEnabled(m_UseFastSRGBLinearConversion) &&
-            //    !IsFeatureEnabled(features, ShaderFeatures.UseFastSRGBLinearConversion))
-            //    return true;
-            if (stripTool.StripFeature(m_LocalUseFastSRGBLinearConversion, ShaderFeatures.UseFastSRGBLinearConversion))
+            if (stripTool.StripFeature(m_UseFastSRGBLinearConversion, ShaderFeatures.UseFastSRGBLinearConversion))
                 return true;
 
             // Strip here only if mixed lighting is disabled
@@ -673,47 +394,25 @@ namespace UnityEditor.Rendering.Universal
                 !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
                 return true;
 
-            //if (compilerData.shaderKeywordSet.IsEnabled(m_LightLayers) &&
-            //    !IsFeatureEnabled(features, ShaderFeatures.LightLayers))
-            //    return true;
-            if (stripTool.StripFeature(m_LocalLightLayers, ShaderFeatures.LightLayers))
+            if (stripTool.StripFeature(m_LightLayers, ShaderFeatures.LightLayers))
                 return true;
 
-            //if (compilerData.shaderKeywordSet.IsEnabled(m_RenderPassEnabled) &&
-            //    !IsFeatureEnabled(features, ShaderFeatures.RenderPassEnabled))
-            //    return true;
-            if (stripTool.StripFeature(m_LocalRenderPassEnabled, ShaderFeatures.RenderPassEnabled))
-                return true;
-                
+            if (stripTool.StripFeature(m_RenderPassEnabled, ShaderFeatures.RenderPassEnabled))
+                return true;             
 
             // No additional light shadows
-            bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
-            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
-                return true;
-            //stripTool.DisableOffStrip();
-            //if (stripTool.StripFeature(m_LocalAdditionalLightShadows, ShaderFeatures.AdditionalLightShadows))
-            //    return true;
-            //stripTool.EnableOffStrip();
-
-            //bool isReflectionProbeBlending = compilerData.shaderKeywordSet.IsEnabled(m_ReflectionProbeBlending);
-            //if (!IsFeatureEnabled(features, ShaderFeatures.ReflectionProbeBlending) && isReflectionProbeBlending)
-            //    return true;
-            if (stripTool.StripFeature(m_LocalReflectionProbeBlending, ShaderFeatures.ReflectionProbeBlending))
+            // TODO: Strip disabled keyword once we support no shadow lights re-use same variant
+            if (stripTool.StripFeatureKeepDisabled(m_AdditionalLightShadows, ShaderFeatures.AdditionalLightShadows))
                 return true;
 
-            //bool isReflectionProbeBoxProjection = compilerData.shaderKeywordSet.IsEnabled(m_ReflectionProbeBoxProjection);
-            //if (!IsFeatureEnabled(features, ShaderFeatures.ReflectionProbeBoxProjection) && isReflectionProbeBoxProjection)
-            //    return true;
-            if (stripTool.StripFeature(m_LocalReflectionProbeBoxProjection, ShaderFeatures.ReflectionProbeBoxProjection))
+            if (stripTool.StripFeature(m_ReflectionProbeBlending, ShaderFeatures.ReflectionProbeBlending))
                 return true;
 
-            //bool isPunctualLightShadowCasterPass = (snippetData.passType == PassType.ShadowCaster) && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow);
-            //if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isPunctualLightShadowCasterPass)
-            //    return true;
+            if (stripTool.StripFeature(m_ReflectionProbeBoxProjection, ShaderFeatures.ReflectionProbeBoxProjection))
+                return true;
             
             // Shadow caster punctual light strip
-            //if (snippetData.passType == PassType.ShadowCaster && m_ContainedKeywordNames.Contains(m_LocalCastingPunctualLightShadow.name) && snippetData.shaderType == ShaderType.Vertex)
-            if (snippetData.passType == PassType.ShadowCaster && ShaderUtil.PassHasKeyword(shader, snippetData.pass, m_LocalCastingPunctualLightShadow, snippetData.shaderType))
+            if (snippetData.passType == PassType.ShadowCaster && ShaderUtil.PassHasKeyword(shader, snippetData.pass, m_CastingPunctualLightShadow, snippetData.shaderType))
             {
                 if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
                     return true;
@@ -727,56 +426,23 @@ namespace UnityEditor.Rendering.Universal
             }
 
             // Additional light are shaded per-vertex or per-pixel.
-            //bool isFeaturePerPixelLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.AdditionalLights);
-            //bool isFeaturePerVertexLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.VertexLighting);
-            bool clusteredRendering = IsFeatureEnabled(features, ShaderFeatures.ClusteredRendering);
-            //bool isAdditionalLightPerPixel = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel);
-            //bool isAdditionalLightPerVertex = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsVertex);
-
-            // Strip if Per-Pixel lighting is NOT used in the project and the
-            // Per-Pixel (_ADDITIONAL_LIGHTS) variant is enabled in the shader.
-            //if (!isFeaturePerPixelLightingEnabled && isAdditionalLightPerPixel)
-            //    return true;
-
-            // Strip if Per-Vertex lighting is NOT used in the project and the
-            // Per-Vertex (_ADDITIONAL_LIGHTS_VERTEX) variant is enabled in the shader.
-            //if (!isFeaturePerVertexLightingEnabled && isAdditionalLightPerVertex)
-            //    return true;
-
-            // Can not strip disabled variant as it would be used if no additional light is present
-            if (stripTool.StripFeatureKeepDisabled(m_LocalAdditionalLightsVertex, ShaderFeatures.VertexLighting,
-                m_LocalAdditionalLightsPixel, ShaderFeatures.AdditionalLights))
+            // TODO: Strip disabled keyword once we support no additional lights re-used variants
+            if (stripTool.StripFeatureKeepDisabled(m_AdditionalLightsVertex, ShaderFeatures.VertexLighting,
+                m_AdditionalLightsPixel, ShaderFeatures.AdditionalLights))
                 return true;
 
-            if (!clusteredRendering && compilerData.shaderKeywordSet.IsEnabled(m_ClusteredRendering))
+            if (stripTool.StripFeature(m_ClusteredRendering, ShaderFeatures.ClusteredRendering))
                 return true;
-
-            // Screen Space Shadows
-            //if (!IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceShadows) &&
-            //    compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
-            //    return true;
 
             // Screen Space Occlusion
-            //if (!IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceOcclusion) &&
-            //    compilerData.shaderKeywordSet.IsEnabled(m_ScreenSpaceOcclusion))
-            //    return true;
-            if (stripTool.StripFeature(m_LocalScreenSpaceOcclusion, ShaderFeatures.ScreenSpaceOcclusion))
+            if (stripTool.StripFeature(m_ScreenSpaceOcclusion, ShaderFeatures.ScreenSpaceOcclusion))
                 return true;
 
             // Decal DBuffer
-            /*if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT1) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT1))
-                return true;
-            if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT2) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT2))
-                return true;
-            if (!IsFeatureEnabled(features, ShaderFeatures.DBufferMRT3) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_DBufferMRT3))
-                return true;*/
             if (stripTool.StripFeature(
-                m_LocalDBufferMRT1, ShaderFeatures.DBufferMRT1,
-                m_LocalDBufferMRT2, ShaderFeatures.DBufferMRT2,
-                m_LocalDBufferMRT3, ShaderFeatures.DBufferMRT3))
+                m_DBufferMRT1, ShaderFeatures.DBufferMRT1,
+                m_DBufferMRT2, ShaderFeatures.DBufferMRT2,
+                m_DBufferMRT3, ShaderFeatures.DBufferMRT3))
                 return true;
 
             // TODO: Test against lightMode tag instead.
@@ -789,68 +455,69 @@ namespace UnityEditor.Rendering.Universal
             // TODO: make sure vulkan works after refactor
             // Do not strip accurateGbufferNormals on Mobile Vulkan as some GPUs do not support R8G8B8A8_SNorm, which then force us to use accurateGbufferNormals
             if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.Vulkan &&
-                stripTool.StripFeature(m_LocalGbufferNormalsOct, ShaderFeatures.DeferredWithAccurateGbufferNormals))
+                stripTool.StripFeature(m_GbufferNormalsOct, ShaderFeatures.DeferredWithAccurateGbufferNormals))
                 return true;
 
-            if (compilerData.shaderKeywordSet.IsEnabled(m_LocalUseDrawProcedural) &&
+            if (compilerData.shaderKeywordSet.IsEnabled(m_UseDrawProcedural) &&
                 !IsFeatureEnabled(features, ShaderFeatures.DrawProcedural))
                 return true;
 
             // Decal Normal Blend
-            if (!IsFeatureEnabled(features, ShaderFeatures.DecalNormalBlendLow) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_DecalNormalBlendLow))
-                return true;
-            if (!IsFeatureEnabled(features, ShaderFeatures.DecalNormalBlendMedium) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_DecalNormalBlendMedium))
-                return true;
-            if (!IsFeatureEnabled(features, ShaderFeatures.DecalNormalBlendHigh) &&
-                compilerData.shaderKeywordSet.IsEnabled(m_DecalNormalBlendHigh))
+            if (stripTool.StripFeature(
+                m_DecalNormalBlendLow, ShaderFeatures.DecalNormalBlendLow,
+                m_DecalNormalBlendMedium, ShaderFeatures.DecalNormalBlendMedium,
+                m_DecalNormalBlendHigh, ShaderFeatures.DecalNormalBlendHigh))
                 return true;
 
-            if (globalSettings != null && globalSettings.stripPostProcessingShaderVariants)
-            {
-                var stripTool2 = new StripTool(shader, stripDisabledKeywords, (ShaderFeatures)ShaderBuildPreprocessor.volumeFeatures, snippetData, compilerData.shaderKeywordSet);
-                if (stripTool2.StripFeature(m_LocalLensDistortion, (ShaderFeatures)VolumeFeatures.LensDistortion))
-                    return true;
+            return false;
+        }
 
-                if (stripTool2.StripFeature(_CHROMATIC_ABERRATION, (ShaderFeatures)VolumeFeatures.CHROMATIC_ABERRATION))
-                    return true;
+        bool StripVolumeFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
+        {
+            var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
+            var stripDisabledKeywords = globalSettings != null && globalSettings.stripDisabledKeywordVariants;
+            var stripTool = new StripTool(shader, stripDisabledKeywords, (ShaderFeatures)ShaderBuildPreprocessor.volumeFeatures, snippetData, compilerData.shaderKeywordSet);
 
-                if (stripTool2.StripFeature(m_LocalBloomLq, (ShaderFeatures)VolumeFeatures.Bloom))
-                    return true;
-                if (stripTool2.StripFeature(m_LocalBloomHq, (ShaderFeatures)VolumeFeatures.Bloom))
-                    return true;
-                if (stripTool2.StripFeature(m_LocalBloomLqDirt, (ShaderFeatures)VolumeFeatures.Bloom))
-                    return true;
-                if (stripTool2.StripFeature(m_LocalBloomHqDirt, (ShaderFeatures)VolumeFeatures.Bloom))
-                    return true;
+            if (stripTool.StripFeature(m_LensDistortion, (ShaderFeatures)VolumeFeatures.LensDistortion))
+                return true;
 
-                if (stripTool2.StripFeature(_HDR_GRADING, (ShaderFeatures)VolumeFeatures.ToneMaping))
-                    return true;
-                if (stripTool2.StripFeature(_TONEMAP_ACES, (ShaderFeatures)VolumeFeatures.ToneMaping))
-                    return true;
-                if (stripTool2.StripFeature(_TONEMAP_NEUTRAL, (ShaderFeatures)VolumeFeatures.ToneMaping))
-                    return true;
-                if (stripTool2.StripFeature(_FILM_GRAIN, (ShaderFeatures)VolumeFeatures.FilmGrain))
-                    return true;
+            if (stripTool.StripFeature(m_ChromaticAberration, (ShaderFeatures)VolumeFeatures.CHROMATIC_ABERRATION))
+                return true;
 
-                // Strip post processing shaders
-                if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.DepthOfField) &&
-                    shader.name == "Hidden/Universal Render Pipeline/BokehDepthOfField")
-                    return true;
-                if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.DepthOfField) &&
-                    shader.name == "Hidden/Universal Render Pipeline/GaussianDepthOfField")
-                    return true;
-                if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.CameraMotionBlur) &&
-                    shader.name == "Hidden/Universal Render Pipeline/CameraMotionBlur")
-                    return true;
-                if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.PaniniProjection) &&
-                    shader.name == "Hidden/Universal Render Pipeline/PaniniProjection")
-                    return true;
-                if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.Bloom) &&
-                    shader.name == "Hidden/Universal Render Pipeline/Bloom")
-                    return true;
-            }
+            if (stripTool.StripFeature(m_BloomLQ, (ShaderFeatures)VolumeFeatures.Bloom))
+                return true;
+            if (stripTool.StripFeature(m_BloomHQ, (ShaderFeatures)VolumeFeatures.Bloom))
+                return true;
+            if (stripTool.StripFeature(m_BloomLQDirt, (ShaderFeatures)VolumeFeatures.Bloom))
+                return true;
+            if (stripTool.StripFeature(m_BloomHQDirt, (ShaderFeatures)VolumeFeatures.Bloom))
+                return true;
+
+            if (stripTool.StripFeature(m_HdrGrading, (ShaderFeatures)VolumeFeatures.ToneMaping))
+                return true;
+            if (stripTool.StripFeature(m_ToneMapACES, (ShaderFeatures)VolumeFeatures.ToneMaping))
+                return true;
+            if (stripTool.StripFeature(m_ToneMapNeutral, (ShaderFeatures)VolumeFeatures.ToneMaping))
+                return true;
+            if (stripTool.StripFeature(m_FilmGrain, (ShaderFeatures)VolumeFeatures.FilmGrain))
+                return true;
+
+            // Strip post processing shaders
+            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.DepthOfField) &&
+                shader.name == "Hidden/Universal Render Pipeline/BokehDepthOfField")
+                return true;
+            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.DepthOfField) &&
+                shader.name == "Hidden/Universal Render Pipeline/GaussianDepthOfField")
+                return true;
+            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.CameraMotionBlur) &&
+                shader.name == "Hidden/Universal Render Pipeline/CameraMotionBlur")
+                return true;
+            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.PaniniProjection) &&
+                shader.name == "Hidden/Universal Render Pipeline/PaniniProjection")
+                return true;
+            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.Bloom) &&
+                shader.name == "Hidden/Universal Render Pipeline/Bloom")
+                return true;
 
             return false;
         }
@@ -962,6 +629,12 @@ namespace UnityEditor.Rendering.Universal
             if (UniversalRenderPipelineGlobalSettings.instance != null && UniversalRenderPipelineGlobalSettings.instance.stripBuiltinShaders)
             {
                 if (StripUnusedShaders(features, shader))
+                    return true;
+            }
+
+            if (UniversalRenderPipelineGlobalSettings.instance != null && UniversalRenderPipelineGlobalSettings.instance.stripPostProcessingShaderVariants)
+            {
+                if (StripVolumeFeatures(features, shader, snippetData, compilerData))
                     return true;
             }
 
