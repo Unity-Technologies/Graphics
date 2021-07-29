@@ -1033,6 +1033,9 @@ namespace UnityEditor.Rendering.HighDefinition
             var hdrp = HDRenderPipeline.currentAsset;
             bool newShadowsEnabled = DrawEnableShadowMap(serialized, owner);
 
+
+            HDLightType lightType = serialized.type;
+
             using (new EditorGUI.DisabledScope(!newShadowsEnabled))
             {
                 EditorGUILayout.PropertyField(serialized.shadowUpdateMode, s_Styles.shadowUpdateMode);
@@ -1041,10 +1044,68 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (serialized.shadowUpdateMode.intValue > 0 && serialized.type != HDLightType.Directional)
                 {
+                    if (owner.targets.Length == 1)
+                    {
+                        HDLightEditor editor = owner as HDLightEditor;
+                        var additionalLightData = editor.GetAdditionalDataForTargetIndex(0);
+                        if (!HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas(additionalLightData))
+                        {
+                            string warningMessage = "The shadow for this light doesn't fit the cached shadow atlas and therefore won't be rendered. Please ensure you have enough space in the cached shadow atlas. You can use the light explorer (Window->Rendering->Light Explorer) to see which lights fit and which don't.\nConsult HDRP Shadow documentation for more information about cached shadow management.";
+                            // Loop backward in "tile" size to check
+                            const int slotSize = HDCachedShadowManager.k_MinSlotSize;
+
+                            bool showFitButton = false;
+                            if (HDCachedShadowManager.instance.WouldFitInAtlas(slotSize, lightType))
+                            {
+                                warningMessage += "\nAlternatively, click the button below to find the resolution that will fit the shadow in the atlas.";
+                                showFitButton = true;
+                            }
+                            else
+                            {
+                                warningMessage += "\nThe atlas is completely full so either change the resolution of other shadow maps or increase atlas size.";
+                            }
+                            EditorGUILayout.HelpBox(warningMessage, MessageType.Warning);
+
+                            Rect rect = EditorGUILayout.GetControlRect();
+                            rect = EditorGUI.IndentedRect(rect);
+
+                            if (showFitButton)
+                            {
+                                if (GUI.Button(rect, "Set resolution to the maximum that fits"))
+                                {
+                                    var scalableSetting = ScalableSettings.ShadowResolution(lightType, hdrp);
+                                    int res = additionalLightData.GetResolutionFromSettings(lightType, hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams);
+                                    int foundResFit = -1;
+                                    // Round up to multiple of slotSize
+                                    res = HDUtils.DivRoundUp(res, slotSize) * slotSize;
+                                    for (int testRes = res; testRes >= slotSize; testRes -= slotSize)
+                                    {
+                                        if (HDCachedShadowManager.instance.WouldFitInAtlas(Mathf.Max(testRes, slotSize), lightType))
+                                        {
+                                            foundResFit = Mathf.Max(testRes, slotSize);
+                                            break;
+                                        }
+                                    }
+                                    if (foundResFit > 0)
+                                    {
+                                        serialized.shadowResolution.useOverride.boolValue = true;
+                                        serialized.shadowResolution.@override.intValue = foundResFit;
+                                    }
+                                    else
+                                    {
+                                        // Should never reach this point.
+                                        Debug.LogWarning("The atlas is completely full.");
+                                    }
+                                }
+                            }
+                        }
+                    }
+
 #if UNITY_2021_1_OR_NEWER
                     EditorGUILayout.PropertyField(serialized.shadowAlwaysDrawDynamic, s_Styles.shadowAlwaysDrawDynamic);
 #endif
                 }
+
 
                 if (serialized.shadowUpdateMode.intValue > 0)
                 {
@@ -1052,8 +1113,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 EditorGUI.indentLevel--;
-
-                HDLightType lightType = serialized.type;
 
                 using (var change = new EditorGUI.ChangeCheckScope())
                 {

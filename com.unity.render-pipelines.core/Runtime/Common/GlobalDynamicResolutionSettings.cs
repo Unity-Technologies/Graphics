@@ -42,7 +42,12 @@ namespace UnityEngine.Rendering
         /// FidelityFX Super Resolution 1.0
         /// </summary>
         [InspectorName("FidelityFX Super Resolution 1.0")]
-        EdgeAdaptiveScalingUpres
+        EdgeAdaptiveScalingUpres,
+        /// <summary>
+        /// Temporal Upscaling.
+        /// </summary>
+        [InspectorName("TAA Upscale")]
+        TAAU
     }
 
     /// <summary>User-facing settings for dynamic resolution.</summary>
