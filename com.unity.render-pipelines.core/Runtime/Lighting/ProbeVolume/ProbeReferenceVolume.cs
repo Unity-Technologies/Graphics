@@ -229,6 +229,7 @@ namespace UnityEngine.Experimental.Rendering
         public Shader probeDebugShader;
 
         public ProbeVolumeSceneBounds sceneBounds;
+        public ProbeVolumeSHBands shBands;
     }
 
     public struct ProbeVolumeShadingParameters
@@ -569,6 +570,7 @@ namespace UnityEngine.Experimental.Rendering
 #endif
 
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
+        ProbeVolumeSHBands m_SHBands;
 
         internal bool clearAssetsOnVolumeClear = false;
 
@@ -611,8 +613,9 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_MemoryBudget = parameters.memoryBudget;
+            m_SHBands = parameters.shBands;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
-            InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget);
+            InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
             sceneBounds = parameters.sceneBounds;
 #if UNITY_EDITOR
@@ -775,7 +778,7 @@ namespace UnityEngine.Experimental.Rendering
             if (m_NeedsIndexRebuild)
             {
                 CleanupLoadedData();
-                InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget);
+                InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_SHBands);
                 m_HasChangedIndex = true;
                 m_NeedsIndexRebuild = false;
             }
@@ -919,8 +922,8 @@ namespace UnityEngine.Experimental.Rendering
 
                 bool compressed = false;
                 int allocatedBytes = 0;
-                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, ProbeVolumeSHBands.SphericalHarmonicsL2, out allocatedBytes);
-                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, ProbeVolumeSHBands.SphericalHarmonicsL2);
+                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, m_SHBands, out allocatedBytes);
+                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, m_SHBands);
 
                 cell.flatIdxInCellIndices = m_CellIndices.GetFlatIdxForCell(cell.position);
 
@@ -966,14 +969,15 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         /// <param name ="allocationSize"> Size used for the chunk allocator that handles bricks.</param>
         /// <param name ="memoryBudget">Probe reference volume memory budget.</param>
-        void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget)
+        /// <param name ="shBands">Probe reference volume SH bands.</param>
+        void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
         {
             var minCellPosition = m_PendingInitInfo.pendingMinCellPosition;
             var maxCellPosition = m_PendingInitInfo.pendingMaxCellPosition;
             if (!m_ProbeReferenceVolumeInit)
             {
                 Profiler.BeginSample("Initialize Reference Volume");
-                m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
+                m_Pool = new ProbeBrickPool(allocationSize, memoryBudget, shBands);
 
                 m_Index = new ProbeBrickIndex(memoryBudget);
                 m_CellIndices = new ProbeCellIndices(minCellPosition, maxCellPosition, (int)Mathf.Pow(3, m_MaxSubdivision - 1));
@@ -1116,7 +1120,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // Update the pool and index and ignore any potential frame latency related issues for now
-            m_Pool.Update(dataloc, m_TmpSrcChunks, ch_list, ProbeVolumeSHBands.SphericalHarmonicsL2);
+            m_Pool.Update(dataloc, m_TmpSrcChunks, ch_list, m_SHBands);
 
             m_BricksLoaded = true;
 

@@ -69,20 +69,23 @@ namespace UnityEngine.Experimental.Rendering
         BrickChunkAlloc                m_NextFreeChunk;
         Stack<BrickChunkAlloc>         m_FreeList;
 
-        internal ProbeBrickPool(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget)
+        ProbeVolumeSHBands             m_SHBands;
+
+        internal ProbeBrickPool(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
         {
             Profiler.BeginSample("Create ProbeBrickPool");
             m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
 
             m_AllocationSize = allocationSize;
             m_MemoryBudget = memoryBudget;
+            m_SHBands = shBands;
 
             m_FreeList = new Stack<BrickChunkAlloc>(256);
 
             int width, height, depth;
             DerivePoolSizeFromBudget(allocationSize, memoryBudget, out width, out height, out depth);
             int estimatedCost = 0;
-            m_Pool = CreateDataLocation(width * height * depth, false, ProbeVolumeSHBands.SphericalHarmonicsL2, out estimatedCost);
+            m_Pool = CreateDataLocation(width * height * depth, false, shBands, out estimatedCost);
             estimatedVMemCost = estimatedCost;
 
             Profiler.EndSample();
@@ -95,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 m_Pool.Cleanup();
                 int estimatedCost = 0;
-                m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, ProbeVolumeSHBands.SphericalHarmonicsL2, out estimatedCost);
+                m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, m_SHBands, out estimatedCost);
                 estimatedVMemCost = estimatedCost;
             }
         }
