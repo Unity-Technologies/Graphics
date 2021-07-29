@@ -315,7 +315,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with reflection probe normalization via APV when no probes are in scene.
 - Fixed Volumetric Clouds not updated when using RenderTexture as input for cloud maps.
 - Fixed custom post process name not displayed correctly in GPU markers.
-- Fixed diffusion profile upgrade window to by delaying the windows to end of the import process
+- Fixed the diffusion profile upgrade window by delaying its appearance until HDRP has finished the import process.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

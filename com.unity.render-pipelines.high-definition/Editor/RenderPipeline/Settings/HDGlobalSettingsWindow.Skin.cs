@@ -77,9 +77,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent fixAssetButtonLabel = EditorGUIUtility.TrTextContent("Fix", "Ensure a HD Global Settings Asset is assigned.");
 
             public static readonly GUIContent probeVolumeSupportContentLabel = EditorGUIUtility.TrTextContent("Probe Volumes (Experimental)", "Set whether Probe volumes are supported by the project. The feature is highly experimental and subject to changes.");
-            public static readonly GUIContent rendererListCulling = EditorGUIUtility.TrTextContent("Dynamic Render Pass Culling", "When enabled, rendering passes are automatically culled based on what is visible on the camera.");
+            public static readonly GUIContent rendererListCulling = EditorGUIUtility.TrTextContent("Dynamic Render Pass Culling", "When enabled, HDRP automatically culls render passes based on what is visible in the Camera.");
             public static readonly GUIContent supportRuntimeDebugDisplayContentLabel = EditorGUIUtility.TrTextContent("Runtime Debug Shaders", "When disabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but prevents the use of Rendering Debugger in Player builds.");
-            public static readonly GUIContent showMissingDiffusionProfilesContentLabel = EditorGUIUtility.TrTextContent("Missing Diffusion Profiles Window", "When enabled, if a material with missing diffusion profiles is imported, a window will be displayed to allow adding the profile to the HDRP Global Settings.");
+            public static readonly GUIContent showMissingDiffusionProfilesContentLabel = EditorGUIUtility.TrTextContent("Missing Diffusion Profiles Window", "When enabled, if HDRP imports a Material with missing diffusion profiles, it displays a window where you can add diffusion profiles to the HDRP Global Settings");
         }
     }
 }

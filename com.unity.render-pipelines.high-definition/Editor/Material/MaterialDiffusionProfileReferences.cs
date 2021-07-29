@@ -22,12 +22,12 @@ namespace UnityEditor.Rendering.HighDefinition
         static class Style
         {
             public static readonly GUIContent title = EditorGUIUtility.TrTextContent("Missing Diffusion Profiles");
-            public static readonly GUIContent showWindow = EditorGUIUtility.TrTextContent("Show this window on import", "Uncheck the box to prevent HDRP from opening this window when a material with a missing diffusion profile is imported.\nThis setting can also be set from the Miscellaneous section of the HDRP Global Settings.\nNote that the window can still be openned by a script.");
+            public static readonly GUIContent showWindow = EditorGUIUtility.TrTextContent("Show this window on import", "Uncheck this box to prevent HDRP from opening this window when it imports a Material with a missing diffusion profile.\nYou can also change this setting in the Miscellaneous section of the HDRP Global Settings.\nNote that the window can still be opened by a script.");
             public static readonly GUIContent profileOverride = new GUIContent("To use more than 15 Diffusion Profiles in a Scene, you can use the Diffusion Profile Override inside a Volume.", CoreEditorStyles.iconHelp);
-            
+
             public static readonly GUIStyle text = new GUIStyle(EditorStyles.label) { wordWrap = true };
         }
-        
+
         /// <summary>
         /// Notify the user that a Diffusion Profile Asset is required by a material but is not present in the Global Settings.
         /// </summary>
@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (s_MissingProfiles.Count == 0)
                 Close();
-            
+
             if (uiList == null)
             {
                 uiList = new ReorderableList(s_MissingProfiles, typeof(DiffusionProfileSettings), false, false, false, false)
@@ -114,9 +114,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.Space();
 
-            EditorGUILayout.LabelField("While importing Materials in your project, HDRP detected references to diffusion profile assets that are not registered in the HDRP Global Setting.", Style.text);
-            EditorGUILayout.LabelField("Make sure these Diffusion Profiles are referenced in either a Diffusion Profile Override or the HDRP Global Settings. If the Diffusion Profile is not referenced in either, HDRP cannot use it.", Style.text);
-            EditorGUILayout.LabelField("You can select below which Diffusion Profiles to add in the HDRP Global Settings.", Style.text);
+            EditorGUILayout.LabelField("While importing Materials into your project, HDRP detected references to diffusion profile assets that are not registered in the HDRP Global Settings.", Style.text);
+            EditorGUILayout.LabelField("Make sure these Diffusion Profiles are referenced in either a Diffusion Profile Override or the HDRP Global Settings. If a Diffusion Profile is not referenced in one of these places, HDRP cannot use it.", Style.text);
+            EditorGUILayout.LabelField("Select which Diffusion Profiles to add in the HDRP Global Settings from the Missing Diffusion Profiles list below.", Style.text);
 
             EditorGUILayout.Space();
 
