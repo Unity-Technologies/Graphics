@@ -502,9 +502,6 @@ namespace UnityEngine.Rendering
 
             Vector2Int scaledSize = ApplyScalesOnSize(size);
 
-            scaledSize.x = Math.Min(scaledSize.x, size.x);
-            scaledSize.y = Math.Min(scaledSize.y, size.y);
-
             m_LastScaledSize = scaledSize;
             return scaledSize;
         }
@@ -529,6 +526,9 @@ namespace UnityEngine.Rendering
                 scaledSize.x += (1 & scaledSize.x);
                 scaledSize.y += (1 & scaledSize.y);
             }
+
+            scaledSize.x = Math.Min(scaledSize.x, size.x);
+            scaledSize.y = Math.Min(scaledSize.y, size.y);
 
             return scaledSize;
         }

@@ -351,7 +351,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void UpdateViewState(
                 in DlssViewData viewData,
-                /*uint backbufferWidth, uint backbufferHeight,*/
                 CommandBuffer cmdBuffer)
             {
                 bool shouldUseOptimalSettings = ShouldUseAutomaticSettings();
