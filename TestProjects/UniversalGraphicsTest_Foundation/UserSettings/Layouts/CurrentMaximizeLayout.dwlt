@@ -1,0 +1,3978 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12010, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Children:
+  - {fileID: 3}
+  - {fileID: 13}
+  m_Position:
+    serializedVersion: 2
+    x: 0
+    y: 30
+    width: 1792
+    height: 914
+  m_MinSize: {x: 300, y: 200}
+  m_MaxSize: {x: 24288, y: 16192}
+  vertical: 0
+  controlID: 293
+--- !u!114 &2
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12014, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_MinSize: {x: 230, y: 250}
+  m_MaxSize: {x: 10000, y: 10000}
+  m_TitleContent:
+    m_Text: Project
+    m_Image: {fileID: -5179483145760003458, guid: 0000000000000000d000000000000000,
+      type: 0}
+    m_Tooltip: 
+  m_Pos:
+    serializedVersion: 2
+    x: 0
+    y: 705
+    width: 1320
+    height: 271
+  m_ViewDataDictionary: {fileID: 0}
+  m_OverlayCanvas:
+    m_SaveData: []
+    m_FirstInit: 1
+  m_LastOverlayPresetName: 
+  m_SearchFilter:
+    m_NameFilter: 
+    m_ClassNames: []
+    m_AssetLabels: []
+    m_AssetBundleNames: []
+    m_VersionControlStates: []
+    m_SoftLockControlStates: []
+    m_ReferencingInstanceIDs: 
+    m_SceneHandles: 
+    m_ShowAllHits: 0
+    m_SkipHidden: 0
+    m_SearchArea: 1
+    m_Folders:
+    - Assets/Scenes
+    m_Globs: []
+    m_OriginalText: 
+  m_ViewMode: 1
+  m_StartGridSize: 16
+  m_LastFolders:
+  - Assets/Scenes
+  m_LastFoldersGridSize: 16
+  m_LastProjectPath: /Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation
+  m_LockTracker:
+    m_IsLocked: 0
+  m_FolderTreeState:
+    scrollPos: {x: 0, y: 2.9995728}
+    m_SelectedIDs: 86c20000
+    m_LastClickedID: 49798
+    m_ExpandedIDs: 0000000010c0000086c2000072c3000000ca9a3bffffff7f
+    m_RenameOverlay:
+      m_UserAcceptedRename: 0
+      m_Name: 
+      m_OriginalName: 
+      m_EditFieldRect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 0
+        height: 0
+      m_UserData: 0
+      m_IsWaitingForDelay: 0
+      m_IsRenaming: 0
+      m_OriginalEventType: 11
+      m_IsRenamingFilename: 1
+      m_ClientGUIView: {fileID: 0}
+    m_SearchString: 
+    m_CreateAssetUtility:
+      m_EndAction: {fileID: 0}
+      m_InstanceID: 0
+      m_Path: 
+      m_Icon: {fileID: 0}
+      m_ResourceFile: 
+  m_AssetTreeState:
+    scrollPos: {x: 0, y: 0}
+    m_SelectedIDs: 
+    m_LastClickedID: 0
+    m_ExpandedIDs: 0000000010c00000
+    m_RenameOverlay:
+      m_UserAcceptedRename: 0
+      m_Name: 
+      m_OriginalName: 
+      m_EditFieldRect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 0
+        height: 0
+      m_UserData: 0
+      m_IsWaitingForDelay: 0
+      m_IsRenaming: 0
+      m_OriginalEventType: 11
+      m_IsRenamingFilename: 1
+      m_ClientGUIView: {fileID: 0}
+    m_SearchString: 
+    m_CreateAssetUtility:
+      m_EndAction: {fileID: 0}
+      m_InstanceID: 0
+      m_Path: 
+      m_Icon: {fileID: 0}
+      m_ResourceFile: 
+  m_ListAreaState:
+    m_SelectedInstanceIDs: d0920000
+    m_LastClickedInstanceID: 37584
+    m_HadKeyboardFocusLastEvent: 1
+    m_ExpandedInstanceIDs: c6230000
+    m_RenameOverlay:
+      m_UserAcceptedRename: 0
+      m_Name: 
+      m_OriginalName: 
+      m_EditFieldRect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 0
+        height: 0
+      m_UserData: 0
+      m_IsWaitingForDelay: 0
+      m_IsRenaming: 0
+      m_OriginalEventType: 11
+      m_IsRenamingFilename: 1
+      m_ClientGUIView: {fileID: 10}
+    m_CreateAssetUtility:
+      m_EndAction: {fileID: 0}
+      m_InstanceID: 0
+      m_Path: 
+      m_Icon: {fileID: 0}
+      m_ResourceFile: 
+    m_NewAssetIndexInList: -1
+    m_ScrollPosition: {x: 0, y: 2158}
+    m_GridSize: 16
+  m_SkipHiddenPackages: 0
+  m_DirectoriesAreaWidth: 207
+--- !u!114 &3
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12010, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Children:
+  - {fileID: 4}
+  - {fileID: 10}
+  m_Position:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1321
+    height: 914
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 16192, y: 16192}
+  vertical: 1
+  controlID: 294
+--- !u!114 &4
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12010, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Children:
+  - {fileID: 5}
+  - {fileID: 7}
+  m_Position:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1321
+    height: 622
+  m_MinSize: {x: 200, y: 100}
+  m_MaxSize: {x: 16192, y: 8096}
+  vertical: 0
+  controlID: 40
+--- !u!114 &5
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12006, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Children: []
+  m_Position:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 472
+    height: 622
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
+  m_ActualView: {fileID: 6}
+  m_Panes:
+  - {fileID: 6}
+  m_Selected: 0
+  m_LastSelected: 0
+--- !u!114 &6
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12061, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
+  m_TitleContent:
+    m_Text: Hierarchy
+    m_Image: {fileID: -3734745235275155857, guid: 0000000000000000d000000000000000,
+      type: 0}
+    m_Tooltip: 
+  m_Pos:
+    serializedVersion: 2
+    x: 0
+    y: 83
+    width: 471
+    height: 601
+  m_ViewDataDictionary: {fileID: 0}
+  m_OverlayCanvas:
+    m_SaveData: []
+    m_FirstInit: 1
+  m_LastOverlayPresetName: 
+  m_SceneHierarchy:
+    m_TreeViewState:
+      scrollPos: {x: 0, y: 0}
+      m_SelectedIDs: d0920000
+      m_LastClickedID: 0
+      m_ExpandedIDs: f096fffff09fffff8aa2ffff8ca2ffff3aa4ffff88a6ffff38a8ffff84adffff1caeffff9eb0ffffc0b5ffff
+      m_RenameOverlay:
+        m_UserAcceptedRename: 0
+        m_Name: 
+        m_OriginalName: 
+        m_EditFieldRect:
+          serializedVersion: 2
+          x: 0
+          y: 0
+          width: 0
+          height: 0
+        m_UserData: 0
+        m_IsWaitingForDelay: 0
+        m_IsRenaming: 0
+        m_OriginalEventType: 11
+        m_IsRenamingFilename: 0
+        m_ClientGUIView: {fileID: 0}
+      m_SearchString: 
+    m_ExpandedScenes: []
+    m_CurrenRootInstanceID: 0
+    m_LockTracker:
+      m_IsLocked: 0
+    m_CurrentSortingName: TransformSorting
+  m_WindowGUID: 4c969a2b90040154d917609493e03593
+--- !u!114 &7
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12006, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: GameView
+  m_EditorClassIdentifier: 
+  m_Children: []
+  m_Position:
+    serializedVersion: 2
+    x: 472
+    y: 0
+    width: 849
+    height: 622
+  m_MinSize: {x: 202, y: 221}
+  m_MaxSize: {x: 4002, y: 4021}
+  m_ActualView: {fileID: 9}
+  m_Panes:
+  - {fileID: 8}
+  - {fileID: 9}
+  m_Selected: 1
+  m_LastSelected: 0
+--- !u!114 &8
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12013, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
+  m_TitleContent:
+    m_Text: Scene
+    m_Image: {fileID: 8634526014445323508, guid: 0000000000000000d000000000000000,
+      type: 0}
+    m_Tooltip: 
+  m_Pos:
+    serializedVersion: 2
+    x: 814
+    y: 332
+    width: 691
+    height: 373
+  m_ViewDataDictionary: {fileID: 0}
+  m_OverlayCanvas:
+    m_SaveData:
+    - dockPosition: 0
+      containerId: overlay-toolbar__top
+      floating: 0
+      collapsed: 0
+      displayed: 1
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: -98, y: -26}
+      snapCorner: 3
+      id: Tool Settings
+      index: 0
+      layout: 1
+    - dockPosition: 1
+      containerId: overlay-toolbar__top
+      floating: 0
+      collapsed: 0
+      displayed: 1
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: unity-scene-view-toolbar
+      index: 0
+      layout: 1
+    - dockPosition: 1
+      containerId: overlay-toolbar__top
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 1
+      id: unity-search-toolbar
+      index: 1
+      layout: 1
+    - dockPosition: 1
+      containerId: overlay-toolbar__top
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Scene View/Open Tile Palette
+      index: 2
+      layout: 1
+    - dockPosition: 1
+      containerId: overlay-toolbar__top
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Scene View/Tilemap Focus
+      index: 3
+      layout: 1
+    - dockPosition: 1
+      containerId: overlay-toolbar__top
+      floating: 0
+      collapsed: 0
+      displayed: 1
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: unity-component-tools
+      index: 4
+      layout: 1
+    - dockPosition: 0
+      containerId: overlay-container--left
+      floating: 0
+      collapsed: 0
+      displayed: 1
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: unity-transform-toolbar
+      index: 0
+      layout: 2
+    - dockPosition: 0
+      containerId: overlay-container--right
+      floating: 0
+      collapsed: 0
+      displayed: 1
+      snapOffset: {x: 67.5, y: 86}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Orientation
+      index: 0
+      layout: 4
+    - dockPosition: 0
+      containerId: overlay-container--right
+      floating: 0
+      collapsed: 0
+      displayed: 1
+      snapOffset: {x: 0, y: 56}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: unity-grid-and-snap-toolbar
+      index: 1
+      layout: 1
+    - dockPosition: 1
+      containerId: overlay-container--right
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Scene View/Light Settings
+      index: 0
+      layout: 4
+    - dockPosition: 1
+      containerId: overlay-container--right
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Scene View/Camera
+      index: 1
+      layout: 4
+    - dockPosition: 1
+      containerId: overlay-container--right
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Scene View/Cloth Constraints
+      index: 2
+      layout: 4
+    - dockPosition: 1
+      containerId: overlay-container--right
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Scene View/Cloth Collisions
+      index: 3
+      layout: 4
+    - dockPosition: 1
+      containerId: overlay-container--right
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Scene View/Navmesh Display
+      index: 4
+      layout: 4
+    - dockPosition: 1
+      containerId: overlay-container--right
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Scene View/Agent Display
+      index: 5
+      layout: 4
+    - dockPosition: 1
+      containerId: overlay-container--right
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Scene View/Obstacle Display
+      index: 6
+      layout: 4
+    - dockPosition: 1
+      containerId: overlay-container--right
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Scene View/Occlusion Culling
+      index: 7
+      layout: 4
+    - dockPosition: 1
+      containerId: overlay-container--right
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Scene View/Physics Debugger
+      index: 8
+      layout: 4
+    - dockPosition: 1
+      containerId: overlay-container--right
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Scene View/Scene Visibility
+      index: 9
+      layout: 4
+    - dockPosition: 1
+      containerId: overlay-container--right
+      floating: 0
+      collapsed: 0
+      displayed: 0
+      snapOffset: {x: 0, y: 0}
+      snapOffsetDelta: {x: 0, y: 0}
+      snapCorner: 0
+      id: Scene View/Particles
+      index: 10
+      layout: 4
+    m_FirstInit: 0
+  m_LastOverlayPresetName: Default
+  m_WindowGUID: cc27987af1a868c49b0894db9c0f5429
+  m_Gizmos: 1
+  m_OverrideSceneCullingMask: 6917529027641081856
+  m_SceneIsLit: 1
+  m_SceneLighting: 1
+  m_2DMode: 0
+  m_isRotationLocked: 0
+  m_PlayAudio: 0
+  m_AudioPlay: 0
+  m_Position:
+    m_Target: {x: 0, y: 0, z: 0}
+    speed: 2
+    m_Value: {x: 0, y: 0, z: 0}
+  m_RenderMode: 0
+  m_CameraMode:
+    drawMode: 0
+    name: Shaded
+    section: Shading Mode
+  m_ValidateTrueMetals: 0
+  m_DoValidateTrueMetals: 0
+  m_ExposureSliderValue: 0
+  m_SceneViewState:
+    m_AlwaysRefresh: 0
+    showFog: 1
+    showSkybox: 1
+    showFlares: 1
+    showImageEffects: 1
+    showParticleSystems: 1
+    showVisualEffectGraphs: 1
+    m_FxEnabled: 1
+  m_Grid:
+    xGrid:
+      m_Fade:
+        m_Target: 0
+        speed: 2
+        m_Value: 0
+      m_Color: {r: 0.5, g: 0.5, b: 0.5, a: 0.4}
+      m_Pivot: {x: 0, y: 0, z: 0}
+      m_Size: {x: 0, y: 0}
+    yGrid:
+      m_Fade:
+        m_Target: 1
+        speed: 2
+        m_Value: 1
+      m_Color: {r: 0.5, g: 0.5, b: 0.5, a: 0.4}
+      m_Pivot: {x: 0, y: 0, z: 0}
+      m_Size: {x: 1, y: 1}
+    zGrid:
+      m_Fade:
+        m_Target: 0
+        speed: 2
+        m_Value: 0
+      m_Color: {r: 0.5, g: 0.5, b: 0.5, a: 0.4}
+      m_Pivot: {x: 0, y: 0, z: 0}
+      m_Size: {x: 0, y: 0}
+    m_ShowGrid: 1
+    m_GridAxis: 1
+    m_gridOpacity: 0.5
+  m_Rotation:
+    m_Target: {x: -0.08717229, y: 0.89959055, z: -0.21045254, w: -0.3726226}
+    speed: 2
+    m_Value: {x: -0.08717229, y: 0.89959055, z: -0.21045254, w: -0.3726226}
+  m_Size:
+    m_Target: 10
+    speed: 2
+    m_Value: 10
+  m_Ortho:
+    m_Target: 0
+    speed: 2
+    m_Value: 0
+  m_CameraSettings:
+    m_Speed: 1
+    m_SpeedNormalized: 0.5
+    m_SpeedMin: 0.001
+    m_SpeedMax: 2
+    m_EasingEnabled: 1
+    m_EasingDuration: 0.4
+    m_AccelerationEnabled: 1
+    m_FieldOfViewHorizontalOrVertical: 60
+    m_NearClip: 0.03
+    m_FarClip: 10000
+    m_DynamicClip: 1
+    m_OcclusionCulling: 0
+  m_LastSceneViewRotation: {x: 0, y: 0, z: 0, w: 0}
+  m_LastSceneViewOrtho: 0
+  m_ReplacementShader: {fileID: 0}
+  m_ReplacementString: 
+  m_SceneVisActive: 1
+  m_LastLockedObject: {fileID: 0}
+  m_ViewIsLockedToObject: 0
+--- !u!114 &9
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12015, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
+  m_TitleContent:
+    m_Text: Game
+    m_Image: {fileID: 4621777727084837110, guid: 0000000000000000d000000000000000,
+      type: 0}
+    m_Tooltip: 
+  m_Pos:
+    serializedVersion: 2
+    x: 472
+    y: 83
+    width: 847
+    height: 601
+  m_ViewDataDictionary: {fileID: 0}
+  m_OverlayCanvas:
+    m_SaveData: []
+    m_FirstInit: 1
+  m_LastOverlayPresetName: 
+  m_SerializedViewNames: []
+  m_SerializedViewValues: []
+  m_PlayModeViewName: GameView
+  m_ShowGizmos: 0
+  m_TargetDisplay: 0
+  m_ClearColor: {r: 0, g: 0, b: 0, a: 0}
+  m_TargetSize: {x: 1694, y: 1160}
+  m_TextureFilterMode: 0
+  m_TextureHideFlags: 61
+  m_RenderIMGUI: 1
+  m_EnterPlayModeBehavior: 0
+  m_UseMipMap: 0
+  m_VSyncEnabled: 0
+  m_Gizmos: 0
+  m_Stats: 0
+  m_SelectedSizes: 00000000000000000000000000000000000000000000000000000000000000000000000000000000
+  m_ZoomArea:
+    m_HRangeLocked: 0
+    m_VRangeLocked: 0
+    hZoomLockedByDefault: 0
+    vZoomLockedByDefault: 0
+    m_HBaseRangeMin: -423.5
+    m_HBaseRangeMax: 423.5
+    m_VBaseRangeMin: -290
+    m_VBaseRangeMax: 290
+    m_HAllowExceedBaseRangeMin: 1
+    m_HAllowExceedBaseRangeMax: 1
+    m_VAllowExceedBaseRangeMin: 1
+    m_VAllowExceedBaseRangeMax: 1
+    m_ScaleWithWindow: 0
+    m_HSlider: 0
+    m_VSlider: 0
+    m_IgnoreScrollWheelUntilClicked: 0
+    m_EnableMouseInput: 1
+    m_EnableSliderZoomHorizontal: 0
+    m_EnableSliderZoomVertical: 0
+    m_UniformScale: 1
+    m_UpDirection: 1
+    m_DrawArea:
+      serializedVersion: 2
+      x: 0
+      y: 21
+      width: 847
+      height: 580
+    m_Scale: {x: 1, y: 1}
+    m_Translation: {x: 423.5, y: 290}
+    m_MarginLeft: 0
+    m_MarginRight: 0
+    m_MarginTop: 0
+    m_MarginBottom: 0
+    m_LastShownAreaInsideMargins:
+      serializedVersion: 2
+      x: -423.5
+      y: -290
+      width: 847
+      height: 580
+    m_MinimalGUI: 1
+  m_defaultScale: 1
+  m_LastWindowPixelSize: {x: 1694, y: 1202}
+  m_ClearInEditMode: 1
+  m_NoCameraWarning: 1
+  m_LowResolutionForAspectRatios: 01000000000000000000
+  m_XRRenderMode: 0
+  m_RenderTexture: {fileID: 0}
+--- !u!114 &10
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12006, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: ProjectBrowser
+  m_EditorClassIdentifier: 
+  m_Children: []
+  m_Position:
+    serializedVersion: 2
+    x: 0
+    y: 622
+    width: 1321
+    height: 292
+  m_MinSize: {x: 231, y: 271}
+  m_MaxSize: {x: 10001, y: 10021}
+  m_ActualView: {fileID: 2}
+  m_Panes:
+  - {fileID: 2}
+  - {fileID: 11}
+  - {fileID: 12}
+  m_Selected: 0
+  m_LastSelected: 1
+--- !u!114 &11
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12003, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_MinSize: {x: 100, y: 100}
+  m_MaxSize: {x: 4000, y: 4000}
+  m_TitleContent:
+    m_Text: Console
+    m_Image: {fileID: -4950941429401207979, guid: 0000000000000000d000000000000000,
+      type: 0}
+    m_Tooltip: 
+  m_Pos:
+    serializedVersion: 2
+    x: 0
+    y: 447
+    width: 1320
+    height: 529
+  m_ViewDataDictionary: {fileID: 0}
+  m_OverlayCanvas:
+    m_SaveData: []
+    m_FirstInit: 1
+  m_LastOverlayPresetName: 
+--- !u!114 &12
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 13202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_MinSize: {x: 400, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
+  m_TitleContent:
+    m_Text: Frame Debug
+    m_Image: {fileID: 0}
+    m_Tooltip: 
+  m_Pos:
+    serializedVersion: 2
+    x: 0
+    y: 447
+    width: 1320
+    height: 529
+  m_ViewDataDictionary: {fileID: 0}
+  m_OverlayCanvas:
+    m_SaveData: []
+    m_FirstInit: 1
+  m_LastOverlayPresetName: 
+  m_ListWidth: 300
+  m_TreeViewState:
+    scrollPos: {x: 0, y: 0}
+    m_SelectedIDs: f0ffffff
+    m_LastClickedID: -16
+    m_ExpandedIDs: e5ffffffe8ffffffe9ffffffebffffffedffffffeefffffff0fffffff1fffffff2fffffff4fffffff5fffffff6fffffff7fffffff8fffffffafffffffcfffffffdfffffffeffffff00000000
+    m_RenameOverlay:
+      m_UserAcceptedRename: 0
+      m_Name: 
+      m_OriginalName: 
+      m_EditFieldRect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 0
+        height: 0
+      m_UserData: 0
+      m_IsWaitingForDelay: 0
+      m_IsRenaming: 0
+      m_OriginalEventType: 11
+      m_IsRenamingFilename: 0
+      m_ClientGUIView: {fileID: 0}
+    m_SearchString: 
+--- !u!114 &13
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12006, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: InspectorWindow
+  m_EditorClassIdentifier: 
+  m_Children: []
+  m_Position:
+    serializedVersion: 2
+    x: 1321
+    y: 0
+    width: 471
+    height: 914
+  m_MinSize: {x: 276, y: 71}
+  m_MaxSize: {x: 4001, y: 4021}
+  m_ActualView: {fileID: 14}
+  m_Panes:
+  - {fileID: 14}
+  - {fileID: 15}
+  m_Selected: 0
+  m_LastSelected: 1
+--- !u!114 &14
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 1
+  m_Script: {fileID: 12019, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_MinSize: {x: 275, y: 50}
+  m_MaxSize: {x: 4000, y: 4000}
+  m_TitleContent:
+    m_Text: Inspector
+    m_Image: {fileID: -440750813802333266, guid: 0000000000000000d000000000000000,
+      type: 0}
+    m_Tooltip: 
+  m_Pos:
+    serializedVersion: 2
+    x: 1321
+    y: 83
+    width: 470
+    height: 893
+  m_ViewDataDictionary: {fileID: 0}
+  m_OverlayCanvas:
+    m_SaveData: []
+    m_FirstInit: 1
+  m_LastOverlayPresetName: 
+  m_ObjectsLockedBeforeSerialization: []
+  m_InstanceIDsLockedBeforeSerialization: 
+  m_PreviewResizer:
+    m_CachedPref: 160
+    m_ControlHash: -371814159
+    m_PrefName: Preview_InspectorPreview
+  m_LastInspectedObjectInstanceID: -1
+  m_LastVerticalScrollValue: 0
+  m_GlobalObjectId: 
+  m_InspectorMode: 0
+  m_LockTracker:
+    m_IsLocked: 0
+  m_PreviewWindow: {fileID: 0}
+--- !u!114 &15
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 13401, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_MinSize: {x: 100, y: 100}
+  m_MaxSize: {x: 4000, y: 4000}
+  m_TitleContent:
+    m_Text: Test Runner
+    m_Image: {fileID: 0}
+    m_Tooltip: 
+  m_Pos:
+    serializedVersion: 2
+    x: 1321
+    y: 83
+    width: 470
+    height: 893
+  m_ViewDataDictionary: {fileID: 0}
+  m_OverlayCanvas:
+    m_SaveData: []
+    m_FirstInit: 1
+  m_LastOverlayPresetName: 
+  m_Spl:
+    ID: 106
+    splitterInitialOffset: 0
+    currentActiveSplitter: -1
+    realSizes:
+    - 617
+    - 206
+    relativeSizes:
+    - 0.75
+    - 0.25
+    minSizes:
+    - 32
+    - 32
+    maxSizes:
+    - 0
+    - 0
+    lastTotalSize: 823
+    splitSize: 6
+    xOffset: 0
+    m_Version: 1
+    oldRealSizes: 
+    oldMinSizes: 
+    oldMaxSizes: 
+    oldSplitSize: 0
+  m_TestTypeToolbarIndex: 0
+  m_PlayModeTestListGUI:
+    m_Window: {fileID: 15}
+    newResultList:
+    - id: 1098
+      uniqueId: '[GraphicsTests][suite]'
+      name: GraphicsTests
+      fullName: GraphicsTests
+      resultStatus: 2
+      duration: 0.2952543
+      messages: One or more child tests had errors
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 
+      parentUniqueId: 
+    - id: 1102
+      uniqueId: '[Unity.RenderPipelines.Core.Runtime.Tests][/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Runtime.Tests.dll][suite]'
+      name: Unity.RenderPipelines.Core.Runtime.Tests.dll
+      fullName: /Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Runtime.Tests.dll
+      resultStatus: 1
+      duration: 0.0800928
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1098
+      parentUniqueId: '[GraphicsTests][suite]'
+    - id: 1099
+      uniqueId: Unity.RenderPipelines.Core.Runtime.Tests.dll/[Unity.RenderPipelines.Core.Runtime.Tests][RuntimeExampleTest][suite]
+      name: RuntimeExampleTest
+      fullName: RuntimeExampleTest
+      resultStatus: 1
+      duration: 0.0680415
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1102
+      parentUniqueId: '[Unity.RenderPipelines.Core.Runtime.Tests][/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Runtime.Tests.dll][suite]'
+    - id: 1100
+      uniqueId: Unity.RenderPipelines.Core.Runtime.Tests.dll/RuntimeExampleTest/[Unity.RenderPipelines.Core.Runtime.Tests][RuntimeExampleTest.PlayModeSampleTestSimplePasses]
+      name: PlayModeSampleTestSimplePasses
+      fullName: RuntimeExampleTest.PlayModeSampleTestSimplePasses
+      resultStatus: 1
+      duration: 0.0088972
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1099
+      parentUniqueId: Unity.RenderPipelines.Core.Runtime.Tests.dll/[Unity.RenderPipelines.Core.Runtime.Tests][RuntimeExampleTest][suite]
+    - id: 1101
+      uniqueId: Unity.RenderPipelines.Core.Runtime.Tests.dll/RuntimeExampleTest/[Unity.RenderPipelines.Core.Runtime.Tests][RuntimeExampleTest.PlayModeSampleTestWithEnumeratorPasses]
+      name: PlayModeSampleTestWithEnumeratorPasses
+      fullName: RuntimeExampleTest.PlayModeSampleTestWithEnumeratorPasses
+      resultStatus: 1
+      duration: 0.0279624
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1099
+      parentUniqueId: Unity.RenderPipelines.Core.Runtime.Tests.dll/[Unity.RenderPipelines.Core.Runtime.Tests][RuntimeExampleTest][suite]
+    - id: 1130
+      uniqueId: '[Unity.RenderPipelines.Universal.Runtime.Tests][/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.Tests.dll][suite]'
+      name: Unity.RenderPipelines.Universal.Runtime.Tests.dll
+      fullName: /Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.Tests.dll
+      resultStatus: 1
+      duration: 0.5051427
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1098
+      parentUniqueId: '[GraphicsTests][suite]'
+    - id: 1103
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/[Unity.RenderPipelines.Universal.Runtime.Tests][RuntimeTests][suite]
+      name: RuntimeTests
+      fullName: RuntimeTests
+      resultStatus: 1
+      duration: 0.2008802
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1130
+      parentUniqueId: '[Unity.RenderPipelines.Universal.Runtime.Tests][/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.Tests.dll][suite]'
+    - id: 1104
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/RuntimeTests/[Unity.RenderPipelines.Universal.Runtime.Tests][RuntimeTests.PipelineHasCorrectColorSpace]
+      name: PipelineHasCorrectColorSpace
+      fullName: RuntimeTests.PipelineHasCorrectColorSpace
+      resultStatus: 1
+      duration: 0.1354519
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1103
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/[Unity.RenderPipelines.Universal.Runtime.Tests][RuntimeTests][suite]
+    - id: 1105
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/RuntimeTests/[Unity.RenderPipelines.Universal.Runtime.Tests][RuntimeTests.PipelineSetsAndRestoreGlobalShaderTagCorrectly]
+      name: PipelineSetsAndRestoreGlobalShaderTagCorrectly
+      fullName: RuntimeTests.PipelineSetsAndRestoreGlobalShaderTagCorrectly
+      resultStatus: 1
+      duration: 0.0450675
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1103
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/[Unity.RenderPipelines.Universal.Runtime.Tests][RuntimeTests][suite]
+    - id: 1131
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/[UnityEngine][suite]
+      name: UnityEngine
+      fullName: UnityEngine
+      resultStatus: 1
+      duration: 0.283903
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1130
+      parentUniqueId: '[Unity.RenderPipelines.Universal.Runtime.Tests][/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Runtime.Tests.dll][suite]'
+    - id: 1132
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/[Rendering][suite]
+      name: Rendering
+      fullName: UnityEngine.Rendering
+      resultStatus: 1
+      duration: 0.2435928
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1131
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/[UnityEngine][suite]
+    - id: 1133
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/[Universal][suite]
+      name: Universal
+      fullName: UnityEngine.Rendering.Universal
+      resultStatus: 1
+      duration: 0.2279225
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1132
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/[Rendering][suite]
+    - id: 1134
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests][suite]
+      name: Tests
+      fullName: UnityEngine.Rendering.Universal.Tests
+      resultStatus: 1
+      duration: 0.2094519
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1133
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/[Universal][suite]
+    - id: 1106
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.DecalTests][suite]
+      name: DecalTests
+      fullName: UnityEngine.Rendering.Universal.Tests.DecalTests
+      resultStatus: 1
+      duration: 0.0507339
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1134
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests][suite]
+    - id: 1107
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/DecalTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.DecalTests.DecalDestroyEmptyChunk]
+      name: DecalDestroyEmptyChunk
+      fullName: UnityEngine.Rendering.Universal.Tests.DecalTests.DecalDestroyEmptyChunk
+      resultStatus: 1
+      duration: 0.0364878
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1106
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.DecalTests][suite]
+    - id: 1108
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests][suite]
+      name: MultipleObjectLight2DTests
+      fullName: UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests
+      resultStatus: 1
+      duration: 0.0734494
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1134
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests][suite]
+    - id: 1113
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/MultipleObjectLight2DTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.CachedMeshDataIsOverriddenByRuntimeChanges]
+      name: CachedMeshDataIsOverriddenByRuntimeChanges
+      fullName: UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.CachedMeshDataIsOverriddenByRuntimeChanges
+      resultStatus: 1
+      duration: 0.0494978
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1108
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests][suite]
+    - id: 1112
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/MultipleObjectLight2DTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.CachedMeshDataIsUpdatedOnChange]
+      name: CachedMeshDataIsUpdatedOnChange
+      fullName: UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.CachedMeshDataIsUpdatedOnChange
+      resultStatus: 1
+      duration: 0.0011157
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1108
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests][suite]
+    - id: 1114
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/MultipleObjectLight2DTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.EnsureShapeMeshGenerationDoesNotOverflowAllocation]
+      name: EnsureShapeMeshGenerationDoesNotOverflowAllocation
+      fullName: UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.EnsureShapeMeshGenerationDoesNotOverflowAllocation
+      resultStatus: 1
+      duration: 0.0018897
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1108
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests][suite]
+    - id: 1110
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/MultipleObjectLight2DTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.LightIsInVisibleListIfInCameraView]
+      name: LightIsInVisibleListIfInCameraView
+      fullName: UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.LightIsInVisibleListIfInCameraView
+      resultStatus: 1
+      duration: 0.0049729
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1108
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests][suite]
+    - id: 1111
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/MultipleObjectLight2DTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.LightIsNotInVisibleListIfNotInCameraView]
+      name: LightIsNotInVisibleListIfNotInCameraView
+      fullName: UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.LightIsNotInVisibleListIfNotInCameraView
+      resultStatus: 1
+      duration: 0.0013567
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1108
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests][suite]
+    - id: 1109
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/MultipleObjectLight2DTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.LightsAreSortedByLightOrder]
+      name: LightsAreSortedByLightOrder
+      fullName: UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests.LightsAreSortedByLightOrder
+      resultStatus: 1
+      duration: 0.0015842
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1108
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.MultipleObjectLight2DTests][suite]
+    - id: 1115
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests][suite]
+      name: PixelPerfectCameraTests
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests
+      resultStatus: 1
+      duration: 0.0437051
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1134
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests][suite]
+    - id: 1125
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs][suite]
+      name: CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs
+      resultStatus: 1
+      duration: 0.0204254
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1115
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests][suite]
+    - id: 1116
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,500,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)]
+      name: CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,500,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,500,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      resultStatus: 1
+      duration: 0.0022733
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1125
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs][suite]
+    - id: 1117
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1100,900,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)]
+      name: CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1100,900,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1100,900,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      resultStatus: 1
+      duration: 0.0001964
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1125
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs][suite]
+    - id: 1118
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,400,250,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)]
+      name: CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,400,250,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,400,250,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      resultStatus: 1
+      duration: 0.00019
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1125
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs][suite]
+    - id: 1119
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1600,1200,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)]
+      name: CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1600,1200,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1600,1200,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      resultStatus: 1
+      duration: 0.0001714
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1125
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs][suite]
+    - id: 1120
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1600,1100,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)]
+      name: CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1600,1100,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,1600,1100,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      resultStatus: 1
+      duration: 0.000161
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1125
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs][suite]
+    - id: 1121
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)]
+      name: CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      resultStatus: 1
+      duration: 0.0001798
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1125
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs][suite]
+    - id: 1122
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,700,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)]
+      name: CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,700,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,800,700,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      resultStatus: 1
+      duration: 0.0001685
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1125
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs][suite]
+    - id: 1123
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,900,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)]
+      name: CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,900,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,900,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      resultStatus: 1
+      duration: 0.0002193
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1125
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs][suite]
+    - id: 1124
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,900,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)]2
+      name: CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,900,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult)
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs(UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+PixelPerfectCameraTestComponent,900,600,UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests+CalculateCameraPropertiesResult
+        GeneratedTestCase2)
+      resultStatus: 1
+      duration: 0.0001506
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1125
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateCameraPropertiesProvidesCorrectResultsWithVariousInputs][suite]
+    - id: 1129
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateFinalBlitPixelRectCenteredWorksWithoutUpscaleRT]
+      name: CalculateFinalBlitPixelRectCenteredWorksWithoutUpscaleRT
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateFinalBlitPixelRectCenteredWorksWithoutUpscaleRT
+      resultStatus: 1
+      duration: 0.0006421
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1115
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests][suite]
+    - id: 1128
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateFinalBlitPixelRectCenteredWorksWithUpscaleRT]
+      name: CalculateFinalBlitPixelRectCenteredWorksWithUpscaleRT
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateFinalBlitPixelRectCenteredWorksWithUpscaleRT
+      resultStatus: 1
+      duration: 0.0003294
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1115
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests][suite]
+    - id: 1126
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateFinalBlitPixelRectStretchToFitHeightWorks]
+      name: CalculateFinalBlitPixelRectStretchToFitHeightWorks
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateFinalBlitPixelRectStretchToFitHeightWorks
+      resultStatus: 1
+      duration: 0.0002928
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1115
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests][suite]
+    - id: 1127
+      uniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/PixelPerfectCameraTests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateFinalBlitPixelRectStretchToFitWidthWorks]
+      name: CalculateFinalBlitPixelRectStretchToFitWidthWorks
+      fullName: UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests.CalculateFinalBlitPixelRectStretchToFitWidthWorks
+      resultStatus: 1
+      duration: 0.0002688
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1115
+      parentUniqueId: Unity.RenderPipelines.Universal.Runtime.Tests.dll/UnityEngine/Rendering/Universal/Tests/[Unity.RenderPipelines.Universal.Runtime.Tests][UnityEngine.Rendering.Universal.Tests.PixelPerfectCameraTests][suite]
+    - id: 1168
+      uniqueId: '[UnityEngine.TestTools.Graphics.Tests.dll][suite]'
+      name: UnityEngine.TestTools.Graphics.Tests.dll
+      fullName: /Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/UnityEngine.TestTools.Graphics.Tests.dll
+      resultStatus: 1
+      duration: 1.7418255
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1098
+      parentUniqueId: '[GraphicsTests][suite]'
+    - id: 1169
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/[UnityEngine][suite]
+      name: UnityEngine
+      fullName: UnityEngine
+      resultStatus: 1
+      duration: 1.7215681
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1168
+      parentUniqueId: '[UnityEngine.TestTools.Graphics.Tests.dll][suite]'
+    - id: 1170
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/[TestTools][suite]
+      name: TestTools
+      fullName: UnityEngine.TestTools
+      resultStatus: 1
+      duration: 1.6734233
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1169
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/[UnityEngine][suite]
+    - id: 1171
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/[Graphics][suite]
+      name: Graphics
+      fullName: UnityEngine.TestTools.Graphics
+      resultStatus: 1
+      duration: 1.6575226
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1170
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/[TestTools][suite]
+    - id: 1172
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests][suite]
+      name: Tests
+      fullName: UnityEngine.TestTools.Graphics.Tests
+      resultStatus: 1
+      duration: 1.6430956
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1171
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/[Graphics][suite]
+    - id: 1138
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.FailedImageMessageTests][suite]
+      name: FailedImageMessageTests
+      fullName: UnityEngine.TestTools.Graphics.Tests.FailedImageMessageTests
+      resultStatus: 1
+      duration: 0.0170905
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1172
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests][suite]
+    - id: 1139
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/FailedImageMessageTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.FailedImageMessageTests.SerializationRoundtrip_DefaultInstance]
+      name: SerializationRoundtrip_DefaultInstance
+      fullName: UnityEngine.TestTools.Graphics.Tests.FailedImageMessageTests.SerializationRoundtrip_DefaultInstance
+      resultStatus: 1
+      duration: 0.0030827
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1138
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.FailedImageMessageTests][suite]
+    - id: 1140
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests][suite]
+      name: ImageAssertTests
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests
+      resultStatus: 1
+      duration: 1.606237
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1172
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests][suite]
+    - id: 1148
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_DestinationTextureResolution]
+      name: AreEqual_DestinationTextureResolution
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_DestinationTextureResolution
+      resultStatus: 1
+      duration: 0.5544355
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1140
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests][suite]
+    - id: 1149
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_TexturesAfterResize]
+      name: AreEqual_TexturesAfterResize
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_TexturesAfterResize
+      resultStatus: 1
+      duration: 0.8504697
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1140
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests][suite]
+    - id: 1147
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WidthDifferentSizeImages_ThrowsAssertionException]
+      name: AreEqual_WidthDifferentSizeImages_ThrowsAssertionException
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WidthDifferentSizeImages_ThrowsAssertionException
+      resultStatus: 1
+      duration: 0.073846
+      messages: 
+      output: '##utp:{"type":"ArtifactPublish","time":1627381444001,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/AreEqual_WidthDifferentSizeImages_ThrowsAssertionException.png"}
+
+'
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1140
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests][suite]
+    - id: 1144
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WithIdenticalImage_Succeeds]
+      name: AreEqual_WithIdenticalImage_Succeeds
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WithIdenticalImage_Succeeds
+      resultStatus: 1
+      duration: 0.0030328
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1140
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests][suite]
+    - id: 1143
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WithNullActualImage_ThrowsArgumentNullException]
+      name: AreEqual_WithNullActualImage_ThrowsArgumentNullException
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WithNullActualImage_ThrowsArgumentNullException
+      resultStatus: 1
+      duration: 0.0008567
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1140
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests][suite]
+    - id: 1141
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WithNullCamera_ThrowsArgumentNullException]
+      name: AreEqual_WithNullCamera_ThrowsArgumentNullException
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WithNullCamera_ThrowsArgumentNullException
+      resultStatus: 1
+      duration: 0.0004758
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1140
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests][suite]
+    - id: 1142
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WithNullCameras_ThrowsArgumentNullException]
+      name: AreEqual_WithNullCameras_ThrowsArgumentNullException
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WithNullCameras_ThrowsArgumentNullException
+      resultStatus: 1
+      duration: 0.00083
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1140
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests][suite]
+    - id: 1146
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WithSlightlyDifferentImages_SucceedsWithAppropriateTolerance]
+      name: AreEqual_WithSlightlyDifferentImages_SucceedsWithAppropriateTolerance
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WithSlightlyDifferentImages_SucceedsWithAppropriateTolerance
+      resultStatus: 1
+      duration: 0.0068808
+      messages: 
+      output: '##utp:{"type":"ArtifactPublish","time":1627381444079,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/AreEqual_WithSlightlyDifferentImages_SucceedsWithAppropriateTolerance.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444081,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/AreEqual_WithSlightlyDifferentImages_SucceedsWithAppropriateTolerance.diff.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444082,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/AreEqual_WithSlightlyDifferentImages_SucceedsWithAppropriateTolerance.expected.png"}
+
+'
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1140
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests][suite]
+    - id: 1145
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WithTotallyDifferentImages_ThrowsAssertionException]
+      name: AreEqual_WithTotallyDifferentImages_ThrowsAssertionException
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.AreEqual_WithTotallyDifferentImages_ThrowsAssertionException
+      resultStatus: 1
+      duration: 0.005154
+      messages: 
+      output: '##utp:{"type":"ArtifactPublish","time":1627381444086,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/AreEqual_WithTotallyDifferentImages_ThrowsAssertionException.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444088,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/AreEqual_WithTotallyDifferentImages_ThrowsAssertionException.diff.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444089,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/AreEqual_WithTotallyDifferentImages_ThrowsAssertionException.expected.png"}
+
+'
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1140
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests][suite]
+    - id: 1167
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+      name: PerPixelTest
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest
+      resultStatus: 1
+      duration: 0.0809542
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1140
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests][suite]
+    - id: 1150
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_Identical_Succeeds]
+      name: PerPixel_Identical_Succeeds
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_Identical_Succeeds
+      resultStatus: 1
+      duration: 0.0022048
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1151
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_DisabledCount_Succeeds]
+      name: PerPixel_DisabledCount_Succeeds
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_DisabledCount_Succeeds
+      resultStatus: 1
+      duration: 0.0009425
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1152
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_DisabledGammaAlpha_Succeeds]
+      name: PerPixel_DisabledGammaAlpha_Succeeds
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_DisabledGammaAlpha_Succeeds
+      resultStatus: 1
+      duration: 0.0013066
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1153
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_BadColor_TestAlpha_Succeeds]
+      name: PerPixel_BadColor_TestAlpha_Succeeds
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_BadColor_TestAlpha_Succeeds
+      resultStatus: 1
+      duration: 0.0013033
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1154
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_BadAlpha_TestColor_Succeeds]
+      name: PerPixel_BadAlpha_TestColor_Succeeds
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_BadAlpha_TestColor_Succeeds
+      resultStatus: 1
+      duration: 0.0014216
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1155
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_31BadColor_Max32Bad_Succeeds]
+      name: PerPixel_31BadColor_Max32Bad_Succeeds
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_31BadColor_Max32Bad_Succeeds
+      resultStatus: 1
+      duration: 0.000959
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1156
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_32BadColor_Max32Bad_Succeeds]
+      name: PerPixel_32BadColor_Max32Bad_Succeeds
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_32BadColor_Max32Bad_Succeeds
+      resultStatus: 1
+      duration: 0.0015935
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1157
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_33BadColor_Max32Bad_Throws]
+      name: PerPixel_33BadColor_Max32Bad_Throws
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_33BadColor_Max32Bad_Throws
+      resultStatus: 1
+      duration: 0.0065084
+      messages: 
+      output: '##utp:{"type":"ArtifactPublish","time":1627381444129,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_33BadColor_Max32Bad_Throws.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444130,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_33BadColor_Max32Bad_Throws.diff.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444132,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_33BadColor_Max32Bad_Throws.expected.png"}
+
+'
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1158
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_31BadAlpha_Max32Bad_Succeeds]
+      name: PerPixel_31BadAlpha_Max32Bad_Succeeds
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_31BadAlpha_Max32Bad_Succeeds
+      resultStatus: 1
+      duration: 0.001159
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1159
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_32BadAlpha_Max32Bad_Succeeds]
+      name: PerPixel_32BadAlpha_Max32Bad_Succeeds
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_32BadAlpha_Max32Bad_Succeeds
+      resultStatus: 1
+      duration: 0.0010681
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1160
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_33BadAlpha_Max32Bad_Throws]
+      name: PerPixel_33BadAlpha_Max32Bad_Throws
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_33BadAlpha_Max32Bad_Throws
+      resultStatus: 1
+      duration: 0.007233
+      messages: 
+      output: '##utp:{"type":"ArtifactPublish","time":1627381444139,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_33BadAlpha_Max32Bad_Throws.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444141,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_33BadAlpha_Max32Bad_Throws.diff.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444143,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_33BadAlpha_Max32Bad_Throws.expected.png"}
+
+'
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1161
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_MultipleFailCountOnce_Succeeds]
+      name: PerPixel_MultipleFailCountOnce_Succeeds
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_MultipleFailCountOnce_Succeeds
+      resultStatus: 1
+      duration: 0.0014414
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1162
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_GoodColor_TestColor_Succeeds]
+      name: PerPixel_GoodColor_TestColor_Succeeds
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_GoodColor_TestColor_Succeeds
+      resultStatus: 1
+      duration: 0.0011126
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1163
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_GoodAlpha_TestAlpha_Succeeds]
+      name: PerPixel_GoodAlpha_TestAlpha_Succeeds
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_GoodAlpha_TestAlpha_Succeeds
+      resultStatus: 1
+      duration: 0.0007769
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1164
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_BadR_Throws]
+      name: PerPixel_BadR_Throws
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_BadR_Throws
+      resultStatus: 1
+      duration: 0.0059739
+      messages: 
+      output: '##utp:{"type":"ArtifactPublish","time":1627381444151,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_BadR_Throws.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444153,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_BadR_Throws.diff.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444154,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_BadR_Throws.expected.png"}
+
+'
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1165
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_BadG_Throws]
+      name: PerPixel_BadG_Throws
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_BadG_Throws
+      resultStatus: 1
+      duration: 0.0076245
+      messages: 
+      output: '##utp:{"type":"ArtifactPublish","time":1627381444159,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_BadG_Throws.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444161,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_BadG_Throws.diff.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444162,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_BadG_Throws.expected.png"}
+
+'
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1166
+      uniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/PerPixelTest/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_BadB_Throws]
+      name: PerPixel_BadB_Throws
+      fullName: UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixel_BadB_Throws
+      resultStatus: 1
+      duration: 0.0068957
+      messages: 
+      output: '##utp:{"type":"ArtifactPublish","time":1627381444167,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_BadB_Throws.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444169,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_BadB_Throws.diff.png"}
+
+        ##utp:{"type":"ArtifactPublish","time":1627381444170,"phase":"Immediate","version":2,"processId":54248,"errors":[],"destination":"/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Assets/ActualImages/Linear/OSXEditor/Metal/None/PerPixel_BadB_Throws.expected.png"}
+
+'
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1167
+      parentUniqueId: UnityEngine.TestTools.Graphics.Tests.dll/UnityEngine/TestTools/Graphics/Tests/ImageAssertTests/[UnityEngine.TestTools.Graphics.Tests][UnityEngine.TestTools.Graphics.Tests.ImageAssertTests.PerPixelTest][suite]
+    - id: 1176
+      uniqueId: '[UniversalGraphicsTests][/Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/UniversalGraphicsTests.dll][suite]'
+      name: UniversalGraphicsTests.dll
+      fullName: /Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/UniversalGraphicsTests.dll
+      resultStatus: 2
+      duration: 0.257298
+      messages: One or more child tests had errors
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1098
+      parentUniqueId: '[GraphicsTests][suite]'
+    - id: 1173
+      uniqueId: UniversalGraphicsTests.dll/[UniversalGraphicsTests][suite]
+      name: UniversalGraphicsTests
+      fullName: UniversalGraphicsTests
+      resultStatus: 2
+      duration: 0.2446117
+      messages: One or more child tests had errors
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1176
+      parentUniqueId: '[UniversalGraphicsTests][/Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/UniversalGraphicsTests.dll][suite]'
+    - id: 1175
+      uniqueId: UniversalGraphicsTests.dll/UniversalGraphicsTests/[UniversalGraphicsTests][UniversalGraphicsTests.Run][suite]
+      name: Run
+      fullName: UniversalGraphicsTests.Run
+      resultStatus: 2
+      duration: 0.2333416
+      messages: One or more child tests had errors
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories:
+      - UniversalRP
+      parentId: 1173
+      parentUniqueId: UniversalGraphicsTests.dll/[UniversalGraphicsTests][suite]
+    - id: 1174
+      uniqueId: UniversalGraphicsTests.dll/UniversalGraphicsTests/Run/[UniversalGraphicsTests][UniversalGraphicsTests.230_Decal_Projector]
+      name: 230_Decal_Projector
+      fullName: UniversalGraphicsTests.230_Decal_Projector
+      resultStatus: 2
+      duration: 0.2003048
+      messages: "  Invalid test scene, couldn't find UniversalGraphicsTestSettings\n 
+        Expected: not null\n  But was:  null\n"
+      output: 
+      stacktrace: 'at UniversalGraphicsTests+<Run>d__1.MoveNext () [0x0008c] in /Users/jonass/Projects/Graphics
+        /com.unity.testing.urp/Scripts/Runtime/UniversalGraphicsTests.cs:31
+
+        at
+        UnityEngine.TestTools.TestEnumerator+<Execute>d__6.MoveNext () [0x00038]
+        in /Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/PackageCache/com.unity.test-framework@1.1.18/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:36
+
+'
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - UniversalRP
+      parentId: 1175
+      parentUniqueId: UniversalGraphicsTests.dll/UniversalGraphicsTests/[UniversalGraphicsTests][UniversalGraphicsTests.Run][suite]
+    m_ResultText: "230_Decal_Projector (0.200s)\n---\nInvalid test scene, couldn't
+      find UniversalGraphicsTestSettings\n  Expected: not null\n  But was:  null\n---\nat
+      UniversalGraphicsTests+<Run>d__1.MoveNext () [0x0008c] in /Users/jonass/Projects/Graphics
+      /com.unity.testing.urp/Scripts/Runtime/UniversalGraphicsTests.cs:31\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__6.MoveNext
+      () [0x00038] in /Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/PackageCache/com.unity.test-framework@1.1.18/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:36"
+    m_ResultStacktrace: 'at UniversalGraphicsTests+<Run>d__1.MoveNext () [0x0008c]
+      in /Users/jonass/Projects/Graphics /com.unity.testing.urp/Scripts/Runtime/UniversalGraphicsTests.cs:31
+
+      at
+      UnityEngine.TestTools.TestEnumerator+<Execute>d__6.MoveNext () [0x00038] in
+      /Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/PackageCache/com.unity.test-framework@1.1.18/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:36
+
+'
+    m_TestListState:
+      scrollPos: {x: 0, y: 603}
+      m_SelectedIDs: f8ee519c
+      m_LastClickedID: -1672352008
+      m_ExpandedIDs: 7e3c3983f09dfb858a2d07864b612c8cd866f98e8b46668f9c633f9df0f5299e76958aa0ae46a6a6927372aefeb493b197b2e9b556c29bc3e68e4fe0dadbbefeff522623a5a2953159ae3a3b735f1f4ed3fd8351f45079568166a77018a0377bffffff7f
+      m_RenameOverlay:
+        m_UserAcceptedRename: 0
+        m_Name: 
+        m_OriginalName: 
+        m_EditFieldRect:
+          serializedVersion: 2
+          x: 0
+          y: 0
+          width: 0
+          height: 0
+        m_UserData: 0
+        m_IsWaitingForDelay: 0
+        m_IsRenaming: 0
+        m_OriginalEventType: 11
+        m_IsRenamingFilename: 0
+        m_ClientGUIView: {fileID: 0}
+      m_SearchString: 
+    m_TestRunnerUIFilter:
+      PassedHidden: 0
+      FailedHidden: 0
+      NotRunHidden: 0
+      m_SearchString: 
+      selectedCategoryMask: 0
+      availableCategories:
+      - Uncategorized
+      - UniversalRP
+    m_SelectedOption: 0
+  m_EditModeTestListGUI:
+    m_Window: {fileID: 15}
+    newResultList:
+    - id: 1000
+      uniqueId: '[GraphicsTests][suite]'
+      name: GraphicsTests
+      fullName: GraphicsTests
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 
+      parentUniqueId: 
+    - id: 1055
+      uniqueId: '[Unity.RenderPipelines.Core.Editor.Tests][/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Editor.Tests.dll][suite]'
+      name: Unity.RenderPipelines.Core.Editor.Tests.dll
+      fullName: /Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Editor.Tests.dll
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1000
+      parentUniqueId: '[GraphicsTests][suite]'
+    - id: 1001
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/[Unity.RenderPipelines.Core.Editor.Tests][EditorExampleTest][suite]
+      name: EditorExampleTest
+      fullName: EditorExampleTest
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1055
+      parentUniqueId: '[Unity.RenderPipelines.Core.Editor.Tests][/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Editor.Tests.dll][suite]'
+    - id: 1002
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/EditorExampleTest/[Unity.RenderPipelines.Core.Editor.Tests][EditorExampleTest.EditorSampleTestSimplePasses]
+      name: EditorSampleTestSimplePasses
+      fullName: EditorExampleTest.EditorSampleTestSimplePasses
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1001
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/[Unity.RenderPipelines.Core.Editor.Tests][EditorExampleTest][suite]
+    - id: 1003
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/EditorExampleTest/[Unity.RenderPipelines.Core.Editor.Tests][EditorExampleTest.EditorSampleTestWithEnumeratorPasses]
+      name: EditorSampleTestWithEnumeratorPasses
+      fullName: EditorExampleTest.EditorSampleTestWithEnumeratorPasses
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1001
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/[Unity.RenderPipelines.Core.Editor.Tests][EditorExampleTest][suite]
+    - id: 1056
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/[UnityEditor][suite]
+      name: UnityEditor
+      fullName: UnityEditor
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1055
+      parentUniqueId: '[Unity.RenderPipelines.Core.Editor.Tests][/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Editor.Tests.dll][suite]'
+    - id: 1057
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/[Rendering][suite]
+      name: Rendering
+      fullName: UnityEditor.Rendering
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1056
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/[UnityEditor][suite]
+    - id: 1058
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests][suite]
+      name: Tests
+      fullName: UnityEditor.Rendering.Tests
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1057
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/[Rendering][suite]
+    - id: 1004
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests][suite]
+      name: CoreUnsafeUtilsTests
+      fullName: UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1058
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests][suite]
+    - id: 1008
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.CopyToArray][suite]
+      name: CopyToArray
+      fullName: UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.CopyToArray
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1004
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests][suite]
+    - id: 1007
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/CopyToArray/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.CopyToArray(UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests+TestData[])]
+      name: CopyToArray(UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests+TestData[])
+      fullName: UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.CopyToArray(UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests+TestData[])
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1008
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.CopyToArray][suite]
+    - id: 1006
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.CopyToList][suite]
+      name: CopyToList
+      fullName: UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.CopyToList
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1004
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests][suite]
+    - id: 1005
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/CopyToList/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.CopyToList(System.Collections.Generic.List`1[UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests+TestData])]
+      name: CopyToList(System.Collections.Generic.List`1[UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests+TestData])
+      fullName: UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.CopyToList(System.Collections.Generic.List`1[UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests+TestData])
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1006
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.CopyToList][suite]
+    - id: 1013
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort][suite]
+      name: QuickSort
+      fullName: UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1004
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests][suite]
+    - id: 1009
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/QuickSort/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort(System.Int32[])]
+      name: QuickSort(System.Int32[])
+      fullName: UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort(System.Int32[])
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1013
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort][suite]
+    - id: 1010
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/QuickSort/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort(System.Int32[])]2
+      name: QuickSort(System.Int32[])
+      fullName: UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort(System.Int32[]
+        GeneratedTestCase2)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1013
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort][suite]
+    - id: 1011
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/QuickSort/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort(System.Int32[])]3
+      name: QuickSort(System.Int32[])
+      fullName: UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort(System.Int32[]
+        GeneratedTestCase3)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1013
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort][suite]
+    - id: 1012
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/QuickSort/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort(System.Int32[])]4
+      name: QuickSort(System.Int32[])
+      fullName: UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort(System.Int32[]
+        GeneratedTestCase4)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1013
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSort][suite]
+    - id: 1015
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSortHash][suite]
+      name: QuickSortHash
+      fullName: UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSortHash
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1004
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests][suite]
+    - id: 1014
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/QuickSortHash/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSortHash(UnityEngine.Hash128[],UnityEngine.Hash128[])]
+      name: QuickSortHash(UnityEngine.Hash128[],UnityEngine.Hash128[])
+      fullName: UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSortHash(UnityEngine.Hash128[],UnityEngine.Hash128[])
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1015
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEditor/Rendering/Tests/CoreUnsafeUtilsTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEditor.Rendering.Tests.CoreUnsafeUtilsTests.QuickSortHash][suite]
+    - id: 1059
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/[UnityEngine][suite]
+      name: UnityEngine
+      fullName: UnityEngine
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1055
+      parentUniqueId: '[Unity.RenderPipelines.Core.Editor.Tests][/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Core.Editor.Tests.dll][suite]'
+    - id: 1060
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering][suite]
+      name: Rendering
+      fullName: UnityEngine.Rendering
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1059
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/[UnityEngine][suite]
+    - id: 1016
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.CoreRenderPipelinePreferencesTests][suite]
+      name: CoreRenderPipelinePreferencesTests
+      fullName: UnityEngine.Rendering.CoreRenderPipelinePreferencesTests
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1060
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering][suite]
+    - id: 1017
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/CoreRenderPipelinePreferencesTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.CoreRenderPipelinePreferencesTests.RegisterInvalidPreferenceColorName]
+      name: RegisterInvalidPreferenceColorName
+      fullName: UnityEngine.Rendering.CoreRenderPipelinePreferencesTests.RegisterInvalidPreferenceColorName
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1016
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.CoreRenderPipelinePreferencesTests][suite]
+    - id: 1018
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/CoreRenderPipelinePreferencesTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.CoreRenderPipelinePreferencesTests.RegisterPreferenceColor]
+      name: RegisterPreferenceColor
+      fullName: UnityEngine.Rendering.CoreRenderPipelinePreferencesTests.RegisterPreferenceColor
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1016
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.CoreRenderPipelinePreferencesTests][suite]
+    - id: 1061
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests][suite]
+      name: Tests
+      fullName: UnityEngine.Rendering.Tests
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1060
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering][suite]
+    - id: 1019
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.BitArrayTests][suite]
+      name: BitArrayTests
+      fullName: UnityEngine.Rendering.Tests.BitArrayTests
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1061
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests][suite]
+    - id: 1024
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/BitArrayTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.BitArrayTests.TestBitArray128]
+      name: TestBitArray128
+      fullName: UnityEngine.Rendering.Tests.BitArrayTests.TestBitArray128
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1019
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.BitArrayTests][suite]
+    - id: 1021
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/BitArrayTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.BitArrayTests.TestBitArray16]
+      name: TestBitArray16
+      fullName: UnityEngine.Rendering.Tests.BitArrayTests.TestBitArray16
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1019
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.BitArrayTests][suite]
+    - id: 1025
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/BitArrayTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.BitArrayTests.TestBitArray256]
+      name: TestBitArray256
+      fullName: UnityEngine.Rendering.Tests.BitArrayTests.TestBitArray256
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1019
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.BitArrayTests][suite]
+    - id: 1022
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/BitArrayTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.BitArrayTests.TestBitArray32]
+      name: TestBitArray32
+      fullName: UnityEngine.Rendering.Tests.BitArrayTests.TestBitArray32
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1019
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.BitArrayTests][suite]
+    - id: 1023
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/BitArrayTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.BitArrayTests.TestBitArray64]
+      name: TestBitArray64
+      fullName: UnityEngine.Rendering.Tests.BitArrayTests.TestBitArray64
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1019
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.BitArrayTests][suite]
+    - id: 1020
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/BitArrayTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.BitArrayTests.TestBitArray8]
+      name: TestBitArray8
+      fullName: UnityEngine.Rendering.Tests.BitArrayTests.TestBitArray8
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1019
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.BitArrayTests][suite]
+    - id: 1026
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.FixedBufferStringQueueTests][suite]
+      name: FixedBufferStringQueueTests
+      fullName: UnityEngine.Rendering.Tests.FixedBufferStringQueueTests
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1061
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests][suite]
+    - id: 1029
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/FixedBufferStringQueueTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.FixedBufferStringQueueTests.PushAndPopAndClear]
+      name: PushAndPopAndClear
+      fullName: UnityEngine.Rendering.Tests.FixedBufferStringQueueTests.PushAndPopAndClear
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1026
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.FixedBufferStringQueueTests][suite]
+    - id: 1027
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/FixedBufferStringQueueTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.FixedBufferStringQueueTests.PushAndPopInBufferRange]
+      name: PushAndPopInBufferRange
+      fullName: UnityEngine.Rendering.Tests.FixedBufferStringQueueTests.PushAndPopInBufferRange
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1026
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.FixedBufferStringQueueTests][suite]
+    - id: 1028
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/FixedBufferStringQueueTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.FixedBufferStringQueueTests.PushAndPopOutOfBufferRange]
+      name: PushAndPopOutOfBufferRange
+      fullName: UnityEngine.Rendering.Tests.FixedBufferStringQueueTests.PushAndPopOutOfBufferRange
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1026
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.FixedBufferStringQueueTests][suite]
+    - id: 1030
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+      name: RenderGraphTests
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1061
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests][suite]
+    - id: 1044
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.AsyncPassReadWaitOnGraphcisPipe]
+      name: AsyncPassReadWaitOnGraphcisPipe
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.AsyncPassReadWaitOnGraphcisPipe
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1041
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.AsyncPassReleaseTextureOnGraphicsPipe]
+      name: AsyncPassReleaseTextureOnGraphicsPipe
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.AsyncPassReleaseTextureOnGraphicsPipe
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1043
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.AsyncPassWriteWaitOnGraphcisPipe]
+      name: AsyncPassWriteWaitOnGraphcisPipe
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.AsyncPassWriteWaitOnGraphcisPipe
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1046
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.GraphicsPassReadWaitOnAsyncPipe]
+      name: GraphicsPassReadWaitOnAsyncPipe
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.GraphicsPassReadWaitOnAsyncPipe
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1045
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.GraphicsPassWriteWaitOnAsyncPipe]
+      name: GraphicsPassWriteWaitOnAsyncPipe
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.GraphicsPassWriteWaitOnAsyncPipe
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1032
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.NoWriteToBackBufferCulled]
+      name: NoWriteToBackBufferCulled
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.NoWriteToBackBufferCulled
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1037
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.PartialUnusedProductNotCulled]
+      name: PartialUnusedProductNotCulled
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.PartialUnusedProductNotCulled
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1036
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.PassDisallowCullingNotCulled]
+      name: PassDisallowCullingNotCulled
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.PassDisallowCullingNotCulled
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1035
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.PassWriteResourcePartialNotReadAfterNotCulled]
+      name: PassWriteResourcePartialNotReadAfterNotCulled
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.PassWriteResourcePartialNotReadAfterNotCulled
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1038
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.SimpleCreateReleaseTexture]
+      name: SimpleCreateReleaseTexture
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.SimpleCreateReleaseTexture
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1040
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.TransientCreateReleaseInSamePass]
+      name: TransientCreateReleaseInSamePass
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.TransientCreateReleaseInSamePass
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1042
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.TransientResourceNotCulled]
+      name: TransientResourceNotCulled
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.TransientResourceNotCulled
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1039
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.UseTransientOutsidePassRaiseException]
+      name: UseTransientOutsidePassRaiseException
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.UseTransientOutsidePassRaiseException
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1031
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.WriteToBackBufferNotCulled]
+      name: WriteToBackBufferNotCulled
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.WriteToBackBufferNotCulled
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1034
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.WriteToImportedComputeBufferNotCulled]
+      name: WriteToImportedComputeBufferNotCulled
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.WriteToImportedComputeBufferNotCulled
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1033
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/RenderGraphTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests.WriteToImportedTextureNotCulled]
+      name: WriteToImportedTextureNotCulled
+      fullName: UnityEngine.Rendering.Tests.RenderGraphTests.WriteToImportedTextureNotCulled
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1030
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.RenderGraphTests][suite]
+    - id: 1047
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests][suite]
+      name: VolumeComponentEditorTests
+      fullName: UnityEngine.Rendering.Tests.VolumeComponentEditorTests
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1061
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests][suite]
+    - id: 1052
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/VolumeComponentEditorTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests.AdditionalProperties][suite]
+      name: AdditionalProperties
+      fullName: UnityEngine.Rendering.Tests.VolumeComponentEditorTests.AdditionalProperties
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1047
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests][suite]
+    - id: 1049
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/VolumeComponentEditorTests/AdditionalProperties/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests.VolumeComponentNoAdditionalAttributes]
+      name: VolumeComponentNoAdditionalAttributes
+      fullName: UnityEngine.Rendering.Tests.VolumeComponentEditorTests.VolumeComponentNoAdditionalAttributes
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1052
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/VolumeComponentEditorTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests.AdditionalProperties][suite]
+    - id: 1050
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/VolumeComponentEditorTests/AdditionalProperties/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests.VolumeComponentAllAdditionalAttributes]
+      name: VolumeComponentAllAdditionalAttributes
+      fullName: UnityEngine.Rendering.Tests.VolumeComponentEditorTests.VolumeComponentAllAdditionalAttributes
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1052
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/VolumeComponentEditorTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests.AdditionalProperties][suite]
+    - id: 1051
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/VolumeComponentEditorTests/AdditionalProperties/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests.VolumeComponentMixedAdditionalAttributes]
+      name: VolumeComponentMixedAdditionalAttributes
+      fullName: UnityEngine.Rendering.Tests.VolumeComponentEditorTests.VolumeComponentMixedAdditionalAttributes
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1052
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/VolumeComponentEditorTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests.AdditionalProperties][suite]
+    - id: 1053
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/VolumeComponentEditorTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests.TestHandleParameterDecorators]
+      name: TestHandleParameterDecorators
+      fullName: UnityEngine.Rendering.Tests.VolumeComponentEditorTests.TestHandleParameterDecorators
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1047
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests][suite]
+    - id: 1048
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/VolumeComponentEditorTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests.TestOverridesChanges]
+      name: TestOverridesChanges
+      fullName: UnityEngine.Rendering.Tests.VolumeComponentEditorTests.TestOverridesChanges
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1047
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests][suite]
+    - id: 1054
+      uniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/VolumeComponentEditorTests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests.TestSupportedOnAvoidedIfHideInInspector]
+      name: TestSupportedOnAvoidedIfHideInInspector
+      fullName: UnityEngine.Rendering.Tests.VolumeComponentEditorTests.TestSupportedOnAvoidedIfHideInInspector
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1047
+      parentUniqueId: Unity.RenderPipelines.Core.Editor.Tests.dll/UnityEngine/Rendering/Tests/[Unity.RenderPipelines.Core.Editor.Tests][UnityEngine.Rendering.Tests.VolumeComponentEditorTests][suite]
+    - id: 1081
+      uniqueId: '[Unity.RenderPipelines.Universal.Editor.Tests][/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll][suite]'
+      name: Unity.RenderPipelines.Universal.Editor.Tests.dll
+      fullName: /Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1000
+      parentUniqueId: '[GraphicsTests][suite]'
+    - id: 1062
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests][suite]
+      name: EditorTests
+      fullName: EditorTests
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1081
+      parentUniqueId: '[Unity.RenderPipelines.Universal.Editor.Tests][/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.RenderPipelines.Universal.Editor.Tests.dll][suite]'
+    - id: 1063
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.CreatePipelineAssetWithoutErrors]
+      name: CreatePipelineAssetWithoutErrors
+      fullName: EditorTests.CreatePipelineAssetWithoutErrors
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1062
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests][suite]
+    - id: 1065
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.CreateRenderer2DAssetWithoutErrors]
+      name: CreateRenderer2DAssetWithoutErrors
+      fullName: EditorTests.CreateRenderer2DAssetWithoutErrors
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1062
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests][suite]
+    - id: 1064
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.CreateUniversalRendererAssetWithoutErrors]
+      name: CreateUniversalRendererAssetWithoutErrors
+      fullName: EditorTests.CreateUniversalRendererAssetWithoutErrors
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1062
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests][suite]
+    - id: 1080
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateAssetSettings]
+      name: ValidateAssetSettings
+      fullName: EditorTests.ValidateAssetSettings
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1062
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests][suite]
+    - id: 1066
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateBuiltinResourceFiles]
+      name: ValidateBuiltinResourceFiles
+      fullName: EditorTests.ValidateBuiltinResourceFiles
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1062
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests][suite]
+    - id: 1079
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateNewAssetResources]
+      name: ValidateNewAssetResources
+      fullName: EditorTests.ValidateNewAssetResources
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1062
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests][suite]
+    - id: 1078
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources][suite]
+      name: ValidateShaderResources
+      fullName: EditorTests.ValidateShaderResources
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1062
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests][suite]
+    - id: 1067
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/ValidateShaderResources/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources(Lit)]
+      name: ValidateShaderResources(Lit)
+      fullName: EditorTests.ValidateShaderResources(Lit)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1078
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources][suite]
+    - id: 1068
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/ValidateShaderResources/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources(SimpleLit)]
+      name: ValidateShaderResources(SimpleLit)
+      fullName: EditorTests.ValidateShaderResources(SimpleLit)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1078
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources][suite]
+    - id: 1069
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/ValidateShaderResources/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources(Unlit)]
+      name: ValidateShaderResources(Unlit)
+      fullName: EditorTests.ValidateShaderResources(Unlit)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1078
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources][suite]
+    - id: 1070
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/ValidateShaderResources/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources(TerrainLit)]
+      name: ValidateShaderResources(TerrainLit)
+      fullName: EditorTests.ValidateShaderResources(TerrainLit)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1078
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources][suite]
+    - id: 1071
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/ValidateShaderResources/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources(ParticlesLit)]
+      name: ValidateShaderResources(ParticlesLit)
+      fullName: EditorTests.ValidateShaderResources(ParticlesLit)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1078
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources][suite]
+    - id: 1072
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/ValidateShaderResources/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources(ParticlesSimpleLit)]
+      name: ValidateShaderResources(ParticlesSimpleLit)
+      fullName: EditorTests.ValidateShaderResources(ParticlesSimpleLit)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1078
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources][suite]
+    - id: 1073
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/ValidateShaderResources/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources(ParticlesUnlit)]
+      name: ValidateShaderResources(ParticlesUnlit)
+      fullName: EditorTests.ValidateShaderResources(ParticlesUnlit)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1078
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources][suite]
+    - id: 1074
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/ValidateShaderResources/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources(BakedLit)]
+      name: ValidateShaderResources(BakedLit)
+      fullName: EditorTests.ValidateShaderResources(BakedLit)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1078
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources][suite]
+    - id: 1075
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/ValidateShaderResources/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources(SpeedTree7)]
+      name: ValidateShaderResources(SpeedTree7)
+      fullName: EditorTests.ValidateShaderResources(SpeedTree7)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1078
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources][suite]
+    - id: 1076
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/ValidateShaderResources/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources(SpeedTree7Billboard)]
+      name: ValidateShaderResources(SpeedTree7Billboard)
+      fullName: EditorTests.ValidateShaderResources(SpeedTree7Billboard)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1078
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources][suite]
+    - id: 1077
+      uniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/ValidateShaderResources/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources(SpeedTree8)]
+      name: ValidateShaderResources(SpeedTree8)
+      fullName: EditorTests.ValidateShaderResources(SpeedTree8)
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1078
+      parentUniqueId: Unity.RenderPipelines.Universal.Editor.Tests.dll/EditorTests/[Unity.RenderPipelines.Universal.Editor.Tests][EditorTests.ValidateShaderResources][suite]
+    - id: 1088
+      uniqueId: '[Unity.Testing.XR.Editor.Tests][/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.Testing.XR.Editor.Tests.dll][suite]'
+      name: Unity.Testing.XR.Editor.Tests.dll
+      fullName: /Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.Testing.XR.Editor.Tests.dll
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1000
+      parentUniqueId: '[GraphicsTests][suite]'
+    - id: 1085
+      uniqueId: Unity.Testing.XR.Editor.Tests.dll/[Unity.Testing.XR.Editor.Tests][InjectMockHMDTest][suite]
+      name: InjectMockHMDTest
+      fullName: InjectMockHMDTest
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1088
+      parentUniqueId: '[Unity.Testing.XR.Editor.Tests][/Users/jonass/Projects/Graphics
+        /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/Unity.Testing.XR.Editor.Tests.dll][suite]'
+    - id: 1087
+      uniqueId: Unity.Testing.XR.Editor.Tests.dll/InjectMockHMDTest/[Unity.Testing.XR.Editor.Tests][InjectMockHMDTest.AddPackageTest]
+      name: AddPackageTest
+      fullName: InjectMockHMDTest.AddPackageTest
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1085
+      parentUniqueId: Unity.Testing.XR.Editor.Tests.dll/[Unity.Testing.XR.Editor.Tests][InjectMockHMDTest][suite]
+    - id: 1086
+      uniqueId: Unity.Testing.XR.Editor.Tests.dll/InjectMockHMDTest/[Unity.Testing.XR.Editor.Tests][InjectMockHMDTest.ValidateLoaderTest]
+      name: ValidateLoaderTest
+      fullName: InjectMockHMDTest.ValidateLoaderTest
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1085
+      parentUniqueId: Unity.Testing.XR.Editor.Tests.dll/[Unity.Testing.XR.Editor.Tests][InjectMockHMDTest][suite]
+    - id: 1097
+      uniqueId: '[UniversalEditorTests][/Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/UniversalEditorTests.dll][suite]'
+      name: UniversalEditorTests.dll
+      fullName: /Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/UniversalEditorTests.dll
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1000
+      parentUniqueId: '[GraphicsTests][suite]'
+    - id: 1092
+      uniqueId: UniversalEditorTests.dll/[UniversalEditorTests][MultipleViewGCTest][suite]
+      name: MultipleViewGCTest
+      fullName: MultipleViewGCTest
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1097
+      parentUniqueId: '[UniversalEditorTests][/Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/UniversalEditorTests.dll][suite]'
+    - id: 1093
+      uniqueId: UniversalEditorTests.dll/MultipleViewGCTest/[UniversalEditorTests][MultipleViewGCTest.RenderSceneAndGameView]
+      name: RenderSceneAndGameView
+      fullName: MultipleViewGCTest.RenderSceneAndGameView
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1092
+      parentUniqueId: UniversalEditorTests.dll/[UniversalEditorTests][MultipleViewGCTest][suite]
+    - id: 1094
+      uniqueId: UniversalEditorTests.dll/[UniversalEditorTests][UniversalProjectEditorTests][suite]
+      name: UniversalProjectEditorTests
+      fullName: UniversalProjectEditorTests
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 1
+      categories: []
+      parentId: 1097
+      parentUniqueId: '[UniversalEditorTests][/Users/jonass/Projects/Graphics /TestProjects/UniversalGraphicsTest_Foundation/Library/ScriptAssemblies/UniversalEditorTests.dll][suite]'
+    - id: 1096
+      uniqueId: UniversalEditorTests.dll/UniversalProjectEditorTests/[UniversalEditorTests][UniversalProjectEditorTests.CheckAllLightingSettings]
+      name: CheckAllLightingSettings
+      fullName: UniversalProjectEditorTests.CheckAllLightingSettings
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1094
+      parentUniqueId: UniversalEditorTests.dll/[UniversalEditorTests][UniversalProjectEditorTests][suite]
+    - id: 1095
+      uniqueId: UniversalEditorTests.dll/UniversalProjectEditorTests/[UniversalEditorTests][UniversalProjectEditorTests.GetCurrentAsset]
+      name: GetCurrentAsset
+      fullName: UniversalProjectEditorTests.GetCurrentAsset
+      resultStatus: 0
+      duration: 0
+      messages: 
+      output: 
+      stacktrace: 
+      notRunnable: 0
+      ignoredOrSkipped: 0
+      description: 
+      isSuite: 0
+      categories:
+      - Uncategorized
+      parentId: 1094
+      parentUniqueId: UniversalEditorTests.dll/[UniversalEditorTests][UniversalProjectEditorTests][suite]
+    m_ResultText: 
+    m_ResultStacktrace: 
+    m_TestListState:
+      scrollPos: {x: 0, y: 0}
+      m_SelectedIDs: 
+      m_LastClickedID: 0
+      m_ExpandedIDs: 94330787fa1948926316e9969c633f9d53acb5aabb4adfabf83faeb0047300b86e4155bb21f625de5b06b9ec04b76ff04dbf38f6bed4a0f8dcad35021724981c097ec93d8e28543f23d62440c71c864d2774ae4f6860da523e34f052ddc5a3633fea21642ab1346bd4f90371e6906b7dffffff7f
+      m_RenameOverlay:
+        m_UserAcceptedRename: 0
+        m_Name: 
+        m_OriginalName: 
+        m_EditFieldRect:
+          serializedVersion: 2
+          x: 0
+          y: 0
+          width: 0
+          height: 0
+        m_UserData: 0
+        m_IsWaitingForDelay: 0
+        m_IsRenaming: 0
+        m_OriginalEventType: 11
+        m_IsRenamingFilename: 0
+        m_ClientGUIView: {fileID: 0}
+      m_SearchString: 
+    m_TestRunnerUIFilter:
+      PassedHidden: 0
+      FailedHidden: 0
+      NotRunHidden: 0
+      m_SearchString: 
+      selectedCategoryMask: 0
+      availableCategories:
+      - Uncategorized

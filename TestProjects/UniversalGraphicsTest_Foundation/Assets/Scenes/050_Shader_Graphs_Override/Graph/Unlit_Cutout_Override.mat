@@ -16,7 +16,8 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap:
     RenderType: Transparent
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - DepthOnly
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -55,6 +56,7 @@ Material:
     - _CastShadows: 1
     - _Cull: 2
     - _DstBlend: 10
+    - _QueueControl: 0
     - _QueueOffset: 0
     - _SrcBlend: 5
     - _Surface: 1
