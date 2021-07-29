@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering
                     return 32000000;
                 case ProbeVolumeTextureMemoryBudget.MemoryBudgetHigh:
                     // 64 MB - 16 million of bricks worth of space. At full resolution and a distance of 1 meter between probes, this is roughly 756 * 756 * 756 meters worth of bricks. If 0.25x on Y axis, this is equivalent to 1512 * 184 * 1512 meters
-                    return 64000000;
+                    return 2 * 64000000;
             }
             return 32000000;
         }
