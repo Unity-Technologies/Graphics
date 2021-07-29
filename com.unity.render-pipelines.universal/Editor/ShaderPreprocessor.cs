@@ -672,25 +672,6 @@ namespace UnityEditor.Rendering.Universal
                     prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
                     percentageTotal, stripTimeMs);
                 Debug.Log(result);
-
-                if (shader.name.Contains("Lit") || shader.name.Contains("StencilDeferred") || shader.name.Contains("Testy"))
-                {
-                    string msg = $"";
-                    foreach (var item in list)
-                    {
-                        msg += $"{snippetData.passName}:\n";
-                        var set = item.shaderKeywordSet;
-                        for (int i = 0; i < shader.keywordSpace.keywordCount; ++i)
-                        {
-                            if (set.IsEnabled(shader.keywordSpace.keywords[i]))
-                            {
-                                msg += shader.keywordSpace.keywordNames[i] + "\n";
-                            }
-                        }
-                        msg += "\n";
-                    }
-                    Debug.Log(msg);
-                }
             }
         }
 
@@ -953,8 +934,6 @@ namespace UnityEditor.Rendering.Universal
             bool onlyClusteredRendering = false;
             bool usesRenderPass = false;
 
-            //int rendererCount = pipelineAsset.m_RendererDataList.Length;
-            //for (int rendererIndex = 0; rendererIndex < rendererCount; ++rendererIndex)
             {
                 ScriptableRenderer renderer = pipelineAsset.GetRenderer(rendererIndex);
                 if (renderer is UniversalRenderer)
@@ -1065,8 +1044,6 @@ namespace UnityEditor.Rendering.Universal
                     shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
                 }
             }
-
-            Debug.Log($"FEATURES {pipelineAsset.name} {shaderFeatures}");
 
             return shaderFeatures;
         }
