@@ -57,8 +57,11 @@ CBUFFER_START(ShaderVariablesClouds)
     float4x4 _CameraViewProjection_NO;
     float4x4 _CameraInverseViewProjection_NO;
     float4x4 _CameraPrevViewProjection_NO;
-    float3 _Padding2;
+    float _AltitudeDistortion;
+    float _ErosionFactorCompensation;
     int _EnableFastToneMapping;
+    float _Padding;
+    float4 _DistanceBasedWeights[12];
 CBUFFER_END
 
 

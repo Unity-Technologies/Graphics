@@ -80,6 +80,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed additional camera data help url
 - Fixed additional light data help url
 - Fixed Opacity as Density blending artifacts on Terrain that that caused Terrain to have modified splat weights of zero in some areas and greater than one in others. [case 1283124](https://issuetracker.unity3d.com/product/unity/issues/guid/1283124/)
+- Fixed an issue where Sprite type Light2Ds would throw an exeception if missing a sprite
+- Fixed an issue where Sprite type Light2Ds were missing a default sprite
+- Fixed an issue where ShadowCasters were sometimes being rendered twice in the editor while in playmode.
 - Fixed an issue where ShadowCaster2D was generating garbage when running in the editor. [case 1304158](https://issuetracker.unity3d.com/product/unity/issues/guid/1304158/)
 - Fixed an issue where 2D lighting was incorrectly calculated when using a perspective camera.
 - Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
@@ -146,8 +149,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ShaderGraph materials to select render queue in the same way as handwritten shader materials by default, but allows for a user override for custom behavior. [case 1335795]
 - Fixed sceneview debug mode rendering (case 1211436).
 - URP Global Settings can now be unassigned in the Graphics tab (case 1343570).
-- VFX: Fixed soft particles when HDR or Opaque texture isn't enabled.
-- VFX: Fixed OpenGL soft particles fallback when depth texture isn't available.
+- VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
+- VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
+- Fixed issue with legacy stereo matrices with XR multipass. [case 1342416]
+- Fixed unlit shader function name ambiguity
+- Fixed Terrain holes not appearing in shadows [case 1349305]
+- VFX: Compilation issue with ShaderGraph and planar lit outputs [case 1349894](https://issuetracker.unity3d.com/product/unity/issues/guid/1349894/)
 - Support undo of URP Global Settings asset assignation (case 1342987).
 
 ### Changed
