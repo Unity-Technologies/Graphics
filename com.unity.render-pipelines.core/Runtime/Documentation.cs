@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
+using System.Linq;
 #if UNITY_EDITOR
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 #endif
@@ -56,9 +57,9 @@ namespace UnityEngine.Rendering
             }
         }
 
-    /// <summary>
+        /// <summary>
         /// Generates a help url for the given package and page name
-    /// </summary>
+        /// </summary>
         /// <param name="packageName">The package name</param>
         /// <param name="pageName">The page name</param>
         /// <returns>The full url page</returns>

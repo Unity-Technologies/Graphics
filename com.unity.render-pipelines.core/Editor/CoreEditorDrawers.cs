@@ -397,7 +397,7 @@ namespace UnityEditor.Rendering
                 m_State = state;
                 m_Mask = mask;
 
-                m_HelpUrl = DocumentationUtils.GetHelpURL<TEnum>(mask));
+                m_HelpUrl = DocumentationUtils.GetHelpURL<TEnum>(mask);
 
                 m_Enabler = enabler;
                 m_SwitchEnabler = switchEnabler;
