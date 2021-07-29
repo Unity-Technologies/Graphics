@@ -83,10 +83,10 @@ namespace UnityEngine.Rendering.Universal
     public enum ShaderVariantLogLevel
     {
         Disabled,
-        OnlyURPShaders,
-        AllShaders,
-        [Obsolete("OnlyUniversalRPShaders is deprecated, use OnlyURPShaders instead (UnityUpgradable) -> OnlyURPShaders", true)]
+        [InspectorName("Only URP Shaders")]
         OnlyUniversalRPShaders,
+        [InspectorName("All Shaders")]
+        AllShaders
     }
 
     [Obsolete("PipelineDebugLevel is unused and has no effect.", false)]
