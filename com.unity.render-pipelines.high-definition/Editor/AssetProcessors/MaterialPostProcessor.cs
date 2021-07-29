@@ -365,17 +365,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 void AddDiffusionProfileToSettings(string propName)
                 {
-                    if (Application.isBatchMode || !HDRenderPipelineGlobalSettings.instance.showMissingDiffusionProfiles) return;
-
-                    if (material.HasProperty(propName))
+                    if (!HDRenderPipelineGlobalSettings.instance.showMissingDiffusionProfiles || material.HasProperty(propName))
                     {
                         var diffusionProfileAsset = material.GetVector(propName);
                         string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset);
                         var assetPath = AssetDatabase.GUIDToAssetPath(guid);
 
-                        var diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(assetPath);
-                        if (diffusionProfile != null && !HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
-                            MaterialDiffusionProfileReferences.RequireDiffusionProfile(assetPath);
+                        MaterialDiffusionProfileReferences.RequireDiffusionProfile(assetPath);
                     }
                 }
 
