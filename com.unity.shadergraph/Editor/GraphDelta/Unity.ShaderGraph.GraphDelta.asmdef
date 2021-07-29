@@ -1,7 +1,6 @@
 {
     "name": "Unity.ShaderGraph.GraphDelta",
     "references": [
-        "Unity.ShaderGraph.Registry"
     ],
     "includePlatforms": [
         "Editor"

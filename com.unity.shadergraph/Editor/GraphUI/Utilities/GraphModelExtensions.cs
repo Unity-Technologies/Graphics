@@ -1,5 +1,5 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.Registry.Experimental;
+using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 

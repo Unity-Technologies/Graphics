@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Registry.Experimental;
+using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Registry;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI.DataModel
@@ -9,8 +9,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         // TODO: This should eventually be more flexible, but for now serves its purpose
         static readonly Dictionary<string, TypeHandle> k_TypeHandlesByName = new()
         {
-            {"NumericLiteral", TypeHandle.Float},
-            {"StringLiteral", TypeHandle.String},
+            {"GraphType", TypeHandle.Vector4},
         };
 
         public static TypeHandle GetTypeHandleFromKey(RegistryKey registryKey)

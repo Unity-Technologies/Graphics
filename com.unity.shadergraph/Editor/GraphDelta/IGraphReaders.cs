@@ -4,7 +4,12 @@ using System.Runtime.Serialization;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    public interface INodeReader : IDisposable
+    public interface IDataReader : IDisposable
+    {
+        public string GetName();
+    }
+
+    public interface INodeReader : IDisposable, IDataReader
     {
         public IEnumerable<IPortReader> GetPorts();
 
@@ -19,8 +24,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public bool TryGetField(string fieldKey, out IFieldReader fieldReader);
     }
 
-    public interface IPortReader : IDisposable
+    public interface IPortReader : IDisposable, IDataReader
     {
+        public PortFlagsStruct GetFlags();
+
         public IEnumerable<IFieldReader> GetFields();
 
         public IEnumerable<IPortReader> GetConnectedPorts();
@@ -29,7 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
     }
 
-    public interface IFieldReader : IDisposable
+    public interface IFieldReader : IDisposable, IDataReader
     {
         public IEnumerable<IFieldReader> GetSubFields();
         public bool TryGetValue<T>(out T value);

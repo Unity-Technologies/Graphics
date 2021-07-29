@@ -3,8 +3,8 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.Utilities;
-using UnityEditor.ShaderGraph.Registry.Experimental;
-using UnityEditor.ShaderGraph.Registry.Mock;
+using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.Registry.Exploration;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
@@ -45,16 +45,18 @@ namespace UnityEditor.ShaderGraph.GraphUI
             }
         }
 
-        void AddPortFromReader(INodeReader reader, string name)
+        void AddPortFromReader(GraphDelta.INodeReader reader, string name)
         {
-            if (!reader.GetPort(name, out var typeKey, out var flags)) return;
+            if (!reader.TryGetPort(name, out var portReader)) return;
 
-            var isInput = (flags & (PortFlags) 0b01) == PortFlags.Input;
-            var orientation = (flags & (PortFlags) 0b10) == PortFlags.Vertical
-                ? PortOrientation.Vertical
-                : PortOrientation.Horizontal;
 
-            var type = ShaderGraphTypes.GetTypeHandleFromKey(typeKey);
+
+            var isInput = portReader.GetFlags().isInput;
+            var orientation = portReader.GetFlags().isHorizontal
+                ? PortOrientation.Horizontal
+                : PortOrientation.Vertical;
+
+            var type = ShaderGraphTypes.GetTypeHandleFromKey(portReader.GetRegistryKey());
 
             if (isInput)
                 this.AddDataInputPort(name, type, orientation: orientation);
