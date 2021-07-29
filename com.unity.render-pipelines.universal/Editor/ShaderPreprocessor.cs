@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
-using LocalKeyword = UnityEngine.Rendering.ShaderKeyword;
+//using LocalKeyword = UnityEngine.Rendering.ShaderKeyword;
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
 using UnityEditor.XR.Management;
@@ -202,7 +202,8 @@ namespace UnityEditor.Rendering.Universal
 
         LocalKeyword TryGetLocalKeyword(Shader shader, string name)
         {
-            return new LocalKeyword(shader, name);
+            return shader.keywordSpace.FindKeyword(name);
+            //return new LocalKeyword(shader, name);
             //return new ShaderKeyword(name);
             if (m_ContainedKeywordNames.Contains(name))
                 return new LocalKeyword(shader, name);
@@ -267,10 +268,10 @@ namespace UnityEditor.Rendering.Universal
             m_LocalClearCoat = new LocalKeyword(shader, ShaderKeywordStrings._CLEARCOAT);
             m_LocalClearCoatMap = new LocalKeyword(shader, ShaderKeywordStrings._CLEARCOATMAP);*/
 
-            var names = shader.keywordSpace.keywordNames;
+            /*var names = shader.keywordSpace.keywordNames;
             m_ContainedKeywordNames = new HashSet<string>();
             foreach (var name in names)
-                m_ContainedKeywordNames.Add(name);
+                m_ContainedKeywordNames.Add(name);*/
 
             m_LocalDetailMulx2 = new ShaderKeyword(shader, ShaderKeywordStrings._DETAIL_MULX2);
             m_LocalDetailScaled = new ShaderKeyword(shader, ShaderKeywordStrings._DETAIL_SCALED);
@@ -287,9 +288,9 @@ namespace UnityEditor.Rendering.Universal
                 shader.name == "Hidden/Universal Render Pipeline/StencilDeferred" || 
                 m_IsShaderGraph)
                 m_StripDisabledKeywords = true;*/
-            m_StripDisabledKeywords = isUrpShader | isStencilDeferred;
+            m_StripDisabledKeywords = true;//isUrpShader | isStencilDeferred;
             //m_StripDisabledKeywords= false;
-            m_MainLightFragment = isStencilDeferred;
+            m_MainLightFragment = false; //isStencilDeferred;
 
             m_LocalMainLightShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.MainLightShadows);
             m_LocalMainLightShadowsCascades = TryGetLocalKeyword(shader, ShaderKeywordStrings.MainLightShadowCascades);
@@ -370,6 +371,7 @@ namespace UnityEditor.Rendering.Universal
 
         struct StripTool
         {
+            Shader m_Shader;
             HashSet<string> m_ContainedLocalKeywords;
             ShaderFeatures m_Features;
             ShaderKeywordSet keywordSet;
@@ -379,8 +381,9 @@ namespace UnityEditor.Rendering.Universal
 
             bool m_CachedStripDisabledKeywords;
 
-            public StripTool(HashSet<string> containedLocalKeywords, bool stripDisabledKeywords, bool isShaderGraph, ShaderFeatures features, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet)
+            public StripTool(Shader shader, HashSet<string> containedLocalKeywords, bool stripDisabledKeywords, bool isShaderGraph, ShaderFeatures features, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet)
             {
+                m_Shader = shader;
                 m_ContainedLocalKeywords = containedLocalKeywords;
                 m_Features = features;
                 this.snippetData = snippetData;
@@ -392,7 +395,7 @@ namespace UnityEditor.Rendering.Universal
 
             bool ContainsKeyword(in LocalKeyword kw)
             {
-                return m_ContainedLocalKeywords.Contains(kw.name);
+                return ShaderUtil.PassHasKeyword(m_Shader, snippetData.pass, kw, snippetData.shaderType);
             }
 
             public bool StripFragmentFeature(in LocalKeyword kw, ShaderFeatures feature, in LocalKeyword kw2, ShaderFeatures feature2, in LocalKeyword kw3, ShaderFeatures feature3, in LocalKeyword kw4, ShaderFeatures feature4)
@@ -406,7 +409,7 @@ namespace UnityEditor.Rendering.Universal
                 if ((m_Features & feature4) == 0 && keywordSet.IsEnabled(kw4)) // disabled
                     return true;
 
-                var checkShaderType = m_IsShaderGraph || snippetData.shaderType == ShaderType.Fragment;
+                var checkShaderType = true;//m_IsShaderGraph || snippetData.shaderType == ShaderType.Fragment;
 
                 if (m_StripDisabledKeywords && ContainsKeyword(kw) && checkShaderType &&
                     ((m_Features & feature) != 0 || (m_Features & feature2) != 0 || (m_Features & feature3) != 0) || (m_Features & feature4) != 0 &&
@@ -425,7 +428,7 @@ namespace UnityEditor.Rendering.Universal
                 if ((m_Features & feature3) == 0 && keywordSet.IsEnabled(kw3)) // disabled
                     return true;
 
-                var checkShaderType = m_IsShaderGraph || snippetData.shaderType == ShaderType.Fragment;
+                var checkShaderType = true;//m_IsShaderGraph || snippetData.shaderType == ShaderType.Fragment;
 
                 if (m_StripDisabledKeywords && ContainsKeyword(kw) && checkShaderType &&
                     ((m_Features & feature) != 0 || (m_Features & feature2) != 0 || (m_Features & feature3) != 0) &&
@@ -484,8 +487,8 @@ namespace UnityEditor.Rendering.Universal
 
             public bool StripFeature(in LocalKeyword kw, bool feature, ShaderType shaderType)
             {
-                if (snippetData.shaderType != shaderType && !m_IsShaderGraph)
-                    return false;
+                //if (snippetData.shaderType != shaderType && !m_IsShaderGraph)
+                //    return false;
 
                 if (!feature) // disabled
                 {
@@ -665,7 +668,7 @@ namespace UnityEditor.Rendering.Universal
                 return true;
             }
 
-            var stripTool = new StripTool(m_ContainedLocalKeywords, m_StripDisabledKeywords, m_IsShaderGraph, features, snippetData, compilerData.shaderKeywordSet);
+            var stripTool = new StripTool(shader, m_ContainedLocalKeywords, globalSettings != null && globalSettings.stripDisabledKeywordVariants, m_IsShaderGraph, features, snippetData, compilerData.shaderKeywordSet);
 
             // strip main light shadows, cascade and screen variants
             /*if (!IsFeatureEnabled(features, ShaderFeatures.MainLightShadows))
@@ -683,6 +686,7 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }*/
             
+            // Can not strip disabled variants as they can be used if no main light is present
             stripTool.DisableOffStrip();
             
             if (m_MainLightFragment)
@@ -783,7 +787,8 @@ stripTool.EnableOffStrip();
             //    return true;
             
             // Shadow caster punctual light strip
-            if (snippetData.passType == PassType.ShadowCaster && m_ContainedKeywordNames.Contains(m_LocalCastingPunctualLightShadow.name) && snippetData.shaderType == ShaderType.Vertex)
+            //if (snippetData.passType == PassType.ShadowCaster && m_ContainedKeywordNames.Contains(m_LocalCastingPunctualLightShadow.name) && snippetData.shaderType == ShaderType.Vertex)
+            if (snippetData.passType == PassType.ShadowCaster && ShaderUtil.PassHasKeyword(shader, snippetData.pass, m_LocalCastingPunctualLightShadow, snippetData.shaderType))
             {
                 if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
                     return true;
@@ -813,6 +818,7 @@ stripTool.EnableOffStrip();
             //if (!isFeaturePerVertexLightingEnabled && isAdditionalLightPerVertex)
             //    return true;
 
+            // Can not strip disabled variant as it would be used if no additional light is present
 stripTool.DisableOffStrip();
             if (stripTool.StripFeature(m_LocalAdditionalLightsVertex, ShaderFeatures.VertexLighting,
                 m_LocalAdditionalLightsPixel, ShaderFeatures.AdditionalLights))
@@ -878,50 +884,53 @@ stripTool.EnableOffStrip();
                 compilerData.shaderKeywordSet.IsEnabled(m_DecalNormalBlendHigh))
                 return true;
 
-            var stripTool2 = new StripTool(m_ContainedLocalKeywords, m_StripDisabledKeywords, m_IsShaderGraph, (ShaderFeatures)ShaderBuildPreprocessor.volumeFeatures, snippetData, compilerData.shaderKeywordSet);
-            if (stripTool2.StripFragmentFeature(m_LocalLensDistortion, (ShaderFeatures)VolumeFeatures.LensDistortion))
-                return true;
+            if (globalSettings != null && globalSettings.stripPostProcssingShaderVariants)
+            {
+                var stripTool2 = new StripTool(shader, m_ContainedLocalKeywords, m_StripDisabledKeywords, m_IsShaderGraph, (ShaderFeatures)ShaderBuildPreprocessor.volumeFeatures, snippetData, compilerData.shaderKeywordSet);
+                if (stripTool2.StripFragmentFeature(m_LocalLensDistortion, (ShaderFeatures)VolumeFeatures.LensDistortion))
+                    return true;
 
-            if (stripTool2.StripFragmentFeature(_CHROMATIC_ABERRATION, (ShaderFeatures)VolumeFeatures.CHROMATIC_ABERRATION))
-                return true;
+                if (stripTool2.StripFragmentFeature(_CHROMATIC_ABERRATION, (ShaderFeatures)VolumeFeatures.CHROMATIC_ABERRATION))
+                    return true;
 
-            if (stripTool2.StripFragmentFeature(m_LocalBloomLq, (ShaderFeatures)VolumeFeatures.Bloom))
-                return true;
-            if (stripTool2.StripFragmentFeature(m_LocalBloomHq, (ShaderFeatures)VolumeFeatures.Bloom))
-                return true;
-            if (stripTool2.StripFragmentFeature(m_LocalBloomLqDirt, (ShaderFeatures)VolumeFeatures.Bloom))
-                return true;
-            if (stripTool2.StripFragmentFeature(m_LocalBloomHqDirt, (ShaderFeatures)VolumeFeatures.Bloom))
-                return true;
-            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.Bloom) &&
-                shader.name == "Hidden/Universal Render Pipeline/Bloom")
-                return true;
+                if (stripTool2.StripFragmentFeature(m_LocalBloomLq, (ShaderFeatures)VolumeFeatures.Bloom))
+                    return true;
+                if (stripTool2.StripFragmentFeature(m_LocalBloomHq, (ShaderFeatures)VolumeFeatures.Bloom))
+                    return true;
+                if (stripTool2.StripFragmentFeature(m_LocalBloomLqDirt, (ShaderFeatures)VolumeFeatures.Bloom))
+                    return true;
+                if (stripTool2.StripFragmentFeature(m_LocalBloomHqDirt, (ShaderFeatures)VolumeFeatures.Bloom))
+                    return true;
+                if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.Bloom) &&
+                    shader.name == "Hidden/Universal Render Pipeline/Bloom")
+                    return true;
 
-            if (stripTool2.StripFragmentFeature(_HDR_GRADING, (ShaderFeatures)VolumeFeatures.ToneMaping))
-                return true;
-            if (stripTool2.StripFragmentFeature(_TONEMAP_ACES, (ShaderFeatures)VolumeFeatures.ToneMaping))
-                return true;
-            if (stripTool2.StripFragmentFeature(_TONEMAP_NEUTRAL, (ShaderFeatures)VolumeFeatures.ToneMaping))
-                return true;
+                if (stripTool2.StripFragmentFeature(_HDR_GRADING, (ShaderFeatures)VolumeFeatures.ToneMaping))
+                    return true;
+                if (stripTool2.StripFragmentFeature(_TONEMAP_ACES, (ShaderFeatures)VolumeFeatures.ToneMaping))
+                    return true;
+                if (stripTool2.StripFragmentFeature(_TONEMAP_NEUTRAL, (ShaderFeatures)VolumeFeatures.ToneMaping))
+                    return true;
 
-            if (stripTool2.StripFragmentFeature(_FILM_GRAIN, (ShaderFeatures)VolumeFeatures.FilmGrain))
-                return true;
+                if (stripTool2.StripFragmentFeature(_FILM_GRAIN, (ShaderFeatures)VolumeFeatures.FilmGrain))
+                    return true;
 
 
-            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.DepthOfField) &&
-                shader.name == "Hidden/Universal Render Pipeline/BokehDepthOfField")
-                return true;
-            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.DepthOfField) &&
-                shader.name == "Hidden/Universal Render Pipeline/GaussianDepthOfField")
-                return true;
+                if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.DepthOfField) &&
+                    shader.name == "Hidden/Universal Render Pipeline/BokehDepthOfField")
+                    return true;
+                if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.DepthOfField) &&
+                    shader.name == "Hidden/Universal Render Pipeline/GaussianDepthOfField")
+                    return true;
 
-            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.CameraMotionBlur) &&
-                shader.name == "Hidden/Universal Render Pipeline/CameraMotionBlur")
-                return true;
+                if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.CameraMotionBlur) &&
+                    shader.name == "Hidden/Universal Render Pipeline/CameraMotionBlur")
+                    return true;
 
-            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.PaniniProjection) &&
-                shader.name == "Hidden/Universal Render Pipeline/PaniniProjection")
-                return true;
+                if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.PaniniProjection) &&
+                    shader.name == "Hidden/Universal Render Pipeline/PaniniProjection")
+                    return true;
+            }
 
             return false;
         }
@@ -1030,8 +1039,11 @@ stripTool.EnableOffStrip();
             if (StripUnusedPass(features, snippetData))
                 return true;
 
-            if (StripUnusedShaders(features, shader))
-                return true;
+            if (UniversalRenderPipelineGlobalSettings.instance != null && UniversalRenderPipelineGlobalSettings.instance.stripPostProcssingShaderVariants)
+            {
+                if (StripUnusedShaders(features, shader))
+                    return true;
+            }
 
             // Strip terrain holes
             // TODO: checking for the string name here is expensive
@@ -1104,7 +1116,7 @@ stripTool.EnableOffStrip();
                 //Debug.Log($"post process {shader.name} {shader.passCount} {snippetData.pass}");
 
             // Get all contained local keywords by this pass
-            if (shader.name != "Hidden/VR/BlitFromTex2DToTexArraySlice") // TODO: Bug
+            //if (shader.name != "Hidden/VR/BlitFromTex2DToTexArraySlice") // TODO: Bug
             {  
             m_ContainedLocalKeywords = new HashSet<string>();
             var keywords = ShaderUtil.GetPassKeywords(shader, snippetData.pass);

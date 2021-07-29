@@ -256,9 +256,20 @@ namespace UnityEngine.Rendering.Universal
         public bool supportRuntimeDebugDisplay = false;
 
         /// <summary>
-        /// Controls whether light cookies enabled.
+        /// Controls whether strips automatically post processing shader variants based on <see cref="VolumeProfile"/> components.
+        /// It strips based on VolumeProfiles in project and not scenes that actually uses it.
         /// </summary>
-        public bool supportLightCookies = true;
+        public bool stripPostProcssingShaderVariants = false;
+
+        /// <summary>
+        /// Controls whether strip disabled keyword variants if the feature is enabled.
+        /// </summary>
+        public bool stripDisabledKeywordVariants = true;
+
+        /// <summary>
+        /// Controls whether strip builtin render pipeline specific shaders.
+        /// </summary>
+        public bool stripBuiltinShaders = false;
 
         #endregion
     }
