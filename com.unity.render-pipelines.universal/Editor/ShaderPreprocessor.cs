@@ -7,7 +7,6 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
-//using LocalKeyword = UnityEngine.Rendering.ShaderKeyword;
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
 using UnityEditor.XR.Management;
@@ -126,6 +125,23 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ToneMapACES;
         LocalKeyword m_ToneMapNeutral;
         LocalKeyword m_FilmGrain;
+
+        Shader m_BokehDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/BokehDepthOfField");
+        Shader m_GaussianDepthOfField = Shader.Find("Hidden/Universal Render Pipeline/GaussianDepthOfField");
+        Shader m_CameraMotionBlur = Shader.Find("Hidden/Universal Render Pipeline/CameraMotionBlur");
+        Shader m_PaniniProjection = Shader.Find("Hidden/Universal Render Pipeline/PaniniProjection");
+        Shader m_Bloom = Shader.Find("Hidden/Universal Render Pipeline/Bloom");
+
+        Shader m_InternalDeferredShading = Shader.Find("Hidden/Internal-DeferredShading");
+        Shader m_InternalDeferredReflections = Shader.Find("Hidden/Internal-DeferredReflections");
+        Shader m_InternalPrePassLighting = Shader.Find("Hidden/Internal-PrePassLighting");
+        Shader m_InternalScreenSpaceShadows = Shader.Find("Hidden/Internal-ScreenSpaceShadows");
+        Shader m_InternalFlare = Shader.Find("Hidden/Internal-Flare");
+        Shader m_InternalHalo = Shader.Find("Hidden/Internal-Halo");
+        Shader m_InternalMotionVectors = Shader.Find("Hidden/Internal-MotionVectors");
+        Shader m_BlitFromTex2DToTexArraySlice = Shader.Find("Hidden/VR/BlitFromTex2DToTexArraySlice");
+        Shader BlitTexArraySlice = Shader.Find("Hidden/VR/BlitTexArraySlice");
+        Shader StencilDeferred = Shader.Find("Hidden/Universal Render Pipeline/StencilDeferred");
 
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
@@ -364,7 +380,7 @@ namespace UnityEditor.Rendering.Universal
                 return true;
             }
 
-            var stripDisabledKeywords = globalSettings != null && globalSettings.stripDisabledKeywordVariants;
+            var stripDisabledKeywords = globalSettings?.stripDisabledKeywordVariants ?? true;
             var stripTool = new StripTool(shader, stripDisabledKeywords, features, snippetData, compilerData.shaderKeywordSet);
 
             // strip main light shadows, cascade and screen variants
@@ -474,8 +490,7 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripVolumeFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
-            var stripDisabledKeywords = globalSettings != null && globalSettings.stripDisabledKeywordVariants;
+            var stripDisabledKeywords = UniversalRenderPipelineGlobalSettings.instance?.stripDisabledKeywordVariants ?? true;
             var stripTool = new StripTool(shader, stripDisabledKeywords, (ShaderFeatures)ShaderBuildPreprocessor.volumeFeatures, snippetData, compilerData.shaderKeywordSet);
 
             if (stripTool.StripFeature(m_LensDistortion, (ShaderFeatures)VolumeFeatures.LensDistortion))
@@ -503,20 +518,15 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             // Strip post processing shaders
-            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.DepthOfField) &&
-                shader.name == "Hidden/Universal Render Pipeline/BokehDepthOfField")
+            if (shader == m_BokehDepthOfField && !IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.DepthOfField))
                 return true;
-            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.DepthOfField) &&
-                shader.name == "Hidden/Universal Render Pipeline/GaussianDepthOfField")
+            if (shader == m_GaussianDepthOfField && !IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.DepthOfField))
                 return true;
-            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.CameraMotionBlur) &&
-                shader.name == "Hidden/Universal Render Pipeline/CameraMotionBlur")
+            if (shader == m_CameraMotionBlur && !IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.CameraMotionBlur))
                 return true;
-            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.PaniniProjection) &&
-                shader.name == "Hidden/Universal Render Pipeline/PaniniProjection")
+            if (shader == m_PaniniProjection && !IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.PaniniProjection))
                 return true;
-            if (!IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.Bloom) &&
-                shader.name == "Hidden/Universal Render Pipeline/Bloom")
+            if (shader == m_Bloom && !IsFeatureEnabled(ShaderBuildPreprocessor.volumeFeatures, VolumeFeatures.Bloom))
                 return true;
 
             return false;
@@ -582,30 +592,30 @@ namespace UnityEditor.Rendering.Universal
         bool StripUnusedShaders(ShaderFeatures features, Shader shader)
         {
             // Strip builtin pipeline shaders
-            if (shader.name == "Hidden/Internal-DeferredShading")
+            if (shader == m_InternalDeferredShading)
                 return true;
-            if (shader.name == "Hidden/Internal-DeferredReflections")
+            if (shader == m_InternalDeferredReflections)
                 return true;
-            if (shader.name == "Hidden/Internal-PrePassLighting")
+            if (shader == m_InternalPrePassLighting)
                 return true;
-            if (shader.name == "Hidden/Internal-ScreenSpaceShadows")
+            if (shader == m_InternalScreenSpaceShadows)
                 return true;
-            if (shader.name == "Hidden/Internal-Flare")
+            if (shader == m_InternalFlare)
                 return true;
-            if (shader.name == "Hidden/Internal-Halo")
+            if (shader == m_InternalHalo)
                 return true;
-            if (shader.name == "Hidden/Internal-MotionVectors")
+            if (shader == m_InternalMotionVectors)
                 return true;
 
             // Strip builtin pipeline vr shaders
-            if (shader.name == "Hidden/VR/BlitFromTex2DToTexArraySlice")
+            if (shader == m_BlitFromTex2DToTexArraySlice)
                 return true;
-            if (shader.name == "Hidden/VR/BlitTexArraySlice")
+            if (shader == BlitTexArraySlice)
                 return true;
 
             if (!IsFeatureEnabled(features, ShaderFeatures.DeferredShading))
             {
-                if (shader.name == "Hidden/Universal Render Pipeline/StencilDeferred")
+                if (shader == StencilDeferred)
                     return true;
             }
 
@@ -626,13 +636,13 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnusedPass(features, snippetData))
                 return true;
 
-            if (UniversalRenderPipelineGlobalSettings.instance != null && UniversalRenderPipelineGlobalSettings.instance.stripBuiltinShaders)
+            if (UniversalRenderPipelineGlobalSettings.instance?.stripBuiltinShaders ?? true)
             {
                 if (StripUnusedShaders(features, shader))
                     return true;
             }
 
-            if (UniversalRenderPipelineGlobalSettings.instance != null && UniversalRenderPipelineGlobalSettings.instance.stripPostProcessingShaderVariants)
+            if (UniversalRenderPipelineGlobalSettings.instance?.stripPostProcessingShaderVariants ?? true)
             {
                 if (StripVolumeFeatures(features, shader, snippetData, compilerData))
                     return true;
@@ -646,18 +656,6 @@ namespace UnityEditor.Rendering.Universal
                 shader.name.Contains(kTerrainShaderName))
                 return true;
 
-            // TODO: Test against lightMode tag instead.
-            /*if (snippetData.passName == kPassNameGBuffer)
-            {
-                if (!IsFeatureEnabled(features, ShaderFeatures.DeferredShading))
-                    return true;
-
-                // Do not strip accurateGbufferNormals on Mobile Vulkan as some GPUs do not support R8G8B8A8_SNorm, which then force us to use accurateGbufferNormals
-                if (!IsFeatureEnabled(features, ShaderFeatures.DeferredWithAccurateGbufferNormals) && compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct) && compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.Vulkan)
-                    return true;
-                if (!IsFeatureEnabled(features, ShaderFeatures.DeferredWithoutAccurateGbufferNormals) && !compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
-                    return true;
-            }*/
             return false;
         }
 
@@ -830,6 +828,9 @@ namespace UnityEditor.Rendering.Universal
 
         private static void FetchAllSupportedFeaturesFromVolumes()
         {
+            if (UniversalRenderPipelineGlobalSettings.instance?.stripPostProcessingShaderVariants ?? false)
+                return;
+
             s_VolumeFeatures = VolumeFeatures.Calculated;
             var guids = AssetDatabase.FindAssets("t:VolumeProfile");
             foreach (var guid in guids)
