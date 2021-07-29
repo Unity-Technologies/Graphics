@@ -916,6 +916,7 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     float previousSampleCount = previousResult1.x;
     float previousDepth = previousResult1.y;
     float previousCloudDepth = previousResult1.z;
+    float linearPreviousCloudDepth = Linear01Depth(previousCloudDepth, _ZBufferParams);
 
     // This tracks if the history is considered valid
     bool validHistory = previousSampleCount >= 0.5f;
@@ -935,31 +936,40 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     if (abs(linearPrevDepth - linearCurrentDepth) > linearCurrentDepth * 0.2)
         validHistory = false;
 
+    // We need to validate that within the 3x3 trace region, at least one of the pixels is not a background pixel (incluing the clouds)
+    float cloudNeighborhood = 0.0f;
+    float4 lightingMin = FLT_MAX;
+    float4 lightingMax = 0;
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            #ifdef WITHOUT_LDS
+            float tapCloudDepth = LOAD_TEXTURE2D_X(_CloudsDepthTexture, traceCoord + int2(x, y)).x;
+            float4 cloudLigting = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord + int2(x, y)).x;
+            #else
+            float tapCloudDepth = GetCloudDepth_LDS(groupThreadId, int2(x, y));
+            float4 cloudLigting = GetCloudLighting_LDS(groupThreadId, int2(x, y));
+            #endif
+            cloudNeighborhood += saturate(tapCloudDepth * FLT_MAX);
+            lightingMin = min(lightingMin, cloudLigting);
+            lightingMax = max(lightingMax, cloudLigting);
+        }
+    }
+
+    // If none were cloud pixels, we consider that there is no clouds in this region anyway
+    if (cloudNeighborhood == 0.0)
+        validHistory = false;
+
     // Compute the local index that tells us the index of this pixel, the strategy for reprojection is a bit different in both cases
     int localIndex = (intermediateCoord.x & 1) + (intermediateCoord.y & 1) * 2;
     int currentIndex = ComputeCheckerBoardIndex(intermediateCoord / 2, _SubPixelIndex);
     if (localIndex == currentIndex)
     {
-        // We need to validate that within the 3x3 trace region, at least one of the pixels is not a background pixel (incluing the clouds)
-        float cloudNeighborhood = 0.0f;
-        for (int y = -1; y <= 1; ++y)
-        {
-            for (int x = -1; x <= 1; ++x)
-            {
-                #ifdef WITHOUT_LDS
-                if (LOAD_TEXTURE2D_X(_CloudsDepthTexture, traceCoord + int2(x, y)).x != 0.0f)
-                    cloudNeighborhood += 1.0f;
-                #else
-                if (GetCloudDepth_LDS(groupThreadId, int2(x, y)) != 0.0f)
-                    cloudNeighborhood += 1.0f;
-                #endif
-            }
-        }
-
         // If the target coordinate is out of the screen, we cannot use the history
         float accumulationFactor = 0.0;
         float sampleCount = 1.0;
-        if (validHistory && cloudNeighborhood != 0.0f)
+        if (validHistory)
         {
             // Define our accumation value
             accumulationFactor = previousSampleCount >= 16.0 ? 0.94117647058 : (previousSampleCount / (previousSampleCount + 1.0));
@@ -967,6 +977,7 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
             sampleCount = min(previousSampleCount + 1.0, 16.0);
         }
 
+        previousResult = clamp(previousResult, lightingMin, lightingMax);
         // Accumulate the result with the previous frame
         #ifdef WITHOUT_LDS
         previousResult = accumulationFactor * previousResult + (1.0 - accumulationFactor) * LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord);
@@ -1012,6 +1023,7 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
                 // We don't have any history for this pixel, but there is at least one neighbor that can be used in the current frame tracing
                 previousSampleCount = 1.0f;
                 previousResult = BilUpColor3x3(currentDepth, upsampleData);
+                previousResult = clamp(previousResult, lightingMin, lightingMax);
             }
             #ifdef WITHOUT_LDS
             previousCloudDepth = LOAD_TEXTURE2D_X(_CloudsDepthTexture, traceCoord + IndexToLocalOffsetCoords[closestNeighbor]).x;
