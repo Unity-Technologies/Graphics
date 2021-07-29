@@ -161,6 +161,11 @@ When Unity renders a material that is not supported by the current injection poi
 
 <a name="Custom-Renderers-Pass-shader"></a>
 
+## Object ID Custom Pass
+HDRP includes a specialization of a Draw Renderers Custom Pass that draws the objects in the scene with a unique color (Object ID). This pass has the same parameters as the Draw Renderers Custom Pass except the material override option, which is hidden because this pass uses a built-in material that draws the Object ID colors. The Object IDs are generated before the first execution of the pass occurs. If a user script generates new objects procedurally, then the method AssignObjectIDs should be called manually, to generate new IDs.
+
+If some customization is required to the way Object IDs are generated, then we recommend writing a new Draw Renderers Custom Pass with a Custom Renderers Pass shader that provides the required functionality. You can find more details regarding Custom Renderers Pass shaders in the next section.
+
 ## Custom Renderers Pass shader
 
 You can create advanced Custom Pass effects using a Custom Renderers Pass shader. To create this shader, navigate to **Assets > Create > Shader > HDRP > Custom Renderers Pass**. This creates an unlit HDRP shader named **New Renderers CustomPass**. This Unity shader has one ShaderLab pass.
