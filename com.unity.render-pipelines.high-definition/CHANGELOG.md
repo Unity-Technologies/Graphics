@@ -337,6 +337,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material inspector that allowed setting intensity to an infinite value.
 - Fixed issue when switching between non-persistent cameras when path tarcing is enabled (case 1337843).
 - Fixed issue with the LayerMaskParameter class storing an erroneous mask value (case 1345515).
+- Fixed issue with vertex color defaulting to 0.0 when not defined, in ray/path tracing (case 1348821).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
