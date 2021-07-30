@@ -246,7 +246,8 @@ namespace UnityEngine.Rendering
         // Unfortunately, for cubemaps, passing -1 does not work for faces other than the first one, so we fall back to 0 in this case.
         private static int FixupDepthSlice(int depthSlice, RTHandle buffer)
         {
-            if (depthSlice == -1 && buffer.rt.dimension == TextureDimension.Cube)
+            // buffer.rt can be null in case the RTHandle is constructed from a RenderTextureIdentifier.
+            if (depthSlice == -1 && buffer.rt?.dimension == TextureDimension.Cube)
                 depthSlice = 0;
 
             return depthSlice;
