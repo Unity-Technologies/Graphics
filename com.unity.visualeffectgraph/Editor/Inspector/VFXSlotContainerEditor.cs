@@ -301,8 +301,8 @@ class VFXSlotContainerEditor : Editor
             warningStyle.margin.right = 1;
 
             frameButtonStyle = new GUIStyle();
-            frameButtonStyle.normal.background = EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "d_ViewToolZoom.png", EditorGUIUtility.skinIndex);
-            frameButtonStyle.active.background = EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "d_ViewToolZoom On.png", EditorGUIUtility.skinIndex);
+            frameButtonStyle.normal.background = EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "ViewToolZoom.png", EditorGUIUtility.skinIndex);
+            frameButtonStyle.active.background = EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "ViewToolZoom On.png", EditorGUIUtility.skinIndex);
 
             header = new GUIStyle(EditorStyles.toolbarButton);
             header.fontStyle = FontStyle.Bold;
