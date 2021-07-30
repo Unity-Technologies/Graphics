@@ -57,7 +57,7 @@ Forward and Deferred rendering both implement the same features, but the quality
 
 - Normal shadow bias: In Forward mode, HDRP uses the geometric normal (the vertex normal) of the Material for shadow bias, and Deferred mode uses the pixel normal. This means Forward mode produces less shadow artifacts than Deferred mode.
 - Emissive Color: In Deferred mode, Ambient Occlusion affects Emissive Color due to technical constraints. This is not the Case in Forward mode.
-- Ambient Occlusion: In Deferred mode, HDRP applies Ambient Occlusion on indirect diffuse lighting (Lightmaps and Light Probes) as well as the Screen Space Ambient Occlusion effect. This results in incorrect darkening. In Forward mode, HDRP applies the minimum amount of Ambient Occlusion and Screen Space Ambient Occlusion. This results in correct darkening.
+- Ambient Occlusion: In Deferred mode, HDRP applies Ambient Occlusion on Lightmaps and Light Probes as well as the Screen Space Ambient Occlusion effect. This results in incorrect darkening. In Forward mode, HDRP applies the minimum amount of Ambient Occlusion and Screen Space Ambient Occlusion to Lightmaps and Lightprobes as well as Screen Space Global Illumination and Ray-trace global Illumination. This results in correct darkening.
 - Material Quality: In Deferred mode, HDRP compresses Material properties, such as normals or tangents, in the GBuffer. This results in compression artifacts. In Forward mode, there is no compression, so there are no compression artifacts.
 
 ### Technical differences

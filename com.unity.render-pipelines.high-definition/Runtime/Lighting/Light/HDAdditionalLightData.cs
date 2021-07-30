@@ -2021,6 +2021,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal int GetResolutionFromSettings(HDLightType lightType, HDShadowInitParameters initParameters)
+        {
+            return GetResolutionFromSettings(GetShadowMapType(lightType), initParameters);
+        }
+
         internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, in HDShadowInitParameters initParameters, in VisibleLight visibleLight, HDLightType lightType)
         {
             if (!m_WillRenderShadowMap)
