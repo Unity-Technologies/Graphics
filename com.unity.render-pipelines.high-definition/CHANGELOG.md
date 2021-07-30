@@ -335,6 +335,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that made Custom Pass buffers inaccessible in ShaderGraph.
 - Fixed some of the extreme ghosting in DLSS by using a bit mask to bias the color of particles. VFX tagged as Exclude from TAA will be on this pass.
 - Fixed banding in the volumetric clouds (case 1353672).
+- Fixed CustomPassUtils.Copy function not working on depth buffers.
+- Fixed a nullref when binding a RTHandle allocated from a RenderTextureIdentifier with CoreUtils.SetRenderTarget.
+- Fixed off by 1 error when calculating the depth pyramid texture size when DRS is on.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
