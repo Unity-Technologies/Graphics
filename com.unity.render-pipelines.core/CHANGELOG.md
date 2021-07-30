@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New method DrawHeaders for VolumeComponentsEditors
 - Unification of Material Editor Headers Scopes
 - New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
+- Added helper for Volumes (Enable All Overrides, Disable All Overrides, Remove All Overrides).
 - Added a blitter utility class. Moved from HDRP to RP core.
 - Added a realtime 2D texture atlas utility classes. Moved from HDRP to RP core.
 - New methods on CoreEditorDrawers, to allow adding a label on a group before rendering the internal drawers
@@ -44,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added UNITY_PREV_MATRIX_M and UNITY_PREV_MATRIX_I_M shader macros to support instanced motion vector rendering
 
 ### Fixed
+- Help boxes with fix buttons do not crop the label.
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
 - Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
 - Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
@@ -75,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Lens Flare rotation for Curve Distribution
 
 ### Changed
+- Improved the warning messages for Volumes and their Colliders.
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Analysis/Rendering Debugger
 - Changed Window/Render Pipeline/Look Dev to Window/Analysis/Look Dev
 - Changed Window/Render Pipeline/Render Graph Viewer to Window/Analysis/Render Graph Viewer
