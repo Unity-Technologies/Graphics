@@ -799,7 +799,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (PostProcessEnableAlpha())
                         passData.nanKillerCS.EnableKeyword("ENABLE_ALPHA");
                     passData.source = builder.ReadTexture(source);
-                    passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "Stop NaNs Destination"));;
+                    passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "Stop NaNs Destination"));
 
                     builder.SetRenderFunc(
                         (StopNaNPassData data, RenderGraphContext ctx) =>
@@ -1662,14 +1662,16 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.destination = builder.WriteTexture(dest);
 
             bool needToUseCurrFrameSizeForHistory = camera.resetPostProcessingHistory || TAAU != camera.previousFrameWasTAAUpsampled;
+            bool runsAfterUpscale = (resGroup == ResolutionGroup.AfterDynamicResUpscale);
 
             passData.prevFinalViewport = (camera.prevFinalViewport.width < 0 || needToUseCurrFrameSizeForHistory) ? camera.finalViewport : camera.prevFinalViewport;
             var mainRTScales = RTHandles.CalculateRatioAgainstMaxSize(camera.actualWidth, camera.actualHeight);
 
-            var historyRenderingViewport = TAAU ? new Vector2(passData.prevFinalViewport.width, passData.prevFinalViewport.height) :
+            var historyRenderingViewport = (TAAU || runsAfterUpscale) ? new Vector2(passData.prevFinalViewport.width, passData.prevFinalViewport.height) :
                 (needToUseCurrFrameSizeForHistory ? RTHandles.rtHandleProperties.currentViewportSize : camera.historyRTHandleProperties.previousViewportSize);
 
-            if (TAAU && postDoF)
+
+            if ((TAAU && postDoF) || runsAfterUpscale)
             {
                 // We are already upsampled here.
                 mainRTScales = RTHandles.CalculateRatioAgainstMaxSize((int)camera.finalViewport.width, (int)camera.finalViewport.height);
@@ -1677,7 +1679,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector4 scales = new Vector4(historyRenderingViewport.x / prevHistory.rt.width, historyRenderingViewport.y / prevHistory.rt.height, mainRTScales.x, mainRTScales.y);
             passData.taaScales = scales;
 
-            passData.finalViewport = camera.finalViewport;
+            passData.finalViewport = (TAAU || runsAfterUpscale) ? camera.finalViewport : new Rect(0, 0, RTHandles.rtHandleProperties.currentViewportSize.x, RTHandles.rtHandleProperties.currentViewportSize.y);
             var resScale = DynamicResolutionHandler.instance.GetCurrentScale();
             float stdDev = 0.4f;
             passData.taauParams = new Vector4(1.0f / (stdDev * stdDev), 1.0f / resScale, 0.5f / resScale, resScale);
@@ -1777,6 +1779,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                         else
                         {
+                            ctx.cmd.SetViewport(data.finalViewport);
                             ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, taaPass, MeshTopology.Triangles, 3, 1, mpb);
                             ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, excludeTaaPass, MeshTopology.Triangles, 3, 1, mpb);
                         }
