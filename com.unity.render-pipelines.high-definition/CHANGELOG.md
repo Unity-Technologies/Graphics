@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a property on the HDRP asset to allow users to avoid ray tracing effects running at too low percentages (case 1342588).
 - Added dependency to mathematics and burst, HDRP now will utilize this to improve on CPU cost. First implementation of burstified decal projector is here.
 - Added warning for when a light is not fitting in the cached shadow atlas and added option to set maximum resolution that would fit.
+- Added a custom post process injection point AfterPostProcessBlurs executing after depth of field and motion blur.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -274,6 +275,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cases in which object and camera motion vectors would cancel out, but didn't.
 - Fixed HDRP material upgrade failing when there is a texture inside the builtin resources assigned in the material (case 1339865).
 - Fixed custom pass volume not executed in scene view because of the volume culling mask.
+- When the HDProjectSettings was being loaded on some cases the load of the ScriptableObject was calling the method `Reset` from the HDProjectSettings, simply rename the method to avoid an error log from the loading.
 - Fixed remapping of depth pyramid debug view
 - Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
 - Fixed rounding issue when accessing the color buffer in the DoF shader.
@@ -329,6 +331,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed misc TAA issue: Slightly improved TAA flickering, Reduced ringing of TAA sharpening, tweak TAA High quality central color filtering.
 - Fixed TAA upsampling algorithm, now work properly
 - Fixed custom post process template not working with Blit method.
+- Fixed support for instanced motion vector rendering
+- Fixed an issue that made Custom Pass buffers inaccessible in ShaderGraph.
+- Fixed some of the extreme ghosting in DLSS by using a bit mask to bias the color of particles. VFX tagged as Exclude from TAA will be on this pass.
 - Fixed banding in the volumetric clouds (case 1353672).
 
 ### Changed
