@@ -233,7 +233,7 @@ class VFXSlotContainerEditor : Editor
             }
             else
             {
-                if (GUILayout.Button(Contents.gizmoFrame, Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18)))
+                if (GUILayout.Button(Contents.gizmoFrame, Styles.frameButtonStyle, GUILayout.Width(16), GUILayout.Height(16)))
                 {
                     if (m_CurrentController != null && VFXViewWindow.currentWindow != null)
                     {
@@ -279,8 +279,8 @@ class VFXSlotContainerEditor : Editor
         public static GUIContent name = EditorGUIUtility.TrTextContent("Name");
         public static GUIContent type = EditorGUIUtility.TrTextContent("Type");
         public static GUIContent mode = EditorGUIUtility.TrTextContent("Mode");
-        public static GUIContent gizmoLocalWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(EditorResources.iconsPath + "console.warnicon.sml.png") as Texture2D, "Local values require a target GameObject to display");
-        public static GUIContent gizmoIndeterminateWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(EditorResources.iconsPath + "console.warnicon.sml.png") as Texture2D, "The gizmo value is indeterminate.");
+        public static GUIContent gizmoLocalWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "console.warnicon.sml.png", EditorGUIUtility.skinIndex), "Local values require a target GameObject to display");
+        public static GUIContent gizmoIndeterminateWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "console.warnicon.sml.png", EditorGUIUtility.skinIndex), "The gizmo value is indeterminate.");
         public static GUIContent gizmoFrame = EditorGUIUtility.TrTextContent("", "Frame Gizmo in scene");
     }
 
@@ -301,8 +301,8 @@ class VFXSlotContainerEditor : Editor
             warningStyle.margin.right = 1;
 
             frameButtonStyle = new GUIStyle();
-            frameButtonStyle.normal.background = EditorGUIUtility.Load(EditorResources.iconsPath + "d_ViewToolZoom.png") as Texture2D;
-            frameButtonStyle.active.background = EditorGUIUtility.Load(EditorResources.iconsPath + "d_ViewToolZoom On.png") as Texture2D;
+            frameButtonStyle.normal.background = EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "d_ViewToolZoom.png", EditorGUIUtility.skinIndex);
+            frameButtonStyle.active.background = EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "d_ViewToolZoom On.png", EditorGUIUtility.skinIndex);
 
             header = new GUIStyle(EditorStyles.toolbarButton);
             header.fontStyle = FontStyle.Bold;
