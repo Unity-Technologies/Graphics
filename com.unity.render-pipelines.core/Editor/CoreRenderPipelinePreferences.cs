@@ -7,7 +7,6 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Core Render Pipeline preferences.
     /// </summary>
-    [InitializeOnLoad]
     public static class CoreRenderPipelinePreferences
     {
         /// <summary>
