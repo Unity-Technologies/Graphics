@@ -135,43 +135,34 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
 
 void TraceReflectionProbes(PositionInputs posInput, float3 normalWS, float3 rayDirection, inout float totalWeight, inout float3 result)
 {
-    uint envLightStart, envLightCount;
+    uint envLightStart = 0;
+    uint envLightCount = 0;
     GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
     totalWeight = 0.0f;
 
-    // Scalarized loop, same rationale of the punctual light version
     uint v_envLightListOffset = 0;
-    uint v_envLightIdx = envLightStart;
-    while (v_envLightListOffset < envLightCount)
+    uint envLightIdx = envLightStart;
+
+    for (v_envLightListOffset = 0; v_envLightListOffset < envLightCount; ++v_envLightListOffset)
     {
-        v_envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
-        uint s_envLightIdx = v_envLightIdx;
-        if (s_envLightIdx == -1)
-            break;
+        envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
+        EnvLightData envLightData = FetchEnvLight(envLightIdx);
 
-        EnvLightData envLightData = FetchEnvLight(s_envLightIdx);    // Scalar load.
-
-        // If current scalar and vector light index match, we process the light. The v_envLightListOffset for current thread is increased.
-        // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
-        // end up with a unique v_envLightIdx value that is smaller than s_envLightIdx hence being stuck in a loop. All the active lanes will not have this problem.
-        if (s_envLightIdx >= v_envLightIdx)
+        if (IsEnvIndexCubemap(envLightData.envIndex) && totalWeight < 1.0)
         {
-            v_envLightListOffset++;
-            if (IsEnvIndexCubemap(envLightData.envIndex) && totalWeight < 1.0)
-            {
-                float3 R = rayDirection;
-                float weight = 1.0f;
-                float intersectionDistance = EvaluateLight_EnvIntersection(posInput.positionWS, normalWS, envLightData, envLightData.influenceShapeType, R, weight);
+            float3 R = rayDirection;
+            float weight = 1.0f;
+            float intersectionDistance = EvaluateLight_EnvIntersection(posInput.positionWS, normalWS, envLightData, envLightData.influenceShapeType, R, weight);
 
-                int index = abs(envLightData.envIndex) - 1;
-                float3 probeResult = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, R, _EnvSliceSize * index, 0).rgb * envLightData.rangeCompressionFactorCompensation;
-                probeResult = ClampToFloat16Max(probeResult);
+            int index = abs(envLightData.envIndex) - 1;
+            float3 probeResult = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, R, _EnvSliceSize * index, 0).rgb * envLightData.rangeCompressionFactorCompensation;
+            probeResult = ClampToFloat16Max(probeResult);
 
-                UpdateLightingHierarchyWeights(totalWeight, weight);
-                result += weight * probeResult * envLightData.multiplier;
-            }
+            UpdateLightingHierarchyWeights(totalWeight, weight);
+            result += weight * probeResult * envLightData.multiplier;
         }
     }
+
     totalWeight = saturate(totalWeight);
 }
 
