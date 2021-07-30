@@ -23,6 +23,7 @@ namespace UnityEngine.Experimental.Rendering
         ComputeBuffer m_PhysicalIndexBuffer;
         int[] m_PhysicalIndexBufferData;
 
+        internal int estimatedVMemCost { get; private set; }
 
         [DebuggerDisplay("Brick [{position}, {subdivisionLevel}]")]
         [Serializable]
@@ -102,6 +103,8 @@ namespace UnityEngine.Experimental.Rendering
             m_PhysicalIndexBufferData = new int[physicalBufferSize];
             m_PhysicalIndexBuffer = new ComputeBuffer(physicalBufferSize, sizeof(int), ComputeBufferType.Structured);
             m_NextFreeChunk = 0;
+
+            estimatedVMemCost = physicalBufferSize * sizeof(int);
 
             // Should be done by a compute shader
             Clear();

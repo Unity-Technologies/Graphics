@@ -48,7 +48,7 @@ Shader "Hidden/Shader/#SCRIPTNAME#"
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-        // Note that if HDUtils.DrawFullScreen is used to render the post process, input.texcoord needs to be multiplied by _RTHandleScale.xy
+        // Note that if HDUtils.DrawFullScreen is used to render the post process, use ClampAndScaleUVForBilinearPostProcessTexture(input.texcoord.xy) to get the correct UVs
 
         float3 sourceColor = SAMPLE_TEXTURE2D_X(_MainTex, s_linear_clamp_sampler, input.texcoord).xyz;
 
