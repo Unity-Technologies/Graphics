@@ -33,7 +33,8 @@ namespace UnityEditor.Rendering
         static VolumesPreferences()
         {
             GetColorPrefVolumeGizmoColor = RuntimeSRPPreferences.RegisterPreferenceColor("Scene/Volume Gizmo", s_VolumeGizmoColorDefault);
-            s_VolumeGizmosVisibilityOption = (VolumeGizmoVisibility)EditorPrefs.GetInt(Keys.volumeGizmosVisibility);
+            if (EditorPrefs.HasKey(Keys.volumeGizmosVisibility))
+                s_VolumeGizmosVisibilityOption = (VolumeGizmoVisibility)EditorPrefs.GetInt(Keys.volumeGizmosVisibility);
         }
 
         public static VolumeGizmoVisibility volumeGizmosVisibilityOption
