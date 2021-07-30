@@ -615,6 +615,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5011_VolumetricCloudsShadows.unity
     guid: 2d74a7c25635150458c8929bffe51aa3
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5011_VolumetricCloudsShadowsBake.unity
+    guid: 8394dceddd860454db78e045f31a5265
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5011_VolumetricClouds.unity
     guid: 2c45a175605910b429f6a1568c825d52
   - enabled: 1
