@@ -465,6 +465,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="ctx">Custom Pass Context.</param>
         /// <param name="view">The camera from where you want the objects to be rendered.</param>
         /// <param name="targetRenderTexture">The render target that will be bound before rendering the objects.</param>
+        /// <param name="clearFlag">The type of clear to do before binding the render targets.</param>
         /// <param name="layerMask">LayerMask to filter the objects to render.</param>
         /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
         /// <param name="overrideMaterial">Optional material that will be used to render the objects.</param>
@@ -719,6 +720,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <param name="ctx">The current custom pass context.</param>
             /// <param name="overrideCamera">The camera that will replace the current one.</param>
             /// <param name="overrideAspectRatio">The aspect ratio of the override camera. Especially useful when rendering directly into a render texture with a different aspect ratio than the current camera.</param>
+            /// <example>
             /// <code>
             /// CoreUtils.SetRenderTarget(ctx.cmd, renderTexture.colorBuffer, renderTexture.depthBuffer, clearFlag);
             ///
