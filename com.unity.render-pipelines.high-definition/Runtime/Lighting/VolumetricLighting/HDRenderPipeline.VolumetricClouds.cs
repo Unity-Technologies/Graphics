@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int i = 0; i < k_CustomLutMapResolution; i++)
                 {
                     float currTime = step * i;
-                    float density = Mathf.Clamp(densityCurve.Evaluate(currTime), 0.0f, 1.0f);
+                    float density = (i == 0 || i == k_CustomLutMapResolution - 1) ? 0 : Mathf.Clamp(densityCurve.Evaluate(currTime), 0.0f, 1.0f);
                     float erosion = Mathf.Clamp(erosionCurve.Evaluate(currTime), 0.0f, 1.0f);;
                     float ambientOcclusion = Mathf.Clamp(1.0f - ambientOcclusionCurve.Evaluate(currTime), 0.0f, 1.0f);
                     pixels[i] = new Color(density, erosion, ambientOcclusion, 1.0f);
