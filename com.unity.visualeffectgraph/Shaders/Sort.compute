@@ -87,16 +87,7 @@ uint GetElementCount()
 #endif
 }
 
-bool CompareKeys(float key0, float key1)
-{
-#if DECREASING_ORDER
-    return key0 > key1;
-#else
-    return key0 < key1;
-#endif
-}
-
-bool Compare(KVP kvp0, KVP kvp1)
+bool CompareKVP(KVP kvp0, KVP kvp1)
 {
     #if DECREASING_ORDER
     if (kvp0.key == kvp1.key)
@@ -190,7 +181,7 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 #else
                 bool reverse = index & step;
 #endif
-                if (Compare(kvp1, kvp0) != reverse)
+                if (CompareKVP(kvp1, kvp0) != reverse)
                 {
                     // swap keys
                     scratch[index0] = key1;
@@ -295,9 +286,9 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
 
         if (i0 + i1 == arrayIndex)
         {
-            if (i0 > 0 && Compare(kvp1, inputSequence[max(0, index0 - 1)]))
+            if (i0 > 0 && CompareKVP(kvp1, inputSequence[max(0, index0 - 1)]))
                 window.y = windowIndex - 1; // move window left
-            else if (i1 > 0 && Compare(kvp0, GetKVPWithCheck(max(0, index1 - 1))))
+            else if (i1 > 0 && CompareKVP(kvp0, GetKVPWithCheck(max(0, index1 - 1))))
                 window.x = windowIndex + (windowIndex == lastIndex ? 2 : 1); // move window right (Special handling at the right bound so that i1 can go down to 0)
             else
                 done = true;
@@ -319,7 +310,7 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
     } while (!done);
 
     // Select left or right: Must handle special case for equality
-    bool select0 = (kvp0.key == kvp1.key && kvp0.value == kvp1.value && (id & 1)) || (Compare(kvp0, kvp1) != reverse);
+    bool select0 = (kvp0.key == kvp1.key && kvp0.value == kvp1.value && (id & 1)) || (CompareKVP(kvp0, kvp1) != reverse);
 
 #if FINAL_PASS
     sortedSequence[id] = select0 ? kvp0.value : kvp1.value;
