@@ -99,24 +99,35 @@ namespace UnityEditor.Rendering
 
         // UI Helpers
         /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="message">The message with icon if need.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
+        public static void DrawFixMeBox(GUIContent message, Action action)
+        {
+            GUILayout.Space(2);
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+            {
+                EditorGUILayout.LabelField(message, CoreEditorStyles.helpBoxLabelStyle);
+                GUILayout.FlexibleSpace();
+                using (new EditorGUILayout.VerticalScope())
+                {
+                    GUILayout.FlexibleSpace();
+
+                    if (GUILayout.Button("Fix", GUILayout.Width(60)))
+                        action();
+
+                    GUILayout.FlexibleSpace();
+                }
+            }
+            GUILayout.Space(5);
+        }
+
+        /// <summary>Draw a help box with the Fix button.</summary>
         /// <param name="text">The message text.</param>
         /// <param name="messageType">The type of the message.</param>
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(string text, MessageType messageType, Action action)
         {
-            EditorGUILayout.HelpBox(text, messageType);
-
-            GUILayout.Space(-32);
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.FlexibleSpace();
-
-                if (GUILayout.Button("Fix", GUILayout.Width(60)))
-                    action();
-
-                GUILayout.Space(8);
-            }
-            GUILayout.Space(11);
+            DrawFixMeBox(EditorGUIUtility.TrTextContentWithIcon(text, CoreEditorStyles.GetMessageTypeIcon(messageType)), action);
         }
 
         /// <summary>
@@ -295,6 +306,8 @@ namespace UnityEditor.Rendering
         /// <param name="isBoxed"> [optional] is the eader contained in a box style ? </param>
         /// <param name="hasMoreOptions"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="toggleMoreOptions"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
+        /// <param name="documentationURL">[optional] The URL that the Unity Editor opens when the user presses the help button on the header.</param>
+        /// <param name="contextAction">[optional] The callback that the Unity Editor executes when the user presses the burger menu on the header.</param>
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = "", Action<Vector2> contextAction = null)
         {
