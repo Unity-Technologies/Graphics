@@ -143,7 +143,7 @@ void TraceReflectionProbes(PositionInputs posInput, float3 normalWS, float3 rayD
     uint v_envLightListOffset = 0;
     uint envLightIdx = envLightStart;
 
-    for (v_envLightListOffset = 0; v_envLightListOffset < envLightCount; ++v_envLightListOffset)
+    for (v_envLightListOffset = 0; v_envLightListOffset < min(24, envLightCount); ++v_envLightListOffset)
     {
         envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
         EnvLightData envLightData = FetchEnvLight(envLightIdx);
