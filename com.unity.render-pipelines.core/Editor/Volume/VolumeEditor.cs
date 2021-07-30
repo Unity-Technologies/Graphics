@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor.PackageManager;
 using UnityEngine;
@@ -74,40 +75,83 @@ namespace UnityEditor.Rendering
                 m_ComponentList.Init(asset, new SerializedObject(asset));
         }
 
+        private void AddOverride()
+        {
+            var menu = new GenericMenu();
+            menu.AddItem(Styles.addBoxCollider, false, () => Undo.AddComponent<BoxCollider>(actualTarget.gameObject));
+            menu.AddItem(Styles.sphereBoxCollider, false, () => Undo.AddComponent<SphereCollider>(actualTarget.gameObject));
+            menu.AddItem(Styles.capsuleBoxCollider, false, () => Undo.AddComponent<CapsuleCollider>(actualTarget.gameObject));
+            menu.AddItem(Styles.meshBoxCollider, false, () => Undo.AddComponent<MeshCollider>(actualTarget.gameObject));
+            menu.ShowAsContext();
+        }
+
+        [MenuItem("CONTEXT/Volume/Remove All Overrides")]
+        private static void RemoveAllOverrides(MenuCommand command)
+        {
+            if (command.context is Volume volumeComponent)
+            {
+                volumeComponent.profile.components.Clear();
+            }
+        }
+
+        private static void SetVolumeOverridesActiveState(List<VolumeComponent> components, bool activeState)
+        {
+            foreach (var v in components)
+            {
+                v.active = activeState;
+            }
+        }
+
+        [MenuItem("CONTEXT/Volume/Disable All Overrides")]
+        private static void DisableAllOverrides(MenuCommand command)
+        {
+            if (command.context is Volume volumeComponent)
+                SetVolumeOverridesActiveState(volumeComponent.profile.components, false);
+        }
+
+        [MenuItem("CONTEXT/Volume/Enable All Overrides")]
+        private static void EnableAllOverrides(MenuCommand command)
+        {
+            if (command.context is Volume volumeComponent)
+                SetVolumeOverridesActiveState(volumeComponent.profile.components, true);
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
             Rect lineRect = EditorGUILayout.GetControlRect();
             int isGlobal = m_IsGlobal.boolValue ? 0 : 1;
-            EditorGUI.BeginProperty(lineRect, Styles.mode, m_IsGlobal);
+            using (new EditorGUI.PropertyScope(lineRect, Styles.mode, m_IsGlobal))
             {
                 EditorGUI.BeginChangeCheck();
                 isGlobal = EditorGUI.Popup(lineRect, Styles.mode, isGlobal, Styles.modes);
                 if (EditorGUI.EndChangeCheck())
                     m_IsGlobal.boolValue = isGlobal == 0;
             }
-            EditorGUI.EndProperty();
 
             if (isGlobal != 0) // Blend radius is not needed for global volumes
             {
-                if (!actualTarget.TryGetComponent<Collider>(out _))
+                if (actualTarget.TryGetComponent<Collider>(out var collider))
                 {
-                    EditorGUILayout.HelpBox("Add a Collider to this GameObject to set boundaries for the local Volume.", MessageType.Info);
-
-                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Add Collider"), EditorStyles.miniButton))
-                    {
-                        var menu = new GenericMenu();
-                        menu.AddItem(EditorGUIUtility.TrTextContent("Box"), false, () => Undo.AddComponent<BoxCollider>(actualTarget.gameObject));
-                        menu.AddItem(EditorGUIUtility.TrTextContent("Sphere"), false, () => Undo.AddComponent<SphereCollider>(actualTarget.gameObject));
-                        menu.AddItem(EditorGUIUtility.TrTextContent("Capsule"), false, () => Undo.AddComponent<CapsuleCollider>(actualTarget.gameObject));
-                        menu.AddItem(EditorGUIUtility.TrTextContent("Mesh"), false, () => Undo.AddComponent<MeshCollider>(actualTarget.gameObject));
-                        menu.ShowAsContext();
-                    }
+                    if (!collider.enabled)
+                        CoreEditorUtils.DrawFixMeBox(Styles.enableColliderFixMessage, () => collider.enabled = true);
+                }
+                else
+                {
+                    CoreEditorUtils.DrawFixMeBox(Styles.addColliderFixMessage, AddOverride);
                 }
 
                 EditorGUILayout.PropertyField(m_BlendRadius);
                 m_BlendRadius.floatValue = Mathf.Max(m_BlendRadius.floatValue, 0f);
+            }
+            else
+            {
+                if (actualTarget.TryGetComponent<Collider>(out var collider))
+                {
+                    if (collider.enabled)
+                        CoreEditorUtils.DrawFixMeBox(Styles.disableColliderFixMessage, () => collider.enabled = false);
+                }
             }
 
             EditorGUILayout.PropertyField(m_Weight);
@@ -127,34 +171,27 @@ namespace UnityEditor.Rendering
             var buttonNewRect = new Rect(fieldRect.xMax, lineRect.y, buttonWidth, lineRect.height);
             var buttonCopyRect = new Rect(buttonNewRect.xMax, lineRect.y, buttonWidth, lineRect.height);
 
-            GUIContent guiContent;
-            if (actualTarget.HasInstantiatedProfile())
-                guiContent = Styles.profileInstance;
-            else
-                guiContent = Styles.profile;
+            GUIContent guiContent = actualTarget.HasInstantiatedProfile() ? Styles.profileInstance : Styles.profile;
+
             EditorGUI.PrefixLabel(labelRect, guiContent);
 
+            using (new EditorGUI.PropertyScope(fieldRect, GUIContent.none, m_Profile))
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                EditorGUI.BeginProperty(fieldRect, GUIContent.none, m_Profile);
+                var profile = actualTarget.HasInstantiatedProfile()
+                    ? actualTarget.profile
+                    : m_Profile.objectReferenceValue;
 
-                VolumeProfile profile;
-
-                if (actualTarget.HasInstantiatedProfile())
-                    profile = (VolumeProfile)EditorGUI.ObjectField(fieldRect, actualTarget.profile, typeof(VolumeProfile), false);
-                else
-                    profile = (VolumeProfile)EditorGUI.ObjectField(fieldRect, m_Profile.objectReferenceValue, typeof(VolumeProfile), false);
-
+                VolumeProfile editedProfile =
+                    (VolumeProfile)EditorGUI.ObjectField(fieldRect, profile, typeof(VolumeProfile), false);
                 if (scope.changed)
                 {
                     assetHasChanged = true;
-                    m_Profile.objectReferenceValue = profile;
+                    m_Profile.objectReferenceValue = editedProfile;
 
                     if (actualTarget.HasInstantiatedProfile()) // Clear the instantiated profile, from now on we're using shared again
                         actualTarget.profile = null;
                 }
-
-                EditorGUI.EndProperty();
             }
 
             using (new EditorGUI.DisabledScope(multiEdit))
@@ -171,10 +208,7 @@ namespace UnityEditor.Rendering
                     assetHasChanged = true;
                 }
 
-                if (actualTarget.HasInstantiatedProfile())
-                    guiContent = Styles.saveLabel;
-                else
-                    guiContent = Styles.cloneLabel;
+                guiContent = actualTarget.HasInstantiatedProfile() ? Styles.saveLabel : Styles.cloneLabel;
                 if (showCopy && GUI.Button(buttonCopyRect, guiContent, EditorStyles.miniButtonRight))
                 {
                     // Duplicate the currently assigned profile and save it as a new profile
