@@ -143,8 +143,7 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 
 This section lists any limitations that HDRP's volumetric clouds have:
 
-- Volumetric clouds do not appear in [Reflection Probes](Reflection-Probe.md).
-- HDRP uses the [main Camera](https://docs.unity3d.com/ScriptReference/Camera-main.html) to generate the shadow cookie for volumetric clouds. This means that volumetric cloud shadows do not look correct from the point of view of other Cameras.
+- By default volumetric clouds are disabled on [Planar Reflection Probes](Planar-Reflection-Probe.md) and realtime [Reflection Probes](Reflection-Probe.md) because of the performance cost.
+- When enabled for [Reflection Probes](Reflection-Probe.md), the volumetric clouds are rendered at low resolution, without any form of temporal accumulation for performance and stability reasons.
+- By default volumetric clouds are enabled on the baked [Reflection Probes](Reflection-Probe.md) if the asset allows it. They are rendered at full resolution without any form of temporal accumulation.
 - Volumetric clouds do not appear in ray-traced effects.
-- Volumetric clouds currently do not work on Metal.
-- Volumetric clouds currently do not work on Xbox.
