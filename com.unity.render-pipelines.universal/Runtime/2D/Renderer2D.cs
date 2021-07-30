@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     {
         Render2DLightingPass m_Render2DLightingPass;
         PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
+        UpscalePass m_UpscalePass;
         FinalBlitPass m_FinalBlitPass;
         Light2DCullResult m_LightCullResult;
 
@@ -18,6 +19,7 @@ namespace UnityEngine.Rendering.Universal
 
         readonly RenderTargetHandle k_ColorTextureHandle;
         readonly RenderTargetHandle k_DepthTextureHandle;
+        readonly RenderTargetHandle k_UpscaleTextureHandle;
 
         Material m_BlitMaterial;
         Material m_SamplingMaterial;
@@ -42,6 +44,7 @@ namespace UnityEngine.Rendering.Universal
             m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
             // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
             m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRenderingTransparents);
+            m_UpscalePass = new UpscalePass(RenderPassEvent.AfterRenderingPostProcessing);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
 
@@ -53,6 +56,7 @@ namespace UnityEngine.Rendering.Universal
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.
             k_ColorTextureHandle.Init("_CameraColorTexture");
             k_DepthTextureHandle.Init("_CameraDepthAttachment");
+            k_UpscaleTextureHandle.Init("_UpscaleTexture");
 
             m_Renderer2DData = data;
 
@@ -184,7 +188,7 @@ namespace UnityEngine.Rendering.Universal
                     renderingData.cameraData.camera.orthographic = true;
                     renderingData.cameraData.camera.orthographicSize = ppc.orthographicSize;
 
-                    colorTextureFilterMode = ppc.finalBlitFilterMode;
+                    colorTextureFilterMode = FilterMode.Point;//ppc.finalBlitFilterMode;
                     ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
                 }
             }
@@ -244,20 +248,30 @@ namespace UnityEngine.Rendering.Universal
                 colorTargetHandle = postProcessDestHandle;
             }
 
-            if (ppc != null && ppc.enabled && (ppc.cropFrame == PixelPerfectCamera.CropFrame.Pillarbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.Letterbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.Windowbox || ppc.cropFrame == PixelPerfectCamera.CropFrame.StretchFill))
+            RenderTargetHandle finalTargetHandle = colorTargetHandle;
+
+            if (ppc != null && ppc.enabled && ppc.cropFrame != PixelPerfectCamera.CropFrame.None)
             {
                 m_PixelPerfectBackgroundPass.Setup(savedIsOrthographic, savedOrthographicSize);
                 EnqueuePass(m_PixelPerfectBackgroundPass);
+
+                // Queue PixelPerfect UpscalePass. Only used when using the Stretch Fill option
+                if(ppc.requiresUpscalePass)
+                {
+                    m_UpscalePass.Setup(colorTargetHandle, k_UpscaleTextureHandle, ppc);
+                    EnqueuePass(m_UpscalePass);
+                    finalTargetHandle = k_UpscaleTextureHandle;
+                }
             }
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {
-                finalPostProcessPass.SetupFinalPass(colorTargetHandle);
+                finalPostProcessPass.SetupFinalPass(finalTargetHandle);
                 EnqueuePass(finalPostProcessPass);
             }
-            else if (lastCameraInStack && colorTargetHandle != RenderTargetHandle.CameraTarget)
+            else if (lastCameraInStack && finalTargetHandle != RenderTargetHandle.CameraTarget)
             {
-                m_FinalBlitPass.Setup(cameraTargetDescriptor, colorTargetHandle);
+                m_FinalBlitPass.Setup(cameraTargetDescriptor, finalTargetHandle);
                 EnqueuePass(m_FinalBlitPass);
             }
         }

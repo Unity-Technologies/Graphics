@@ -163,14 +163,11 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.PropertyField(m_CropFrame, m_Style.cropFrame);
+            EditorGUILayout.PropertyField(m_GridSnapping, m_Style.gridSnapping);
             if (m_CropFrame.enumValueIndex == (int)PixelPerfectCamera.CropFrame.StretchFill)
             {
-                EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_FilterMode, m_Style.filterMode);
-                EditorGUI.indentLevel--;
             }
-            EditorGUILayout.PropertyField(m_GridSnapping, m_Style.gridSnapping);
-
 
             serializedObject.ApplyModifiedProperties();
 

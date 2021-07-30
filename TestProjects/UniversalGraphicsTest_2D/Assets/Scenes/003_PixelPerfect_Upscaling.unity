@@ -211,7 +211,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 1.875
+  orthographic size: 1.28
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -258,9 +258,9 @@ MonoBehaviour:
   m_AssetsPPU: 100
   m_RefResolutionX: 256
   m_RefResolutionY: 256
-  m_CropFrame: 0
+  m_CropFrame: 4
   m_GridSnapping: 0
-  m_FilterMode: 1
+  m_FilterMode: 0
   m_UpscaleRT: 0
   m_PixelSnapping: 0
   m_CropFrameX: 0
