@@ -1670,7 +1670,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var historyRenderingViewport = (TAAU || runsAfterUpscale) ? new Vector2(passData.prevFinalViewport.width, passData.prevFinalViewport.height) :
                 (needToUseCurrFrameSizeForHistory ? RTHandles.rtHandleProperties.currentViewportSize : camera.historyRTHandleProperties.previousViewportSize);
 
-            if ((TAAU && postDoF) || runsAfterUpscale)
+            if (runsAfterUpscale)
             {
                 // We are already upsampled here.
                 mainRTScales = RTHandles.CalculateRatioAgainstMaxSize((int)camera.finalViewport.width, (int)camera.finalViewport.height);
