@@ -92,6 +92,26 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         else
 #endif
         {
+#ifdef LIGHT_EVALUATES_MULTIPLE_SCATTERING
+            MultipleScatteringData scatteringData;
+
+            if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
+            {
+                // If the sun light shadows are already evaluated, then scattering data is too.
+                scatteringData = lightLoopContext.scatteringData;
+            }
+            else
+            {
+                scatteringData = EvaluateMultipleScattering_Light(posInput, L);
+            }
+
+            // Due to self-occlusion from shadows within the scattering volume, we call this to modify the sampled position for shadows.
+            EvaluateMultipleScattering_ShadowProxy(scatteringData, posInput.positionWS);
+
+            // Fill the BSDF data with the approximated multiple scattering terms for this light.
+            EvaluateMultipleScattering_Material(V, L, scatteringData, bsdfData);
+#endif
+
             SHADOW_TYPE shadow = EvaluateShadow_Directional(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData));
             float NdotL  = dot(bsdfData.normalWS, L); // No microshadowing when facing away from light (use for thin transmission as well)
             shadow *= NdotL >= 0.0 ? ComputeMicroShadowing(GetAmbientOcclusionForMicroShadowing(bsdfData), NdotL, _MicroShadowOpacity) : 1.0;
@@ -175,6 +195,15 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
         else
 #endif
         {
+#ifdef LIGHT_EVALUATES_MULTIPLE_SCATTERING
+            MultipleScatteringData scatteringData = EvaluateMultipleScattering_Light(posInput, L);
+
+            // Due to self-occlusion from shadows within the a volume, we call this to modify the sampled position for shadows.
+            EvaluateMultipleScattering_ShadowProxy(scatteringData, posInput.positionWS);
+
+            // Fill the BSDF data with the approximated multiple scattering terms for this light.
+            EvaluateMultipleScattering_Material(V, L, scatteringData, bsdfData);
+#endif
             // This code works for both surface reflection and thin object transmission.
             SHADOW_TYPE shadow = EvaluateShadow_Punctual(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData), L, distances);
             lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);

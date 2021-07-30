@@ -200,6 +200,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.shadowContext    = InitShadowContext();
     context.shadowValue      = 1;
     context.sampleReflection = 0;
+    ZERO_INITIALIZE(MultipleScatteringData, context.scatteringData);
 
     // With XR single-pass and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
     // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
@@ -232,8 +233,18 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     IsNonZeroBSDF(V, L, preLightData, bsdfData) &&
                     !ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex))
                 {
+                    float3 shadowProxyPositionWS = posInput.positionWS;
+
+#ifdef LIGHT_EVALUATES_MULTIPLE_SCATTERING
+                    // Since we evaluate the sun light early in this case for shadows (as well as for biasing the shadow), we cache the result in the context.
+                    context.scatteringData = EvaluateMultipleScattering_Light(posInput, L);
+
+                    // ...and adjusts the sampled shadow position (if necessary).
+                    EvaluateMultipleScattering_ShadowProxy(context.scatteringData, shadowProxyPositionWS);
+#endif
+
                     context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
-                                                                          posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
+                                                                          posInput.positionSS, shadowProxyPositionWS, GetNormalForShadowBias(bsdfData),
                                                                           light.shadowIndex, L);
                 }
             }

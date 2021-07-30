@@ -1,8 +1,5 @@
-#if _USE_DENSITY_VOLUME_SCATTERING
-// NOTE: Temporary package dependency. We should move all of this to somewhere in HDRP
-// #include "Packages/com.unity.demoteam.hair/Runtime/HairSimData.hlsl"
-// #include "Packages/com.unity.demoteam.hair/Runtime/HairSimComputeVolumeUtility.hlsl"
-#endif
+// Inform the lightloop and evaluation to perform the necesarry tracing work and invoke the hair dual scattering implementation.
+#define LIGHT_EVALUATES_MULTIPLE_SCATTERING
 
 #define STRAND_DIAMETER_MILLIMETERS 0.02
 #define STRAND_DIAMETER_METERS      (STRAND_DIAMETER_MILLIMETERS * METERS_PER_MILLIMETER)
@@ -14,14 +11,10 @@ TEXTURE3D(_PreIntegratedHairFiberScattering);
 
 struct HairScatteringData
 {
-    float  strandCount;
-
-    float3 averageScattering[2];
-    float3 averageVariance[2];
-    float3 averageShift[2];
-
-    float3 globalScattering;
-    float3 localScattering;
+    // 0: Front Hemisphere, 1: Back Hemisphere
+    float3 averageScattering [2];
+    float3 averageVariance   [2];
+    float3 averageShift      [2];
 };
 
 float ScatteringSpreadGaussian(float x, float v)
@@ -29,39 +22,8 @@ float ScatteringSpreadGaussian(float x, float v)
     return rsqrt(TWO_PI * v) * exp(-Sq(x) / (2 * v));
 }
 
-float EvaluateStrandCount(float3 L, float3 P)
-{
-#if _USE_DENSITY_VOLUME_SCATTERING
-    // Trace against the density field in the light ray direction.
-    const float3 worldPos = GetAbsolutePositionWS(P);
-    const float3 worldDir = L;
-
-    const int numStepsWithinCell = 10;
-    const int numSteps = _VolumeCells.x * numStepsWithinCell;
-
-    VolumeTraceState trace = VolumeTraceBegin(worldPos, worldDir, 0.5, numStepsWithinCell);
-
-    float strandCountApprox = 0;
-
-    for (int i = 0; i != numSteps; i++)
-    {
-        if (VolumeTraceStep(trace))
-        {
-            float cellDensity = VolumeSampleScalar(_VolumeDensity, trace.uvw);
-
-            // TODO: Strand Count
-            strandCountApprox += cellDensity;
-        }
-    }
-
-    return strandCountApprox * 0.1;
-#else
-    // TODO
-    return 1;
-#endif
-}
-
-// TODO: Maybe collapse all of this into one scattering data gather.
+// TODO: Currently the dual scattering approximation is assuming to be used for hair fibers, but it can be used for other
+// fiber materials (ie Fabric). It would be good to eventually generalize this and move it out of hair material evaluation.
 HairScatteringData GetHairScatteringData(BSDFData bsdfData, float sinThetaI)
 {
     HairScatteringData scatteringData;
@@ -135,7 +97,7 @@ HairScatteringData GetHairScatteringData(BSDFData bsdfData, float sinThetaI)
     return scatteringData;
 }
 
-HairScatteringData EvaluateMultipleScattering(BSDFData bsdfData, float3 V, float3 L, float3 P)
+void EvaluateMultipleScattering_Material(float3 V, float3 L, MultipleScatteringData lightScatteringData, inout BSDFData bsdfData)
 {
     float3 T = bsdfData.hairStrandDirectionWS;
 
@@ -156,10 +118,7 @@ HairScatteringData EvaluateMultipleScattering(BSDFData bsdfData, float3 V, float
     }
 
     // Fetch the various preintegrated data.
-    HairScatteringData scatteringData = GetHairScatteringData(bsdfData, sinThetaI);
-
-    // Fetch the number of hair fibers between the shading point x and the light.
-    scatteringData.strandCount = EvaluateStrandCount(L, P);
+    HairScatteringData hairScatteringData = GetHairScatteringData(bsdfData, sinThetaI);
 
     // Solve for multiple scattering in a volume of hair fibers with concepts from:
     // "Dual Scattering Approximation for Fast Multiple Scattering in Hair" (Zinke et. al)
@@ -167,13 +126,13 @@ HairScatteringData EvaluateMultipleScattering(BSDFData bsdfData, float3 V, float
     // "A BSSRDF Model for Efficient Rendering of Fur with Global Illumination" (Yan et. al)
 
     // Pre-define some shorthand for the symbols.
-    const float  n   = scatteringData.strandCount;
-    const float3 af  = scatteringData.averageScattering[FRONT];
-    const float3 ab  = scatteringData.averageScattering[BACK];
-    const float3 sf  = scatteringData.averageShift[FRONT];
-    const float3 sb  = scatteringData.averageShift[BACK];
-    const float3 Bf  = scatteringData.averageVariance[FRONT];
-    const float3 Bb  = scatteringData.averageVariance[BACK];
+    const float  n   = lightScatteringData.fiberCount;
+    const float3 af  = hairScatteringData.averageScattering[FRONT];
+    const float3 ab  = hairScatteringData.averageScattering[BACK];
+    const float3 sf  = hairScatteringData.averageShift[FRONT];
+    const float3 sb  = hairScatteringData.averageShift[BACK];
+    const float3 Bf  = hairScatteringData.averageVariance[FRONT];
+    const float3 Bb  = hairScatteringData.averageVariance[BACK];
     const float3 Bf2 = Sq(Bf);
     const float3 Bb2 = Sq(Bb);
 
@@ -187,7 +146,7 @@ HairScatteringData EvaluateMultipleScattering(BSDFData bsdfData, float3 V, float
         // oriented the same. This is suitable for long, straighter hair ( Eq. 6 Disney ).
         float3 Tf = df * pow(af, n);
 
-        // Approximate the accumulated variance, by assuming strands all have the same average roughness. ( Eq. 7 Disney )
+        // Approximate the accumulated variance, by assuming strands all have the same average roughness and inclination. ( Eq. 7 Disney )
         float3 sigmaF = Bf2 * n;
 
         // Computes the forward scattering spread ( Eq. 7 ).
@@ -196,7 +155,7 @@ HairScatteringData EvaluateMultipleScattering(BSDFData bsdfData, float3 V, float
                             ScatteringSpreadGaussian(thetaH, sigmaF.b)) * rcp(PI * cos(thetaD));
 
         // Resolve the final global scattering term ( Eq. 4 ).
-        scatteringData.globalScattering = Tf * Sf;
+        bsdfData.globalScattering = Tf * Sf;
     }
 
     // Local scattering.
@@ -249,10 +208,8 @@ HairScatteringData EvaluateMultipleScattering(BSDFData bsdfData, float3 V, float
                             ScatteringSpreadGaussian(thetaH - deltaB.b, sigmaB.b));
 
         // Resolve the overall local scattering term ( Eq. 9 & 10 ).
-        scatteringData.localScattering  = 2 * Ab * Sb;
-        scatteringData.localScattering /= cos(thetaD);
-        scatteringData.localScattering *= db;
+        bsdfData.localScattering  = 2 * Ab * Sb;
+        bsdfData.localScattering /= cos(thetaD);
+        bsdfData.localScattering *= db;
     }
-
-    return scatteringData;
 }

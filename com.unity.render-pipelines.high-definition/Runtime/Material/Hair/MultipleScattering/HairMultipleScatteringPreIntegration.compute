@@ -26,6 +26,9 @@ SurfaceData ConfigureFiberSurface(float diffuseColor, float perceptualSmoothness
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER;
 
     // Skip the scattering component of the BCSDF as we are pre-integrating from the single-scattered reflectance.
+    // surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R;
+    // surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT;
+    // surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT;
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING;
 
     // Here we factor by Diffuse Color, which will be converted to Absorption in ConvertSurfaceDataToBSDFData.
@@ -82,7 +85,6 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
 
     // Configure the initial incident theta direction.
     float sinThetaI = UVW.y;
-    float cosThetaI = sqrt(saturate(1 - Sq(sinThetaI)));
 
     // Instead of integrating over the front and back hemispheres separately, we instead uniformly sample the sphere and
     // sort the average energy as front or back scattering depending on the random direction's orientation.
@@ -99,7 +101,7 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
        for (float phi = -HALF_PI; phi < HALF_PI; phi += DPHI)
        {
            // Places a light on the back scattering hemisphere (due to the constriction of phi to the -pi/2 to pi/2 range).
-           float3 L = SphericalToCartesian(phi, cosThetaI);
+           float3 L = SphericalToCartesian(phi, sinThetaI);
 
            // Invoke the fiber scattering function.
            CBSDF cbsdf = EvaluateBSDF(V, L, preLightData, bsdfData);

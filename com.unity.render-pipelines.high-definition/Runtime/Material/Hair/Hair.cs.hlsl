@@ -70,6 +70,8 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TT (1481)
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TRT (1482)
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_RADIAL (1483)
+#define DEBUGVIEW_HAIR_BSDFDATA_GLOBAL_SCATTERING (1484)
+#define DEBUGVIEW_HAIR_BSDFDATA_LOCAL_SCATTERING (1485)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Hair+SurfaceData
 // PackingRules = Exact
@@ -130,6 +132,8 @@ struct BSDFData
     float roughnessTT;
     float roughnessTRT;
     float roughnessRadial;
+    float3 globalScattering;
+    float3 localScattering;
 };
 
 //
@@ -311,6 +315,12 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_RADIAL:
             result = bsdfdata.roughnessRadial.xxx;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_GLOBAL_SCATTERING:
+            result = bsdfdata.globalScattering;
+            break;
+        case DEBUGVIEW_HAIR_BSDFDATA_LOCAL_SCATTERING:
+            result = bsdfdata.localScattering;
             break;
     }
 }

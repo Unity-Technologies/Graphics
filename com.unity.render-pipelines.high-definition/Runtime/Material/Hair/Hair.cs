@@ -144,6 +144,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public float roughnessTRT;
 
             public float roughnessRadial;
+
+            public Vector3 globalScattering;
+            public Vector3 localScattering;
         };
 
 

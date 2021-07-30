@@ -6,7 +6,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairScattering.hlsl"
 
 //-----------------------------------------------------------------------------
 // Texture and constant buffer declaration
@@ -26,15 +25,12 @@
 // #define HAIR_DISPLAY_REFERENCE_BSDF
 // #define HAIR_DISPLAY_REFERENCE_IBL
 
-#if _USE_DENSITY_VOLUME_SCATTERING
-// Temp
-#define LIGHT_EVALUATION_NO_SHADOWS
-#endif
-
 // An extra material feature flag we utilize to compile two different versions of BSDF evaluation (one with transmission lobe
 // for analytic lights, one without transmission lobe for environment light).
-#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT         (1 << 16)
-#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING (1 << 17)
+#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R          (1 << 16)
+#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT         (1 << 17)
+#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT        (1 << 18)
+#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING (1 << 19)
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -333,11 +329,6 @@ struct PreLightData
 {
     float NdotV;        // Could be negative due to normal mapping, use ClampNdotV()
 
-    // Scattering
-#if _USE_DENSITY_VOLUME_SCATTERING
-    HairScatteringData scatteringData;
-#endif
-
     // IBL
     float3 iblR;                     // Reflected specular direction, used for IBL in EvaluateBSDF_Env()
     float  iblPerceptualRoughness;
@@ -431,12 +422,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
     preLightData.orthoBasisViewNormal = GetOrthoBasisViewNormal(V, N, preLightData.NdotV);
-
-#if _USE_DENSITY_VOLUME_SCATTERING
-    // We initialize this to zero in this case, as it is actually evaluated per-light.
-    // (Also, we can't specify struct in BSDFData which is why we define it in PreLightData).
-    ZERO_INITIALIZE(HairScatteringData, preLightData.scatteringData);
-#endif
 
     return preLightData;
 }
@@ -614,6 +599,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         // Solve the first three lobes (R, TT, TRT).
 
         // R
+        if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R))
         {
             M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleR, bsdfData.roughnessR);
 
@@ -648,6 +634,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         }
 
         // TRT
+        if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT))
         {
             M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleTRT, bsdfData.roughnessTRT);
 
@@ -670,7 +657,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
         // Transmission event is built into the model.
         // Some stubborn NaNs have cropped up due to the angle optimization, we suppress them here with a max for now.
-        cbsdf.specR = max(S, 0);
+        cbsdf.specR = max(S , 0);
     #endif
 
         // Multiple Scattering
@@ -678,8 +665,8 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING))
         {
             // Debug Dual Scattering Components
-            // cbsdf.specR = preLightData.scatteringData.globalScattering;
-            // cbsdf.specR = preLightData.scatteringData.localScattering;
+            cbsdf.specR += bsdfData.localScattering;
+            cbsdf.specR *= bsdfData.globalScattering;
 
             // Nan
             cbsdf.specR = max(cbsdf.specR, 0);
@@ -703,6 +690,10 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 //-----------------------------------------------------------------------------
 // Surface shading (all light types) below
 //-----------------------------------------------------------------------------
+
+#ifdef _USE_DENSITY_VOLUME_SCATTERING
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/MultipleScattering/HairMultipleScattering.hlsl"
+#endif //_USE_DENSITY_VOLUME_SCATTERING
 
 // Hair used precomputed transmittance, no thick transmittance required
 #define MATERIAL_INCLUDE_PRECOMPUTED_TRANSMISSION
@@ -731,16 +722,6 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
                                      float3 V, PositionInputs posInput,
                                      PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
-#if _USE_DENSITY_VOLUME_SCATTERING
-    // TODO: Move this whole block into the shader surface, or perhaps a callback.
-    // Currently we have to recompute the light vectors twice like this.
-    float3 L;
-    float4 distances; // {d, d^2, 1/d, d_proj}
-    GetPunctualLightVectors(posInput.positionWS, lightData, L, distances);
-
-    preLightData.scatteringData = EvaluateMultipleScattering(bsdfData, V, L, posInput.positionWS);
-#endif
-
     return ShadeSurface_Punctual(lightLoopContext, posInput, builtinData,
                                  preLightData, lightData, bsdfData, V);
 }
