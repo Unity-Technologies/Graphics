@@ -303,8 +303,8 @@ class VFXSlotContainerEditor : Editor
             frameButtonStyle = new GUIStyle();
             frameButtonStyle.normal.background = EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "ViewToolZoom.png", EditorGUIUtility.skinIndex);
             frameButtonStyle.active.background = EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "ViewToolZoom On.png", EditorGUIUtility.skinIndex);
-            frameButtonStyle.normal.background.filterMode = frameButtonStyle.active.background.filterMode = FilterMode.Trilinear;
-            
+            frameButtonStyle.normal.background.filterMode = FilterMode.Trilinear;
+            frameButtonStyle.active.background.filterMode = FilterMode.Trilinear;
 
             header = new GUIStyle(EditorStyles.toolbarButton);
             header.fontStyle = FontStyle.Bold;
