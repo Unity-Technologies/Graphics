@@ -47,9 +47,9 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent[] ShadowResolutionDefaultOptions =
             {
                 new GUIContent("Custom"),
-                UniversalRenderPipelineAssetEditor.Styles.additionalLightsShadowResolutionTierNames[0],
-                UniversalRenderPipelineAssetEditor.Styles.additionalLightsShadowResolutionTierNames[1],
-                UniversalRenderPipelineAssetEditor.Styles.additionalLightsShadowResolutionTierNames[2],
+                UniversalRenderPipelineAssetUI.Styles.additionalLightsShadowResolutionTierNames[0],
+                UniversalRenderPipelineAssetUI.Styles.additionalLightsShadowResolutionTierNames[1],
+                UniversalRenderPipelineAssetUI.Styles.additionalLightsShadowResolutionTierNames[2],
             };
 
             // Bias (default or custom)
