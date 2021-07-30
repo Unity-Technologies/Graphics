@@ -279,8 +279,8 @@ class VFXSlotContainerEditor : Editor
         public static GUIContent name = EditorGUIUtility.TrTextContent("Name");
         public static GUIContent type = EditorGUIUtility.TrTextContent("Type");
         public static GUIContent mode = EditorGUIUtility.TrTextContent("Mode");
-        public static GUIContent gizmoLocalWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "console.warnicon.sml.png", EditorGUIUtility.skinIndex), "Local values require a target GameObject to display");
-        public static GUIContent gizmoIndeterminateWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "console.warnicon.sml.png", EditorGUIUtility.skinIndex), "The gizmo value is indeterminate.");
+        public static GUIContent gizmoLocalWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.LoadIcon(EditorResources.iconsPath + "console.warnicon.sml.png"), "Local values require a target GameObject to display");
+        public static GUIContent gizmoIndeterminateWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.LoadIcon(EditorResources.iconsPath + "console.warnicon.sml.png"), "The gizmo value is indeterminate.");
         public static GUIContent gizmoFrame = EditorGUIUtility.TrTextContent("", "Frame Gizmo in scene");
     }
 
