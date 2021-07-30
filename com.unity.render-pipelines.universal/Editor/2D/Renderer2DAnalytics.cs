@@ -44,7 +44,6 @@ namespace UnityEditor.Rendering.Universal.Analytics
         AnalyticsResult SendData(string eventString, IAnalyticsData data);
     }
 
-    [InitializeOnLoad]
     internal class Renderer2DAnalytics : IAnalytics
     {
         const int k_MaxEventsPerHour = 1000;

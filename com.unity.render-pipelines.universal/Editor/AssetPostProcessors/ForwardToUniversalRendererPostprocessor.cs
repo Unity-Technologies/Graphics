@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.Universal
         static void RegisterUpgraderReimport()
         {
             //Putting in delayCall will make sure AssetDatabase is ready for the FindAssets search below
-            EditorApplication.delayCall += () =>
+            EditorApplication.delayCall += () => //TODOJENNY: does this work here?
             {
                 //This helps to scan the RendererData Assets which are subAssets caused by case 1214779
                 if (firstTimeUpgrade)

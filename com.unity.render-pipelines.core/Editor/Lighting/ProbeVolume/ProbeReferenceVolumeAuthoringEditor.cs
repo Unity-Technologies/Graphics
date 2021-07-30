@@ -21,8 +21,7 @@ namespace UnityEngine.Experimental.Rendering
 
             static RealtimeProbeSubdivisionDebug()
             {
-                EditorApplication.update -= UpdateRealtimeSubdivisionDebug;
-                EditorApplication.update += UpdateRealtimeSubdivisionDebug;
+                EditorApplication.update += UpdateRealtimeSubdivisionDebug; //TODOJENNY: ideally we should not do this, empty updates can still be expensive (thousands of scripts may be doing the same)
             }
 
             static void UpdateRealtimeSubdivisionDebug()

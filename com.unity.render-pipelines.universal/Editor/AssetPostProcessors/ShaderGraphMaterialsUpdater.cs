@@ -9,6 +9,8 @@ namespace UnityEditor.Rendering.Universal
         public bool updateMaterials;
     }
 
+    //TODOJENNY: see comment in com.unity.render-pipelines.high-definition\Editor\AssetProcessors\ShaderGraphMaterialsUpdater.cs
+
     [InitializeOnLoad]
     class ShaderGraphMaterialsUpdater
     {

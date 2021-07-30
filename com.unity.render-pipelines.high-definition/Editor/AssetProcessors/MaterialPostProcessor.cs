@@ -115,11 +115,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             bool upgradeNeeded = false;
 
-            shader = shader ?? (Shader)AssetDatabase.LoadAssetAtPath(assetPath, typeof(Shader));
+            shader = shader ?? AssetDatabase.LoadMainAssetAtPath(assetPath) as Shader;
             if (ignoreNonHDRPShaderGraphs)
             {
                 // Note: this might still be an HDRP shadergraph but old, without HDMetaData,
-                // eg using a masternode.
+                // eg using a masternode. > but importer version got bumped so this is not valid?
                 if (!HDShaderUtils.IsHDRPShaderGraph(shader))
                 {
                     return false;
@@ -310,6 +310,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             foreach (var asset in importedAssets)
             {
+                // TODOJENNY: why do we need that? need to ask Stephane Laroche - maybe code needs to be moved to Vraid plugin
                 // We intercept shadergraphs just to add them to s_ImportedAssetThatNeedSaving to make them editable when we save assets
                 if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}"))
                 {
@@ -326,15 +327,19 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     continue;
                 }
-                else if (!asset.ToLowerInvariant().EndsWith(".mat"))
+                else if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
                 {
                     continue;
                 }
 
                 // Materials (.mat) post processing:
 
-                var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                var material = AssetDatabase.LoadMainAssetAtPath(asset) as Material;
+                if (material == null)
+                    continue;
 
+                //TODOJENNY: ask Stephane if his plugin makes s_ReimportShaderGraphDependencyOnMaterialUpdate set to true
+                //is this needed if we simply bump the importer version number on any change? this will force reimport of SG and we can ensure HDMetaData
                 if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
                 {
                     // Check first if the HDRP shadergraph assigned needs a migration:
@@ -394,6 +399,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
+                // we should have a dependency over global settings to be able to add it on asset change
                 AddDiffusionProfileToSettings("_DiffusionProfileAsset");
 
                 // Special Eye case that uses a node with diffusion profiles.

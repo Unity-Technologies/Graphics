@@ -95,7 +95,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // then we need to go over all materials and upgrade them
                 if (currentHDAsset.diffusionProfileSettings == d)
                 {
-                    var materialGUIDs = AssetDatabase.FindAssets("t:Material");
+                    // no need to check all t:Material since we cannot modify sub-assets
+                    var materialGUIDs = AssetDatabase.FindAssets("glob:\"*.mat\"");
                     foreach (var guid in materialGUIDs)
                     {
                         var mat = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid));

@@ -10,7 +10,7 @@ using UnityEditor.Experimental.AssetImporters;
 namespace UnityEditor.Rendering
 {
     /// <summary>
-    /// Common class use to share code between implementation of IES Importeres
+    /// Common class use to share code between implementation of IES Importers
     /// </summary>
     [System.Serializable]
     [ScriptedImporter(1, "ies")]
@@ -31,6 +31,9 @@ namespace UnityEditor.Rendering
         /// Must be initialized during the creation of the SRP
         /// </summary>
         public static event System.Action<AssetImportContext, string, bool, string, float, Light, Texture> createRenderPipelinePrefabLight;
+
+        //TODOJENNY: since here everything is public, users could register to this and when reimporting an .ies asset we will perform CreateRenderPipelinePrefabLight (could be solved with customDependency registration on import) - non deterministic importer (HDIESImporter.cs)
+        // try: createRenderPipelinePrefabLight add/remove operations by hand to handle custom dependency
 
         /// <summary>
         /// Common method performing the import of the asset

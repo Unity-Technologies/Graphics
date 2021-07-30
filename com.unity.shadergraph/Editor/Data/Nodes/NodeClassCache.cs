@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
-        private static void ReCacheKnownNodeTypes()
+        private static void ReCacheKnownNodeTypes() //TODOJENNY: why cant we call that only on first use - with a singleton? (lazy init + remove initializeonload)
         {
             Profiler.BeginSample("NodeClassCache: Re-caching all known node types");
             m_KnownTypeLookupTable = new Dictionary<Type, List<ContextFilterableAttribute>>();
@@ -142,7 +142,9 @@ namespace UnityEditor.ShaderGraph
             }
 
             m_KnownSubGraphLookupTable = new Dictionary<string, SubGraphAsset>();
-            foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(SubGraphAsset))))
+            // TODOJENNY: how can we ensure ADB is ready? is this why we need DebugPrintKnownNodes?
+            // should we cache the guid list to avoid the "load asset" portion on domain reload (what happens if 100k SG assets in project)
+            foreach (var guid in AssetDatabase.FindAssets(string.Format("glob:\"*.asset\" t:{0}", typeof(SubGraphAsset))))
             {
                 var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
                 if (asset != null && asset.isValid)

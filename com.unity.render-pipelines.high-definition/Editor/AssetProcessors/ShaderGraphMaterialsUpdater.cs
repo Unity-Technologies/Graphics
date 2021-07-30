@@ -17,11 +17,16 @@ namespace UnityEditor.Rendering.HighDefinition
             GraphData.onSaveGraph += OnShaderGraphSaved;
         }
 
+        // TODOJENNY: This entire file could be removed if we add dependencies between shadergraphs and their material
+        // ideally on material import, a dependency is added towards its shader
+        // so when the SG is modified/reimported, its linked materials will also be reimported
         static void OnShaderGraphSaved(Shader shader, object saveContext)
         {
             // In case the shader is not HDRP
             if (!(saveContext is HDSaveContext hdSaveContext))
                 return;
+
+            //TODOJENNY: should we early exit if HDRP is not active?
 
             HDRenderPipeline.currentPipeline?.ResetPathTracing();
 
@@ -44,7 +49,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Reset keywords
-                    if (materials[i].shader.name == shader.name)
+                    //if (materials[i].shader.name == shader.name) - need thorough testing
+                    if (materials[i].shader == shader)
                         HDShaderUtils.ResetMaterialKeywords(materials[i]);
                 }
             }

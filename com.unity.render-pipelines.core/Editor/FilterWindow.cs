@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering
     /// An utility window used to list and filter a set of elements, as seen in the inspector when
     /// clicking on the "Add Component" button.
     /// </summary>
-    [InitializeOnLoad]
+    [InitializeOnLoad] //TODOJENNY: needed? we could just set to true s_DirtyList by default?
     public class FilterWindow : EditorWindow
     {
         /// <summary>

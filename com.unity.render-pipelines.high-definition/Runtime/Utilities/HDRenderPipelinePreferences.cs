@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // This file can't be in the editor assembly as we need to access it in runtime-editor-specific
     // places like OnGizmo etc and we don't want to add the editor assembly as a dependency of the
     // runtime one
+    // TODOREMI: could we reverse the point of view?  [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
 
 #if UNITY_EDITOR
     using UnityEditor;
@@ -72,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
-        static HDRenderPipelinePreferences()
+        static HDRenderPipelinePreferences() //TODOJENNY: activeRenderPIpelineTypeChanged?
         {
             Load();
         }

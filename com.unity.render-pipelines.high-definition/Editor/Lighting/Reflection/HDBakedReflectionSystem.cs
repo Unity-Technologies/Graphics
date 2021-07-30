@@ -39,6 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [InitializeOnLoadMethod]
         static void Initialize()
         {
+            //TODOJENNY: activeRenderPIpelineTypeChanged subscribe
             if (GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset)
                 ScriptableBakedReflectionSystemSettings.system = new HDBakedReflectionSystem();
         }

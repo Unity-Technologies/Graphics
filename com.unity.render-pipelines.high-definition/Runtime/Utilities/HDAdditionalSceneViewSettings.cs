@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-#if UNITY_EDITOR
+#if UNITY_EDITOR //TODOJENNY: why arent we in Editor folder?
     using UnityEditor;
     using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
 
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Helper class to manage editor preferences with local caching.
         // Only supports bools, floats and ints/enums, so we keep it local for now.
-        class CachedEditorPref<T>
+        class CachedEditorPref<T> //TODOALEX: do we need that at all?
         {
             T m_Storage;
             string m_Key;
@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get => s_SceneExposure.value;
             set => s_SceneExposure.value = value;
         }
-        static HDAdditionalSceneViewSettings()
+        static HDAdditionalSceneViewSettings() //TODOJENNY: if this is for the compositor (HDRP specific) this code should be triggered on activeRenderPipelineTypeChanged instead
         {
             SceneViewCameraWindow.additionalSettingsGui += DoAdditionalSettings;
         }

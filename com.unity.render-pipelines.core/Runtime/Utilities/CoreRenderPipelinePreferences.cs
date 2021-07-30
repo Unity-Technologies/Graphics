@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
     using UnityEditor;
 
-    [InitializeOnLoad]
+    [InitializeOnLoad] //TODOJENNY: ensure this is not done for non-Volume compatible scenarios ie. builtin / activeRenderPipelineTypeChanged (builtin -> URP)
     public static class CoreRenderPipelinePreferences
     {
         // We do not want that GC frees the preferences that have been added, used to store their references

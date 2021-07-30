@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Universal
         [InitializeOnLoadMethod]
         static void RegisterUpgraderReimport()
         {
-            EditorApplication.update += () =>
+            EditorApplication.update += () => //TODOJENNY: why not delaycall?
             {
                 if (Time.renderedFrameCount > 0)
                 {
@@ -134,7 +134,10 @@ namespace UnityEditor.Rendering.Universal
                 // we only care about versioning materials using a known Universal ShaderID
                 // this skips any materials that only target other render pipelines, are user shaders,
                 // or are shaders we don't care to version
-                var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
+                var material = AssetDatabase.LoadMainAssetAtPath(asset) as Material;
+                if (material == null)
+                    continue;
+
                 var shaderID = GetShaderID(material.shader);
                 if (shaderID == ShaderID.Unknown)
                     continue;

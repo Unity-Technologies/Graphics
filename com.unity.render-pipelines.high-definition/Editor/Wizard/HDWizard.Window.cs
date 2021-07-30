@@ -250,6 +250,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static int frameToWait;
 
+        //TODOREMI: we could use the upcoming OnPostprocessAllAssets with didDomainReload parameter
+        // team editor: common concept of wizard?
         static void WizardBehaviourDelayed()
         {
             if (frameToWait > 0)

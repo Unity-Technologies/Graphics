@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph
         public List<JsonData<Target>> unsupportedTargets = new List<JsonData<Target>>();
     }
 
-    class SubGraphAsset : ScriptableObject, ISerializationCallbackReceiver
+    class SubGraphAsset : ScriptableObject
     {
         public bool isValid;
 
@@ -195,14 +195,6 @@ namespace UnityEditor.ShaderGraph
             var json = MultiJson.Serialize(m_SubGraphData);
             m_SerializedSubGraphData = new SerializationHelper.JSONSerializedElement() { JSONnodeData = json };
             m_SubGraphData = null;
-        }
-
-        public void OnBeforeSerialize()
-        {
-        }
-
-        public void OnAfterDeserialize()
-        {
         }
 
         public void LoadGraphData()

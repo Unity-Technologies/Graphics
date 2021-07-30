@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.Universal.Path2D
     {
         private static List<IDuringSceneGuiTool> m_Tools = new List<IDuringSceneGuiTool>();
 
-        static EditorToolManager()
+        static EditorToolManager() //TODOJENNY: activeRenderPipelineTypeChanged? follow up also with SceneTooling team?
         {
             SceneView.duringSceneGui += DuringSceneGui;
         }
