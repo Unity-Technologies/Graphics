@@ -384,7 +384,7 @@ namespace UnityEditor.Rendering.Universal
             var stripTool = new StripTool(shader, stripDisabledKeywords, features, snippetData, compilerData.shaderKeywordSet);
 
             // strip main light shadows, cascade and screen variants
-            // TODO: Strip disabled keyword once no light will re-use same variant  
+            // TODO: Strip disabled keyword once no light will re-use same variant
             if (stripTool.StripFeatureKeepDisabled(
                 m_MainLightShadows, ShaderFeatures.MainLightShadows,
                 m_MainLightShadowsCascades, ShaderFeatures.MainLightShadowsCascade,
@@ -414,7 +414,7 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (stripTool.StripFeature(m_RenderPassEnabled, ShaderFeatures.RenderPassEnabled))
-                return true;             
+                return true;
 
             // No additional light shadows
             // TODO: Strip disabled keyword once we support no shadow lights re-use same variant
@@ -426,14 +426,14 @@ namespace UnityEditor.Rendering.Universal
 
             if (stripTool.StripFeature(m_ReflectionProbeBoxProjection, ShaderFeatures.ReflectionProbeBoxProjection))
                 return true;
-            
+
             // Shadow caster punctual light strip
             if (snippetData.passType == PassType.ShadowCaster && ShaderUtil.PassHasKeyword(shader, snippetData.pass, m_CastingPunctualLightShadow, snippetData.shaderType))
             {
                 if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
                     return true;
 
-                bool mainLightShadows = 
+                bool mainLightShadows =
                     !IsFeatureEnabled(features, ShaderFeatures.MainLightShadows) &&
                     !IsFeatureEnabled(features, ShaderFeatures.MainLightShadowsCascade) &&
                     !IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceShadows);
@@ -642,7 +642,7 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }
 
-            if (UniversalRenderPipelineGlobalSettings.instance?.stripPostProcessingShaderVariants ?? true)
+            if (UniversalRenderPipelineGlobalSettings.instance?.staticVolumeProfile ?? true)
             {
                 if (StripVolumeFeatures(features, shader, snippetData, compilerData))
                     return true;
@@ -855,7 +855,7 @@ namespace UnityEditor.Rendering.Universal
 
         private static void FetchAllSupportedFeaturesFromVolumes()
         {
-            if (UniversalRenderPipelineGlobalSettings.instance?.stripPostProcessingShaderVariants ?? false)
+            if (UniversalRenderPipelineGlobalSettings.instance?.staticVolumeProfile ?? false)
                 return;
 
             s_VolumeFeatures = VolumeFeatures.Calculated;

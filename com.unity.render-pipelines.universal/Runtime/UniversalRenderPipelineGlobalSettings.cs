@@ -301,7 +301,7 @@ namespace UnityEngine.Rendering.Universal
         /// Controls whether strips automatically post processing shader variants based on <see cref="VolumeProfile"/> components.
         /// It strips based on VolumeProfiles in project and not scenes that actually uses it.
         /// </summary>
-        public bool stripPostProcessingShaderVariants = true; // TODO: false after QA pass
+        public bool staticVolumeProfile = true; // TODO: false after QA pass
 
         /// <summary>
         /// Controls whether strip disabled keyword variants if the feature is enabled.

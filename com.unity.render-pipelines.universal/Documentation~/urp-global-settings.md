@@ -12,8 +12,10 @@ The section contains the following settings.
 
 Use this section to define the names of Light Layers. Light Layers only work with 3D Renderers.
 
-## Miscellaneous
+## Shader Stripping
 
 | **Property**              | **Description**                                              |
 | --------------------------| ------------------------------------------------------------ |
 | Runtime Debug Shaders     | When disabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but prevents the use of Rendering Debugger in Player builds. |
+| Static Volume Profiles     | Controls whether strips automatically post processing shader variants based on VolumeProfile components. It strips based on VolumeProfiles in project and not scenes that actually uses it. |
+| Strip Disabled Keyword Variants     | Controls whether strip disabled keyword variants if the feature is enabled. |

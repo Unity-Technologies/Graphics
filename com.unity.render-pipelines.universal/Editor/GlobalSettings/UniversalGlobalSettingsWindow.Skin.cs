@@ -25,12 +25,12 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent lightLayerName6 = EditorGUIUtility.TrTextContent("Light Layer 6", "The display name for Light Layer 6.");
             public static readonly GUIContent lightLayerName7 = EditorGUIUtility.TrTextContent("Light Layer 7", "The display name for Light Layer 7.");
 
-            public static readonly GUIContent miscSettingsLabel = EditorGUIUtility.TrTextContent("Miscellaneous", "Miscellaneous settings");
+            public static readonly GUIContent miscSettingsLabel = EditorGUIUtility.TrTextContent("Shader Stripping", "Shader Stripping settings");
             public static readonly GUIContent supportRuntimeDebugDisplayContentLabel = EditorGUIUtility.TrTextContent("Runtime Debug Shaders", "When disabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but prevents the use of Rendering Debugger in Player builds.");
-            public static readonly GUIContent stripPostProcessingShaderVariantsLabel = EditorGUIUtility.TrTextContent("Strip Post Processing Variants", "Controls whether strips automatically post processing shader variants based on VolumeProfile components. It strips based on VolumeProfiles in project and not scenes that actually uses it.");
+            public static readonly GUIContent staticVolumeProfileLabel = EditorGUIUtility.TrTextContent("Static Volume Profiles", "Controls whether strips automatically post processing shader variants based on VolumeProfile components. It strips based on VolumeProfiles in project and not scenes that actually uses it.");
             public static readonly GUIContent stripDisabledKeywordVariantsLabel = EditorGUIUtility.TrTextContent("Strip Disabled Keyword Variants", "Controls whether strip disabled keyword variants if the feature is enabled.");
             public static readonly GUIContent stripBuiltinShadersLabel = EditorGUIUtility.TrTextContent("Strip Builtin Shaders", "Controls whether strip builtin render pipeline specific shaders.");
-            
+
             public static readonly string warningUrpNotActive = "Project graphics settings do not refer to a URP Asset. Check the settings: Graphics > Scriptable Render Pipeline Settings, Quality > Render Pipeline Asset.";
             public static readonly string warningGlobalSettingsMissing = "The Settings property does not contain a valid URP Global Settings asset. There might be issues in rendering. Select a valid URP Global Settings asset.";
             public static readonly string infoGlobalSettingsMissing = "Select a URP Global Settings asset.";

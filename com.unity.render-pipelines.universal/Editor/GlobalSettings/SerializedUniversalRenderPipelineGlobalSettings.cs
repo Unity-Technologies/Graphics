@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty lightLayerName7;
 
         public SerializedProperty supportRuntimeDebugDisplay;
-        public SerializedProperty stripPostProcessingShaderVariants;
+        public SerializedProperty staticVolumeProfile;
         public SerializedProperty stripDisabledKeywordVariants;
         public SerializedProperty stripBuiltinShaders;
 
@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Universal
             lightLayerName7 = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.lightLayerName7);
 
             supportRuntimeDebugDisplay = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.supportRuntimeDebugDisplay);
-            stripPostProcessingShaderVariants = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.stripPostProcessingShaderVariants);
+            staticVolumeProfile = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.staticVolumeProfile);
             stripDisabledKeywordVariants = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.stripDisabledKeywordVariants);
             stripBuiltinShaders = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.stripBuiltinShaders);
         }
