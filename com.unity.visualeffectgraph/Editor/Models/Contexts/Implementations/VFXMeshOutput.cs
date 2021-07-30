@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
                         features |= VFXOutputUpdate.Features.LOD;
                     if (HasSorting() && VFXOutputUpdate.HasFeature(features, VFXOutputUpdate.Features.IndirectDraw) || needsOwnSort)
                     {
-                        if (VFXSortingUtility.IsPerCamera(sortCriterion))
+                        if (VFXSortingUtility.IsPerCamera(sortMode))
                             features |= VFXOutputUpdate.Features.CameraSort;
                         else
                             features |= VFXOutputUpdate.Features.Sort;

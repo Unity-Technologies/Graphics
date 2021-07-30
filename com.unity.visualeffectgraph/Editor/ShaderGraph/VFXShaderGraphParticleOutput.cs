@@ -282,7 +282,7 @@ namespace UnityEditor.VFX
         {
             var materialBlendMode = GetMaterialBlendMode();
 
-            return base.HasSorting() || ((sort == SortMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied)) && !HasStrips(true));
+            return base.HasSorting() || ((sort == SortActivationMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied)) && !HasStrips(true));
         }
 
         public override bool isBlendModeOpaque
