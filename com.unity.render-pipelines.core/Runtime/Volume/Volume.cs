@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering
             if (isGlobal || colliders == null)
                 return;
 
-            var scale = transform.localScale;
+            var scale = transform.lossyScale;
             var invScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
             Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, scale);
             Gizmos.color = CoreRenderPipelinePreferences.volumeGizmoColor;

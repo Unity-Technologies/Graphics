@@ -14,9 +14,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Tracing;
 
         // Screen space global illumination parameters
+        SerializedDataParameter m_FallbackHierarchy;
         SerializedDataParameter m_DepthBufferThickness;
         SerializedDataParameter m_RaySteps;
-        SerializedDataParameter m_FilterRadius;
 
         // Ray tracing generic attributes
         SerializedDataParameter m_LayerMask;
@@ -31,17 +31,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Performance
         SerializedDataParameter m_FullResolution;
-        SerializedDataParameter m_UpscaleRadius;
 
         // Quality
         SerializedDataParameter m_SampleCount;
         SerializedDataParameter m_BounceCount;
 
-        // Filtering
+        // Filtering RT
         SerializedDataParameter m_Denoise;
         SerializedDataParameter m_HalfResolutionDenoiser;
         SerializedDataParameter m_DenoiserRadius;
         SerializedDataParameter m_SecondDenoiserPass;
+
+        // Filtering SS
+        SerializedDataParameter m_DenoiseSS;
+        SerializedDataParameter m_HalfResolutionDenoiserSS;
+        SerializedDataParameter m_DenoiserRadiusSS;
+        SerializedDataParameter m_SecondDenoiserPassSS;
 
         public override bool hasAdditionalProperties => true;
 
@@ -53,9 +58,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Tracing = Unpack(o.Find(x => x.tracing));
 
             // SSGI Parameters
+            m_FallbackHierarchy = Unpack(o.Find(x => x.fallbackHierarchy));
             m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
             m_RaySteps = Unpack(o.Find(x => x.maxRaySteps));
-            m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
 
             // Ray Tracing shared parameters
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
@@ -70,7 +75,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Performance
             m_FullResolution = Unpack(o.Find(x => x.fullResolution));
-            m_UpscaleRadius = Unpack(o.Find(x => x.upscaleRadius));
 
             // Quality
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
@@ -82,13 +86,24 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DenoiserRadius = Unpack(o.Find(x => x.denoiserRadius));
             m_SecondDenoiserPass = Unpack(o.Find(x => x.secondDenoiserPass));
 
+            // Filtering SS
+            m_DenoiseSS = Unpack(o.Find(x => x.denoiseSS));
+            m_HalfResolutionDenoiserSS = Unpack(o.Find(x => x.halfResolutionDenoiserSS));
+            m_DenoiserRadiusSS = Unpack(o.Find(x => x.denoiserRadiusSS));
+            m_SecondDenoiserPassSS = Unpack(o.Find(x => x.secondDenoiserPassSS));
+
             base.OnEnable();
         }
 
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of global illumination rays. The higher this value is, the more expensive ray traced global illumination is.");
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Depth Tolerance", "Controls the tolerance when comparing the depth of two pixels.");
+        static public readonly GUIContent k_FallbackHierarchyText = EditorGUIUtility.TrTextContent("Fallback Hierarchy", "Controls the tolerance when comparing the depth of two pixels.");
         static public readonly GUIContent k_MaxMixedRaySteps = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for mixed tracing.");
 
+        static public readonly GUIContent k_DenoiseText = EditorGUIUtility.TrTextContent("Denoise", "Denoise the screen space GI.");
+        static public readonly GUIContent k_HalfResolutionDenoiserText = EditorGUIUtility.TrTextContent("Half Resolution Denoiser", "Use a half resolution denoiser.");
+        static public readonly GUIContent k_DenoiserRadiusText = EditorGUIUtility.TrTextContent("Denoiser Radius", "Controls the radius of the GI denoiser (First Pass).");
+        static public readonly GUIContent k_SecondDenoiserPassText = EditorGUIUtility.TrTextContent("Second Denoiser Pass", "Enable second denoising pass.");
 
         public void DenoiserGUI()
         {
@@ -102,6 +117,18 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        public void DenoiserSSGUI()
+        {
+            PropertyField(m_DenoiseSS, k_DenoiseText);
+
+            using (new IndentLevelScope())
+            {
+                PropertyField(m_HalfResolutionDenoiserSS, k_HalfResolutionDenoiserText);
+                PropertyField(m_DenoiserRadiusSS, k_DenoiserRadiusText);
+                PropertyField(m_SecondDenoiserPassSS, k_SecondDenoiserPassText);
+            }
+        }
+
         void RayTracingPerformanceModeGUI(bool mixed)
         {
             base.OnInspectorGUI(); // Quality Setting
@@ -111,7 +138,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_RayLength, k_RayLengthText);
                 PropertyField(m_ClampValue);
                 PropertyField(m_FullResolution);
-                PropertyField(m_UpscaleRadius);
                 if (mixed)
                     PropertyField(m_MaxMixedRaySteps, k_MaxMixedRaySteps);
                 DenoiserGUI();
@@ -207,9 +233,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (new QualityScope(this))
                     {
                         PropertyField(m_RaySteps);
-                        PropertyField(m_FilterRadius);
+                        DenoiserSSGUI();
                     }
                     PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
+                    PropertyField(m_FallbackHierarchy, k_FallbackHierarchyText);
                 }
             }
         }
@@ -223,7 +250,6 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Save<float>(m_RayLength);
             settings.Save<float>(m_ClampValue);
             settings.Save<bool>(m_FullResolution);
-            settings.Save<int>(m_UpscaleRadius);
             settings.Save<int>(m_MaxMixedRaySteps);
             settings.Save<bool>(m_Denoise);
             settings.Save<bool>(m_HalfResolutionDenoiser);
@@ -232,7 +258,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // SSGI
             settings.Save<int>(m_RaySteps);
-            settings.Save<int>(m_FilterRadius);
+            settings.Save<bool>(m_DenoiseSS);
+            settings.Save<bool>(m_HalfResolutionDenoiserSS);
+            settings.Save<float>(m_DenoiserRadiusSS);
+            settings.Save<bool>(m_SecondDenoiserPassSS);
 
             return settings;
         }
@@ -246,7 +275,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 settings.TryLoad<float>(ref m_RayLength);
                 settings.TryLoad<float>(ref m_ClampValue);
                 settings.TryLoad<bool>(ref m_FullResolution);
-                settings.TryLoad<int>(ref m_UpscaleRadius);
                 settings.TryLoad<int>(ref m_MaxMixedRaySteps);
                 settings.TryLoad<bool>(ref m_Denoise);
                 settings.TryLoad<bool>(ref m_HalfResolutionDenoiser);
@@ -257,7 +285,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // SSGI
                 settings.TryLoad<int>(ref m_RaySteps);
-                settings.TryLoad<int>(ref m_FilterRadius);
+                settings.TryLoad<bool>(ref m_DenoiseSS);
+                settings.TryLoad<bool>(ref m_HalfResolutionDenoiserSS);
+                settings.TryLoad<float>(ref m_DenoiserRadiusSS);
+                settings.TryLoad<bool>(ref m_SecondDenoiserPassSS);
             }
         }
 
@@ -270,7 +301,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTGIRayLength[level]);
                 CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTGIClampValue[level]);
                 CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTGIFullResolution[level]);
-                CopySetting(ref m_UpscaleRadius, settings.lightingQualitySettings.RTGIUpScaleRadius[level]);
                 CopySetting(ref m_MaxMixedRaySteps, settings.lightingQualitySettings.RTGIRaySteps[level]);
                 CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTGIDenoise[level]);
                 CopySetting(ref m_HalfResolutionDenoiser, settings.lightingQualitySettings.RTGIHalfResDenoise[level]);
@@ -281,7 +311,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // SSGI
                 CopySetting(ref m_RaySteps, settings.lightingQualitySettings.SSGIRaySteps[level]);
-                CopySetting(ref m_FilterRadius, settings.lightingQualitySettings.SSGIFilterRadius[level]);
+                CopySetting(ref m_DenoiseSS, settings.lightingQualitySettings.SSGIDenoise[level]);
+                CopySetting(ref m_HalfResolutionDenoiserSS, settings.lightingQualitySettings.SSGIHalfResDenoise[level]);
+                CopySetting(ref m_DenoiserRadiusSS, settings.lightingQualitySettings.SSGIDenoiserRadius[level]);
+                CopySetting(ref m_SecondDenoiserPassSS, settings.lightingQualitySettings.SSGISecondDenoise[level]);
             }
         }
 

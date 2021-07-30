@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenu("Post-processing/Shadows, Midtones, Highlights")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Shadows, Midtones, Highlights", typeof(UniversalRenderPipeline))]
     public sealed class ShadowsMidtonesHighlights : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Use this to control and apply a hue to the shadows.")]

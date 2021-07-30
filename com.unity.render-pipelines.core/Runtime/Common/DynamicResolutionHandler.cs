@@ -109,10 +109,12 @@ namespace UnityEngine.Rendering
         /// That is, DynamicResolutionEnabled and SoftwareDynamicResIsEnabled will return false if the scale is 100%.
         /// For certain upscalers, we dont want this behavior since they could possibly include anti aliasing and other quality improving post processes.
         /// Setting this to true will eliminate this behavior.
+        /// Note: when the EdgeAdaptiveScalingUpres (FSR 1.0) filter is set, this will cause this parameter to always be true.
         /// </summary>
         public bool runUpscalerFilterOnFullResolution
         {
             set { m_RunUpscalerFilterOnFullResolution = value; }
+            get { return m_RunUpscalerFilterOnFullResolution || filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres; }
         }
 
         private DynamicResolutionType type;
@@ -441,7 +443,7 @@ namespace UnityEngine.Rendering
         /// <returns>True: Software dynamic resolution is enabled</returns>
         public bool SoftwareDynamicResIsEnabled()
         {
-            return m_CurrentCameraRequest && m_Enabled && (m_CurrentFraction != 1.0f || m_RunUpscalerFilterOnFullResolution) && (m_ForceSoftwareFallback || type == DynamicResolutionType.Software);
+            return m_CurrentCameraRequest && m_Enabled && (m_CurrentFraction != 1.0f || runUpscalerFilterOnFullResolution) && (m_ForceSoftwareFallback || type == DynamicResolutionType.Software);
         }
 
         /// <summary>
@@ -472,7 +474,7 @@ namespace UnityEngine.Rendering
         public bool DynamicResolutionEnabled()
         {
             //we assume that the DRS schedule takes care of anti aliasing. Thus we dont care if the fraction requested is 1.0
-            return m_CurrentCameraRequest && m_Enabled && (m_CurrentFraction != 1.0f || m_RunUpscalerFilterOnFullResolution);
+            return m_CurrentCameraRequest && m_Enabled && (m_CurrentFraction != 1.0f || runUpscalerFilterOnFullResolution);
         }
 
         /// <summary>

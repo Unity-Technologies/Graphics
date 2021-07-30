@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Provide explicit access to spawnCount in graph
 - Support of direct link event to initialize context (which support several event within the same frame)
 - Structured Graphics Buffer support as exposed type
+- Added HDRP Decal output context.
 - The VFX editor automatically attach to the current selection if the selected gameobject uses the currently edited VFX asset
 - Two new buttons are available in the editor's tool bar. One will display a popup panel to handle attachement and one to lock/unlock the current attachement
 
@@ -72,6 +73,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Properties labels do not overlap anymore
 - VFX Graph operators keep the same width when expanded or collpased so that the button does not change position
 - Fix Soft Particle depth computation when using an orthographic camera [Case 1309961](https://issuetracker.unity3d.com/product/unity/issues/guid/1309961)
+- When adding a new node/operator in the graph editor and using the search field, the search results are sorted in a smarter way
+- Unexpected operator and block removal during migration [Case 1344645](https://issuetracker.unity3d.com/product/unity/issues/guid/1344645/)
 - Visual effect overlay now supports multiple selection (play, pause, stop ...)
 
 ## [11.0.0] - 2020-10-21

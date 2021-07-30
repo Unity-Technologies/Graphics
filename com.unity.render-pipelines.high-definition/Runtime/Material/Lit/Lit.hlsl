@@ -1715,7 +1715,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #ifndef APPROXIMATE_POLY_LIGHT_AS_SPHERE_LIGHT
                 formFactorS =  PolygonFormFactor(LS);
 #endif
-                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
+                ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS, bsdfData.perceptualRoughness);
             }
 
             // We need to multiply by the magnitude of the integral of the BRDF

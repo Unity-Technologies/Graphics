@@ -292,7 +292,7 @@ namespace UnityEditor.ShaderGraph
         public bool IsCompatibleStageWith(MaterialSlot otherSlot)
         {
             var startStage = otherSlot.stageCapability;
-            if (startStage == ShaderStageCapability.All)
+            if (startStage == ShaderStageCapability.All || otherSlot.owner is SubGraphNode)
                 startStage = NodeUtils.GetEffectiveShaderStageCapability(otherSlot, true)
                     & NodeUtils.GetEffectiveShaderStageCapability(otherSlot, false);
             return startStage == ShaderStageCapability.All || stageCapability == ShaderStageCapability.All || stageCapability == startStage;

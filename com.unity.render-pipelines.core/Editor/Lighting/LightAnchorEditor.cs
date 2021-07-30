@@ -44,7 +44,7 @@ namespace UnityEditor
 
             if (camera == null)
             {
-                Debug.LogError("Light Anchor: At least one camera must be tagged as MainCamera");
+                EditorGUILayout.HelpBox("Light Anchor: At least one camera must be tagged as MainCamera", MessageType.Error);
                 return;
             }
 
@@ -133,7 +133,6 @@ namespace UnityEditor
                 var dropRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
                 m_FrameSpace = (LightAnchor.UpDirection)EditorGUI.EnumPopup(dropRect, LightAnchorStyles.upDirectionProperty, manipulator.frameSpace);
                 upChanged = EditorGUI.EndChangeCheck();
-
 
                 if (m_FoldoutPreset = EditorGUILayout.Foldout(m_FoldoutPreset, "Common"))
                 {

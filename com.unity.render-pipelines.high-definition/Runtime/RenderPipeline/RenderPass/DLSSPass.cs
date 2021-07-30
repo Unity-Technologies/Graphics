@@ -15,12 +15,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle output;
             public TextureHandle depth;
             public TextureHandle motionVectors;
+            public TextureHandle biasColorMask;
             public void WriteResources(RenderGraphBuilder builder)
             {
                 source = builder.WriteTexture(source);
                 output = builder.WriteTexture(output);
                 depth = builder.WriteTexture(depth);
                 motionVectors = builder.WriteTexture(motionVectors);
+
+                if (biasColorMask.IsValid())
+                    biasColorMask = builder.WriteTexture(biasColorMask);
             }
         }
 
@@ -41,6 +45,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 depth = (RenderTexture)handles.depth,
                 motionVectors = (RenderTexture)handles.motionVectors
             };
+
+            resources.biasColorMask = (handles.biasColorMask.IsValid()) ? (RenderTexture)handles.biasColorMask : (RenderTexture)null;
+
             return resources;
         }
 
@@ -54,6 +61,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 TextureHandle GetTmpViewXrTex(in TextureHandle handle)
                 {
+                    if (!handle.IsValid())
+                        return TextureHandle.nullHandle;
+
                     var newTexDesc = renderGraph.GetTextureDesc(handle);
                     newTexDesc.slices = 1;
                     newTexDesc.dimension = TextureDimension.Tex2D;
@@ -66,6 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     newResources.output = GetTmpViewXrTex(input.output);
                     newResources.depth = GetTmpViewXrTex(input.depth);
                     newResources.motionVectors = GetTmpViewXrTex(input.motionVectors);
+                    newResources.biasColorMask = GetTmpViewXrTex(input.biasColorMask);
                     newResources.WriteResources(builder);
                 }
 
@@ -108,6 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderTexture output;
             public RenderTexture depth;
             public RenderTexture motionVectors;
+            public RenderTexture biasColorMask;
         }
 
         public struct CameraResources
@@ -374,6 +386,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderTexture source,
                 RenderTexture depth,
                 RenderTexture motionVectors,
+                RenderTexture biasColorMask,
                 RenderTexture output,
                 CommandBuffer cmdBuffer)
             {
@@ -399,7 +412,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorInput = source,
                     colorOutput = output,
                     depth = depth,
-                    motionVectors = motionVectors
+                    motionVectors = motionVectors,
+                    biasColorMask = biasColorMask
                 };
 
                 m_Device.ExecuteDLSS(cmdBuffer, m_DlssContext, textureTable);
@@ -474,6 +488,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         viewResources.source,
                         viewResources.depth,
                         viewResources.motionVectors,
+                        viewResources.biasColorMask,
                         viewResources.output, cmdBuffer);
                 }
 
@@ -490,6 +505,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmdBuffer.CopyTexture(camResources.resources.source, viewId, tmpResources.source, 0);
                         cmdBuffer.CopyTexture(camResources.resources.depth, viewId, tmpResources.depth, 0);
                         cmdBuffer.CopyTexture(camResources.resources.motionVectors, viewId, tmpResources.motionVectors, 0);
+
+                        if (camResources.resources.biasColorMask != null)
+                            cmdBuffer.CopyTexture(camResources.resources.biasColorMask, viewId, tmpResources.biasColorMask, 0);
                     }
 
                     for (int viewId = 0; viewId < m_Views.Length; ++viewId)

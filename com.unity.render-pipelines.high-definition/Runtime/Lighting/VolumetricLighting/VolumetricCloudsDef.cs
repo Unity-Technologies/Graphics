@@ -122,8 +122,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _CameraInverseViewProjection_NO;
         public Matrix4x4 _CameraPrevViewProjection_NO;
 
+        // Controls the intensity of the wind distortion at high altitudes
+        public float _AltitudeDistortion;
+        // Internal parameters that compensates the erosion factor to match between the different erosion noises
+        public float _ErosionFactorCompensation;
         // Fast tonemapping settings
-        public Vector3 _Padding2;
-        public int     _EnableFastToneMapping;
+        public int _EnableFastToneMapping;
+        // Padding
+        public float _Padding;
+
+        [HLSLArray(3 * 4, typeof(Vector4))]
+        public fixed float _DistanceBasedWeights[12 * 4];
     }
 }
