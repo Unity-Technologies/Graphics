@@ -55,7 +55,8 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 ## Limitations
 
 - The Decal Projector can affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal Master Stack](master-stack-decal.md). However, it can only affect transparent Materials with the [Decal Shader](Decal-Shader.md).
-- Decal Emissive isn't supported on Transparent Material.
+- Emissive decals isn't supported on Transparent Material.
+- Emissive decals always give an additive positive contribution. This property does not affect the existing emissive properties of the Materials assigned to a GameObject.
 - The **Receive Decals** property of Materials in HDRP does not affect emissive decals. HDRP always renders emissive decals unless you use Decal Layers, which can disable emissive decals on a Layer by Layer basis.
 - If you project a decal onto a transparent surface, HDRP ignores the decal's Texture tiling.
 - In **Project Settings > Graphics**, if **Instancing Variants** is set to **Strip All**, Unity strips the Decal Shader this component references when you build your Project. This happens even if you include the Shader in the **Always Included Shaders** list. If Unity strips the Shader during the build process, the decal does not appear in your built Application.

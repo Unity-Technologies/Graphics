@@ -55,6 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float pixelSpreadTangent;
             public int affectSmoothSurfaces;
             public int singleReflectionBounce;
+            public float roughnessBasedDenoising;
 
             // Other parameters
             public ComputeShader reflectionDenoiserCS;
@@ -94,6 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.pixelSpreadTangent = HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, passData.texWidth, passData.texHeight);
                 passData.affectSmoothSurfaces = affectSmoothSurfaces ? 1 : 0;
                 passData.singleReflectionBounce = singleReflectionBounce ? 1 : 0;
+                passData.roughnessBasedDenoising = singleReflectionBounce ? 1 : 0;
 
                 // Other parameters
                 passData.reflectionDenoiserCS = m_ReflectionDenoiserCS;
@@ -152,6 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Horizontal pass of the bilateral filter
                     ctx.cmd.SetComputeIntParam(data.reflectionDenoiserCS, HDShaderIDs._DenoiserFilterRadius, data.maxKernelSize);
+                    ctx.cmd.SetComputeFloatParam(data.reflectionDenoiserCS, HDShaderIDs._RoughnessBasedDenoising, data.roughnessBasedDenoising);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterHKernel, HDShaderIDs._DenoiseInputTexture, data.intermediateBuffer0);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterHKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterHKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
@@ -161,6 +164,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Horizontal pass of the bilateral filter
                     ctx.cmd.SetComputeIntParam(data.reflectionDenoiserCS, HDShaderIDs._DenoiserFilterRadius, data.maxKernelSize);
+                    ctx.cmd.SetComputeFloatParam(data.reflectionDenoiserCS, HDShaderIDs._RoughnessBasedDenoising, data.roughnessBasedDenoising);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterVKernel, HDShaderIDs._DenoiseInputTexture, data.intermediateBuffer1);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterVKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                     ctx.cmd.SetComputeTextureParam(data.reflectionDenoiserCS, data.bilateralFilterVKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);

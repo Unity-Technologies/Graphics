@@ -116,7 +116,8 @@ namespace UnityEditor.Rendering
             if (value.propertyType != SerializedPropertyType.LayerMask)
                 return false;
 
-            value.intValue = EditorGUILayout.MaskField(title, value.intValue, InternalEditorUtility.layers);
+            value.intValue = InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(
+                EditorGUILayout.MaskField(title, InternalEditorUtility.LayerMaskToConcatenatedLayersMask(value.intValue), InternalEditorUtility.layers));
             return true;
         }
     }
