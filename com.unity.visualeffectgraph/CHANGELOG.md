@@ -73,6 +73,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix Soft Particle depth computation when using an orthographic camera [Case 1309961](https://issuetracker.unity3d.com/product/unity/issues/guid/1309961)
 - When adding a new node/operator in the graph editor and using the search field, the search results are sorted in a smarter way
 - Unexpected operator and block removal during migration [Case 1344645](https://issuetracker.unity3d.com/product/unity/issues/guid/1344645/)
+- Inspector group headers now have a better indentation and alignment
 
 ## [11.0.0] - 2020-10-21
 ### Added
