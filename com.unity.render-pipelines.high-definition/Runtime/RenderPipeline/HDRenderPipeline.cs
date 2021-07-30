@@ -381,7 +381,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
                     probeDebugMesh = defaultResources.assets.sphereMesh,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
-                    sceneBounds = m_GlobalSettings.GetOrCreateAPVSceneBounds()
+                    sceneBounds = m_GlobalSettings.GetOrCreateAPVSceneBounds(),
+                    shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
             }
@@ -979,7 +980,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool useOptimalSettings = hdCam.deepLearningSuperSamplingUseCustomAttributes
                     ? hdCam.deepLearningSuperSamplingUseOptimalSettings
                     : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings;
-                m_DLSSPass.SetupAutomaticDRSScaling(useOptimalSettings, camera, xrPass, ref outDrsSettings);
+                m_DLSSPass.SetupDRSScaling(useOptimalSettings, camera, xrPass, ref outDrsSettings);
             }
         }
 

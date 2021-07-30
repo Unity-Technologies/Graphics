@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Wind volume parameter constructor.</summary>
         /// <param name="value">Initial value.</param>
-        /// <param name="value">Initial override mode.</param>
+        /// <param name="mode">Initial override mode.</param>
         /// <param name="overrideState">Initial override state.</param>
         public WindParameter(float value = 0.0f, WindOverrideMode mode = WindOverrideMode.Global, bool overrideState = false)
             : base(default, overrideState)
@@ -178,6 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Returns interpolated value from the visual environment.</summary>
+        /// <param name="camera">The camera containing the volume stack to evaluate</param>
         /// <returns>The value for this parameter.</returns>
         public float GetValue(HDCamera camera)
         {
@@ -191,9 +192,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return globalValue;
         }
 
+        /// <summary>Returns the value stored in the volume.</summary>
+        /// <param name="camera">The camera containing the volume stack to evaluate</param>
+        /// <returns>The value for this parameter.</returns>
         protected abstract float GetGlobalValue(HDCamera camera);
     }
 
+    /// <summary>
+    /// Wind Orientation parameter.
+    /// </summary>
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class WindOrientationParameter : WindParameter
     {
@@ -201,14 +208,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Wind orientation volume parameter constructor.
         /// </summary>
         /// <param name="value">Sky Ambient Mode parameter.</param>
+        /// <param name="mode">Initial override mode.</param>
         /// <param name="overrideState">Initial override value.</param>
         public WindOrientationParameter(float value = 0.0f, WindOverrideMode mode = WindOverrideMode.Global, bool overrideState = false)
             : base(value, mode, overrideState) {}
 
+        /// <summary>Returns the value stored in the volume.</summary>
+        /// <param name="camera">The camera containing the volume stack to evaluate</param>
+        /// <returns>The value for this parameter.</returns>
         protected override float GetGlobalValue(HDCamera camera) =>
             camera.volumeStack.GetComponent<VisualEnvironment>().windOrientation.value;
     }
 
+    /// <summary>
+    /// Wind speed parameter.
+    /// </summary>
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class WindSpeedParameter : WindParameter
     {
@@ -216,10 +230,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Wind speed volume parameter constructor.
         /// </summary>
         /// <param name="value">Sky Ambient Mode parameter.</param>
+        /// <param name="mode">Initial override mode.</param>
         /// <param name="overrideState">Initial override value.</param>
         public WindSpeedParameter(float value = 100.0f, WindOverrideMode mode = WindOverrideMode.Global, bool overrideState = false)
             : base(value, mode, overrideState) {}
 
+        /// <summary>Returns the value stored in the volume.</summary>
+        /// <param name="camera">The camera containing the volume stack to evaluate</param>
+        /// <returns>The value for this parameter.</returns>
         protected override float GetGlobalValue(HDCamera camera) =>
             camera.volumeStack.GetComponent<VisualEnvironment>().windSpeed.value;
     }
