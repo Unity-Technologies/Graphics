@@ -336,7 +336,7 @@ namespace UnityEditor.Rendering.Universal
                 if (m_StripDisabledKeywords && ContainsKeyword(kw) &&
                     ((m_Features & feature) != 0 || (m_Features & feature2) != 0) &&
                     !keywordSet.IsEnabled(kw) && !keywordSet.IsEnabled(kw2))
-                        return true;
+                    return true;
 
                 return false;
             }
