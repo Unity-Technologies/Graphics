@@ -107,6 +107,7 @@ namespace UnityEngine.Rendering
                 new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(1.0f, 1.0f) });
             positionCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f, 1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, -1.0f));
             scaleCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
+            uniformAngleCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f), new Keyframe(1.0f, 0.0f));
 
             // Random
             seed = 0;
@@ -294,6 +295,12 @@ namespace UnityEngine.Rendering
 
         /// <summary> Inverse the gradient direction. </summary>
         public bool inverseSDF;
+
+        /// <summary> Uniform angle (in degrees) used with multiple element enabled with Uniform distribution. </summary>
+        public float uniformAngle;
+
+        /// <summary> Uniform angle (remap from -180.0f to 180.0f) used with multiple element enabled with Curve distribution. </summary>
+        public AnimationCurve uniformAngleCurve;
     }
 
     /// <summary> LensFlareDataSRP defines a Lens Flare with a set of LensFlareDataElementSRP </summary>

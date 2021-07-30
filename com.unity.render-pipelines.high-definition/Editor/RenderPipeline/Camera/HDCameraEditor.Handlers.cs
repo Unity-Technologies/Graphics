@@ -11,6 +11,9 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         void OnSceneGUI()
         {
+            if (HDRenderPipeline.currentPipeline == null)
+                return;
+
             var c = (Camera)target;
 
             if (!UnityEditor.Rendering.CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
@@ -23,6 +26,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void OnOverlayGUI(Object target, SceneView sceneView)
         {
+            if (HDRenderPipeline.currentPipeline == null)
+                return;
+
             UnityEditor.Rendering.CameraEditorUtils.DrawCameraSceneViewOverlay(target, sceneView, InitializePreviewCamera);
         }
 

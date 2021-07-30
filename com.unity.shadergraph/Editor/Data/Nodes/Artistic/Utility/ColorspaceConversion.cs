@@ -119,7 +119,8 @@ namespace UnityEditor.ShaderGraph
     $precision4 Q = lerp($precision4(P.xyw, In.r), $precision4(In.r, P.yzx), step(P.x, In.r));
     $precision D = Q.x - min(Q.w, Q.y);
     $precision  E = 1e-10;
-    Out = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), Q.x);
+    $precision V = (D == 0) ? Q.x : (Q.x + E);
+    Out = $precision3(abs(Q.z + (Q.w - Q.y)/(6.0 * D + E)), D / (Q.x + E), V);
 }
 ";
         }

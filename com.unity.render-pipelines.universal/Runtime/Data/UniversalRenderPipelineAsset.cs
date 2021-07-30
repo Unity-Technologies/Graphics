@@ -83,8 +83,10 @@ namespace UnityEngine.Rendering.Universal
     public enum ShaderVariantLogLevel
     {
         Disabled,
+        [InspectorName("Only URP Shaders")]
         OnlyUniversalRPShaders,
-        AllShaders,
+        [InspectorName("All Shaders")]
+        AllShaders
     }
 
     [Obsolete("PipelineDebugLevel is unused and has no effect.", false)]
@@ -275,7 +277,7 @@ namespace UnityEngine.Rendering.Universal
         static void CreateUniversalPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalPipelineAsset>(),
-                "UniversalRenderPipelineAsset.asset", null, null);
+                "New Universal Render Pipeline Asset.asset", null, null);
         }
 
         internal static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true, string suffix = "Renderer")
@@ -1040,6 +1042,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames;
+
+        /// <summary>Names used for display of rendering layer masks with prefix.</summary>
+        public override string[] prefixedRenderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.prefixedRenderingLayerMaskNames;
 
         /// <summary>
         /// Names used for display of light layers.

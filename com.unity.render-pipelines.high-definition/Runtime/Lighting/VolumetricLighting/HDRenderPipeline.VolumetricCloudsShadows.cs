@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool HasVolumetricCloudsShadows(HDCamera hdCamera, in VolumetricClouds settings)
         {
             return (HasVolumetricClouds(hdCamera, in settings)
-                && GetCurrentSunLight() != null
+                && GetMainLight() != null
                 && settings.shadows.value);
         }
 
@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudMapTexture, parameters.cloudMapTexture);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudLutTexture, parameters.cloudLutTexture);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._Worley128RGBA, parameters.worley128RGBA);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._Worley32RGB, parameters.worley32RGB);
+                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._ErosionNoise, parameters.erosionNoise);
                 cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, shadowTexture);
                 cmd.DispatchCompute(parameters.volumetricCloudsCS, parameters.shadowsKernel, shadowTX, shadowTY, parameters.viewCount);
 
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TraceVolumetricCloudShadow(cmd, parameters, currentHandle);
 
             // Grab the current sun light
-            Light sunLight = GetCurrentSunLight();
+            Light sunLight = GetMainLight();
 
             // Compute the shadow size
             float groundShadowSize = settings.shadowDistance.value * 2.0f;
