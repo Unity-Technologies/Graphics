@@ -858,7 +858,7 @@ namespace UnityEditor.VFX.UI
                 notification.text = $"Attached to {Selection.activeObject.name}";
                 Add(box);
 
-                System.Threading.Tasks.Task.Delay(3000).ContinueWith(x => Remove(box), TaskScheduler.FromCurrentSynchronizationContext());
+                System.Threading.Tasks.Task.Delay(1500).ContinueWith(x => Remove(box), TaskScheduler.FromCurrentSynchronizationContext());
             }
         }
 
@@ -867,8 +867,7 @@ namespace UnityEditor.VFX.UI
             bool attached = false;
             if (selectedAsset != null && controller?.graph.visualEffectResource.asset == selectedAsset.visualEffectAsset)
             {
-                m_ComponentBoard.Attach(selectedAsset);
-                attached = true;
+                attached = m_ComponentBoard.Attach(selectedAsset);
             }
 
             UpdateToolbarButtons();
@@ -879,6 +878,14 @@ namespace UnityEditor.VFX.UI
         {
             m_ComponentBoard.Detach();
             UpdateToolbarButtons();
+        }
+
+        public void DetachIfDeleted()
+        {
+            if (m_ComponentBoard.GetAttachedComponent() == null)
+            {
+                Detach();
+            }
         }
 
         private void UpdateToolbarButtons()

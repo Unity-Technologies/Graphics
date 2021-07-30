@@ -146,6 +146,8 @@ namespace UnityEditor.VFX
             EditMode.editModeStarted -= OnEditModeStart;
             EditMode.editModeEnded -= OnEditModeEnd;
             Selection.selectionChanged -= OnHierarchySelectionChanged;
+
+            DetachIfDeleted();
         }
 
         public override void OnInspectorGUI()
@@ -753,6 +755,15 @@ namespace UnityEditor.VFX
                 {
                     window.graphView.AttachToSelection();
                 }
+            }
+        }
+
+        private void DetachIfDeleted()
+        {
+            if (EditorWindow.HasOpenInstances<VFXViewWindow>())
+            {
+                VFXViewWindow window = EditorWindow.GetWindowDontShow<VFXViewWindow>();
+                window.graphView.DetachIfDeleted();
             }
         }
     }

@@ -519,10 +519,10 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void Attach(VisualEffect effect = null)
+        public bool Attach(VisualEffect effect = null)
         {
             VisualEffect target = effect != null ? effect : Selection.activeGameObject?.GetComponent<VisualEffect>();
-            if (target != null && m_View.controller?.graph != null)
+            if (target != null && m_View.controller?.graph != null && m_AttachedComponent != target)
             {
                 m_AttachedComponent = target;
                 m_Subtitle.text = m_AttachedComponent.name;
@@ -551,7 +551,11 @@ namespace UnityEditor.VFX.UI
                 UpdateBoundsRecorder();
                 UpdateRecordingButton();
                 RefreshInitializeErrors();
+
+                return true;
             }
+
+            return false;
         }
 
         public void SendEvent(string name)
