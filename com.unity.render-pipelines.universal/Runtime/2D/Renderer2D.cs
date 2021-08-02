@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.Universal
                     renderingData.cameraData.camera.orthographic = true;
                     renderingData.cameraData.camera.orthographicSize = ppc.orthographicSize;
 
-                    colorTextureFilterMode = FilterMode.Point;//ppc.finalBlitFilterMode;
+                    colorTextureFilterMode = FilterMode.Point;
                     ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
                 }
             }
