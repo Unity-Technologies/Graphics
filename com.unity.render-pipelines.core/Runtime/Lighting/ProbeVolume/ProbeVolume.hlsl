@@ -67,6 +67,7 @@ struct APVSample
 
 // Resources required for APV
 StructuredBuffer<int> _APVResIndex;
+StructuredBuffer<uint3> _APVResCellIndices;
 
 TEXTURE3D(_APVResL0_L1Rx);
 
@@ -78,6 +79,75 @@ TEXTURE3D(_APVResL2_1);
 TEXTURE3D(_APVResL2_2);
 TEXTURE3D(_APVResL2_3);
 
+
+// -------------------------------------------------------------
+// Indexing functions
+// -------------------------------------------------------------
+
+bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize, out int3 minRelativeIdx, out int3 maxRelativeIdx)
+{
+    bool cellIsLoaded = false;
+    uint3 metaData = _APVResCellIndices[cellFlatIdx];
+
+    if (metaData.x != 0xFFFFFFFF)
+    {
+        chunkIndex = metaData.x & 0x1FFFFFFF;
+        stepSize = pow(3, (metaData.x >> 29) & 0x7);
+
+        minRelativeIdx.x = metaData.y & 0x3FF;
+        minRelativeIdx.y = (metaData.y >> 10) & 0x3FF;
+        minRelativeIdx.z = (metaData.y >> 20) & 0x3FF;
+
+        maxRelativeIdx.x = metaData.z & 0x3FF;
+        maxRelativeIdx.y = (metaData.z >> 10) & 0x3FF;
+        maxRelativeIdx.z = (metaData.z >> 20) & 0x3FF;
+        cellIsLoaded = true;
+    }
+
+    return cellIsLoaded;
+}
+
+uint GetIndexData(APVResources apvRes, float3 posWS)
+{
+    int3 cellPos = floor(posWS / _CellInMeters);
+    float3 topLeftCellWS = cellPos * _CellInMeters;
+
+    // Make sure we start from 0
+    cellPos -= (int3)_MinCellPosition;
+
+    int flatIdx = cellPos.z * (_CellIndicesDim.x * _CellIndicesDim.y) + cellPos.y * _CellIndicesDim.x + cellPos.x;
+
+    int stepSize = 0;
+    int3 minRelativeIdx, maxRelativeIdx;
+    int chunkIdx = -1;
+    bool isValidBrick = true;
+    int locationInPhysicalBuffer = 0;
+    if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
+    {
+        float3 residualPosWS = posWS - topLeftCellWS;
+        int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
+
+        // Out of bounds.
+        if (any(localBrickIndex < minRelativeIdx || localBrickIndex >= maxRelativeIdx))
+        {
+            isValidBrick = false;
+        }
+
+        int3 sizeOfValid = maxRelativeIdx - minRelativeIdx;
+        // Relative to valid region
+        int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
+        int flattenedLocationInCell = localRelativeIndexLoc.z * (sizeOfValid.x * sizeOfValid.y) + localRelativeIndexLoc.x * sizeOfValid.y + localRelativeIndexLoc.y;
+
+        locationInPhysicalBuffer = chunkIdx * _IndexChunkSize + flattenedLocationInCell;
+
+    }
+    else
+    {
+        isValidBrick = false;
+    }
+
+    return isValidBrick ? apvRes.index[locationInPhysicalBuffer] : 0xffffffff;
+}
 
 // -------------------------------------------------------------
 // Loading functions
@@ -108,27 +178,14 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
     bool hasValidUVW = true;
 
-    // transform into APV space
-    float3 posRS = mul(_WStoRS, float4(posWS + normalWS * _NormalBias
-        + viewDirWS * _ViewBias, 1.0)).xyz;
+    float4 posWSForSample = float4(posWS + normalWS * _NormalBias
+        + viewDirWS * _ViewBias, 1.0);
 
-    uint3 indexDim = (uint3)_IndexDim;
     uint3 poolDim = (uint3)_PoolDim;
-    int3 centerIS = indexDim / 2;
-
-    // check bounds
-    if (any(abs(posRS) > float3(centerIS)))
-    {
-        hasValidUVW = false;
-    }
-
-    // convert to index
-    int3 index = centerIS + floor(posRS);
-    index = index % indexDim;
 
     // resolve the index
-    int  flattened_index = index.z * (indexDim.x * indexDim.y) + index.x * indexDim.y + index.y;
-    uint packed_pool_idx = apvRes.index[flattened_index];
+    float3 posRS = posWSForSample.xyz / _MinBrickSize;
+    uint packed_pool_idx = GetIndexData(apvRes, posWSForSample.xyz);
 
     // no valid brick loaded for this index, fallback to ambient probe
     if (packed_pool_idx == 0xffffffff)

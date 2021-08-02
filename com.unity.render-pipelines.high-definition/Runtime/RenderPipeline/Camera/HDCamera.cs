@@ -324,6 +324,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // This property allows us to track the volumetric cloud animation data
         internal VolumetricCloudsAnimationData volumetricCloudsAnimationData;
 
+        // Boolean that allows us to track if the current camera maps to a real time reflection probe.
+        internal bool realtimeReflectionProbe = false;
+
         internal SkyUpdateContext       m_LightingOverrideSky = new SkyUpdateContext();
 
         /// <summary>Mark the HDCamera as persistant so it won't be destroyed if the camera is disabled</summary>
@@ -1177,7 +1180,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ReleaseHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
 
-                var aoAlloc = new CustomHistoryAllocator(new Vector2(scaleFactor, scaleFactor), GraphicsFormat.R32_UInt, "AO Packed history");
+                var aoAlloc = new CustomHistoryAllocator(new Vector2(scaleFactor, scaleFactor), GraphicsFormat.R8G8B8A8_UNorm, "AO Packed history");
                 AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion, aoAlloc.Allocator, 2);
 
                 m_AmbientOcclusionResolutionScale = scaleFactor;
