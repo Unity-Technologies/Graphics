@@ -6,31 +6,28 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    internal sealed class GraphStorage : ContextLayeredDataStorage.ContextLayeredDataStorage
+    public struct PortFlagsStruct : ISerializable
     {
+        public bool isInput;
+        public bool isHorizontal;
 
-        private struct PortFlagsStruct : ISerializable 
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            public bool isInput;
-            public bool isHorizontal;
-
-            public void GetObjectData(SerializationInfo info, StreamingContext context)
-            {
-                info.AddValue("isInput", isInput, typeof(bool));
-                info.AddValue("isHorizontal", isHorizontal, typeof(bool));
-            }
-
-            public PortFlagsStruct(SerializationInfo info, StreamingContext context)
-            {
-                isInput = info.GetBoolean("isInput");
-                isHorizontal = info.GetBoolean("isHorizontal");
-            }
+            info.AddValue("isInput", isInput, typeof(bool));
+            info.AddValue("isHorizontal", isHorizontal, typeof(bool));
         }
 
-        private class GraphReader : IDisposable, INodeReader, IPortReader, IFieldReader
+        public PortFlagsStruct(SerializationInfo info, StreamingContext context)
         {
+            isInput = info.GetBoolean("isInput");
+            isHorizontal = info.GetBoolean("isHorizontal");
+        }
+    }
 
-
+    internal sealed class GraphStorage : ContextLayeredDataStorage.ContextLayeredDataStorage
+    {
+        private class GraphReader : IDisposable, INodeReader, IPortReader, IFieldReader, IDataReader
+        {
             private bool IsPortReader(Element element)
             {
                 if(element.TryGetData(out PortFlagsStruct _))
@@ -109,6 +106,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
 
             #region interfaceImplementations
+
+            public string GetName()
+            {
+                elementReference.TryGetTarget(out var element);
+                return element.id;
+            }
 
             public IEnumerable<IPortReader> GetPorts()
             {
@@ -193,6 +196,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return output;
             }
             public bool TryGetSubField(string fieldKey, out IFieldReader fieldReader) => TryGetField(fieldKey, out fieldReader);
+
+            public PortFlagsStruct GetFlags()
+            {
+                TryGetValue<PortFlagsStruct>(out var value);
+                return value;
+            }
 
             public IEnumerable<IPortReader> GetConnectedPorts()
             {
@@ -290,7 +299,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 GraphWriter otherWriter = other as GraphWriter;
                 if(other != null
-                && elementReference.TryGetTarget(out Element element) && element is Element<PortFlagsStruct> portElement 
+                && elementReference.TryGetTarget(out Element element) && element is Element<PortFlagsStruct> portElement
                 && otherWriter.elementReference.TryGetTarget(out Element otherElement) && otherElement is Element<PortFlagsStruct> otherPortElement)
                 {
                     if (portElement.data.isInput != otherPortElement.data.isInput && portElement.data.isHorizontal == otherPortElement.data.isHorizontal)
@@ -372,7 +381,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             #endregion
         }
 
-        private class GraphWriter<T> : GraphWriter, IFieldWriter<T> where T : ISerializable 
+        private class GraphWriter<T> : GraphWriter, IFieldWriter<T> where T : ISerializable
         {
             public GraphWriter(Element<T> element, GraphStorage storage) : base(element, storage) { }
 
@@ -408,6 +417,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return output;
         }
 
+        
         public INodeReader GetNode(string id)
         {
             return GetNodeFromLayer("User", id);
@@ -427,6 +437,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         }
 
+        public INodeWriter GetNodeWriter(string id)
+        {
+            Element n = SearchInternal(id);
+            if (n == null)
+            {
+                return null;
+            }
+            else
+            {
+                return new GraphWriter(n, this);
+            }
+        }
+
         public IEnumerable<INodeReader> GetNodes()
         {
             foreach(var node in m_nodes)
@@ -434,7 +457,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 yield return new GraphReader(node, this);
             }
         }
-        
+
 
         internal void RemoveNode(string id)
         {

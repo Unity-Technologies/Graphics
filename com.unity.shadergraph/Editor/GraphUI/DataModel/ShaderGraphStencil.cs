@@ -31,15 +31,14 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return new ShaderGraphSearcherFilterProvider();
         }
 
-        private Registry.Experimental.Registry RegistryInstance = null;
-        public Registry.Experimental.Registry GetRegistry()
+        private Registry.Registry RegistryInstance = null;
+        public Registry.Registry GetRegistry()
         {
             if (RegistryInstance == null)
             {
-                RegistryInstance = new Registry.Experimental.Registry();
-                RegistryInstance.RegisterNodeBuilder<Registry.Example.NumericLiteralNode>();
-                RegistryInstance.RegisterNodeBuilder<Registry.Example.StringLiteralNode>();
-                RegistryInstance.RegisterNodeBuilder<Registry.Example.GraphType>();
+                RegistryInstance = new Registry.Registry();
+                RegistryInstance.RegisterNodeBuilder<Registry.Exploration.GraphTypeDefinition>();
+                RegistryInstance.RegisterNodeBuilder<Registry.Exploration.AddDefinition>();
             }
             return RegistryInstance;
         }

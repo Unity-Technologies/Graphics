@@ -4,6 +4,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public interface IGraphHandler
     {
+        public INodeWriter AddNode(string name);
+        public INodeReader GetNode(string name);
+        public INodeWriter GetNodeWriter(string name);
+        public void RemoveNode(string name);
+        public IEnumerable<INodeReader> GetNodes();
+
         //public TargetRef AddTarget(TargetType targetType)
 
         //public void RemoveTarget(TargetRef targetRef)

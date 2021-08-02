@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Searcher;
 using UnityEditor.ShaderGraph.GraphUI.Utilities;
-using UnityEditor.ShaderGraph.Registry.Experimental;
+using UnityEditor.ShaderGraph.Registry;
 
 namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 {

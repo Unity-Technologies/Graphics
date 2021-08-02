@@ -1,79 +1,111 @@
 using System;
+using System.Runtime.Serialization;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.GraphDelta;
 
-namespace UnityEditor.ShaderGraph.Registry.Experimental
+namespace UnityEditor.ShaderGraph.Registry
 {
-    [Serializable]
-    public struct RegistryKey
+    /*
+    Namespaces:
+        Namespaces for definitions and supported by keys.
+        -- Ability to specify an active context/namespace, and get overrides.
+    Search:
+        Categories, search hierachy, tooltips, etc-- how should these be handled?
+    Registry:
+        Unregister Builder
+        Clean/Reinit Registry
+        On Registry Updated
+        Registration descriptors- etc.
+    Errors:
+        No messaging or error state handling or checking on Registry actions.
+        Need an error handler for definition interface that can be used for concretization as well.
+    */
+    public struct Box<T> : ISerializable
     {
-        // TODO: Tease out namespace (to support overrides) via IReadOnlyCollection
+        public T data;
+
+        Box(SerializationInfo info, StreamingContext context)
+        {
+            data = (T)info.GetValue("value", typeof(T));
+        }
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("value", data);
+        }
+    }
+
+
+    [Serializable]
+    public struct RegistryKey : ISerializable
+    {
         public string Name;
         public int Version;
 
-        // TODO: Not any of this.
         public override string ToString() => $"{Name}.{Version}";
         public override int GetHashCode() => ToString().GetHashCode();
         public override bool Equals(object obj) => obj is RegistryKey rk && rk.ToString().Equals(this.ToString());
+
+        public RegistryKey(SerializationInfo info, StreamingContext context)
+        {
+            Name = info.GetString("Name");
+            Version = info.GetInt32("Version");
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("Name", Name);
+            info.AddValue("Version", Version);
+        }
     }
 
-    // TODO: RegistryMetaData container
-        // TODO: Search Categories and Search Tags
-        // TODO: Registry relevant Flags (eg. IsType, etc. explicit Enum)
-        // TODO: Description/DisplayName stuff (if relevant- prefer to have that elsewhere)
-
-    public interface INodeDefinitionBuilder
+    [Flags] public enum RegistryFlags
     {
-        RegistryKey GetRegistryKey();
-        void BuildNode(Mock.INodeReader userData, Mock.INodeWriter concreteData);
-        // TODO: CanAcceptConnection -> definition needs to filter connections ahead of time to see if topology can or should adopt it.
-        // TODO: Generate shader code.
+        IsType = 1, // The corresponding node definition is allowed to be a port.
+        isFunc = 2, // Cannot be a port.
     }
 
-    public class Registry
+
+    public class Registry : IRegistry
     {
-        // TODO: Reassess the data layout here.
         Dictionary<RegistryKey, INodeDefinitionBuilder> builders = new Dictionary<RegistryKey, INodeDefinitionBuilder>();
-
-        // TODO: Use a GraphDelta container so that we can follow concretization rules on default topologies.
-        Dictionary<RegistryKey, Mock.MockNode> nullMake = new Dictionary<RegistryKey, Mock.MockNode>();
+        GraphDelta.IGraphHandler defaultTopologies = GraphUtil.CreateGraph();
 
         public IEnumerable<RegistryKey> BrowseRegistryKeys() => builders.Keys;
 
-        public static RegistryKey ResolveKey<T>() where T : INodeDefinitionBuilder => Activator.CreateInstance<T>().GetRegistryKey();
-
-        public Mock.INodeReader GetDefaultTopology(RegistryKey key)
+        public INodeDefinitionBuilder GetBuilder(RegistryKey key)
         {
-            Mock.MockNode node;
-            if(!nullMake.TryGetValue(key, out node) && builders.TryGetValue(key, out INodeDefinitionBuilder builder))
-            {
-                node = new Mock.MockNode(builder);
-                builder.BuildNode(node, node);
-                nullMake.Add(key, node);
-            }
-            return node;
+            builders.TryGetValue(key, out var builder);
+            return builder;
         }
+
+        public INodeReader GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNode(key.ToString());
+
+        public RegistryFlags GetFlags(RegistryKey key) => GetBuilder(key).GetRegistryFlags();
 
         public bool RegisterNodeBuilder<T>() where T : INodeDefinitionBuilder
         {
-            INodeDefinitionBuilder builder = Activator.CreateInstance<T>();
+            var builder = Activator.CreateInstance<T>();
             var key = builder.GetRegistryKey();
-
             if (builders.ContainsKey(key))
                 return false;
-
             builders.Add(key, builder);
+            defaultTopologies.AddNode<T>(key.ToString(), this);
             return true;
-
-            // TODO: Assess and properly message the validity of the key (including if in use).
-            // TODO: Initialize and cache the null concretization.
-            // TODO: Test the null concretization's topology as to whether it makes sense.
-            // TODO: Dummy test the null concretized shader sandbox output.
-            // TODO: Check the builder's reflection data and warn for non-deterministic behavior (?), or enforce determinism.
         }
 
-        // TODO: Unregister Builder
-        // TODO: Clean/Reinit Registry
-        // TODO: On Registry Updated
-        // TODO: Registration descriptors- etc.
+        public RegistryKey ResolveKey<T>() where T : INodeDefinitionBuilder
+        {
+            var builder = Activator.CreateInstance<T>();
+            return builder.GetRegistryKey();
+        }
+
+        public RegistryFlags ResolveFlags<T>() where T : INodeDefinitionBuilder => GetFlags(ResolveKey<T>());
+
+        public INodeDefinitionBuilder ResolveBuilder<T>() where T : INodeDefinitionBuilder
+        {
+            RegisterNodeBuilder<T>();
+            var key = ResolveKey<T>();
+            return GetBuilder(key);
+        }
     }
 }

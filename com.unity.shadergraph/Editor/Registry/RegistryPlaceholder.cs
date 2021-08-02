@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Registry.Experimental;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Registry
 {
@@ -11,165 +9,63 @@ namespace UnityEditor.ShaderGraph.Registry
         public RegistryPlaceholder(int d) { data = d; }
     }
 
-
-    // TODO: The following will all be replaced or reworked to leverage GraphDelta's storage model for nodes/topologies
-    namespace Mock
+    namespace Exploration
     {
-        [Flags] public enum PortFlags { Input = 0, Output = 1, Vertical = 0, Horizontal = 2 }
-        public interface INodeReader
+        public class GraphTypeDefinition : INodeDefinitionBuilder
         {
-            // For mocking, we need to get some static information about the node so we can properly draw the topology.
-            // Ports will ultimately have a type and some flags- but they'll also have static information that may describe the type (eg. HLSL template primitives).
+            public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GraphType", Version = 1 };
+            public RegistryFlags GetRegistryFlags() => RegistryFlags.IsType;
 
-            // even in it's final implementation, this interface will not be very powerful. It will be important to create UI associations with Registration Keys
-            // that can allow for specialized dressings for nodes and types.
-            bool GetPort(string portKey, out RegistryKey key, out PortFlags flags);
-            bool GetNumericLiteral(string path, out float value);
-            bool GetStringLiteral(string path, out string value);
-        }
-
-        public interface INodeWriter
-        {
-            void AddPortType<T>(string portKey, PortFlags flags) where T : INodeDefinitionBuilder;
-            void AddNumericLiteral(string path, float value);
-            void AddStringLiteral(string path, string value);
-        }
-
-        class MockNode : INodeReader, INodeWriter
-        {
-            // Null Concretized nodes and topologies will all just be stored in GraphDelta
-            INodeDefinitionBuilder builderRef;
-            internal MockNode(INodeDefinitionBuilder builder) { builderRef = builder; }
-
-            struct PortData { public RegistryKey key; public PortFlags flags; }
-
-            Dictionary<string, PortData> ports = new Dictionary<string, PortData>();
-            Dictionary<string, float> numericLiterals = new Dictionary<string, float>();
-            Dictionary<string, string> stringLiterals = new Dictionary<string, string>();
+            enum Precision { Fixed, Half, Full }
 
 
-            public void AddPortType<T>(string portKey, PortFlags flags) where T : INodeDefinitionBuilder
-                => ports[portKey] = new PortData { key = Experimental.Registry.ResolveKey<T>(), flags = flags };
 
-            public void AddNumericLiteral(string path, float value) => numericLiterals[path] = value;
-            public void AddStringLiteral(string path, string value) => stringLiterals[path] = value;
-
-
-            public bool GetPort(string portKey, out RegistryKey key, out PortFlags flags)
+            public void BuildNode(GraphDelta.INodeReader userData, GraphDelta.INodeWriter concreteData, IRegistry registry)
             {
-                if (ports.TryGetValue(portKey, out PortData data))
-                {
-                    key = data.key;
-                    flags = data.flags;
-                    return true;
-                }
-                key = default;
-                flags = default;
+                // TODO: Promote to ports-- but also, reconsider a TypeDefinition interface-- yes the data is the same,
+                // but conceptually we're working with fields instead of ports-- even though each field is promoted to a port,
+                // it could also be a serialized value directly. Need to investigate this further with liz. I could see Type definitions
+                // instead using PortWriter- since Types are specifically port associative. That means that node definitions that work with types,
+                // such as a constructor node- can work with _any_ type and just promote fields to ports (or ultimately inline values).
+
+                // TODO: Some type local extensions for interacting with this node/port type would be powerful- some sort of extension cast for writers,
+                // but it can't ultimately be type strong in the storage, since the typing information is just storing the RegistryKey.
+                // (That's important because it allows for indirection by the registry, which gives us overrides and versioning)
+                concreteData.SetField("Precision", Precision.Full);
+                concreteData.SetField("Length", 4);
+                concreteData.SetField("x", 0f);
+                concreteData.SetField("y", 0f);
+                concreteData.SetField("z", 0f);
+                concreteData.SetField("w", 0f);
+            }
+
+            public bool CanAcceptConnection(GraphDelta.INodeReader thisNode, GraphDelta.IPortReader thisPort, GraphDelta.IPortReader candidatePort)
+            {
+                // For now, we can only have outgoing connections, since this isn't a CTOR style node.
                 return false;
             }
-
-            public bool GetNumericLiteral(string path, out float value) => numericLiterals.TryGetValue(path, out value);
-            public bool GetStringLiteral(string path, out string value) => stringLiterals.TryGetValue(path, out value);
-
         }
 
-    }
-
-    namespace Example
-    {
-        public class NumericLiteralNode : INodeDefinitionBuilder
+        public class AddDefinition : INodeDefinitionBuilder
         {
-            private static RegistryKey RegKey = new RegistryKey { Name = "NumericLiteral", Version = 1 };
-            public RegistryKey GetRegistryKey() => RegKey;
-            public void BuildNode(Mock.INodeReader userData, Mock.INodeWriter concreteData)
+            public RegistryKey GetRegistryKey() => new RegistryKey { Name = "AddNode", Version = 1 };
+            public RegistryFlags GetRegistryFlags() => RegistryFlags.isFunc;
+
+            public void BuildNode(GraphDelta.INodeReader userData, GraphDelta.INodeWriter concreteData, IRegistry registry)
             {
-                userData.GetNumericLiteral("value", out float value);
-                concreteData.AddPortType<NumericLiteralNode>("out", Mock.PortFlags.Horizontal | Mock.PortFlags.Output);
-                concreteData.AddNumericLiteral("out.value", value);
-            }
-        }
-
-        public class StringLiteralNode : INodeDefinitionBuilder
-        {
-            private static RegistryKey RegKey = new RegistryKey { Name = "StringLiteral", Version = 1 };
-            public RegistryKey GetRegistryKey() => RegKey;
-            public void BuildNode(Mock.INodeReader userData, Mock.INodeWriter concreteData)
-            {
-                userData.GetStringLiteral("value", out string value);
-                concreteData.AddPortType<NumericLiteralNode>("out", Mock.PortFlags.Horizontal | Mock.PortFlags.Output);
-                concreteData.AddStringLiteral("out.value", value);
-            }
-        }
-
-        // TODO: Explore an accelerator to convert Enums directly to definitions
-
-        public class GraphType : INodeDefinitionBuilder
-        {
-            // TODO: This is just an example exploration of a Dynamic Vector
-            public enum Precision { Fixed, Half, Full }
-            public enum Primitive { Bool, Int, Float }
-
-            public static RegistryKey RegKey => new RegistryKey { Name = "GraphType", Version = 1 };
-
-            public RegistryKey GetRegistryKey() => RegKey;
-
-
-            public static Precision GetPrecision(Mock.INodeReader node)
-            {
-                if (node.GetStringLiteral("precision.value", out string outPrecision))
-                {
-                    if (Enum.TryParse<Precision>(outPrecision, out Precision result))
-                        return result;
-                }
-                return Precision.Full;
+                concreteData.AddPort<GraphTypeDefinition>("A", true, true, registry);
+                concreteData.AddPort<GraphTypeDefinition>("B", true, true, registry);
+                concreteData.AddPort<GraphTypeDefinition>("Out", true, true, registry);
+                // If we wanted to inline some defaults here for the ports, they would realistically need to come from a builder interface that works with ports.
+                // Data-wise ports/types/nodes are the same thing, but for API purposes, separating node builder (Nodes) and port builder (Types) seems necessary.
+                // -- Then a Node definition that works off of ITypeDefinitions can just walk the fields and promote them to ports for a CTOR or a Break style accessor.
             }
 
-            public static Primitive GetPrimitive(Mock.INodeReader node)
+            public bool CanAcceptConnection(GraphDelta.INodeReader thisNode, GraphDelta.IPortReader thisPort, GraphDelta.IPortReader candidatePort)
             {
-                if (node.GetStringLiteral("primitive.value", out string outPrimitive))
-                {
-                    if (Enum.TryParse<Primitive>(outPrimitive, out Primitive result))
-                        return result;
-                }
-                return Primitive.Float;
-            }
-
-            public static int GetCount(Mock.INodeReader node)
-            {
-                if (node.GetNumericLiteral("count.value", out float outCount))
-                    return (int)outCount;
-                return 4;
-            }
-
-
-            public void BuildNode(Mock.INodeReader userData, Mock.INodeWriter concreteData)
-            {
-                // Expected default values- example of static helpers to specifically reach into expected static information.
-                string precision = GetPrecision(userData).ToString();
-                string primitive = GetPrimitive(userData).ToString();
-                float count = GetCount(userData);
-
-                // Create our input ports for literal data to build the type.
-                concreteData.AddPortType<NumericLiteralNode>("count", Mock.PortFlags.Horizontal | Mock.PortFlags.Input);
-                concreteData.AddPortType<StringLiteralNode>("precision", Mock.PortFlags.Horizontal | Mock.PortFlags.Input);
-                concreteData.AddPortType<StringLiteralNode>("primitive", Mock.PortFlags.Horizontal | Mock.PortFlags.Input);
-
-                // Create our output port
-                concreteData.AddPortType<GraphType>("out", Mock.PortFlags.Horizontal | Mock.PortFlags.Output);
-
-                // Copy out our statically known data to our output port (it won't work like this with GraphDelta)
-                concreteData.AddNumericLiteral("out.count", count);
-                concreteData.AddStringLiteral("out.precision", precision);
-                concreteData.AddStringLiteral("out.primitive", primitive);
-
-                if (count > 0)
-                    concreteData.AddPortType<NumericLiteralNode>("x", Mock.PortFlags.Horizontal | Mock.PortFlags.Input);
-                if (count > 1)
-                    concreteData.AddPortType<NumericLiteralNode>("y", Mock.PortFlags.Horizontal | Mock.PortFlags.Input);
-                if (count > 2)
-                    concreteData.AddPortType<NumericLiteralNode>("z", Mock.PortFlags.Horizontal | Mock.PortFlags.Input);
-                if (count > 3)
-                    concreteData.AddPortType<NumericLiteralNode>("w", Mock.PortFlags.Horizontal | Mock.PortFlags.Input);
+                // any graph type is acceptable for connection purposes in this case-- but this is not how these functions should be written usually.
+                // Also-- type system should have an option to automagic just based on the RegistryKey typing alone.
+                return thisPort.GetRegistryKey().ToString() == candidatePort.GetRegistryKey().ToString();
             }
         }
     }
