@@ -278,7 +278,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (IsPresetEditor(this))
             {
-                UniversalRenderPipelineCameraUIPreset.Inspector.Draw(m_SerializedCamera, this);
+                UniversalRenderPipelineCameraUI.PresetInspector.Draw(m_SerializedCamera, this);
             }
             else
             {

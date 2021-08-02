@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (HDEditorUtils.IsPresetEditor(this))
             {
-                HDLightUIPreset.Inspector.Draw(m_SerializedHDLight, this);
+                HDLightUI.PresetInspector.Draw(m_SerializedHDLight, this);
             }
             else
             {

@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.Universal
 
             if (IsPresetEditor(this))
             {
-                UniversalRenderPipelineLightUIPreset.Inspector.Draw(serializedLight, this);
+                UniversalRenderPipelineLightUI.PresetInspector.Draw(serializedLight, this);
             }
             else
             {
