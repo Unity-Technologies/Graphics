@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
-    internal sealed class GraphStorage : ContextLayeredDataStorage
+    internal sealed class GraphStorage : ContextLayeredDataStorage.ContextLayeredDataStorage
     {
 
         private struct PortFlagsStruct : ISerializable 
@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 if(elementReference.TryGetTarget(out Element element))
                 {
-                    return element.m_children;
+                    return element.children;
                 }
                 return null;
             }

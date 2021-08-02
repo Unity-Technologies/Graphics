@@ -1,10 +1,7 @@
 {
-    "name": "Unity.ShaderGraph.GraphDelta",
+    "name": "ContextLayeredDataStorage",
     "rootNamespace": "",
-    "references": [
-        "Unity.ShaderGraph.Registry",
-        "ContextLayeredDataStorage"
-    ],
+    "references": [],
     "includePlatforms": [
         "Editor"
     ],

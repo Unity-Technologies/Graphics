@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         //public List<TargetSetting> GetTargetSettings(TargetRef targetRef)
 
-        //public NodeRef AddNode(NodeType nodeType)
+        //public INodeWriter AddNode(NodeType nodeType)
 
         //public void RemoveNode(INodeRef nodeRef);
 
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         //public IEnumerable<IPortReader> GetInputPorts(INodeReader nodeRef);
 
-        //public IEnumerable<IPortRef> GetOutputPorts(INodeRef nodeRef);
+        //public IEnumerable<IPortReader> GetOutputPorts(INodeReader nodeRef);
 
         //public bool CanConnect(PortRef outputPort, PortRef inputPort)
 
