@@ -18,4 +18,4 @@ To make sure HDRP does not apply post-processing effects twice, once in a Reflec
 For more information about how to use the reflection probe, see [Reflection Probe Usage](Reflection-Probe-Usage.md).
 
 ## Preset
-Presets of Reflection Probes is not supported on HDRP.
+Presets of Reflection Probes are not supported on HDRP.

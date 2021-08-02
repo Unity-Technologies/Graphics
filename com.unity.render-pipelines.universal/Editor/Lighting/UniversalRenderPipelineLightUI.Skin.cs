@@ -72,6 +72,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent lightAppearance = new GUIContent("Light Appearance", "Specifies the mode for how this Light's color is calculated.");
             public static readonly GUIContent color = new GUIContent("Color", "Specifies the color this Light emits.");
             public static readonly GUIContent colorFilter = new GUIContent("Filter", "Specifies a color which tints the Light source.");
+            public static readonly string unsupportedPresetPropertiesMessage = "When using Preset of Light Component, only a subset of properties are supported.  Unsupported properties are hidden.";
         }
     }
 }

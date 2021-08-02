@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (HDEditorUtils.IsPresetEditor(this))
             {
-                EditorGUILayout.HelpBox("Presets of HD Reflection Probe is not supported.", MessageType.Info);
+                EditorGUILayout.HelpBox(HDProbeUI.k_UnsupportedPresetPropertiesMessage, MessageType.Info);
                 return;
             }
             m_SerializedHDProbe.Update();

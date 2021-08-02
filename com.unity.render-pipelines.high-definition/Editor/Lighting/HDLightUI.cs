@@ -1,6 +1,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
@@ -25,7 +26,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         }
-
 
         enum ShadowmaskMode
         {
@@ -56,8 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Shadow = 1 << 3,
         }
 
-
-        readonly static ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~(-1), "HDRP");
+        readonly static ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(0, "HDRP");
         readonly static AdditionalPropertiesState<AdditionalProperties, Light> k_AdditionalPropertiesState = new AdditionalPropertiesState<AdditionalProperties, Light>(0, "HDRP");
 
         readonly static LightUnitSliderUIDrawer k_LightUnitSliderUIDrawer = new LightUnitSliderUIDrawer();
@@ -131,6 +130,15 @@ namespace UnityEditor.Rendering.HighDefinition
             var getLightingSettingsOrDefaultsFallbackInfo = lightMappingType.GetMethod("GetLightingSettingsOrDefaultsFallback", BindingFlags.Static | BindingFlags.NonPublic);
             var getLightingSettingsOrDefaultsFallbackLambda = Expression.Lambda<Func<LightingSettings>>(Expression.Call(null, getLightingSettingsOrDefaultsFallbackInfo));
             GetLightingSettingsOrDefaultsFallback = getLightingSettingsOrDefaultsFallbackLambda.Compile();
+
+            PresetInspector = CED.Group(
+                CED.Group((serialized, owner) =>
+                    EditorGUILayout.HelpBox(s_Styles.unsupportedPresetPropertiesMessage, MessageType.Info)),
+                CED.Group((serialized, owner) => EditorGUILayout.Space()),
+                CED.FoldoutGroup(s_Styles.generalHeader, Expandable.General, k_ExpandedStatePreset, HDLightUI.DrawGeneralContent),
+                CED.FoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedStatePreset, HDLightUI.DrawEmissionContentForPreset),
+                CED.FoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedStatePreset, HDLightUI.DrawEnableShadowMapInternal)
+            );
         }
 
         internal static void DrawGeneralContent(SerializedHDLight serialized, Editor owner)

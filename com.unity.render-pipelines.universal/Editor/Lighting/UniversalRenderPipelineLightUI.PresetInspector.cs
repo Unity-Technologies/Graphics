@@ -6,29 +6,28 @@ using UnityEngine.Rendering.Universal;
 namespace UnityEditor.Rendering.Universal
 {
     using CED = CoreEditorDrawer<UniversalRenderPipelineSerializedLight>;
-    using Styles = UniversalRenderPipelineLightUI.Styles;
 
-    static class UniversalRenderPipelineLightUIPreset
+    internal partial class UniversalRenderPipelineLightUI
     {
-        [URPHelpURL("light-component")]
-        enum Expandable
-        {
-            General = 1 << 0,
-            Emission = 1 << 1
-        }
+        static readonly ExpandedState<Expandable, Light> k_ExpandedStatePreset = new(0, "URP-preset");
 
-        static readonly ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~(-1), "URP-preset");
-
-        public static readonly CED.IDrawer Inspector = CED.Group(
+        public static readonly CED.IDrawer PresetInspector = CED.Group(
+            CED.Group((serialized, owner) =>
+                EditorGUILayout.HelpBox(Styles.unsupportedPresetPropertiesMessage, MessageType.Info)),
+            CED.Group((serialized, owner) => EditorGUILayout.Space()),
             CED.FoldoutGroup(Styles.generalHeader,
                 Expandable.General,
-                k_ExpandedState,
+                k_ExpandedStatePreset,
                 UniversalRenderPipelineLightUI.DrawGeneralContentPreset),
             CED.FoldoutGroup(Styles.emissionHeader,
                 Expandable.Emission,
-                k_ExpandedState,
+                k_ExpandedStatePreset,
                 CED.Group(UniversalRenderPipelineLightUI.DrawerColor,
-                    UniversalRenderPipelineLightUI.DrawEmissionContent))
+                    UniversalRenderPipelineLightUI.DrawEmissionContent)),
+            CED.FoldoutGroup(Styles.lightCookieHeader,
+                Expandable.LightCookie,
+                k_ExpandedState,
+                DrawLightCookieContent)
         );
     }
 }
