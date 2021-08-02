@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.Universal
 
         public SerializedProperty supportRuntimeDebugDisplay;
         public SerializedProperty staticVolumeProfile;
-        public SerializedProperty stripDisabledKeywordVariants;
+        public SerializedProperty stripOffVariants;
         public SerializedProperty stripBuiltinShaders;
 
         public SerializedUniversalRenderPipelineGlobalSettings(SerializedObject serializedObject)
@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.Universal
 
             supportRuntimeDebugDisplay = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.supportRuntimeDebugDisplay);
             staticVolumeProfile = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.staticVolumeProfile);
-            stripDisabledKeywordVariants = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.stripDisabledKeywordVariants);
+            stripOffVariants = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.stripOffVariants);
             stripBuiltinShaders = serializedObject.Find((UniversalRenderPipelineGlobalSettings s) => s.stripBuiltinShaders);
         }
     }

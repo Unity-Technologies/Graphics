@@ -304,9 +304,9 @@ namespace UnityEngine.Rendering.Universal
         public bool staticVolumeProfile = true; // TODO: false after QA pass
 
         /// <summary>
-        /// Controls whether strip disabled keyword variants if the feature is enabled.
+        /// Controls whether strip off variants if the feature is enabled.
         /// </summary>
-        public bool stripDisabledKeywordVariants = true;
+        public bool stripOffVariants = true;
 
         /// <summary>
         /// Controls whether strip builtin render pipeline specific shaders.

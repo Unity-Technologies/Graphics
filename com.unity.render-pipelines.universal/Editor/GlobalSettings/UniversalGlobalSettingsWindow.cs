@@ -234,7 +234,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
                 EditorGUILayout.PropertyField(serialized.staticVolumeProfile, Styles.staticVolumeProfileLabel);
-                EditorGUILayout.PropertyField(serialized.stripDisabledKeywordVariants, Styles.stripDisabledKeywordVariantsLabel);
+                EditorGUILayout.PropertyField(serialized.stripOffVariants, Styles.stripOffVariantsLabel);
                 EditorGUILayout.PropertyField(serialized.stripBuiltinShaders, Styles.stripBuiltinShadersLabel);
             }
 
