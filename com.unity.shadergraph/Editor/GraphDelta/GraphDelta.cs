@@ -17,7 +17,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             return m_data.AddNode(id);
         }
-        
 
         public INodeReader GetNode(string id)
         {
@@ -29,7 +28,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return m_data.GetNodes();
         }
 
-        
         internal void RemoveNode(string id)
         {
             m_data.RemoveNode(id);

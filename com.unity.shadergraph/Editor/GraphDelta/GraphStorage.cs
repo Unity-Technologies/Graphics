@@ -27,7 +27,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
-
         private class GraphReader : IDisposable, INodeReader, IPortReader, IFieldReader
         {
 
@@ -390,20 +389,34 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
 
         private List<Element> m_nodes = new List<Element>();
-        
+
+        protected override void AddDefaultLayers()
+        {
+            m_layerList.Add(-1, (new LayerID() { name = "Concrete" }, new Element(this)));
+            m_layerList.Add( 0, (new LayerID() { name = "User" },     new Element(this)));
+        }
         public INodeWriter AddNode(string id)
         {
-            AddData(id, out Element elem);
-            m_nodes.Add(elem);
-            GraphWriter output = new GraphWriter(elem, this);
+            return AddNodeToLayer("Concrete", id);
+        }
+
+       private INodeWriter AddNodeToLayer(string layerName, string id)
+        {
+            AddData(new LayerID() { name = layerName }, id, out Element element);
+            m_nodes.Add(element);
+            GraphWriter output = new GraphWriter(element, this);
             return output;
         }
 
-        
         public INodeReader GetNode(string id)
         {
-            Element n = SearchInternal(id);
-            if(n == null)
+            return GetNodeFromLayer("User", id);
+        }
+
+        private INodeReader GetNodeFromLayer(string layerName, string id)
+        {
+            Element n = SearchRelative(GetLayerRoot(new LayerID() {name = layerName }), id);
+            if (n == null)
             {
                 return null;
             }
@@ -411,6 +424,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 return new GraphReader(n, this);
             }
+
         }
 
         public IEnumerable<INodeReader> GetNodes()

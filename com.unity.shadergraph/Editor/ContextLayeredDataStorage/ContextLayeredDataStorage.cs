@@ -20,7 +20,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
             public ContextLayeredDataStorage owner;
 
-            internal Element(ContextLayeredDataStorage owner)
+            public Element(ContextLayeredDataStorage owner)
             {
                 id = "";
                 parent = null;
@@ -28,7 +28,7 @@ namespace UnityEditor.ContextLayeredDataStorage
                 this.owner = owner;
             }
 
-            internal Element(string id, ContextLayeredDataStorage owner) : this(owner)
+            public Element(string id, ContextLayeredDataStorage owner) : this(owner)
             {
                 this.id = id;
             }
@@ -166,16 +166,21 @@ namespace UnityEditor.ContextLayeredDataStorage
             public string name;
         }
 
-        private class ReverseIntComparer : IComparer<int>
+        protected class ReverseIntComparer : IComparer<int>
         {
             //reverse order since all our searching will check highest layer first
             public int Compare(int x, int y) => x.CompareTo(y) * -1;
         }
 
-        private readonly SortedList<int, (LayerID layerID, Element element)> m_layerList;
+        protected readonly SortedList<int, (LayerID layerID, Element element)> m_layerList;
         public ContextLayeredDataStorage()
         {
             m_layerList = new SortedList<int, (LayerID layerID, Element element)>(new ReverseIntComparer());
+            AddDefaultLayers();
+        }
+
+        protected virtual void AddDefaultLayers()
+        {
             m_layerList.Add(-1, (new LayerID() { name = "Root" }, new Element(this)));
         }
 
@@ -186,6 +191,18 @@ namespace UnityEditor.ContextLayeredDataStorage
                 throw new System.ArgumentException("Cannor use a null or empty layer name", "layerName");
             }
             m_layerList.Add(m_layerList.Keys[0] + 1, (new LayerID() { name = layerName }, new Element(this)));
+        }
+
+        protected Element GetLayerRoot(LayerID layerID)
+        {
+            foreach(var (id, elem) in m_layerList.Values)
+            {
+                if(layerID.name.CompareTo(id.name) == 0)
+                {
+                    return elem;
+                }
+            }
+            return null;
         }
 
         //AddData with no specified layer gets added to the topmost layer
