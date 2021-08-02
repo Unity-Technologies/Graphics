@@ -1,0 +1,9 @@
+
+project:
+  name: URP_Perf
+
+jobs:
+  - name: <PROJECT_NAME>
+    dependencies:
+      - .yamato/all-urp_performance_boatattack.yml#URP_Performance_BoatAttack_<TRACK>
+      - .yamato/all-urp_performance_lostcrypt.yml#URP_Performance_LostCrypt_<TRACK>

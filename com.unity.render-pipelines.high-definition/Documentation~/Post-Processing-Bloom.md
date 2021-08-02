@@ -15,6 +15,8 @@ The Bloom effect also has a **Lens Dirt** feature, which you can use to apply a 
 
 Bloom includes [more options](More-Options.md) that you must manually expose.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Post-processingBloom1.png)

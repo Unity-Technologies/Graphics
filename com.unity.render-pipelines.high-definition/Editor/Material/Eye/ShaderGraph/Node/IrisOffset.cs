@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_IrisOffset(
-            [Slot(0, Binding.None, 0, 0, 0, 0)] Vector3 IrisUV,
+            [Slot(0, Binding.None, 0, 0, 0, 0)] Vector2 IrisUV,
             [Slot(1, Binding.None, 0, 0, 0, 0)] Vector2 IrisOffset,
             [Slot(2, Binding.None)] out Vector2 DisplacedIrisUV)
         {

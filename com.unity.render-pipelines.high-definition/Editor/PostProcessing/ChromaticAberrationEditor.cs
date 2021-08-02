@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnEnable()
         {
             var o = new PropertyFetcher<ChromaticAberration>(serializedObject);
-    
+
             m_SpectralLUT = Unpack(o.Find(x => x.spectralLut));
             m_Intensity = Unpack(o.Find(x => x.intensity));
             m_MaxSamples = Unpack(o.Find("m_MaxSamples"));
@@ -29,6 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             base.OnInspectorGUI();
 
+            using (new HDEditorUtils.IndentScope())
             using (new QualityScope(this))
             {
                 PropertyField(m_MaxSamples);

@@ -6,13 +6,22 @@
 // it return the offset to apply to the UVSet provide in PerPixelHeightDisplacementParam
 // viewDirTS is view vector in texture space matching the UVSet
 // ref: https://www.gamedev.net/resources/_/technical/graphics-programming-and-theory/a-closer-look-at-parallax-occlusion-mapping-r3262
+
+#ifndef POM_USER_DATA_PARAMETERS
+    #define POM_USER_DATA_PARAMETERS
+#endif
+
+#ifndef POM_USER_DATA_ARGUMENTS
+    #define POM_USER_DATA_ARGUMENTS
+#endif
+
 real2
 #ifdef POM_NAME_ID
 MERGE_NAME(ParallaxOcclusionMapping,POM_NAME_ID)
 #else
 ParallaxOcclusionMapping
 #endif
-(real lod, real lodThreshold, int numSteps, real3 viewDirTS, PerPixelHeightDisplacementParam ppdParam, out real outHeight)
+(real lod, real lodThreshold, int numSteps, real3 viewDirTS, PerPixelHeightDisplacementParam ppdParam, out real outHeight POM_USER_DATA_PARAMETERS)
 {
     // Convention: 1.0 is top, 0.0 is bottom - POM is always inward, no extrusion
     real stepSize = 1.0 / (real)numSteps;
@@ -28,9 +37,9 @@ ParallaxOcclusionMapping
 
     // Do a first step before the loop to init all value correctly
     real2 texOffsetCurrent = real2(0.0, 0.0);
-    real prevHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
+    real prevHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam POM_USER_DATA_ARGUMENTS);
     texOffsetCurrent += texOffsetPerStep;
-    real currHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
+    real currHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam POM_USER_DATA_ARGUMENTS);
     real rayHeight = 1.0 - stepSize; // Start at top less one sample
 
     // Linear search
@@ -45,7 +54,7 @@ ParallaxOcclusionMapping
         texOffsetCurrent += texOffsetPerStep;
 
         // Sample height map which in this case is stored in the alpha channel of the normal map:
-        currHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam);
+        currHeight = ComputePerPixelHeightDisplacement(texOffsetCurrent, lod, ppdParam POM_USER_DATA_ARGUMENTS);
     }
 
     // Found below and above points, now perform line interesection (ray) with piecewise linear heightfield approximation
@@ -71,7 +80,7 @@ ParallaxOcclusionMapping
         // Retrieve offset require to find this intersectionHeight
         offset = (1 - intersectionHeight) * texOffsetPerStep * numSteps;
 
-        currHeight = ComputePerPixelHeightDisplacement(offset, lod, ppdParam);
+        currHeight = ComputePerPixelHeightDisplacement(offset, lod, ppdParam POM_USER_DATA_ARGUMENTS);
 
         delta = intersectionHeight - currHeight;
 
@@ -106,7 +115,7 @@ ParallaxOcclusionMapping
     real ratio = delta0 / (delta0 + delta1);
     real2 offset = texOffsetCurrent - ratio * texOffsetPerStep;
 
-    currHeight = ComputePerPixelHeightDisplacement(offset, lod, ppdParam);
+    currHeight = ComputePerPixelHeightDisplacement(offset, lod, ppdParam POM_USER_DATA_ARGUMENTS);
 
 #endif
 

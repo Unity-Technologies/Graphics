@@ -3,7 +3,7 @@
     width: 12px;
     height: 12px;
     position: absolute;
-    left: 325px;
+    right: 10px;
 }
 
 #DefaultResourceFolder > Label, #NewScene > Label, #NewDXRScene > Label
@@ -13,7 +13,7 @@
 
 #TestLabel
 {
-    width: 325px;
+    width: 425px;
 }
 
 #Resolver
@@ -24,7 +24,7 @@
     margin-top: -4px;
 }
 
-#HelpBox
+.HelpBox
 {
     margin: 10px;
     margin-top: 5px;
@@ -35,7 +35,7 @@
     flex-shrink: 1;
 }
 
-#HelpBox > Image
+.HelpBox > Image
 {
     margin-top: -7px;
     margin-bottom: -7px;
@@ -46,7 +46,7 @@
     align-self: center;
 }
 
-#HelpBox > Label
+.HelpBox > Label
 {
     -unity-text-align: middle-left;
     white-space: normal;
@@ -59,12 +59,12 @@
     margin-top: 5px;
 }
 
-#FixAll
+#FixAllWarning
 {
-    margin-top: 10px;
+    margin-bottom: -8px
 }
 
-HiddableUpdatableContainer
+#FixAll
 {
     margin-top: 10px;
 }
@@ -73,7 +73,7 @@ HiddableUpdatableContainer
 {
     margin: 10px;
     margin-top: 0px;
-    margin-bottom: 15px;
+    margin-bottom: 0px;
     border-radius: 3px;
 }
 
@@ -124,39 +124,57 @@ ToolbarRadio
     border-top-right-radius: 3px;
 }
 
-#ResourceRow
-{
-    flex-direction:row;
-}
-
 #DefaultResourceFolder
 {
-    flex: 1;
-    margin-right: 130px;
+    margin-right: 10px;
 }
 
-#Repopulate
+.RightAnchoredButton
 {
     position: absolute;
     right: 0px;
-    width: 120px;
+    width: 114px;
+    margin-top: 0px;
+    margin-right: 10px;
 }
 
-#LargeButton
+.LargeButton
 {
     margin-left: 20px;
     margin-right: 20px;
 }
 
+#HDRPVersionContainer
+{
+    flex-direction: row;
+    margin-top: 10px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 3px;
+}
+
+.ScopeBox
+{
+    border-width: 1px;
+    border-radius: 3px;
+    margin: 0px;
+    margin-top: 12px;
+    padding: 7px;
+}
+
+.ScopeBox > #Title
+{
+    margin-top: -17px;
+    align-self: center;
+    width: 200px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
 
 /* spacing between categories */
 
-#NewDXRScene, #InstallConfigPackageArea
-{
-    margin-bottom: 15px;
-}
-
-#WizardCheckbox
+#WizardCheckbox, .h1
 {
     margin-top: 15px;
 }

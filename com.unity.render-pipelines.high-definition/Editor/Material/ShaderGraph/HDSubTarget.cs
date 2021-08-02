@@ -89,6 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void Setup(ref TargetSetupContext context)
         {
+            systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
             context.SetDefaultShaderGUI(customInspector);
@@ -103,6 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 MigrateTo(ShaderGraphVersion.FirstTimeMigration);
                 systemData.firstTimeMigrationExecuted = true;
                 OnBeforeSerialize();
+                systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
             }
 
             foreach (var subShader in EnumerateSubShaders())

@@ -71,10 +71,10 @@ Any settings on the Master Node that define surface options are now located in t
 
 To avoid errors in the preview shader compilation for Custom Function Nodes, you might need to use keywords for the in-graph preview rendering.
 
-If you have any Custom Function Nodes with custom Shader Graph Preview code that uses `#if SHADERGAPH_PREVIEW`, you need to upgrade it to an `#ifdef` declaration, as follows.
+If you have any Custom Function Nodes with custom Shader Graph Preview code that uses `#if SHADERGRAPH_PREVIEW`, you need to upgrade it to an `#ifdef` declaration, as follows.
 
 ```
-#ifdef SHADERGAPH_PREVIEW
+#ifdef SHADERGRAPH_PREVIEW
 	Out = 1;
 #else
 	Out = MainLight;

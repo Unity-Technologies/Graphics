@@ -7,7 +7,7 @@ Here is an example of three AOVs, containing from left to right the Albedo, Norm
 ![](Images/aov_example.png)
 
 In HDRP, you can access and configure AOVs in the following ways:
-- Using the [HDRP Compositor tool](Compositor-Main).
+- Using the [HDRP Compositor tool](Compositor-Main.md).
 - Using the [Unity Recorder](https://docs.unity3d.com/Packages/com.unity.recorder@latest/index.html) and the [AOV Recorder](https://docs.unity3d.com/Packages/com.unity.aovrecorder@latest/index.html) packages.
 - Using the scripting API to set up a custom AOV request in any HDRP Camera in your Scene.
 
@@ -21,7 +21,7 @@ Here is the list of Material properties that you can access with the AOV API.
 | **Normal**        | Outputs the surface albedo. |
 | **Albedo**        | Outputs the surface normal. |
 | **Smoothness**    | Outputs the surface smoothness. |
-| **Ambient Occlusion** | Outputs the ambient occlusion (N/A for AxF). |
+| **Ambient Occlusion** | Outputs the ambient occlusion (N/A for AxF). **Note**: the ambient occlusion this outputs does not include ray-traced/screen-space ambient occlusion from the [Ambient Occlusion override](Override-Ambient-Occlusion.md). It only includes ambient occlusion from materials in the Scene. |
 | **Specular**      | Outputs the surface specularity. |
 | **Alpha**         | Outputs the surface alpha (pixel coverage). |
 

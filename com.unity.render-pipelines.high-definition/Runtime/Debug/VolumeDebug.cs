@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (s_ComponentTypes == null)
                 {
-                    s_ComponentTypes = VolumeManager.instance.baseComponentTypes
+                    s_ComponentTypes = VolumeManager.instance.baseComponentTypeArray
                     .Where(t => !t.IsDefined(typeof(VolumeComponentDeprecated), false))
                     .OrderBy(t => ComponentDisplayName(t))
                     .ToList();
@@ -248,7 +248,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>An array of volumes sorted by influence.</returns>
         public Volume[] GetVolumes()
         {
-            return VolumeManager.instance.GetVolumes(selectedCameraLayerMask).Reverse().ToArray();
+            return VolumeManager.instance.GetVolumes(selectedCameraLayerMask)
+                .Where(v => v.sharedProfile != null)
+                .Reverse().ToArray();
         }
 
         VolumeParameter[,] savedStates = null;

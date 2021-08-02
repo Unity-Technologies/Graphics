@@ -98,17 +98,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void RayTracingQualityModeGUI()
         {
-            PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
-            PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
-            m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
-            PropertyField(m_RayLength, k_RayLengthText);
-            PropertyField(m_ClampValue, k_ClampValueText);
-            PropertyField(m_SampleCount, k_SampleCountText);
-            PropertyField(m_BounceCount, k_BounceCountText);
-            PropertyField(m_Denoise, k_DenoiseText);
-            using (new HDEditorUtils.IndentScope())
+            using (new QualityScope(this))
             {
-                PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
+                PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
+                PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
+                m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
+                PropertyField(m_RayLength, k_RayLengthText);
+                PropertyField(m_ClampValue, k_ClampValueText);
+                PropertyField(m_SampleCount, k_SampleCountText);
+                PropertyField(m_BounceCount, k_BounceCountText);
+                PropertyField(m_Denoise, k_DenoiseText);
+                using (new HDEditorUtils.IndentScope())
+                {
+                    PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
+                }
             }
         }
 
@@ -204,8 +207,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_ReflectSky, k_ReflectSkyText);
                 m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
 
-                if (m_UsedAlgorithm.value.intValue != (int)ScreenSpaceReflectionAlgorithm.PBRAccumulation)
-                    PropertyField(m_ScreenFadeDistance, k_ScreenFaceDistanceText);
+                PropertyField(m_ScreenFadeDistance, k_ScreenFaceDistanceText);
                 PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
 
                 m_DepthBufferThickness.value.floatValue = Mathf.Clamp(m_DepthBufferThickness.value.floatValue, 0.001f, 1.0f);
@@ -222,6 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
             }
         }
+
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)
@@ -285,6 +288,23 @@ namespace UnityEditor.Rendering.HighDefinition
             // SSR
             else
                 CopySetting(ref m_RayMaxIterations, settings.lightingQualitySettings.SSRMaxRaySteps[level]);
+        }
+
+        public override bool QualityEnabled()
+        {
+            // Quality always used for SSR
+            if (!HDRenderPipeline.rayTracingSupportedBySystem || !m_RayTracing.value.boolValue)
+                return true;
+
+            // Handle the quality usage for RTGI
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+
+            var bothSupportedAndPerformanceMode = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both
+                && m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance;
+
+            var performanceSupported = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Performance;
+
+            return bothSupportedAndPerformanceMode || performanceSupported;
         }
     }
 }

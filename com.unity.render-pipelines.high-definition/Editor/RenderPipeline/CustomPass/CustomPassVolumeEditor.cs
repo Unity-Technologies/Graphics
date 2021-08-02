@@ -195,6 +195,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 
                 passList.serializedObject.ApplyModifiedProperties();
                 var customPass = passList.GetArrayElementAtIndex(index);
+                customPass.managedReferenceValue = m_Volume.customPasses[index];
                 var drawer = GetCustomPassDrawer(customPass, m_Volume.customPasses[index], index);
                 if (drawer != null)
                     drawer.OnGUI(rect, customPass, null);
@@ -234,7 +235,22 @@ namespace UnityEditor.Rendering.HighDefinition
                    });
                 }
                 menu.ShowAsContext();
-			};
+            };
+
+            m_CustomPassList.onReorderCallback = (index) => ClearCustomPassCache();
+
+            m_CustomPassList.onRemoveCallback = (list) =>
+            {
+                ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                ClearCustomPassCache();
+            };
+        }
+
+        void ClearCustomPassCache()
+        {
+            // When custom passes are re-ordered, a topological change happens in the SerializedProperties
+            // So we have to rebuild all the drawers that were storing SerializedProperties.
+            customPassDrawers.Clear();
         }
 
         float GetCustomPassEditorHeight(SerializedProperty pass) => EditorGUIUtility.singleLineHeight;

@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering
         /// <returns>RenderTargetIdentifier representation of the RTHandle.</returns>
         public static implicit operator RenderTargetIdentifier(RTHandle handle)
         {
-            return handle.nameID;
+            return handle != null ? handle.nameID : default(RenderTargetIdentifier);
         }
 
         internal void SetRenderTexture(RenderTexture rt)
@@ -141,6 +141,9 @@ namespace UnityEngine.Rendering
         /// <returns>Input size scaled by the RTHandle scale factor.</returns>
         public Vector2Int GetScaledSize(Vector2Int refSize)
         {
+            if (!useScaling)
+                return refSize;
+
             if (scaleFunc != null)
             {
                 return scaleFunc(refSize);

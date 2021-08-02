@@ -78,7 +78,7 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
         TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
         uvDynamicLightmap, unity_DynamicLightmapST, normalWS, backNormalWS, false, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
 #else
-    float3 illuminance += SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false, decodeInstructions);
+    float3 illuminance = SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false, decodeInstructions);
     bakeDiffuseLighting += illuminance;
     backBakeDiffuseLighting += illuminance;
 #endif
@@ -123,15 +123,15 @@ void SampleBakedGI(
     bakeDiffuseLighting = float3(0, 0, 0);
     backBakeDiffuseLighting = float3(0, 0, 0);
 
-    // Check if we are RTGI in which case we don't want to read GI at all (We rely fully on the raytrace effect)
-    // The check need to be here to work with both regular shader and shader graph
-    // Note: with Probe volume it will prevent to add the UNINITIALIZED_GI tag and
-    // the ProbeVolume will not be evaluate in the lightloop which is the desired behavior
-    // Also this code only needs to be executed in the rasterization pipeline, otherwise it will lead to udnefined behaviors in ray tracing
+    // Check if we are RTGI in which case we don't want to read GI at all (We rely fully on the raytrace effect)	
+    // The check need to be here to work with both regular shader and shader graph	
+    // Note: with Probe volume it will prevent to add the UNINITIALIZED_GI tag and	
+    // the ProbeVolume will not be evaluate in the lightloop which is the desired behavior	
+    // Also this code only needs to be executed in the rasterization pipeline, otherwise it will lead to udnefined behaviors in ray tracing	
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT) && (SHADERPASS != SHADERPASS_RAYTRACING_GBUFFER)
     if (_IndirectDiffuseMode == INDIRECTDIFFUSEMODE_RAYTRACE)
-        return ;
-#endif
+        return;
+#endif	
 
     float3 positionRWS = posInputs.positionWS;
 

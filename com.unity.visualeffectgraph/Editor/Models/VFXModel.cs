@@ -51,6 +51,7 @@ namespace UnityEditor.VFX
             kExpressionGraphChanged,// Expression graph must be recomputed
             kUIChanged,             // UI stuff has changed
             kUIChangedTransient,    // UI stuff has been changed be does not require serialization 
+            kEnableChanged,         // Node has been enabled/disabled
         }
 
         public new virtual string name  { get { return string.Empty; } }
@@ -133,7 +134,14 @@ namespace UnityEditor.VFX
                 graph.errorManager.ClearAllErrors(this, VFXErrorOrigin.Invalidate);
                 using (var reporter = new VFXInvalidateErrorReporter(graph.errorManager, this))
                 {
-                    GenerateErrors(reporter);
+                    try
+                    {
+                        GenerateErrors(reporter);
+                    }
+                    catch(Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
                 }
             }
         }
@@ -332,7 +340,7 @@ namespace UnityEditor.VFX
 
         // Override this method to update other settings based on a setting modification
         // Use OnIvalidate with KSettingChanged and not this method to handle other side effects
-        protected virtual void OnSettingModified(VFXSetting setting) { }
+        public virtual void OnSettingModified(VFXSetting setting) { }
         public virtual IEnumerable<int> GetFilteredOutEnumerators(string name) { return null; }
 
         public virtual VFXSetting GetSetting(string name)

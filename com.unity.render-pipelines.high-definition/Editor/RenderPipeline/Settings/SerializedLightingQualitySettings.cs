@@ -20,6 +20,10 @@ namespace UnityEditor.Rendering.HighDefinition
         // SSR
         public SerializedProperty SSRMaxRaySteps;
 
+        // Fog
+        public SerializedProperty VolumetricFogBudget;
+        public SerializedProperty VolumetricFogRatio;
+
         public SerializedLightingQualitySettings(SerializedProperty root)
         {
             this.root = root;
@@ -36,6 +40,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // SSR
             SSRMaxRaySteps = root.Find((GlobalLightingQualitySettings s) => s.SSRMaxRaySteps);
+
+            // Fog
+            VolumetricFogBudget = root.Find((GlobalLightingQualitySettings s) => s.Fog_Budget);
+            VolumetricFogRatio = root.Find((GlobalLightingQualitySettings s) => s.Fog_DepthRatio);
         }
     }
 }

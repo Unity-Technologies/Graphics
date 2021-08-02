@@ -11,7 +11,6 @@
     #define CTYPE_SWIZZLE xyz
 #endif
 
-
 #if UNITY_REVERSED_Z
     #define COMPARE_DEPTH(a, b) step(b, a)
 #else
@@ -48,6 +47,8 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
 // ---------------------------------------------------
 // Options
 // ---------------------------------------------------
+
+#define SHARPEN_ALPHA 0 // switch to 1 if you want to enable TAA sharpenning on alpha channel
 
 // History sampling options
 #define BILINEAR 0
@@ -703,12 +704,25 @@ CTYPE SharpenColor(NeighbourhoodSamples samples, CTYPE color, float sharpenStren
 {
     CTYPE linearC = color * PerceptualInvWeight(color);
     CTYPE linearAvg = samples.avgNeighbour * PerceptualInvWeight(samples.avgNeighbour);
-    linearC = linearC + (linearC - linearAvg) * sharpenStrength * 3;
 
 #if YCOCG
-    linearC.x = clamp(linearC.x, 0, CLAMP_MAX);
+    // Rotating back to RGB it leads to better behaviour when sharpening, a better approach needs definitively to be investigated in the future.
+
+    linearC.xyz = ConvertToOutputSpace(linearC.xyz);
+    linearAvg.xyz = ConvertToOutputSpace(linearAvg.xyz);
+    linearC.xyz = linearC.xyz + (linearC.xyz - linearAvg.xyz) * sharpenStrength * 3;
+    linearC.xyz = clamp(linearC.xyz, 0, CLAMP_MAX);
+
+    linearC = ConvertToWorkingSpace(linearC);
 #else
+    linearC = linearC + (linearC - linearAvg) * sharpenStrength * 3;
     linearC = clamp(linearC, 0, CLAMP_MAX);
 #endif
-    return linearC * PerceptualWeight(linearC);
+    CTYPE outputSharpened = linearC * PerceptualWeight(linearC);
+
+#if (SHARPEN_ALPHA == 0 && defined(ENABLE_ALPHA))
+    outputSharpened.a = color.a;
+#endif
+
+    return outputSharpened;
 }

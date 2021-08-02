@@ -354,6 +354,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle TraceRTSSS(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle sssColor, TextureHandle ssgiBuffer, TextureHandle diffuseLightingBuffer, TextureHandle colorBuffer)
         {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
+            {
+                return colorBuffer;
+            }
+
             using (var builder = renderGraph.AddRenderPass<TraceRTSSSPassData>("Composing the result of RTSSS", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingSSSTrace)))
             {
                 builder.EnableAsyncCompute(false);
@@ -433,7 +438,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ssgiBuffer = passData.parameters.validSSGI ? builder.ReadTexture(ssgiBuffer) : renderGraph.defaultResources.blackTextureXR;
                 passData.diffuseLightingBuffer = builder.ReadTexture(diffuseLightingBuffer);
                 passData.subsurfaceBuffer = builder.ReadTexture(rayTracedSSS);
-                passData.colorBuffer = builder.ReadTexture(builder.WriteTexture(colorBuffer));
+                passData.colorBuffer = builder.ReadWriteTexture(colorBuffer);
 
                 builder.SetRenderFunc(
                 (ComposeRTSSSPassData data, RenderGraphContext ctx) =>
@@ -457,7 +462,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle colorBuffer,
                                     TextureHandle sssColor, TextureHandle diffuseBuffer, TextureHandle motionVectorsBuffer, TextureHandle ssgiBuffer)
         {
-
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.RaytracingSSS)))
             {
                 // Trace the signal
@@ -466,11 +470,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Denoise the result
                 rtsssResult = DenoiseRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, normalBuffer, motionVectorsBuffer);
 
+                // Push this version of the texture for debug
+                PushFullScreenDebugTexture(renderGraph, rtsssResult, FullScreenDebugMode.RayTracedSubSurface);
+
                 // Compose it
                 rtsssResult = CombineRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, sssColor, ssgiBuffer, diffuseBuffer, colorBuffer);
-
-                // Push this version of the texture for debug
-                PushFullScreenDebugTexture(renderGraph, diffuseBuffer, FullScreenDebugMode.RayTracedSubSurface);
 
                 // Return the result
                 return rtsssResult;

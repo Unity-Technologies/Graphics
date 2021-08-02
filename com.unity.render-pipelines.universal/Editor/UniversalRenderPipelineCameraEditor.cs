@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly string hdrDisabledWarning = "HDR rendering is disabled in the Universal Render Pipeline asset.";
             public static readonly string mssaDisabledWarning = "Anti-aliasing is disabled in the Universal Render Pipeline asset.";
 
-            public static readonly string missingRendererWarning = "The currently selected Renderer is missing form the Universal Render Pipeline asset.";
+            public static readonly string missingRendererWarning = "The currently selected Renderer is missing from the Universal Render Pipeline asset.";
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
 
             public static GUIContent[] cameraBackgroundType =
@@ -453,7 +453,7 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            var rpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            var rpAsset = UniversalRenderPipeline.asset;
             if(rpAsset == null)
 			{
                 base.OnInspectorGUI();
@@ -658,6 +658,12 @@ namespace UnityEditor.Rendering.Universal
             if (EditorGUI.EndChangeCheck())
             {
                 UpdateCameras();
+
+                // ScriptableRenderContext.SetupCameraProperties still depends on camera target texture
+                // In order for overlay camera not to override base camera target texture we null it here
+                CameraRenderType camType = (CameraRenderType)m_AdditionalCameraDataCameraTypeProp.intValue;
+                if (camType == CameraRenderType.Overlay && settings.targetTexture.objectReferenceValue != null)
+                    settings.targetTexture.objectReferenceValue = null;
             }
         }
 
@@ -796,6 +802,12 @@ namespace UnityEditor.Rendering.Universal
             else if (!rpAsset.ValidateRendererData(selectedRendererOption))
             {
                 EditorGUILayout.HelpBox(Styles.missingRendererWarning, MessageType.Warning);
+                var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect());
+                if (GUI.Button(rect, "Select Render Pipeline Asset"))
+                {
+                    Selection.activeObject = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(AssetDatabase.GetAssetPath(UniversalRenderPipeline.asset));
+                }
+                GUILayout.Space(5);
             }
 
             if (EditorGUI.EndChangeCheck())

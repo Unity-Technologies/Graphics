@@ -56,6 +56,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             greyLabel.normal = new GUIStyleState { textColor = Color.grey };
             greyLabel.focused = new GUIStyleState { textColor = Color.grey };
             greyLabel.hover = new GUIStyleState { textColor = Color.grey };
+
+            // Initializing this callback early on as it is needed by the BlackboardFieldView and PropertyNodeView
+            // for binding to the menu action that triggers the reset
+            _resetReferenceNameCallback = newValue =>
+            {
+                m_ReferenceNameField.value = newValue;
+                m_ReferenceNameField.RemoveFromClassList("modified");
+            };
         }
 
         GraphData graphData;
@@ -173,7 +181,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 var textPropertyDrawer = new TextPropertyDrawer();
                 propertySheet.Add(textPropertyDrawer.CreateGUI(
                     null,
-                    (string)shaderInput.referenceName,
+                    (string)shaderInput.referenceNameForEditing,
                     "Reference",
                     out var propertyVisualElement));
 
@@ -192,15 +200,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         this._postChangeValueCallback(true, ModificationScope.Graph);
                     });
 
-                _resetReferenceNameCallback = newValue =>
-                {
-                    m_ReferenceNameField.value = newValue;
-                    m_ReferenceNameField.RemoveFromClassList("modified");
-                };
-
                 if(!string.IsNullOrEmpty(shaderInput.overrideReferenceName))
                     propertyVisualElement.AddToClassList("modified");
-                propertyVisualElement.SetEnabled(shaderInput.isRenamable);
+                propertyVisualElement.SetEnabled(shaderInput.isReferenceRenamable);
                 propertyVisualElement.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
             }
         }
@@ -223,8 +225,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             switch (property)
             {
-            case IShaderPropertyDrawer propDrawer:	
-                propDrawer.HandlePropertyField(propertySheet, _preChangeValueCallback, _postChangeValueCallback);	
+            case IShaderPropertyDrawer propDrawer:
+                propDrawer.HandlePropertyField(propertySheet, _preChangeValueCallback, _postChangeValueCallback);
+                break;
+            case UnityEditor.ShaderGraph.Serialization.MultiJsonInternal.UnknownShaderPropertyType unknownProperty:
+                var helpBox = new HelpBoxRow(MessageType.Warning);
+                helpBox.Add(new Label("Cannot find the code for this Property, a package may be missing."));
+                propertySheet.Add(helpBox);
                 break;
             case Vector1ShaderProperty vector1Property:
                 HandleVector1ShaderProperty(propertySheet, vector1Property);
@@ -375,6 +382,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     this._precisionChangedCallback();
                     this._postChangeValueCallback();
                 }, property.precision, "Precision", Precision.Inherit, out var precisionField));
+            if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
+                precisionField.SetEnabled(false);
         }
 
         void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
@@ -1056,6 +1065,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     BuildEnumKeywordField(propertySheet, keyword);
                     break;
             }
+
+            BuildExposedField(propertySheet);
         }
 
         void BuildBooleanKeywordField(PropertySheet propertySheet, ShaderKeyword keyword)

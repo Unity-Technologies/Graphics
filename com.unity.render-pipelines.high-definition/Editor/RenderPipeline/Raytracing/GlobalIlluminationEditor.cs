@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of global illumination rays. The higher this value is, the more expensive ray traced global illumination is.");
-        static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the global illumination rays may pass behind.");
+        static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Depth Tolerance", "Controls the tolerance when comparing the depth of two pixels.");
 
         public void DenoiserGUI()
         {
@@ -137,7 +137,6 @@ namespace UnityEditor.Rendering.HighDefinition
                                         using (new QualityScope(this))
                                         {
                                             PropertyField(m_RayLength, k_RayLengthText);
-                                            PropertyField(m_RayLength);
                                             PropertyField(m_ClampValue);
                                             PropertyField(m_FullResolution);
                                             PropertyField(m_UpscaleRadius);
@@ -147,11 +146,14 @@ namespace UnityEditor.Rendering.HighDefinition
                                         break;
                                     case RayTracingMode.Quality:
                                     {
-                                        PropertyField(m_RayLength, k_RayLengthText);
-                                        PropertyField(m_ClampValue);
-                                        PropertyField(m_SampleCount);
-                                        PropertyField(m_BounceCount);
-                                        DenoiserGUI();
+                                        using (new QualityScope(this))
+                                        {
+                                            PropertyField(m_RayLength, k_RayLengthText);
+                                            PropertyField(m_ClampValue);
+                                            PropertyField(m_SampleCount);
+                                            PropertyField(m_BounceCount);
+                                            DenoiserGUI();
+                                        }
                                     }
                                         break;
                                 }
@@ -160,11 +162,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
                                  RenderPipelineSettings.SupportedRayTracingMode.Quality)
                         {
-                            PropertyField(m_RayLength, k_RayLengthText);
-                            PropertyField(m_ClampValue);
-                            PropertyField(m_SampleCount);
-                            PropertyField(m_BounceCount);
-                            DenoiserGUI();
+                            using (new QualityScope(this))
+                            {
+                                PropertyField(m_RayLength, k_RayLengthText);
+                                PropertyField(m_ClampValue);
+                                PropertyField(m_SampleCount);
+                                PropertyField(m_BounceCount);
+                                DenoiserGUI();
+                            }
                         }
                         else
                         {
@@ -173,7 +178,6 @@ namespace UnityEditor.Rendering.HighDefinition
                             using (new QualityScope(this))
                             {
                                 PropertyField(m_RayLength, k_RayLengthText);
-                                PropertyField(m_RayLength);
                                 PropertyField(m_ClampValue);
                                 PropertyField(m_FullResolution);
                                 PropertyField(m_UpscaleRadius);
@@ -260,6 +264,24 @@ namespace UnityEditor.Rendering.HighDefinition
             CopySetting(ref m_FullResolutionSS, settings.lightingQualitySettings.SSGIFullResolution[level]);
             CopySetting(ref m_RaySteps, settings.lightingQualitySettings.SSGIRaySteps[level]);
             CopySetting(ref m_FilterRadius, settings.lightingQualitySettings.SSGIFilterRadius[level]);
+        }
+
+        public override bool QualityEnabled()
+        {
+            // Quality always used for SSGI
+            if (!HDRenderPipeline.rayTracingSupportedBySystem || !m_RayTracing.value.boolValue)
+                return true;
+
+            // Handle the quality usage for RTGI
+            var currentAsset = HDRenderPipeline.currentAsset;
+
+            var bothSupportedAndPerformanceMode = (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
+                RenderPipelineSettings.SupportedRayTracingMode.Both) && (m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance);
+
+            var performanceMode = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
+                RenderPipelineSettings.SupportedRayTracingMode.Performance;
+
+            return bothSupportedAndPerformanceMode || performanceMode;
         }
     }
 }

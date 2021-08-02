@@ -206,7 +206,7 @@ namespace UnityEditor.VFX
 
         sealed protected override float ProcessUnaryOperation(float input)
         {
-            return Mathf.Sign(input);
+            return (input > 0.0f ? 1.0f : 0.0f) - (input < 0.0f ? 1.0f : 0.0f);
         }
 
         protected override bool ProcessUnaryOperation(bool input)

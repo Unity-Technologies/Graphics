@@ -328,7 +328,9 @@ namespace UnityEditor.VFX.UI
                 var sourceBlock = ScriptableObject.CreateInstance<VFXSubgraphBlock>();
                 m_SourceNode = sourceBlock;
                 sourceContextController.model.AddChild(m_SourceNode, m_SourceBlockControllers.Select(t => t.index).Min());
+                (m_SourceView.GetNodeByController(sourceContextController) as VFXContextUI).UpdateSelectionWithNewBlocks();
                 sourceContextController.ApplyChanges();
+
                 m_SourceNodeController = sourceContextController.blockControllers.First(t => t.model == m_SourceNode);
                 PostSetup();
                 m_SourceNode.SetSettingValue("m_Subgraph", m_TargetSubgraph);
@@ -402,6 +404,7 @@ namespace UnityEditor.VFX.UI
             {
                 PostSetup();
                 m_SourceNode.position = m_Rect.center;
+                m_SourceView.UpdateSelectionWithNewNode();
                 m_SourceController.graph.AddChild(m_SourceNode);
                 m_SourceNode.SetSettingValue("m_Subgraph", m_TargetSubgraph);
                 m_SourceController.LightApplyChanges();

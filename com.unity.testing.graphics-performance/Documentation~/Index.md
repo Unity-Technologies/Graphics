@@ -7,9 +7,9 @@ The Graphics performance testing package allows you to measure and report perfor
 - Build performance
 - Static Shader Analysis data such as VGPR, SGPR, and Occupancy
 
-When you use the performance testing package in a project, it sends measured performance data to Unity’s Google BigQuery database. You can use Grafana to visualise this data. For more information, see [Using Grafana to view a performance test report](#using-grafana-to-view-a-performance-test-report).
+When you use the performance testing package in a project, it sends measured performance data to Unity’s Google BigQuery database. You can use Grafana to visualise this data. For more information, see [Using Grafana to view a performance test report](Using-Grafana-to-view-a-performance-test-report.md).
 
-You can use Yamato to run your tests automatically. For more information see [Using Yamato to automate your tests](#using-yamato-to-automate-your-tests).
+You can use Yamato to run your tests automatically. For more information see [Using Yamato to automate your tests](Using-Yamato-to-automate-your-tests.md).
 
 ![img](Images/Grafana-HDRP.png)
 Performance data visualised in Grafana.

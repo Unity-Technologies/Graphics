@@ -24,7 +24,21 @@ namespace UnityEditor.ShaderGraph.Internal
                     return $"{concreteShaderValueType}_{objectId}";
                 return m_Name;
             }
-            set => m_Name = value;
+            set
+            {
+                m_Name = value;
+                // Updates any views associated with this input so that display names stay up to date
+                m_displayNameUpdateTrigger?.Invoke(m_Name);
+            }
+        }
+
+        // This delegate and the associated callback can be bound to in order for any one that cares about display name changes to be notified
+        internal delegate void ChangeDisplayNameCallback(string newDisplayName);
+        ChangeDisplayNameCallback m_displayNameUpdateTrigger;
+        internal ChangeDisplayNameCallback displayNameUpdateTrigger
+        {
+            get => m_displayNameUpdateTrigger;
+            set => m_displayNameUpdateTrigger = value;
         }
 
         [SerializeField]
@@ -43,6 +57,8 @@ namespace UnityEditor.ShaderGraph.Internal
                 return overrideReferenceName;
             }
         }
+
+        public virtual string referenceNameForEditing => referenceName;
 
         // This is required to handle Material data serialized with "_Color_GUID" reference names
         // m_DefaultReferenceName expects to match the material data and previously used PropertyType
@@ -74,6 +90,7 @@ namespace UnityEditor.ShaderGraph.Internal
         internal abstract bool isExposable { get; }
         internal virtual bool isAlwaysExposed => false;
         internal abstract bool isRenamable { get; }
+        internal virtual bool isReferenceRenamable => isRenamable;
 
         internal abstract ShaderInput Copy();
     }

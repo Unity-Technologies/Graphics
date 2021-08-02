@@ -4,6 +4,8 @@
 
 Samples a **Texture 2D Array** and returns a **Vector 4** color value for use in the shader. You can override the **UV** coordinates using the **UV** input and define a custom **Sampler State** using the **Sampler** input. Use the **Index** input to specify which index of the array to sample.
 
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later. 
+
 NOTE: This [Node](Node.md) can only be used in the **Fragment** shader stage.
 
 ## Ports

@@ -18,6 +18,8 @@ HDRP uses the [Volume](Volumes.md) framework to generate **Micro Shadows**, so t
 
 Micro shadowing only works with directional [Lights](Light-Component.md). If you enable micro shadows, make sure you have a directional Light in the Scene.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/OverrideMicroShadows2.png)

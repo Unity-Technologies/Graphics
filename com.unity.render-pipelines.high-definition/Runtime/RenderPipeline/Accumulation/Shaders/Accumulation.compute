@@ -51,13 +51,15 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     uint2 currentPixelCoord = dispatchThreadId.xy;
 
-    float exposureMultiplier = (_AccumulationNeedsExposure != 0) ? GetCurrentExposureMultiplier() : 1.0;
+    float4 exposureMultiplier;
+    exposureMultiplier.xyz = (_AccumulationNeedsExposure != 0) ? GetCurrentExposureMultiplier() : 1.0;
+    exposureMultiplier.w = 1.0;
 
     // Have we reached max sampling?
     uint sampleCount = _AccumulationFrameIndex;
     if (sampleCount >= _AccumulationNumSamples)
     {
-        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].xyz * exposureMultiplier, 1.0);
+        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] * exposureMultiplier;
     }
     else
     {
@@ -68,9 +70,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
         if (sampleCount++)
-            color.xyz = (_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)].xyz * _AccumulationWeights.y + _AccumulationWeights.x * color.xyz) * _AccumulationWeights.z;
+            color = (_AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] * _AccumulationWeights.y + _AccumulationWeights.x * color) * _AccumulationWeights.z;
 
-        _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(color.xyz, 1.0);
+        _AccumulatedFrameTexture[COORD_TEXTURE2D_X(currentPixelCoord)] = color;
 
         // Apply exposure modifier
         color *= exposureMultiplier;
@@ -78,6 +80,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         // Add a little convergence cue to our result
         AddConvergenceCue(currentPixelCoord, sampleCount, color.xyz);
 
-        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(color.xyz, 1.0);
+        _CameraColorTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = color;
     }
 }

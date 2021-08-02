@@ -1,6 +1,10 @@
 #ifndef UNITY_COLOR_INCLUDED
 #define UNITY_COLOR_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
 
 //-----------------------------------------------------------------------------
@@ -389,7 +393,7 @@ real LinearToLogC_Precise(real x)
 {
     real o;
     if (x > LogC.cut)
-        o = LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
+        o = LogC.c * log10(max(LogC.a * x + LogC.b, 0.0)) + LogC.d;
     else
         o = LogC.e * x + LogC.f;
     return o;
@@ -404,7 +408,7 @@ real3 LinearToLogC(real3 x)
         LinearToLogC_Precise(x.z)
     );
 #else
-    return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
+    return LogC.c * log10(max(LogC.a * x + LogC.b, 0.0)) + LogC.d;
 #endif
 }
 
@@ -730,5 +734,9 @@ half3 DecodeRGBM(half4 rgbm)
 {
     return rgbm.xyz * rgbm.w * kRGBMRange;
 }
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_COLOR_INCLUDED

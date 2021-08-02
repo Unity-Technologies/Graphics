@@ -17,6 +17,8 @@ HDRP deprecated **Procedural Sky** in 2019.3 and replaced it with [Physically Ba
 
 After you add a **Procedural Sky** override, you must set the Volume to use **Procedural  Sky**. The [Visual Environment](Override-Visual-Environment.md) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Procedural Sky**. HDRP now renders a **Procedural Sky** for any Camera this Volume affects.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 [!include[](snippets/Volume-Override-Enable-Properties.md)]

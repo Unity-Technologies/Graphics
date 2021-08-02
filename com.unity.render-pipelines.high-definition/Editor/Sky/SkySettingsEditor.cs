@@ -91,23 +91,24 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                EditorGUI.indentLevel++;
-                if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Exposure)
-                    PropertyField(m_SkyExposure);
-                else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Multiplier)
-                    PropertyField(m_SkyMultiplier);
-                else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Lux)
+                using (new HDEditorUtils.IndentScope())
                 {
-                    PropertyField(m_DesiredLuxValue);
+                    if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Exposure)
+                        PropertyField(m_SkyExposure);
+                    else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Multiplier)
+                        PropertyField(m_SkyMultiplier);
+                    else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Lux)
+                    {
+                        PropertyField(m_DesiredLuxValue);
 
-                    // Show the multiplier
-                    EditorGUILayout.HelpBox(System.String.Format("Upper hemisphere lux value: {0}\nAbsolute multiplier: {1}",
-                        m_UpperHemisphereLuxValue.value.floatValue,
-                        (m_DesiredLuxValue.value.floatValue / m_UpperHemisphereLuxValue.value.floatValue)
-                    ), MessageType.Info);
+                        // Show the multiplier
+                        EditorGUILayout.HelpBox(System.String.Format(
+                            "Upper hemisphere lux value: {0}\nAbsolute multiplier: {1}",
+                            m_UpperHemisphereLuxValue.value.floatValue,
+                            (m_DesiredLuxValue.value.floatValue / m_UpperHemisphereLuxValue.value.floatValue)
+                        ), MessageType.Info);
+                    }
                 }
-
-                EditorGUI.indentLevel--;
             }
             if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.Rotation) != 0)
                 PropertyField(m_SkyRotation);
@@ -117,9 +118,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_EnvUpdateMode);
                 if (!m_EnvUpdateMode.value.hasMultipleDifferentValues && m_EnvUpdateMode.value.intValue == (int)EnvironmentUpdateMode.Realtime)
                 {
-                    EditorGUI.indentLevel++;
-                    PropertyField(m_EnvUpdatePeriod);
-                    EditorGUI.indentLevel--;
+                    using (new HDEditorUtils.IndentScope())
+                    {
+                        PropertyField(m_EnvUpdatePeriod);
+                    }
                 }
             }
             if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.IncludeSunInBaking) != 0)
