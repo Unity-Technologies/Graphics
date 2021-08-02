@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             public string GetName()
             {
                 elementReference.TryGetTarget(out var element);
-                return element.ID;
+                return element.id;
             }
 
             public IEnumerable<IPortReader> GetPorts()

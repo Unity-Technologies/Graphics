@@ -108,5 +108,4 @@ namespace UnityEditor.ShaderGraph.Registry
             return GetBuilder(key);
         }
     }
-
 }

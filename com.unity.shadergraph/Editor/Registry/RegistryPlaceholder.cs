@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace UnityEditor.ShaderGraph.Registry
 {
     public class RegistryPlaceholder
@@ -7,7 +9,6 @@ namespace UnityEditor.ShaderGraph.Registry
         public RegistryPlaceholder(int d) { data = d; }
     }
 
-
     namespace Exploration
     {
         public class GraphTypeDefinition : INodeDefinitionBuilder
@@ -16,6 +17,8 @@ namespace UnityEditor.ShaderGraph.Registry
             public RegistryFlags GetRegistryFlags() => RegistryFlags.IsType;
 
             enum Precision { Fixed, Half, Full }
+
+
 
             public void BuildNode(GraphDelta.INodeReader userData, GraphDelta.INodeWriter concreteData, IRegistry registry)
             {
