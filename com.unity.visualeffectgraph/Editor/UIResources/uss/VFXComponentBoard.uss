@@ -343,6 +343,12 @@ VFXComponentBoardEventUI #event-name
 
 #subTitleLabel
 {
-    height: 16;
+    height: 16px;
+    flex-grow: 1;
     -unity-text-align: lower-left;
+}
+
+#subTitle-icon
+{
+    margin-right: 4px;
 }

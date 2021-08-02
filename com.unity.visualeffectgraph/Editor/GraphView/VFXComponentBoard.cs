@@ -482,7 +482,7 @@ namespace UnityEditor.VFX.UI
         public void Detach()
         {
             m_RootElement.SetEnabled(false);
-            m_Subtitle.text = "Attach a gameobject to control this VFX";
+            m_Subtitle.text = "Select a Game Object running this VFX to control it";
             m_SubtitleIcon.style.display = DisplayStyle.Flex;
 
             if (m_AttachedComponent != null)

@@ -4,8 +4,8 @@
             <ui:VisualElement name="labelContainer" pickingMode="Ignore">
                 <ui:Label name="titleLabel" text="VFX Control" tooltip="Control the attached VFX GameObject"/>
                 <ui:VisualElement name="subtitle" pickingMode="Ignore">
-                    <ui:Image name="subTitle-icon" />
                     <ui:Label name="subTitleLabel" />
+                    <ui:Image name="subTitle-icon" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

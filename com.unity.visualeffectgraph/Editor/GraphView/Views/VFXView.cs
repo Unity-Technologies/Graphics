@@ -847,6 +847,7 @@ namespace UnityEditor.VFX.UI
             if (TryAttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>()))
             {
                 VFXViewWindow.currentWindow.ShowNotification(new GUIContent($"Attached to {Selection.activeObject.name}"), 1.5);
+                VFXViewWindow.currentWindow?.Repaint();
             }
         }
 
