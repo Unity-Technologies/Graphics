@@ -147,6 +147,9 @@ namespace UnityEditor.Rendering.Universal
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
 
+        StripTool<ShaderFeatures> m_ShaderFeaturesStriper = new StripTool<ShaderFeatures>();
+        StripTool<VolumeFeatures> m_VolumeFeaturesStriper = new StripTool<VolumeFeatures>();
+
         // Multiple callback may be implemented.
         // The first one executed is the one where callbackOrder is returning the smallest number.
         public int callbackOrder { get { return 0; } }
@@ -253,15 +256,15 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        struct StripTool
+        class StripTool<T> where T : System.Enum
         {
             Shader m_Shader;
-            ShaderFeatures m_Features;
+            T m_Features;
             ShaderKeywordSet m_KeywordSet;
             ShaderSnippetData m_SnippetData;
             bool m_StripOffVariants;
 
-            public StripTool(Shader shader, bool stripOffVariants, ShaderFeatures features, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet)
+            public void Setup(T features, Shader shader, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet, bool stripOffVariants)
             {
                 m_Shader = shader;
                 m_Features = features;
@@ -275,7 +278,7 @@ namespace UnityEditor.Rendering.Universal
                 return ShaderUtil.PassHasKeyword(m_Shader, m_SnippetData.pass, kw, m_SnippetData.shaderType);
             }
 
-            public bool StripMultiCompileKeepOffVariant(in LocalKeyword kw, ShaderFeatures feature, in LocalKeyword kw2, ShaderFeatures feature2, in LocalKeyword kw3, ShaderFeatures feature3)
+            public bool StripMultiCompileKeepOffVariant(in LocalKeyword kw, T feature, in LocalKeyword kw2, T feature2, in LocalKeyword kw3, T feature3)
             {
                 if (StripMultiCompileKeepOffVariant(kw, feature))
                     return true;
@@ -286,21 +289,21 @@ namespace UnityEditor.Rendering.Universal
                 return false;
             }
 
-            public bool StripMultiCompile(in LocalKeyword kw, ShaderFeatures feature, in LocalKeyword kw2, ShaderFeatures feature2, in LocalKeyword kw3, ShaderFeatures feature3)
+            public bool StripMultiCompile(in LocalKeyword kw, T feature, in LocalKeyword kw2, T feature2, in LocalKeyword kw3, T feature3)
             {
                 if (StripMultiCompileKeepOffVariant(kw, feature, kw2, feature2, kw3, feature3))
                     return true;
 
                 bool containsKeywords = ContainsKeyword(kw) && ContainsKeyword(kw2) && ContainsKeyword(kw3);
                 bool keywordsDisabled = !m_KeywordSet.IsEnabled(kw) && !m_KeywordSet.IsEnabled(kw2) && !m_KeywordSet.IsEnabled(kw3);
-                bool hasAnyFeatureEnabled = (m_Features & feature) != 0 || (m_Features & feature2) != 0 || (m_Features & feature3) != 0;
+                bool hasAnyFeatureEnabled = m_Features.HasFlag(feature) || m_Features.HasFlag(feature2) || m_Features.HasFlag(feature3);
                 if (m_StripOffVariants && containsKeywords && keywordsDisabled && hasAnyFeatureEnabled)
                     return true;
 
                 return false;
             }
 
-            public bool StripMultiCompileKeepOffVariant(in LocalKeyword kw, ShaderFeatures feature, in LocalKeyword kw2, ShaderFeatures feature2)
+            public bool StripMultiCompileKeepOffVariant(in LocalKeyword kw, T feature, in LocalKeyword kw2, T feature2)
             {
                 if (StripMultiCompileKeepOffVariant(kw, feature))
                     return true;
@@ -309,14 +312,14 @@ namespace UnityEditor.Rendering.Universal
                 return false;
             }
 
-            public bool StripMultiCompile(in LocalKeyword kw, ShaderFeatures feature, in LocalKeyword kw2, ShaderFeatures feature2)
+            public bool StripMultiCompile(in LocalKeyword kw, T feature, in LocalKeyword kw2, T feature2)
             {
                 if (StripMultiCompileKeepOffVariant(kw, feature, kw2, feature2))
                     return true;
 
                 bool containsKeywords = ContainsKeyword(kw) && ContainsKeyword(kw2);
                 bool keywordsDisabled = !m_KeywordSet.IsEnabled(kw) && !m_KeywordSet.IsEnabled(kw2);
-                bool hasAnyFeatureEnabled = (m_Features & feature) != 0 || (m_Features & feature2) != 0;
+                bool hasAnyFeatureEnabled = m_Features.HasFlag(feature) || m_Features.HasFlag(feature2);
                 if (m_StripOffVariants && containsKeywords && keywordsDisabled && hasAnyFeatureEnabled)
                     return true;
 
@@ -324,14 +327,14 @@ namespace UnityEditor.Rendering.Universal
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool StripMultiCompileKeepOffVariant(in LocalKeyword kw, ShaderFeatures feature)
+            public bool StripMultiCompileKeepOffVariant(in LocalKeyword kw, T feature)
             {
-                return (m_Features & feature) == 0 && m_KeywordSet.IsEnabled(kw);
+                return !m_Features.HasFlag(feature) && m_KeywordSet.IsEnabled(kw);
             }
 
-            public bool StripMultiCompile(in LocalKeyword kw, ShaderFeatures feature)
+            public bool StripMultiCompile(in LocalKeyword kw, T feature)
             {
-                if ((m_Features & feature) == 0) // disabled
+                if (!m_Features.HasFlag(feature))
                 {
                     if (m_KeywordSet.IsEnabled(kw))
                         return true;
@@ -363,8 +366,7 @@ namespace UnityEditor.Rendering.Universal
                 return true;
             }
 
-            var stripOffVariants = globalSettings?.stripOffVariants ?? true;
-            var stripTool = new StripTool(shader, stripOffVariants, features, snippetData, compilerData.shaderKeywordSet);
+            var stripTool = m_ShaderFeaturesStriper;
 
             // strip main light shadows, cascade and screen variants
             // TODO: Strip disabled keyword once no light will re-use same variant
@@ -471,33 +473,35 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        bool StripVolumeFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
+        bool StripVolumeFeatures(VolumeFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             var stripOffVariants = UniversalRenderPipelineGlobalSettings.instance?.stripOffVariants ?? true;
-            var stripTool = new StripTool(shader, stripOffVariants, (ShaderFeatures)ShaderBuildPreprocessor.volumeFeatures, snippetData, compilerData.shaderKeywordSet);
+            m_VolumeFeaturesStriper.Setup(features, shader, snippetData, compilerData.shaderKeywordSet, stripOffVariants);
 
-            if (stripTool.StripMultiCompile(m_LensDistortion, (ShaderFeatures)VolumeFeatures.LensDistortion))
-                return true;
+            var stripTool = m_VolumeFeaturesStriper;
 
-            if (stripTool.StripMultiCompile(m_ChromaticAberration, (ShaderFeatures)VolumeFeatures.CHROMATIC_ABERRATION))
-                return true;
-
-            if (stripTool.StripMultiCompile(m_BloomLQ, (ShaderFeatures)VolumeFeatures.Bloom))
-                return true;
-            if (stripTool.StripMultiCompile(m_BloomHQ, (ShaderFeatures)VolumeFeatures.Bloom))
-                return true;
-            if (stripTool.StripMultiCompile(m_BloomLQDirt, (ShaderFeatures)VolumeFeatures.Bloom))
-                return true;
-            if (stripTool.StripMultiCompile(m_BloomHQDirt, (ShaderFeatures)VolumeFeatures.Bloom))
+            if (stripTool.StripMultiCompile(m_LensDistortion, VolumeFeatures.LensDistortion))
                 return true;
 
-            if (stripTool.StripMultiCompile(m_HdrGrading, (ShaderFeatures)VolumeFeatures.ToneMaping))
+            if (stripTool.StripMultiCompile(m_ChromaticAberration, VolumeFeatures.CHROMATIC_ABERRATION))
                 return true;
-            if (stripTool.StripMultiCompile(m_ToneMapACES, (ShaderFeatures)VolumeFeatures.ToneMaping))
+
+            if (stripTool.StripMultiCompile(m_BloomLQ, VolumeFeatures.Bloom))
                 return true;
-            if (stripTool.StripMultiCompile(m_ToneMapNeutral, (ShaderFeatures)VolumeFeatures.ToneMaping))
+            if (stripTool.StripMultiCompile(m_BloomHQ, VolumeFeatures.Bloom))
                 return true;
-            if (stripTool.StripMultiCompile(m_FilmGrain, (ShaderFeatures)VolumeFeatures.FilmGrain))
+            if (stripTool.StripMultiCompile(m_BloomLQDirt, VolumeFeatures.Bloom))
+                return true;
+            if (stripTool.StripMultiCompile(m_BloomHQDirt, VolumeFeatures.Bloom))
+                return true;
+
+            if (stripTool.StripMultiCompile(m_HdrGrading, VolumeFeatures.ToneMaping))
+                return true;
+            if (stripTool.StripMultiCompile(m_ToneMapACES, VolumeFeatures.ToneMaping))
+                return true;
+            if (stripTool.StripMultiCompile(m_ToneMapNeutral, VolumeFeatures.ToneMaping))
+                return true;
+            if (stripTool.StripMultiCompile(m_FilmGrain, VolumeFeatures.FilmGrain))
                 return true;
 
             // Strip post processing shaders
@@ -607,6 +611,9 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnused(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
+            var stripOffVariants = UniversalRenderPipelineGlobalSettings.instance?.stripOffVariants ?? true;
+            m_ShaderFeaturesStriper.Setup(features, shader, snippetData, compilerData.shaderKeywordSet, stripOffVariants);
+
             if (StripUnusedFeatures(features, shader, snippetData, compilerData))
                 return true;
 
@@ -622,12 +629,6 @@ namespace UnityEditor.Rendering.Universal
             if (UniversalRenderPipelineGlobalSettings.instance?.stripBuiltinShaders ?? true)
             {
                 if (StripUnusedShaders(features, shader))
-                    return true;
-            }
-
-            if (UniversalRenderPipelineGlobalSettings.instance?.staticVolumeProfile ?? true)
-            {
-                if (StripVolumeFeatures(features, shader, snippetData, compilerData))
                     return true;
             }
 
@@ -668,22 +669,30 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
 
-            // Local Keywords need to be initialized with the shader
-            InitializeLocalShaderKeywords(shader);
-
             m_stripTimer.Start();
+
+            InitializeLocalShaderKeywords(shader);
 
             int prevVariantCount = compilerDataList.Count;
             var inputShaderVariantCount = compilerDataList.Count;
             for (int i = 0; i < inputShaderVariantCount;)
             {
                 bool removeInput = true;
+
                 foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
                 {
                     if (!StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
                     {
                         removeInput = false;
                         break;
+                    }
+                }
+
+                if (UniversalRenderPipelineGlobalSettings.instance?.staticVolumeProfile ?? true)
+                {
+                    if (!removeInput && StripVolumeFeatures(ShaderBuildPreprocessor.volumeFeatures, shader, snippetData, compilerDataList[i]))
+                    {
+                        removeInput = true;
                     }
                 }
 
