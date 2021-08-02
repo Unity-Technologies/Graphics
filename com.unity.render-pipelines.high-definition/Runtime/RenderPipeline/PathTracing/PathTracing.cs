@@ -385,6 +385,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // Refactor that when we formalize how to handle persistent textures better (with automatic lifetime and such).
             var radianceTexture = renderGraph.ImportTexture(m_RadianceTexture);
 
+            // Check if the camera has a valid history buffer and if not reset the accumulation.
+            // This can happen if a script disables and re-enables the camera (case 1337843).
+            if (!hdCamera.isPersistent && hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing) == null)
+            {
+                m_SubFrameManager.Reset(camID);
+            }
+
             if (!m_SubFrameManager.isRecording)
             {
                 // If we are recording, the max iteration is set/overridden by the subframe manager, otherwise we read it from the path tracing volume
