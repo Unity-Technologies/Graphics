@@ -546,7 +546,6 @@ namespace UnityEditor.VFX.UI
                 m_DebugUI.SetVisualEffect(m_AttachedComponent);
                 m_DebugUI.SetDebugMode(debugMode, this, true);
 
-                
                 m_RootElement.SetEnabled(true);
                 UpdateBoundsRecorder();
                 UpdateRecordingButton();
