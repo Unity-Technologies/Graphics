@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Rendering.Universal.ShaderGUI;
 using UnityEditor.ShaderGraph;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using static Unity.Rendering.Universal.ShaderUtils;
@@ -21,195 +22,124 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    class MaterialReimporter : Editor
+    class MaterialPostprocessor : AssetPostprocessor
     {
-        static bool s_NeedToCheckProjSettingExistence = true;
-
-        static void ReimportAllMaterials()
-        {
-            string[] guids = AssetDatabase.FindAssets("t:material", null);
-            // There can be several materials subAssets per guid ( ie : FBX files ), remove duplicate guids.
-            var distinctGuids = guids.Distinct();
-
-            int materialIdx = 0;
-            int totalMaterials = distinctGuids.Count();
-            foreach (var asset in distinctGuids)
-            {
-                materialIdx++;
-                var path = AssetDatabase.GUIDToAssetPath(asset);
-                EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
-                AssetDatabase.ImportAsset(path);
-            }
-            EditorUtility.ClearProgressBar();
-
-            MaterialPostprocessor.s_NeedsSavingAssets = true;
-        }
+        public const string materialVersionDependencyName = "urp-material-version";
 
         [InitializeOnLoadMethod]
         static void RegisterUpgraderReimport()
         {
-            EditorApplication.update += () => //TODOJENNY: why not delaycall?
-            {
-                if (Time.renderedFrameCount > 0)
-                {
-                    bool fileExist = true;
-                    // We check the file existence only once to avoid IO operations every frame.
-                    if (s_NeedToCheckProjSettingExistence)
-                    {
-                        fileExist = System.IO.File.Exists(UniversalProjectSettings.filePath);
-                        s_NeedToCheckProjSettingExistence = false;
-                    }
+            UnityEditor.MaterialPostProcessor.onImportedMaterial += OnImportedMaterial;
 
-                    //This method is called at opening and when URP package change (update of manifest.json)
-                    var curUpgradeVersion = UniversalProjectSettings.materialVersionForUpgrade;
+            // Register custom dependency on Material version
+            AssetDatabase.RegisterCustomDependency(materialVersionDependencyName, Hash128.Compute(MaterialPostprocessor.k_Upgraders.Length));
+            AssetDatabase.Refresh();
 
-                    if (curUpgradeVersion != MaterialPostprocessor.k_Upgraders.Length)
-                    {
-                        string commandLineOptions = Environment.CommandLine;
-                        bool inTestSuite = commandLineOptions.Contains("-testResults");
-                        if (!inTestSuite && fileExist)
-                        {
-                            EditorUtility.DisplayDialog("URP Material upgrade", "The Materials in your Project were created using an older version of the Universal Render Pipeline (URP)." +
-                                " Unity must upgrade them to be compatible with your current version of URP. \n" +
-                                " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
-                                " Please see the Material upgrade guide in the URP documentation for more information.", "Ok");
-                        }
-
-                        ReimportAllMaterials();
-                    }
-
-                    if (MaterialPostprocessor.s_NeedsSavingAssets)
-                        MaterialPostprocessor.SaveAssetsToDisk();
-                }
-            };
+            //TODOJENNY: do we still need the popup to warn the user of impeding upgrade?
         }
-    }
 
-    class MaterialPostprocessor : AssetPostprocessor
-    {
+        // TODOJENNY: [HACK] remove this when Material class add custom dependency itself
+        // we need to ensure existing mat also have the dependency
+        void OnPreprocessAsset()
+        {
+            if (!assetPath.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
+                return;
+
+            var objs = InternalEditorUtility.LoadSerializedFileAndForget(assetPath);
+            foreach (var obj in objs)
+            {
+                if (obj is Material material)
+                {
+                    // check if URP material
+                    var shaderID = GetShaderID(material.shader);
+                    if (shaderID == ShaderID.Unknown)
+                        continue;
+
+                    context.DependsOnCustomDependency(materialVersionDependencyName);
+                }
+            }
+        }
+
         public static List<string> s_CreatedAssets = new List<string>();
-        internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
-        internal static bool s_NeedsSavingAssets = false;
 
         internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5 };
 
-        static internal void SaveAssetsToDisk()
+        static void OnImportedMaterial(Material material, string assetPath)
         {
-            string commandLineOptions = System.Environment.CommandLine;
-            bool inTestSuite = commandLineOptions.Contains("-testResults");
-            if (inTestSuite)
-            {
-                // Need to update material version to prevent infinite loop in the upgrader
-                // when running tests.
-                UniversalProjectSettings.materialVersionForUpgrade = k_Upgraders.Length;
+            // load the material and look for it's Universal ShaderID
+            // we only care about versioning materials using a known Universal ShaderID
+            // this skips any materials that only target other render pipelines, are user shaders,
+            // or are shaders we don't care to version
+            var shaderID = GetShaderID(material.shader);
+            if (shaderID == ShaderID.Unknown)
                 return;
-            }
 
-            foreach (var asset in s_ImportedAssetThatNeedSaving)
+            var wasUpgraded = false;
+
+            // look for the Universal AssetVersion
+            AssetVersion assetVersion = null;
+            var allAssets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            foreach (var subAsset in allAssets)
             {
-                AssetDatabase.MakeEditable(asset);
-            }
-
-            AssetDatabase.SaveAssets();
-            //to prevent data loss, only update the saved version if user applied change and assets are written to
-            UniversalProjectSettings.materialVersionForUpgrade = k_Upgraders.Length;
-            UniversalProjectSettings.Save();
-
-            s_ImportedAssetThatNeedSaving.Clear();
-            s_NeedsSavingAssets = false;
-        }
-
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-        {
-            string upgradeLog = "";
-            var upgradeCount = 0;
-
-            foreach (var asset in importedAssets)
-            {
-                // we only care about materials
-                if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
-                    continue;
-
-                // load the material and look for it's Universal ShaderID
-                // we only care about versioning materials using a known Universal ShaderID
-                // this skips any materials that only target other render pipelines, are user shaders,
-                // or are shaders we don't care to version
-                var material = AssetDatabase.LoadMainAssetAtPath(asset) as Material;
-                if (material == null)
-                    continue;
-
-                var shaderID = GetShaderID(material.shader);
-                if (shaderID == ShaderID.Unknown)
-                    continue;
-
-                var wasUpgraded = false;
-                var debug = "\n" + material.name + "(" + shaderID + ")";
-
-                // look for the Universal AssetVersion
-                AssetVersion assetVersion = null;
-                var allAssets = AssetDatabase.LoadAllAssetsAtPath(asset);
-                foreach (var subAsset in allAssets)
+                if (subAsset is AssetVersion sub)
                 {
-                    if (subAsset is AssetVersion sub)
-                    {
-                        assetVersion = sub;
-                    }
+                    assetVersion = sub;
+                    break;
                 }
+            }
+            //TODOJENNY: ask why we dont have plugins in URP?
+            var latestVersion = k_Upgraders.Length;
 
-                if (!assetVersion)
+            if (!assetVersion)
+            {
+                wasUpgraded = true;
+                assetVersion = ScriptableObject.CreateInstance<AssetVersion>();
+                assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
+                if (s_CreatedAssets.Contains(assetPath))
                 {
-                    wasUpgraded = true;
-                    assetVersion = ScriptableObject.CreateInstance<AssetVersion>();
-                    if (s_CreatedAssets.Contains(asset))
+                    assetVersion.version = latestVersion;
+                    s_CreatedAssets.Remove(assetPath);
+                    InitializeLatest(material, shaderID);
+                }
+                else
+                {
+                    if (shaderID.IsShaderGraph())
                     {
-                        assetVersion.version = k_Upgraders.Length;
-                        s_CreatedAssets.Remove(asset);
-                        InitializeLatest(material, shaderID);
-                        debug += " initialized.";
+                        // ShaderGraph materials NEVER had asset versioning applied prior to version 5.
+                        // so if we see a ShaderGraph material with no assetVersion, set it to 5 to ensure we apply all necessary versions.
+                        assetVersion.version = 5;
                     }
                     else
                     {
-                        if (shaderID.IsShaderGraph())
-                        {
-                            // ShaderGraph materials NEVER had asset versioning applied prior to version 5.
-                            // so if we see a ShaderGraph material with no assetVersion, set it to 5 to ensure we apply all necessary versions.
-                            assetVersion.version = 5;
-                            debug += $" shadergraph material assumed to be version 5 due to missing version.";
-                        }
-                        else
-                        {
-                            assetVersion.version = UniversalProjectSettings.materialVersionForUpgrade;
-                            debug += $" assumed to be version {UniversalProjectSettings.materialVersionForUpgrade} due to missing version.";
-                        }
+                        assetVersion.version = 0;
                     }
-
-                    assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
-                    AssetDatabase.AddObjectToAsset(assetVersion, asset);
                 }
 
-                while (assetVersion.version < k_Upgraders.Length)
-                {
-                    k_Upgraders[assetVersion.version](material, shaderID);
-                    debug += $" upgrading:v{assetVersion.version} to v{assetVersion.version + 1}";
-                    assetVersion.version++;
-                    wasUpgraded = true;
-                }
-
-                if (wasUpgraded)
-                {
-                    upgradeLog += debug;
-                    upgradeCount++;
-                    EditorUtility.SetDirty(assetVersion);
-                    s_ImportedAssetThatNeedSaving.Add(asset);
-                    s_NeedsSavingAssets = true;
-                }
+                AssetDatabase.AddObjectToAsset(assetVersion, assetPath);
             }
 
-            // Uncomment to show upgrade debug logs
-            //if (!string.IsNullOrEmpty(upgradeLog))
-            //    Debug.Log("UniversalRP Material log: " + upgradeLog);
+            // Upgrade
+            while (assetVersion.version < latestVersion)
+            {
+                k_Upgraders[assetVersion.version](material, shaderID);
+                assetVersion.version++;
+                wasUpgraded = true;
+            }
+
+            if (wasUpgraded)
+            {
+                EditorUtility.SetDirty(assetVersion);
+            }
         }
 
+        // TODOJENNY: ask URP if speed tree is supported if so, we need the following:
+        /*
+        public void OnPostprocessSpeedTree(GameObject speedTree)
+        {
+            SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;
+            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree,stImporter,HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);
+        }
+        */
         static void InitializeLatest(Material material, ShaderID id)
         {
             // newly created materials should reset their keywords immediately (in case inspector doesn't get invoked)

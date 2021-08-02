@@ -64,8 +64,8 @@ namespace UnityEditor.Rendering.HighDefinition
     class MaterialReimporter : Editor
     {
         static bool s_NeedToCheckProjSettingExistence = true;
-        static bool s_AutoReimportProjectShaderGraphsOnVersionUpdate = false;
-        internal static bool s_ReimportShaderGraphDependencyOnMaterialUpdate = true;
+        //static bool s_AutoReimportProjectShaderGraphsOnVersionUpdate = false;
+        //internal static bool s_ReimportShaderGraphDependencyOnMaterialUpdate = true;
 
         static internal void ReimportAllMaterials()
         {
@@ -86,6 +86,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             MaterialPostprocessor.s_NeedsSavingAssets = true;
         }
+
+        /* SHOULD ONLY NEED SG version bump
 
         static internal void ReimportAllHDShaderGraphs()
         {
@@ -169,12 +171,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             return upgradeNeeded;
-        }
+        }*/
 
         [InitializeOnLoadMethod]
         static void RegisterUpgraderReimport()
         {
-            EditorApplication.update += () =>
+            EditorApplication.update += () => //TODOJENNY: should setup custom dependencies here instead + ADB.Refresh() on dependency change?
             {
                 if (Time.renderedFrameCount > 0)
                 {
@@ -190,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     //This method is called at opening and when HDRP package change (update of manifest.json)
                     int curMaterialVersion = HDProjectSettings.materialVersionForUpgrade;
-                    bool scanMaterialsForUpgradeNeeded = (curMaterialVersion < MaterialPostprocessor.k_Migrations.Length)
+                    bool scanMaterialsForUpgradeNeeded = (curMaterialVersion < MaterialPostprocessor.k_Upgraders.Length)
                         || (HDProjectSettings.pluginSubTargetLastSeenMaterialVersionsSum < HDShaderUtils.GetHDPluginSubTargetMaterialVersionsSum());
 
                     var curHDSubTargetVersion = HDProjectSettings.hdShaderGraphLastSeenVersion;
@@ -260,7 +262,6 @@ namespace UnityEditor.Rendering.HighDefinition
     class MaterialPostprocessor : AssetPostprocessor
     {
         internal static List<string> s_CreatedAssets = new List<string>();
-        internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
         // Important: This should only be called by the RegisterUpgraderReimport(), ie the shadegraph/material version
@@ -273,11 +274,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (inTestSuite)
                 return;
 
-            foreach (var asset in s_ImportedAssetThatNeedSaving)
-            {
-                AssetDatabase.MakeEditable(asset);
-            }
-
             AssetDatabase.SaveAssets();
             //to prevent data loss, only update the last saved version trackers if user applied change and assets are written to
             if (updateShaderGraphLastSeenVersions)
@@ -287,11 +283,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (updateMaterialLastSeenVersions)
             {
-                HDProjectSettings.materialVersionForUpgrade = MaterialPostprocessor.k_Migrations.Length;
+                HDProjectSettings.materialVersionForUpgrade = MaterialPostprocessor.k_Upgraders.Length;
                 HDProjectSettings.UpdateLastSeenMaterialVersionsOfPluginSubTargets();
             }
 
-            s_ImportedAssetThatNeedSaving.Clear();
             s_NeedsSavingAssets = false;
         }
 
@@ -306,218 +301,206 @@ namespace UnityEditor.Rendering.HighDefinition
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        static readonly int diffusionProfilePropertyID = Shader.PropertyToID("_DiffusionProfileAsset");
+
+        static void AddDiffusionProfileToImportedMaterial(Material material)
         {
-            foreach (var asset in importedAssets)
+            // we should have a dependency over global settings to be able to add it on asset change
+            AddDiffusionProfileToSettings(material, diffusionProfilePropertyID);
+
+            // Special Eye case that uses a node with diffusion profiles.
+            if (material.shader.IsShaderGraphAsset())
             {
-                // TODOJENNY: why do we need that? need to ask Stephane Laroche - maybe code needs to be moved to Vraid plugin
-                // We intercept shadergraphs just to add them to s_ImportedAssetThatNeedSaving to make them editable when we save assets
-                if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}"))
+                var matProperties = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { material });
+                for (int propIdx = 0; propIdx < matProperties.Length; ++propIdx)
                 {
-                    bool justCreated = s_CreatedAssets.Contains(asset);
+                    var attributes = material.shader.GetPropertyAttributes(propIdx);
+                    bool hasDiffusionProfileAttribute = false;
+                    foreach (var attribute in attributes)
+                    {
+                        if (attribute == "DiffusionProfile")
+                        {
+                            propIdx++;
+                            hasDiffusionProfileAttribute = true;
+                            break;
+                        }
+                    }
 
-                    if (!justCreated)
+                    var type = ShaderUtil.GetPropertyType(material.shader, propIdx);
+                    if (hasDiffusionProfileAttribute &&
+                        type == ShaderUtil.ShaderPropertyType.Vector)
                     {
-                        s_ImportedAssetThatNeedSaving.Add(asset);
-                        s_NeedsSavingAssets = true;
+                        AddDiffusionProfileToSettings(material, material.shader.GetPropertyNameId(propIdx));
                     }
-                    else
+                }
+            }
+        }
+
+        static void AddDiffusionProfileToSettings(Material material, int propertyID)
+        {
+            if (Application.isBatchMode || HDRenderPipelineGlobalSettings.instance == null
+                || HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList == null) return;
+
+            bool diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Length < 15;
+            DiffusionProfileSettings diffusionProfile = null;
+
+            if (material.HasProperty(propertyID))
+            {
+                var diffusionProfileAsset = material.GetVector(propertyID);
+                string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset);
+                diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
+
+                if (diffusionProfile != null && !HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
+                {
+                    string materialName = material.name;
+                    string diffusionProfileName = diffusionProfile.name;
+
+                    if (!diffusionProfileCanBeAdded)
+                        Debug.LogWarning("There is no space in the global settings to add the diffusion profile " + diffusionProfileName);
+                    else if ((!Application.isBatchMode) &&
+                             (EditorUtility.DisplayDialog("Diffusion Profile Import",
+                                 "A Material (" + materialName + ") is being imported with a diffusion profile (" + diffusionProfileName + ") not already added to the HDRP Global Settings.\n If the Diffusion Profile is not referenced in the global settings, HDRP cannot use it.\nDo you want to add the diffusion profile to the HDRP Global Settings asset?", "Yes", "No")))
                     {
-                        s_CreatedAssets.Remove(asset);
+                        diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(diffusionProfile);
                     }
+                }
+            }
+        }
+
+        static void OnImportedMaterial(Material material, string assetPath)
+        {
+            // TODOJENNY: why do we need that? need to ask Stephane Laroche - maybe code needs to be moved to Vraid plugin
+            // We intercept shadergraphs just to add them to s_ImportedAssetThatNeedSaving to make them editable when we save assets
+            /* if (assetPath.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}"))
+             {
+                 bool justCreated = s_CreatedAssets.Contains(assetPath);
+
+                 if (!justCreated)
+                 {
+                     s_ImportedAssetThatNeedSaving.Add(assetPath);
+                     s_NeedsSavingAssets = true;
+                 }
+                 else
+                 {
+                     s_CreatedAssets.Remove(assetPath);
+                 }
+                 return;
+             }*/
+
+            //TODOJENNY: ask Stephane if his plugin makes s_ReimportShaderGraphDependencyOnMaterialUpdate set to true
+            //is this needed if we simply bump the importer version number on any change? this will force reimport of SG and we can ensure HDMetaData
+            /*if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
+            {
+                // Check first if the HDRP shadergraph assigned needs a migration:
+                // Here ignoreNonHDRPShaderGraphs = false is useful to not ignore non HDRP ShaderGraphs as
+                // the detection is based on the presence of the "HDMetaData" object and old HDRP ShaderGraphs don't have these,
+                // so we can conservatively force a re-import of any ShaderGraphs. Unity might not have reimported such ShaderGraphs
+                // based on declared source dependencies by the ShaderGraphImporter because these might have moved / changed
+                // for old ones. We can cover these cases here.
+                //
+                // Note we could also check this dependency in ReimportAllMaterials but in case a user manually re-imports a material,
+                // (ie the OnPostprocessAllAssets call here is not generated from ReimportAllMaterials())
+                // we would miss re-importing that dependency.
+                if (MaterialReimporter.CheckHDShaderGraphVersionsForUpgrade("", material.shader, ignoreNonHDRPShaderGraphs: false))
+                {
+                    var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
+                    AssetDatabase.ImportAsset(shaderPath);
+
+                    // Restart the material import instead of proceeding otherwise the shadergraph will be processed after
+                    // (the above ImportAsset(shaderPath) returns before the actual re-importing taking place).
+                    AssetDatabase.ImportAsset(asset);
                     continue;
                 }
-                else if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
+            }*/
+
+            if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
+                return;
+
+            var wasUpgraded = false;
+
+            AssetVersion assetVersion = null;
+            var assetVersions = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            foreach (var subAsset in assetVersions)
+            {
+                if (subAsset is AssetVersion sub)
                 {
-                    continue;
+                    assetVersion = sub;
+                    break;
                 }
+            }
 
-                // Materials (.mat) post processing:
+            (HDShaderUtils.ShaderID id, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromShader(material.shader);
 
-                var material = AssetDatabase.LoadMainAssetAtPath(asset) as Material;
-                if (material == null)
-                    continue;
+            bool isMaterialUsingPlugin = HDShaderUtils.GetMaterialPluginSubTarget(subTargetGUID, out IPluginSubTargetMaterialUtils subTargetMaterialUtils);
 
-                //TODOJENNY: ask Stephane if his plugin makes s_ReimportShaderGraphDependencyOnMaterialUpdate set to true
-                //is this needed if we simply bump the importer version number on any change? this will force reimport of SG and we can ensure HDMetaData
-                if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
+            var latestVersion = k_Upgraders.Length;
+
+            //subasset not found
+            if (!assetVersion)
+            {
+                wasUpgraded = true;
+                assetVersion = ScriptableObject.CreateInstance<AssetVersion>();
+                assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
+
+                if (s_CreatedAssets.Contains(assetPath))
                 {
-                    // Check first if the HDRP shadergraph assigned needs a migration:
-                    // Here ignoreNonHDRPShaderGraphs = false is useful to not ignore non HDRP ShaderGraphs as
-                    // the detection is based on the presence of the "HDMetaData" object and old HDRP ShaderGraphs don't have these,
-                    // so we can conservatively force a re-import of any ShaderGraphs. Unity might not have reimported such ShaderGraphs
-                    // based on declared source dependencies by the ShaderGraphImporter because these might have moved / changed
-                    // for old ones. We can cover these cases here.
-                    //
-                    // Note we could also check this dependency in ReimportAllMaterials but in case a user manually re-imports a material,
-                    // (ie the OnPostprocessAllAssets call here is not generated from ReimportAllMaterials())
-                    // we would miss re-importing that dependency.
-                    if (MaterialReimporter.CheckHDShaderGraphVersionsForUpgrade("", material.shader, ignoreNonHDRPShaderGraphs: false))
+                    assetVersion.version = latestVersion;
+                    s_CreatedAssets.Remove(assetPath);
+                    if (isMaterialUsingPlugin)
                     {
-                        var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
-                        AssetDatabase.ImportAsset(shaderPath);
-
-                        // Restart the material import instead of proceeding otherwise the shadergraph will be processed after
-                        // (the above ImportAsset(shaderPath) returns before the actual re-importing taking place).
-                        AssetDatabase.ImportAsset(asset);
-                        continue;
+                        assetVersion.hdPluginSubTargetMaterialVersions.Add(subTargetGUID, subTargetMaterialUtils.latestMaterialVersion);
+                    }
+                    HDShaderUtils.ResetMaterialKeywords(material);
+                }
+                else
+                {
+                    assetVersion.version = 0;
+                    if (isMaterialUsingPlugin)
+                    {
+                        assetVersion.hdPluginSubTargetMaterialVersions.Add(subTargetGUID, (int)(PluginMaterial.GenericVersions.NeverMigrated));
                     }
                 }
 
-                if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
-                    continue;
+                AssetDatabase.AddObjectToAsset(assetVersion, assetPath);
+            }
 
+            // Upgrade
+            while (assetVersion.version < latestVersion)
+            {
+                k_Upgraders[assetVersion.version](material, id);
+                assetVersion.version++;
+                wasUpgraded = true;
+            }
 
-                void AddDiffusionProfileToSettings(string propName)
+            if (isMaterialUsingPlugin)
+            {
+                int hdPluginMaterialVersion = (int)(PluginMaterial.GenericVersions.NeverMigrated);
+
+                bool neverMigrated = (assetVersion.hdPluginSubTargetMaterialVersions.Count == 0)
+                    || (false == assetVersion.hdPluginSubTargetMaterialVersions.TryGetValue(subTargetGUID, out hdPluginMaterialVersion));
+                if (neverMigrated)
                 {
-                    if (Application.isBatchMode || HDRenderPipelineGlobalSettings.instance == null
-                        || HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList == null) return;
-
-                    bool diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Length < 15;
-                    DiffusionProfileSettings diffusionProfile = null;
-
-                    if (material.HasProperty(propName))
-                    {
-                        var diffusionProfileAsset = material.GetVector(propName);
-                        string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset);
-                        diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
-
-                        if (diffusionProfile != null && !HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
-                        {
-                            string materialName = material.name;
-                            string diffusionProfileName = diffusionProfile.name;
-
-                            if (!diffusionProfileCanBeAdded)
-                                Debug.LogWarning("There is no space in the global settings to add the diffusion profile " + diffusionProfileName);
-                            else if ((!Application.isBatchMode) &&
-                                     (EditorUtility.DisplayDialog("Diffusion Profile Import",
-                                         "A Material (" + materialName + ") is being imported with a diffusion profile (" + diffusionProfileName + ") not already added to the HDRP Global Settings.\n If the Diffusion Profile is not referenced in the global settings, HDRP cannot use it.\nDo you want to add the diffusion profile to the HDRP Global Settings asset?", "Yes", "No")))
-                            {
-                                diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(diffusionProfile);
-                            }
-                        }
-                    }
+                    assetVersion.hdPluginSubTargetMaterialVersions.Add(subTargetGUID, hdPluginMaterialVersion);
                 }
 
-                // we should have a dependency over global settings to be able to add it on asset change
-                AddDiffusionProfileToSettings("_DiffusionProfileAsset");
-
-                // Special Eye case that uses a node with diffusion profiles.
-                if (material.shader.IsShaderGraphAsset())
+                if (hdPluginMaterialVersion < subTargetMaterialUtils.latestMaterialVersion)
                 {
-                    var matProperties = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { material });
-                    for (int propIdx = 0; propIdx < matProperties.Length; ++propIdx)
+                    if (subTargetMaterialUtils.MigrateMaterial(material, hdPluginMaterialVersion)) // TODOJENNY: suggest incremental upgrade instead
                     {
-                        var attributes = material.shader.GetPropertyAttributes(propIdx);
-                        bool hasDiffusionProfileAttribute = false;
-                        foreach (var attribute in attributes)
-                        {
-                            if (attribute == "DiffusionProfile")
-                            {
-                                propIdx++;
-                                hasDiffusionProfileAttribute = true;
-                                break;
-                            }
-                        }
-
-                        var propName = ShaderUtil.GetPropertyName(material.shader, propIdx);
-                        var type = ShaderUtil.GetPropertyType(material.shader, propIdx);
-                        if (hasDiffusionProfileAttribute &&
-                            type == ShaderUtil.ShaderPropertyType.Vector)
-                        {
-                            AddDiffusionProfileToSettings(propName);
-                        }
+                        assetVersion.hdPluginSubTargetMaterialVersions[subTargetGUID] = subTargetMaterialUtils.latestMaterialVersion;
+                        wasUpgraded = true;
                     }
                 }
+            }
 
-                (HDShaderUtils.ShaderID id, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromShader(material.shader);
-                var latestVersion = k_Migrations.Length;
+            // proposal: save the list of needed diffusion profile, once import is done, ask the user if they want to add it to the Global Settings if missing
+            // this could have a preference behavior with "Always ask, Always add missing, Do nothing"
+            // TODOJENNY: discuss with Remy M. about this
+            AddDiffusionProfileToImportedMaterial(material);
 
-                bool isMaterialUsingPlugin = HDShaderUtils.GetMaterialPluginSubTarget(subTargetGUID, out IPluginSubTargetMaterialUtils subTargetMaterialUtils);
-
-                var wasUpgraded = false;
-                var assetVersions = AssetDatabase.LoadAllAssetsAtPath(asset);
-                AssetVersion assetVersion = null;
-                foreach (var subAsset in assetVersions)
-                {
-                    if (subAsset != null && subAsset.GetType() == typeof(AssetVersion))
-                    {
-                        assetVersion = subAsset as AssetVersion;
-                        break;
-                    }
-                }
-
-                //subasset not found
-                if (!assetVersion)
-                {
-                    wasUpgraded = true;
-                    assetVersion = ScriptableObject.CreateInstance<AssetVersion>();
-                    assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
-                    if (s_CreatedAssets.Contains(asset))
-                    {
-                        //just created
-                        s_CreatedAssets.Remove(asset);
-                        assetVersion.version = latestVersion;
-                        if (isMaterialUsingPlugin)
-                        {
-                            assetVersion.hdPluginSubTargetMaterialVersions.Add(subTargetGUID, subTargetMaterialUtils.latestMaterialVersion);
-                        }
-
-                        //[TODO: remove comment once fixed]
-                        //due to FB 1175514, this not work. It is being fixed though.
-                        //delayed call of the following work in some case and cause infinite loop in other cases.
-                        AssetDatabase.AddObjectToAsset(assetVersion, asset);
-
-                        // Init material in case it's used before an inspector window is opened
-                        HDShaderUtils.ResetMaterialKeywords(material);
-                    }
-                    else
-                    {
-                        //asset exist prior migration
-                        assetVersion.version = 0;
-                        if (isMaterialUsingPlugin)
-                        {
-                            assetVersion.hdPluginSubTargetMaterialVersions.Add(subTargetGUID, (int)(PluginMaterial.GenericVersions.NeverMigrated));
-                        }
-                        AssetDatabase.AddObjectToAsset(assetVersion, asset);
-                    }
-                }
-                // TODO: Maybe systematically remove from s_CreateAssets just in case
-
-                //upgrade
-                while (assetVersion.version < latestVersion)
-                {
-                    k_Migrations[assetVersion.version](material, id);
-                    assetVersion.version++;
-                    wasUpgraded = true;
-                }
-
-                if (isMaterialUsingPlugin)
-                {
-                    int hdPluginMaterialVersion = (int)(PluginMaterial.GenericVersions.NeverMigrated);
-                    bool neverMigrated = (assetVersion.hdPluginSubTargetMaterialVersions.Count == 0)
-                        || (false == assetVersion.hdPluginSubTargetMaterialVersions.TryGetValue(subTargetGUID, out hdPluginMaterialVersion));
-                    if (neverMigrated)
-                    {
-                        assetVersion.hdPluginSubTargetMaterialVersions.Add(subTargetGUID, hdPluginMaterialVersion);
-                    }
-
-                    if (hdPluginMaterialVersion < subTargetMaterialUtils.latestMaterialVersion)
-                    {
-                        if (subTargetMaterialUtils.MigrateMaterial(material, hdPluginMaterialVersion))
-                        {
-                            assetVersion.hdPluginSubTargetMaterialVersions[subTargetGUID] = subTargetMaterialUtils.latestMaterialVersion;
-                            wasUpgraded = true;
-                        }
-                    }
-                }
-
-                if (wasUpgraded)
-                {
-                    EditorUtility.SetDirty(assetVersion);
-                    s_ImportedAssetThatNeedSaving.Add(asset);
-                    s_NeedsSavingAssets = true;
-                }
+            if (wasUpgraded)
+            {
+                EditorUtility.SetDirty(assetVersion);
             }
         }
 
@@ -534,7 +517,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // So we must have migration step that work on every materials at once.
         // Which also means that if we want to update only one shader, we need
         // to bump all materials version...
-        static internal Action<Material, HDShaderUtils.ShaderID>[] k_Migrations = new Action<Material, HDShaderUtils.ShaderID>[]
+        static internal Action<Material, HDShaderUtils.ShaderID>[] k_Upgraders = new Action<Material, HDShaderUtils.ShaderID>[]
         {
             StencilRefactor,
             ZWriteForTransparent,

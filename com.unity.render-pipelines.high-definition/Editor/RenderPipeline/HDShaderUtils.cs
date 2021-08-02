@@ -121,15 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </returns>
         internal static bool GetMaterialPluginSubTarget(GUID pluginMaterialGUID, out IPluginSubTargetMaterialUtils subTargetMaterialUtils)
         {
-            try
-            {
-                k_HDPluginSubTargets.TryGetValue(pluginMaterialGUID, out subTargetMaterialUtils);
-            }
-            catch
-            {
-                subTargetMaterialUtils = null;
-            }
-            return (subTargetMaterialUtils != null);
+            return k_HDPluginSubTargets.TryGetValue(pluginMaterialGUID, out subTargetMaterialUtils);
         }
 
         internal static Dictionary<GUID, IPluginSubTargetMaterialUtils> GetHDPluginSubTargets()
