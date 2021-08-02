@@ -147,9 +147,6 @@ namespace UnityEditor.Rendering.Universal
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
 
-        StripTool<ShaderFeatures> m_ShaderFeaturesStriper = new StripTool<ShaderFeatures>();
-        StripTool<VolumeFeatures> m_VolumeFeaturesStriper = new StripTool<VolumeFeatures>();
-
         // Multiple callback may be implemented.
         // The first one executed is the one where callbackOrder is returning the smallest number.
         public int callbackOrder { get { return 0; } }
@@ -256,18 +253,18 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        class StripTool<T> where T : System.Enum
+        struct StripTool<T> where T : System.Enum
         {
-            Shader m_Shader;
             T m_Features;
+            Shader m_Shader;
             ShaderKeywordSet m_KeywordSet;
             ShaderSnippetData m_SnippetData;
             bool m_StripOffVariants;
 
-            public void Setup(T features, Shader shader, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet, bool stripOffVariants)
+            public StripTool(T features, Shader shader, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet, bool stripOffVariants)
             {
-                m_Shader = shader;
                 m_Features = features;
+                m_Shader = shader;
                 m_SnippetData = snippetData;
                 m_KeywordSet = keywordSet;
                 m_StripOffVariants = stripOffVariants;
@@ -366,7 +363,8 @@ namespace UnityEditor.Rendering.Universal
                 return true;
             }
 
-            var stripTool = m_ShaderFeaturesStriper;
+            var stripOffVariants = UniversalRenderPipelineGlobalSettings.instance?.stripOffVariants ?? true;
+            var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripOffVariants);
 
             // strip main light shadows, cascade and screen variants
             // TODO: Strip disabled keyword once no light will re-use same variant
@@ -476,9 +474,7 @@ namespace UnityEditor.Rendering.Universal
         bool StripVolumeFeatures(VolumeFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             var stripOffVariants = UniversalRenderPipelineGlobalSettings.instance?.stripOffVariants ?? true;
-            m_VolumeFeaturesStriper.Setup(features, shader, snippetData, compilerData.shaderKeywordSet, stripOffVariants);
-
-            var stripTool = m_VolumeFeaturesStriper;
+            var stripTool = new StripTool<VolumeFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripOffVariants);
 
             if (stripTool.StripMultiCompile(m_LensDistortion, VolumeFeatures.LensDistortion))
                 return true;
@@ -611,9 +607,6 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnused(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            var stripOffVariants = UniversalRenderPipelineGlobalSettings.instance?.stripOffVariants ?? true;
-            m_ShaderFeaturesStriper.Setup(features, shader, snippetData, compilerData.shaderKeywordSet, stripOffVariants);
-
             if (StripUnusedFeatures(features, shader, snippetData, compilerData))
                 return true;
 
