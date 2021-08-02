@@ -1,44 +1,36 @@
 using System.Collections.Generic;
 
-namespace UnityEditor.ShaderGraph.GraphDelta
+namespace UnityEditor.ContextLayeredDataStorage
 {
     public interface IDataElement
     {
         public bool TryGetData<T>(out T data);
-        public string ID { get; }
-
-        public IEnumerator<IDataElement> Children { get; }
-
-        public IDataElement Parent { get; }
     }
 
-    internal class ContextLayeredDataStorage
+    public class ContextLayeredDataStorage
     {
         protected class Element : IDataElement
         {
 
-            internal string m_id;
-            public string ID => m_id;
+            public string id;
 
-            internal List<Element> m_children;
-            public IEnumerator<IDataElement> Children => m_children.GetEnumerator();
+            public List<Element> children;
 
-            internal Element m_parent;
-            public IDataElement Parent => m_parent;
+            public Element parent;
 
-            internal ContextLayeredDataStorage owner;
+            public ContextLayeredDataStorage owner;
 
             internal Element(ContextLayeredDataStorage owner)
             {
-                m_id = "";
-                m_parent = null;
-                m_children = new List<Element>();
+                id = "";
+                parent = null;
+                children = new List<Element>();
                 this.owner = owner;
             }
 
             internal Element(string id, ContextLayeredDataStorage owner) : this(owner)
             {
-                m_id = id;
+                this.id = id;
             }
 
             //It is a path id if there are any '.' characters
@@ -49,8 +41,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public void AddChild(Element child)
             {
-                child.m_parent = this;
-                m_children.Add(child);
+                child.parent = this;
+                children.Add(child);
             }
 
             public void LinkElement(Element other)
@@ -71,11 +63,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 else
                 {
                     //is a path? see if it matches any children
-                    foreach (Element child in m_children)
+                    foreach (Element child in children)
                     {
-                        if (id.IndexOf(child.ID) == 0)
+                        if (id.IndexOf(child.id) == 0)
                         {
-                            return child.AddData(id.Substring(child.m_id.Length).TrimStart('.'), data);
+                            return child.AddData(id.Substring(child.id.Length).TrimStart('.'), data);
                         }
                     }
                     //otherwise, add as child with full name
@@ -97,11 +89,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 else
                 {
                     //is a path? see if it matches any children
-                    foreach (Element child in m_children)
+                    foreach (Element child in children)
                     {
-                        if (id.IndexOf(child.m_id) == 0)
+                        if (id.IndexOf(child.id) == 0)
                         {
-                            return child.AddData(id.Substring(child.m_id.Length).TrimStart('.'));
+                            return child.AddData(id.Substring(child.id.Length).TrimStart('.'));
                         }
                     }
                     //otherwise, add as child with full name
@@ -113,33 +105,33 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public void RemoveChild(Element child)
             {
-                child.m_parent = null;
-                m_children.Remove(child);
+                child.parent = null;
+                children.Remove(child);
             }
             public void Remove()
             {
-                foreach (var child in m_children)
+                foreach (var child in children)
                 {
-                    child.m_id = $"{m_id}.{child.m_id}";
-                    if (m_parent != null)
+                    child.id = $"{id}.{child.id}";
+                    if (parent != null)
                     {
                         RemoveChild(child);
-                        m_parent.AddChild(child);
+                        parent.AddChild(child);
                         break;
 
                     }
                 }
-                if (m_parent != null)
+                if (parent != null)
                 {
-                    m_parent.RemoveChild(this);
+                    parent.RemoveChild(this);
                 }
             }
 
             public void RemoveWithoutFix()
             {
-                if(m_parent != null)
+                if(parent != null)
                 {
-                    m_parent.RemoveChild(this);
+                    parent.RemoveChild(this);
                 }
             }
 
@@ -276,7 +268,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         protected void RemoveData(Element elem)
         {
-            if(elem.m_id.Length == 0 && elem.m_parent == null)
+            if(elem.id.Length == 0 && elem.parent == null)
             {
                 throw new System.ArgumentException("Cannot remove the root element of a layer", "elem");
             }
@@ -303,10 +295,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         protected Element SearchRelative(Element elem, string lookup)
         {
-            if(elem.m_children.Count > 0)
+            if(elem.children.Count > 0)
             {
                 Element output = null;
-                foreach(Element child in elem.m_children)
+                foreach(Element child in elem.children)
                 {
                     output = SearchRecurse(child, lookup);
                     if(output != null)
@@ -321,16 +313,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         //may rewrite as non recursive
         protected Element SearchRecurse(Element elem, string lookup)
         {
-            if (string.CompareOrdinal(elem.m_id, lookup) == 0)
+            if (string.CompareOrdinal(elem.id, lookup) == 0)
             {
                 return elem;
             }
 
-            if(lookup.IndexOf(elem.m_id) == 0 && elem.m_children.Count > 0)
+            if(lookup.IndexOf(elem.id) == 0 && elem.children.Count > 0)
             {
                 Element output = null;
-                string nextLookup = lookup.Substring(elem.m_id.Length).TrimStart('.');
-                foreach(Element child in elem.m_children)
+                string nextLookup = lookup.Substring(elem.id.Length).TrimStart('.');
+                foreach(Element child in elem.children)
                 {
                     output = SearchRecurse(child, nextLookup);
                     if(output != null)
@@ -345,6 +337,91 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         protected bool Contains(Element elem)
         {
             return elem.owner == this;
+        }
+
+        protected void Rebalance()
+        {
+            foreach(var layer in m_layerList)
+            {
+                Rebalance(layer.Value.element, GatherAll(layer.Value.element));
+            }
+        }
+
+        private List<Element> GatherAll(Element root)
+        {
+            List<Element> accumulator = new List<Element>();
+            foreach(var child in root.children)
+            {
+                accumulator.AddRange(GatherAll(child));
+                accumulator.Add(child);
+            }
+            return accumulator;
+        }
+
+        private void Rebalance(Element root, List<Element> elementsWithSharedRoot)
+        {
+            if (elementsWithSharedRoot.Count == 0)
+            {
+                return;
+            }
+
+
+            List<(Element potentialRoot, List<Element> potentialShared)> recurseList = new List<(Element potentialRoot, List<Element> potentialShared)>();
+
+            foreach (var element in elementsWithSharedRoot)
+            {
+                bool found = false;
+                int i;
+                for (i = 0; i < recurseList.Count; ++i)
+                {
+                    var (potentialRoot, potentialShared) = recurseList[i];
+                    if (potentialRoot.id.StartsWith(element.id) && potentialRoot.id.Substring(element.id.Length).StartsWith("."))
+                    {
+                        found = true;
+                        potentialShared.Add(potentialRoot);
+                        recurseList[i] = (element, potentialShared);
+                        break;
+                    }
+                }
+                if(found)
+                {
+                    List<(Element, List<Element>)> colapsed = new List<(Element, List<Element>)>();
+                    var (foundRoot, currentList) = recurseList[i];
+                    foreach(var (potentialRoot, potentialShared) in recurseList)
+                    {
+                        if(foundRoot != potentialRoot && potentialRoot.id.StartsWith(foundRoot.id) && potentialRoot.id.Substring(foundRoot.id.Length).StartsWith("."))
+                        {
+                            currentList.AddRange(potentialShared);
+                            currentList.Add(potentialRoot);
+                            colapsed.Add((potentialRoot, potentialShared));
+                        }
+                    }
+
+                    foreach(var c in colapsed)
+                    {
+                        recurseList.Remove(c);
+                    }
+                }
+                if (!found)
+                {
+                    recurseList.Add((element, new List<Element>()));
+                }
+            }
+
+            foreach (var (nextRoot, nextList) in recurseList)
+            {
+                if(nextRoot.parent != null)
+                {
+                    nextRoot.parent.RemoveChild(nextRoot);
+                }
+                root.AddChild(nextRoot);
+                foreach(var elem in nextList)
+                {
+                    elem.id = elem.id.Substring(nextRoot.id.Length + 1);
+                }
+                Rebalance(nextRoot, nextList);
+            }
+
         }
     }
 }

@@ -1,10 +1,9 @@
 {
-    "name": "Unity.ShaderGraph.GraphDelta.Tests",
+    "name": "Unity.ContextLayeredDataStorage.Tests",
     "rootNamespace": "",
     "references": [
-        "Unity.ShaderGraph.GraphDelta",
-        "Unity.ShaderGraph.Editor",
-        "ContextLayeredDataStorage"
+        "ContextLayeredDataStorage",
+        "Unity.ShaderGraph.Editor"
     ],
     "includePlatforms": [
         "Editor"

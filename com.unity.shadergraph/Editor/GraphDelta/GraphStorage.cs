@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
     }
 
-    internal sealed class GraphStorage : ContextLayeredDataStorage
+    internal sealed class GraphStorage : ContextLayeredDataStorage.ContextLayeredDataStorage
     {
         private class GraphReader : IDisposable, INodeReader, IPortReader, IFieldReader, IDataReader
         {
@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 if(elementReference.TryGetTarget(out Element element))
                 {
-                    return element.m_children;
+                    return element.children;
                 }
                 return null;
             }
