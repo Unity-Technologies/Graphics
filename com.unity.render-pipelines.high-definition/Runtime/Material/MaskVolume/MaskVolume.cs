@@ -408,7 +408,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public bool drawGizmos;
         public Color debugColor;
-        public int payloadIndex;
         public Vector3 size;
         [SerializeField]
         private Vector3 m_PositiveFade;
@@ -436,9 +435,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public MaskVolumeBlendMode blendMode;
         public float weight;
         public float normalBiasWS;
-
-        // public float backfaceTolerance;
-        // public int dilationIterations;
 
         public LightLayerEnum lightLayers;
 
@@ -484,7 +480,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             this.debugColor = debugColor;
             this.drawGizmos = false;
-            this.payloadIndex = -1;
             this.size = Vector3.one;
             this.m_PositiveFade = Vector3.zero;
             this.m_NegativeFade = Vector3.zero;
@@ -504,8 +499,6 @@ namespace UnityEngine.Rendering.HighDefinition
             this.blendMode = MaskVolumeBlendMode.Normal;
             this.weight = 1;
             this.normalBiasWS = 0.0f;
-            // this.dilationIterations = 2;
-            // this.backfaceTolerance = 0.25f;
             this.lightLayers = LightLayerEnum.LightLayerDefault;
         }
 
@@ -555,41 +548,6 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("Rendering/Mask Volume")]
     internal class MaskVolume : MonoBehaviour
     {
-        static List<MaskVolume> s_Volumes = null;
-
-        internal static List<MaskVolume> GetVolumes()
-        {
-            if (s_Volumes == null)
-                s_Volumes = new List<MaskVolume>();
-            return s_Volumes;
-        }
-        
-        static void RegisterVolume(MaskVolume volume)
-        {
-            var volumes = GetVolumes();
-            if (volumes.Contains(volume))
-                return;
-
-            volumes.Add(volume);
-        }
-        
-        static void DeRegisterVolume(MaskVolume volume)
-        {
-            var volumes = GetVolumes();
-            var volumeIndex = volumes.IndexOf(volume);
-            if (volumeIndex == -1)
-                return;
-
-            volumes.RemoveAt(volumeIndex);
-            ReleaseFromAtlas(volume);
-        }
-
-        static void ReleaseFromAtlas(MaskVolume volume)
-        {
-            if (RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp)
-                hdrp.ReleaseMaskVolumeFromAtlas(volume);
-        }
-        
 #if UNITY_EDITOR
         // Debugging code
         private Material m_DebugMaterial = null;
@@ -615,49 +573,19 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] internal MaskVolumeAsset maskVolumeAsset = null;
         [SerializeField] internal MaskVolumeArtistParameters parameters = new MaskVolumeArtistParameters(Color.white);
 
-        internal int GetID()
+        int GetID()
         {
             return GetInstanceID();
         }
-
-        internal MaskVolumeEngineData ConvertToEngineData()
+        
+        internal int GetAtlasID()
         {
-            MaskVolumeEngineData data = new MaskVolumeEngineData();
+            return maskVolumeAsset.instanceID;
+        }
 
-            data.weight = parameters.weight;
-            data.normalBiasWS = parameters.normalBiasWS;
-
-            data.debugColor.x = parameters.debugColor.r;
-            data.debugColor.y = parameters.debugColor.g;
-            data.debugColor.z = parameters.debugColor.b;
-
-            // Clamp to avoid NaNs.
-            Vector3 positiveFade = Vector3.Max(parameters.positiveFade, new Vector3(1e-5f, 1e-5f, 1e-5f));
-            Vector3 negativeFade = Vector3.Max(parameters.negativeFade, new Vector3(1e-5f, 1e-5f, 1e-5f));
-
-            data.rcpPosFaceFade.x = Mathf.Min(1.0f / positiveFade.x, float.MaxValue);
-            data.rcpPosFaceFade.y = Mathf.Min(1.0f / positiveFade.y, float.MaxValue);
-            data.rcpPosFaceFade.z = Mathf.Min(1.0f / positiveFade.z, float.MaxValue);
-
-            data.rcpNegFaceFade.y = Mathf.Min(1.0f / negativeFade.y, float.MaxValue);
-            data.rcpNegFaceFade.x = Mathf.Min(1.0f / negativeFade.x, float.MaxValue);
-            data.rcpNegFaceFade.z = Mathf.Min(1.0f / negativeFade.z, float.MaxValue);
-
-            data.blendMode = (int)parameters.blendMode;
-
-            float distFadeLen = Mathf.Max(parameters.distanceFadeEnd - parameters.distanceFadeStart, 0.00001526f);
-            data.rcpDistFadeLen = 1.0f / distFadeLen;
-            data.endTimesRcpDistFadeLen = parameters.distanceFadeEnd * data.rcpDistFadeLen;
-
-            data.scale = parameters.scale;
-            data.bias = parameters.bias;
-
-            data.resolution = new Vector3(maskVolumeAsset.resolutionX, maskVolumeAsset.resolutionY, maskVolumeAsset.resolutionZ);
-            data.resolutionInverse = new Vector3(1.0f / maskVolumeAsset.resolutionX, 1.0f / maskVolumeAsset.resolutionY, 1.0f / maskVolumeAsset.resolutionZ);
-
-            data.lightLayers = (uint)parameters.lightLayers;
-
-            return data;
+        internal Vector3Int GetResolution()
+        {
+            return new Vector3Int(maskVolumeAsset.resolutionX, maskVolumeAsset.resolutionY, maskVolumeAsset.resolutionZ);
         }
         
         internal MaskVolumePayload GetPayload()
@@ -697,7 +625,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Migrate();
 
-            RegisterVolume(this);
+            MaskVolumeManager.manager.RegisterVolume(this);
 
             // Signal update
             if (maskVolumeAsset)
@@ -714,12 +642,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void OnDisable()
         {
-            DeRegisterVolume(this);
+            MaskVolumeManager.manager.DeRegisterVolume(this);
         }
 
-        internal bool IsAssetCompatible()
+        internal bool IsDataAssigned()
         {
-            return maskVolumeAsset;
+            return maskVolumeAsset && maskVolumeAsset.IsDataAssigned();
         }
 
         internal bool IsAssetMatchingResolution()
@@ -830,7 +758,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                ReleaseFromAtlas(this);
+                MaskVolumeManager.manager.ReleaseVolumeFromAtlas(this);
             }
 
             maskVolumeAsset.instanceID = GetID();
