@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change BranchOnInputNode to choose NotConnected branch when generating Preview
 - Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
 - ShaderGraph SubGraphs will now report errors and warnings in a condensed single error.
+- Changed "Create Node" action in ShaderGraph stack separator context menu to "Add Block Node" and added it to main stack context menu
 
 ### Fixed
 - Fixed an issue where fog node density was incorrectly calculated.

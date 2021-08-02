@@ -416,7 +416,7 @@ namespace UnityEngine.Rendering
         {
             ProcessSettings(settings);
 
-            if (!m_Enabled && !s_ActiveInstanceDirty)
+            if (!m_Enabled || !s_ActiveInstanceDirty)
             {
                 s_ActiveInstanceDirty = false;
                 return;
@@ -512,7 +512,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Applies to the passed size the scale imposed by the dynamic resolution system.
-        /// Note: this function has the side effect of caching the last scale size.
+        /// Note: this function has the side effect of caching the last scale size, and the output is always smaller or equal then the input.
         /// </summary>
         /// <param name="size">The starting size of the render target that will be scaled by dynamic resolution.</param>
         /// <returns>The parameter size scaled by the dynamic resolution system.</returns>
@@ -526,6 +526,7 @@ namespace UnityEngine.Rendering
             }
 
             Vector2Int scaledSize = ApplyScalesOnSize(size);
+
             m_LastScaledSize = scaledSize;
             return scaledSize;
         }
@@ -550,6 +551,9 @@ namespace UnityEngine.Rendering
                 scaledSize.x += (1 & scaledSize.x);
                 scaledSize.y += (1 & scaledSize.y);
             }
+
+            scaledSize.x = Math.Min(scaledSize.x, size.x);
+            scaledSize.y = Math.Min(scaledSize.y, size.y);
 
             return scaledSize;
         }
