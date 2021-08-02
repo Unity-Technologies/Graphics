@@ -296,15 +296,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
-            {
-                ColorUtils.s_LensAttenuation = 0.65f;
-            }
-            else if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.PerfectLens)
-            {
-                ColorUtils.s_LensAttenuation = 0.78f;
-            }
-
 #if ENABLE_VIRTUALTEXTURES
             VirtualTexturingSettingsSRP settings = asset.virtualTexturingSettings;
 
@@ -1074,6 +1065,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             m_GlobalSettings.GetOrCreateDefaultVolume();
 
+            if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
+            {
+                ColorUtils.s_LensAttenuation = 0.65f;
+            }
+            else if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.PerfectLens)
+            {
+                ColorUtils.s_LensAttenuation = 0.78f;
+            }
 
             DecalSystem.instance.StartDecalUpdateJobs();
 
