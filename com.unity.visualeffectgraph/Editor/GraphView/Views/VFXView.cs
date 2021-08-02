@@ -846,19 +846,7 @@ namespace UnityEditor.VFX.UI
         {
             if (TryAttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>()))
             {
-                var box = new Box();
-                var notification = new TextElement();
-                box.Add(notification);
-                box.style.backgroundColor = new StyleColor(new Color(0.216f, 0.216f, 0.216f));
-                box.style.borderLeftColor = box.style.borderRightColor = box.style.borderTopColor = box.style.borderBottomColor = new StyleColor(new Color(0.098f, 0.098f, 0.098f));
-                box.style.position = PositionType.Absolute;
-                box.style.left = m_AttachDropDownButton.resolvedStyle.left + 0;
-                box.style.top = m_AttachDropDownButton.resolvedStyle.height + 4;
-                box.style.paddingLeft = box.style.paddingRight = box.style.paddingTop = box.style.paddingBottom = 4;
-                notification.text = $"Attached to {Selection.activeObject.name}";
-                Add(box);
-
-                System.Threading.Tasks.Task.Delay(1500).ContinueWith(x => Remove(box), TaskScheduler.FromCurrentSynchronizationContext());
+                VFXViewWindow.currentWindow.ShowNotification(new GUIContent($"Attached to {Selection.activeObject.name}"), 1.5);
             }
         }
 

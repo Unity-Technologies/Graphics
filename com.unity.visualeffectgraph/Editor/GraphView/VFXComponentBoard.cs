@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
-
+using UnityEditor.Experimental;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.SceneManagement;
 using UnityEditor.UIElements;
@@ -157,7 +157,10 @@ namespace UnityEditor.VFX.UI
             contentContainer.AddStyleSheetPath("VFXComponentBoard");
 
             m_RootElement = this.Query<VisualElement>("component-container");
+            m_SubtitleIcon = this.Query<Image>("subTitle-icon");
             m_Subtitle = this.Query<Label>("subTitleLabel");
+            m_SubtitleIcon.image = EditorGUIUtility.LoadIcon(EditorResources.iconsPath + "console.warnicon.sml.png");
+
             m_Stop = this.Query<Button>("stop");
             m_Stop.clickable.clicked += EffectStop;
             m_Play = this.Query<Button>("play");
@@ -479,7 +482,8 @@ namespace UnityEditor.VFX.UI
         public void Detach()
         {
             m_RootElement.SetEnabled(false);
-            m_Subtitle.text = string.Empty;
+            m_Subtitle.text = "Attach a gameobject to control this VFX";
+            m_SubtitleIcon.style.display = DisplayStyle.Flex;
 
             if (m_AttachedComponent != null)
             {
@@ -547,6 +551,7 @@ namespace UnityEditor.VFX.UI
                 m_DebugUI.SetDebugMode(debugMode, this, true);
 
                 m_RootElement.SetEnabled(true);
+                m_SubtitleIcon.style.display = DisplayStyle.None;
                 UpdateBoundsRecorder();
                 UpdateRecordingButton();
                 RefreshInitializeErrors();
@@ -648,6 +653,7 @@ namespace UnityEditor.VFX.UI
         VisualElement m_RootElement;
 
         Label m_Subtitle;
+        Image m_SubtitleIcon;
         Button m_Stop;
         Button m_Play;
         Button m_Step;

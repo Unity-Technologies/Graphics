@@ -324,8 +324,6 @@ VFXComponentBoardEventUI .unity-button, #on-play-button, #on-stop-button,#attach
         width: 16px;
 }
 
-
-
 VFXComponentBoardEventUI
 {
     flex-direction:row;
@@ -334,4 +332,17 @@ VFXComponentBoardEventUI
 VFXComponentBoardEventUI #event-name
 {
     flex:1;
+}
+
+#subtitle
+{
+    flex-direction:row;
+    flex:1 0 auto;
+    align-items:center;
+}
+
+#subTitleLabel
+{
+    height: 16;
+    -unity-text-align: lower-left;
 }
