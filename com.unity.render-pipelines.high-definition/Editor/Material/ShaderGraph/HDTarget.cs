@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         Custom
     }
 
-    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget, IMaySupportVFX, IRequireVFXContext
+    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget, IMaySupportVFX, IRequireVFXContext, IMaySupportTerrain
     {
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("61d9843d4027e3e4a924953135f76f3c"); // HDTarget.cs
@@ -129,8 +129,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Override EditorGUI (replaces the HDRP material editor by a custom one)
             if (!string.IsNullOrEmpty(m_CustomEditorGUI))
                 context.AddCustomEditorForRenderPipeline(m_CustomEditorGUI, typeof(HDRenderPipelineAsset));
-            else if (SupportsTerrain())
-                context.AddCustomEditorForRenderPipeline("UnityEditor.Rendering.HighDefinition.TerrainGUI", typeof(HDRenderPipelineAsset));
 
 
             // Setup the active SubTarget
@@ -397,7 +395,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return m_SupportVFX;
         }
 
-        public bool SupportsTerrain()
+        public override bool TargetsTerrain()
         {
             if (m_ActiveSubTarget.value == null)
                 return false;
@@ -817,7 +815,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #region Pragmas
     static class CorePragmas
     {
-        public static readonly PragmaDescriptor TerrainInstancingOptions = new PragmaDescriptor { value = $"instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap" };
         // We will always select Basic, BasicVFX or BasicTessellation - added in PostProcessSubShader
         public static PragmaCollection Basic = new PragmaCollection
         {
@@ -904,15 +901,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static KeywordCollection RaytracingVisiblity = new KeywordCollection
         {
             { CoreKeywordDescriptors.TransparentColorShadow },
-        };
-
-        public static KeywordCollection Terrain = new KeywordCollection
-        {
-            { TerrainKeywordDescriptors.BlendHeight},
-            { TerrainKeywordDescriptors.InstancedPerPixelNormal},
-            { TerrainKeywordDescriptors.MaskMap},
-            { TerrainKeywordDescriptors.NormalMap},
-            { TerrainKeywordDescriptors.Terrain8Layers},
         };
     }
     #endregion
@@ -1117,49 +1105,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #endregion
 
     #region KeywordDescriptors
-    static class TerrainKeywordDescriptors
-    {
-        public static KeywordDescriptor Terrain8Layers = new KeywordDescriptor()
-        {
-            displayName = "Terrain 8 Layers",
-            referenceName = "_TERRAIN_8_LAYERS",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
-        };
-        public static KeywordDescriptor NormalMap = new KeywordDescriptor()
-        {
-            displayName = "Terrain Has Normal Map",
-            referenceName = "_NORMALMAP",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
-        };
-        public static KeywordDescriptor MaskMap = new KeywordDescriptor()
-        {
-            displayName = "Terrain Has Mask Map",
-            referenceName = "_MASKMAP",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
-        };
-        public static KeywordDescriptor BlendHeight = new KeywordDescriptor()
-        {
-            displayName = "Terrain Blend Height",
-            referenceName = "_TERRAIN_BLEND_HEIGHT",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
-        };
-        public static KeywordDescriptor InstancedPerPixelNormal = new KeywordDescriptor()
-        {
-            displayName = "Terrain Instanced Per Pixel Normal",
-            referenceName = "_TERRAIN_INSTANCED_PERPIXEL_NORMAL",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
-        };
-    }
 
     static class CoreKeywordDescriptors
     {
@@ -1632,6 +1577,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor Terrain8Layers = new KeywordDescriptor()
+        {
+            displayName = "Terrain 8 Layers",
+            referenceName = "_TERRAIN_8_LAYERS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor SurfaceGradient = new KeywordDescriptor()
+        {
+            displayName = "Surface Gradient",
+            referenceName = "SURFACE_GRADIENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Local,
         };
     }
     #endregion

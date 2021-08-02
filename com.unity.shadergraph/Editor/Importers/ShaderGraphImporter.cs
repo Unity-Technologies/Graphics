@@ -108,6 +108,48 @@ Shader ""Hidden/GraphErrorShader2""
             }
         }
 
+        private Shader CreateShader(AssetImportContext ctx, string text, bool compileInitialVariants)
+        {
+            Shader shader = null;
+#if UNITY_2021_1_OR_NEWER
+            // 2021.1 or later is guaranteed to have the new version of this function
+            shader = ShaderUtil.CreateShaderAsset(ctx, text, compileInitialVariants);
+#else
+            // earlier builds of Unity may or may not have it
+            // here we try to invoke the new version via reflection
+            var createShaderAssetMethod = typeof(ShaderUtil).GetMethod(
+                "CreateShaderAsset",
+                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.ExactBinding,
+                null,
+                new Type[] { typeof(AssetImportContext), typeof(string), typeof(bool) },
+                null);
+
+            if (createShaderAssetMethod != null)
+            {
+                shader = createShaderAssetMethod.Invoke(null, new Object[] { ctx, text, compileInitialVariants }) as Shader;
+            }
+            else
+            {
+                // method doesn't exist in this version of Unity, call old version
+                // this doesn't create dependencies properly, but is the best that we can do
+                shader = ShaderUtil.CreateShaderAsset(text, compileInitialVariants);
+            }
+#endif
+            return shader;
+        }
+
+        private void SetupShaderTextureDefaults(Shader shader, List<PropertyCollector.TextureInfo> configuredTextures)
+        {
+            EditorMaterialUtility.SetShaderDefaults(
+                shader,
+                configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
+                configuredTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+            EditorMaterialUtility.SetShaderNonModifiableDefaults(
+                shader,
+                configuredTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
+                configuredTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+        }
+
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
@@ -138,41 +180,31 @@ Shader ""Hidden/GraphErrorShader2""
                 // this will also add Target dependencies into the asset collection
                 var text = GetShaderText(path, out configuredTextures, assetCollection, graph);
 
-#if UNITY_2021_1_OR_NEWER
-                // 2021.1 or later is guaranteed to have the new version of this function
-                shader = ShaderUtil.CreateShaderAsset(ctx, text, false);
-#else
-                // earlier builds of Unity may or may not have it
-                // here we try to invoke the new version via reflection
-                var createShaderAssetMethod = typeof(ShaderUtil).GetMethod(
-                    "CreateShaderAsset",
-                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.ExactBinding,
-                    null,
-                    new Type[] { typeof(AssetImportContext), typeof(string), typeof(bool) },
-                    null);
-
-                if (createShaderAssetMethod != null)
-                {
-                    shader = createShaderAssetMethod.Invoke(null, new Object[] { ctx, text, false }) as Shader;
-                }
-                else
-                {
-                    // method doesn't exist in this version of Unity, call old version
-                    // this doesn't create dependencies properly, but is the best that we can do
-                    shader = ShaderUtil.CreateShaderAsset(text, false);
-                }
-#endif
+                shader = CreateShader(ctx, text, false);
 
                 ReportErrors(graph, shader, path);
 
-                EditorMaterialUtility.SetShaderDefaults(
-                    shader,
-                    configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
-                    configuredTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
-                EditorMaterialUtility.SetShaderNonModifiableDefaults(
-                    shader,
-                    configuredTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
-                    configuredTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+                SetupShaderTextureDefaults(shader, configuredTextures);
+
+                if (graph.hasTerrainTarget) // TODO: Do this generically, not just for terrain.
+                                            // "take all the subshaders, and group them by ShaderID, then generate one shader per ShaderID it finds"
+                {
+                    // Generate
+                    configuredTextures.Clear();
+                    var basemapGenText = GetShaderText(path, out configuredTextures, assetCollection, graph, shaderIdx: (int)TerrainSubTarget.TerrainShaders.BasemapGen);
+
+                    // Output separate file for debug
+                    //string bmgPath = "Assets/BasemapGen.shader";
+                    //string fullPath = Path.GetFullPath(bmgPath);
+                    //File.WriteAllText(fullPath, basemapGenText);
+                    //AssetDatabase.ImportAsset(bmgPath);
+
+                    // Add to shadergraph file as subasset
+                    Shader basemapGenShader = CreateShader(ctx, basemapGenText, false);
+                    ReportErrors(graph, basemapGenShader, path);
+                    SetupShaderTextureDefaults(basemapGenShader, configuredTextures);
+                    ctx.AddObjectToAsset("Basemap Gen Shader", basemapGenShader);
+                }
             }
 
             UnityEngine.Object mainObject = shader;
@@ -361,7 +393,7 @@ Shader ""Hidden/GraphErrorShader2""
                 Debug.LogWarning($"Shader Graph at {path} has at least one warning.");
         }
 
-        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph, GenerationMode mode = GenerationMode.ForReals, Target[] targets = null)
+        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph, GenerationMode mode = GenerationMode.ForReals, Target[] targets = null, int shaderIdx = 0)
         {
             string shaderString = null;
             var shaderName = Path.GetFileNameWithoutExtension(path);
@@ -372,9 +404,9 @@ Shader ""Hidden/GraphErrorShader2""
 
                 Generator generator;
                 if (targets != null)
-                    generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection, targets);
+                    generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection, targets, shaderIdx);
                 else
-                    generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection);
+                    generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection, shaderIdx);
 
                 shaderString = generator.generatedShader;
                 configuredTextures = generator.configuredTextures;

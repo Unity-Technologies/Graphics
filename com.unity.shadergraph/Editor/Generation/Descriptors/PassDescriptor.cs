@@ -7,6 +7,7 @@ namespace UnityEditor.ShaderGraph
         public string displayName;
         public string referenceName;
         public string lightMode;
+        public string tags;
         public bool useInPreview;
         public bool virtualTextureFeedback;
 

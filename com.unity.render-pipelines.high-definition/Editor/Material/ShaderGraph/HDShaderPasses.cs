@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 pragmas.Add(useTessellation ? CorePragmas.BasicTessellation : CorePragmas.Basic);
                 if (useTerrain)
-                    pragmas.Add(CorePragmas.TerrainInstancingOptions);
+                    pragmas.Add(TerrainSubTarget.InstancingOptions);
             }
 
             return pragmas;

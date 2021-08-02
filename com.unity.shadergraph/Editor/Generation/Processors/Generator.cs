@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph
         GraphData m_GraphData;
         AbstractMaterialNode m_OutputNode;
         Target[] m_Targets;
+        int m_ShaderIdx = 0;
         List<BlockNode> m_ActiveBlocks;
         List<BlockNode> m_TemporaryBlocks;
         GenerationMode m_Mode;
@@ -32,24 +33,28 @@ namespace UnityEditor.ShaderGraph
         public List<PropertyCollector.TextureInfo> configuredTextures => m_ConfiguredTextures;
         public List<BlockNode> temporaryBlocks => m_TemporaryBlocks;
 
-        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection)
+        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, int shaderIdx = 0)
         {
             m_GraphData  = graphData;
             m_OutputNode = outputNode;
-            Generate(mode, name, assetCollection, GetTargetImplementations());
+            Generate(mode, name, assetCollection, GetTargetImplementations(), shaderIdx);
         }
 
-        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets)
+        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets, int shaderIdx = 0)
         {
             m_GraphData  = graphData;
             m_OutputNode = outputNode;
-            Generate(mode, name, assetCollection, targets);
+            Generate(mode, name, assetCollection, targets, shaderIdx);
         }
 
-        void Generate(GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets)
+        void Generate(GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets, int shaderIdx = 0)
         {
+            if (targets.Length > 0 && targets[0].TargetsTerrain())
+                name = TerrainSubTarget.GetTerrainShaderName(name, (TerrainSubTarget.TerrainShaders)shaderIdx);
+
             m_Mode = mode;
             m_Name = name;
+            m_ShaderIdx = shaderIdx;
 
             m_Builder = new ShaderStringBuilder();
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
@@ -214,7 +219,13 @@ namespace UnityEditor.ShaderGraph
 
                     foreach (var depShader in context.shaderDependencies)
                     {
-                        m_Builder.AppendLine($"Dependency \"{depShader.dependencyName}\" = \"{depShader.shaderName}\"");
+                        if (m_ShaderIdx == 0)
+                        {
+                            string shaderName = depShader.shaderName;
+                            if (shaderName == "" && m_Targets[i].TargetsTerrain())
+                                shaderName = TerrainSubTarget.GetTerrainShaderName(m_Name, depShader.dependencyName);
+                            m_Builder.AppendLine($"Dependency \"{depShader.dependencyName}\" = \"{shaderName}\"");
+                        }
                     }
 
                     foreach (var rpCustomEditor in context.customEditorForRenderPipelines)
@@ -238,6 +249,10 @@ namespace UnityEditor.ShaderGraph
 
             // Early out of preview generation if no passes are used in preview
             if (m_Mode == GenerationMode.Preview && descriptor.generatesPreview == false)
+                return;
+
+            // Early out if we're currently building a shader that doesn't use this subshader
+            if (m_ShaderIdx != descriptor.shaderId)
                 return;
 
             m_Builder.AppendLine("SubShader");
@@ -536,6 +551,11 @@ namespace UnityEditor.ShaderGraph
             else
             {
                 spliceCommands.Add("LightMode", "// LightMode: <None>");
+            }
+
+            if (!string.IsNullOrEmpty(pass.tags))
+            {
+                spliceCommands.Add("CustomTags", pass.tags);
             }
 
             // --------------------------------------------------

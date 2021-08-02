@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph
         internal virtual bool ignoreCustomInterpolators => true;
         internal virtual int padCustomInterpolatorLimit => 4;
         internal virtual bool prefersSpritePreview => false;
+        public virtual bool TargetsTerrain() { return false; }
         public abstract bool IsActive();
         public abstract void Setup(ref TargetSetupContext context);
         public abstract void GetFields(ref TargetFieldContext context);

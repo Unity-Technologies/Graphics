@@ -12,5 +12,6 @@ namespace UnityEditor.ShaderGraph
         public bool generatesPreview;
         public PassCollection passes;
         public List<string> usePasses;
+        public int shaderId;
     }
 }

@@ -46,11 +46,33 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         static readonly GUID kSourceCodeGuid = new GUID("f4df7e8f9b8c23648ae50cbca0221e47"); // SurfaceSubTarget.cs
-        static string kTerrainTags = " \"TerrainCompatible\" = \"True\"";
+        public SubShaderDescriptor GetHDBasemapGenSubShader()
+        {
+            SubShaderDescriptor ret = TerrainSubTarget.GetBaseMapGenSubShader();
+
+            var passes = ret.passes.ToArray();
+            PassCollection finalPasses = new PassCollection();
+            for (int i = 0; i < passes.Length; i++)
+            {
+                var passDescriptor = passes[i].descriptor;
+                PostProcessTerrainPass(ref passDescriptor);
+                passDescriptor.passTemplatePath = HDTerrainSubTarget.kTerrainBasemapGenTemplate;
+                finalPasses.Add(passDescriptor, passes[i].fieldConditions);
+            }
+            ret.passes = finalPasses;
+            return ret;
+        }
 
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+            if (TargetsTerrain())
+            {
+                context.AddShaderDependency(TerrainSubTarget.GetDependencyName(TerrainSubTarget.TerrainShaders.BasemapGen), "");
+            }
+            var inspector = TargetsTerrain() ? HDTerrainSubTarget.kTerrainGUI : customInspector;
+            if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))
+                context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
             base.Setup(ref context);
         }
 
@@ -58,8 +80,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             yield return PostProcessSubShader(GetSubShaderDescriptor());
 
+            if (TargetsTerrain())
+            {
+                yield return PostProcessSubShader(TerrainSubTarget.GetBaseMapGenSubShader());
+            }
+
             // Always omit DXR SubShader for VFX until DXR support is added.
-            if (!TargetsVFX())
+            if (!TargetsVFX() && !TargetsTerrain())
             {
                 if (supportRaytracing || supportPathtracing)
                     yield return PostProcessSubShader(GetRaytracingSubShaderDescriptor());
@@ -72,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 generatesPreview = true,
                 passes = GetPasses(),
-                customTags = TargetsTerrain() ? kTerrainTags : "",
+                customTags = TargetsTerrain() ? TerrainSubTarget.kTerrainTag : "",
             };
 
             PassCollection GetPasses()
@@ -184,9 +211,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 pass.keywords.Add(CoreKeywordDescriptors.TessellationMode);
             }
-
-            if (TargetsTerrain())
-                pass.keywords.Add(CoreKeywords.Terrain);
         }
 
         public override void GetFields(ref TargetFieldContext context)

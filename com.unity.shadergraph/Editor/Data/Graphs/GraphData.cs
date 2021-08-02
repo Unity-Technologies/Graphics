@@ -567,6 +567,18 @@ namespace UnityEditor.ShaderGraph
         public bool isVFXTarget => false;
         public bool isOnlyVFXTarget => false;
 #endif
+
+        public bool hasTerrainTarget
+        {
+            get
+            {
+                bool supports = true;
+                supports &= !isSubGraph;
+                supports &= activeTargets.Any();
+                supports &= activeTargets.Any(o => o.SupportsTerrain());
+                return supports;
+            }
+        }
         #endregion
 
         public GraphData()

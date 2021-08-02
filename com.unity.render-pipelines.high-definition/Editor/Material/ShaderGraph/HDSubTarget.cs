@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected VFXContext m_ContextVFX = null;
         protected VFXContextCompiledData m_ContextDataVFX;
         protected bool TargetsVFX() => m_ContextVFX != null;
-        protected bool TargetsTerrain() => target.SupportsTerrain();
+        protected bool TargetsTerrain() => target.TargetsTerrain();
 
         protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
 
@@ -131,6 +131,26 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
+        internal static class HDTerrainSubTarget
+        {
+            public static readonly string kTerrainGUI = "UnityEditor.Rendering.HighDefinition.TerrainGUI";
+            public static readonly string kTerrainBasemapGenTemplate = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/Terrain/BasemapGenShaderPass.template";
+        }
+        internal void PostProcessTerrainPass(ref PassDescriptor pd, int shaderIdx = 0)
+        {
+            if (TargetsTerrain())
+            {
+                pd.keywords.Add(CoreKeywordDescriptors.Terrain8Layers);
+                pd.defines.Add(new DefineCollection { { CoreKeywordDescriptors.SurfaceGradient, 1 } });
+                if (shaderIdx == 0)
+                    pd.keywords.Add(TerrainSubTarget.Keywords.MainKeywords);
+                else
+                {
+                    pd.passTemplatePath = HDTerrainSubTarget.kTerrainBasemapGenTemplate;
+                }
+            }
+        }
+
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
             if (TargetsVFX())
@@ -193,6 +213,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 CollectPassKeywords(ref passDescriptor);
 
+                PostProcessTerrainPass(ref passDescriptor, subShaderDescriptor.shaderId);
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
