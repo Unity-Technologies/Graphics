@@ -62,6 +62,27 @@ namespace UnityEditor.ShaderGraph.Registry
             return nodeWriter;
         }
 
+        public static GraphDelta.INodeWriter AddNode(this GraphDelta.IGraphHandler handler, RegistryKey key, string name, IRegistry registry)
+        {
+            var nodeWriter = handler.AddNode(name);
+            var nodeReader = handler.GetNode(name);
+            var builder = registry.GetBuilder(key);
+
+            builder.BuildNode(nodeReader, nodeWriter, registry);
+            nodeWriter.TryAddField<RegistryKey>(kRegistryKeyName, out var fieldWriter);
+            fieldWriter.TryWriteData(key);
+
+            // Type nodes by default should have an output port of their own type.
+            if (builder.GetRegistryFlags() == RegistryFlags.IsType)
+            {
+                nodeWriter.TryAddPort(name, false, true, out var portWriter);
+                portWriter.TryAddField<RegistryKey>(kRegistryKeyName, out var portFieldWriter);
+                portFieldWriter.TryWriteData(key);
+            }
+
+            return nodeWriter;
+        }
+
         public static GraphDelta.IPortWriter AddPort<T>(this GraphDelta.INodeWriter nodeWriter, string name, bool isInput, bool isHorz, IRegistry registry) where T : INodeDefinitionBuilder
         {
             nodeWriter.TryAddPort(name, isInput, isHorz, out var portWriter);
