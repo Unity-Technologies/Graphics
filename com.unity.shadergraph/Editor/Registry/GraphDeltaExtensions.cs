@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Registry
             // Type nodes by default should have an output port of their own type.
             if (builder.GetRegistryFlags() == RegistryFlags.IsType)
             {
-                nodeWriter.TryAddPort(name, false, true, out var portWriter);
+                nodeWriter.TryAddPort("Out", false, true, out var portWriter);
                 portWriter.TryAddField<RegistryKey>(kRegistryKeyName, out var portFieldWriter);
                 portFieldWriter.TryWriteData(key);
             }

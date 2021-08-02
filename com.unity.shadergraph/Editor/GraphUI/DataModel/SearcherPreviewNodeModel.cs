@@ -7,20 +7,14 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     /// <summary>
-    /// A RegistryNodeModel is a NodeModel whose topology is determined by looking up a key in the ShaderGraph
-    /// Registry.
+    /// PreviewNodeModel is backed by a registry key, but not graph data. It's only used for previews, and shouldn't
+    /// exist on the graph.
     /// </summary>
-    public class RegistryNodeModel : NodeModel
+    public class SearcherPreviewNodeModel : NodeModel
     {
         [SerializeField]
         RegistryKey m_RegistryKey;
 
-        /// <summary>
-        /// The registry key used to look up this node's topology. Must be set before DefineNode is called.
-        ///
-        /// RegistryNodeSearcherItem sets this in an initialization callback, and the extension method
-        /// GraphModel.CreateRegistryNode also handles assigning it.
-        /// </summary>
         public RegistryKey registryKey
         {
             get => m_RegistryKey;
