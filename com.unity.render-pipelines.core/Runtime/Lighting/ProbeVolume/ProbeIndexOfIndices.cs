@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering
     internal class ProbeCellIndices
     {
         const int kUintPerEntry = 3;
+        internal int estimatedVMemCost { get; private set; }
 
         internal struct IndexMetaData
         {
@@ -19,7 +20,6 @@ namespace UnityEngine.Experimental.Rendering
             internal Vector3Int maxLocalIdx;
             internal int firstChunkIndex;
             internal int minSubdiv;
-
 
             internal void Pack(out uint[] vals)
             {
@@ -86,6 +86,7 @@ namespace UnityEngine.Experimental.Rendering
             m_IndexOfIndicesBuffer = new ComputeBuffer(flatCellCount, kUintPerEntry * sizeof(uint));
             m_IndexOfIndicesData = new uint[bufferSize];
             m_NeedUpdateComputeBuffer = false;
+            estimatedVMemCost = flatCellCount * kUintPerEntry * sizeof(uint);
         }
 
         internal int GetFlatIdxForCell(Vector3Int cellPosition)

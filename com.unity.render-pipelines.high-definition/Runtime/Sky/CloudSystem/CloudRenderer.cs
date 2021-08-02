@@ -45,9 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// HDRP calls this function once every frame where GetSunLightCookieParameters returns true.
         /// Implement it if your CloudRenderer needs to render a texture to use for the light cookie (for example for cloud shadow rendering).
         /// </summary>
-        /// <param name="settings">Current cloud settings.</param>
-        /// <param name="sunLight">The main directional light of the scene.</param>
-        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="builtinParams">Engine parameters that you can use to render the sun light cookie.</param>
         public virtual void RenderSunLightCookie(BuiltinSunCookieParameters builtinParams) {}
 
         /// <summary>
