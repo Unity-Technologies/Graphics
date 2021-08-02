@@ -229,39 +229,35 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._MaskVolumeAtlasSH, TextureXR.GetBlackTexture3D());
         }
 
-        internal void ReleaseMaskVolumeFromAtlas(MaskVolume volume)
+        internal void ReleaseMaskVolumeFromAtlas(MaskVolumeHandle volume)
         {
             if (!m_SupportMaskVolume)
                 return;
 
-            int key = volume.GetID();
+            int key = volume.GetAtlasID();
 
             maskVolumeAtlas.ReleaseTextureSlot(key);
         }
 
-        internal bool EnsureMaskVolumeInAtlas(ScriptableRenderContext renderContext, CommandBuffer cmd, MaskVolume volume)
+        internal bool EnsureMaskVolumeInAtlas(ScriptableRenderContext renderContext, CommandBuffer cmd, MaskVolumeHandle volume)
         {
-            int key = volume.GetID();
-            int width = volume.maskVolumeAsset.resolutionX;
-            int height = volume.maskVolumeAsset.resolutionY;
-            int depth = volume.maskVolumeAsset.resolutionZ;
+            int key = volume.GetAtlasID();
+            var resolution = volume.GetResolution();
 
-            int size = width * height * depth;
+            int size = resolution.x * resolution.y * resolution.z;
             Debug.Assert(size > 0, "MaskVolume: Encountered mask volume with resolution set to zero on all three axes.");
 
             // TODO: Store volume resolution inside the atlas's key->bias dictionary.
             // If resolution has changed since upload, need to free previous allocation from atlas,
             // and attempt to allocate a new chunk from the atlas for the new resolution settings.
             // Currently atlas allocator only handles splitting. Need to add merging of neighboring, empty chunks to avoid fragmentation.
-            bool isSlotAllocated = maskVolumeAtlas.EnsureTextureSlot(out bool isUploadNeeded, out volume.parameters.scale, out volume.parameters.bias, key, width, height, depth);
+            bool isSlotAllocated = maskVolumeAtlas.EnsureTextureSlot(out bool isUploadNeeded, out volume.parameters.scale, out volume.parameters.bias, key, resolution.x, resolution.y, resolution.z);
 
             if (isSlotAllocated)
             {
-                if (isUploadNeeded || volume.dataUpdated)
+                if (isUploadNeeded || volume.IsDataUpdated())
                 {
-                    MaskVolumePayload payload = volume.GetPayload();
-
-                    if (MaskVolumePayload.IsEmpty(ref payload))
+                    if (!volume.IsDataAssigned())
                     {
                         ReleaseMaskVolumeFromAtlas(volume);
                         return false;
@@ -269,7 +265,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     int sizeSHCoefficientsL0 = size * MaskVolumePayload.GetDataSHL0Stride();
 
-                    Debug.AssertFormat(payload.dataSHL0.Length == sizeSHCoefficientsL0, "MaskVolume: The mask volume data and its resolution are out of sync! Volume data length is {0}, but resolution * SH stride size is {1}.", payload.dataSHL0.Length, sizeSHCoefficientsL0);
+                    Debug.AssertFormat(volume.DataSHL0Length == sizeSHCoefficientsL0, "MaskVolume: The mask volume data and its resolution are out of sync! Volume data length is {0}, but resolution * SH stride size is {1}.", volume.DataSHL0Length, sizeSHCoefficientsL0);
 
                     if (size > s_MaxMaskVolumeMaskCount)
                     {
@@ -277,15 +273,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         return false;
                     }
 
-                    cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeResolution, new Vector3(
-                        width,
-                        height,
-                        depth
-                    ));
+                    cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeResolution, (Vector3)resolution);
                     cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeResolutionInverse, new Vector3(
-                        1.0f / (float)width,
-                        1.0f / (float)height,
-                        1.0f / (float)depth
+                        1.0f / resolution.x,
+                        1.0f / resolution.y,
+                        1.0f / resolution.z
                     ));
                     cmd.SetComputeVectorParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasScale,
                         volume.parameters.scale
@@ -306,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         1.0f
                     ));
 
-                    s_MaskVolumeAtlasBlitDataSHL0Buffer.SetData(payload.dataSHL0);
+                    volume.SetDataSHL0(s_MaskVolumeAtlasBlitDataSHL0Buffer);
                     cmd.SetComputeIntParam(s_MaskVolumeAtlasBlitCS, HDShaderIDs._MaskVolumeAtlasReadBufferCount, size);
                     cmd.SetComputeBufferParam(s_MaskVolumeAtlasBlitCS, s_MaskVolumeAtlasBlitKernel, HDShaderIDs._MaskVolumeAtlasReadSHL0Buffer, s_MaskVolumeAtlasBlitDataSHL0Buffer);
                     cmd.SetComputeTextureParam(s_MaskVolumeAtlasBlitCS, s_MaskVolumeAtlasBlitKernel, HDShaderIDs._MaskVolumeAtlasWriteTextureSH, m_MaskVolumeAtlasSHRTHandle);
@@ -323,7 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!isSlotAllocated)
             {
-                Debug.LogWarningFormat("MaskVolume: Texture Atlas failed to allocate space for texture { key: {0}, width: {1}, height: {2}, depth: {3} }", key, width, height, depth);
+                Debug.LogWarningFormat("MaskVolume: Texture Atlas failed to allocate space for texture (key: {0}, width: {1}, height: {2}, depth: {3})", key, resolution.x, resolution.y, resolution.z);
             }
 
             return false;
@@ -374,7 +366,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleMaskVolumeData.Clear();
 
                 // Collect all visible finite volume data, and upload it to the GPU.
-                List<MaskVolume> volumes = MaskVolume.GetVolumes();
+                List<MaskVolumeHandle> volumes = MaskVolumeManager.manager.CollectVolumesToRender();
 
                 int maskVolumesCount = Math.Min(volumes.Count, k_MaxVisibleMaskVolumeCount);
                 int sortCount = 0;
@@ -384,9 +376,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // See LightLoop.cs::PrepareLightsForGPU() for original example of this.
                 for (int maskVolumesIndex = 0; (maskVolumesIndex < volumes.Count) && (sortCount < maskVolumesCount); maskVolumesIndex++)
                 {
-                    MaskVolume volume = volumes[maskVolumesIndex];
+                    MaskVolumeHandle volume = volumes[maskVolumesIndex];
 
-                    if (volume.maskVolumeAsset == null || !volume.maskVolumeAsset.IsDataAssigned())
+                    if (!volume.IsDataAssigned())
                         continue;
 
                     /*
@@ -397,7 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     */
 
-                    float maskVolumeDepthFromCameraWS = Vector3.Dot(hdCamera.camera.transform.forward, volume.transform.position - camPosition);
+                    float maskVolumeDepthFromCameraWS = Vector3.Dot(hdCamera.camera.transform.forward, volume.position - camPosition);
                     if (maskVolumeDepthFromCameraWS >= volume.parameters.distanceFadeEnd)
                     {
                         // Mask volume is completely faded out from distance fade optimization.
@@ -406,7 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // TODO: cache these?
-                    var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
+                    var obb = new OrientedBBox(Matrix4x4.TRS(volume.position, volume.rotation, volume.parameters.size));
 
                     // Handle camera-relative rendering.
                     obb.center -= camOffset;
@@ -429,16 +421,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     int maskVolumesIndex;
                     UnpackMaskVolumeSortKey(sortKey, out maskVolumesIndex);
 
-                    MaskVolume volume = volumes[maskVolumesIndex];
+                    MaskVolumeHandle volume = volumes[maskVolumesIndex];
 
                     // TODO: cache these?
-                    var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
+                    var obb = new OrientedBBox(Matrix4x4.TRS(volume.position, volume.rotation, volume.parameters.size));
 
                     // Handle camera-relative rendering.
                     obb.center -= camOffset;
 
                     // TODO: cache these?
-                    var data = volume.ConvertToEngineData();
+                    var resolution = volume.GetResolution();
+                    var data = ConvertToEngineData(volume.parameters, resolution);
 
                     m_VisibleMaskVolumeBounds.Add(obb);
                     m_VisibleMaskVolumeData.Add(data);
@@ -464,7 +457,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     int maskVolumesIndex;
                     UnpackMaskVolumeSortKey(sortKey, out maskVolumesIndex);
 
-                    MaskVolume volume = volumes[maskVolumesIndex];
+                    MaskVolumeHandle volume = volumes[maskVolumesIndex];
 
                     if (volumeUploadedToAtlasSHCount < volumeUploadedToAtlasSHCapacity)
                     {
@@ -482,6 +475,46 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 return;
             }
+        }
+        
+        MaskVolumeEngineData ConvertToEngineData(MaskVolumeArtistParameters parameters, Vector3Int resolution)
+        {
+            MaskVolumeEngineData data = new MaskVolumeEngineData();
+
+            data.weight = parameters.weight;
+            data.normalBiasWS = parameters.normalBiasWS;
+
+            data.debugColor.x = parameters.debugColor.r;
+            data.debugColor.y = parameters.debugColor.g;
+            data.debugColor.z = parameters.debugColor.b;
+
+            // Clamp to avoid NaNs.
+            Vector3 positiveFade = Vector3.Max(parameters.positiveFade, new Vector3(1e-5f, 1e-5f, 1e-5f));
+            Vector3 negativeFade = Vector3.Max(parameters.negativeFade, new Vector3(1e-5f, 1e-5f, 1e-5f));
+
+            data.rcpPosFaceFade.x = Mathf.Min(1.0f / positiveFade.x, float.MaxValue);
+            data.rcpPosFaceFade.y = Mathf.Min(1.0f / positiveFade.y, float.MaxValue);
+            data.rcpPosFaceFade.z = Mathf.Min(1.0f / positiveFade.z, float.MaxValue);
+
+            data.rcpNegFaceFade.y = Mathf.Min(1.0f / negativeFade.y, float.MaxValue);
+            data.rcpNegFaceFade.x = Mathf.Min(1.0f / negativeFade.x, float.MaxValue);
+            data.rcpNegFaceFade.z = Mathf.Min(1.0f / negativeFade.z, float.MaxValue);
+
+            data.blendMode = (int)parameters.blendMode;
+
+            float distFadeLen = Mathf.Max(parameters.distanceFadeEnd - parameters.distanceFadeStart, 0.00001526f);
+            data.rcpDistFadeLen = 1.0f / distFadeLen;
+            data.endTimesRcpDistFadeLen = parameters.distanceFadeEnd * data.rcpDistFadeLen;
+
+            data.scale = parameters.scale;
+            data.bias = parameters.bias;
+
+            data.resolution = resolution;
+            data.resolutionInverse = new Vector3(1.0f / resolution.x, 1.0f / resolution.y, 1.0f / resolution.z);
+
+            data.lightLayers = (uint)parameters.lightLayers;
+
+            return data;
         }
 
         internal static float CalculateMaskVolumeLogVolume(Vector3 size)
