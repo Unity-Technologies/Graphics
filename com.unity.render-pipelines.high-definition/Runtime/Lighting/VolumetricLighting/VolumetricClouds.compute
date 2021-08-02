@@ -751,7 +751,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                     // Sample the cheap version of the clouds
                     CloudProperties cloudProperties;
                     EvaluateCloudProperties(currentPositionWS, 1.0f, 0.0, true, false, cloudProperties);
-                    
+
                     // Apply the fade in function to the density
                     cloudProperties.density = DensityFadeIn(cloudProperties.density, rayMarchRange.start + currentDistance);
 
