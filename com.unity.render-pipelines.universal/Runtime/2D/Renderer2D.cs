@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_PixelPerfectBackgroundPass);
 
                 // Queue PixelPerfect UpscalePass. Only used when using the Stretch Fill option
-                if(ppc.requiresUpscalePass)
+                if (ppc.requiresUpscalePass)
                 {
                     m_UpscalePass.Setup(colorTargetHandle, k_UpscaleTextureHandle, ppc);
                     EnqueuePass(m_UpscalePass);

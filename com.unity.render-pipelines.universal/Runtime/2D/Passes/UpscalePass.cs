@@ -35,8 +35,8 @@ namespace UnityEngine.Rendering.Universal
                 cmd.GetTemporaryRT(m_UpscaleHandle.id, upscaleDesc, m_PixelPerfectCam.finalBlitFilterMode);
 
                 cmd.SetRenderTarget(m_UpscaleHandle.id,
-                                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
-                                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
+                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
+                    RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
 
                 cmd.Blit(m_Source.id, m_UpscaleHandle.id);
             }
