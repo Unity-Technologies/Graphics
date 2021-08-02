@@ -59,7 +59,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modified state in the VFX tab has now a correct state
 - Motion Vector map sampling for flipbooks were not using correct mips
 - Remove unexpected expression in spawn context evaluation [Case 1318412](https://issuetracker.unity3d.com/product/unity/issues/guid/1318412/)
-- Fixed Collision with Depth Buffer when using Orthographic camera [Case 1309958](https://issuetracker.unity3d.com/product/unity/issues/guid/1309958/)
 - Fix incorrect buffer type for strips
 - Compilation issue when normal is used in shadergraph for opacity with unlit output
 
