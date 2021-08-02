@@ -154,6 +154,31 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// The set mode in which the clouds fade in when close to the camera
+        /// </summary>
+        public enum CloudFadeInMode
+        {
+            /// <summary>The fade in parameters are automatically evaluated.</summary>
+            Automatic,
+            /// <summary>The fade in parameters are to be defined by the user.</summary>
+            Manual
+        }
+
+        /// <summary>
+        /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudControl"/> value.
+        /// </summary>
+        [Serializable]
+        public sealed class CloudFadeInModeParameter : VolumeParameter<CloudFadeInMode>
+        {
+            /// <summary>
+            /// Creates a new <see cref="CloudFadeInModeParameter"/> instance.
+            /// </summary>
+            /// <param name="value">The initial value to store in the parameter.</param>
+            /// <param name="overrideState">The initial override state for the parameter.</param>
+            public CloudFadeInModeParameter(CloudFadeInMode value, bool overrideState = false) : base(value, overrideState) { }
+        }
+
+        /// <summary>
         /// Enable/Disable the volumetric clouds effect.
         /// </summary>
         [Tooltip("Enable/Disable the volumetric clouds effect.")]
@@ -194,6 +219,24 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the thickness of the volumetric clouds volume in meters.")]
         public MinFloatParameter cloudThickness = new MinFloatParameter(8000.0f, 100.0f);
+
+        /// <summary>
+        /// Controls the mode in which the clouds fade in when close to the camera's near plane.
+        /// </summary>
+        [Tooltip("Controls the mode in which the clouds fade in when close to the camera's near plane.")]
+        public CloudFadeInModeParameter fadeInMode = new CloudFadeInModeParameter(CloudFadeInMode.Automatic);
+
+        /// <summary>
+        /// Controls the minimal distance at which clouds start appearing.
+        /// </summary>
+        [Tooltip("Controls the minimal distance at which clouds start appearing.")]
+        public MinFloatParameter fadeInStart = new MinFloatParameter(0.0f, 0.0f);
+
+        /// <summary>
+        /// Controls the distance that it takes for the clouds to reach their complete density.
+        /// </summary>
+        [Tooltip("Controls the distance that it takes for the clouds to reach their complete density.")]
+        public MinFloatParameter fadeInDistance = new MinFloatParameter(0.0f, 0.0f);
 
         /// <summary>
         /// Controls the number of steps when evaluating the clouds' transmittance.
