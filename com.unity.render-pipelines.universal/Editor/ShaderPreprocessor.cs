@@ -374,7 +374,7 @@ namespace UnityEditor.Rendering.Universal
                 m_MainLightShadowsScreen, ShaderFeatures.ScreenSpaceShadows))
                 return true;
 
-            // TODO: Strip off variants once we support global soft shadows option
+            // TODO: Strip off variants once we have global soft shadows option for forcing instead as support
             if (stripTool.StripMultiCompileKeepOffVariant(m_SoftShadows, ShaderFeatures.SoftShadows))
                 return true;
 
