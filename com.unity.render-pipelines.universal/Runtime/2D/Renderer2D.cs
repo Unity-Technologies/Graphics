@@ -19,7 +19,6 @@ namespace UnityEngine.Rendering.Universal
 
         readonly RenderTargetHandle k_ColorTextureHandle;
         readonly RenderTargetHandle k_DepthTextureHandle;
-        readonly RenderTargetHandle k_UpscaleTextureHandle;
 
         Material m_BlitMaterial;
         Material m_SamplingMaterial;
@@ -56,7 +55,6 @@ namespace UnityEngine.Rendering.Universal
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.
             k_ColorTextureHandle.Init("_CameraColorTexture");
             k_DepthTextureHandle.Init("_CameraDepthAttachment");
-            k_UpscaleTextureHandle.Init("_UpscaleTexture");
 
             m_Renderer2DData = data;
 
@@ -258,9 +256,11 @@ namespace UnityEngine.Rendering.Universal
                 // Queue PixelPerfect UpscalePass. Only used when using the Stretch Fill option
                 if (ppc.requiresUpscalePass)
                 {
-                    m_UpscalePass.Setup(colorTargetHandle, k_UpscaleTextureHandle, ppc);
+                    int upscaleWidth = ppc.refResolutionX * ppc.pixelRatio;
+                    int upscaleHeight = ppc.refResolutionY * ppc.pixelRatio;
+
+                    m_UpscalePass.Setup(colorTargetHandle, upscaleWidth, upscaleHeight, ppc.finalBlitFilterMode, out finalTargetHandle);
                     EnqueuePass(m_UpscalePass);
-                    finalTargetHandle = k_UpscaleTextureHandle;
                 }
             }
 

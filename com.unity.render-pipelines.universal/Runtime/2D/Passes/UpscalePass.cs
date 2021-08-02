@@ -8,18 +8,24 @@ namespace UnityEngine.Rendering.Universal
 
         RenderTargetHandle m_Source;
         RenderTargetHandle m_UpscaleHandle;
-        PixelPerfectCamera m_PixelPerfectCam;
+        int m_UpscaleWidth;
+        int m_UpscaleHeight;
+        FilterMode m_filterMode;
 
         public UpscalePass(RenderPassEvent evt)
         {
             renderPassEvent = evt;
         }
 
-        public void Setup(RenderTargetHandle colorTargetHandle, RenderTargetHandle upscaleHandle, PixelPerfectCamera cam)
+        public void Setup(RenderTargetHandle colorTargetHandle, int width, int height, FilterMode mode, out RenderTargetHandle upscaleHandle)
         {
             m_Source = colorTargetHandle;
-            m_UpscaleHandle = upscaleHandle;
-            m_PixelPerfectCam = cam;
+            m_UpscaleWidth = width;
+            m_UpscaleHeight = height;
+            m_filterMode = mode;
+
+            m_UpscaleHandle.Init("_UpscaleTexture");
+            upscaleHandle = m_UpscaleHandle;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -30,9 +36,9 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, m_ProfilingScope))
             {
                 RenderTextureDescriptor upscaleDesc = cameraData.cameraTargetDescriptor;
-                upscaleDesc.width = m_PixelPerfectCam.refResolutionX * m_PixelPerfectCam.pixelRatio;
-                upscaleDesc.height = m_PixelPerfectCam.refResolutionY * m_PixelPerfectCam.pixelRatio;
-                cmd.GetTemporaryRT(m_UpscaleHandle.id, upscaleDesc, m_PixelPerfectCam.finalBlitFilterMode);
+                upscaleDesc.width = m_UpscaleWidth;
+                upscaleDesc.height = m_UpscaleHeight;
+                cmd.GetTemporaryRT(m_UpscaleHandle.id, upscaleDesc, m_filterMode);
 
                 cmd.SetRenderTarget(m_UpscaleHandle.id,
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
