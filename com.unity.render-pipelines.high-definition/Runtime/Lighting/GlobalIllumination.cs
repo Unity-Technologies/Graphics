@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// The thickness of the depth buffer value used for the ray marching step
         /// </summary>
         [Tooltip("Controls the thickness of the depth buffer used for ray marching.")]
-        public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.01f, 0, 1.0f);
+        public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.2f, 0.0f, 0.5f);
 
         GlobalIllumination()
         {
@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Number of bounces for evaluating the effect.
         /// </summary>
         [Tooltip("Number of bounces for GI.")]
-        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 31);
+        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 8);
 
         // Filtering
         /// <summary>

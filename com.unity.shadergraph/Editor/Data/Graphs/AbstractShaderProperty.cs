@@ -22,6 +22,11 @@ namespace UnityEditor.ShaderGraph.Internal
             set { }
         }
 
+        internal virtual string GetHLSLVariableName(bool isSubgraphProperty)
+        {
+            return referenceName;
+        }
+
         // NOTE: this does not tell you the HLSLDeclaration of the entire property...
         // instead, it tells you what the DEFAULT HLSL Declaration would be, IF the property makes use of the default
         // to check ACTUAL HLSL Declaration types, enumerate the HLSL Properties and check their HLSLDeclarations...
@@ -94,6 +99,11 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         internal abstract void ForeachHLSLProperty(Action<HLSLProperty> action);
+
+        internal virtual string GetPropertyAsArgumentStringForVFX()
+        {
+            return GetPropertyAsArgumentString();
+        }
 
         internal abstract string GetPropertyAsArgumentString();
         internal abstract AbstractMaterialNode ToConcreteNode();
@@ -195,6 +205,28 @@ namespace UnityEditor.ShaderGraph.Internal
             this.declaration = declaration;
             this.precision = precision;
             this.customDeclaration = null;
+        }
+
+        public bool ValueEquals(HLSLProperty other)
+        {
+            if ((name != other.name) ||
+                (type != other.type) ||
+                (precision != other.precision) ||
+                (declaration != other.declaration) ||
+                ((customDeclaration == null) != (other.customDeclaration == null)))
+            {
+                return false;
+            }
+            else if (customDeclaration != null)
+            {
+                var ssb = new ShaderStringBuilder();
+                var ssbother = new ShaderStringBuilder();
+                customDeclaration(ssb);
+                other.customDeclaration(ssbother);
+                if (ssb.ToCodeBlock() != ssbother.ToCodeBlock())
+                    return false;
+            }
+            return true;
         }
 
         static string[,] kValueTypeStrings = new string[(int)HLSLType.FirstObjectType, 2]

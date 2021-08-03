@@ -283,6 +283,21 @@ namespace UnityEditor.ShaderGraph
             set => m_ConcretePrecision = value;
         }
 
+        // Some state has been changed that requires checking for the auto add/removal of blocks.
+        // This needs to be checked at a later point in time so actions like replace (remove + add) don't remove blocks.
+        internal bool checkAutoAddRemoveBlocks { get; set; }
+
+        // NOTE: having preview mode default to 3D preserves the old behavior of pre-existing subgraphs
+        // if we change this, we would have to introduce a versioning step if we want to maintain the old behavior
+        [SerializeField]
+        private PreviewMode m_PreviewMode = PreviewMode.Preview3D;
+
+        public PreviewMode previewMode
+        {
+            get => m_PreviewMode;
+            set => m_PreviewMode = value;
+        }
+
         [SerializeField]
         JsonRef<AbstractMaterialNode> m_OutputNode;
 
@@ -877,7 +892,7 @@ namespace UnityEditor.ShaderGraph
 
         void RemoveNodeNoValidate(AbstractMaterialNode node)
         {
-            if (!m_NodeDictionary.ContainsKey(node.objectId))
+            if (!m_NodeDictionary.ContainsKey(node.objectId) && node.isActive)
             {
                 throw new InvalidOperationException("Cannot remove a node that doesn't exist.");
             }
@@ -918,6 +933,10 @@ namespace UnityEditor.ShaderGraph
             var toNode = toSlotRef.node;
 
             if (fromNode == null || toNode == null)
+                return null;
+
+            // both nodes must belong to this graph
+            if ((fromNode.owner != this) || (toNode.owner != this))
                 return null;
 
             // if fromNode is already connected to toNode
@@ -1034,11 +1053,10 @@ namespace UnityEditor.ShaderGraph
                 //throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
             m_Edges.Remove(e as Edge);
 
-            BlockNode b = null;
             AbstractMaterialNode input = e.inputSlot.node, output = e.outputSlot.node;
             if(input != null && ShaderGraphPreferences.autoAddRemoveBlocks)
             {
-                b = input as BlockNode;
+                checkAutoAddRemoveBlocks = true;
             }
 
             List<IEdge> inputNodeEdges;
@@ -1051,19 +1069,6 @@ namespace UnityEditor.ShaderGraph
 
             m_AddedEdges.Remove(e);
             m_RemovedEdges.Add(e);
-            if(b != null)
-            {
-                var activeBlockDescriptors = GetActiveBlocksForAllActiveTargets();
-                if(!activeBlockDescriptors.Contains(b.descriptor))
-                {
-                    var slot = b.FindSlot<MaterialSlot>(0);
-                    if(slot.IsUsingDefaultValue()) // TODO: How to check default value
-                    {
-                        RemoveNodeNoValidate(b);
-                        input = null;
-                    }
-                }
-            }
 
             if (reevaluateActivity)
             {
@@ -1522,6 +1527,7 @@ namespace UnityEditor.ShaderGraph
                 throw new ArgumentException("Can only replace with another AbstractMaterialGraph", "other");
 
             concretePrecision = other.concretePrecision;
+            m_PreviewMode = other.m_PreviewMode;
             m_OutputNode = other.m_OutputNode;
 
             if ((this.vertexContext.position != other.vertexContext.position) ||
@@ -1668,7 +1674,9 @@ namespace UnityEditor.ShaderGraph
                 position.y += 30;
 
                 StickyNoteData pastedStickyNote = new StickyNoteData(stickyNote.title, stickyNote.content, position);
-                if (groupMap.ContainsKey(stickyNote.group))
+                pastedStickyNote.textSize = stickyNote.textSize;
+                pastedStickyNote.theme = stickyNote.theme;
+                if (stickyNote.group != null && groupMap.ContainsKey(stickyNote.group))
                 {
                     pastedStickyNote.group = groupMap[stickyNote.group];
                 }
@@ -1681,10 +1689,9 @@ namespace UnityEditor.ShaderGraph
             var nodeList = graphToPaste.GetNodes<AbstractMaterialNode>();
             foreach (var node in nodeList)
             {
-                if(node is BlockNode blockNode)
-                {
+                // cannot paste block nodes, or unknown node types
+                if ((node is BlockNode) || (node is MultiJsonInternal.UnknownNodeType))
                     continue;
-                }
 
                 AbstractMaterialNode pastedNode = node;
 

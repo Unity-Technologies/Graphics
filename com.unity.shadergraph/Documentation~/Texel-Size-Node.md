@@ -4,6 +4,8 @@
 
 Returns the **Width** and **Height** of the texel size of **Texture 2D** input. Uses the built in variable `{texturename}_TexelSize` to access special properties of a **Texture 2D**.
 
+If you experience texture sampling errors while using this node in a graph which includes Custom Function Nodes or Sub Graphs, you can resolve them by upgrading to version 10.3 or later. 
+
 **Note:** Do not use the default input to reference your **Texture 2D**. It makes your graph perform worse. Instead connect this node to a separate [Texture 2D Asset Node](Texture-2D-Asset-Node.md) and re-use this definition for sampling.
 
 ## Ports

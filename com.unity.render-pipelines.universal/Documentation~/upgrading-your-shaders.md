@@ -4,7 +4,7 @@ If your Project uses shaders from the built-in render pipeline, and you want to 
 
 To upgrade built-in Shaders:
 
-1. Open your Project in Unity, and go to __Edit__ > __Render Pipeline__ > **Universal Render Pipeline**. 
+1. Open your Project in Unity, and go to __Edit__ > __Render Pipeline__ > **Universal Render Pipeline**.
 2. According to your needs, select either __Upgrade Project Materials to URP Materials__ or __Upgrade Selected Materials to URP Materials__.
 
 **Note:** These changes cannot be undone. Backup your Project before you upgrade it.
@@ -13,7 +13,7 @@ To upgrade built-in Shaders:
 
 For [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html) Shaders, Unity does not re-generate Materials when you re-import them, unless you click the **Generate Materials** or **Apply & Generate Materials** button.
 
-<a name="built-in-to-urp-shader-mappings">
+<a name="built-in-to-urp-shader-mappings"></a>
 
 ## Shader mappings
 

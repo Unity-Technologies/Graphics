@@ -33,7 +33,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // StackLit specific properties:
 
             AddProperty("Base Color Parametrization", () => stackLitData.baseParametrization, (newValue) => stackLitData.baseParametrization = newValue);
-            AddProperty("Energy Conserving Specular", () => stackLitData.energyConservingSpecular, (newValue) => stackLitData.energyConservingSpecular = newValue, 1);
+            if (stackLitData.baseParametrization == StackLit.BaseParametrization.SpecularColor)
+            {
+                AddProperty("Energy Conserving Specular", () => stackLitData.energyConservingSpecular, (newValue) => stackLitData.energyConservingSpecular = newValue, 1);
+            }
 
             // Material type enables:
             context.AddLabel("Material Core Features", 0);

@@ -508,7 +508,7 @@ half3 SampleSH(half3 normalWS)
 half3 SampleSHVertex(half3 normalWS)
 {
 #if defined(EVALUATE_SH_VERTEX)
-    return max(half3(0, 0, 0), SampleSH(normalWS));
+    return SampleSH(normalWS);
 #elif defined(EVALUATE_SH_MIXED)
     // no max since this is only L2 contribution
     return SHEvalLinearL2(normalWS, unity_SHBr, unity_SHBg, unity_SHBb, unity_SHC);
@@ -526,7 +526,11 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
     return L2Term;
 #elif defined(EVALUATE_SH_MIXED)
     half3 L0L1Term = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
-    return max(half3(0, 0, 0), L2Term + L0L1Term);
+    half3 res = L2Term + L0L1Term;
+#ifdef UNITY_COLORSPACE_GAMMA
+    res = LinearToSRGB(res);
+#endif
+    return max(half3(0, 0, 0), res);
 #endif
 
     // Default: Evaluate SH fully per-pixel
@@ -588,8 +592,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
 
-//TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
-#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if defined(UNITY_USE_NATIVE_HDR)
     half3 irradiance = encodedIrradiance.rgb;
 #else
     half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);

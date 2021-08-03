@@ -11,17 +11,12 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview { get { return true; } }
 
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview3D; }
-        }
-
         public VertexColorNode()
         {
             name = "Vertex Color";
+            m_PreviewMode = PreviewMode.Preview3D;
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

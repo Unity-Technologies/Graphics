@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Only for Spotlight, should be hide for other light
         [SerializeField, FormerlySerializedAs("enableSpotReflector")]
-        bool m_EnableSpotReflector = false;
+        bool m_EnableSpotReflector = true;
         /// <summary>
         /// Get/Set the Spot Reflection option on spot lights.
         /// </summary>
@@ -1979,7 +1979,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDShadowInitParameters initParameters, Rect screenRect, HDLightType lightType)
+        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDShadowInitParameters initParameters, VisibleLight visibleLight, HDLightType lightType)
         {
             if (!m_WillRenderShadowMap)
                 return;
@@ -2013,14 +2013,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (viewPortRescaling && !shadowIsInCacheSystem)
             {
-                // resize viewport size by the normalized size of the light on screen
-                float screenArea = screenRect.width * screenRect.height;
-                viewportSize *= Mathf.Lerp(64f / viewportSize.x, 1f, screenArea);
-                viewportSize = Vector2.Max(new Vector2(64f, 64f) / viewportSize, viewportSize);
+                // Formulas: https://www.desmos.com/calculator/tdodbuysut f(x) is the distance between 0 and 1, g(x) is the screen ratio (oscillating to simulate different light sizes)
+                // The idea is to have a lot of resolution when the camera is close to the light OR the screen area is high.
 
-                // Prevent flickering caused by the floating size of the viewport
-                viewportSize.x = Mathf.Round(viewportSize.x);
-                viewportSize.y = Mathf.Round(viewportSize.y);
+                // linear normalized distance between the light and camera with max shadow distance
+                float distance01 = Mathf.Clamp01(Vector3.Distance(camera.transform.position, visibleLight.GetPosition()) / shadowSettings.maxShadowDistance.value);
+                // ease out and invert the curve, give more importance to closer distances
+                distance01 = 1.0f - Mathf.Pow(distance01, 2);
+
+                // normalized ratio between light range and distance 
+                float range01 = Mathf.Clamp01(visibleLight.range / Vector3.Distance(camera.transform.position, visibleLight.GetPosition()));
+
+                float scaleFactor01 = Mathf.Max(distance01, range01);
+
+                // We allow a maximum of 64 rescale between the highest and lowest shadow resolution
+                // It prevent having too many resolution changes when the player is moving.
+                const float maxRescaleSteps = 64;
+                scaleFactor01 = Mathf.RoundToInt(scaleFactor01 * maxRescaleSteps) / maxRescaleSteps;
+
+                // resize viewport size by the normalized size of the light on screen
+                viewportSize = Vector2.Lerp(HDShadowManager.k_MinShadowMapResolution * Vector2.one, viewportSize, scaleFactor01);
             }
 
             viewportSize = Vector2.Max(viewportSize, new Vector2(HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MinShadowMapResolution));
@@ -2073,8 +2085,8 @@ namespace UnityEngine.Rendering.HighDefinition
             HDShadowUtils.ExtractDirectionalLightData(
                 visibleLight, viewportSize, (uint)requestIndex, shadowSettings.cascadeShadowSplitCount.value,
                 shadowSettings.cascadeShadowSplits, nearPlaneOffset, cullResults, lightIndex,
-                out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                out shadowRequest.deviceProjection, out shadowRequest.splitData
+                out shadowRequest.view, out invViewProjection, out shadowRequest.projection,
+                out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
             );
 
             cullingSphere = shadowRequest.splitData.cullingSphere;
@@ -2104,8 +2116,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDShadowUtils.ExtractPointLightData(
                         visibleLight, viewportSize, shadowNearPlane,
                         normalBias, (uint)shadowIndex, filteringQuality, out shadowRequest.view,
-                        out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                        out shadowRequest.deviceProjection, out shadowRequest.splitData
+                        out invViewProjection, out shadowRequest.projection,
+                        out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
                     );
                     break;
                 case HDLightType.Spot:
@@ -2113,8 +2125,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDShadowUtils.ExtractSpotLightData(
                         spotLightShape, spotAngleForShadows, shadowNearPlane, aspectRatio, shapeWidth,
                         shapeHeight, visibleLight, viewportSize, normalBias, filteringQuality,
-                        out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                        out shadowRequest.deviceProjection, out shadowRequest.splitData
+                        out shadowRequest.view, out invViewProjection, out shadowRequest.projection,
+                        out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
                     );
                     break;
                 case HDLightType.Directional:
@@ -2128,7 +2140,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             float offset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
                             Vector3 shadowOffset = offset * visibleLight.GetForward();
                             HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, filteringQuality,
-                                out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.deviceProjection, out shadowRequest.splitData);
+                                out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData);
                             break;
                         case AreaLightShape.Tube:
                             //Tube do not cast shadow at the moment.
@@ -2234,7 +2246,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, updateType);
 
-                if (needToUpdateCachedContent)
+                if (needToUpdateCachedContent && (lightType != HDLightType.Directional ||
+                                                  hdCamera.camera.cameraType != CameraType.Reflection))
                 {
                     // Handshake with the cached shadow manager to notify about the rendering.
                     // Technically the rendering has not happened yet, but it is scheduled.
@@ -2298,7 +2311,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // shadow clip planes (used for tessellation clipping)
-            GeometryUtility.CalculateFrustumPlanes(CoreMatrixUtils.MultiplyProjectionMatrix(shadowRequest.deviceProjectionYFlip, shadowRequest.view, hasOrthoMatrix), m_ShadowFrustumPlanes);
+            GeometryUtility.CalculateFrustumPlanes(CoreMatrixUtils.MultiplyProjectionMatrix(shadowRequest.projection, shadowRequest.view, hasOrthoMatrix), m_ShadowFrustumPlanes);
             if (shadowRequest.frustumPlanes?.Length != 6)
                 shadowRequest.frustumPlanes = new Vector4[6];
             // Left, right, top, bottom, near, far.

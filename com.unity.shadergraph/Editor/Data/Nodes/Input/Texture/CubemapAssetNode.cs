@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Cubemap Asset")]
+    [HasDependencies(typeof(MinimalCubemapAssetNode))]
     class CubemapAssetNode : AbstractMaterialNode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
@@ -18,7 +19,6 @@ namespace UnityEditor.ShaderGraph
             name = "Cubemap Asset";
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -42,11 +42,21 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        string GetTexturePropertyName()
+        {
+            return base.GetVariableNameForSlot(OutputSlotId);
+        }
+
+        public override string GetVariableNameForSlot(int slotId)
+        {
+            return $"UnityBuildTextureCubeStruct({GetTexturePropertyName()})";
+        }
+
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             properties.AddShaderProperty(new CubemapShaderProperty()
             {
-                overrideReferenceName = GetVariableNameForSlot(OutputSlotId),
+                overrideReferenceName = GetTexturePropertyName(),
                 generatePropertyBlock = true,
                 value = m_Cubemap,
                 modifiable = false
@@ -57,7 +67,7 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty(PropertyType.Cubemap)
             {
-                name = GetVariableNameForSlot(OutputSlotId),
+                name = GetTexturePropertyName(),
                 cubemapValue = cubemap
             });
         }
@@ -71,5 +81,20 @@ namespace UnityEditor.ShaderGraph
         }
 
         public int outputSlotId { get { return OutputSlotId; } }
+    }
+
+    class MinimalCubemapAssetNode : IHasDependencies
+    {
+        [SerializeField]
+        private SerializableCubemap m_Cubemap = null;
+
+        public void GetSourceAssetDependencies(AssetCollection assetCollection)
+        {
+            var guidString = m_Cubemap.guid;
+            if (!string.IsNullOrEmpty(guidString) && GUID.TryParse(guidString, out var guid))
+            {
+                assetCollection.AddAssetDependency(guid, AssetCollection.Flags.IncludeInExportPackage);
+            }
+        }
     }
 }

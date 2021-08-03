@@ -186,6 +186,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull Off
 
             HLSLPROGRAM
+            #define PARTICLES_EDITOR_META_PASS
             #pragma target 2.0
 
             // -------------------------------------
@@ -219,6 +220,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull Off
 
             HLSLPROGRAM
+            #define PARTICLES_EDITOR_META_PASS
             #pragma target 2.0
 
             // -------------------------------------
@@ -260,6 +262,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
         }
     }
 
-    Fallback "Universal Render Pipeline/Particles/SimpleLit"
+    Fallback "Universal Render Pipeline/Particles/Simple Lit"
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.ParticlesLitShader"
 }

@@ -33,7 +33,7 @@ The final connection that determines your shader output. See [Master Stack]() fo
 
 ### Preview window
 
-An area to preview the current shader output. Here, you can rotate the object, and zoom in and out. You can also change the basic mesh on which the shader is previewed. See [Main Preview](Master-Preview) for more information.
+An area to preview the current shader output. Here, you can rotate the object, and zoom in and out. You can also change the basic mesh on which the shader is previewed. See [Main Preview](Main-Preview) for more information.
 
 ![img](images/MainPreview.png)
 

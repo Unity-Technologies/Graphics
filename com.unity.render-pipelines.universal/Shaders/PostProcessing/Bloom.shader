@@ -84,10 +84,6 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;
         #endif
 
-        #if UNITY_COLORSPACE_GAMMA
-            color = SRGBToLinear(color);
-        #endif
-
             // User controlled clamp to limit crazy high broken spec
             color = min(ClampMax, color);
 

@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descriptor = base.GetRaytracingSubShaderDescriptor();
 
             if (fabricData.subsurfaceScattering)
-                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface());
+                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface(true));
  
             return descriptor;
         }
@@ -91,7 +91,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Fabric Silk
             if(fabricData.materialType == FabricData.MaterialType.Silk)
             {
-                context.AddBlock(HDBlockFields.SurfaceDescription.Tangent);
+                BlockFieldDescriptor tangentBlock;
+                switch (lightingData.normalDropOffSpace)
+                {
+                    case NormalDropOffSpace.Object:
+                        tangentBlock = HDBlockFields.SurfaceDescription.TangentOS;
+                        break;
+                    case NormalDropOffSpace.World:
+                        tangentBlock = HDBlockFields.SurfaceDescription.TangentWS;
+                        break;
+                    default:
+                        tangentBlock = HDBlockFields.SurfaceDescription.TangentTS;
+                        break;
+                }
+
+                context.AddBlock(tangentBlock);
                 context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy);
             }
         }

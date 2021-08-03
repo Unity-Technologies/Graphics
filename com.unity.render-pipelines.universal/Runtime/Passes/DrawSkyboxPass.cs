@@ -43,8 +43,12 @@ namespace UnityEngine.Rendering.Universal
                     // Disable Legacy XR path
                     cmd.SetSinglePassStereo(SinglePassStereoMode.None);
                     context.ExecuteCommandBuffer(cmd);
-
+                    // We do not need to submit here due to special handling of stereo matricies in core.
+                    // context.Submit();
                     CommandBufferPool.Release(cmd);
+
+                    renderingData.cameraData.camera.ResetStereoProjectionMatrices();
+                    renderingData.cameraData.camera.ResetStereoViewMatrices();
                 }
                 else
                 {
@@ -52,6 +56,13 @@ namespace UnityEngine.Rendering.Universal
                     renderingData.cameraData.camera.worldToCameraMatrix = renderingData.cameraData.GetViewMatrix(0);
 
                     context.DrawSkybox(renderingData.cameraData.camera);
+
+                    // XRTODO: remove this call because it creates issues with nested profiling scopes
+                    // See examples in UniversalRenderPipeline.RenderSingleCamera() and in ScriptableRenderer.Execute()
+                    context.Submit(); // Submit and execute the skybox pass before resetting the matrices
+
+                    renderingData.cameraData.camera.ResetProjectionMatrix();
+                    renderingData.cameraData.camera.ResetWorldToCameraMatrix();
                 }
             }
             else

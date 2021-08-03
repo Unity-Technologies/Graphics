@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph
         public SampleRawCubemapNode()
         {
             name = "Sample Cubemap";
+            m_PreviewMode = PreviewMode.Preview3D;
             UpdateNodeAfterDeserialization();
         }
 
@@ -38,11 +39,6 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, CubemapInputId, NormalInputId, SamplerInputId, LODInputId });
         }
 
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview3D; }
-        }
-
         // Node generations
         public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
@@ -51,10 +47,10 @@ namespace UnityEditor.ShaderGraph
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
             var id = GetSlotValue(CubemapInputId, generationMode);
-            string result = string.Format("$precision4 {0} = SAMPLE_TEXTURECUBE_LOD({1}, {2}, {3}, {4});"
+            string result = string.Format("$precision4 {0} = SAMPLE_TEXTURECUBE_LOD({1}.tex, {2}.samplerstate, {3}, {4});"
                     , GetVariableNameForSlot(OutputSlotId)
                     , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id
+                    , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id
                     , GetSlotValue(NormalInputId, generationMode)
                     , GetSlotValue(LODInputId, generationMode));
 
@@ -66,7 +62,7 @@ namespace UnityEditor.ShaderGraph
             var normalSlot = FindInputSlot<MaterialSlot>(NormalInputId);
             var edgesNormal = owner.GetEdges(normalSlot.slotReference);
             if (!edgesNormal.Any())
-                return CoordinateSpace.Object.ToNeededCoordinateSpace();
+                return CoordinateSpace.World.ToNeededCoordinateSpace();
             else
                 return NeededCoordinateSpace.None;
         }

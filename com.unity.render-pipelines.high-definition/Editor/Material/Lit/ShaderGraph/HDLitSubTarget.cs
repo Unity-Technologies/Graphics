@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descriptor = base.GetRaytracingSubShaderDescriptor();
 
             if (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering)
-                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface());
+                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface(true));
 
             return descriptor;
         }
@@ -127,9 +127,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Misc
             context.AddField(EnergyConservingSpecular,             litData.energyConservingSpecular);
-            context.AddField(CoatMask,                             descs.Contains(HDBlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && litData.clearCoat);
+            context.AddField(CoatMask,                             descs.Contains(BlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.CoatMask) && litData.clearCoat);
             context.AddField(ClearCoat,                            litData.clearCoat); // Enable clear coat material feature
-            context.AddField(Tangent,                              descs.Contains(HDBlockFields.SurfaceDescription.Tangent) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
             context.AddField(RayTracing,                           litData.rayTracing);
 
             context.AddField(SpecularAA, lightingData.specularAA &&
@@ -146,7 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetActiveBlocks(ref context);
 
             // Common
-            context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask,             litData.clearCoat);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatMask,             litData.clearCoat);
 
             // Refraction
             context.AddBlock(HDBlockFields.SurfaceDescription.RefractionIndex,      hasRefraction);
@@ -154,7 +153,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.RefractionDistance,   hasRefraction);
 
             // Material
-            context.AddBlock(HDBlockFields.SurfaceDescription.Tangent,              litData.materialType == HDLitData.MaterialType.Anisotropy);
+
+            BlockFieldDescriptor tangentBlock;
+            switch (lightingData.normalDropOffSpace)
+            {
+                case NormalDropOffSpace.Object:
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentOS;
+                    break;
+                case NormalDropOffSpace.World:
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentWS;
+                    break;
+                default:
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentTS;
+                    break;
+            }
+
+            context.AddBlock(tangentBlock,                                          litData.materialType == HDLitData.MaterialType.Anisotropy);
             context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy,           litData.materialType == HDLitData.MaterialType.Anisotropy);
             context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,       litData.materialType == HDLitData.MaterialType.SubsurfaceScattering);
             context.AddBlock(HDBlockFields.SurfaceDescription.Thickness,            ((litData.materialType == HDLitData.MaterialType.SubsurfaceScattering || litData.materialType == HDLitData.MaterialType.Translucent) &&

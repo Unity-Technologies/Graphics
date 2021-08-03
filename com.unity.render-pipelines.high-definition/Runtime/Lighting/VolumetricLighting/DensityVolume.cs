@@ -84,13 +84,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EditorAdvancedFade = false;
         }
 
-        internal void Update(bool animate, float time)
+        internal void Update(float time)
         {
             //Update scrolling based on deltaTime
             if (volumeMask != null)
             {
-                float animationTime = animate ? time : 0.0f;
-                textureOffset = (textureScrollingSpeed * animationTime);
+                textureOffset = (textureScrollingSpeed * time);
                 // Switch from right-handed to left-handed coordinate system.
                 textureOffset.x = -textureOffset.x;
                 textureOffset.y = -textureOffset.y;
@@ -167,7 +166,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         /// <summary>Gather and Update any parameters that may have changed.</summary>
-        internal void PrepareParameters(bool animate, float time)
+        internal void PrepareParameters(float time)
         {
             //Texture has been updated notify the manager
             bool updated = previousVolumeMask != parameters.volumeMask;
@@ -185,7 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             }
 
-            parameters.Update(animate, time);
+            parameters.Update(time);
         }
 
         private void NotifyUpdatedTexure()

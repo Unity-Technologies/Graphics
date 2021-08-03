@@ -16,7 +16,6 @@
 // There is a set of Material Keyword that a HD shaders must define (or not define). We call them system KeyWord.
 // .Shader need to define:
 // - _SURFACE_TYPE_TRANSPARENT if they use a transparent material
-// - _BLENDMODE_PRESERVE_SPECULAR_LIGHTING for correct lighting when blend mode are use with a Lit material
 // - _ENABLE_FOG_ON_TRANSPARENT if fog is enable on transparent surface
 // - _DISABLE_DECALS if the material don't support decals
 
@@ -46,21 +45,17 @@ float4 ApplyBlendMode(float3 diffuseLighting, float3 specularLighting, float opa
     // Transmission when not using "rough refraction mode" (with fetch in preblured background) is handled with blend mode.
     // However reflection should not be affected by blend mode. For example a glass should still display reflection and not lose the highlight when blend
     // This is the purpose of following function, "Cancel" the blend mode effect on the specular lighting but not on the diffuse lighting
-#ifdef _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+
     // In the case of alpha blend mode the code should be float4(diffuseLighting + (specularLighting / max(opacity, 0.01)), opacity)
     // However this have precision issue when reaching 0, so we change the blend mode and apply src * src_a inside the shader instead
     if (_BlendMode == BLENDMODE_ALPHA || _BlendMode == BLENDMODE_ADDITIVE)
-        return float4(diffuseLighting * opacity + specularLighting, opacity);
-    else
-        return float4(diffuseLighting + specularLighting, opacity);
-#else
-
-    if (_BlendMode == BLENDMODE_ALPHA || _BlendMode == BLENDMODE_ADDITIVE)
-        return float4((diffuseLighting + specularLighting) * opacity, opacity);
-    else
-        return float4(diffuseLighting + specularLighting, opacity);
-
+        return float4(diffuseLighting * opacity + specularLighting * (
+#ifdef SUPPORT_BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+        _EnableBlendModePreserveSpecularLighting ? 1.0f :
 #endif
+            opacity), opacity);
+    else
+        return float4(diffuseLighting + specularLighting, opacity);
 
 #endif
 }

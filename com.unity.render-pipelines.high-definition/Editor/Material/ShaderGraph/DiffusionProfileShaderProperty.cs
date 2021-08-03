@@ -28,6 +28,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         string assetReferenceName => $"{referenceName}_Asset";
 
+        internal override string GetHLSLVariableName(bool isSubgraphProperty)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            if (decl == HLSLDeclaration.HybridPerInstance)
+                return $"UNITY_ACCESS_HYBRID_INSTANCED_PROP({referenceName}, float)";
+            else
+                return referenceName;
+        }
+
         internal override string GetPropertyBlockString()
         {
             uint hash = 0;
@@ -40,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             /// <summary>Float to string convertion function without any loss of precision</summary>
-            string f2s(float f) => System.Convert.ToDouble(f).ToString("0." + new string('#', 339));
+            string f2s(float f) => System.Convert.ToDouble(f).ToString("0." + new string('#', 339), CultureInfo.InvariantCulture);
 
             return
 $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUtils.Asfloat(hash))}

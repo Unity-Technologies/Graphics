@@ -191,26 +191,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void ResetRequestedTexture() => m_RequestedTextures.Clear();
 
-        public bool ReserveSpace(Texture texture)
-        {
-            m_RequestedTextures[texture.GetInstanceID()] = new Vector2Int(texture.width, texture.height);
+        public bool ReserveSpace(Texture texture) => ReserveSpace(texture, texture.width, texture.height);
 
-            // new texture
-            if (!IsCached(out _, texture))
-            {
-                Vector4 scaleBias = Vector4.zero;
-                if (!AllocateTextureWithoutBlit(texture, texture.width, texture.height, ref scaleBias))
-                    return false;
-            }
-            return true;
-        }
+        public bool ReserveSpace(Texture texture, int width, int height)
+            => ReserveSpace(GetTextureID(texture), width, height);
 
-        public bool ReserveSpace(int id, int width, int height)
+        // pass width and height for CubeMap (use 2*width) & Texture2D (use width)
+        public bool ReserveSpace(Texture textureA, Texture textureB, int width, int height)
+            => ReserveSpace(GetTextureID(textureA, textureB), width, height);
+
+        bool ReserveSpace(int id, int width, int height)
         {
             m_RequestedTextures[id] = new Vector2Int(width, height);
 
-            // new texture
-            if (!IsCached(out _, id))
+            // Cookie texture resolution changing between frame is a special case, so we handle it here.
+            // The texture will be re-allocated and may cause holes in the atlas texture, which is fine
+            // because when it doesn't have any more space, it will re-layout the texture correctly.
+            var cachedSize = GetCachedTextureSize(id);
+            if (!IsCached(out _, id) || cachedSize.x != width || cachedSize.y != height)
             {
                 Vector4 scaleBias = Vector4.zero;
                 if (!AllocateTextureWithoutBlit(id, width, height, ref scaleBias))

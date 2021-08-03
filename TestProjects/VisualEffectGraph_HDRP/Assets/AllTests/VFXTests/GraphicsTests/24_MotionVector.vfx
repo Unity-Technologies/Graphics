@@ -276,9 +276,8 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 4
+  m_GraphVersion: 6
   m_ResourceVersion: 1
-  m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
 --- !u!114 &114380859405582094
@@ -971,6 +970,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616009}
   cullMode: 0
@@ -1679,6 +1679,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616010}
   cullMode: 0
@@ -2510,6 +2511,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616011}
   cullMode: 0
@@ -3098,6 +3100,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616012}
   cullMode: 0
@@ -3429,6 +3432,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616013}
   cullMode: 0
@@ -4159,6 +4163,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 1
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616014}
   cullMode: 0
@@ -9130,6 +9135,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616015}
   cullMode: 0
@@ -10175,6 +10181,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 1
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616016}
   cullMode: 0
@@ -10446,6 +10453,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616017}
   cullMode: 0
@@ -10708,6 +10716,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 1
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616018}
   cullMode: 0
@@ -10893,6 +10902,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616019}
   cullMode: 0
@@ -12471,6 +12481,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 1
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616020}
   cullMode: 0
@@ -12616,6 +12627,9 @@ MonoBehaviour:
   - {fileID: 8926484042661615496}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 1
+  compositionDirection: 0
+  compositionTargetPosition: 1
   shape: 0
   index: 0
   writePosition: 1
@@ -13503,6 +13517,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616021}
   cullMode: 0
@@ -13781,6 +13796,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616022}
   cullMode: 0
@@ -14045,6 +14061,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616023}
   cullMode: 0
@@ -14632,6 +14649,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616024}
   cullMode: 0
@@ -14805,6 +14823,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616025}
   cullMode: 0
@@ -15528,6 +15547,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 1
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616026}
   cullMode: 0
@@ -16517,6 +16537,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 1
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616027}
   cullMode: 0
@@ -17393,6 +17414,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 1
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616028}
   cullMode: 0
@@ -18267,6 +18289,7 @@ MonoBehaviour:
   blendMode: 3
   useAlphaClipping: 1
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616029}
   cullMode: 0
@@ -28680,6 +28703,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616200}
   cullMode: 0
@@ -29420,6 +29444,9 @@ MonoBehaviour:
   - {fileID: 8926484042661616235}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 1
+  compositionDirection: 0
+  compositionTargetPosition: 1
   shape: 0
   index: 0
   writePosition: 1
@@ -29968,6 +29995,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616268}
   cullMode: 0
@@ -31156,6 +31184,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 1
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661616331}
   cullMode: 0

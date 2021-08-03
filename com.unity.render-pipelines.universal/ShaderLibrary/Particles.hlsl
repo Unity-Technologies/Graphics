@@ -8,6 +8,40 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ParticlesInstancing.hlsl"
 
+struct ParticleParams
+{
+    float4 positionWS;
+    float4 vertexColor;
+    float4 projectedPosition;
+    half4 baseColor;
+    float3 blendUv;
+    float2 uv;
+};
+
+void InitParticleParams(VaryingsParticle input, out ParticleParams output)
+{
+    output = (ParticleParams) 0;
+    output.uv = input.texcoord;
+    output.vertexColor = input.color;
+
+    #if defined(_FLIPBOOKBLENDING_ON)
+        output.blendUv = input.texcoord2AndBlend;
+    #else
+        output.blendUv = float3(0,0,0);
+    #endif
+
+    #if !defined(PARTICLES_EDITOR_META_PASS)
+        output.positionWS = input.positionWS;
+        output.baseColor = _BaseColor;
+
+        #if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
+            output.projectedPosition = input.projectedPosition;
+        #else
+            output.projectedPosition = float4(0,0,0,0);
+        #endif
+    #endif
+}
+
 // Pre-multiplied alpha helper
 #if defined(_ALPHAPREMULTIPLY_ON)
     #define ALBEDO_MUL albedo
@@ -55,7 +89,21 @@ float SoftParticles(float near, float far, float4 projection)
     {
         float sceneZ = LinearEyeDepth(SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(projection.xy / projection.w)).r, _ZBufferParams);
         float thisZ = LinearEyeDepth(projection.z / projection.w, _ZBufferParams);
-        fade = saturate (far * ((sceneZ - near) - thisZ));
+        fade = saturate(far * ((sceneZ - near) - thisZ));
+    }
+    return fade;
+}
+
+// Soft particles - returns alpha value for fading particles based on the depth to the background pixel
+float SoftParticles(float near, float far, ParticleParams params)
+{
+    float fade = 1;
+    if (near > 0.0 || far > 0.0)
+    {
+        float rawDepth = SampleSceneDepth(params.projectedPosition.xy / params.projectedPosition.w);
+        float sceneZ = LinearEyeDepth(rawDepth, _ZBufferParams);
+        float thisZ = LinearEyeDepth(params.positionWS.xyz, GetWorldToViewMatrix());
+        fade = saturate(far * ((sceneZ - near) - thisZ));
     }
     return fade;
 }

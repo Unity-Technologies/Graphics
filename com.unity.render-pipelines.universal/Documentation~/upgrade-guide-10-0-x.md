@@ -18,7 +18,7 @@ If you intend to use the SSAO effect with your custom shaders, consider the foll
 
 * The `_SCREEN_SPACE_OCCLUSION` keyword.
 
-* `Input.hlsl` contains the new declaration `float2  normalizedScreenSpaceUV` in the `InputData` struct. 
+* `Input.hlsl` contains the new declaration `float2  normalizedScreenSpaceUV` in the `InputData` struct.
 
 * `Lighting.hlsl` contains the `AmbientOcclusionFactor` struct with the variables for calculating indirect and direct occlusion:
 

@@ -32,9 +32,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         class IRenderGraphResource
         {
             public bool imported;
-            public int  cachedHash;
-            public int  transientPassIndex;
+            public int cachedHash;
+            public int transientPassIndex;
+            public uint writeCount;
             public bool wasReleased;
+            public bool requestFallBack;
 
             public virtual void Reset()
             {
@@ -42,6 +44,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 cachedHash = -1;
                 transientPassIndex = -1;
                 wasReleased = false;
+                requestFallBack = false;
+                writeCount = 0;
             }
 
             public virtual string GetName()
@@ -53,6 +57,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 return false;
             }
+
+            public void IncrementWriteCount()
+            {
+                writeCount++;
+            }
+
+            public bool NeedsFallBack()
+            {
+                return requestFallBack && writeCount == 0;
+            }
         }
 
         #region Resources
@@ -63,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             where ResType : class
         {
             public DescType desc;
-            public ResType  resource;
+            public ResType resource;
 
             protected RenderGraphResource()
             {
@@ -87,7 +101,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             public override string GetName()
             {
-                return desc.name;
+                if (imported)
+                    return resource != null ? resource.name : "null resource";
+                else
+                    return desc.name;
             }
         }
 
@@ -96,14 +113,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             public override string GetName()
             {
-                return desc.name;
+                if (imported)
+                    return "ImportedComputeBuffer"; // No getter for compute buffer name.
+                else
+                    return desc.name;
             }
         }
 
         internal struct RendererListResource
         {
             public RendererListDesc desc;
-            public RendererList     rendererList;
+            public RendererList rendererList;
 
             internal RendererListResource(in RendererListDesc desc)
             {
@@ -132,6 +152,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 return null;
 
             return GetTextureResource(handle.handle).resource;
+        }
+
+        internal bool TextureNeedsFallback(in TextureHandle handle)
+        {
+            if (!handle.IsValid())
+                return false;
+
+            return GetTextureResource(handle.handle).NeedsFallBack();
         }
 
         internal RendererList GetRendererList(in RendererListHandle handle)
@@ -165,22 +193,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_Resources[i] = new DynamicArray<IRenderGraphResource>();
         }
 
-        ResType GetResource<DescType, ResType>(DynamicArray<IRenderGraphResource> resourceArray, int index)
-            where DescType : struct
-            where ResType : class
-        {
-            var res = resourceArray[index] as RenderGraphResource<DescType, ResType>;
-
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (res.resource == null && !res.wasReleased)
-                throw new InvalidOperationException(string.Format("Trying to access resource \"{0}\" that was never created. Check that it was written at least once before trying to get it.", res.GetName()));
-
-            if (res.resource == null && res.wasReleased)
-                throw new InvalidOperationException(string.Format("Trying to access resource \"{0}\" that was already released. Check that the last pass where it's read is after this one.", res.GetName()));
-#endif
-            return res.resource;
-        }
-
         internal void BeginRender(int currentFrameIndex, int executionCount)
         {
             m_CurrentFrameIndex = currentFrameIndex;
@@ -195,15 +207,31 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void CheckHandleValidity(in ResourceHandle res)
         {
-            var resources = m_Resources[res.iType];
-            if (res.index >= resources.size)
-                throw new ArgumentException($"Trying to access resource of type {res.type} with an invalid resource index {res.index}");
+            CheckHandleValidity(res.type, res.index);
+        }
+
+        void CheckHandleValidity(RenderGraphResourceType type, int index)
+        {
+            var resources = m_Resources[(int)type];
+            if (index >= resources.size)
+                throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
+        }
+        internal void IncrementWriteCount(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            m_Resources[res.iType][res.index].IncrementWriteCount();
         }
 
         internal string GetResourceName(in ResourceHandle res)
         {
             CheckHandleValidity(res);
             return m_Resources[res.iType][res.index].GetName();
+        }
+
+        internal string GetResourceName(RenderGraphResourceType type, int index)
+        {
+            CheckHandleValidity(type, index);
+            return m_Resources[(int)type][index].GetName();
         }
 
         internal bool IsResourceImported(in ResourceHandle res)
@@ -221,6 +249,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal bool IsRendererListCreated(in RendererListHandle res)
         {
             return m_RendererListResources[res].rendererList.isValid;
+        }
+
+        internal bool IsResourceImported(RenderGraphResourceType type, int index)
+        {
+            CheckHandleValidity(type, index);
+            return m_Resources[(int)type][index].imported;
         }
 
         internal int GetResourceTransientIndex(in ResourceHandle res)
@@ -271,6 +305,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             ValidateTextureDesc(desc);
 
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
+            texResource.requestFallBack = desc.fallBackToBlackTexture;
             texResource.desc = desc;
             texResource.transientPassIndex = transientPassIndex;
             return new TextureHandle(newHandle);

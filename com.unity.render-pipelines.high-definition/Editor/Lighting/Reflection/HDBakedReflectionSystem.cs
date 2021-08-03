@@ -275,6 +275,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
                     var cacheFile = GetGICacheFileForHDProbe(states[index].probeBakingHash);
 
+                    if (string.IsNullOrEmpty(probe.gameObject.scene.path))
+                        continue;
+
                     Assert.IsTrue(File.Exists(cacheFile));
 
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
@@ -297,6 +300,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         var index = toBakeIndicesList.GetUnchecked(i);
                         var instanceId = states[index].instanceID;
                         var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
+                        if (string.IsNullOrEmpty(probe.gameObject.scene.path))
+                            continue;
+
                         var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                         AssetDatabase.ImportAsset(bakedTexturePath);
                         ImportAssetAt(probe, bakedTexturePath);
@@ -310,6 +316,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     var index = toBakeIndicesList.GetUnchecked(i);
                     var instanceId = states[index].instanceID;
                     var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
+                    if (string.IsNullOrEmpty(probe.gameObject.scene.path))
+                        continue;
+
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                     var bakedTexture = AssetDatabase.LoadAssetAtPath<Texture>(bakedTexturePath);
                     Assert.IsNotNull(bakedTexture, "The baked texture was imported before, " +
@@ -323,7 +332,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // == 5. ==
 
                 // Create new baked state array
-                var targetSize = m_HDProbeBakedStates.Length + addCount - remCount;
+                var targetSize = m_HDProbeBakedStates.Length - remCount + toBakeIndicesList.Count;
                 var targetBakedStates = stackalloc HDProbeBakedState[targetSize];
                 // Copy baked state that are not removed
                 var targetI = 0;
@@ -331,12 +340,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (CoreUnsafeUtils.IndexOf(remIndices, remCount, i) != -1)
                         continue;
+                    Assert.IsTrue(targetI < targetSize);
                     targetBakedStates[targetI++] = m_HDProbeBakedStates[i];
                 }
                 // Add new baked states
                 for (int i = 0; i < toBakeIndicesList.Count; ++i)
                 {
                     var state = states[toBakeIndicesList.GetUnchecked(i)];
+                    Assert.IsTrue(targetI < targetSize);
                     targetBakedStates[targetI++] = new HDProbeBakedState
                     {
                         instanceID = state.instanceID,
@@ -392,6 +403,9 @@ namespace UnityEditor.Rendering.HighDefinition
             // Render and write the result to disk
             foreach (var probe in bakedProbes)
             {
+                if (string.IsNullOrEmpty(probe.gameObject.scene.path))
+                    continue;
+
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                 var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution, probeFormat);
                 RenderAndWriteToFile(probe, bakedTexturePath, cubeRT, planarRT);
@@ -407,6 +421,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetDatabase.StartAssetEditing();
                 foreach (var probe in bakedProbes)
                 {
+                    if (string.IsNullOrEmpty(probe.gameObject.scene.path))
+                        continue;
+
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                     AssetDatabase.ImportAsset(bakedTexturePath);
                     ImportAssetAt(probe, bakedTexturePath);
@@ -417,6 +434,9 @@ namespace UnityEditor.Rendering.HighDefinition
             AssetDatabase.StartAssetEditing();
             foreach (var probe in bakedProbes)
             {
+                if (string.IsNullOrEmpty(probe.gameObject.scene.path))
+                    continue;
+
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
 
                 // Get or create the baked texture asset for the probe
@@ -439,7 +459,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // to update the texture.
             // updateCount is a transient data, so don't execute this code before the asset reload.
             {
-                UnityEngine.Random.InitState((int)(1000 * hdPipeline.GetTime()));
+                UnityEngine.Random.InitState((int)(1000 * EditorApplication.timeSinceStartup));
                 foreach (var probe in bakedProbes)
                 {
                     var c = UnityEngine.Random.Range(2, 10);

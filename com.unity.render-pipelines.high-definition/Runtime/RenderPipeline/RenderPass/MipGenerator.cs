@@ -109,6 +109,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.Assert(source.dimension == destination.dimension, "MipGenerator source texture does not match dimension of destination!");
             }
 
+            // Check if format has changed since last time we generated mips
+            if (m_TempColorTargets[rtIndex] != null && m_TempColorTargets[rtIndex].rt.graphicsFormat != destination.graphicsFormat)
+            {
+                RTHandles.Release(m_TempColorTargets[rtIndex]);
+                m_TempColorTargets[rtIndex] = null;
+            }
+
             // Only create the temporary target on-demand in case the game doesn't actually need it
             if (m_TempColorTargets[rtIndex] == null)
             {
@@ -134,6 +141,13 @@ namespace UnityEngine.Rendering.HighDefinition
             int tempTargetWidth = srcMipWidth >> 1;
             int tempTargetHeight = srcMipHeight >> 1;
 
+            // Check if format has changed since last time we generated mips
+            if (m_TempDownsamplePyramid[rtIndex] != null && m_TempDownsamplePyramid[rtIndex].rt.graphicsFormat != destination.graphicsFormat)
+            {
+                RTHandles.Release(m_TempDownsamplePyramid[rtIndex]);
+                m_TempDownsamplePyramid[rtIndex] = null;
+            }
+
             if (m_TempDownsamplePyramid[rtIndex] == null)
             {
                 m_TempDownsamplePyramid[rtIndex] = RTHandles.Alloc(
@@ -153,8 +167,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.ClearRenderTarget(false, true, Color.black);
             }
 
-            float sourceScaleX = (float)size.x / source.width;
-            float sourceScaleY = (float)size.y / source.height;
+            bool isHardwareDrsOn = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
+            var hardwareTextureSize = new Vector2Int(source.width, source.height);
+            if (isHardwareDrsOn)
+                hardwareTextureSize = DynamicResolutionHandler.instance.ApplyScalesOnSize(hardwareTextureSize);
+
+            float sourceScaleX = (float)size.x / (float)hardwareTextureSize.x;
+            float sourceScaleY = (float)size.y / (float)hardwareTextureSize.y;
 
             // Copies src mip0 to dst mip0
             m_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);

@@ -60,5 +60,8 @@ platforms:
 agent_pack: package_ci_win_large 
 agent_publish: package_ci_win_large 
 agent_publish_all: package_ci_ubuntu_large 
-publish_all_tracks:
-  - 2020.2
+
+
+# upm-ci command flags
+projectcontext_test_min_upmci_flags: --project-path TestProjects/SRP_SmokeTest --type vetting-tests 
+projectcontext_test_upmci_flags: --project-path TestProjects/SRP_SmokeTest --type vetting-tests 

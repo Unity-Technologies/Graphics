@@ -11,7 +11,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 // How many lights (at most) do we support at one given shading point
 // FIXME: hardcoded limits are evil, this LightList should instead be put together in C#
@@ -224,23 +224,23 @@ float GetDistantLightWeight(LightList list)
     return list.distantWeight / list.distantCount;
 }
 
-bool PickLocalLights(LightList list, inout float sample)
+bool PickLocalLights(LightList list, inout float theSample)
 {
-    if (sample < list.localWeight)
+    if (theSample < list.localWeight)
     {
         // We pick local lighting
-        sample /= list.localWeight;
+        theSample /= list.localWeight;
         return true;
     }
 
     // Otherwise, distant lighting
-    sample = (sample - list.localWeight) / list.distantWeight;
+    theSample = (theSample - list.localWeight) / list.distantWeight;
     return false;
  }
 
-bool PickDistantLights(LightList list, inout float sample)
+bool PickDistantLights(LightList list, inout float theSample)
 {
-    return !PickLocalLights(list, sample);
+    return !PickLocalLights(list, theSample);
 }
 
 float3 GetPunctualEmission(LightData lightData, float3 outgoingDir, float dist)
@@ -360,7 +360,7 @@ bool SampleLights(LightList lightList,
             }
             else
             {
-                // DELTA_PDF represents 1 / area, where the area is infinitesimal              
+                // DELTA_PDF represents 1 / area, where the area is infinitesimal
                 pdf = DELTA_PDF;
             }
 
@@ -489,32 +489,18 @@ void EvaluateLights(LightList lightList,
 
 // Functions used by volumetric sampling
 
-bool SolvePoly2(float a, float b, float c, out float x1, out float x2)
-{
-    float det = Sq(b) - 4.0 * a * c;
-
-    if (det < 0.0)
-        return false;
-
-    float sqrtDet = sqrt(det);
-    x1 = (-b - sign(a) * sqrtDet) / (2.0 * a);
-    x2 = (-b + sign(a) * sqrtDet) / (2.0 * a);
-
-    return true;
-}
-
 bool GetSphereInterval(float3 lightToRayOrigin, float radius, float3 rayDirection, out float tMin, out float tMax)
 {
     // We consider Direction to be normalized => a = 1
     float b = 2.0 * dot(rayDirection, lightToRayOrigin);
     float c = Length2(lightToRayOrigin) - Sq(radius);
 
-    float t1, t2;
-    if (!SolvePoly2(1.0, b, c, t1, t2))
+    float2 t;
+    if (!SolveQuadraticEquation(1.0, b, c, t))
         return false;
 
-    tMin = max(t1, 0.0);
-    tMax = max(t2, 0.0);
+    tMin = max(t.x, 0.0);
+    tMax = max(t.y, 0.0);
 
     return tMin < tMax;
 }
@@ -578,7 +564,7 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
         return false;
 
     float3 lightToRayOrigin = rayOrigin - lightData.positionRWS;
-    
+
     if (!GetSphereInterval(lightToRayOrigin, lightData.range, rayDirection, tMin, tMax))
         return false;
 
@@ -646,7 +632,7 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
 
         // Offset light origin to account for light radius
         localOrigin.z += sqrt(lightData.size.x / (1.0 - cosTheta2));
-        
+
         // Account for non-normalized local basis
         float3 normalizedLocalOrigin = float3(localOrigin.x / Length2(lightData.right),
                                               localOrigin.y / Length2(lightData.up),
@@ -656,12 +642,12 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
         float b = 2.0 * (localOrigin.z * localDirection.z - dot(normalizedLocalOrigin, localDirection) * cosTheta2);
         float c = Sq(localOrigin.z) - dot(normalizedLocalOrigin, localOrigin) * cosTheta2;
 
-        float t1, t2;
-        if (!SolvePoly2(a, b, c, t1, t2))
+        float2 t;
+        if (!SolveQuadraticEquation(a, b, c, t))
             return false;
 
         // Check validity of the intersections (we want them only in front of the light)
-        GetFrontInterval(localOrigin.z, localDirection.z, t1, t2, tMin, tMax);
+        GetFrontInterval(localOrigin.z, localDirection.z, t.x, t.y, tMin, tMax);
     }
 
     return tMin < tMax;

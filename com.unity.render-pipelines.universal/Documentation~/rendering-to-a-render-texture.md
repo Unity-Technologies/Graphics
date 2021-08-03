@@ -12,8 +12,8 @@ Create a Quad in your Scene.
 Create a Material in your Project, and select it. In the Inspector, drag the Render Texture to the Material's **Base Map** field.
 In the Scene view, drag the Material on to the Quad.
 Create a Camera in your Scene. Its **Render Mode** defaults to **Base**, making it a Base Camera.
-Select the Base Camera. 
-In the Inspector, scroll to the Output section. 
+Select the Base Camera.
+In the Inspector, scroll to the Output section.
 Set the Camera’s  **Output Target** to **Texture**, and drag the Render Texture on to the **Texture** field.
 Create another Camera in your Scene. Its **Render Mode** defaults to **Base**, making it a Base Camera.
 Place the Quad within the view of the new Base Camera.

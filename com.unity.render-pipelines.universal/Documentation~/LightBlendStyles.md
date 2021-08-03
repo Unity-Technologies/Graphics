@@ -52,7 +52,7 @@ All of the Blend Modes available can be expressed with Custom Blend Factors. The
 
 ## Mask Texture Channel
 
-Masks control where Lights can affect a Sprite. There are 4 channels to select from as the mask channel - Red, Blue, Green, and Alpha. In a mask max value means full light, min value means no light. 
+Masks control where Lights can affect a Sprite. There are 4 channels to select from as the mask channel - Red, Blue, Green, and Alpha. In a mask max value means full light, min value means no light.
 
 | ![Original rock color](Images/2D/image_45.png)     | ![Rock Mask](Images/2D/image_46.png)                      |
 | ----------------------------------------------- | ------------------------------------------------------ |

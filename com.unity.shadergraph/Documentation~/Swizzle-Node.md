@@ -2,9 +2,16 @@
 
 ## Description
 
-Creates a new vector of the same dimension as the input vector. The channels of the output vector are the same as the input vector but re-ordered by the dropdown parameters on the node. This is called swizzling.
+Creates a new [vector](https://docs.unity3d.com/Manual/VectorCookbook.html) from the reordered elements of the input vector. This is called swizzling.
 
-Channel dropdown parameters are dynamic depending on the length of the input vector's dimension. Dropdowns for channels that are not present will be disabled and dropdowns will only contain entries for channels that exist in the vector.
+To specify how input elements should be swizzled, enter a formatting string in the input mask. 
+To invert the order of the input elements, for example, use the string "wzyx" or "abgr".
+
+The length of the input mask determines the dimensions of the output vector. The error "Invalid Mask" indicates an input mask value which includes one or more channels that do not exist in the input vector.
+
+To output a vector3 with the x, y and z elements of the input vector, for example, use the input mask “xyz” or “rgb”.
+
+
 
 ## Ports
 
@@ -17,15 +24,12 @@ Channel dropdown parameters are dynamic depending on the length of the input vec
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| Red out      | Dropdown | Red, Green, Blue, Alpha (depending on input vector dimension) | Defines which input channel should be used in the output's red channel |
-| Green out      | Dropdown | Red, Green, Blue, Alpha (depending on input vector dimension) | Defines which input channel should be used in the output's green channel |
-| Blue out      | Dropdown | Red, Green, Blue, Alpha (depending on input vector dimension) | Defines which input channel should be used in the output's blue channel |
-| Alpha out      | Dropdown | Red, Green, Blue, Alpha (depending on input vector dimension) | Defines which input channel should be used in the output's alpha channel |
+| Mask     | Inputfield | x, y, z, w (depending on input vector dimension) | The swizzle mask is a combination of one to four characters that can be x, y, z, w (or r, g, b, a). The size of output value depends on the length of the mask input.|
+
 
 ## Generated Code Example
 
 The following example code represents one possible outcome of this node.
 
 ```
-float4 _Swizzle_Out = In.xzyw;
-```
+float4 _Swizzle_Out = In.wzyx;

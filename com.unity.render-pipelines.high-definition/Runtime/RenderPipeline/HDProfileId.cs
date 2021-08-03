@@ -44,8 +44,8 @@ namespace UnityEngine.Rendering.HighDefinition
         SSGIPass,
         SSGITrace,
         SSGIDenoise,
-        SSGIConvert,
         SSGIUpscale,
+        SSGIConvert,
 
         ForwardEmissive,
         ForwardOpaque,
@@ -137,6 +137,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingIndirectDiffuseEvaluation,
         RaytracingIndirectDiffuseUpscale,
         RaytracingFilterIndirectDiffuse,
+        RaytracingIndirectDiffuseAdjustWeight,
+
         // RTSSS
         RaytracingSSS,
         RaytracingSSSTrace,
@@ -247,6 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackClear,
+        VTFeedbackDownsample,
 #endif
     }
 }

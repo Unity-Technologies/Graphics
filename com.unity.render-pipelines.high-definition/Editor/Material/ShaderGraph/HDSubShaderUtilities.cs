@@ -93,6 +93,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, blendPreserveSpecular, HLSLDeclaration.UnityPerMaterial);
                 collector.AddToggleProperty(kSupportDecals, receiveDecals);
             }
+            else
+            {
+                // We still need to define it on unlit as it is needed to compile when Material.hlsl is used
+                collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, false, HLSLDeclaration.UnityPerMaterial);
+            }
 
             // Configure render state
             BaseLitGUI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
@@ -259,6 +264,14 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             return result;
+        }
+
+        public static bool IsValidRenderingPassValue(HDRenderQueue.RenderQueueType value, bool needAfterPostProcess)
+        {
+            if (!needAfterPostProcess && (value == HDRenderQueue.RenderQueueType.AfterPostProcessOpaque || value == HDRenderQueue.RenderQueueType.AfterPostprocessTransparent))
+                return false;
+
+            return true;
         }
 
         public static bool UpgradeLegacyAlphaClip(IMasterNode1 masterNode)

@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The light will no affect any object.</summary>
         Nothing = 0,   // Custom name for "Nothing" option
         /// <summary>Decal Layer 0.</summary>
-        LightLayerDefault = 1 << 0,
+        DecalLayerDefault = 1 << 0,
         /// <summary>Decal Layer 1.</summary>
         DecalLayer1 = 1 << 1,
         /// <summary>Decal Layer 2.</summary>
@@ -44,6 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         };
 
         public static readonly string[] s_MaterialDecalPassNames = Enum.GetNames(typeof(MaterialDecalPass));
+        public static readonly string s_AtlasSizeWarningMessage = "Decal texture atlas out of space, decals on transparent geometry might not render correctly, atlas size can be changed in HDRenderPipelineAsset";
 
         public class CullResult : IDisposable
         {
@@ -481,9 +482,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     : instance.DrawDistance;
                 m_CachedDrawDistances[index].y = data.fadeScale;
                 // In the shader to remap from cosine -1 to 1 to new range 0..1  (with 0 - 0 degree and 1 - 180 degree)
-                // we do 1.0 - (dots() * 0.5 + 0.5) => 0.5 * (1 - dots())
-                // Do a remap in the shader. 1.0 - saturate(( 0.5 * (1 - dot()) - start) / (end - start))
-                // x = 0.5 / (end - start), y = -start / (end - start)
+                // we do 1.0 - (dot() * 0.5 + 0.5) => 0.5 * (1 - dot())
+                // we actually square that to get smoother result => x = (0.5 - 0.5 * dot())^2
+                // Do a remap in the shader. 1.0 - saturate((x - start) / (end - start))
+                // After simplification => saturate(a + b * dot() * (dot() - 2.0))
+                // a = 1.0 - (0.25 - start) / (end - start), y = - 0.25 / (end - start)
                 if (data.startAngleFade == 180.0f) // angle fade is disabled
                 {
                     m_CachedAngleFade[index].x = 0.0f;
@@ -493,9 +496,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     float angleStart = data.startAngleFade / 180.0f;
                     float angleEnd = data.endAngleFade / 180.0f;
-                    var val = Mathf.Max(0.0001f, angleEnd - angleStart);
-                    m_CachedAngleFade[index].x = 0.5f / (val);
-                    m_CachedAngleFade[index].y = -angleStart / (val);
+                    var range = Mathf.Max(0.0001f, angleEnd - angleStart);
+                    m_CachedAngleFade[index].x = 1.0f - (0.25f - angleStart) / range;
+                    m_CachedAngleFade[index].y = - 0.25f / range;
                 }
                 m_CachedUVScaleBias[index] = data.uvScaleBias;
                 m_CachedAffectsTransparency[index] = data.affectsTransparency;
@@ -858,9 +861,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 get
                 {
-                    if (m_IsHDRenderPipelineDecal)
+                    if (this.m_Material.HasProperty(HDShaderIDs._DrawOrder))
                     {
-                        return this.m_Material.GetInt("_DrawOrder");
+                        return this.m_Material.GetInt(HDShaderIDs._DrawOrder);
                     }
                     else
                     {
@@ -1106,7 +1109,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!m_AllocationSuccess && m_PrevAllocationSuccess) // still failed to allocate, decal atlas size needs to increase, debounce so that we don't spam the console with warnings
                 {
-                    Debug.LogWarning("Decal texture atlas out of space, decals on transparent geometry might not render correctly, atlas size can be changed in HDRenderPipelineAsset");
+                    Debug.LogWarning(s_AtlasSizeWarningMessage);
                 }
             }
             m_PrevAllocationSuccess = m_AllocationSuccess;
@@ -1185,6 +1188,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     decalSet.SetCullResult(cullResult.requests[enumerator.Current.Key]);
                 }
             }
+        }
+
+        public bool IsAtlasAllocatedSuccessfully()
+        {
+            return m_AllocationSuccess;
         }
     }
 }

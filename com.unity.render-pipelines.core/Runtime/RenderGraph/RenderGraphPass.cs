@@ -25,12 +25,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle[]  colorBuffers { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
         public int              colorBufferMaxIndex { get; protected set; } = -1;
         public int              refCount { get; protected set; }
+        public bool             generateDebugData { get; protected set; }
 
         public List<ResourceHandle>[] resourceReadLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
         public List<ResourceHandle>[] resourceWriteLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
         public List<ResourceHandle>[] transientResourceList = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
 
-        public List<RendererListHandle>     usedRendererListList = new List<RendererListHandle>();
+        public List<RendererListHandle> usedRendererListList = new List<RendererListHandle>();
 
         public RenderGraphPass()
         {
@@ -57,6 +58,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             usedRendererListList.Clear();
             enableAsyncCompute = false;
             allowPassCulling = true;
+            generateDebugData = true;
             refCount = 0;
 
             // Invalidate everything
@@ -96,6 +98,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void AllowPassCulling(bool value)
         {
             allowPassCulling = value;
+        }
+
+        public void GenerateDebugData(bool value)
+        {
+            generateDebugData = value;
         }
 
         public void SetColorBuffer(TextureHandle resource, int index)
