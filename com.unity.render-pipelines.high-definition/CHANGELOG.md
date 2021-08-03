@@ -69,7 +69,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added two toggles to control occluder rejection and receiver rejection for the ray traced ambient occlusion (case 1330168).
 - Added the receiver motion rejection toggle to RTGI (case 1330168).
 - Added info box when low resolution transparency is selected, but its not enabled in the HDRP settings. This will help new users find the correct knob in the HDRP Asset.
-- Added a dialog box when you import a Material that has a diffusion profile to add the diffusion profile to global settings.
 - Added support for Unlit shadow mattes in Path Tracing (case 1335487).
 - Added a shortcut to HDRP Wizard documentation.
 - Added support of motion vector buffer in custom postprocess
@@ -348,6 +347,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with the LayerMaskParameter class storing an erroneous mask value (case 1345515).
 - Fixed issue with vertex color defaulting to 0.0 when not defined, in ray/path tracing (case 1348821).
 - Fix issue with a compute dispatch being with 0 threads on extremely small resolutions.
+- Fixed an issue with volumetric clouds on vulkan (case 1354802).
+- Fixed volume interpolation issue with ScalableSettingLevelParameter.
+- Fix issue with change in lens model (perfect or imperfect) wouldn't be taken into account unless the HDRP asset was rebuilt.
+- Fixed custom pass delete operation (case 1354871).
+- Fixed viewport size when TAA is executed after dynamic res upscale (case 1348541).
 - Fixed the camera near plane not being taken into account when rendering the clouds (case 1353548).
 - Fixed controls for clouds fade in (case 1353548).
 
