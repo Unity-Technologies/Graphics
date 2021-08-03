@@ -105,7 +105,20 @@ namespace UnityEditor.VFX
                     }
                     else
                     {
-                        resource.GetOrCreateGraph().CompileForImport();
+                        //Workaround, use backup system to prevent any modification of the graph during compilation
+                        //The responsible of this unexpected change is PrepareSubgraphs => RecurseSubgraphRecreateCopy => ResyncSlots
+                        //It will let the VFXGraph in a really bad state after compilation.
+                        graph = resource.GetOrCreateGraph();
+                        var dependencies = new HashSet<ScriptableObject>();
+                        dependencies.Add(graph);
+                        graph.CollectDependencies(dependencies);
+                        var backup = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.ToArray(), CompressionLevel.None);
+
+                        graph.CompileForImport();
+
+                        VFXMemorySerializer.ExtractObjects(backup, false);
+                        //The backup during undo/redo is actually calling UnknownChange after ExtractObjects
+                        //You have to avoid because it will call ResyncSlot
                     }
                 }
                 else

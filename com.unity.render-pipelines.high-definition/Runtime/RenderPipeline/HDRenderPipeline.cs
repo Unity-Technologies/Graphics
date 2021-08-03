@@ -1582,6 +1582,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             hdCamera.volumetricCloudsAnimationData = hdParentCamera.volumetricCloudsAnimationData;
                             useFetchedGpuExposure = true;
                         }
+                        else
+                        {
+                            hdCamera.realtimeReflectionProbe = (visibleProbe.mode == ProbeSettings.Mode.Realtime);
+                        }
 
                         hdCamera.SetParentCamera(hdParentCamera, useFetchedGpuExposure, fetchedGpuExposure); // Used to inherit the properties of the view
 
