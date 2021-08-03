@@ -48,6 +48,14 @@ real D_LongitudinalScatteringGaussian(real theta, real beta)
     return rcp(beta * sqrtTwoPi) * exp(-0.5 * v * v);
 }
 
+real3 D_LongitudinalScatteringGaussian(real3 theta, real3 beta)
+{
+    real3 v = theta / beta;
+
+    const real sqrtTwoPi = 2.50662827463100050241;
+    return rcp(beta * sqrtTwoPi) * exp(-0.5 * v * v);
+}
+
 float ModifiedRefractionIndex(float cosThetaD)
 {
     // Original derivation of modified refraction index for arbitrary IOR.
@@ -664,11 +672,34 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     #if _USE_DENSITY_VOLUME_SCATTERING
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING))
         {
-            // Debug Dual Scattering Components
-            cbsdf.specR += bsdfData.localScattering;
-            cbsdf.specR *= bsdfData.globalScattering;
+            const float directFraction = 0;
 
-            // Nan
+            const float3 fsDirect  = cbsdf.specR;
+            const float3 fsBack    = bsdfData.localScattering;
+
+            // Compute the scattered bsdf
+            const float3 beta = float3(
+                bsdfData.roughnessR,
+                bsdfData.roughnessTT,
+                bsdfData.roughnessTRT
+            );
+
+            const float3 shift = float3(
+                bsdfData.cuticleAngleR,
+                bsdfData.cuticleAngleTT,
+                bsdfData.cuticleAngleTRT
+            );
+
+            const float3 MG = D_LongitudinalScatteringGaussian(thetaH - shift, beta + bsdfData.forwardVariance);
+            const float3 fsScatter = 0.2;
+
+            const float3 Tf = bsdfData.forwardTransmittance;
+
+            // Resolve the dual scattering approximation.
+            const float3 Fdirect  = bsdfData.directFraction * (fsDirect + fsBack);
+            const float3 Fscatter = Tf * 0.7 * (fsScatter + PI * fsBack);
+
+            cbsdf.specR = (Fdirect + Fscatter);
             cbsdf.specR = max(cbsdf.specR, 0);
         }
     #else

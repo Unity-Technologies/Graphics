@@ -4,6 +4,8 @@
 #define STRAND_DIAMETER_MILLIMETERS 0.02
 #define STRAND_DIAMETER_METERS      (STRAND_DIAMETER_MILLIMETERS * METERS_PER_MILLIMETER)
 
+#define DIRECT_ILLUMINATION_THRESHOLD 0.25
+
 TEXTURE3D(_PreIntegratedHairFiberScattering);
 
 #define FRONT 0
@@ -17,7 +19,7 @@ struct HairScatteringData
     float3 averageShift      [2];
 };
 
-float ScatteringSpreadGaussian(float x, float v)
+float3 ScatteringSpreadGaussian(float3 x, float3 v)
 {
     return rsqrt(TWO_PI * v) * exp(-Sq(x) / (2 * v));
 }
@@ -42,8 +44,8 @@ HairScatteringData GetHairScatteringData(BSDFData bsdfData, float sinThetaI)
         float2 G = SAMPLE_TEXTURE3D_LOD(_PreIntegratedHairFiberScattering, s_linear_clamp_sampler, float3(X, Y, Z.g), 0).xy;
         float2 B = SAMPLE_TEXTURE3D_LOD(_PreIntegratedHairFiberScattering, s_linear_clamp_sampler, float3(X, Y, Z.b), 0).xy;
 
-        scatteringData.averageScattering[FRONT] = float3(R.x, G.x, B.x);
-        scatteringData.averageScattering[BACK]  = float3(R.y, G.y, B.y);
+        scatteringData.averageScattering[FRONT] = abs(float3(R.x, G.x, B.x));
+        scatteringData.averageScattering[BACK]  = abs(float3(R.y, G.y, B.y));
     }
 
     // 2) Compute the average scattering variance
@@ -137,79 +139,79 @@ void EvaluateMultipleScattering_Material(float3 V, float3 L, MultipleScatteringD
     const float3 Bb2 = Sq(Bb);
 
     // Global scattering.
-    {
-        // Following the observation of Zinke et. al., density factor (ratio of occlusion of the shading point by neighboring strands)
-        // can be approximated with this constant to match most path traced references.
-        const float df = 0.7;
+    // -----------------------------------------------------------------------------------
+    // Following the observation of Zinke et. al., density factor (ratio of occlusion of the shading point by neighboring strands)
+    // can be approximated with this constant to match most path traced references.
+    const float df = 0.7;
 
+    if (n > DIRECT_ILLUMINATION_THRESHOLD)
+    {
         // Approximate the transmittance by assuming that all hair strands between the shading point and the light are
         // oriented the same. This is suitable for long, straighter hair ( Eq. 6 Disney ).
-        float3 Tf = df * pow(af, n);
+        bsdfData.forwardTransmittance = df * pow(af, n);
 
         // Approximate the accumulated variance, by assuming strands all have the same average roughness and inclination. ( Eq. 7 Disney )
-        float3 sigmaF = Bf2 * n;
-
-        // Computes the forward scattering spread ( Eq. 7 ).
-        float3 Sf = float3( ScatteringSpreadGaussian(thetaH, sigmaF.r),
-                            ScatteringSpreadGaussian(thetaH, sigmaF.g),
-                            ScatteringSpreadGaussian(thetaH, sigmaF.b)) * rcp(PI * cos(thetaD));
-
-        // Resolve the final global scattering term ( Eq. 4 ).
-        bsdfData.globalScattering = Tf * Sf;
+        bsdfData.forwardVariance = Bf2 * n;
+    }
+    else
+    {
+        // If directly illuminated (no intersecting strands).
+        bsdfData.forwardTransmittance = 1;
+        bsdfData.forwardVariance      = 0;
     }
 
     // Local scattering.
-    {
-        // Similarly to front scattering, this same density coefficient is suggested for matching most path traced references.
-        const float db = 0.7;
+    // ------------------------------------------------------------------------------------
 
-        // Compute the average backscattering attenuation, the attenuation in the neighborhood of x.
-        // Here we only model the first and third backscattering event, as the following are negligible.
+    // Similarly to front scattering, this same density coefficient is suggested for matching most path traced references.
+    const float db = 0.7;
 
-        // Ex. of a single backward scattering event. Where L is the incident light, V is the camera, (F) is a fiber cross-section
-        // with a forward scattering event, and (B) is a fiber cross section with a backward scattering event.
-        //
-        // V <---------------
-        //                  |
-        //                 (F) <--- ... ---> (B)
-        // L -------------->|
+    // Compute the average backscattering attenuation, the attenuation in the neighborhood of x.
+    // Here we only model the first and third backscattering event, as the following are negligible.
 
-        float3 af1 = af;
-        float3 af2 = Sq(af1);
+    // Ex. of a single backward scattering event. Where L is the incident light, V is the camera, (F) is a fiber cross-section
+    // with a forward scattering event, and (B) is a fiber cross section with a backward scattering event.
+    //
+    // V <---------------
+    //                  |
+    //                 (F) <--- ... ---> (B)
+    // L -------------->|
 
-        float3 afI1 = 1 - af2;
-        float3 afI2 = Sq(afI1);
-        float3 afI3 = afI2 * afI1;
+    float3 af1 = af;
+    float3 af2 = Sq(af1);
 
-        float3 ab1 = ab;
-        float3 ab2 = Sq(ab1);
-        float3 ab3 = ab2 * ab1;
+    float3 afI1 = 1 - af2;
+    float3 afI2 = Sq(afI1);
+    float3 afI3 = afI2 * afI1;
 
-        // Analytic solutions to the potential infinite permutations of backward scattering
-        // in a volume of fibers for one and three backward scatters ( Eq. 11, 13, & 14 ).
-        float3 A1 = (ab1 * af2) / afI1;
-        float3 A3 = (ab3 * af2) / afI3;
-        float3 Ab = A1 + A3;
+    float3 ab1 = ab;
+    float3 ab2 = Sq(ab1);
+    float3 ab3 = ab2 * ab1;
 
-        // Computes the average longitudinal shift ( Eq. 16 ).
-        float3 shiftB = 1 - ((2 * ab2) / afI2);
-        float3 shiftF = ((2 * afI2) + (4 * af2 * ab2)) / afI3;
-        float3 deltaB = (sb * shiftB) + (sf * shiftF);
+    // Analytic solutions to the potential infinite permutations of backward scattering
+    // in a volume of fibers for one and three backward scatters ( Eq. 11, 13, & 14 ).
+    float3 A1 = (ab1 * af2) / afI1;
+    float3 A3 = (ab3 * af2) / afI3;
+    float3 Ab = A1 + A3;
 
-        // Compute the average back scattering standard deviation ( Eq. 17 ).
-        float3 sigmaB = (1 + db * af2);
-        sigmaB *= (ab * sqrt((2 * Bf2) + Bb2)) + (ab3 * sqrt((2 * Bf2) + Bb2));
-        sigmaB /= ab + (ab3 * ((2 * Bf) + (3 * Bb)));
-        sigmaB  = Sq(sigmaB);
+    // Computes the average longitudinal shift ( Eq. 16 ).
+    float3 shiftB = 1 - ((2 * ab2) / afI2);
+    float3 shiftF = ((2 * afI2) + (4 * af2 * ab2)) / afI3;
+    float3 deltaB = (sb * shiftB) + (sf * shiftF);
 
-        // Computes the average back scattering spread ( Eq. 15 ).
-        float3 Sb = float3( ScatteringSpreadGaussian(thetaH - deltaB.r, sigmaB.r),
-                            ScatteringSpreadGaussian(thetaH - deltaB.g, sigmaB.g),
-                            ScatteringSpreadGaussian(thetaH - deltaB.b, sigmaB.b));
+    // Compute the average back scattering standard deviation ( Eq. 17 ).
+    float3 sigmaB = (1 + db * af2);
+    sigmaB *= (ab * sqrt((2 * Bf2) + Bb2)) + (ab3 * sqrt((2 * Bf2) + Bb2));
+    sigmaB /= ab + (ab3 * ((2 * Bf) + (3 * Bb)));
+    sigmaB  = Sq(sigmaB);
 
-        // Resolve the overall local scattering term ( Eq. 9 & 10 ).
-        bsdfData.localScattering  = 2 * Ab * Sb;
-        bsdfData.localScattering /= cos(thetaD);
-        bsdfData.localScattering *= db;
-    }
+    // Computes the average back scattering spread ( Eq. 15 ).
+    float3 Sb = ScatteringSpreadGaussian(thetaH - deltaB, sigmaB + bsdfData.forwardVariance);
+
+    // Resolve the overall local scattering term ( Eq. 9 & 10 ).
+    bsdfData.localScattering  = 2 * Ab * Sb;
+    bsdfData.localScattering /= cos(thetaD);
+    bsdfData.localScattering *= db;
+
+    bsdfData.directFraction = n < DIRECT_ILLUMINATION_THRESHOLD ? 1 : 0;
 }
