@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<UXML xmlns:ui="UnityEngine.UIElements">
+	<ui:Toggle name="autoCompile" text="Auto Compile" />
+	<ui:Toggle name="runtimeMode" text="Runtime Mode" />
+	<ui:Toggle name="shaderValidation" text="Shader Validation" />
+</UXML>

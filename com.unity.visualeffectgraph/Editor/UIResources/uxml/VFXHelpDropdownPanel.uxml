@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Button name="installSamples" text="Install Additional Samples" />
+    <ui:Button name="graphAddition" text="VFX Graph Additions" />
+    <ui:Toggle name="eventHelpers" text="Output Event Helpers" />
+</UXML>
