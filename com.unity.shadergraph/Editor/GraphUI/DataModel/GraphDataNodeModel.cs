@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+﻿using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry;
@@ -19,30 +18,27 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         }
 
         IGraphHandler graphHandler => ((ShaderGraphModel) GraphModel).GraphHandler;
+        public bool existsInGraphData => TryGetNodeReader(out _);
 
-        public INodeWriter nodeWriter => graphHandler.GetNodeWriter(m_Name);
-        public INodeReader nodeReader => graphHandler.GetNode(m_Name);
-        public RegistryKey registryKey => nodeReader.GetRegistryKey();
-
-        public GraphDataNodeModel()
+        public bool TryGetNodeWriter(out INodeWriter writer)
         {
-            m_PreviousInputs ??= new OrderedPorts();
-            m_PreviousOutputs ??= new OrderedPorts();
+            writer = graphHandler.GetNodeWriter(graphDataName);
+            return writer != null;
         }
+
+        public bool TryGetNodeReader(out INodeReader reader)
+        {
+            reader = graphHandler.GetNode(graphDataName);
+            return reader != null;
+        }
+
+        public RegistryKey registryKey => TryGetNodeReader(out var reader) ? reader.GetRegistryKey() : default;
 
         protected override void OnDefineNode()
         {
-            INodeReader reader;
-
-            // TODO: Non-final error handling
-            try
+            if (!TryGetNodeReader(out var reader))
             {
-                reader = nodeReader;
-            }
-            catch (NullReferenceException e)
-            {
-                Debug.LogError($"Node {graphDataName} is missing in graph data");
-                Debug.LogException(e);
+                Debug.LogErrorFormat("Node \"{0}\" is missing from graph data", graphDataName);
                 return;
             }
 
@@ -62,7 +58,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             }
         }
 
-        public override IPortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName, PortType portType,
+        public override IPortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
+            PortType portType,
             TypeHandle dataType, string portId, PortModelOptions options)
         {
             return new GraphDataPortModel

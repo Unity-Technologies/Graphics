@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -34,9 +35,33 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             var srcPort = (GraphDataPortModel) startPortModel;
             var dstPort = (GraphDataPortModel) compatiblePortModel;
 
+            // Don't touch nodes missing from graph data
+            if (!srcPort.graphDataNodeModel.existsInGraphData ||
+                !dstPort.graphDataNodeModel.existsInGraphData) return false;
+
             return GraphHandler.TestConnection(dstPort.graphDataNodeModel.graphDataName,
                 dstPort.graphDataName, srcPort.graphDataNodeModel.graphDataName,
                 srcPort.graphDataName, ((ShaderGraphStencil) Stencil).GetRegistry());
+        }
+
+        protected override IEdgeModel InstantiateEdge(IPortModel toPort, IPortModel fromPort,
+            SerializableGUID guid = default)
+        {
+            var srcIsGraphData = fromPort is GraphDataPortModel;
+            var dstIsGraphData = toPort is GraphDataPortModel;
+
+            if (!srcIsGraphData && !dstIsGraphData) return base.InstantiateEdge(toPort, fromPort, guid);
+            if (srcIsGraphData != dstIsGraphData) return null;
+
+            var srcPort = (GraphDataPortModel) fromPort;
+            var dstPort = (GraphDataPortModel) toPort;
+
+            return GraphHandler.TryConnect(
+                dstPort.graphDataNodeModel.graphDataName, dstPort.graphDataName,
+                srcPort.graphDataNodeModel.graphDataName, srcPort.graphDataName,
+                ((ShaderGraphStencil) Stencil).GetRegistry())
+                ? base.InstantiateEdge(toPort, fromPort, guid)
+                : null;
         }
     }
 }
