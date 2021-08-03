@@ -309,7 +309,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Reset all the multi-compiles
             CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
         }
-        
 
         class VolumetricCloudsAccumulationData
         {
