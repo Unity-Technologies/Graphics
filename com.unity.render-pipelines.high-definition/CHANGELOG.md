@@ -340,6 +340,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a nullref when binding a RTHandle allocated from a RenderTextureIdentifier with CoreUtils.SetRenderTarget.
 - Fixed off by 1 error when calculating the depth pyramid texture size when DRS is on.
 - Fixed CPU performance on DLSS, avoiding to recreate state whenever a target can fall into the safe min/max resolution specified by the system.
+- Fixed TAA upsampling algorithm, now work properly.
+- Fixed for allowing to change dynamic resolution upscale filter via script.
+- Fixed update order in Graphics Compositor causing jumpy camera updates (case 1345566).
+- Fixed material inspector that allowed setting intensity to an infinite value.
+- Fixed issue when switching between non-persistent cameras when path tarcing is enabled (case 1337843).
+- Fixed issue with the LayerMaskParameter class storing an erroneous mask value (case 1345515).
+- Fixed issue with vertex color defaulting to 0.0 when not defined, in ray/path tracing (case 1348821).
+- Fix issue with a compute dispatch being with 0 threads on extremely small resolutions.
 - Fixed an issue with volumetric clouds on vulkan (case 1354802).
 
 ### Changed
