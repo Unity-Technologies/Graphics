@@ -146,7 +146,16 @@ namespace UnityEditor.VFX.UI
                 GUILayout.FlexibleSpace();
 
                 EditorGUILayout.LabelField(VFXView.Contents.pickATarget);
-                if (EditorGUILayout.ObjectField(m_vfxView.attachedComponent, typeof(VisualEffect), true, GUILayout.ExpandWidth(true)) is VisualEffect visualEffect)
+                //var res = m_vfxView.controller.graph.visualEffectResource;
+                //var s = $"ref:{AssetDatabase.GetAssetPath(res)}";
+                //ObjectSelector.get.searchFilter = s;
+
+                var position = EditorGUILayout.s_LastRect = EditorGUILayout.GetControlRect(false, 18f, (GUILayoutOption[])null);
+                int controlId = GUIUtility.GetControlID("s_ObjectFieldHash".GetHashCode(), FocusType.Keyboard, position);
+
+                var result = EditorGUI.DoObjectField(EditorGUI.IndentedRect(position), EditorGUI.IndentedRect(position), controlId, m_vfxView.attachedComponent, (UnityEngine.Object) null, typeof(VisualEffect), this.VFXValidator, true);
+                //if (EditorGUILayout.ObjectField(m_vfxView.attachedComponent, typeof(VisualEffect), true, GUILayout.ExpandWidth(true)) is VisualEffect visualEffect)
+                if (result is VisualEffect visualEffect)
                 {
                     if (visualEffect != m_vfxView.attachedComponent)
                     {
@@ -174,6 +183,14 @@ namespace UnityEditor.VFX.UI
                 GUI.enabled = true;
                 EditorGUILayout.Space(12f);
             }
+        }
+
+        private UnityEngine.Object VFXValidator(UnityEngine.Object[] references, Type objtype, SerializedProperty property, EditorGUI.ObjectFieldValidatorOptions options)
+        {
+            return references
+                .OfType<GameObject>()
+                .Select(x => x.GetComponent<VisualEffect>())
+                .FirstOrDefault(x => x.visualEffectAsset == this.m_vfxView.attachedComponent.visualEffectAsset);
         }
     }
 
