@@ -416,9 +416,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // camera to screen matrix (and it's inverse)
             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
+                var proj = hdCamera.xr.enabled ? hdCamera.xr.GetProjMatrix(viewIndex) : camera.projectionMatrix;
                 // Note: we need to take into account the TAA jitter when indexing the light list
-                var projMatrix = hdCamera.RequiresCameraJitter() ? hdCamera.GetJitteredProjectionMatrix(camera.projectionMatrix) : camera.projectionMatrix;
-                var proj = hdCamera.xr.enabled ? hdCamera.xr.GetProjMatrix(viewIndex) : projMatrix;
+                proj = hdCamera.RequiresCameraJitter() ? hdCamera.GetJitteredProjectionMatrix(proj) : proj;
+
                 m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
 
                 var tempMatrix = temp * m_LightListProjMatrices[viewIndex];
