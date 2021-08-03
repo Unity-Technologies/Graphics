@@ -273,9 +273,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._VBufferLighting, volumetricLightingTexture);
                 if (parameters.commonData.cloudsCB._PhysicallyBasedSun == 0)
                 {
-                    cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._AirSingleScatteringTexture, scatteringFallbackTexture);
-                    cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._AerosolSingleScatteringTexture, scatteringFallbackTexture);
-                    cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._MultipleScatteringTexture, scatteringFallbackTexture);
+                    // This has to be done in the global space given that the "correct" one happens in the global space.
+                    // If we do it in the local space, there are some cases when the previous frames local take precedence over the current frame global one.
+                    cmd.SetGlobalTexture(HDShaderIDs._AirSingleScatteringTexture, scatteringFallbackTexture);
+                    cmd.SetGlobalTexture(HDShaderIDs._AerosolSingleScatteringTexture, scatteringFallbackTexture);
+                    cmd.SetGlobalTexture(HDShaderIDs._MultipleScatteringTexture, scatteringFallbackTexture);
                 }
 
                 if (parameters.needsTemporaryBuffer)

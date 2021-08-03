@@ -348,6 +348,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with the LayerMaskParameter class storing an erroneous mask value (case 1345515).
 - Fixed issue with vertex color defaulting to 0.0 when not defined, in ray/path tracing (case 1348821).
 - Fix issue with a compute dispatch being with 0 threads on extremely small resolutions.
+- Fixed an issue with volumetric clouds on vulkan (case 1354802).
+- Fixed volume interpolation issue with ScalableSettingLevelParameter.
+- Fix issue with change in lens model (perfect or imperfect) wouldn't be taken into account unless the HDRP asset was rebuilt.
+- Fixed custom pass delete operation (case 1354871).
+- Fixed viewport size when TAA is executed after dynamic res upscale (case 1348541).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
