@@ -69,8 +69,6 @@ public class FrameTimingData
     /// </summary>
     public int BottleneckHistorySize { get; set; } = 60;
 
-    FrameTiming[] m_Timing = new FrameTiming[1];
-
     List<FrameTimeSample> m_Samples = new List<FrameTimeSample>();
 
     enum PerformanceBottleneck
@@ -85,22 +83,37 @@ public class FrameTimingData
     List<PerformanceBottleneck> m_BottleneckHistory = new List<PerformanceBottleneck>();
 
     /// <summary>
+    /// Reset gathered data.
+    /// </summary>
+    public void Reset()
+    {
+        m_Samples.Clear();
+        m_BottleneckHistory.Clear();
+        AveragedSample = new FrameTimeSample();
+        BottleneckStats = new Bottlenecks();
+    }
+
+    /// <summary>
     /// Update timing data from profiling counters.
     /// </summary>
     public void UpdateFrameTiming()
     {
+        FrameTiming[] timing = new FrameTiming[1];
         FrameTimingManager.CaptureFrameTimings();
-        FrameTimingManager.GetLatestTimings(1, m_Timing);
+        FrameTimingManager.GetLatestTimings(1, timing);
 
         while (m_Samples.Count >= HistorySize)
             m_Samples.RemoveAt(0);
 
         FrameTimeSample frameTime = new FrameTimeSample();
 
-        frameTime.FullFrameTime                 = (float)m_Timing.First().cpuFrameTime;
-        frameTime.MainThreadCPUFrameTime        = (float)m_Timing.First().cpuMainThreadFrameTime;
-        frameTime.RenderThreadCPUFrameTime      = (float)m_Timing.First().cpuRenderThreadFrameTime;
-        frameTime.GPUFrameTime                  = (float)m_Timing.First().gpuFrameTime;
+        if (timing.Length > 0)
+        {
+            frameTime.FullFrameTime = (float)timing.First().cpuFrameTime;
+            frameTime.MainThreadCPUFrameTime = (float)timing.First().cpuMainThreadFrameTime;
+            frameTime.RenderThreadCPUFrameTime = (float)timing.First().cpuRenderThreadFrameTime;
+            frameTime.GPUFrameTime = (float)timing.First().gpuFrameTime;
+        }
 
         m_Samples.Add(frameTime);
 
