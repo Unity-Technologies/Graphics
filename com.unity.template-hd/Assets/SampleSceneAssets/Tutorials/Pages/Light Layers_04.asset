@@ -35,7 +35,7 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Next steps
+        m_Untranslated: Congratulations!
       Text:
         m_Untranslated: "In this tutorial, you learned how Light layers can be used
           to control which objects are affected by lights and Reflection Probes.\r\n\r\nFor
@@ -61,8 +61,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 4.5600986
-    m_Pivot: {x: 61.7638, y: 3.003726, z: -0.76938593}
-    m_Rotation: {x: 0.03952461, y: 0.75163066, z: -0.045224227, w: 0.65684587}
+    m_Pivot: {x: 65.158676, y: 2.827208, z: -0.36506805}
+    m_Rotation: {x: 0.03602042, y: 0.70808524, z: -0.036211386, w: 0.70427924}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

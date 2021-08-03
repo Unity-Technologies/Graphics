@@ -27,7 +27,18 @@ MonoBehaviour:
         m_Items: []
       m_MaskingSettings:
         m_MaskingEnabled: 0
-        m_UnmaskedViews: []
+        m_UnmaskedViews:
+        - m_SelectorType: 1
+          m_ViewType:
+            m_TypeName: 
+          m_EditorWindowType:
+            m_TypeName: UnityEditor.SceneView, UnityEditor.CoreModule, Version=0.0.0.0,
+              Culture=neutral, PublicKeyToken=null
+          m_AlternateEditorWindowTypes:
+            m_Items: []
+          m_MaskType: 0
+          m_MaskSizeModifier: 1
+          m_UnmaskedControls: []
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -42,11 +53,11 @@ MonoBehaviour:
           Select the <b>Volume Global</b> GameObject.\r\n\n3) Notice the <b>Mode</b>
           is <b>Global</b> in the <i>Inspector.</i>\r\n\n4) Disable the <b>Tonemapping</b>
           Override. You can see that the image becomes more washed out as a result.\n\r\n5)
-          Undo your change.\r\n\r\nNotice that Global volumes have an effect no matter
-          where the camera is located. This is important for setting up a baseline
-          for effects which usually remain constant, no matter the location of the
-          camera, such as Fog, Shadows,  Ambient Occlusion, Tonemapping, Motion Blur,
-          Bloom, Film Grain, etc. \r"
+          Undo your change.\r\n\r\nGlobal volumes have an effect on cameras, wherever
+          both are located. This is important for setting up a baseline for effects
+          that often remain constant thoughtout the scene, no matter the location
+          of the camera, for instance:\n\u2022 Sky\n\u2022 Fog\n\u2022 Shadows\n\u2022
+          Tonemapping\n\u2022 Motion Blur\n\u2022 Film Grain \r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

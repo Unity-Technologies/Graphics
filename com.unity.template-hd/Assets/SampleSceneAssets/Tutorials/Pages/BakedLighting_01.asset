@@ -47,13 +47,12 @@ MonoBehaviour:
           Therefore, <b>baking</b> or precomputing the indirect lighting is an important
           step.
 
-          
 
-          The image above shows the exact same Scene
-          after the baked lighting data has been removed. As you can see, the bounce
-          lighting is missing and the indirect lighting relies only on the ambient
-          lighting generated from the Sky, making the interior look abnormally bright
-          and flat.'
+          The image above shows the exact same Scene after the
+          baked lighting data has been removed. As you can see, the bounce lighting
+          is missing and the indirect lighting relies only on the ambient lighting
+          generated from the Sky, making the interior look abnormally bright and
+          flat.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

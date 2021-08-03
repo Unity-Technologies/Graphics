@@ -49,7 +49,7 @@ MonoBehaviour:
           with the Draft Lighting Asset, with more apparent blotches of light in
           certain areas and a disconnection between the pillars and their soft shadows
           on the ceiling due to the lower texel resolution.\n\nExperiment with the
-          other Lighting Settings assets and compare the results.\r The Ultra Lighting
+          other Lighting Settings assets and compare the results. The Ultra Lighting
           Asset will provide the best quality, however it will require several minutes
           of baking."
       m_Tutorial: {fileID: 0}

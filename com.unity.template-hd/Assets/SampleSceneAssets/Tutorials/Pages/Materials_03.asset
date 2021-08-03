@@ -37,15 +37,16 @@ MonoBehaviour:
       Title:
         m_Untranslated: Refraction model
       Text:
-        m_Untranslated: "The High Definition Render Pipeline (HDRP) uses a refraction
-          algorithm to simulate light deviation and absorption within Materials.\r\n\r\nSelect
-          the glass by following the steps:\r\n1) In the <i>Hierarchy,</i> expand
-          <b>Props</b> > <b>Room 3</b> > <b>RoundTable_01</b> > <b>RoundTable_01_LOD0.</b>\r\n\r\n2)
+        m_Untranslated: "The High Definition Render Pipeline (HDRP) can simulate
+          the refraction of the light inside materials.\r\n\r\n1) In the <i>Hierarchy,</i>
+          expand <b>Props</b> > <b>Room 3</b> > <b>RoundTable_01</b> > <b>RoundTable_01_LOD0.</b>\r\n\r\n2)
           Select the <b>RoundTable_GLass_01_LOD00</b> GameObject.\r\n\r\n3) In the
           <i>Inspector,</i> expand the <i>Glass Dark_Mat Material.</i>\r\n\r\n4)
-          Set the <b>Refraction Model</b> to None to disable the refraction entirely.
-          \r\n\r\n5) Undo your change.\r\n\r\nRefraction allows us to create a frosted
-          glass effect which you can adjust by tuning the Smoothness of the material.\r"
+          In the <b>Transparency Inputs</b> section, set the <b>Refraction Model</b>
+          to None to disable the refraction entirely. \r\n\r\n5) Undo your change
+          and experiment with the <b>Index Of Refraction</b> slider.\n\r\nRefraction
+          also allows us to create a frosted glass effect, which you can adjust by
+          tuning the <b>Smoothness</b> of the material.\r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -65,8 +66,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 2.2357948
-    m_Pivot: {x: 63.02813, y: 0.7790892, z: -1.905962}
-    m_Rotation: {x: 0.0017000146, y: -0.9493588, z: 0.31418353, w: 0.0051144967}
+    m_Pivot: {x: 65.17452, y: 1.0990264, z: 0.20895642}
+    m_Rotation: {x: -0.21615665, y: -0.5959711, z: 0.17079769, w: -0.75428486}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

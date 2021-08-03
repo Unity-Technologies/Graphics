@@ -46,8 +46,8 @@ MonoBehaviour:
           assigned to the project.\r\n\r\n2) Disable HDRI Sky. The Sky in the scene
           will disappear.\r\n\r\n3) Undo your changes.\r\n\r\nFor convenience and
           quick access, we also added an instance of these settings in the Scene.
-          You can use the search bar in the <i>Hierarchy</i> to find the <b>Lighting</b>
-          > <b>Volumes</b> > <b>Volume Global</b> GameObject. \r"
+          You can access them with the <i>Hierarchy,</i> in <b>Lighting</b> > <b>Volumes</b>
+          > <b>Volume Global.</b> \r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -67,8 +67,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 9.263008
-    m_Pivot: {x: 2.3921928, y: 3.4891708, z: 0.23071586}
-    m_Rotation: {x: 0, y: 0.70710677, z: 0, w: -0.70710677}
+    m_Pivot: {x: -0.24293423, y: 16.892998, z: 0.4729514}
+    m_Rotation: {x: -0.2963085, y: 0.4868354, z: 0.17992301, w: 0.80177695}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

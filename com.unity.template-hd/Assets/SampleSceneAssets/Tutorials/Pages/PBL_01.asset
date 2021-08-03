@@ -69,8 +69,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 32.402557, y: 1.2589267, z: 10.1593}
-    m_Rotation: {x: 0.013583756, y: -0.46144992, z: 0.00706175, w: 0.8870341}
+    m_Pivot: {x: 30.995693, y: 1.7272234, z: 11.294565}
+    m_Rotation: {x: -0.001072682, y: -0.4292754, z: -0.00051460584, w: 0.9031752}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

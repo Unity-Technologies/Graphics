@@ -37,12 +37,19 @@ MonoBehaviour:
       Title:
         m_Untranslated: Automatic Histogram exposure
       Text:
-        m_Untranslated: "In the same Global Volume from the last step, set the Expose
-          Mode to Automatic Histogram. \r\n\r\n1) In the <i>Hierarchy,</i> select
-          the Global volume.\r\n\r\n2) Switch the Mode to <b>Automatic Histogram.</b>\r\n\r\nExplore
-          the Scene and notice how HDRP imitates human eye adaptation or the automatic
-          exposure system of a camera. Dark areas may become brighter, and bright
-          ones may turn darker.\r"
+        m_Untranslated: "Let's now switch the Exposure Mode to another one that can
+          automatically adpat to the scene's lighting.\n\r\n1) In the <i>Hierarchy,</i>
+          select the <b>Global volume</b> created at the previous step.\n\r\n2) In
+          its <i>Inspector,</i> Switch the Mode to <b>Automatic Histogram.</b>\r\n\r\nExplore
+          the Scene and notice how the camera now imitates the human eye adaptation
+          or the automatic exposure system of a camera. Dark areas may become brighter,
+          and bright ones may turn darker.\r\n\n\n<b>Expert tips</b>\n\n\u2022 Use
+          the <b>Limit Min</b> and <b>Limit Max</b> overrides to control how much
+          the Automatic Exposure can fluctuate within a fixed range of values.\n\n\u2022
+          Use the <b>Compensation</b> overrie to slightly nudge the exposure up or
+          down in case you aren't exactly satisfied with the exposure value selected
+          by the system.\n\n\u2022 HDRP offers wide range of mid grey targets, from
+          12.5% to 18% grey, to simulate the exposure system from most camera manufacturers.\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -62,8 +69,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 72.56407, y: 3.0335984, z: 4.273514}
-    m_Rotation: {x: 0.006210411, y: 0.60596156, z: -0.0047358163, w: 0.79545563}
+    m_Pivot: {x: 66.16438, y: 3.5631676, z: 0.091934875}
+    m_Rotation: {x: -0.016692033, y: 0.7094488, z: 0.01680719, w: 0.70436}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

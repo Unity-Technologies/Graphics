@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
-    - m_Type: 7
+    - m_Type: 6
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: 66df82914d3e04f419161a64ce195c0f, type: 3}
+      m_Image: {fileID: 2800000, guid: f54df7990cbe3774eaf5bf423cb148ee, type: 3}
       m_Video: {fileID: 32900000, guid: 1973bd32fe28a7541b6e4582e2ed70c9, type: 3}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -35,14 +35,20 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Disable decals
+        m_Untranslated: Inspect Decals
       Text:
-        m_Untranslated: "To preview the impact of Decals in the scene disable and
-          re-enable them in the Scene.\r\n\r\n1) In the <i>Hierarchy,</i> expand
-          the <b>Structure</b> GameObject.\r\n\r\n2) Select the <b>Decals</b> GameObject.\r\n\r\n3)
-          Toggle it <b>on</b> and <b>off</b> in the <i>Inspector.</i>\r\n\r\nNotice
-          how the decals add variation to the large tiled concrete geometry in the
-          Scene. \r"
+        m_Untranslated: "Let's see how decals can dramatically improve the look of
+          simple surfaces.\n\r\n1) In the <i>Hierarchy,</i> select <b>Structure</b>
+          > <b>Decals.</b>\r\n\r\n2) In its <i>Inspector,</i> toggle the GameObject
+          <b>off</b> and <b>on.</b> See how the decals add variations on the concrete
+          surfaces and breakup the texture tiling. \n\n3) Select <b>Structure</b>
+          > <b>Decals</b> > <b>Puddles</b>  > <b>Decal Puddle (11)</b>\n\n4) In its
+          <i>Inspector,</i> reduce the <b>Fade Factor</b> parameter, in order to
+          simulate the puddle drying out.\n\n\n<b>Expert tips</b>\n\n\u2022 Use <b>Decal
+          Layers</b> to specify which surfaces should be affected by which decals.\n\n\u2022
+          Use a custom <b>Pivot</b> to override the origin of the projection.\n\n\u2022
+          Reduce the <b>Draw Distance</b> on Decals to minimize their performance
+          impact."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -62,8 +68,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 6.8480654
-    m_Pivot: {x: -3.0870085, y: -1.292491, z: 0.2109518}
-    m_Rotation: {x: 0.31233156, y: 0.4305406, z: -0.16177791, w: 0.8312104}
+    m_Pivot: {x: 4.0150676, y: 2.3315349, z: 5.728921}
+    m_Rotation: {x: 0.09133546, y: 0.42951956, z: -0.043717213, w: 0.89736444}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

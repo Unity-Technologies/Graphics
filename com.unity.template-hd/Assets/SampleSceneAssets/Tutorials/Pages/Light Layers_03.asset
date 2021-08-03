@@ -20,7 +20,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: e8a7362729469b144bd110fb4265703b, type: 3}
+      m_Image: {fileID: 2800000, guid: a15ea45be12925f48b3a3146e469416e, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -37,20 +37,44 @@ MonoBehaviour:
       Title:
         m_Untranslated: Light Layers
       Text:
-        m_Untranslated: "In the next steps you can find out how the lights and the
-          pieces of glass are set up.\r\n\r\n1) Select the glass by going to <b>Props</b>
-          > <b>Room3</b> > <b>CeilingLamp_01</b> > <b>CeilingLamp_Lamp_01</b> > <b>CeilingLamp_Glass_01_LOD0.</b>\r\n\r\n2)
-          Notice that the <b>Rendering Layer Mask</b> parameter is set to <b>LampsOnly.</b>\r\n\r\n3)
-          Go to <b>Props</b> > <b>Room3</b> > <b>CeilingLamp_01</b>  and select the
-          spotlight <b>Light_Spot_1200lm.</b>\r\n\r\n4) Notice that the <b>Rendering
-          Layer Mask</b> is set to <b>Mixed...</b> and that the <b>Lamp Only</b>
-          layer is disabled.\r\n\r\nBecause the spotlight is unable to affect the
-          <b>Lamp Only</b> layer, the glass placed on the <b>Lamps Only</b> layer
-          cannot receive lighting and shadowing from the spotlight. Thus, no unwanted
-          shadows are produced.\r\n\r\nObviously, Light layers are not physically
-          correct, as they would not work in real life. However, in practice, this
-          feature is extremely useful to avoid unwanted illumination, shadowing and
-          light leaking. \r"
+        m_Untranslated: 'Let''s see how you can assign Light Layers to objects and
+          Lights.
+
+
+
+          1) In the <i>Hierarchy,</i> select <b>Props</b> >
+          <b>Room3</b> > <b>CeilingLamp_01</b> > <b>CeilingLamp_Lamp_01</b> > <b>CeilingLamp_Glass_01_LOD0.</b>
+
+
+
+          2)
+          In its <i>Inspector,</i> notice that the <b>Rendering Layer Mask</b> parameter
+          is set to <b>LampsOnly.</b>
+
+
+          3) Select <b>Props</b> > <b>Room3</b>
+          > <b>CeilingLamp_01</b> > <b>Light_Spot_1200lm.</b>
+
+
+
+          4) Notice
+          that the <b>Light Layer</b> is set to <b>Mixed...</b> and once the dropdown
+          is expanded, see that the <b>Lamp Only</b> layer is disabled.
+
+
+
+          Because
+          the spotlights in the light fixture are unable to affect the <b>Lamp Only</b>
+          layer, the pieces of glass placed on the <b>Lamps Only</b> layer cannot
+          receive lighting nor shadowing from said spotlights. Thus, no unwanted
+          shadows are produced.
+
+
+
+          Obviously, Light layers are not physically
+          correct, because light cannot be blocked this way in real-life. However,
+          in practice, this feature is extremely useful to avoid unwanted illumination,
+          shadowing and light leaking in more difficult lighting scenarios.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -70,8 +94,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 0.3600989
-    m_Pivot: {x: 63.555546, y: 4.818998, z: -0.22940664}
-    m_Rotation: {x: -0.044620518, y: 0.68515474, z: 0.042124696, w: 0.7258096}
+    m_Pivot: {x: 62.922337, y: 4.6784563, z: -0.20594485}
+    m_Rotation: {x: -0.023196526, y: 0.70862633, z: 0.023325425, w: 0.70481795}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

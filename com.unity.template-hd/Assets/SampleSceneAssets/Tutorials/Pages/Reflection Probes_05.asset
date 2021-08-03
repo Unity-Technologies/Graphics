@@ -41,14 +41,11 @@ MonoBehaviour:
           a sloped ceiling, and a wide range of lighting intensities, requires a
           large number of <b>Reflection Probes</b> to reach a high reflection quality.
 
-          
 
           The
           size of <b>Reflection Probes</b> directly influences how they are sorted
           and blended with each other: smaller Reflection Probes tend to have more
-          influence on nearby objects than larger ones.
-
-'
+          influence on nearby objects than larger ones.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

@@ -47,9 +47,9 @@ MonoBehaviour:
           to 1. Notice that everything is suddenly very bright. Look at the other
           rooms, they appear solid white.\r\n\r\n7) Using the slider, increase the
           Exposure to 8. The room should look more correct now, but the others are
-          still overexposed.\r\n\r\nThis is the downside of the fixed exposure: it
-          works well in an evenly lit environment but would require additional work
-          to set up the other rooms.\r"
+          still overexposed.\r\n\r\nThis is the downside of the <b>Fixed</b> Exposure
+          Mode: it works well in an evenly lit environment, but it will require constant
+          tuning for every lighting scenario.\r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -69,8 +69,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 72.56407, y: 3.0335984, z: 4.273514}
-    m_Rotation: {x: 0.006210411, y: 0.60596156, z: -0.0047358163, w: 0.79545563}
+    m_Pivot: {x: 10.70413, y: -2.4248295, z: 8.748695}
+    m_Rotation: {x: 0.19587164, y: 0.44781604, z: -0.10123064, w: 0.86651826}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

@@ -20,7 +20,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: 86f6d16ab74eafd438f28a6cb663dbc2, type: 3}
+      m_Image: {fileID: 2800000, guid: 71e3f6c059b17a048811a3a5d860f624, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -38,10 +38,9 @@ MonoBehaviour:
         m_Untranslated: Dust
       Text:
         m_Untranslated: "Inspect the Dust visual effect created for this scene.\r\n\r\n1)
-          In the <i>Hierarchy</i> expand the <b>VFX</b> GameObject.\r\n\r\n2) Select
-          the <b>FloatingDust Cage</b> GameObject.\r\n\r\n3) Toggle it <b>on</b>
-          and <b>off</b> in the <i>Inspector.</i>\r\n\r\nNotice how the dust particles
-          contribute to the realism of the Scene.\r"
+          In the <i>Hierarchy</i>, select <b>VFX</b> > <b>FloatingDust Cage.</b>\n\r\n2)
+          Toggle it on and off in the <i>Inspector.</i>\r\n\r\nNotice how the dust
+          particles contribute to the realism of the Scene.\r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -61,8 +60,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 2.6911442
-    m_Pivot: {x: 32.2846, y: 2.297823, z: -1.8901758}
-    m_Rotation: {x: -0.009168692, y: 0.931208, z: 0.023459326, w: 0.36364794}
+    m_Pivot: {x: 30.194061, y: 4.1059413, z: -0.34840107}
+    m_Rotation: {x: 0.11404744, y: 0.88090837, z: 0.27075532, w: -0.3710963}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

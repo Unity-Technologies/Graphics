@@ -44,7 +44,7 @@ MonoBehaviour:
           this area of the Scene inherits its Exposure settings directly from the
           <b>Global</b> volume. \r\n\r\nHowever, these particular settings might
           not be acceptable for a relatively dark room, such as Room 3. Therefore,
-          a <b>Local</b> volume for Room 3 has been created, with dedicated exposure
+          a <b>Local</b> volume for Room 3 has been created, with dedicated Exposure
           overrides, among others.\r\n\r\nWhen the camera leaves <b>Volume Room 3,</b>
           the overrides that were set for this room will no longer be applied to
           the camera.\r"

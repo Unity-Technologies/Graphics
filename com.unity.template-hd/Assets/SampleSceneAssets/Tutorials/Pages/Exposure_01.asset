@@ -43,14 +43,14 @@ MonoBehaviour:
           to the amount of light in the environment. However, like in real life,
           it\u2019s important to control the exposure of your HDRP cameras to prevent
           over- or underexposure.\r\n\r\nThere are multiple exposure modes in HDRP.
-          The most notable are:\r\n\r\n<b>1) Fixed:</b> It allows you to manually
+          The most notable are:\r\n\r\n<b>\u2022 Fixed:</b> It allows you to manually
           set the Scene exposure precisely. As a result, the camera will not try
           to adapt to the lighting conditions when leaving or entering dark areas.
-          It is used whenever the lighting conditions remain constant.\r\n\r\n<b>Automatic
-          Histogram:</b> It simulates how a camera automatically adapts to dynamic
-          lighting conditions within certain limits.\r This mode is utilized when
-          dealing with a Scene having a wide variety of lighting intensities, such
-          as indoor and outdoor areas."
+          It is used whenever the lighting conditions remain constant.\r\n\r\n<b>\u2022
+          Automatic Histogram:</b> It simulates how a camera automatically adapts
+          to dynamic lighting conditions within certain limits.\r This mode is utilized
+          when dealing with a Scene having a wide variety of lighting intensities,
+          such as indoor and outdoor areas."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

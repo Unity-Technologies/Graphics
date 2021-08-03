@@ -44,12 +44,12 @@ MonoBehaviour:
           of a powerful 100W halogen bulb, with a warm tint. \r\n\r\nThe intensity
           of the light bulbs is usually provided by the manufacturer, in Lumen or
           Candela.\r\n\nCreating realistic lighting is as simple as looking up bulb
-          values online, or using the handy sliders and presets in the Light's inspector.\r\n\r\n<b>Expert
-          tips:</b>\n\na) When using Lumens with a Spot light, use the <b>Reflector</b>
+          values online, or using the handy sliders and presets in the Light's inspector.\r\n\r\n\n<b>Expert
+          tips:</b>\n\n\u2022 When using Lumens with a Spot light, use the <b>Reflector</b>
           mode (enabled by default), in order to have a correct simulation of the
           light intensity based on the cone angle of the Spot light. If you cannot
           see this checkbox, \"Show Additional Properties\" via the 3-dots menu in
-          the Emission foldout.\n\nb) To optimize performance, keep the Emission
+          the Emission foldout.\n\n\u2022 To optimize performance, keep the Emission
           and Shadow <b>Fade Distance</b> properties as low as possible, so that
           the light and its shadows disappear beyond a certain distance (in meters).\r"
       m_Tutorial: {fileID: 0}

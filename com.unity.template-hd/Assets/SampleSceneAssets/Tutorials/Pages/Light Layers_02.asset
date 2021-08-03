@@ -20,7 +20,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: a15ea45be12925f48b3a3146e469416e, type: 3}
+      m_Image: {fileID: 2800000, guid: e8a7362729469b144bd110fb4265703b, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -37,16 +37,17 @@ MonoBehaviour:
       Title:
         m_Untranslated: Disabling the feature
       Text:
-        m_Untranslated: "The next steps look into how the Light layer system can
-          help solve common light leaking problems.\r\n\r\n1) Find your active HDRP
-          asset in the <b>Settings</b> folder of the <i>Project</i> window. If you
-          haven't switched to another in the quality settings, it should be <b>HDRP
-          Medium.</b>\r\n\r\n2) In your active HDRP Asset, uncheck <b>Lighting</b>
-          > <b>Light layers</b> to turn them off.\r\n\r\nWith the Light layers off,
-          notice that the top lamp\u2019s glass surface casts unwanted shadows on
-          its siblings.\r\n\r\nTurn the Light layers back on and notice how the glass
-          doesn\u2019t seem to cast shadow anymore. \r\n\r\n<b>Note:</b> By default,
-          Light layers are turned off for new projects.\r"
+        m_Untranslated: "Let's see how the Light Layers are activated.\r\n\r\n1)
+          In the <i>Project</i> Window, inside <b>Assets</b> > <b>Settings,</b> select
+          the active HDRP asset, most likely <b>HDRPMediumQuality.</b>\r\n\r\n2)
+          In its <i>Inspector</i>, disable the <b>Lighting</b> > <b>Light layers</b>
+          checkbox.\r\n\r\nWith the Light layers off, notice that the top lamp\u2019s
+          glass surface casts unwanted shadows on its siblings and on the floor.\n\r\n3)
+          Turn the Light layers back on and notice how the glass doesn\u2019t cast
+          shadow anymore. \r\n\nIn this scenario, the Light Layers are used to force
+          each piece of glass to not receive light from other spotlights on the lamp
+          fixture.\n\r\n<b>Note:</b> By default, Light layers are turned off for
+          new projects.\r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -76,7 +77,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 1
+    m_Enabled: 0
   NextButton:
     m_Untranslated: Next
   DoneButton:

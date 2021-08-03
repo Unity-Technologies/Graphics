@@ -37,21 +37,17 @@ MonoBehaviour:
       Title:
         m_Untranslated: Explore the Sky setup
       Text:
-        m_Untranslated: "Let\u2019s take a look at how the Sky is set up for this
+        m_Untranslated: "Let\u2019s take a look at how the Sky is set up in this
           sample Scene.\r\n\r\n1) In the <i>Hierarchy,</i> select <b>Lighting</b>
-          > <b>Volumes</b> > <b>Volume Global.</b>\r\n\r\n2) In the Inspector, check
-          that both Visual Environment and HDRI sky are listed as overrides.\r\n\r\n3)
-          Disable the Visual Environment override. The sky turns gray as a result,
-          because no sky at all is defined.\r\n\r\n<b>Visual Environment:</b> Defines
-          the type of sky to use\r\n\r\n<b>HDRI Sky:</b> Customizes specific sky
-          properties such as texture and exposure. A clear daylight sky exposure
-          is roughly between 12 and 14 EV, or 15.000 and 25.000 lux.\r\n\r\n4) Undo
-          your previous change, and set the exposure in the HDRI Sky override to
-          11 EV, to reduce the intensity of the sky. As a result, the sky appears
-          darker than the rest of the environment.\r\n\r\n5) Undo your change.\r\n\r\n6)
-          Go to <b>Window</b> > <b>Rendering</b> > <b>Lighting</b> > <b>Environment</b>
-          tab. Notice the same volume profile and sky type are applied, they will
-          be used to generate the lightmaps for this scene.\r"
+          > <b>Volumes</b> > <b>Volume Global.</b>\r\n\r\n2) In its <i>Inspector,</i>
+          in the <b>Visual Environment</b> override, set the <b>Sky Type</b> to <b>None.</b>
+          Notice that the sky has now disappeared.\n\n3) Undo your change.\n\n4)
+          In the <b>HDRI Sky</b> override, set the <b>Exposure</b> to 11 EV, to reduce
+          the intensity of the sky. As a result, the sky appears darker than the
+          rest of the environment.\r\n\r\n5) Undo your change.\r\n\r\n6) Go to <b>Window</b>
+          > <b>Rendering</b> > <b>Lighting</b> > <b>Environment</b> tab. Notice the
+          same volume profile and sky type are applied. The lightmapper will use
+          these sky settings when generating the lightmaps for this scene.\r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

@@ -41,12 +41,11 @@ MonoBehaviour:
           tutorial experience,  under <b>Edit</b> > <b>Project Settings</b> > <b>Quality.</b>
 
 
-
           To
           complete all sections of this tutorial, you need to use at least the <b>Medium
           Quality</b> level. If the framerate in the Scene view is too low, you may
           switch to <b>Low Quality,</b> however you will not be able to complete
-          the Fog tutorial.'
+          the section related to <b>Fog.</b>'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

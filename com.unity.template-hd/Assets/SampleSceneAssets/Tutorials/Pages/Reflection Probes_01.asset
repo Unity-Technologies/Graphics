@@ -45,7 +45,7 @@ MonoBehaviour:
           directly affected by the sky.\r\n\r\nIn addition, they can overlap and
           have smooth fades at their boundaries. Objects will automatically blend
           between the <b>Reflection Probes</b> based on their location and the fade
-          distances set on each <b>Reflection Probe</b>. \r\n\nFinally, their type
+          distances set on each <b>Reflection Probe.</b>\r\n\nFinally, their type
           can either be <b>Baked</b> or <b>Realtime.</b> The former will bake the
           results into a texture on disk, whereas the latter will constantly update
           at runtime to produce true realtime reflections, but at a much higher computational

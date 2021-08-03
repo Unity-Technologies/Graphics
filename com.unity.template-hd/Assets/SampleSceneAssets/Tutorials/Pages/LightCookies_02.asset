@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
-    - m_Type: 7
+    - m_Type: 6
       Title:
         m_Untranslated: 
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 0}
+      m_Image: {fileID: 2800000, guid: 2a0274fa5d515a7498538ac0bd877557, type: 3}
       m_Video: {fileID: 32900000, guid: 1973bd32fe28a7541b6e4582e2ed70c9, type: 3}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -38,10 +38,11 @@ MonoBehaviour:
         m_Untranslated: Inspect the Light cookie
       Text:
         m_Untranslated: "You can assign Light cookies in the Light component.\r\n\r\n1)
-          Select <b>Light_Spot_1600lm,</b> the spotlight illuminating the wall.\r\n\r\n2)
-          In the Inspector, scroll down until you see the <b>Cookie</b> field, in
-          the <b>Emission</b> foldout.\r\n\r\n3) Notice that a texture called <b>SpotLight_Cookie</b>
-          is assigned.\r"
+          In the <i>Project</i> Window, select <b>Light_Spot_1600lm.</b>\r\n\r\n2)
+          In its <i>Inspector,</i> in the <b>Emission</b> foldout, select the Cookie
+          property and remove the assigned texture.\n\r\n3) Undo this change.\r\r\nNotice
+          how the light shape changed: the edges no longer had a smooth transition,
+          and some fine details were lost around the center of the light."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

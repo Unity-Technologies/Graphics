@@ -19,14 +19,7 @@ MonoBehaviour:
         m_Untranslated: 
       Text:
         m_Untranslated: 
-      m_Summary: 
-      m_Description: 
-      m_InstructionBoxTitle: 
-      m_InstructionText: 
-      m_TutorialButtonText: 
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 2800000, guid: e8a7362729469b144bd110fb4265703b, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -35,20 +28,28 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
-    - m_Type: 0
-      Title:
-        m_Untranslated: Light Layers
-      Text:
-        m_Untranslated: You can use <b>light layers</b> to dictate which objects
-          can be affected by a light or a Reflection Probe.
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: Light Layers
+      Text:
+        m_Untranslated: 'You can use <b>light layers</b> to dictate which objects
+          can be affected by a light or a Reflection Probe.
+
+
+          They can
+          be used to help with selective lighting of certain objects, solve light
+          leaking issues, and control which light is allowed to cast shadows onto
+          other objects.
+
+
+          Understanding Light Layers is an important part
+          of the lighting workflow.'
       m_Tutorial: {fileID: 0}
-      m_Icons:
-        m_Items: []
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
@@ -57,13 +58,18 @@ MonoBehaviour:
       m_MaskingSettings:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
   m_CameraSettings:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 2.8151612
-    m_Pivot: {x: 65.39235, y: 3.048728, z: 0.1418814}
-    m_Rotation: {x: 0.06921207, y: 0.66655827, z: -0.06237899, w: 0.7396072}
+    m_Pivot: {x: 65.44222, y: 3.2848444, z: -0.22151703}
+    m_Rotation: {x: 0.016116295, y: 0.70734465, z: -0.016138552, w: 0.7064998}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

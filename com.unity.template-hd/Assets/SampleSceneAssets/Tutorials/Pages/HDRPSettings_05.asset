@@ -37,26 +37,13 @@ MonoBehaviour:
       Title:
         m_Untranslated: Next steps
       Text:
-        m_Untranslated: 'In this tutorial, you learned the basics of HDRP settings.
-
-
-          You
-          can also watch  a<a href="https://youtu.be/yqCHiZrgKzs?t=243">video</a>
-          tutorial to learn more about the Graphics settings.
-
-
-          For more
-          details, check out the corresponding documentation:
-
-
-          <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/HDRP-Asset.html">HDRP
-          assets</a>
-
-          <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Scalability-Manual.html">Scalability
-          (Quality levels)</a>
-
-          <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Frame-Settings.html">Frame
-          Settings</a>'
+        m_Untranslated: "In this tutorial, you learned the basics of HDRP settings.\n\nYou
+          can also watch  a<a href=\"https://youtu.be/yqCHiZrgKzs?t=243\">video</a>
+          tutorial to learn more about the Graphics settings.\n\nFor more details,
+          check out the corresponding documentation:\n\u2022<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/HDRP-Asset.html\">HDRP
+          assets</a>\n\u2022<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Scalability-Manual.html\">Scalability
+          (Quality levels)</a>\n\u2022<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Frame-Settings.html\">Frame
+          Settings</a>"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -72,12 +59,12 @@ MonoBehaviour:
       m_InstructionText: 
       m_TutorialButtonText: 
   m_CameraSettings:
-    m_CameraMode: 0
+    m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0
-    m_Pivot: {x: 0, y: 0, z: 0}
-    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
+    m_Size: 9.263008
+    m_Pivot: {x: 12.194905, y: 5.3052034, z: -3.711152}
+    m_Rotation: {x: -0.009810818, y: 0.8040248, z: 0.013265719, w: 0.5943942}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -86,7 +73,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 0
+    m_Enabled: 1
   NextButton:
     m_Untranslated: Next
   DoneButton:

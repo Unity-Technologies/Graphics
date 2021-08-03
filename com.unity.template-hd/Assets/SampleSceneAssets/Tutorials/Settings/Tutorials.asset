@@ -16,7 +16,7 @@ MonoBehaviour:
   Title:
     m_Untranslated: Tutorials
   ProjectName:
-    m_Untranslated: HDRP
+    m_Untranslated: High Definition Render Pipeline
   Description:
     m_Untranslated: Description
   ProjectLayout: {fileID: 0}
@@ -25,8 +25,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Before You Start
     Text:
-      m_Untranslated: Project summary and a guide for choosing the correct quality
-        settings
+      m_Untranslated: Project summary and Quality settings recommendations
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -46,8 +45,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Volumes
     Text:
-      m_Untranslated: 'Learn how volumes work and how to set them up to override
-        HDRP settings '
+      m_Untranslated: Learn how Volumes are set up to control HDRP effects
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -57,8 +55,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Physically Based Lighting
     Text:
-      m_Untranslated: 'Learn about working with realistic lighting and physically
-        accurate values across exteriors and interiors '
+      m_Untranslated: Learn how to use Physical Light properties to increase visual
+        quality and consistency
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -68,7 +66,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Exposure
     Text:
-      m_Untranslated: 'Learn about the concept of exposure to control the perceived
+      m_Untranslated: 'Learn about the concept of Exposure to control the perceived
         brightness of a Scene '
     LinkText: 
     Url: 
@@ -79,8 +77,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Baked Lighting
     Text:
-      m_Untranslated: 'Learn how to simulate the Global Illumination with precomputed
-        indirect lighting '
+      m_Untranslated: Learn how to simulate the indirect lighting with precomputed
+        Global Illumination
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -90,8 +88,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Light Probes
     Text:
-      m_Untranslated: 'Learn how to store and apply indirect lighting to objects
-        with Light Probes '
+      m_Untranslated: 'Learn how to apply indirect lighting to dynamic objects with
+        Light Probes '
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -101,7 +99,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Reflection Probes
     Text:
-      m_Untranslated: 'Learn how to capture reflections from the environment '
+      m_Untranslated: Learn how to use Reflections Probes to create believable reflections
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -111,8 +109,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Materials
     Text:
-      m_Untranslated: 'Learn about the range of materials that Unity supports, from
-        metals, to glass and leaves '
+      m_Untranslated: Learn about the wide range of materials offered by HDRP
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -122,7 +119,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Sky
     Text:
-      m_Untranslated: 'Learn how different Sky setups and intensity values are controlled '
+      m_Untranslated: Learn how to set up the Sky
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -132,7 +129,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Fog
     Text:
-      m_Untranslated: 'Learn about the different Fog systems  '
+      m_Untranslated: Learn about the different Sky modes and how to set them up
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -140,9 +137,9 @@ MonoBehaviour:
     Tutorial: {fileID: 11400000, guid: 9d614f6782108e74a86a3633362490da, type: 2}
   - OrderInView: 22
     Heading:
-      m_Untranslated: Density Volume
+      m_Untranslated: Local Volumetric Fog
     Text:
-      m_Untranslated: ' Learn how to control the local Fog more precisely'
+      m_Untranslated: ' Learn how to control the fog precisely in specific areas'
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -174,7 +171,8 @@ MonoBehaviour:
     Heading:
       m_Untranslated: White Balance
     Text:
-      m_Untranslated: 'Learn how white balance can help you improve visual fidelity '
+      m_Untranslated: Learn how to resolve unwanted color casts and tune the overall
+        look of the image
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -184,8 +182,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Visual Effects
     Text:
-      m_Untranslated: 'Learn how dust and butterflies were added into the project
-        using the VFX graph '
+      m_Untranslated: Learn how special effects were added to the Scene
     LinkText: 
     Url: 
     AuthorizedUrl: 0
@@ -195,8 +192,7 @@ MonoBehaviour:
     Heading:
       m_Untranslated: Decals
     Text:
-      m_Untranslated: 'Learn how to add surface details by projecting textures onto
-        3D geometry in the Scene '
+      m_Untranslated: Learn how to add surface details on geometries
     LinkText: 
     Url: 
     AuthorizedUrl: 0

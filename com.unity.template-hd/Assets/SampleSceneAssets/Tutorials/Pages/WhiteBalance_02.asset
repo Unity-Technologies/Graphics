@@ -39,16 +39,17 @@ MonoBehaviour:
       Text:
         m_Untranslated: "Explore the scene to see how white balancing is utilized
           in this template.\r\n\r\n1) In the <i>Hierarchy,</i> select <b>Lighting</b>
-          > <b>Volumes</b> > <b>Volume Room 3 Sitting.</b>\r\n\r\n2) Disable the
-          White balance volume override and notice how it impacts the strip light
-          on the curved wall, the white floor tiles, and the colors overall.\r\n\r\n3)
-          Undo this change.\r\n\r\nThe white balance here applies a cool color filter
-          to the image, to counterbalance the strong orange color cast from the lamps
-          above the chairs.\r\n\r\nArtificial lighting often falls on the warm side
-          of the color temperature range, and white balance is a way to adjust the
-          perception of white color in a Scene.\r\n\r\nThe opposite effect can be
-          applied to an outdoor Scene with a blue Sky, which tends to have a bluer
-          color cast, and therefore requires warmer white balance settings.\r"
+          > <b>Volumes</b> > <b>Volume Room 3 Sitting.</b>\r\n\n2) Toggle the <b>White
+          Balance</b> volume override on and off.\n\nNotice that the White Balance
+          in this scenario applies a light blue color filter to the image, to counterbalance
+          the strong orange color cast from the lamps above the chairs.\r\n\r\n3)
+          Experiment with the <b>Temperature</b> slider to increase the level of
+          blue or red in the image.\n\r\n4) Undo this change.\r\n\n\n<b>Expert Tips</b>\n\r\n\u2022
+          Artificial lighting often falls on the warm side of the color temperature
+          range, and white balance is a way to adjust the perception of the color
+          White in a Scene.\r\n\r\n\u2022 The opposite effect can be applied to an
+          outdoor Scene with a blue Sky, which tends to have a bluer color cast,
+          and therefore requires warmer <b>White Balance</b> settings.\r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
