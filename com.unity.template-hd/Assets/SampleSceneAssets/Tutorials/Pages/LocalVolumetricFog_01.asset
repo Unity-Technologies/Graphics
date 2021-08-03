@@ -38,13 +38,13 @@ MonoBehaviour:
         m_Untranslated: Local Volumetric Fog
       Text:
         m_Untranslated: 'A <b>Local Volumetric Fog</b> increases the local density
-          of fog. It is used to created denser areas of fog in certain parts of the
-          Scene.
+          of fog within a box-shaped volume. It can be used to created denser areas
+          of fog in certain parts of the Scene.
 
 
-          By default, the fog inside the Local Volumetric Fog
-          is constant (homogeneous), but you can alter it by assigning a custom 3D
-          texture.'
+          By default, the fog inside
+          the Local Volumetric Fog is constant (homogeneous), but you can alter it
+          by assigning a custom 3D texture.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -79,19 +79,37 @@ MonoBehaviour:
     m_Untranslated: Next
   DoneButton:
     m_Untranslated: Done
-  m_NextButton: 
-  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
-  m_autoAdvance: 0
+  m_AutoAdvance: 0
+  Showing:
+    m_PersistentCalls:
+      m_Calls: []
+  Shown:
+    m_PersistentCalls:
+      m_Calls: []
+  Staying:
+    m_PersistentCalls:
+      m_Calls: []
+  CriteriaValidated:
+    m_PersistentCalls:
+      m_Calls: []
+  MaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  NonMaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
     m_PersistentCalls:
       m_Calls: []
-  m_OnBeforeTutorialQuit:
-    m_PersistentCalls:
-      m_Calls: []
   m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_NextButton: 
+  m_DoneButton: 
