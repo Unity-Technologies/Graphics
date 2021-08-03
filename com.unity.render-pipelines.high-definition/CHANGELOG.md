@@ -350,6 +350,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue with a compute dispatch being with 0 threads on extremely small resolutions.
 - Fixed an issue with volumetric clouds on vulkan (case 1354802).
 - Fixed volume interpolation issue with ScalableSettingLevelParameter.
+- Fix issue with change in lens model (perfect or imperfect) wouldn't be taken into account unless the HDRP asset was rebuilt.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
