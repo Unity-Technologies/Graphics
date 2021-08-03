@@ -91,10 +91,9 @@ struct SpeedTreeFragmentInput
 
 void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 {
-    // smooth LOD
-    #if defined(LOD_FADE_PERCENTAGE) && !defined(EFFECT_BILLBOARD)
+#if defined(LOD_FADE_PERCENTAGE) && (!defined(LOD_FADE_CROSSFADE) && !defined(EFFECT_BILLBOARD))
         input.vertex.xyz = lerp(input.vertex.xyz, input.texcoord2.xyz, lodValue);
-    #endif
+#endif
 
     // wind
     #if defined(ENABLE_WIND) && !defined(_WINDQUALITY_NONE)
