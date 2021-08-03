@@ -33,6 +33,9 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         bool m_IsActive = true;
 
+        [NonSerialized]
+        bool m_WasUsedByGenerator = false;
+
         [SerializeField]
         List<JsonData<MaterialSlot>> m_Slots = new List<JsonData<MaterialSlot>>();
 
@@ -186,6 +189,16 @@ namespace UnityEditor.ShaderGraph
         public virtual bool isActive
         {
             get { return m_IsActive; }
+        }
+
+        internal virtual bool wasUsedByGenerator
+        {
+            get { return m_WasUsedByGenerator; }
+        }
+
+        internal void SetUsedByGenerator()
+        {
+            m_WasUsedByGenerator = true;
         }
 
         //There are times when isActive needs to be set to a value explicitly, and

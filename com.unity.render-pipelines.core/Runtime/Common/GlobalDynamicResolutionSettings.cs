@@ -39,10 +39,15 @@ namespace UnityEngine.Rendering
         /// </summary>
         ContrastAdaptiveSharpen,
         /// <summary>
-        /// Edge Adaptive Scaling Upres.
+        /// FidelityFX Super Resolution 1.0
         /// </summary>
-        [InspectorName("Edge Adaptive Scaling Upres")]
-        EdgeAdaptiveScalingUpres
+        [InspectorName("FidelityFX Super Resolution 1.0")]
+        EdgeAdaptiveScalingUpres,
+        /// <summary>
+        /// Temporal Upscaling.
+        /// </summary>
+        [InspectorName("TAA Upscale")]
+        TAAU
     }
 
     /// <summary>User-facing settings for dynamic resolution.</summary>
@@ -97,7 +102,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>The type of dynamic resolution method.</summary>
         public DynamicResolutionType dynResType;
-        /// <summary>The type of upscaling filter to use.</summary>
+        /// <summary>The default of upscaling filter used. It can be overridden via the API DynamicResolutionHandler.SetUpscaleFilter </summary>
         public DynamicResUpscaleFilter upsampleFilter;
 
         /// <summary>Select whether dynamic resolution system will force a specific resolution percentage.</summary>

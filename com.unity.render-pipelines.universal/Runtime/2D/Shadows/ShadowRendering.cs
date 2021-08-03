@@ -193,12 +193,9 @@ namespace UnityEngine.Rendering.Universal
 
         public static void SetShadowProjectionGlobals(CommandBuffer cmdBuffer, ShadowCaster2D shadowCaster)
         {
-            Vector3   shadowCasterScale = shadowCaster.transform.lossyScale;
-            Matrix4x4 shadowMatrix = Matrix4x4.TRS(shadowCaster.transform.position, shadowCaster.transform.rotation, Vector3.one);
-
-            cmdBuffer.SetGlobalVector(k_ShadowModelScaleID, new Vector3(shadowCasterScale.x, shadowCasterScale.y, shadowCasterScale.z));
-            cmdBuffer.SetGlobalMatrix(k_ShadowModelMatrixID, shadowMatrix);
-            cmdBuffer.SetGlobalMatrix(k_ShadowModelInvMatrixID, shadowMatrix.inverse);
+            cmdBuffer.SetGlobalVector(k_ShadowModelScaleID, shadowCaster.m_CachedLossyScale);
+            cmdBuffer.SetGlobalMatrix(k_ShadowModelMatrixID, shadowCaster.m_CachedShadowMatrix);
+            cmdBuffer.SetGlobalMatrix(k_ShadowModelInvMatrixID, shadowCaster.m_CachedInverseShadowMatrix);
         }
 
         public static bool RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, int colorBit)
@@ -273,9 +270,9 @@ namespace UnityEngine.Rendering.Universal
                                                 {
                                                     SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
 
-                                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, unshadowGeometryMaterial, 0, 0);
-                                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, 0);
-                                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, unshadowGeometryMaterial, 0, 1);
+                                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.m_CachedLocalToWorldMatrix, unshadowGeometryMaterial, 0, 0);
+                                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.m_CachedLocalToWorldMatrix, projectedShadowsMaterial, 0, 0);
+                                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.m_CachedLocalToWorldMatrix, unshadowGeometryMaterial, 0, 1);
                                                 }
                                             }
                                         }
@@ -305,7 +302,7 @@ namespace UnityEngine.Rendering.Universal
                                                 }
                                                 else
                                                 {
-                                                    var meshMat = shadowCaster.transform.localToWorldMatrix;
+                                                    var meshMat = shadowCaster.m_CachedLocalToWorldMatrix;
                                                     var material = shadowCaster.selfShadows ? selfShadowMaterial : unshadowMaterial;
 
                                                     // Draw using the shadow mesh
@@ -328,7 +325,7 @@ namespace UnityEngine.Rendering.Universal
                                                 if (shadowCaster.castsShadows)
                                                 {
                                                     SetShadowProjectionGlobals(cmdBuffer, shadowCaster);
-                                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowsMaterial, 0, 1);
+                                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.m_CachedLocalToWorldMatrix, projectedShadowsMaterial, 0, 1);
                                                 }
                                             }
                                         }

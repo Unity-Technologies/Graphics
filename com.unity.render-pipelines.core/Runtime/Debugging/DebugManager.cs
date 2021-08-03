@@ -86,6 +86,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         public bool displayEditorUI => m_EditorOpen;
         /// <summary>
+        /// Controls whether the hotkey for opening and closing the debug window is enabled.
+        /// </summary>
+        public bool enableWindowHotkey = true;
+        /// <summary>
         /// Toggle the debug window.
         /// </summary>
         /// <param name="open">State of the debug window.</param>

@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     normalToWorlds = m_NormalToWorlds,
                     decalToWorlds = m_DecalToWorlds,
                     boundingSpheres = m_BoundingSpheres,
-                    minDistance = 0.0001f
+                    minDistance = System.Single.Epsilon
                 };
                 m_UpdateJobHandle = updateJob.Schedule(m_CachedTransforms);
             }

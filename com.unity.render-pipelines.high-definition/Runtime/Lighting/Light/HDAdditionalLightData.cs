@@ -2021,6 +2021,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal int GetResolutionFromSettings(HDLightType lightType, HDShadowInitParameters initParameters)
+        {
+            return GetResolutionFromSettings(GetShadowMapType(lightType), initParameters);
+        }
+
         internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, in HDShadowInitParameters initParameters, in VisibleLight visibleLight, HDLightType lightType)
         {
             if (!m_WillRenderShadowMap)
@@ -2496,6 +2501,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
         void LateUpdate()
         {
+            // Prevent any unwanted sync when not in HDRP (case 1217575)
+            if (HDRenderPipeline.currentPipeline == null)
+                return;
+
             // We force the animation in the editor and in play mode when there is an animator component attached to the light
 #if !UNITY_EDITOR
             if (!m_Animated)

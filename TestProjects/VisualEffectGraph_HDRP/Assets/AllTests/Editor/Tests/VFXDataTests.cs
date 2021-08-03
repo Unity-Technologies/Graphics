@@ -137,7 +137,7 @@ namespace UnityEditor.VFX.Test
             eventOutput_A.SetSettingValue("eventName", newName);
             name_A = eventOutput_A.GetSetting("eventName").value as string;
             name_B = eventOutput_B.GetSetting("eventName").value as string;
-            
+
             //Now, different names
             Assert.AreNotEqual(name_A, name_B);
             Assert.AreNotEqual(eventOutput_A.GetData(), eventOutput_B.GetData());

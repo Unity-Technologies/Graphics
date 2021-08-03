@@ -52,42 +52,61 @@ namespace UnityEngine.Rendering.HighDefinition
             return mode;
         }
 
+        int CombineIndirectDiffuseHistoryStateToMask(bool fullResolution, bool rayTraced)
+        {
+            // Combine the flags to define the current mask
+            int flagMask = 0;
+            flagMask |= (fullResolution ? (int)HDCamera.HistoryEffectFlags.FullResolution : 0);
+            flagMask |= (rayTraced ? (int)HDCamera.HistoryEffectFlags.RayTraced : 0);
+            return flagMask;
+        }
+
         private float EvaluateIndirectDiffuseHistoryValidityCombined(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
+            int flagMask = CombineIndirectDiffuseHistoryStateToMask(fullResolution, rayTraced);
             // Evaluate the history validity
-            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, fullResolution, rayTraced)
-                && hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, fullResolution, rayTraced) ? 1.0f : 0.0f;
+            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, flagMask) && hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, flagMask) ? 1.0f : 0.0f;
             return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
         }
 
         private float EvaluateIndirectDiffuseHistoryValidity0(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
+            // Combine the flags to define the current mask
+            int flagMask = CombineIndirectDiffuseHistoryStateToMask(fullResolution, rayTraced);
             // Evaluate the history validity
-            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, fullResolution, rayTraced) ? 1.0f : 0.0f;
+            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, flagMask) ? 1.0f : 0.0f;
             return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
         }
 
         private float EvaluateIndirectDiffuseHistoryValidity1(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
+            // Combine the flags to define the current mask
+            int flagMask = CombineIndirectDiffuseHistoryStateToMask(fullResolution, rayTraced);
             // Evaluate the history validity
-            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, fullResolution, rayTraced) ? 1.0f : 0.0f;
+            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, flagMask) ? 1.0f : 0.0f;
             return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
         }
 
         private void PropagateIndirectDiffuseHistoryValidityCombined(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
-            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, fullResolution, rayTraced);
-            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, fullResolution, rayTraced);
+            // Combine the flags to define the current mask
+            int flagMask = CombineIndirectDiffuseHistoryStateToMask(fullResolution, rayTraced);
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, flagMask);
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, flagMask);
         }
 
         private void PropagateIndirectDiffuseHistoryValidity0(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
-            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, fullResolution, rayTraced);
+            // Combine the flags to define the current mask
+            int flagMask = CombineIndirectDiffuseHistoryStateToMask(fullResolution, rayTraced);
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, flagMask);
         }
 
         private void PropagateIndirectDiffuseHistoryValidity1(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
-            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, fullResolution, rayTraced);
+            // Combine the flags to define the current mask
+            int flagMask = CombineIndirectDiffuseHistoryStateToMask(fullResolution, rayTraced);
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, flagMask);
         }
 
         class TraceSSGIPassData
@@ -445,7 +464,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 filterParams.historyValidity = historyValidity0;
                 filterParams.occluderMotionRejection = false;
                 filterParams.receiverMotionRejection = false;
-                filterParams.exposureControl = 1.0f;
+                filterParams.exposureControl = true;
                 TextureHandle denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, filterParams, rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferHF, depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
 
                 // Apply the diffuse denoiser
@@ -462,7 +481,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     filterParams.historyValidity = historyValidity1;
                     filterParams.occluderMotionRejection = false;
                     filterParams.receiverMotionRejection = false;
-                    filterParams.exposureControl = 1.0f;
+                    filterParams.exposureControl = true;
                     denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, filterParams, rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferLF, depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
 
                     // Apply the diffuse denoiser

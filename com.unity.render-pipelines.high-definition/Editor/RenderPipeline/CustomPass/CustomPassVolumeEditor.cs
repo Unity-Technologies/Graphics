@@ -259,7 +259,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_CustomPassList.onRemoveCallback = (list) =>
             {
-                ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                foreach (int index in list.selectedIndices)
+                    passList.DeleteArrayElementAtIndex(index);
+                serializedObject.ApplyModifiedProperties();
                 ClearCustomPassCache();
             };
 

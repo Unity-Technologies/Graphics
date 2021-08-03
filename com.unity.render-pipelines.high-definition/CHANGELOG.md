@@ -79,6 +79,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a better support for LODs in the ray tracing acceleration structure.
 - Added a property on the HDRP asset to allow users to avoid ray tracing effects running at too low percentages (case 1342588).
 - Added dependency to mathematics and burst, HDRP now will utilize this to improve on CPU cost. First implementation of burstified decal projector is here.
+- Added warning for when a light is not fitting in the cached shadow atlas and added option to set maximum resolution that would fit.
+- Added a custom post process injection point AfterPostProcessBlurs executing after depth of field and motion blur.
+- Added the support of volumetric clouds for baked and realtime reflection probes.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -273,6 +276,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cases in which object and camera motion vectors would cancel out, but didn't.
 - Fixed HDRP material upgrade failing when there is a texture inside the builtin resources assigned in the material (case 1339865).
 - Fixed custom pass volume not executed in scene view because of the volume culling mask.
+- When the HDProjectSettings was being loaded on some cases the load of the ScriptableObject was calling the method `Reset` from the HDProjectSettings, simply rename the method to avoid an error log from the loading.
 - Fixed remapping of depth pyramid debug view
 - Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
 - Fixed rounding issue when accessing the color buffer in the DoF shader.
@@ -303,6 +307,51 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed parameter ranges in HDRP Asset settings.
 - Fixed CPU performance of decal projectors, by a factor of %100 (walltime) on HDRP PS4, by burstifying decal projectors CPU processing.
 - Only display HDRP Camera Preview if HDRP is the active pipeline (case 1350767).
+- Prevent any unwanted light sync when not in HDRP (case 1217575)
+- Fixed missing global wind parameters in the visual environment.
+- Fixed fabric IBL (Charlie) pre-convolution performance and accuracy (uses 1000x less samples and is closer match with the ground truth)
+- Fixed conflicting runtime debug menu command with an option to disable runtime debug window hotkey.
+- Fixed screen-space shadows with XR single-pass and camera relative rendering (1348260).
+- Fixed ghosting issues if the exposure changed too much (RTGI).
+- Fixed failures on platforms that do not support ray tracing due to an engine behavior change.
+- Fixed infinite propagation of nans for RTGI and SSGI (case 1349738).
+- Fixed access to main directional light from script.
+- Fixed an issue with reflection probe normalization via APV when no probes are in scene.
+- Fixed Volumetric Clouds not updated when using RenderTexture as input for cloud maps.
+- Fixed custom post process name not displayed correctly in GPU markers.
+- Fixed objects disappearing from Lookdev window when entering playmode (case 1309368).
+- Fixed rendering of objects just after the TAA pass (before post process injection point).
+- Fixed tiled artifacts in refraction at borders between two reflection probes.
+- Fixed the FreeCamera and SimpleCameraController mouse rotation unusable at low framerate (case 1340344).
+- Fixed warning "Releasing render texture that is set to be RenderTexture.active!" on pipeline disposal / hdrp live editing.
+- Fixed a null ref exception when adding a new environment to the Look Dev library.
+- Fixed a nullref in volume system after deleting a volume object (case 1348374).
+- Fixed the APV UI loosing focus when the helpbox about baking appears in the probe volume.
+- Fixed enabling a lensflare in playmode.
+- Fixed white flashes when history is reset due to changes on type of upsampler.
+- Fixed misc TAA issue: Slightly improved TAA flickering, Reduced ringing of TAA sharpening, tweak TAA High quality central color filtering.
+- Fixed TAA upsampling algorithm, now work properly
+- Fixed custom post process template not working with Blit method.
+- Fixed support for instanced motion vector rendering
+- Fixed an issue that made Custom Pass buffers inaccessible in ShaderGraph.
+- Fixed some of the extreme ghosting in DLSS by using a bit mask to bias the color of particles. VFX tagged as Exclude from TAA will be on this pass.
+- Fixed banding in the volumetric clouds (case 1353672).
+- Fixed CustomPassUtils.Copy function not working on depth buffers.
+- Fixed a nullref when binding a RTHandle allocated from a RenderTextureIdentifier with CoreUtils.SetRenderTarget.
+- Fixed off by 1 error when calculating the depth pyramid texture size when DRS is on.
+- Fixed CPU performance on DLSS, avoiding to recreate state whenever a target can fall into the safe min/max resolution specified by the system.
+- Fixed TAA upsampling algorithm, now work properly.
+- Fixed for allowing to change dynamic resolution upscale filter via script.
+- Fixed update order in Graphics Compositor causing jumpy camera updates (case 1345566).
+- Fixed material inspector that allowed setting intensity to an infinite value.
+- Fixed issue when switching between non-persistent cameras when path tarcing is enabled (case 1337843).
+- Fixed issue with the LayerMaskParameter class storing an erroneous mask value (case 1345515).
+- Fixed issue with vertex color defaulting to 0.0 when not defined, in ray/path tracing (case 1348821).
+- Fix issue with a compute dispatch being with 0 threads on extremely small resolutions.
+- Fixed an issue with volumetric clouds on vulkan (case 1354802).
+- Fixed volume interpolation issue with ScalableSettingLevelParameter.
+- Fix issue with change in lens model (perfect or imperfect) wouldn't be taken into account unless the HDRP asset was rebuilt.
+- Fixed custom pass delete operation (case 1354871).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -400,6 +449,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Restore old version of the RendererList structs/api for compatibility.
 - Various improvements to SSGI (case 1340851, case 1339297, case 1327919).
 - Changed the NVIDIA install button to the standard FixMeButton.
+- Improved a bit the area cookie behavior for higher smoothness values to reduce artifacts.
+- Improved volumetric clouds (added new noise for erosion, reduced ghosting while flying through, altitude distortion, ghosting when changing from local to distant clouds, fix issue in wind distortion along the Z axis).
+- Fixed upscaling issue that is exagerated by DLSS (case 1347250).
+- Improvements to the RTGI denoising.
 
 ## [11.0.0] - 2020-10-21
 

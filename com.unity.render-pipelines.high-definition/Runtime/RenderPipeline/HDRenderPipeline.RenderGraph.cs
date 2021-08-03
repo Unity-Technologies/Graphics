@@ -1383,7 +1383,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<PreRenderSkyPassData>("Pre Render Sky", out var passData))
             {
-                passData.sunLight = GetCurrentSunLight();
+                passData.sunLight = GetMainLight();
                 passData.hdCamera = hdCamera;
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
                 passData.depthStencilBuffer = builder.WriteTexture(depthStencilBuffer);
@@ -1421,7 +1421,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky And Fog", out var passData))
             {
                 passData.visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-                passData.sunLight = GetCurrentSunLight();
+                passData.sunLight = GetMainLight();
                 passData.hdCamera = hdCamera;
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
