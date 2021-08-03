@@ -590,6 +590,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
                 {
                     cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                    cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
                     if ((m_Destination == RenderTargetHandle.CameraTarget && !m_UseSwapBuffer) || m_ResolveToScreen)
@@ -1425,6 +1426,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetViewport(cameraData.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
                 cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+                cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
             }
         }
 
