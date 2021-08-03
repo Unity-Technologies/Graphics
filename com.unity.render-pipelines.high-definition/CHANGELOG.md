@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.7.0] - 2021-07-02
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed an issue where bloom filtering was wrong when using multiple cameras
 
 ## [10.6.0] - 2021-04-29
 
