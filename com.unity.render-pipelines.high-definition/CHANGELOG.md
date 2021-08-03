@@ -81,6 +81,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added dependency to mathematics and burst, HDRP now will utilize this to improve on CPU cost. First implementation of burstified decal projector is here.
 - Added warning for when a light is not fitting in the cached shadow atlas and added option to set maximum resolution that would fit.
 - Added a custom post process injection point AfterPostProcessBlurs executing after depth of field and motion blur.
+- Added the support of volumetric clouds for baked and realtime reflection probes.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -344,6 +345,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when switching between non-persistent cameras when path tarcing is enabled (case 1337843).
 - Fixed issue with the LayerMaskParameter class storing an erroneous mask value (case 1345515).
 - Fixed issue with vertex color defaulting to 0.0 when not defined, in ray/path tracing (case 1348821).
+- Fix issue with a compute dispatch being with 0 threads on extremely small resolutions.
+- Fixed an issue with volumetric clouds on vulkan (case 1354802).
 - Fixed volume interpolation issue with ScalableSettingLevelParameter.
 
 ### Changed

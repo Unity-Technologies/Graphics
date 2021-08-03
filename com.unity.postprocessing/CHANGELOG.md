@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Catch thrown errors in `PostProcessEffectRenderer`, preventing resources allocation leaks and crash (case 1221972)
+- Fixed error thrown when changing post process layer right after creation or before destruction.
 
 ## [3.1.1] - 2021-03-08
 
