@@ -29,7 +29,7 @@ To configure the properties of a Light, select a GameObject in your Scene with a
 
 HDRP includes multiple types of Light. Although HDRP Lights share many properties, each one has its own unique behavior and set of properties.
 
-For more detailed information on how to configure realistic light fixtures, see the [Create High-Quality Light Fixtures in Unity](http://blog.unity.com/technology/create-high-quality-light-fixtures-in-unity) expert guide. For general guidance on light intensities, see [Physical light units](Physical-Light-Units.md#light-intensities).
+For more detailed information on how to configure realistic light fixtures, see the [Create High-Quality Light Fixtures in Unity](https://pydonzallaz.files.wordpress.com/2019/02/create-high-quality-light-fixtures-in-unity.pdf) expert guide. For general guidance on light intensities, see [Physical light units](Physical-Light-Units.md#light-intensities).
 
 ## Properties
 
