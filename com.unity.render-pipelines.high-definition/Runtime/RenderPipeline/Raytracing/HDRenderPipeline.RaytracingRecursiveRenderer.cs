@@ -137,7 +137,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Update Global Constant Buffer.
                         data.shaderVariablesRayTracingCB._RaytracingRayMaxLength = data.rayLength;
+#if NO_RAY_RECURSION
+                        data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = 1;
+#else
                         data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = data.maxDepth;
+#endif
                         data.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = data.minSmoothness;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
