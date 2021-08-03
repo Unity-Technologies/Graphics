@@ -426,7 +426,7 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(CreateTitle(Style.migrationTitle));
             container.Add(CreateLargeButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
             container.Add(CreateLargeButton(Style.migrateSelectedButton, UpgradeStandardShaderMaterials.UpgradeMaterialsSelection));
-            container.Add(CreateLargeButton(Style.migrateMaterials, HDRenderPipelineMenuItems.UpgradeMaterials));
+            /*container.Add(CreateLargeButton(Style.migrateMaterials, HDRenderPipelineMenuItems.UpgradeMaterials));*/
 
             container.Add(CreateWizardBehaviour());
 
