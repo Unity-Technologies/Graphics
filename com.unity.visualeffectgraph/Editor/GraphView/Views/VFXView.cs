@@ -190,6 +190,8 @@ namespace UnityEditor.VFX.UI
             public static readonly GUIContent noSelection =  EditorGUIUtility.TrTextContent("No selection");
             public static readonly GUIContent clickToSelect =  EditorGUIUtility.TrTextContent("Click to select");
             public static readonly GUIContent attachedTo =  EditorGUIUtility.TrTextContent("Attached to");
+            public static readonly GUIContent attachedToGameObject = EditorGUIUtility.TrTextContent("Attached to {0}");
+            public static readonly GUIContent notAttached = EditorGUIUtility.TrTextContent("Select a Game Object running this VFX to attach it");
         }
 
         public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
@@ -890,10 +892,9 @@ namespace UnityEditor.VFX.UI
 
             m_LockToggle.tooltip = locked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
 
-            if (attachedComponent != null && !string.IsNullOrEmpty(attachedComponent.name))
-            {
-                m_LockToggle.tooltip += $"\nAttached to {attachedComponent.name}";
-            }
+            m_AttachDropDownButton.tooltip = attachedComponent != null && !string.IsNullOrEmpty(attachedComponent.name)
+                ? string.Format(Contents.attachedToGameObject.text, attachedComponent.name)
+                : Contents.notAttached.text;
         }
 
         void OnUndoPerformed()
