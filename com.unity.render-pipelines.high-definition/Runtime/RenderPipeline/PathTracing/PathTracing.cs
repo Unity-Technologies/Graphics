@@ -361,6 +361,13 @@ namespace UnityEngine.Rendering.HighDefinition
             int camID = hdCamera.camera.GetInstanceID();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
 
+            // Check if the camera has a valid history buffer and if not reset the accumulation.
+            // This can happen if a script disables and re-enables the camera (case 1337843).
+            if (!hdCamera.isPersistent && hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing) == null)
+            {
+                m_SubFrameManager.Reset(camID);
+            }
+
             if (!m_SubFrameManager.isRecording)
             {
                 // Check if things have changed and if we need to restart the accumulation
