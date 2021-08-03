@@ -138,7 +138,7 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_trunk:
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  brew install python3
+      -  brew install python
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
@@ -319,7 +319,7 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_2021.2:
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  brew install python3
+      -  brew install python
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
@@ -500,7 +500,7 @@ ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_CUSTOM-RE
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  brew install python3
+      -  brew install python
       -  |5-
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
