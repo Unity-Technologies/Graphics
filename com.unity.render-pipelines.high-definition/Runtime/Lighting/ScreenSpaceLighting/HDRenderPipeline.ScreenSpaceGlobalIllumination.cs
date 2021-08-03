@@ -228,8 +228,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (TraceSSGIPassData data, RenderGraphContext ctx) =>
                     {
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListTile, data.lightList);
-
                         int ssgiTileSize = 8;
                         int numTilesXHR = (data.texWidth + (ssgiTileSize - 1)) / ssgiTileSize;
                         int numTilesYHR = (data.texHeight + (ssgiTileSize - 1)) / ssgiTileSize;
@@ -256,6 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.traceKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.traceKernel, HDShaderIDs._IndirectDiffuseHitPointTextureRW, data.hitPointBuffer);
                         ctx.cmd.SetComputeBufferParam(data.ssGICS, data.traceKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.offsetBuffer);
+                        ctx.cmd.SetComputeBufferParam(data.ssGICS, data.traceKernel, HDShaderIDs.g_vLightListTile, data.lightList);
 
                         // Do the ray marching
                         ctx.cmd.DispatchCompute(data.ssGICS, data.traceKernel, numTilesXHR, numTilesYHR, data.viewCount);
@@ -278,6 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.projectKernel, HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.projectKernel, HDShaderIDs._HistoryDepthTexture, data.historyDepth);
                         ctx.cmd.SetComputeBufferParam(data.ssGICS, data.projectKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.offsetBuffer);
+                        ctx.cmd.SetComputeBufferParam(data.ssGICS, data.projectKernel, HDShaderIDs.g_vLightListTile, data.lightList);
 
                         // Bind the output texture
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.projectKernel, HDShaderIDs._IndirectDiffuseTextureRW, data.outputBuffer);

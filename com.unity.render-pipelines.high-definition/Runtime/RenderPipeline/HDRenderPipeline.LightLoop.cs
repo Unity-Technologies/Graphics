@@ -764,7 +764,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDeferredLightingCompute)))
             {
-                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
                 data.deferredComputeShader.shaderKeywords = null;
 
                 switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
@@ -809,6 +808,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
                     cmd.SetComputeTextureParam(data.deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                     cmd.SetComputeTextureParam(data.deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV, colorBuffers[1]);
+                    cmd.SetComputeBufferParam(data.deferredComputeShader, kernel, HDShaderIDs.g_vLightListTile, data.lightListBuffer);
 
                     cmd.SetComputeTextureParam(data.deferredComputeShader, kernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
 
@@ -869,8 +869,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDeferredLightingComputeAsPixel)))
             {
-                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
-
                 cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthTexture);
                 cmd.SetGlobalBuffer(HDShaderIDs.g_TileFeatureFlags, data.tileFeatureFlagsBuffer);
                 cmd.SetGlobalBuffer(HDShaderIDs.g_TileList, data.tileListBuffer);
@@ -879,11 +877,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Must set stencil parameters through Material.
                 if (data.outputSplitLighting)
                 {
+                    s_DeferredTileSplitLightingMat.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
+                    s_DeferredTileRegularLightingMat.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
+
                     RenderComputeAsPixelDeferredLighting(data, colorBuffers, s_DeferredTileSplitLightingMat, true, cmd);
                     RenderComputeAsPixelDeferredLighting(data, colorBuffers, s_DeferredTileRegularLightingMat, false, cmd);
                 }
                 else
                 {
+                    s_DeferredTileMat.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
                     RenderComputeAsPixelDeferredLighting(data, colorBuffers, s_DeferredTileMat, false, cmd);
                 }
             }
@@ -891,8 +893,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderPixelDeferredLighting(DeferredLightingPassData data, RenderTargetIdentifier[] colorBuffers, CommandBuffer cmd)
         {
-            cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
-
             // First, render split lighting.
             if (data.outputSplitLighting)
             {
@@ -919,6 +919,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     currentLightingMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting);
                     currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
                 }
+
+                currentLightingMaterial.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
 
                 CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, colorBuffers[0], data.depthBuffer);
             }
