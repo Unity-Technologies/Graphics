@@ -278,7 +278,8 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // IsPreset is an internal API - lets reuse the usable part of this function
-        static internal bool IsPresetEditor(UnityEditor.Editor editor)
+        // 93 is a "magic number" and does not represent a combination of other flags here
+        internal static bool IsPresetEditor(UnityEditor.Editor editor)
         {
             return (int)((editor.target as Component).gameObject.hideFlags) == 93;
         }

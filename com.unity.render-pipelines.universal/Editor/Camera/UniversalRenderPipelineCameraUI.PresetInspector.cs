@@ -21,8 +21,8 @@ namespace UnityEditor.Rendering.Universal
                 FoldoutOption.Indent,
                 CED.Group(
                     CameraUI.Drawer_Projection),
-                UniversalRenderPipelineCameraUI.PhysicalCamera.Drawer),
-            UniversalRenderPipelineCameraUI.Rendering.DrawerPreset
+                PhysicalCamera.Drawer),
+            Rendering.DrawerPreset
         );
     }
 }

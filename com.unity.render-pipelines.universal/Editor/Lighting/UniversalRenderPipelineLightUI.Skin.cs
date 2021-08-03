@@ -3,9 +3,9 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    internal partial class UniversalRenderPipelineLightUI
+    partial class UniversalRenderPipelineLightUI
     {
-        public static class Styles
+        static class Styles
         {
             public static readonly GUIContent generalHeader = new GUIContent("General");
             public static readonly GUIContent shapeHeader = new GUIContent("Shape");

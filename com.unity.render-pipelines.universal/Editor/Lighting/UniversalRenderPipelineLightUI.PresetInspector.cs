@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.Universal
 {
     using CED = CoreEditorDrawer<UniversalRenderPipelineSerializedLight>;
 
-    internal partial class UniversalRenderPipelineLightUI
+    partial class UniversalRenderPipelineLightUI
     {
         static readonly ExpandedState<Expandable, Light> k_ExpandedStatePreset = new(0, "URP-preset");
 
@@ -18,12 +18,12 @@ namespace UnityEditor.Rendering.Universal
             CED.FoldoutGroup(Styles.generalHeader,
                 Expandable.General,
                 k_ExpandedStatePreset,
-                UniversalRenderPipelineLightUI.DrawGeneralContentPreset),
+                DrawGeneralContentPreset),
             CED.FoldoutGroup(Styles.emissionHeader,
                 Expandable.Emission,
                 k_ExpandedStatePreset,
-                CED.Group(UniversalRenderPipelineLightUI.DrawerColor,
-                    UniversalRenderPipelineLightUI.DrawEmissionContent)),
+                CED.Group(DrawerColor,
+                    DrawEmissionContent)),
             CED.FoldoutGroup(Styles.lightCookieHeader,
                 Expandable.LightCookie,
                 k_ExpandedState,

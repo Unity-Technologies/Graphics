@@ -20,9 +20,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 k_ExpandedStatePreset,
                 FoldoutOption.Indent,
                 CED.Group(CameraUI.Drawer_Projection),
-                HDCameraUI.PhysicalCamera.DrawerPreset
+                PhysicalCamera.DrawerPreset
                 ),
-            HDCameraUI.Rendering.DrawerPreset
+            Rendering.DrawerPreset
         );
     }
 }

@@ -135,13 +135,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.Group((serialized, owner) =>
                     EditorGUILayout.HelpBox(s_Styles.unsupportedPresetPropertiesMessage, MessageType.Info)),
                 CED.Group((serialized, owner) => EditorGUILayout.Space()),
-                CED.FoldoutGroup(s_Styles.generalHeader, Expandable.General, k_ExpandedStatePreset, HDLightUI.DrawGeneralContent),
-                CED.FoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedStatePreset, HDLightUI.DrawEmissionContentForPreset),
-                CED.FoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedStatePreset, HDLightUI.DrawEnableShadowMapInternal)
+                CED.FoldoutGroup(s_Styles.generalHeader, Expandable.General, k_ExpandedStatePreset, DrawGeneralContent),
+                CED.FoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedStatePreset, DrawEmissionContentForPreset),
+                CED.FoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedStatePreset, DrawEnableShadowMapInternal)
             );
         }
 
-        internal static void DrawGeneralContent(SerializedHDLight serialized, Editor owner)
+        static void DrawGeneralContent(SerializedHDLight serialized, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
             Rect lineRect = EditorGUILayout.GetControlRect();
@@ -639,7 +639,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawEmissionContentFiltered(serialized, owner, isInPreset: false);
         }
 
-        internal static void DrawEmissionContentForPreset(SerializedHDLight serialized, Editor owner)
+        static void DrawEmissionContentForPreset(SerializedHDLight serialized, Editor owner)
         {
             DrawEmissionContentFiltered(serialized, owner, isInPreset: true);
         }
@@ -1047,7 +1047,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Needed to work around the need for CED Group with no return value
-        internal static void DrawEnableShadowMapInternal(SerializedHDLight serialized, Editor owner)
+        static void DrawEnableShadowMapInternal(SerializedHDLight serialized, Editor owner)
         {
             DrawEnableShadowMap(serialized, owner);
         }

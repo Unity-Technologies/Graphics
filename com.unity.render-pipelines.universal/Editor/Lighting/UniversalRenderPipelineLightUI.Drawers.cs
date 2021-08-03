@@ -116,7 +116,7 @@ namespace UnityEditor.Rendering.Universal
             DrawGeneralContentInternal(serializedLight, owner, isInPreset: false);
         }
 
-        internal static void DrawGeneralContentPreset(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
+        static void DrawGeneralContentPreset(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
             DrawGeneralContentInternal(serializedLight, owner, isInPreset: true);
         }
@@ -245,7 +245,7 @@ namespace UnityEditor.Rendering.Universal
                 serializedLight.settings.DrawArea();
         }
 
-        internal static void DrawerColor(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
+        static void DrawerColor(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
             using (var changes = new EditorGUI.ChangeCheckScope())
             {
@@ -273,7 +273,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        internal static void DrawEmissionContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
+        static void DrawEmissionContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
             serializedLight.settings.DrawIntensity();
             serializedLight.settings.DrawBounceIntensity();

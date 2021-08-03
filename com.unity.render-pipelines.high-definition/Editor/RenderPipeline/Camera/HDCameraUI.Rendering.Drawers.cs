@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
     static partial class HDCameraUI
     {
-        public partial class Rendering
+        partial class Rendering
         {
             enum AdditionalProperties
             {
