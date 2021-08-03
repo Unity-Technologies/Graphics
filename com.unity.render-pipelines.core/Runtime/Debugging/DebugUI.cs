@@ -218,10 +218,19 @@ namespace UnityEngine.Rendering
             /// Returns the value of the widget.
             /// </summary>
             /// <returns>The value of the widget.</returns>
-            public object GetValue()
+            public virtual object GetValue()
             {
                 Assert.IsNotNull(getter);
                 return getter();
+            }
+
+            /// <summary>
+            /// Returns the formatted value string for display purposes.
+            /// </summary>
+            /// <returns>The formatted value string.</returns>
+            public virtual string GetValueString()
+            {
+                return $"{GetValue()}";
             }
         }
 
@@ -240,16 +249,16 @@ namespace UnityEngine.Rendering
             public float max = 1f;
 
             /// <summary>
-            /// Remap current value to [0, 1] range, representing the progress between min and max.
+            /// Get the current progress string, remapped to [0, 1] range, representing the progress between min and max.
             /// </summary>
-            /// <returns>Remapped progress value between 0 and 1.</returns>
-            public float GetProgressPercentage()
+            /// <returns>Formatted progress percentage string between 0% and 100%.</returns>
+            public override string GetValueString()
             {
                 static float Remap01(float v, float x0, float y0) => (v - x0) / (y0 - x0);
 
                 float value = Mathf.Clamp(Convert.ToSingle(GetValue()), min, max);
                 float percentage = Remap01(value, min, max);
-                return percentage;
+                return $"{percentage:P1}";
             }
         }
     }

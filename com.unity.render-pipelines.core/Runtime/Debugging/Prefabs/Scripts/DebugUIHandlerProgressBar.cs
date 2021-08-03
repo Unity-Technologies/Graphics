@@ -68,12 +68,10 @@ namespace UnityEngine.Rendering.UI
 
         void UpdateValue()
         {
-            float percentage = m_Value.GetProgressPercentage();
-
-            valueLabel.text = $"{percentage:P1}";
+            valueLabel.text = m_Value.GetValueString();
 
             Vector3 scale = progressBarRect.localScale;
-            scale.x = percentage;
+            scale.x = (float)m_Value.GetValue();
             progressBarRect.localScale = scale;
         }
     }

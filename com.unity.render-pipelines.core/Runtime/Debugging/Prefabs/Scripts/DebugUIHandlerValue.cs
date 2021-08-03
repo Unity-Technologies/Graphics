@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.UI
         {
             if (m_Timer >= m_Field.refreshRate)
             {
-                valueLabel.text = m_Field.GetValue().ToString();
+                valueLabel.text = m_Field.GetValueString();
                 m_Timer -= m_Field.refreshRate;
             }
 

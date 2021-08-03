@@ -41,11 +41,9 @@ namespace UnityEditor.Rendering
         {
             var w = Cast<DebugUI.ProgressBarValue>(widget);
 
-            float percentage = w.GetProgressPercentage();
-
             var labelRect = PrepareControlRect();
             var progressBarRect = EditorGUI.PrefixLabel(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
-            EditorGUI.ProgressBar(progressBarRect, percentage, $"{percentage:P1}");
+            EditorGUI.ProgressBar(progressBarRect, (float)w.GetValue(), w.GetValueString());
 
             return true;
         }
