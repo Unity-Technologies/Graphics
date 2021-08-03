@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue causing shadows to be incorrectly rendered when a light was close to the shadow caster.
 - Fixed an issue where errors were generated when the Physics2D module was not included in the project's manifest.
 - Fixed an issue where the package would fail to compile if the Animation module was disabled. [case 1227068](https://issuetracker.unity3d.com/product/unity/issues/guid/1227068/)
+- Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
 
 ## [7.4.1] - 2020-06-03
 
