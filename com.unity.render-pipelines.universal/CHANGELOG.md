@@ -71,6 +71,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The behavior of setting a camera's Background Type to "Dont Care" has changed on mobile. Previously, "Dont Care" would behave identically to "Solid Color" on mobile. Now, "Dont Care" corresponds to the render target being filled with arbitrary data at the beginning of the frame, which may be faster in some situations. Note that there are no guarantees for the exact content of the render target, so projects should use "Dont care" only if they are guaranteed to render to, or otherwise write every pixel every frame.
 - Stripping shader variants per renderer features instead of combined renderer features.
 - When MSAA is enabled and a depth texture is required, the opaque pass depth will be copied instead of scheduling a depth prepass.
+- URP Asset Inspector - Advanced settings have been reordered under `Show Additional Properties` on each section.
+- Changed the default name when a new urp asset is created.
+- URP Asset Inspector - `General` section has been renamed to `Rendering`.
+- Refactored some of the array resizing code around decal projector rendering to use new APIs in render core
 
 ### Fixed
 - Fixed an issue in PostProcessPass causing OnGUI draws to not show on screen. [case 1346650]
@@ -156,6 +160,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unlit shader function name ambiguity
 - Fixed Terrain holes not appearing in shadows [case 1349305]
 - VFX: Compilation issue with ShaderGraph and planar lit outputs [case 1349894](https://issuetracker.unity3d.com/product/unity/issues/guid/1349894/)
+- Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph

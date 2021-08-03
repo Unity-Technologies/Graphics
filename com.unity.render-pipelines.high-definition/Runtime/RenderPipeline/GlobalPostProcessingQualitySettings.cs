@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Scalable Quality Level Parameter.
     /// </summary>
     [Serializable]
-    public sealed class ScalableSettingLevelParameter : IntParameter
+    public sealed class ScalableSettingLevelParameter : NoInterpIntParameter
     {
         /// <summary>Number of quality levels.</summary>
         public const int LevelCount = 3;

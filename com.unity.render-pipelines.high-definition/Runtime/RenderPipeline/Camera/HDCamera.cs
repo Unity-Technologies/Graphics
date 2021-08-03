@@ -324,6 +324,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // This property allows us to track the volumetric cloud animation data
         internal VolumetricCloudsAnimationData volumetricCloudsAnimationData;
 
+        // Boolean that allows us to track if the current camera maps to a real time reflection probe.
+        internal bool realtimeReflectionProbe = false;
+
         internal SkyUpdateContext       m_LightingOverrideSky = new SkyUpdateContext();
 
         /// <summary>Mark the HDCamera as persistant so it won't be destroyed if the camera is disabled</summary>

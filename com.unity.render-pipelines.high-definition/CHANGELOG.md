@@ -69,7 +69,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added two toggles to control occluder rejection and receiver rejection for the ray traced ambient occlusion (case 1330168).
 - Added the receiver motion rejection toggle to RTGI (case 1330168).
 - Added info box when low resolution transparency is selected, but its not enabled in the HDRP settings. This will help new users find the correct knob in the HDRP Asset.
-- Added a dialog box when you import a Material that has a diffusion profile to add the diffusion profile to global settings.
 - Added support for Unlit shadow mattes in Path Tracing (case 1335487).
 - Added a shortcut to HDRP Wizard documentation.
 - Added support of motion vector buffer in custom postprocess
@@ -81,6 +80,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added dependency to mathematics and burst, HDRP now will utilize this to improve on CPU cost. First implementation of burstified decal projector is here.
 - Added warning for when a light is not fitting in the cached shadow atlas and added option to set maximum resolution that would fit.
 - Added a custom post process injection point AfterPostProcessBlurs executing after depth of field and motion blur.
+- Added the support of volumetric clouds for baked and realtime reflection probes.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -334,6 +334,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support for instanced motion vector rendering
 - Fixed an issue that made Custom Pass buffers inaccessible in ShaderGraph.
 - Fixed some of the extreme ghosting in DLSS by using a bit mask to bias the color of particles. VFX tagged as Exclude from TAA will be on this pass.
+- Fixed banding in the volumetric clouds (case 1353672).
+- Fixed CustomPassUtils.Copy function not working on depth buffers.
+- Fixed a nullref when binding a RTHandle allocated from a RenderTextureIdentifier with CoreUtils.SetRenderTarget.
+- Fixed off by 1 error when calculating the depth pyramid texture size when DRS is on.
+- Fixed CPU performance on DLSS, avoiding to recreate state whenever a target can fall into the safe min/max resolution specified by the system.
+- Fixed TAA upsampling algorithm, now work properly.
+- Fixed for allowing to change dynamic resolution upscale filter via script.
+- Fixed update order in Graphics Compositor causing jumpy camera updates (case 1345566).
+- Fixed material inspector that allowed setting intensity to an infinite value.
+- Fixed issue when switching between non-persistent cameras when path tarcing is enabled (case 1337843).
+- Fixed issue with the LayerMaskParameter class storing an erroneous mask value (case 1345515).
+- Fixed issue with vertex color defaulting to 0.0 when not defined, in ray/path tracing (case 1348821).
+- Fix issue with a compute dispatch being with 0 threads on extremely small resolutions.
+- Fixed an issue with volumetric clouds on vulkan (case 1354802).
+- Fixed volume interpolation issue with ScalableSettingLevelParameter.
+- Fix issue with change in lens model (perfect or imperfect) wouldn't be taken into account unless the HDRP asset was rebuilt.
+- Fixed custom pass delete operation (case 1354871).
+- Fixed viewport size when TAA is executed after dynamic res upscale (case 1348541).
+- Fixed the camera near plane not being taken into account when rendering the clouds (case 1353548).
+- Fixed controls for clouds fade in (case 1353548).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

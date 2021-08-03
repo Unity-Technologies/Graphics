@@ -500,8 +500,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         static HDRenderPipelineGlobalSettings m_globalSettings;
 
-        // Update is called once per frame
-        void Update()
+        // LateUpdate is called once per frame
+        void LateUpdate()
         {
             // TODO: move all validation calls to onValidate. Before doing it, this needs some extra testing to ensure nothing breaks
             if (enableOutput == false || ValidatePipeline() == false || ValidateAndFixRuntime() == false || RuntimeCheck() == false)

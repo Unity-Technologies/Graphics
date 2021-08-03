@@ -18,6 +18,6 @@ public class SetCameraDrsFilter : MonoBehaviour
         if (m_Camera == null || camera != m_Camera)
             return;
 
-        DynamicResolutionHandler.instance.filter = DrsFilter;
+        DynamicResolutionHandler.SetUpscaleFilter(m_Camera, DrsFilter);
     }
 }

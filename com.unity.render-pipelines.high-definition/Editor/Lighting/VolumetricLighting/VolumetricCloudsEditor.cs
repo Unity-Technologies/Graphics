@@ -39,6 +39,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_LowestCloudAltitude;
         SerializedDataParameter m_CloudThickness;
+        SerializedDataParameter m_FadeInMode;
+        SerializedDataParameter m_FadeInStart;
+        SerializedDataParameter m_FadeInDistance;
 
         SerializedDataParameter m_DensityMultiplier;
         SerializedDataParameter m_ShapeFactor;
@@ -111,6 +114,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_LowestCloudAltitude = Unpack(o.Find(x => x.lowestCloudAltitude));
             m_CloudThickness = Unpack(o.Find(x => x.cloudThickness));
+
+            m_FadeInMode = Unpack(o.Find(x => x.fadeInMode));
+            m_FadeInStart = Unpack(o.Find(x => x.fadeInStart));
+            m_FadeInDistance = Unpack(o.Find(x => x.fadeInDistance));
 
             m_DensityMultiplier = Unpack(o.Find(x => x.densityMultiplier));
             m_ShapeFactor = Unpack(o.Find(x => x.shapeFactor));
@@ -279,6 +286,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_TemporalAccumulationFactor);
                 PropertyField(m_NumPrimarySteps);
                 PropertyField(m_NumLightSteps);
+                PropertyField(m_FadeInMode);
+                using (new IndentLevelScope())
+                {
+                    if ((VolumetricClouds.CloudFadeInMode)m_FadeInMode.value.enumValueIndex == (VolumetricClouds.CloudFadeInMode.Manual))
+                    {
+                        PropertyField(m_FadeInStart);
+                        PropertyField(m_FadeInDistance);
+                    }
+                }
             }
         }
     }
