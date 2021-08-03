@@ -82,7 +82,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added warning for when a light is not fitting in the cached shadow atlas and added option to set maximum resolution that would fit.
 - Added a custom post process injection point AfterPostProcessBlurs executing after depth of field and motion blur.
 - Added the support of volumetric clouds for baked and realtime reflection probes.
-- Added controls for the clouds fade in (case 1353548).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -350,6 +349,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with vertex color defaulting to 0.0 when not defined, in ray/path tracing (case 1348821).
 - Fix issue with a compute dispatch being with 0 threads on extremely small resolutions.
 - Fixed the camera near plane not being taken into account when rendering the clouds (case 1353548).
+- Fixed controls for clouds fade in (case 1353548).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
