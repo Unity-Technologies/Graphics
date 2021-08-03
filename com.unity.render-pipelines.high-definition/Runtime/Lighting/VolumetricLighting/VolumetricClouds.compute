@@ -317,18 +317,9 @@ bool GetCloudVolumeIntersection(float3 originWS, float3 dir, float insideClouds,
                 rayMarchRange.distance = intersectionInter.x - intersectionOuter.x;
         }
     }
-
-    // We are not allowed to render clouds under a certain distance
-    // As a temporary solution, the clouds cannot be closer than 1/5 of the size of the cloud layer (radial space)
-    float cloudRangeSize = (_HighestCloudAltitude -_LowestCloudAltitude) * 0.2;
-    if (cloudRangeSize > rayMarchRange.start)
-    {
-        rayMarchRange.start = cloudRangeSize;
-        rayMarchRange.distance -= cloudRangeSize - rayMarchRange.start;
-    }
-
     // Mke sure we cannot go beyond what the number of samples
     rayMarchRange.distance = clamp(0, rayMarchRange.distance, _MaxRayMarchingDistance);
+
     // Return if we have an intersection
     return intersect;
 }
@@ -344,18 +335,6 @@ bool GetCloudVolumeIntersection(float3 originWS, float3 dir, float insideClouds,
     // The ray starts at the first intersection with the lower bound and goes up to the first intersection with the outer bound
     rayMarchRange.start = intersectionInter.x;
     rayMarchRange.distance = intersectionOuter.x - intersectionInter.x;
-
-    // We are not allowed to render clouds under a certain distance
-    // As a temporary solution, the clouds cannot be closer than 1/5 of the size of the cloud layer (radial space)
-    float cloudRangeSize = (_HighestCloudAltitude -_LowestCloudAltitude) * 0.2;
-    if (cloudRangeSize > rayMarchRange.start)
-    {
-        rayMarchRange.start = cloudRangeSize;
-        rayMarchRange.distance -= cloudRangeSize - rayMarchRange.start;
-    }
-
-    // Make sure we cannot go beyond what the number of samples
-    rayMarchRange.distance = rayMarchRange.distance;
 
     // Return if we have an intersection
     return true;
@@ -646,6 +625,11 @@ void EvaluateCloud(CloudProperties cloudProperties, CloudRay cloudRay,  float ph
     volumetricRay.transmittance *= currentStepExtinction;
 }
 
+float DensityFadeIn(float densityValue, float totalDistance)
+{
+    return lerp(0, densityValue, saturate((totalDistance - _FadeInStart) / (_FadeInStart + _FadeInDistance)));
+}
+
 VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
 {
     // Initiliaze the volumetric ray
@@ -726,6 +710,10 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
 
                     // If the density is null, we can skip as there will be no contribution
                     EvaluateCloudProperties(currentPositionWS, 0.0f, erosionMipOffset, false, false, cloudProperties);
+
+                    // Apply the fade in function to the density
+                    cloudProperties.density = DensityFadeIn(cloudProperties.density, rayMarchRange.start + currentDistance);
+
                     if (cloudProperties.density > CLOUD_DENSITY_TRESHOLD)
                     {
                         // Contribute to the average depth (must be done first in case we end up inside a cloud at the next step)
@@ -763,6 +751,9 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                     // Sample the cheap version of the clouds
                     CloudProperties cloudProperties;
                     EvaluateCloudProperties(currentPositionWS, 1.0f, 0.0, true, false, cloudProperties);
+
+                    // Apply the fade in function to the density
+                    cloudProperties.density = DensityFadeIn(cloudProperties.density, rayMarchRange.start + currentDistance);
 
                     // If the density is lower than our tolerance,
                     if (cloudProperties.density < CLOUD_DENSITY_TRESHOLD)

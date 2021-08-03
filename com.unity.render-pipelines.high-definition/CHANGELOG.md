@@ -352,6 +352,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue with change in lens model (perfect or imperfect) wouldn't be taken into account unless the HDRP asset was rebuilt.
 - Fixed custom pass delete operation (case 1354871).
 - Fixed viewport size when TAA is executed after dynamic res upscale (case 1348541).
+- Fixed the camera near plane not being taken into account when rendering the clouds (case 1353548).
+- Fixed controls for clouds fade in (case 1353548).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
