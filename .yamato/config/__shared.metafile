@@ -114,7 +114,7 @@ test_platforms:
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --player-save-path=players
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, OSX_OpenGlCore]: --player-save-path=players
 
       - [all]: --timeout=1200
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --timeout=2700

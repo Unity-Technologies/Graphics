@@ -68,7 +68,7 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_trunk:
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
+      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
          retries: 2
     artifacts:
         logs:
@@ -176,7 +176,7 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_tru
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
+      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
          retries: 2
     artifacts:
         logs:
@@ -248,7 +248,7 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_2021.2:
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
+      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
          retries: 2
     artifacts:
         logs:
@@ -356,7 +356,7 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_202
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
+      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
          retries: 2
     artifacts:
         logs:
@@ -428,7 +428,7 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_ref_images_mono_Linear_CUSTOM-RE
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
+      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
          retries: 2
     artifacts:
         logs:
@@ -536,7 +536,7 @@ Build_ShaderGraph_ref_OSX_OpenGLCore_Standalone_cache_ref_images_mono_Linear_CUS
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
+      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/ShaderGraph/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/ShaderGraph --timeout=1200
          retries: 2
     artifacts:
         logs:
