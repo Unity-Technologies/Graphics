@@ -228,7 +228,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (TraceSSGIPassData data, RenderGraphContext ctx) =>
                     {
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, data.lightList);
+                        ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListTile, data.lightList);
 
                         int ssgiTileSize = 8;
                         int numTilesXHR = (data.texWidth + (ssgiTileSize - 1)) / ssgiTileSize;
