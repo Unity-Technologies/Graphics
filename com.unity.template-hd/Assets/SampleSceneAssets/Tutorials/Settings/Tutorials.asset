@@ -25,7 +25,7 @@ MonoBehaviour:
   Description:
     m_Untranslated: This series of tutorials will lead you through the basics of
       HDRP.
-  ProjectLayout: {fileID: 0}
+  ProjectLayout: {fileID: 102900000, guid: ec0f28aca6ef05f4693fe96db9f2b71c, type: 3}
   Sections:
   - OrderInView: 0
     Heading:
