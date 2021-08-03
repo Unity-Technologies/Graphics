@@ -35,11 +35,17 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: What are materials?
+        m_Untranslated: What are Materials?
       Text:
-        m_Untranslated: HDRP uses Physically Based Rendering (PBR), an industry-standard
-          technique that more accurately models the lighting and its interaction
-          with materials in the real world.
+        m_Untranslated: 'Materials are used to set the visual aspect of the objects
+          in the Scene. Typically, a Material relies on a shader and a variety of
+          imputs, such as textures and numerical values.
+
+
+          HDRP uses <b>Physically
+          Based Rendering (PBR)</b> materials. PBR is an industry-standard technique
+          that more accurately simulates the real-world interaction of the lighting
+          with the materials.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -74,19 +80,37 @@ MonoBehaviour:
     m_Untranslated: Next
   DoneButton:
     m_Untranslated: Done
-  m_NextButton: 
-  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
-  m_autoAdvance: 0
+  m_AutoAdvance: 0
+  Showing:
+    m_PersistentCalls:
+      m_Calls: []
+  Shown:
+    m_PersistentCalls:
+      m_Calls: []
+  Staying:
+    m_PersistentCalls:
+      m_Calls: []
+  CriteriaValidated:
+    m_PersistentCalls:
+      m_Calls: []
+  MaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  NonMaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
     m_PersistentCalls:
       m_Calls: []
-  m_OnBeforeTutorialQuit:
-    m_PersistentCalls:
-      m_Calls: []
   m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_NextButton: 
+  m_DoneButton: 

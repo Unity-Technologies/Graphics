@@ -35,16 +35,16 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Local Volumetric Fog
+        m_Untranslated: What is a Local Volumetric Fog?
       Text:
-        m_Untranslated: 'A <b>Local Volumetric Fog</b> increases the local density
-          of fog within a box-shaped volume. It can be used to created denser areas
-          of fog in certain parts of the Scene.
+        m_Untranslated: 'A <b>Local Volumetric Fog</b> is a box-shaped area used
+          to increase the local density of fog. It can be used to created denser
+          areas of fog in certain parts of the Scene.
 
 
-          By default, the fog inside
-          the Local Volumetric Fog is constant (homogeneous), but you can alter it
-          by assigning a custom 3D texture.'
+          By default, the
+          fog inside the Local Volumetric Fog is constant (homogeneous), but you
+          can alter it by assigning a custom 3D texture.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

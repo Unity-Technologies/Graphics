@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: Reflection Probes_05
+  m_Name: ReflectionProbes_06
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -35,17 +35,12 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Reflection Probe
+        m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: 'A complex room like the second room which has curved walls,
-          a sloped ceiling, and a wide range of lighting intensities, requires a
-          large number of <b>Reflection Probes</b> to reach a high reflection quality.
-
-
-          The
-          size of <b>Reflection Probes</b> directly influences how they are sorted
-          and blended with each other: smaller Reflection Probes tend to have more
-          influence on nearby objects than larger ones.'
+        m_Untranslated: "In this tutorial, you learned how reflections from the environment
+          can be captured and applied onto nearby objects.\r\n\r\nFor more information,
+          check out the Reflection Probes <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Reflection-Probe.html\">documentation.</a>\n\n<b>Note:</b>
+          You do not need to save your changes in order to follow other tutorials.\r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -61,12 +56,12 @@ MonoBehaviour:
       m_InstructionText: 
       m_TutorialButtonText: 
   m_CameraSettings:
-    m_CameraMode: 1
+    m_CameraMode: 0
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 4.851026
-    m_Pivot: {x: 33.165066, y: 3.3486905, z: -1.1588464}
-    m_Rotation: {x: -0.032553297, y: 0.84608257, z: 0.052017674, w: 0.5295141}
+    m_Size: 0
+    m_Pivot: {x: 0, y: 0, z: 0}
+    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -75,7 +70,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 1
+    m_Enabled: 0
   NextButton:
     m_Untranslated: Next
   DoneButton:

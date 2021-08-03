@@ -35,31 +35,30 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: What are volumes?
+        m_Untranslated: What are Volumes?
       Text:
         m_Untranslated: 'In HDRP, Volumes allow you to overrides HDRP effects on
           your camera. This includes post-processing effects, shadows, lighting,
           Fog and Sky settings, among others.
 
-          
 
-          Volumes can
-          be set to <b>Global</b> or <b>Local</b> mode.
 
-          
+          Volumes can be set to
+          <b>Global</b> or <b>Local</b> mode.
 
-          <b>Global</b>
-          volume overrides are applied to all cameras in the Scene regardless of
-          their position. A <b>Global</b> volume can be considered as an infinitely
-          large and is useful to control settings affecting the entire world, such
-          as Sky and Fog.
 
-          
 
-          <b>Local</b> volumes overrides
-          are applied only to cameras whose position is within the zone of influence
-          defined by the <b>Local</b> Volumes. The local volumes can be a box, a
-          sphere, as well as a custom (convex) mesh.'
+          <b>Global</b> volume overrides
+          are applied to all cameras in the Scene regardless of their position. A
+          <b>Global</b> volume can be considered as an infinitely large and is useful
+          to control settings affecting the entire world, such as Sky and Fog.
+
+
+
+          <b>Local</b>
+          volumes overrides are applied only to cameras whose position is within
+          the zone of influence defined by the <b>Local</b> Volumes. The local volumes
+          can be a box, a sphere, as well as a custom (convex) mesh.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

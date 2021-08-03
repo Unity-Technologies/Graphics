@@ -35,10 +35,10 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Butterflies
+        m_Untranslated: Tune the Butterflies VFX
       Text:
         m_Untranslated: "Let's take a look at the Butterflies VFX.\n\n1) In the <i>Hierarchy,</i>
-          select <b>VFX</b> > <b>ButterFlies.</b>\n\n2) In its <i>Inspector,</i>
+          select <b>VFX</b> > <b>Butterflies.</b>\n\n2) In its <i>Inspector,</i>
           set the <b>Wing Animation Speed</b> to 0.1. \n\nNotice how the animation
           slows down."
       m_Tutorial: {fileID: 0}
@@ -75,19 +75,37 @@ MonoBehaviour:
     m_Untranslated: Next
   DoneButton:
     m_Untranslated: Done
-  m_NextButton: 
-  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
-  m_autoAdvance: 0
+  m_AutoAdvance: 0
+  Showing:
+    m_PersistentCalls:
+      m_Calls: []
+  Shown:
+    m_PersistentCalls:
+      m_Calls: []
+  Staying:
+    m_PersistentCalls:
+      m_Calls: []
+  CriteriaValidated:
+    m_PersistentCalls:
+      m_Calls: []
+  MaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  NonMaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
     m_PersistentCalls:
       m_Calls: []
-  m_OnBeforeTutorialQuit:
-    m_PersistentCalls:
-      m_Calls: []
   m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_NextButton: 
+  m_DoneButton: 
