@@ -71,6 +71,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Maximal temporal accumulation
         public float _TemporalAccumulationFactor;
 
+        // Direction to the sun
+        public Vector2 _Padding0;
+        public float _FadeInStart;
+        public float _FadeInDistance;
+
         // Scattering Tint
         public Vector4 _ScatteringTint;
 
@@ -129,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Fast tonemapping settings
         public int _EnableFastToneMapping;
         // Padding
-        public float _Padding;
+        public float _Padding1;
 
         [HLSLArray(3 * 4, typeof(Vector4))]
         public fixed float _DistanceBasedWeights[12 * 4];

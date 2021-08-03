@@ -74,6 +74,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - URP Asset Inspector - Advanced settings have been reordered under `Show Additional Properties` on each section.
 - Changed the default name when a new urp asset is created.
 - URP Asset Inspector - `General` section has been renamed to `Rendering`.
+- Refactored some of the array resizing code around decal projector rendering to use new APIs in render core
 
 ### Fixed
 - Fixed an issue in PostProcessPass causing OnGUI draws to not show on screen. [case 1346650]
