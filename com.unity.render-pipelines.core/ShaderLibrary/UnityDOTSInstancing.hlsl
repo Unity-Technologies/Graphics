@@ -99,15 +99,18 @@ for t, c, sz in (
 
 #define UNITY_DOTS_INSTANCING_CONCAT2(a, b) a ## b
 #define UNITY_DOTS_INSTANCING_CONCAT4(a, b, c, d) a ## b ## c ## d
-#define UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(metadata_prefix, typespec, name) UNITY_DOTS_INSTANCING_CONCAT4(metadata_prefix, typespec, _Metadata_, name)
+#define UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(metadata_prefix, typespec, name) UNITY_DOTS_INSTANCING_CONCAT4(metadata_prefix, typespec, _Metadata, name)
 
 // Metadata constants for properties have the following name format:
-// unity_DOTSInstancing_<Type><Size>_Metadata_<Name>
+// unity_DOTSInstancing_<Type><Size>_Metadata<Name>
 // where
 // <Type> is a single character element type specifier (e.g. F for float4x4)
 //          F = float, I = int, U = uint, H = half
 // <Size> is the total size of the property in bytes (e.g. 64 for float4x4)
 // <Name> is the name of the property
+// NOTE: There is no underscore between 'Metadata' and <Name> to avoid a double
+//       underscore in the common case where the property name starts with an underscore.
+//       A prefix double underscore is illegal on some platforms like OpenGL.
 #define UNITY_DOTS_INSTANCED_METADATA_NAME(type, name) UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(unity_DOTSInstancing_, UNITY_DOTS_INSTANCING_CONCAT2(UNITY_DOTS_INSTANCING_TYPESPEC_, type), name)
 
 #define UNITY_DOTS_INSTANCING_START(name) cbuffer UnityDOTSInstancing_##name {
