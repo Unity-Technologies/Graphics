@@ -14,7 +14,7 @@
 #pragma multi_compile _ USE_INTERMEDIATE_BUFFER
 
 //#define WITHOUT_LDS
-#pragma enable_d3d11_debug_symbols
+// #pragma enable_d3d11_debug_symbols
 
 // The number of octaves for the multi-scattering
 #define NUM_MULTI_SCATTERING_OCTAVES 2
