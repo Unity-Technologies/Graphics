@@ -134,10 +134,7 @@ MonoBehaviour:
   hdriSky:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: 4be90308347ac8349be472e30c96756b, type: 3}
-  enableDistortion:
-    m_OverrideState: 1
-    m_Value: 1
-  procedural:
+  distortionMode:
     m_OverrideState: 1
     m_Value: 1
   flowmap:
@@ -146,12 +143,20 @@ MonoBehaviour:
   upperHemisphereOnly:
     m_OverrideState: 1
     m_Value: 1
-  scrollDirection:
+  scrollOrientation:
     m_OverrideState: 1
-    m_Value: 179
+    m_Value:
+      mode: 0
+      customValue: 10
+      additiveValue: 0
+      multiplyValue: 0
   scrollSpeed:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value:
+      mode: 0
+      customValue: 0
+      additiveValue: 0
+      multiplyValue: 0
   enableBackplate:
     m_OverrideState: 1
     m_Value: 0
@@ -191,6 +196,106 @@ MonoBehaviour:
   rectLightShadow:
     m_OverrideState: 1
     m_Value: 0
+  m_SkyVersion: 1
+  enableDistortion:
+    m_OverrideState: 1
+    m_Value: 1
+  procedural:
+    m_OverrideState: 1
+    m_Value: 1
+  scrollDirection:
+    m_OverrideState: 1
+    m_Value: 179
+  m_ObsoleteScrollSpeed:
+    m_OverrideState: 1
+    m_Value: 0
+--- !u!114 &-1684174113285212767
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 384c4d03a551c44448145f4093304119, type: 3}
+  m_Name: ScreenSpaceReflection
+  m_EditorClassIdentifier: 
+  active: 1
+  quality:
+    m_OverrideState: 0
+    m_Value: 1
+  enabled:
+    m_OverrideState: 1
+    m_Value: 0
+  tracing:
+    m_OverrideState: 0
+    m_Value: 1
+  m_MinSmoothness:
+    m_OverrideState: 0
+    m_Value: 0.9
+  m_SmoothnessFadeStart:
+    m_OverrideState: 0
+    m_Value: 0.9
+  reflectSky:
+    m_OverrideState: 0
+    m_Value: 1
+  usedAlgorithm:
+    m_OverrideState: 0
+    m_Value: 0
+  depthBufferThickness:
+    m_OverrideState: 0
+    m_Value: 0.01
+  screenFadeDistance:
+    m_OverrideState: 0
+    m_Value: 0.1
+  accumulationFactor:
+    m_OverrideState: 0
+    m_Value: 0.75
+  m_RayMaxIterations:
+    m_OverrideState: 0
+    m_Value: 32
+  fallbackHierachy:
+    m_OverrideState: 0
+    m_Value: 3
+  layerMask:
+    m_OverrideState: 0
+    m_Value:
+      serializedVersion: 2
+      m_Bits: 4294967295
+  textureLodBias:
+    m_OverrideState: 0
+    m_Value: 1
+  m_RayLength:
+    m_OverrideState: 0
+    m_Value: 50
+  m_ClampValue:
+    m_OverrideState: 0
+    m_Value: 1
+  m_Denoise:
+    m_OverrideState: 0
+    m_Value: 1
+  m_DenoiserRadius:
+    m_OverrideState: 0
+    m_Value: 8
+  m_AffectSmoothSurfaces:
+    m_OverrideState: 0
+    m_Value: 0
+  mode:
+    m_OverrideState: 0
+    m_Value: 2
+  m_FullResolution:
+    m_OverrideState: 0
+    m_Value: 0
+  sampleCount:
+    m_OverrideState: 0
+    m_Value: 1
+  bounceCount:
+    m_OverrideState: 0
+    m_Value: 1
+  m_RayMaxIterationsRT:
+    m_OverrideState: 0
+    m_Value: 48
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -211,6 +316,7 @@ MonoBehaviour:
   - {fileID: 2872089784039257290}
   - {fileID: 1865279186012764109}
   - {fileID: 250592284426735632}
+  - {fileID: -1684174113285212767}
 --- !u!114 &250592284426735632
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -233,15 +339,27 @@ MonoBehaviour:
   tracing:
     m_OverrideState: 1
     m_Value: 1
+  fallbackHierarchy:
+    m_OverrideState: 0
+    m_Value: 3
   depthBufferThickness:
     m_OverrideState: 1
     m_Value: 0.1
   m_MaxRaySteps:
     m_OverrideState: 1
     m_Value: 128
-  m_FilterRadius:
+  m_DenoiseSS:
     m_OverrideState: 1
-    m_Value: 12
+    m_Value: 1
+  m_HalfResolutionDenoiserSS:
+    m_OverrideState: 1
+    m_Value: 0
+  m_DenoiserRadiusSS:
+    m_OverrideState: 1
+    m_Value: 0.5
+  m_SecondDenoiserPassSS:
+    m_OverrideState: 1
+    m_Value: 1
   layerMask:
     m_OverrideState: 1
     m_Value:
@@ -262,9 +380,6 @@ MonoBehaviour:
   m_FullResolution:
     m_OverrideState: 1
     m_Value: 0
-  m_UpscaleRadius:
-    m_OverrideState: 1
-    m_Value: 2
   sampleCount:
     m_OverrideState: 1
     m_Value: 2
@@ -286,6 +401,9 @@ MonoBehaviour:
   m_MaxMixedRaySteps:
     m_OverrideState: 1
     m_Value: 48
+  receiverMotionRejection:
+    m_OverrideState: 0
+    m_Value: 1
 --- !u!114 &1142777632297148762
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -308,6 +426,12 @@ MonoBehaviour:
   skyAmbientMode:
     m_OverrideState: 1
     m_Value: 1
+  windOrientation:
+    m_OverrideState: 0
+    m_Value: 0
+  windSpeed:
+    m_OverrideState: 0
+    m_Value: 100
   fogType:
     m_OverrideState: 1
     m_Value: 0
