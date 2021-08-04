@@ -87,7 +87,7 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 }
 
 #if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
-// Return precomputed Velcoity in object space
+// Return precomputed Velocity in object space
 float3 GetCustomVelocity(AttributesMesh input)
 {
     // build graph inputs
