@@ -190,6 +190,8 @@ namespace UnityEditor.VFX.UI
 
     class VFXView : GraphView, IControlledElement<VFXViewController>, IControllerListener
     {
+        private const int MaximumNameLengthInNotification = 128;
+
         internal static class Contents
         {
             public static readonly GUIContent attach =  EditorGUIUtility.TrTextContent("Attach");
@@ -853,10 +855,12 @@ namespace UnityEditor.VFX.UI
 
         public void AttachToSelection()
         {
-            if (TryAttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>()))
+            var vfxWindow = VFXViewWindow.currentWindow;
+            if (TryAttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>()) && vfxWindow != null)
             {
-                VFXViewWindow.currentWindow.ShowNotification(new GUIContent($"Attached to {Selection.activeObject.name}"), 1.5);
-                VFXViewWindow.currentWindow?.Repaint();
+                string truncatedObjectName = TruncateName(Selection.activeObject.name, MaximumNameLengthInNotification);
+                vfxWindow.ShowNotification(new GUIContent($"Attached to {truncatedObjectName}"), 1.5);
+                vfxWindow.Repaint();
             }
         }
 
@@ -900,8 +904,15 @@ namespace UnityEditor.VFX.UI
             m_LockToggle.tooltip = locked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
 
             m_AttachDropDownButton.tooltip = attachedComponent != null && !string.IsNullOrEmpty(attachedComponent.name)
-                ? string.Format(Contents.attachedToGameObject.text, attachedComponent.name)
+                ? string.Format(Contents.attachedToGameObject.text, TruncateName(attachedComponent.name, MaximumNameLengthInNotification))
                 : Contents.notAttached.text;
+        }
+
+        string TruncateName(string nameToTruncate, int maxLength)
+        {
+            return nameToTruncate.Length > maxLength
+                ? nameToTruncate.Substring(0, maxLength) + "..."
+                : nameToTruncate;
         }
 
         void OnUndoPerformed()
