@@ -76,6 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent ColorTemperatureMode = EditorGUIUtility.TrTextContent("Use Color Temperature");
             public static readonly GUIContent AffectDiffuse = EditorGUIUtility.TrTextContent("Affect Diffuse");
             public static readonly GUIContent AffectSpecular = EditorGUIUtility.TrTextContent("Affect Specular");
+            public static readonly GUIContent AffectDynamicGI = EditorGUIUtility.TrTextContent("Affect Dynamic GI");
             public static readonly GUIContent FadeDistance = EditorGUIUtility.TrTextContent("Fade Distance");
             public static readonly GUIContent ShadowFadeDistance = EditorGUIUtility.TrTextContent("Shadow Fade Distance");
             public static readonly GUIContent LightLayer = EditorGUIUtility.TrTextContent("Light Layer");
@@ -609,6 +610,40 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     Undo.RecordObject(tLightData, "Changed affects specular");
                     tLightData.affectSpecular = sLightData.affectSpecular;
+                }),
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.AffectDynamicGI, "m_Intensity", 100, (r, prop, dep) =>       // 17: Affect Specular
+                {
+                    if(!TryGetAdditionalLightData(prop, out var lightData))
+                    {
+                        EditorGUI.LabelField(r, "--");
+                        return;
+                    }
+
+                    bool affectDynamicGI = lightData.affectDynamicGI;
+
+                    EditorGUI.BeginChangeCheck();
+                    affectDynamicGI = EditorGUI.Toggle(r, affectDynamicGI);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(lightData, "Changed affects dynamic GI");
+                        lightData.affectDynamicGI = affectDynamicGI;
+                    }
+                }, (lprop, rprop) =>
+                {
+                    TryGetAdditionalLightData(lprop, out var lLightData);
+                    TryGetAdditionalLightData(rprop, out var rLightData);
+
+                    if (IsNullComparison(lLightData, rLightData, out var order))
+                        return order;
+
+                    return lLightData.affectDynamicGI.CompareTo(rLightData.affectDynamicGI);
+                }, (target, source) =>
+                {
+                    if (!TryGetAdditionalLightData(target, out var tLightData) || !TryGetAdditionalLightData(source, out var sLightData))
+                        return;
+
+                    Undo.RecordObject(tLightData, "Changed affects dynamic GI");
+                    tLightData.affectDynamicGI = sLightData.affectDynamicGI;
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.FadeDistance, "m_Intensity", 95, (r, prop, dep) =>             // 18: Fade Distance
                 {

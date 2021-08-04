@@ -71,6 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty evsmLightLeakBias;
         public SerializedProperty evsmVarianceBias;
         public SerializedProperty evsmBlurPasses;
+        public SerializedProperty affectDynamicGI;
 
         // Improved moment shadows data
         public SerializedProperty lightAngle;
@@ -388,6 +389,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 evsmVarianceBias = o.Find("m_EvsmVarianceBias");
                 evsmLightLeakBias = o.Find("m_EvsmLightLeakBias");
                 evsmBlurPasses = o.Find("m_EvsmBlurPasses");
+                affectDynamicGI = o.Find("m_AffectDynamicGI");
 
                 // Moment light
                 lightAngle = o.Find("m_LightAngle");

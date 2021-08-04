@@ -609,6 +609,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Force non-rendergraph path, until we have refactored all custom rendering code, and probe volumes to be compatible with the RenderGraph path.  
             //
             // EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
+            ProbeVolumeDynamicGI.instance.Allocate(defaultResources);
             EnableRenderGraph(false);
             // custom-end
         }
@@ -2945,7 +2946,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, m_FrameCount);
                     ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                 }
-
+                
+                DispatchProbeVolumeDynamicGI(renderContext, hdCamera, cmd);
+                
                 hdCamera.xr.StartSinglePass(cmd);
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))

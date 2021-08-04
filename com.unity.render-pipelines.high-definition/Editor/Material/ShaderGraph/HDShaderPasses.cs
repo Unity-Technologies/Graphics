@@ -249,6 +249,46 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #endregion
 
+#region DynamicGIExtraDataGen
+    public static PassDescriptor GenerateDynamicGIExtraDataGen(bool supportLighting)
+    {
+        return new PassDescriptor
+        {
+            // Definition
+            displayName = "DynamicGIDataSample",
+            referenceName = "SHADERPASS_DYNAMIC_GIDATA_SAMPLE",
+            lightMode = "DynamicGIDataSample",
+            useInPreview = false,
+
+            // We don't need any vertex inputs on meta pass:
+            validVertexBlocks = new BlockFieldDescriptor[0],
+
+            // Collections
+            requiredFields = CoreRequiredFields.DynamicGIDataSample,
+            renderStates = CoreRenderStates.Meta,
+            pragmas = CorePragmas.Basic,
+            defines = CoreDefines.ShaderGraphRaytracingDefault,
+            includes = GenerateIncludes(),
+        };
+
+        IncludeCollection GenerateIncludes()
+        {
+            var includes = new IncludeCollection();
+
+            includes.Add(CoreIncludes.CorePregraph);
+            if (supportLighting)
+                includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+            includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+            includes.Add(CoreIncludes.CoreUtility);
+            includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+            includes.Add(CoreIncludes.kPassDynamicGIExtraDataSample, IncludeLocation.Postgraph);
+
+            return includes;
+        }
+    }
+
+#endregion
+
 #region Depth Forward Only
 
         public static PassDescriptor GenerateDepthForwardOnlyPass(bool supportLighting)
