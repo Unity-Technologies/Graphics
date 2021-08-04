@@ -61,8 +61,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Utilities
                 nodeModel =>
                 {
                     var registry = ((ShaderGraphStencil) graphModel.Stencil).GetRegistry();
-                    ((ShaderGraphModel) graphModel).GraphHandler.AddNode(registryKey, guid.ToString(), registry);
-                    nodeModel.graphDataName = guid.ToString();
+                    ((ShaderGraphModel) graphModel).GraphHandler.AddNode(registryKey, nodeModel.Guid.ToString(), registry);
                 },
                 spawnFlags
             );
