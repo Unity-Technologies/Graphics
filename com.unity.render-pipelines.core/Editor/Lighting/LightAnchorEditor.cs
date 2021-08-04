@@ -291,7 +291,20 @@ namespace UnityEditor
                     if (distanceChanged)
                         manipulator.distance = m_DistanceProperty.floatValue;
                     if (positionOverrideChanged)
-                        manipulator.anchorPositionOverride = m_AnchorPositionOverrideProperty.objectReferenceValue as Transform;
+                    {
+                        var newTransform = m_AnchorPositionOverrideProperty.objectReferenceValue as Transform;
+
+                        if (newTransform != null)
+                        {
+                            // Check that the assigned transform is not child of the light anchor, otherwise it would cause problems when moving the light position
+                            if (newTransform.IsChildOf(manipulator.transform))
+                                Debug.LogError($"Can't assign '{newTransform.name}' because it's a child of the Light Anchor component");
+                            else
+                                manipulator.anchorPositionOverride = newTransform;
+                        }
+                        else
+                            manipulator.anchorPositionOverride = newTransform;
+                    }
 
                     if (manipulator.anchorPositionOverride != null)
                         anchor = manipulator.anchorPosition;

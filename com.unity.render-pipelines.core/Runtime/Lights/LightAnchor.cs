@@ -153,6 +153,10 @@ namespace UnityEngine
 
             Vector3 worldAnchorToLight = transform.position - anchorPosition;
 
+            // In case the distance is 0 or the anchor override is at the same position than the light anchor
+            if (worldAnchorToLight.magnitude == 0)
+                worldAnchorToLight = -transform.forward;
+
             Vector3 projectOnGround = Vector3.ProjectOnPlane(worldAnchorToLight, axes.up);
             projectOnGround.Normalize();
 
@@ -187,6 +191,8 @@ namespace UnityEngine
                 viewToWorld = viewToWorld * Matrix4x4.Rotate(worldTilt);
             }
 
+            // TODO: these vectors are only correct when the light anchor is at the center of the screen.
+            // We can use the anchor pos to improve the results on the edge of the screen (problem caused by perspective)
             Vector3 up = (viewToWorld * Vector3.up).normalized;
             Vector3 right = (viewToWorld * Vector3.right).normalized;
             Vector3 forward = (viewToWorld * Vector3.forward).normalized;
@@ -204,6 +210,9 @@ namespace UnityEngine
             if (anchorPositionOverride == null || Camera.main == null)
                 return;
 
+            // TODO: add checkbox that remove this update
+            // Realtime Position update
+            // Realtime Rotation update
             if (anchorPositionOverride.hasChanged)
                 UpdateTransform(Camera.main, anchorPosition);
         }
@@ -216,6 +225,8 @@ namespace UnityEngine
             {
                 return;
             }
+
+            // TODO: fix light rotated when camera rotates
 
             Axes axes = GetWorldSpaceAxes(camera);
             Vector3 anchor = anchorPosition;
