@@ -71,6 +71,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Maximal temporal accumulation
         public float _TemporalAccumulationFactor;
 
+        // Direction to the sun
+        public Vector2 _Padding0;
+        public float _FadeInStart;
+        public float _FadeInDistance;
+
         // Scattering Tint
         public Vector4 _ScatteringTint;
 
@@ -122,8 +127,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _CameraInverseViewProjection_NO;
         public Matrix4x4 _CameraPrevViewProjection_NO;
 
+        // Controls the intensity of the wind distortion at high altitudes
+        public float _AltitudeDistortion;
+        // Internal parameters that compensates the erosion factor to match between the different erosion noises
+        public float _ErosionFactorCompensation;
         // Fast tonemapping settings
-        public Vector3 _Padding2;
-        public int     _EnableFastToneMapping;
+        public int _EnableFastToneMapping;
+        // Padding
+        public float _Padding1;
+
+        [HLSLArray(3 * 4, typeof(Vector4))]
+        public fixed float _DistanceBasedWeights[12 * 4];
     }
 }
