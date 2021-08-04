@@ -1,0 +1,171 @@
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeRotate.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationGlobals.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeSphericalHarmonicsLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeSphericalHarmonicsDeringing.hlsl"
+
+#pragma kernel CombinePropagationAxis
+
+#define GROUP_SIZE 64
+//#pragma enable_d3d11_debug_symbols
+
+
+StructuredBuffer<float> _ProbeVolumeAtlasReadSHL01Buffer;
+StructuredBuffer<float> _ProbeVolumeAtlasReadSHL2Buffer;
+StructuredBuffer<float> _ProbeVolumeAtlasReadValidityBuffer;
+RWTexture3D<float4> _ProbeVolumeAtlasWriteTextureSH;
+
+uint _ProbeVolumeAtlasReadBufferCount;
+float3 _ProbeVolumeResolution;
+float3 _ProbeVolumeAtlasBias;
+float4 _ProbeVolumeAtlasResolutionAndSliceCount;
+float3 _ProbeVolumeAtlasSHRotateRight;
+float3 _ProbeVolumeAtlasSHRotateUp;
+float3 _ProbeVolumeAtlasSHRotateForward;
+
+StructuredBuffer<float3> _RadianceCacheAxis;
+int _RadianceCacheAxisCount;
+float _BakedLightingContribution;
+float _DynamicPropagationContribution;
+float4 _RayAxis[NEIGHBOR_AXIS_COUNT];
+
+
+uint3 ComputeWriteIndexFromReadIndex(uint readIndex, float3 resolution)
+{
+    // _ProbeVolumeAtlasReadBuffer[z * resolutionY * resolutionX + y * resolutionX + x]
+    // TODO: Could implement as floating point operations, which is likely faster.
+    // Would need to verify precision.
+    uint x = readIndex % (uint)resolution.x;
+    uint y = (readIndex / (uint)resolution.x) % (uint)resolution.y;
+    uint z = readIndex / ((uint)resolution.y * (uint)resolution.x);
+
+    uint3 writeIndex = uint3(x, y, z);
+    writeIndex += (uint3)floor(_ProbeVolumeAtlasBias * _ProbeVolumeAtlasResolutionAndSliceCount.xyz);
+
+    return writeIndex;
+}
+
+float ReadValidity(uint readIndex)
+{
+    const float occlusion = _ProbeVolumeAtlasReadValidityBuffer[readIndex];
+    return pow(1.0 - occlusion, 8.0);
+}
+
+SHOutgoingRadiosityWithProjectedConstantsPacked ReadBakedSH(uint readIndex)
+{
+    SHOutgoingRadiosityWithProjectedConstantsPacked outgoingRadiosity;
+
+    const uint SH_STRIDE_L01 = 4 * 3;
+    const uint SH_STRIDE_L2 = (9 * 3) - SH_STRIDE_L01;
+
+    outgoingRadiosity.data[0] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 0], // shAr.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 1], // shAg.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 2], // shAb.w
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 3]  // shAr.x
+    );
+    outgoingRadiosity.data[1] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 4], // shAr.y
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 5], // shAr.z
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 6], // shAg.x
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 7]  // shAg.y
+    );
+    outgoingRadiosity.data[2] = float4(
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 8], // shAg.z
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 9], // shAb.x
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 10], // shAb.y
+        _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 11]  // shAb.z
+    );
+    outgoingRadiosity.data[3] = float4(
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 0], // shBr.x
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 1], // shBr.y
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 2], // shBr.z
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 3]  // shBr.w
+    );
+    outgoingRadiosity.data[4] = float4(
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 4], // shBg.x
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 5], // shBg.y
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 6], // shBg.z
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 7]  // shBg.w
+    );
+    outgoingRadiosity.data[5] = float4(
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 8], // shBb.x
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 9], // shBb.y
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 10], // shBb.z
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 11]  // shBb.w
+    );
+    outgoingRadiosity.data[6] = float4(
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 12], // shCr.x
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 13], // shCr.y
+        _ProbeVolumeAtlasReadSHL2Buffer[readIndex * SH_STRIDE_L2 + 14], // shCr.z
+        0.0
+    );
+
+    return outgoingRadiosity;
+}
+
+void WriteFinalSHOutgoingRadiosityWithProjectedConstantsPacked(uint3 writeIndex, SHOutgoingRadiosityWithProjectedConstantsPacked outgoingRadiosityProjectedConstantsPacked, float validity)
+{
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = outgoingRadiosityProjectedConstantsPacked.data[0];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 1)] = outgoingRadiosityProjectedConstantsPacked.data[1];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 2)] = outgoingRadiosityProjectedConstantsPacked.data[2];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3)] = outgoingRadiosityProjectedConstantsPacked.data[3];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 4)] = outgoingRadiosityProjectedConstantsPacked.data[4];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 5)] = outgoingRadiosityProjectedConstantsPacked.data[5];
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 6)] = float4(outgoingRadiosityProjectedConstantsPacked.data[6].xyz, validity);
+}
+
+
+SHIncomingIrradiance ProjectPropagationAxis(uint probeIndex)
+{
+    SHIncomingIrradiance incomingIrradiance;
+    ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
+
+    uint localIndex = probeIndex * NEIGHBOR_AXIS_COUNT;
+    for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
+    {
+        float3 radiance = _RadianceCacheAxis[localIndex].xyz;
+        float3 direction = _RayAxis[axis].xyz;
+        SHIncomingIrradianceAccumulate(incomingIrradiance, direction, radiance);
+        //FCCAddToOutputRepresentation(radiance, direction, incomingIrradiance);
+        localIndex++;
+    }
+
+    return incomingIrradiance;
+
+}
+
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void CombinePropagationAxis(uint3 id : SV_DispatchThreadID)
+{
+    const uint readIndex = id.x;
+    if (readIndex < _ProbeVolumeAtlasReadBufferCount)
+    {
+        uint3 writeIndex = ComputeWriteIndexFromReadIndex(readIndex, _ProbeVolumeResolution);
+        const float validity = ReadValidity(readIndex);
+
+        SHOutgoingRadiosityWithProjectedConstantsPacked bakedOutgoingRadiosityProjectedConstantsPacked = ReadBakedSH(readIndex);
+        SHIncomingIrradiance dynamicIncomingIrradiance = ProjectPropagationAxis(readIndex);
+
+        SHOutgoingRadiosity dynamicOutgoingRadiosity = SHOutgoingRadiosityComputeFromIncomingIrradiance(dynamicIncomingIrradiance);
+        SHOutgoingRadiosityWithProjectedConstants bakedOutgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(bakedOutgoingRadiosityProjectedConstantsPacked);
+        SHOutgoingRadiosity bakedOutgoingRadiosity = SHOutgoingRadiosityCompute(bakedOutgoingRadiosityProjectedConstants);
+
+        const float3x3 probeVolumeAtlasSHRotate = float3x3(_ProbeVolumeAtlasSHRotateRight, _ProbeVolumeAtlasSHRotateUp, _ProbeVolumeAtlasSHRotateForward);
+        SHOutgoingRadiosityRotate(probeVolumeAtlasSHRotate, bakedOutgoingRadiosity); // rotate baked SH Data into absolute world space before it is combined with dynamic SH data in absolute world space
+        SHOutgoingRadiosityBlend(bakedOutgoingRadiosity, _BakedLightingContribution, dynamicOutgoingRadiosity, _DynamicPropagationContribution);
+
+        #if DERING_LUMINANCE_ONLY
+            //SHOutgoingRadiosityDeringLuminance(bakedOutgoingRadiosity);
+        #else
+            //SHOutgoingRadiosityDering(bakedOutgoingRadiosity);
+        #endif
+
+        bakedOutgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(bakedOutgoingRadiosity);
+        bakedOutgoingRadiosityProjectedConstantsPacked = SHOutgoingRadiosityWithProjectedConstantsPackedCompute(bakedOutgoingRadiosityProjectedConstants);
+        WriteFinalSHOutgoingRadiosityWithProjectedConstantsPacked(writeIndex, bakedOutgoingRadiosityProjectedConstantsPacked, validity);
+    }
+}
+

@@ -31,11 +31,12 @@ namespace UnityEditor.ShaderGraph
     // + 1 Bump ShaderImporter version after stripping LIGHTMAP_ON variants from shadergraph codegen in 9.x.x/custom/cherry-pick.
     // + 1 Bump ShaderImporter version after _DissolveOnOcclusionOpacity parameter needed HLSLDeclaration.UnityPerMaterial declaration, changing codegen in 10.2.0.
     // + 1 Bump ShaderImporter version after bugfix to DotsDeformation.hlsl::FetchComputeVertexData() to tangentOS.w in tangentOS output so mirrored normals produce correct normal maps.
+    // + 1 Bump ShaderImporter version after change to support dynamic GI extraction pass
     // [ScriptedImporter(115, Extension, -902)]
-    [ScriptedImporter(120, Extension, -902)]
+    [ScriptedImporter(121, Extension, -902)]
 #else
     // [ScriptedImporter(47, Extension, -902)]
-    [ScriptedImporter(52, Extension, -902)]
+    [ScriptedImporter(53, Extension, -902)]
     // custom-end
 #endif
 
