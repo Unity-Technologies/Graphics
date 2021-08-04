@@ -127,8 +127,15 @@ namespace UnityEditor.VFX.UI
         {
             EditorGUILayout.Space(4);
             var isAttached = m_vfxView.attachedComponent != null;
-            GUI.enabled = isAttached || Selection.activeGameObject?.GetComponent<VisualEffect>() != null;
-            if (GUILayout.Button(isAttached ? VFXView.Contents.detach : VFXView.Contents.attachToSelection, GUILayout.Height(24)))
+            var selectedVisualEffect = Selection.activeGameObject?.GetComponent<VisualEffect>();
+
+            var isCompatible = selectedVisualEffect.visualEffectAsset == m_vfxView.controller.graph.visualEffectResource.asset;
+            GUI.enabled = isAttached || selectedVisualEffect != null && isCompatible;
+            var buttonContent = isAttached
+                ? VFXView.Contents.detach
+                : isCompatible ? VFXView.Contents.attachToSelection : VFXView.Contents.disabledAttachToSelection;
+
+            if (GUILayout.Button(buttonContent, GUILayout.Height(24)))
             {
                 if (isAttached)
                 {
@@ -140,6 +147,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
+            GUI.enabled = true;
             GUILayout.FlexibleSpace();
             EditorGUILayout.LabelField(VFXView.Contents.pickATarget);
             //var res = m_vfxView.controller.graph.visualEffectResource;
@@ -187,12 +195,11 @@ namespace UnityEditor.VFX.UI
             public static readonly GUIContent attach =  EditorGUIUtility.TrTextContent("Attach");
             public static readonly GUIContent detach =  EditorGUIUtility.TrTextContent("Detach");
             public static readonly GUIContent attachToSelection =  EditorGUIUtility.TrTextContent("Attach to selection");
+            public static readonly GUIContent disabledAttachToSelection =  EditorGUIUtility.TrTextContent(attachToSelection.text, "Select a GameObject that uses the currently edited VFX to attach");
             public static readonly GUIContent clickToUnlock =  EditorGUIUtility.TrTextContent("Click to enable auto-attachment to selection");
             public static readonly GUIContent clickToLock =  EditorGUIUtility.TrTextContent("Click to disable auto-attachment to selection");
             public static readonly GUIContent pickATarget =  EditorGUIUtility.TrTextContent("Select a target GameObject");
             public static readonly GUIContent noSelection =  EditorGUIUtility.TrTextContent("No selection");
-            public static readonly GUIContent clickToSelect =  EditorGUIUtility.TrTextContent("Click to select");
-            public static readonly GUIContent attachedTo =  EditorGUIUtility.TrTextContent("Attached to");
             public static readonly GUIContent attachedToGameObject = EditorGUIUtility.TrTextContent("Attached to {0}");
             public static readonly GUIContent notAttached = EditorGUIUtility.TrTextContent("Select a Game Object running this VFX to attach it");
         }
