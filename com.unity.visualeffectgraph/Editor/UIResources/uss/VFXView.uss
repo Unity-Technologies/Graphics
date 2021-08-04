@@ -30,3 +30,8 @@ VFXView #no-asset *
 {
     margin-top:128px;
 }
+
+ToolbarToggle
+{
+    border-right-width: 0px;
+}

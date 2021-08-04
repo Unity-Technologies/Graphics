@@ -35,6 +35,13 @@
     background-image: resource("StyleSheets/Northstar/Images/d_dropdown.png");
 }
 
+.separator
+{
+    width: 6px;
+    border-width: 0 1px 0 1px;
+    border-color: #191919;
+}
+
 .popup
 {
     padding-top: 8px;

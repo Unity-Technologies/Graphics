@@ -13,6 +13,7 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEngine.Profiling;
 using System.Reflection;
+using UnityEditor.Experimental;
 using UnityEditor.Toolbars;
 using UnityEditor.VersionControl;
 
@@ -108,48 +109,64 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXSaveDropdownButton : VisualElement
+    abstract class DropDownButtonBase : VisualElement
     {
-        private readonly VFXView m_VFXView;
-        private readonly VisualElement m_PopupContent;
-        private readonly Button m_CheckoutButton;
-
         private EditorWindow m_CurrentPopup;
 
-        public VFXSaveDropdownButton(VFXView vfxView)
+        protected readonly VisualElement m_PopupContent;
+
+        public DropDownButtonBase(string uxmlSource, string mainButtonLabel, string icon = null, bool hasSeparatorBefore = false, bool hasSeparatorAfter = false)
         {
-            m_VFXView = vfxView;
-            AddToClassList("unity-dropdown-toggle");
-            AddToClassList("unity-editor-toolbar-element");
-            AddToClassList("unity-base-field");
             style.flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row);
 
-            var toggleButton = new Button(OnSave) {text = "Save", name = "button" };
-            toggleButton.AddToClassList("unity-dropdown-toggle__toggle");
+            if (hasSeparatorBefore)
+            {
+                var separator = new VisualElement();
+                separator.AddToClassList("separator");
+                Add(separator);
+            }
+
+            var toggleButton = new Button(OnMainButton) { name = "button" };
+            toggleButton.style.flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row);
+            if (icon != null)
+            {
+                toggleButton.Add(new Image { image = EditorGUIUtility.LoadIcon(icon) });
+                toggleButton.Add(new Label(mainButtonLabel));
+            }
+            else
+            {
+                toggleButton.text = mainButtonLabel;
+            }
+
             Add(toggleButton); 
-            var dropDownButton = new Button(OnOpenPopup) {name = "arrow" };
-            dropDownButton.AddToClassList("unity-dropdown-toggle__dropdown");
-            var arrow = new VisualElement();
-            arrow.AddToClassList("unity-icon-arrow");
-            dropDownButton.Add(arrow);
+            var dropDownButton = new Button(OnOpenPopupInternal) {name = "arrow" };
             Add(dropDownButton);
 
+            if (hasSeparatorAfter)
+            {
+                var separator = new VisualElement();
+                separator.AddToClassList("separator");
+                Add(separator);
+            }
+
             m_PopupContent = new VisualElement();
-            var tpl = VFXView.LoadUXML("VFXSaveDropDownPanel");
+            var tpl = VFXView.LoadUXML(uxmlSource);
             tpl.CloneTree(m_PopupContent);
             contentContainer.AddStyleSheetPath("VFXSaveDropDownPanel");
-
-            var saveAsButton = m_PopupContent.Q<Button>("saveAs");
-            saveAsButton.clicked += OnSaveAs;
-
-            m_CheckoutButton = m_PopupContent.Q<Button>("checkout");
-            m_CheckoutButton.clicked += OnCheckout;
-
-            var selectButton = m_PopupContent.Q<Button>("showInInspector");
-            selectButton.clicked += OnSelectAsset;
         }
 
-        private void OnOpenPopup()
+        protected virtual void OnOpenPopup() {}
+        protected virtual void OnMainButton() {}
+        protected abstract Vector2 GetPopupPosition();
+        protected abstract Vector2 GetPopupSize();
+
+        protected void ClosePopup()
+        {
+            m_CurrentPopup?.Close();
+            m_CurrentPopup = null;
+        }
+
+        private void OnOpenPopupInternal()
         {
             m_CurrentPopup = ScriptableObject.CreateInstance<EditorWindow>();
             m_CurrentPopup.hideFlags = HideFlags.HideAndDontSave;
@@ -161,26 +178,52 @@ namespace UnityEditor.VFX.UI
             m_CurrentPopup.rootVisualElement.AddToClassList("popup");
             m_CurrentPopup.rootVisualElement.AddStyleSheetPath("VFXSaveDropDownPanel");
 
+            OnOpenPopup();
+            m_CurrentPopup.ShowAsDropDown(new Rect(GetPopupPosition(), localBound.size), GetPopupSize());
+        }
+    }
+
+    class VFXSaveDropdownButton : DropDownButtonBase
+    {
+        private readonly VFXView m_VFXView;
+        private readonly Button m_CheckoutButton;
+
+        public VFXSaveDropdownButton(VFXView vfxView) : base("VFXSaveDropDownPanel", "Save", EditorResources.iconsPath + "SaveActive.png", false, true)
+        {
+            m_VFXView = vfxView;
+
+            var saveAsButton = m_PopupContent.Q<Button>("saveAs");
+            saveAsButton.clicked += OnSaveAs;
+
+            m_CheckoutButton = m_PopupContent.Q<Button>("checkout");
+            m_CheckoutButton.clicked += OnCheckout;
+
+            var selectButton = m_PopupContent.Q<Button>("showInInspector");
+            selectButton.clicked += OnSelectAsset;
+        }
+
+        protected override Vector2 GetPopupPosition() => this.m_VFXView.ViewToScreenPosition(worldBound.position);
+        protected override Vector2 GetPopupSize() => new Vector2(150, 80);
+
+        protected override void OnOpenPopup()
+        {
             // Disable checkout button if perforce is not available
             if (m_VFXView.controller?.model?.visualEffectObject != null)
             {
                 var canCheckout = !this.m_VFXView.IsAssetEditable() && Provider.isActive && Provider.enabled;
                 m_CheckoutButton.SetEnabled(canCheckout);
             }
+        }
 
-            var position = this.m_VFXView.ViewToScreenPosition(worldBound.position);
-            m_CurrentPopup.ShowAsDropDown(new Rect(position, localBound.size), new Vector2(150, 80));
+        protected override void OnMainButton()
+        {
+            m_VFXView.OnSave();
         }
 
         private void OnSaveAs()
         {
             Debug.Log("save as");
             ClosePopup();
-        }
-
-        void OnToggleCompile(ChangeEvent<bool> e)
-        {
-            VFXViewWindow.currentWindow.autoCompile = !VFXViewWindow.currentWindow.autoCompile;
         }
 
         void OnCheckout()
@@ -193,53 +236,19 @@ namespace UnityEditor.VFX.UI
             m_VFXView.SelectAsset();
         }
 
-        void OnSave()
-        {
-            m_VFXView.OnSave();
-        }
-
         void OnResyncMaterial()
         {
             //controller.graph.Invalidate(VFXModel.InvalidationCause.kMaterialChanged);
         }
-
-        private void ClosePopup()
-        {
-            m_CurrentPopup?.Close();
-            m_CurrentPopup = null;
-        }
     }
 
-    class VFXCompileDropdownButton : VisualElement
+    class VFXCompileDropdownButton : DropDownButtonBase
     {
         private readonly VFXView m_VFXView;
-        private readonly VisualElement m_PopupContent;
-        private readonly Button m_CheckoutButton;
 
-        private EditorWindow m_CurrentPopup;
-
-        public VFXCompileDropdownButton(VFXView vfxView)
+        public VFXCompileDropdownButton(VFXView vfxView) : base("VFXCompileDropdownPanel", "Compile", EditorResources.iconsPath + "PlayButton.png")
         {
             this.m_VFXView = vfxView;
-            this.AddToClassList("unity-dropdown-toggle");
-            this.AddToClassList("unity-editor-toolbar-element");
-            this.AddToClassList("unity-base-field");
-            this.style.flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row);
-
-            var toggleButton = new Button(this.OnCompile) {text = "Compile", name="button" };
-            toggleButton.AddToClassList("unity-dropdown-toggle__toggle");
-            this.Add(toggleButton);
-            var dropDownButton = new Button(this.OnOpenPopup) { name = "arrow" };
-            dropDownButton.AddToClassList("unity-dropdown-toggle__dropdown");
-            var arrow = new VisualElement();
-            arrow.AddToClassList("unity-icon-arrow");
-            dropDownButton.Add(arrow);
-            this.Add(dropDownButton);
-
-            m_PopupContent = new VisualElement();
-            var tpl = VFXView.LoadUXML("VFXCompileDropdownPanel");
-            tpl.CloneTree(m_PopupContent);
-            contentContainer.AddStyleSheetPath("VFXSaveDropDownPanel");
 
             var autoCompileToggle = m_PopupContent.Q<Toggle>("autoCompile");
             autoCompileToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleAutoCompile);
@@ -251,23 +260,11 @@ namespace UnityEditor.VFX.UI
             shaderValidationToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleShaderValidation);
         }
 
-        private void OnOpenPopup()
-        {
-            this.m_CurrentPopup = ScriptableObject.CreateInstance<EditorWindow>();
-            this.m_CurrentPopup.hideFlags = HideFlags.HideAndDontSave;
-            if (this.m_PopupContent.parent != null)
-            {
-                this.m_PopupContent.parent.Remove(this.m_PopupContent);
-            }
-            this.m_CurrentPopup.rootVisualElement.Add(this.m_PopupContent);
-            m_CurrentPopup.rootVisualElement.AddToClassList("popup");
-            m_CurrentPopup.rootVisualElement.AddStyleSheetPath("VFXSaveDropDownPanel");
+        
+        protected override Vector2 GetPopupPosition() => this.m_VFXView.ViewToScreenPosition(worldBound.position);
+        protected override Vector2 GetPopupSize() => new Vector2(150, 80);
 
-            var position = this.m_VFXView.ViewToScreenPosition(this.worldBound.position);
-            this.m_CurrentPopup.ShowAsDropDown(new Rect(position, this.localBound.size), new Vector2(150, 80));
-        }
-
-        private void OnCompile()
+        protected override void OnMainButton()
         {
             this.m_VFXView.Compile();
         }
@@ -286,50 +283,15 @@ namespace UnityEditor.VFX.UI
         {
             this.m_VFXView.ToggleRuntimeMode();
         }
-
-
-        void OnResyncMaterial()
-        {
-            //controller.graph.Invalidate(VFXModel.InvalidationCause.kMaterialChanged);
-        }
-
-        private void ClosePopup()
-        {
-            this.m_CurrentPopup?.Close();
-            this.m_CurrentPopup = null;
-        }
     }
 
-    class VFXHelpDropdownButton : VisualElement
+    class VFXHelpDropdownButton : DropDownButtonBase
     {
         private readonly VFXView m_VFXView;
-        private readonly VisualElement m_PopupContent;
-        private readonly Button m_CheckoutButton;
 
-        private EditorWindow m_CurrentPopup;
-
-        public VFXHelpDropdownButton(VFXView vfxView)
+        public VFXHelpDropdownButton(VFXView vfxView) : base("VFXHelpDropdownPanel", "Help", EditorResources.iconsPath + "_Help.png", true, true)
         {
             this.m_VFXView = vfxView;
-            this.AddToClassList("unity-dropdown-toggle");
-            this.AddToClassList("unity-editor-toolbar-element");
-            this.AddToClassList("unity-base-field");
-            this.style.flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row);
-
-            var toggleButton = new Button(this.OnHelp) {text = "Help", name = "button" };
-            toggleButton.AddToClassList("unity-dropdown-toggle__toggle");
-            this.Add(toggleButton);
-            var dropDownButton = new Button(this.OnOpenPopup) { name = "arrow" };
-            dropDownButton.AddToClassList("unity-dropdown-toggle__dropdown");
-            var arrow = new VisualElement();
-            arrow.AddToClassList("unity-icon-arrow");
-            dropDownButton.Add(arrow);
-            this.Add(dropDownButton);
-
-            m_PopupContent = new VisualElement();
-            var tpl = VFXView.LoadUXML("VFXHelpDropdownPanel");
-            tpl.CloneTree(m_PopupContent);
-            contentContainer.AddStyleSheetPath("VFXSaveDropDownPanel");
 
             var installSamplesButton = m_PopupContent.Q<Button>("installSamples");
             installSamplesButton.RegisterCallback<ChangeEvent<bool>>(OnInstallSamples);
@@ -341,24 +303,12 @@ namespace UnityEditor.VFX.UI
             eventHelpersToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleEventHelper);
         }
 
-        private void OnOpenPopup()
-        {
-            this.m_CurrentPopup = ScriptableObject.CreateInstance<EditorWindow>();
-            this.m_CurrentPopup.hideFlags = HideFlags.HideAndDontSave;
-            if (this.m_PopupContent.parent != null)
-            {
-                this.m_PopupContent.parent.Remove(this.m_PopupContent);
-            }
-            this.m_CurrentPopup.rootVisualElement.Add(this.m_PopupContent);
-            m_CurrentPopup.rootVisualElement.AddToClassList("popup");
-            m_CurrentPopup.rootVisualElement.AddStyleSheetPath("VFXSaveDropDownPanel");
+        protected override Vector2 GetPopupPosition() => this.m_VFXView.ViewToScreenPosition(worldBound.position);
+        protected override Vector2 GetPopupSize() => new Vector2(150, 80);
 
-            var position = this.m_VFXView.ViewToScreenPosition(this.worldBound.position);
-            this.m_CurrentPopup.ShowAsDropDown(new Rect(position, this.localBound.size), new Vector2(150, 80));
-        }
-
-        private void OnHelp()
+        protected override void OnMainButton()
         {
+            base.OnMainButton();
         }
 
         private void OnInstallSamples(ChangeEvent<bool> evt)
@@ -371,12 +321,6 @@ namespace UnityEditor.VFX.UI
 
         private void OnToggleEventHelper(ChangeEvent<bool> evt)
         {
-        }
-
-        private void ClosePopup()
-        {
-            this.m_CurrentPopup?.Close();
-            this.m_CurrentPopup = null;
         }
     }
 
