@@ -19,4 +19,4 @@ if __name__ == "__main__":
             output = subprocess.call([utr_path] + sys.argv[1:])
         else:
             print(getcwd())
-            output = subprocess.call("Graphics/utr" + sys.argv[1:])
+            output = subprocess.call(["Graphics/utr"] + sys.argv[1:])
