@@ -276,8 +276,8 @@ internal class LayerExplorer : EditorWindow
                     ViewBatch(primaryIndex);
                     break;
                 case 2:
-                    // new indices are first in array!!??
-                    var secondIndex = batchListView.selectedIndices.First();
+                    // new indices are at end of the list
+                    var secondIndex = batchListView.selectedIndices.Last();
                     CompareBatch(primaryIndex, secondIndex);
                     break;
                 default:
