@@ -25,8 +25,11 @@ namespace UnityEngine
         [SerializeField]
         Transform m_AnchorPositionOverride;
 
+        [SerializeField]
         float m_Yaw;
+        [SerializeField]
         float m_Pitch;
+        [SerializeField]
         float m_Roll;
 
         /// <summary>
@@ -195,6 +198,16 @@ namespace UnityEngine
             }
 
             Matrix4x4 viewToWorld = camera.cameraToWorldMatrix;
+
+            // Correct view to world for perspective
+            if (!camera.orthographic && camera.transform.position != anchorPosition)
+            {
+                var d = (anchorPosition - camera.transform.position).normalized;
+                var f = Quaternion.LookRotation(d);
+                viewToWorld = Matrix4x4.Scale(new Vector3(1, 1, -1)) *  Matrix4x4.TRS(camera.transform.position, f, Vector3.one).inverse;
+                viewToWorld = viewToWorld.inverse;
+            }
+
             if (m_FrameSpace == UpDirection.World)
             {
                 Vector3 viewUp = (Vector3)(Camera.main.worldToCameraMatrix * Vector3.up);
@@ -202,8 +215,6 @@ namespace UnityEngine
                 viewToWorld = viewToWorld * Matrix4x4.Rotate(worldTilt);
             }
 
-            // TODO: these vectors are only correct when the light anchor is at the center of the screen.
-            // We can use the anchor pos to improve the results on the edge of the screen (problem caused by perspective)
             Vector3 up = (viewToWorld * Vector3.up).normalized;
             Vector3 right = (viewToWorld * Vector3.right).normalized;
             Vector3 forward = (viewToWorld * Vector3.forward).normalized;
@@ -221,9 +232,6 @@ namespace UnityEngine
             if (anchorPositionOverride == null || Camera.main == null)
                 return;
 
-            // TODO: add checkbox that remove this update
-            // Realtime Position update
-            // Realtime Rotation update
             if (anchorPositionOverride.hasChanged || Camera.main.transform.hasChanged)
                 UpdateTransform(Camera.main, anchorPosition);
         }
