@@ -56,11 +56,17 @@ test_platforms:
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: choco install python3 && refreshenv
     - [OSX_OpenGLCore]: brew install python
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore]: |5-
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: |5-
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
+                    python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph <UTR_FLAGS>
+    - [OSX_OpenGLCore]: |5-
+                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                    GIT_REVISIONDATE=`cat revdate.tmp`
+                    echo %GIT_REVISIONDATE%
+                    rm revdate.tmp
                     python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph <UTR_FLAGS>
     - [OSX_Metal]: |5-
                     ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics/; python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph <UTR_FLAGS>"
