@@ -3417,6 +3417,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetCullingMask(int cullingMask) => legacyLight.cullingMask = cullingMask;
 
         /// <summary>
+        /// Set whether to enable using the view frustum when performing shadow caster culling
+        /// </summary>
+        /// <param name="cullingMask"></param>
+        public void SetUseViewFrustumForShadowCasterCull(bool useViewFrustumForShadowCasterCull) => legacyLight.useViewFrustumForShadowCasterCull = useViewFrustumForShadowCasterCull;
+        
+        /// <summary>
         /// Set the light layer shadow cull distances.
         /// </summary>
         /// <param name="layerShadowCullDistances"></param>

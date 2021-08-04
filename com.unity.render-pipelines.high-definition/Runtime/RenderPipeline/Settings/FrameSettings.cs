@@ -279,6 +279,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(1, customOrderInGroup: 49, displayedName: "Custom Sample Budget", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others,
         tooltip: "Sets the custom sample budget of the Subsurface Scattering algorithm.")]
         SssCustomSampleBudget = 49,
+        /// <summary>Sets whether to enable or disable dynamic GI for Probe Volumes.</summary>
+        [FrameSettingsField(1, customOrderInGroup: 5, displayedName: "Probe Volume Dynamic GI", positiveDependencies: new[] { ProbeVolume })]
+        ProbeVolumeDynamicGI = 25,
 
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).</summary>
         [FrameSettingsField(1, autoName: Transmission, tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).")]
@@ -450,6 +453,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.RayTracing,
                 (uint)FrameSettingsField.AlphaToMask,
                 (uint)FrameSettingsField.ProbeVolume,
+                (uint)FrameSettingsField.ProbeVolumeDynamicGI,
                 (uint)FrameSettingsField.MSAA
             }),
             lodBias = 1,
@@ -830,6 +834,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume && (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled);
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.NormalizeReflectionProbeWithProbeVolume] &= renderPipelineSettings.supportProbeVolume;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolumeDynamicGI] &= renderPipelineSettings.supportProbeVolume;
 
             // We disable reflection probes and planar reflections in regular preview rendering for two reasons.
             // - Performance: Realtime reflection are 99% not necessary in previews

@@ -79,6 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     // Common "surface" passes
                     HDShaderPasses.GenerateShadowCaster(supportLighting),
                     HDShaderPasses.GenerateMETA(supportLighting),
+                    HDShaderPasses.GenerateDynamicGIExtraDataGen(supportLighting),
                     HDShaderPasses.GenerateScenePicking(),
                     HDShaderPasses.GenerateSceneSelection(supportLighting),
                     HDShaderPasses.GenerateMotionVectors(supportLighting, supportForward),

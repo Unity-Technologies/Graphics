@@ -144,6 +144,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     serialized.drawOctahedralDepthRayIndexZ.intValue = Mathf.Clamp(serialized.drawOctahedralDepthRayIndexZ.intValue, 0, serialized.resolutionZ.intValue - 1);
                 }
             }
+            
+            if (serialized.supportDynamicGI.boolValue)
+            {
+                EditorGUILayout.PropertyField(serialized.drawNeighbors, Styles.s_DrawNeighborsLabel);
+                if (serialized.drawNeighbors.boolValue && serialized.advancedFade.boolValue)
+                {
+                    EditorGUILayout.PropertyField(serialized.neighborsQuadScale, Styles.s_NeighborsQuadScaleLabel);
+                }
+            }
+            
             EditorGUILayout.PropertyField(serialized.probeSpacingMode, Styles.s_ProbeSpacingModeLabel);
             switch ((ProbeSpacingMode)serialized.probeSpacingMode.enumValueIndex)
             {
@@ -309,6 +319,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     serialized.viewBiasWS.floatValue = Mathf.Max(0, viewBiasWS);
                 }
             }
+            EditorGUILayout.PropertyField(serialized.supportDynamicGI);
             EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
 
             if (ShaderConfig.s_ProbeVolumesAdditiveBlending == 0 && serialized.volumeBlendMode.intValue != (int)VolumeBlendMode.Normal)

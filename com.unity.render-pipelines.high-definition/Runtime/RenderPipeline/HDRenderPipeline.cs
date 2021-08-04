@@ -608,6 +608,8 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeHierarchicalVarianceScreenSpaceShadows(m_Asset);
 
             EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
+
+            ProbeVolumeDynamicGI.instance.Allocate(defaultResources);
         }
 
 #if UNITY_EDITOR
@@ -2912,7 +2914,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, m_FrameCount);
                     ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                 }
-
+                
+                DispatchProbeVolumeDynamicGI(renderContext, hdCamera, cmd);
+                
                 hdCamera.xr.StartSinglePass(cmd);
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))

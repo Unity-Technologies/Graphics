@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Foreach probe, gather neighboring probe data, weighted by validity.
                 // TODO: "validity" is actually stored as how occluded the surface is, so it is really inverse validity.
-                // We should probably rename this to avoid confusion. 
+                // We should probably rename this to avoid confusion.
                 for (int z = 0; z < resolutionZ; ++z)
                 {
                     for (int y = 0; y < resolutionY; ++y)

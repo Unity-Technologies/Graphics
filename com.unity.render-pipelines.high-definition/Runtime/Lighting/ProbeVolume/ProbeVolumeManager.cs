@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
         List<IProbeVolumeList> m_AdditionalProbeLists = new List<IProbeVolumeList>();
         List<ProbeVolumeHandle> m_VolumeHandles = new List<ProbeVolumeHandle>();
 
-        internal List<ProbeVolumeHandle> CollectVolumesToRender()
+        internal void UpdateVolumesToRender()
         {
             m_VolumeHandles.Clear();
             var count = m_Volumes.Count;
@@ -53,8 +53,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int i = 0; i < count; i++)
                     m_VolumeHandles.Add(new ProbeVolumeHandle(list, i));
             }
-            return m_VolumeHandles;
         }
+
+        internal List<ProbeVolumeHandle> GetVolumesToRender() => m_VolumeHandles;
 
         internal void RegisterVolume(ProbeVolume volume)
         {
@@ -69,7 +70,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (index == -1)
                 return;
 
-            ReleaseVolumeFromAtlas(new ProbeVolumeHandle(this, index));
+            var handle = new ProbeVolumeHandle(this, index);
+            ReleaseVolumeFromAtlas(handle);
+            volume.CleanupBuffers();
+            ProbeVolumeDynamicGI.instance.CleanupPropagation(handle);
+
             m_Volumes.RemoveAt(index);
         }
 
@@ -83,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_AdditionalProbeLists.Add(list);
         }
-        
+
         public void RemoveProbeList(IProbeVolumeList list)
         {
             m_AdditionalProbeLists.Remove(list);
@@ -91,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
         bool IProbeVolumeList.IsHiddenInScene(int i) => UnityEditor.SceneVisibilityManager.instance.IsHidden(m_Volumes[i].gameObject);
-        
+
         void SubscribeBakingAPI()
         {
             if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
@@ -127,10 +132,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnBakeCompleted()
         {
-            var volumesCurrent = (volumesSelected.Count > 0) ? volumesSelected : m_Volumes;
             foreach (var volume in m_Volumes)
             {
+                var index = m_Volumes.IndexOf(volume);
+                if (index == -1)
+                    continue;
+
                 volume.OnBakeCompleted();
+
+                // cleanup buffers
+                var handle = new ProbeVolumeHandle(this, index);
+                volume.CleanupBuffers();
+                ProbeVolumeDynamicGI.instance.CleanupPropagation(handle);
             }
 
             if (volumesSelected.Count > 0)
@@ -187,13 +200,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UnityEditor.Lightmapping.BakeAsync();
         }
+
+        internal void DebugDrawNeighborhood(ProbeVolume probeVolume)
+        {
+            var index = m_Volumes.IndexOf(probeVolume);
+            if (index != -1)
+                ProbeVolumeDynamicGI.instance.DebugDrawNeighborhood(new ProbeVolumeHandle(this, index));
+        }
 #endif
-        
+
         void IProbeVolumeList.ReleaseRemovedVolumesFromAtlas() { }
         int IProbeVolumeList.GetVolumeCount() => m_Volumes.Count;
         bool IProbeVolumeList.IsAssetCompatible(int i) => m_Volumes[i].IsAssetCompatible();
         bool IProbeVolumeList.IsDataAssigned(int i) => m_Volumes[i].IsDataAssigned();
         bool IProbeVolumeList.IsDataUpdated(int i) => m_Volumes[i].GetDataIsUpdated();
+        void IProbeVolumeList.SetDataUpdated(int i, bool value) => m_Volumes[i].SetDataIsUpdated(value);
+
         Vector3 IProbeVolumeList.GetPosition(int i) => m_Volumes[i].transform.position;
         Quaternion IProbeVolumeList.GetRotation(int i) => m_Volumes[i].transform.rotation;
         ref ProbeVolumeArtistParameters IProbeVolumeList.GetParameters(int i) => ref m_Volumes[i].parameters;
@@ -204,10 +226,31 @@ namespace UnityEngine.Rendering.HighDefinition
         void IProbeVolumeList.SetProbeVolumeAtlasKeyPrevious(int i, ProbeVolume.ProbeVolumeAtlasKey key) => m_Volumes[i].SetProbeVolumeAtlasKeyPrevious(key);
         int IProbeVolumeList.GetDataSHL01Length(int i) => m_Volumes[i].GetPayload().dataSHL01.Length;
         int IProbeVolumeList.GetDataSHL2Length(int i) => m_Volumes[i].GetPayload().dataSHL2.Length;
+        int IProbeVolumeList.GetDataValidityLength(int i) => m_Volumes[i].GetPayload().dataValidity.Length;
         int IProbeVolumeList.GetDataOctahedralDepthLength(int i) => m_Volumes[i].GetPayload().dataOctahedralDepth.Length;
-        void IProbeVolumeList.SetDataSHL01(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().dataSHL01);
-        void IProbeVolumeList.SetDataSHL2(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().dataSHL2);
-        void IProbeVolumeList.SetDataValidity(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().dataValidity);
         void IProbeVolumeList.SetDataOctahedralDepth(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().dataOctahedralDepth);
+        void IProbeVolumeList.EnsureVolumeBuffers(int i) => m_Volumes[i].EnsureVolumeBuffers();
+        void IProbeVolumeList.SetVolumeBuffers(int i) => m_Volumes[i].SetVolumeBuffers();
+        ProbeVolumeBuffers IProbeVolumeList.GetVolumeBuffers(int i) => m_Volumes[i].m_VolumeBuffers;
+
+        // Dynamic GI
+        int IProbeVolumeList.GetProbeVolumeEngineDataIndex(int i) => m_Volumes[i].m_ProbeVolumeEngineDataIndex;
+        OrientedBBox IProbeVolumeList.GetProbeVolumeEngineDataBoundingBox(int i) => m_Volumes[i].m_BoundingBox;
+        ProbeVolumeEngineData IProbeVolumeList.GetProbeVolumeEngineData(int i) => m_Volumes[i].m_EngineData;
+        void IProbeVolumeList.ClearProbeVolumeEngineData(int i) => m_Volumes[i].ClearProbeVolumeEngineData();
+        void IProbeVolumeList.SetProbeVolumeEngineData(int i, int dataIndex, in OrientedBBox box, in ProbeVolumeEngineData data) => m_Volumes[i].SetProbeVolumeEngineData(dataIndex, in box, in data);
+        OrientedBBox IProbeVolumeList.ConstructOBBEngineData(int i, Vector3 camOffset)  => m_Volumes[i].ConstructOBBEngineData(camOffset);
+        ref ProbePropagationBuffers IProbeVolumeList.GetPropagationBuffers(int i) => ref m_Volumes[i].m_PropagationBuffers;
+
+        bool IProbeVolumeList.HasNeighbors(int i)
+        {
+            var neighborAxis = m_Volumes[i].probeVolumeAsset.payload.neighborAxis;
+            return neighborAxis != null && neighborAxis.Length > 0;
+        }
+
+        int IProbeVolumeList.GetHitNeighborAxisLength(int i) => m_Volumes[i].GetPayload().hitNeighborAxis.Length;
+        int IProbeVolumeList.GetNeighborAxisLength(int i) => m_Volumes[i].GetPayload().neighborAxis.Length;
+        void IProbeVolumeList.SetHitNeighborAxis(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().hitNeighborAxis);
+        void IProbeVolumeList.SetNeighborAxis(int i, ComputeBuffer buffer) => buffer.SetData(m_Volumes[i].GetPayload().neighborAxis);
     }
 }

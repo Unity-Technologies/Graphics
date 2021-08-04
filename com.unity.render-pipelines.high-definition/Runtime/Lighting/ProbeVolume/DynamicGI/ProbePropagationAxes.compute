@@ -1,0 +1,134 @@
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationSphericalGaussians.hlsl"
+
+#pragma kernel PropagateLight
+#define GROUP_SIZE 64
+//#pragma enable_d3d11_debug_symbols
+
+float4 _RayAxis[NEIGHBOR_AXIS_COUNT];
+
+StructuredBuffer<NeighborAxis> _ProbeVolumeNeighbors;
+int _ProbeVolumeNeighborsCount;
+
+StructuredBuffer<float3> _HitRadianceCacheAxis;
+int _HitRadianceCacheAxisCount;
+
+float _PropagationContribution;
+float _PropagationSharpness;
+
+uint _ProbeVolumeDGIResolutionXY;
+uint _ProbeVolumeDGIResolutionX;
+uint _ProbeVolumeDGIResolutionY;
+uint _ProbeVolumeDGIResolutionZ;
+float3 _ProbeVolumeDGIResolutionInverse;
+
+float3 _ProbeVolumeDGIBoundsRight;
+float3 _ProbeVolumeDGIBoundsUp;
+float3 _ProbeVolumeDGIBoundsExtents;
+float3 _ProbeVolumeDGIBoundsCenter;
+
+float _RangeInFrontOfCamera;
+float _RangeBehindCamera;
+
+uint3 ProbeIndexToProbeCoordinatesUint(uint probeIndex)
+{
+    uint probeZ = probeIndex / _ProbeVolumeDGIResolutionXY;
+    probeIndex -= probeZ * _ProbeVolumeDGIResolutionXY;
+
+    uint probeY = probeIndex / _ProbeVolumeDGIResolutionX;
+    uint probeX = probeIndex % _ProbeVolumeDGIResolutionX;
+
+    return uint3(probeX, probeY, probeZ);
+}
+
+int ProbeCoordinateToIndex(uint3 probeCoordinate)
+{
+    return probeCoordinate.z * _ProbeVolumeDGIResolutionX * _ProbeVolumeDGIResolutionY + probeCoordinate.y * _ProbeVolumeDGIResolutionX + probeCoordinate.x;
+}
+
+float3 ProbeCoordinatesToWorldPosition(float3 probeCoordinates, float3x3 probeVolumeLtw)
+{
+    float3 localPosition = ((probeCoordinates * _ProbeVolumeDGIResolutionInverse) * 2.0 - 1.0) * _ProbeVolumeDGIBoundsExtents;
+    return mul(localPosition, probeVolumeLtw) + GetAbsolutePositionWS(_ProbeVolumeDGIBoundsCenter);
+}
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void PropagateLight(uint3 id : SV_DispatchThreadID)
+{
+    const int index = id.x;
+    if (index < _ProbeVolumeNeighborsCount)
+    {
+        const uint probeIndex = (uint)index / NEIGHBOR_AXIS_COUNT;
+        const uint axisIndex = (uint)index - probeIndex * NEIGHBOR_AXIS_COUNT;
+
+        float4 lightingAndWeight = float4(0, 0, 0, 1);
+        uint3 probeCoordinate = ProbeIndexToProbeCoordinatesUint(probeIndex);
+
+        const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
+        const float3 worldPosition =  ProbeCoordinatesToWorldPosition(probeCoordinate, probeVolumeLtw);
+
+        // Early out at far distances
+        if (IsFarFromCamera(worldPosition, _RangeInFrontOfCamera, _RangeBehindCamera))
+        {
+            return;
+        }
+
+        float3 incomingRadiance = 0;
+        float weight = 0.0f;
+        float probeValidity = 0;
+        float3 axis = _RayAxis[axisIndex].xyz;
+
+        for(int i=0; i < NEIGHBOR_AXIS_COUNT; ++i)
+        {
+            float3 neighborDirection = _RayAxis[i].xyz;
+            uint sampleAxis = probeIndex * NEIGHBOR_AXIS_COUNT + i;
+            NeighborAxis neighbor = _ProbeVolumeNeighbors[sampleAxis];
+
+            SphericalGaussian sg;
+            sg.amplitude = 1;
+            sg.sharpness = _PropagationSharpness;
+            sg.mean = neighborDirection;
+
+            float sgWeight = SGEvaluateFromDirection(sg, axis);
+
+            uint hitIndex = 0;
+            float probeAxisValidity = 0;
+            UnpackIndicesAndValidityOnly(neighbor.hitIndexValidity, hitIndex, probeAxisValidity);
+            probeValidity += probeAxisValidity;
+
+            if(hitIndex < (uint)_HitRadianceCacheAxisCount)
+            {
+                // Hit
+                weight += sgWeight;
+                incomingRadiance += _HitRadianceCacheAxis[hitIndex] * sgWeight;
+            }
+            else
+            {
+                // Miss
+                int3 offset = GetNeighborAxisOffset(i);
+                int3 neighborProbeCoordinate = probeCoordinate + offset;
+
+                //TODO: remove missed axis on generation to avoid this branch entirely here
+                if(neighborProbeCoordinate.x >= 0 && neighborProbeCoordinate.x < (int)_ProbeVolumeDGIResolutionX &&
+                   neighborProbeCoordinate.y >= 0 && neighborProbeCoordinate.y < (int)_ProbeVolumeDGIResolutionY &&
+                   neighborProbeCoordinate.z >= 0 && neighborProbeCoordinate.z < (int)_ProbeVolumeDGIResolutionZ)
+                {
+                    uint neighborProbeIndex = ProbeCoordinateToIndex(neighborProbeCoordinate);
+                    float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborProbeIndex, axisIndex);
+
+                    weight += sgWeight;
+                    incomingRadiance += prevAxisRadiance * sgWeight;
+                }
+            }
+        }
+
+        incomingRadiance *= rcp(max(weight, 0.00001));
+        probeValidity *= 1.0 / NEIGHBOR_AXIS_COUNT;
+
+        lightingAndWeight.rgb += incomingRadiance * _PropagationContribution;
+        WritePropagationOutput(probeIndex, axisIndex, lightingAndWeight, probeValidity);
+    }
+}

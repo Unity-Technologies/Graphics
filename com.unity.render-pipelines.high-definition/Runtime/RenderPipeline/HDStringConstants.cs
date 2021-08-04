@@ -52,6 +52,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_DecalMeshForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive];
         /// <summary>DBuffer VFX Decal pass name</summary>
         public static readonly string s_DBufferVFXDecalStr = "DBufferVFX";
+        /// <summary>Probe Dynamic GI data generation pass name.</summary>
+        public static readonly string s_DynamicGIDataSampleStr = "DynamicGIDataSample";
 
         // ShaderPass name
         /// <summary>Empty shader tag id.</summary>
@@ -84,6 +86,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_RayTracingPrepassName = new ShaderTagId(s_RayTracingPrepassStr);
         /// <summary>FullScreen Debug shader tag id.</summary>
         public static readonly ShaderTagId s_FullScreenDebugName = new ShaderTagId(s_FullScreenDebugStr);
+        /// <summary>Dynamic Probe GI data generation shader tag id.</summary>
+        public static readonly ShaderTagId s_DynamicGIDataPassName = new ShaderTagId(s_DynamicGIDataSampleStr);
 
         /// <summary>DBuffer Mesh shader tag id.</summary>
         public static readonly ShaderTagId s_DBufferMeshName = new ShaderTagId(s_DBufferMeshStr);
@@ -163,6 +167,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DirectionalLightDatas = Shader.PropertyToID("_DirectionalLightDatas");
         public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
+        public static readonly int _DynamicGILightDatas = Shader.PropertyToID("_DynamicGILightDatas");
+        public static readonly int _DynamicGIPunctualLightCount = Shader.PropertyToID("_DynamicGIPunctualLightCount");
+        public static readonly int _DynamicGIAreaLightCount = Shader.PropertyToID("_DynamicGIAreaLightCount");
 
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");

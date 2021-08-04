@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportTransparentDepthPrepass;
         public SerializedProperty supportTransparentDepthPostpass;
         internal SerializedProperty supportProbeVolume;
-
+        internal SerializedProperty supportProbeVolumeDynamicGI;
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedHDShadowInitParameters hdShadowInitParams;
@@ -138,6 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportTransparentDepthPrepass  = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);
             supportTransparentDepthPostpass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPostpass);
             supportProbeVolume              = root.Find((RenderPipelineSettings s) => s.supportProbeVolume);
+            supportProbeVolumeDynamicGI     = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeDynamicGI);
 
             supportRayTracing               = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
             supportedRayTracingMode         = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);

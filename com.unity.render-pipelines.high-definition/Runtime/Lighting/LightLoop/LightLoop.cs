@@ -368,6 +368,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public ComputeBuffer    directionalLightData { get; private set; }
             public ComputeBuffer    lightData { get; private set; }
+            public ComputeBuffer    dynamicGILightData { get; private set; }
             public ComputeBuffer    envLightData { get; private set; }
             public ComputeBuffer    decalData { get; private set; }
 
@@ -375,6 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 directionalLightData = new ComputeBuffer(directionalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
                 lightData = new ComputeBuffer(punctualCount + areaLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+                dynamicGILightData = new ComputeBuffer(punctualCount + areaLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
                 envLightData = new ComputeBuffer(envLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
                 decalData = new ComputeBuffer(decalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
             }
@@ -383,6 +385,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SafeRelease(directionalLightData);
                 CoreUtils.SafeRelease(lightData);
+                CoreUtils.SafeRelease(dynamicGILightData);
                 CoreUtils.SafeRelease(envLightData);
                 CoreUtils.SafeRelease(decalData);
             }
@@ -587,6 +590,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal class LightList
         {
             public List<EnvLightData> envLights;
+
             // GG: Could move these custom containers out of the light list
             public struct LightsPerView
             {
@@ -2178,7 +2182,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
                 {
                     var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
-                    probeVolumeNormalBiasEnabled = !(settings == null || 
+                    probeVolumeNormalBiasEnabled = !(settings == null ||
                         (settings.leakMitigationMode.value != LeakMitigationMode.NormalBias
                         && settings.leakMitigationMode.value != LeakMitigationMode.ProbeValidityFilter
                         && settings.leakMitigationMode.value != LeakMitigationMode.OctahedralDepthOcclusionFilter));
@@ -2467,7 +2471,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int i = 0;
             while(totalNumberOfGroupsNeeded > 0)
             {
-                countAndOffset.y = maxAllowedGroups * i;                
+                countAndOffset.y = maxAllowedGroups * i;
                 cmd.SetComputeVectorParam(parameters.clearLightListCS, HDShaderIDs._LightListEntriesAndOffset, countAndOffset);
 
                 int currGroupCount = Math.Min(maxAllowedGroups, totalNumberOfGroupsNeeded);
@@ -3067,7 +3071,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnableSSRefraction = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1u : 0u;
         }
 
-        void PushLightDataGlobalParams(CommandBuffer cmd)
+        void PushLightDataGlobalParams(CommandBuffer cmd, bool dynamicGIEnabled)
         {
             m_LightLoopLightData.directionalLightData.SetData(m_GpuLightsBuilder.directionalLights, 0, 0, m_GpuLightsBuilder.directionalLightCount);
             m_LightLoopLightData.lightData.SetData(m_GpuLightsBuilder.lights, 0, 0, m_GpuLightsBuilder.lightsCount);
@@ -3103,17 +3107,14 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, m_LightLoopLightData.envLightData);
             cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, m_LightLoopLightData.decalData);
             cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
-<<<<<<< HEAD
-=======
 
             if (dynamicGIEnabled)
             {
-                m_LightLoopLightData.dynamicGILightData.SetData(m_GpuLightsDynamicBuilder.lights, 0, 0, m_GpuLightsDynamicBuilder.lightsCount);
+                m_LightLoopLightData.dynamicGILightData.SetData(m_lightList.dynamicGILights);
                 cmd.SetGlobalBuffer(HDShaderIDs._DynamicGILightDatas, m_LightLoopLightData.dynamicGILightData);
-                cmd.SetGlobalInt(HDShaderIDs._DynamicGIPunctualLightCount, m_GpuLightsDynamicBuilder.punctualLightCount);
-                cmd.SetGlobalInt(HDShaderIDs._DynamicGIAreaLightCount, m_GpuLightsDynamicBuilder.areaLightCount);
+                cmd.SetGlobalInt(HDShaderIDs._DynamicGIPunctualLightCount, m_lightList.dynamicGIPunctualLightCount);
+                cmd.SetGlobalInt(HDShaderIDs._DynamicGIAreaLightCount, m_lightList.dynamicGIAreaLightCount);
             }
->>>>>>> 04b59ca084 (Backported Unity-Technologies/Graphics#5294)
         }
 
         void PushShadowGlobalParams(CommandBuffer cmd)

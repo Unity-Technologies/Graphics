@@ -342,6 +342,7 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, overrideable: () => hdrpSettings.supportVolumetrics);
             area.AmmendInfo(FrameSettingsField.LightLayers, overrideable: () => hdrpSettings.supportLightLayers);
             area.AmmendInfo(FrameSettingsField.ProbeVolume, overrideable: () => hdrpSettings.supportProbeVolume);
+            area.AmmendInfo(FrameSettingsField.ProbeVolumeDynamicGI, overrideable: () => hdrpSettings.supportProbeVolumeDynamicGI);
             area.AmmendInfo(FrameSettingsField.ScreenSpaceShadows, overrideable: () => hdrpSettings.hdShadowInitParams.supportScreenSpaceShadows);
             area.AmmendInfo(FrameSettingsField.HierarchicalVarianceScreenSpaceShadows, overrideable: () => hdrpSettings.hdShadowInitParams.supportHierarchicalVarianceScreenSpaceShadows);
             area.Draw(withOverride);
