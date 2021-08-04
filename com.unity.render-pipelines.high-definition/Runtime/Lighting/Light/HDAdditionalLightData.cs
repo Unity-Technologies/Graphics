@@ -1096,6 +1096,16 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_LinkShadowLayers = value;
         }
 
+        [SerializeField]
+        bool m_AffectDynamicGI = false;
+        /// <summary>
+        /// </summary>
+        public bool affectDynamicGI
+        {
+            get => m_AffectDynamicGI;
+            set => m_AffectDynamicGI = value;
+        }
+        
         /// <summary>
         /// Returns a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
         /// </summary>
@@ -3349,6 +3359,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cullingMask"></param>
         public void SetCullingMask(int cullingMask) => legacyLight.cullingMask = cullingMask;
 
+        /// <summary>
+        /// Set whether to enable using the view frustum when performing shadow caster culling
+        /// </summary>
+        /// <param name="cullingMask"></param>
+        public void SetUseViewFrustumForShadowCasterCull(bool useViewFrustumForShadowCasterCull) => legacyLight.useViewFrustumForShadowCasterCull = useViewFrustumForShadowCasterCull;
+        
         /// <summary>
         /// Set the light layer shadow cull distances.
         /// </summary>

@@ -11,6 +11,8 @@ namespace UnityEngine.Rendering.HighDefinition
     // custom-end
     class LightUtils
     {
+        internal const float FLT_MIN = 1.175494351e-38f; // Minimum normalized positive floating-point number
+
         // Physical light unit helper
         // All light unit are in lumen (Luminous power)
         // Punctual light (point, spot) are convert to candela (cd = lumens / steradian)
@@ -169,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float k = ColorUtils.s_LightMeterCalibrationConstant;
             return (k / 100.0f) * Mathf.Pow(2, ev);
         }
-            
+
 
         /// <summary>
         /// Convert EV100 to Candela
@@ -467,6 +469,25 @@ namespace UnityEngine.Rendering.HighDefinition
             halfAngle = Mathf.Atan(length); // half of the bigest angle
 
             angleB = halfAngle * 2.0f;
+        }
+
+        // Ref: http://jcgt.org/published/0003/02/01/paper.pdf "A Survey of Efficient Representations for Independent Unit Vectors"
+        // Encode with Oct, this function work with any size of output
+        // return float between [-1, 1]
+        internal static Vector2 PackNormalOctQuadEncode(Vector3 n)
+        {
+            //float l1norm    = dot(abs(n), 1.0);
+            //float2 res0     = n.xy * (1.0 / l1norm);
+            //float2 val      = 1.0 - abs(res0.yx);
+            //return (n.zz < float2(0.0, 0.0) ? (res0 >= 0.0 ? val : -val) : res0);
+
+            // Optimized version of above code:
+            Vector3 absN = new Vector3(Mathf.Abs(n.x), Mathf.Abs(n.y), Mathf.Abs(n.z));
+            n *= 1.0f / (Mathf.Max(FLT_MIN, Vector3.Dot(absN, Vector3.one)));
+            float t = Mathf.Clamp01(-n.z);
+
+            Vector2 outN = new Vector2(n.x + (n.x >= 0.0f ? t : -t), n.y + (n.y >= 0.0f ? t : -t));
+            return outN;
         }
 
         internal static void ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit, HDAdditionalLightData hdLight, Light light)

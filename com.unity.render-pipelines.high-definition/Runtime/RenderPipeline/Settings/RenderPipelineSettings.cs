@@ -135,6 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightLayerName6 = "Light Layer 6",
                 lightLayerName7 = "Light Layer 7",
                 supportProbeVolume = false,
+                supportProbeVolumeDynamicGI = false,
                 probeVolumeSettings = GlobalProbeVolumeSettings.@default,
                 supportMaskVolume = false,
                 maskVolumeSettings = GlobalMaskVolumeSettings.@default,
@@ -272,6 +273,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportTerrainHole;
         /// <summary>Support Probe Volumes.</summary>
         [SerializeField] internal bool supportProbeVolume;
+        [SerializeField] internal bool supportProbeVolumeDynamicGI;
         /// <summary>Support Mask Volumes.</summary>
         [SerializeField] internal bool supportMaskVolume;
         /// <summary>Support ray tracing.</summary>
