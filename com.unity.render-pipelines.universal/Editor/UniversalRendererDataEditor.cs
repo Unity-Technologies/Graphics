@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: When using the deferred rendering path, the Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
             public static readonly GUIContent clusteredRenderingLabel = EditorGUIUtility.TrTextContent("Clustered (experimental)", "(Experimental) Enables clustered rendering, allowing for more lights per object and more accurate light cullling.");
-            public static readonly GUIContent intermediateTextureMode = EditorGUIUtility.TrTextContent("Intermediate Texture", "Controls when URP renders via an intermediate texture. The Always option enables compatibility with renderer features that do not declare their needed inputs, but can have a significant performance impact.");
+            public static readonly GUIContent intermediateTextureMode = EditorGUIUtility.TrTextContent("Intermediate Texture", "Controls when URP renders via an intermediate texture. The Always option enables compatibility with renderer features that do not declare their needed inputs, but can have a significant performance impact on some platforms.");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -114,8 +114,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel--;
             }
 
-            EditorGUILayout.PropertyField(m_IntermediateTextureMode, Styles.intermediateTextureMode);
-
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
@@ -162,6 +160,14 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox(Styles.invalidStencilOverride.text, MessageType.Error, true);
             }
 
+            EditorGUI.indentLevel--;
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField("Compatibility", EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            {
+                EditorGUILayout.PropertyField(m_IntermediateTextureMode, Styles.intermediateTextureMode);
+            }
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
