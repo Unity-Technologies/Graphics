@@ -51,13 +51,13 @@ Extra_HDRP_trunk:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_XR_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_XR_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_editmode_XR_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -133,13 +133,13 @@ Extra_HDRP_2021.2:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_XR_mono_Linear_2021.2
+         rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_2021.2
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_XR_mono_Linear_2021.2
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_Linear_2021.2
-         rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_editmode_XR_mono_Linear_2021.2
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_2021.2
          rerun: on_new_revision
@@ -215,13 +215,13 @@ Extra_HDRP_CUSTOM-REVISION:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_XR_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_editmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

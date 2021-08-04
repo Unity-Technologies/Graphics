@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenu("Post-processing/White Balance")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/White Balance", typeof(UniversalRenderPipeline))]
     public sealed class WhiteBalance : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Sets the white balance to a custom color temperature.")]

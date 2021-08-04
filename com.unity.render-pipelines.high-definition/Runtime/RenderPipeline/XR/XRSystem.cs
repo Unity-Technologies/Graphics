@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
     internal partial class XRSystem
     {
         // Valid empty pass when a camera is not using XR
-        internal readonly XRPass emptyPass = new XRPass();
+        internal static readonly XRPass emptyPass = new XRPass();
 
         // Store active passes and avoid allocating memory every frames
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();

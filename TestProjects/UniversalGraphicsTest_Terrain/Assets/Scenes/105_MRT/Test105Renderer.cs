@@ -63,11 +63,10 @@ namespace UnityEngine.Rendering.Universal
 
             // 1) Render different colors to the MRT outputs (render a blue quad to output#0 and a red quad to output#1)
 
-          //m_ColorToMrtOutputs[0] = m_CameraColor;
+            //m_ColorToMrtOutputs[0] = m_CameraColor;
             m_ColorsToMrtsPass.Setup(ref renderingData, cameraColorTarget, m_ColorToMrtOutputs);
             EnqueuePass(m_ColorsToMrtsPass);
             // Notice that the renderPass clearColor (yellow) is applied.
-
 
 
             // 2) Copy results to the camera target
