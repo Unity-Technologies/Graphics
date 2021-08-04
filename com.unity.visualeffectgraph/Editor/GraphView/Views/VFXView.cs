@@ -120,68 +120,54 @@ namespace UnityEditor.VFX.UI
 
         public override Vector2 GetWindowSize()
         {
-            return new Vector2(250, 120);
+            return new Vector2(250, 80);
         }
 
         public override void OnGUI(Rect rect)
         {
-            EditorGUILayout.Space();
-            using (new GUILayout.VerticalScope(GUILayout.Height(120)))
+            EditorGUILayout.Space(4);
+            var isAttached = m_vfxView.attachedComponent != null;
+            GUI.enabled = isAttached || Selection.activeGameObject?.GetComponent<VisualEffect>() != null;
+            if (GUILayout.Button(isAttached ? VFXView.Contents.detach : VFXView.Contents.attachToSelection, GUILayout.Height(24)))
             {
-                var isAttached = m_vfxView.attachedComponent != null;
-                GUI.enabled = isAttached || Selection.activeGameObject?.GetComponent<VisualEffect>() != null;
-                if (GUILayout.Button(isAttached ? VFXView.Contents.detach : VFXView.Contents.attachToSelection, GUILayout.Height(24)))
+                if (isAttached)
                 {
-                    if (isAttached)
-                    {
-                        m_vfxView.Detach();
-                    }
-                    else
-                    {
-                        m_vfxView.AttachToSelection();
-                    }
+                    m_vfxView.Detach();
                 }
-
-                GUI.enabled = true;
-                GUILayout.FlexibleSpace();
-
-                EditorGUILayout.LabelField(VFXView.Contents.pickATarget);
-                //var res = m_vfxView.controller.graph.visualEffectResource;
-                //var s = $"ref:{AssetDatabase.GetAssetPath(res)}";
-                //ObjectSelector.get.searchFilter = s;
-
-                var position = EditorGUILayout.s_LastRect = EditorGUILayout.GetControlRect(false, 18f, (GUILayoutOption[])null);
-                int controlId = GUIUtility.GetControlID("s_ObjectFieldHash".GetHashCode(), FocusType.Keyboard, position);
-
-                var result = EditorGUI.DoObjectField(EditorGUI.IndentedRect(position), EditorGUI.IndentedRect(position), controlId, m_vfxView.attachedComponent, (UnityEngine.Object) null, typeof(VisualEffect), this.VFXValidator, true);
-                //if (EditorGUILayout.ObjectField(m_vfxView.attachedComponent, typeof(VisualEffect), true, GUILayout.ExpandWidth(true)) is VisualEffect visualEffect)
-                if (result is VisualEffect visualEffect)
+                else
                 {
-                    if (visualEffect != m_vfxView.attachedComponent)
-                    {
-                        m_vfxView.TryAttachTo(visualEffect);
-                    }
+                    m_vfxView.AttachToSelection();
                 }
+            }
 
-                GUI.enabled = isAttached;
-                GUILayout.FlexibleSpace();
-                var attachedButtonLabel = m_vfxView.attachedComponent != null && m_vfxView.attachedComponent.name != null
-                    ? new GUIContent(m_vfxView.attachedComponent.name, VFXView.Contents.clickToSelect.text)
-                    : VFXView.Contents.noSelection;
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.LabelField(VFXView.Contents.pickATarget);
+            //var res = m_vfxView.controller.graph.visualEffectResource;
+            //var s = $"ref:{AssetDatabase.GetAssetPath(res)}";
+            //ObjectSelector.get.searchFilter = s;
 
-                using (new GUILayout.HorizontalScope())
+            //var position = EditorGUILayout.s_LastRect = EditorGUILayout.GetControlRect(false, 18f, (GUILayoutOption[])null);
+            //int controlId = GUIUtility.GetControlID("s_ObjectFieldHash".GetHashCode(), FocusType.Keyboard, position);
+            //var result = EditorGUI.DoObjectField(
+            //    EditorGUI.IndentedRect(position),
+            //    EditorGUI.IndentedRect(position),
+            //    controlId,
+            //    m_vfxView.attachedComponent,
+            //    null,
+            //    typeof(VisualEffect),
+            //    VFXValidator,
+            //    true);
+            var result = EditorGUILayout.ObjectField(m_vfxView.attachedComponent, typeof(VisualEffect), true, GUILayout.ExpandWidth(true));
+            if (result is VisualEffect visualEffect)
+            {
+                if (visualEffect != m_vfxView.attachedComponent)
                 {
-                    GUILayout.Label(VFXView.Contents.attachedTo, GUILayout.Height(24));
-                    GUILayout.FlexibleSpace();
-                    GUI.enabled = isAttached;
-                    if (GUILayout.Button(attachedButtonLabel, GUILayout.Height(24), GUILayout.MinWidth(60)))
-                    {
-                        Selection.activeObject = m_vfxView.attachedComponent != null ? m_vfxView.attachedComponent.gameObject : null;
-                    }
+                    m_vfxView.TryAttachTo(visualEffect);
                 }
-
-                GUI.enabled = true;
-                EditorGUILayout.Space(12f);
+            }
+            else if (result == null)
+            {
+                m_vfxView.Detach();
             }
         }
 
@@ -190,7 +176,7 @@ namespace UnityEditor.VFX.UI
             return references
                 .OfType<GameObject>()
                 .Select(x => x.GetComponent<VisualEffect>())
-                .FirstOrDefault(x => x.visualEffectAsset == this.m_vfxView.attachedComponent.visualEffectAsset);
+                .FirstOrDefault(x => x.visualEffectAsset == this.m_vfxView.controller.graph.visualEffectResource.asset);
         }
     }
 
