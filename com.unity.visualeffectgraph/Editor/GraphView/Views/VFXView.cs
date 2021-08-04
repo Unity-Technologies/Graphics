@@ -4,17 +4,18 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEditor.VFX;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEngine.Profiling;
-using System.Reflection;
 using UnityEditor.Experimental;
-using UnityEditor.Toolbars;
+using UnityEditor.PackageManager;
+using UnityEditor.PackageManager.Requests;
+using UnityEditor.PackageManager.UI;
 using UnityEditor.VersionControl;
 
 using PositionType = UnityEngine.UIElements.Position;
@@ -140,6 +141,7 @@ namespace UnityEditor.VFX.UI
 
             Add(toggleButton); 
             var dropDownButton = new Button(OnOpenPopupInternal) {name = "arrow" };
+            dropDownButton.Add(new VisualElement());
             Add(dropDownButton);
 
             if (hasSeparatorAfter)
@@ -262,7 +264,7 @@ namespace UnityEditor.VFX.UI
 
         
         protected override Vector2 GetPopupPosition() => this.m_VFXView.ViewToScreenPosition(worldBound.position);
-        protected override Vector2 GetPopupSize() => new Vector2(150, 80);
+        protected override Vector2 GetPopupSize() => new Vector2(150, 70);
 
         protected override void OnMainButton()
         {
@@ -287,40 +289,93 @@ namespace UnityEditor.VFX.UI
 
     class VFXHelpDropdownButton : DropDownButtonBase
     {
+        private const string PackageVersion = "12.0.0";
+        private const string PackageName = "com.unity.visualeffectgraph";
+        private const string AdditionalSamples = "VisualEffectGraph Additions";
+        private const string AdditionalHelpers = "OutputEvent Helpers";
+
         private readonly VFXView m_VFXView;
+        private readonly Button installSamplesButton;
+        private readonly Button installHelpersButton;
 
         public VFXHelpDropdownButton(VFXView vfxView) : base("VFXHelpDropdownPanel", "Help", EditorResources.iconsPath + "_Help.png", true, true)
         {
-            this.m_VFXView = vfxView;
+            m_VFXView = vfxView;
 
-            var installSamplesButton = m_PopupContent.Q<Button>("installSamples");
-            installSamplesButton.RegisterCallback<ChangeEvent<bool>>(OnInstallSamples);
+            installSamplesButton = m_PopupContent.Q<Button>("installSamples");
+            installSamplesButton.clicked += OnInstallSamples;
 
-            var graphAdditionToggle = m_PopupContent.Q<Button>("graphAddition");
-            graphAdditionToggle.RegisterCallback<ChangeEvent<bool>>(OnInstallGraphAddition);
+            installHelpersButton = m_PopupContent.Q<Button>("graphAddition");
+            installHelpersButton.clicked += OnInstallGraphAddition;
 
-            var eventHelpersToggle = m_PopupContent.Q<Toggle>("eventHelpers");
-            eventHelpersToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleEventHelper);
+            var gotoManual = m_PopupContent.Q<Button>("gotoManual");
+            gotoManual.clicked += OnGotoManual;
+
+            var gotoForum = m_PopupContent.Q<Button>("gotoForum");
+            gotoForum.clicked += OnGotoForum;
+
+            var gotoSpaceShip = m_PopupContent.Q<Button>("gotoSpaceShip");
+            gotoSpaceShip.clicked += OnGotoSpaceShip;
+
+            var gotoSamples = m_PopupContent.Q<Button>("gotoSamples");
+            gotoSamples.clicked += OnGotoSamples;
         }
 
         protected override Vector2 GetPopupPosition() => this.m_VFXView.ViewToScreenPosition(worldBound.position);
-        protected override Vector2 GetPopupSize() => new Vector2(150, 80);
+        protected override Vector2 GetPopupSize() => new Vector2(200, 200);
+
+        protected override void OnOpenPopup()
+        {
+            installSamplesButton.SetEnabled(!IsSampleInstalled(AdditionalSamples));
+            installHelpersButton.SetEnabled(!IsSampleInstalled(AdditionalHelpers));
+        }
 
         protected override void OnMainButton()
         {
-            base.OnMainButton();
+            Help.BrowseURL(@"https://unity.com/visual-effect-graph");
         }
 
-        private void OnInstallSamples(ChangeEvent<bool> evt)
+        private void OnInstallSamples()
         {
+            InstallSample(AdditionalSamples);
+        }
+        private void OnInstallGraphAddition()
+        {
+            InstallSample(AdditionalHelpers);
         }
 
-        private void OnInstallGraphAddition(ChangeEvent<bool> evt)
+        private void OnGotoManual()
         {
+            Help.BrowseURL(@"http://docs.unity3d.com/Packages/com.unity.visualeffectgraph@12.0/manual/index.html");
         }
 
-        private void OnToggleEventHelper(ChangeEvent<bool> evt)
+        private void OnGotoForum()
         {
+            Help.BrowseURL(@"https://forum.unity.com/forums/visual-effect-graph.428/");
+        }
+
+        private void OnGotoSpaceShip()
+        {
+            Help.BrowseURL(@"https://github.com/Unity-Technologies/SpaceshipDemo");
+        }
+
+        private void OnGotoSamples()
+        {
+            Help.BrowseURL(@"https://github.com/Unity-Technologies/VisualEffectGraph-Samples");
+        }
+
+        private bool IsSampleInstalled(string sampleName)
+        {
+            return Sample.FindByPackage(PackageName, PackageVersion).SingleOrDefault(x => x.displayName == sampleName).isImported;
+        }
+
+        private void InstallSample(string sampleName)
+        {
+            var sample = Sample.FindByPackage(PackageName, PackageVersion).SingleOrDefault(x => x.displayName == sampleName);
+            if (!sample.isImported)
+            {
+                sample.Import();
+            }
         }
     }
 
@@ -670,14 +725,6 @@ namespace UnityEditor.VFX.UI
 
             var helpDropDownButton = new VFXHelpDropdownButton(this);
             m_Toolbar.Add(helpDropDownButton);
-
-            if (Debug.isDebugBuild) // Not doing what I expect
-            {
-                var showDebugMenu = new ToolbarMenu();
-                showDebugMenu.text = "Advanced";
-                showDebugMenu.menu.AppendAction("Refresh UI", OnRefreshUI, DropdownMenuAction.Status.Normal);
-                m_Toolbar.Add(showDebugMenu);
-            }
             // End Toolbar
 
             m_NoAssetLabel = new Label("\n\n\nTo begin creating Visual Effects, create a new Visual Effect Graph Asset.\n(or double-click an existing Visual Effect Graph in the project view)") { name = "no-asset"};
@@ -744,11 +791,6 @@ namespace UnityEditor.VFX.UI
             viewDataKey = "VFXView";
 
             RegisterCallback<GeometryChangedEvent>(OnFirstResize);
-        }
-
-        void OnRefreshUI(DropdownMenuAction action)
-        {
-            Resync();
         }
 
         internal void ToggleRuntimeMode()
@@ -1665,31 +1707,6 @@ namespace UnityEditor.VFX.UI
             if (controller == null || parameterController == null) return;
 
             controller.AddVFXParameter(pos, parameterController, groupNode != null ? groupNode.controller : null);
-        }
-
-        public EventPropagation Resync()
-        {
-            foreach (var node in rootNodes.Values)
-                node.RemoveFromHierarchy();
-
-            rootNodes.Clear();
-            foreach (var node in nodes.ToList())
-                node.RemoveFromHierarchy();
-
-            foreach (var edge in dataEdges.Values)
-                edge.RemoveFromHierarchy();
-            dataEdges.Clear();
-
-            foreach (var edge in flowEdges.Values)
-                edge.RemoveFromHierarchy();
-            flowEdges.Clear();
-
-            foreach (var edge in edges.ToList())
-                edge.RemoveFromHierarchy();
-
-            if (controller != null)
-                controller.ForceReload();
-            return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDot()

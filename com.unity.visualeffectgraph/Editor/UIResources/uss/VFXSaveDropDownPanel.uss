@@ -32,6 +32,14 @@
 
 #arrow
 {
+    width: 16px;
+}
+
+#arrow > VisualElement
+{
+    width: 15px;
+    height: 16px;
+    align-self: center;
     background-image: resource("StyleSheets/Northstar/Images/d_dropdown.png");
 }
 
@@ -47,4 +55,15 @@
     padding-top: 8px;
     border-color: #606060;
     border-width: 1px;
+}
+
+.indented
+{
+    margin-left: 16px;
+}
+
+.category
+{
+    margin-left: 4px;
+    margin-top: 4px;
 }
