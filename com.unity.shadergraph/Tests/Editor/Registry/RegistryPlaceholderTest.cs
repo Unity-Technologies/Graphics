@@ -27,8 +27,8 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             Assert.IsTrue(graph.TryConnect("Add1", "A", "vecA", "Out", registry));
             Assert.IsTrue(graph.TryConnect("Add1", "B", "vecB", "Out", registry));
 
-            Assert.IsTrue(3 == graph.GetNode("Add1").GetPorts().Count());
-            Assert.IsTrue(1 == graph.GetNode("vecA").GetPorts().Count());
+            Assert.IsTrue(3 == graph.GetNodeReader("Add1").GetPorts().Count());
+            Assert.IsTrue(1 == graph.GetNodeReader("vecA").GetPorts().Count());
             // GetConnections not implemented
         }
     }

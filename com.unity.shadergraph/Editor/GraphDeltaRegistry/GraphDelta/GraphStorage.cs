@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             private bool IsPortReader(Element element)
             {
-                if(element.TryGetData(out PortFlagsStruct _))
+                if (element.TryGetData(out PortFlagsStruct _))
                 {
                     return true;
                 }
@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             private IEnumerable<Element> GetSubElements()
             {
-                if(elementReference.TryGetTarget(out Element element))
+                if (elementReference.TryGetTarget(out Element element))
                 {
                     return element.children;
                 }
@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public IEnumerator<GraphReader> GetChildren()
             {
-                foreach(var subElement in GetSubElements())
+                foreach (var subElement in GetSubElements())
                 {
                     yield return new GraphReader(subElement, this.storageReference);
                 }
@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool TryGetValue<T>(out T value)
             {
-                if(elementReference.TryGetTarget(out Element element) && element is Element<T> typeElement)
+                if (elementReference.TryGetTarget(out Element element) && element is Element<T> typeElement)
                 {
                     value = typeElement.data;
                     return true;
@@ -115,9 +115,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public IEnumerable<IPortReader> GetPorts()
             {
-                foreach(var subElement in GetSubElements())
+                foreach (var subElement in GetSubElements())
                 {
-                    if(IsPortReader(subElement))
+                    if (IsPortReader(subElement))
                     {
                         yield return new GraphReader(subElement, this.storageReference);
                     }
@@ -161,10 +161,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool TryGetPort(string portKey, out IPortReader portReader)
             {
-                if(elementReference.TryGetTarget(out Element element))
+                if (elementReference.TryGetTarget(out Element element))
                 {
                     Element maybePort = storageReference.SearchRelative(element, portKey);
-                    if(IsPortReader(maybePort))
+                    if (IsPortReader(maybePort))
                     {
                         portReader = new GraphReader(maybePort, this.storageReference);
                         return true;
@@ -267,7 +267,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 if (elementReference.TryGetTarget(out Element element))
                 {
                     var subElement = storageReference.SearchRelative(element, key);
-                    if(subElement != null)
+                    if (subElement != null)
                     {
                         graphWriter = new GraphWriter(subElement, this.storageReference);
                         return true;
@@ -282,7 +282,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 if (elementReference.TryGetTarget(out Element element))
                 {
                     var subElement = storageReference.SearchRelative(element, key);
-                    if(subElement != null && subElement is Element<T> typedSubElement)
+                    if (subElement != null && subElement is Element<T> typedSubElement)
                     {
                         graphWriter = new GraphWriter<T>(typedSubElement, this.storageReference);
                         return true;
@@ -298,7 +298,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             public bool TryAddConnection(IPortWriter other)
             {
                 GraphWriter otherWriter = other as GraphWriter;
-                if(other != null
+                if (other != null
                 && elementReference.TryGetTarget(out Element element) && element is Element<PortFlagsStruct> portElement
                 && otherWriter.elementReference.TryGetTarget(out Element otherElement) && otherElement is Element<PortFlagsStruct> otherPortElement)
                 {
@@ -387,7 +387,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool TryWriteData(T data)
             {
-                if(elementReference.TryGetTarget(out Element element) && element is Element<T> typedElement)
+                if (elementReference.TryGetTarget(out Element element) && element is Element<T> typedElement)
                 {
                     typedElement.data = data;
                     return true;
@@ -396,57 +396,89 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
         }
 
+        public const string k_concrete = "Concrete";
+        public const string k_user = "User";
 
         private List<Element> m_nodes = new List<Element>();
 
         protected override void AddDefaultLayers()
         {
-            m_layerList.Add(-1, (new LayerID() { name = "Concrete" }, new Element(this)));
-            m_layerList.Add( 0, (new LayerID() { name = "User" },     new Element(this)));
-        }
-        public INodeWriter AddNode(string id)
-        {
-            return AddNodeToLayer("Concrete", id);
+            m_layerList.Add(0, (new LayerID() { name = k_concrete }, new Element(this)));
+            m_layerList.Add(1, (new LayerID() { name = k_user     }, new Element(this)));
         }
 
-       private INodeWriter AddNodeToLayer(string layerName, string id)
+        internal INodeWriter AddNodeWriterToLayer(string layerName, string id)
         {
-            AddData(new LayerID() { name = layerName }, id, out Element element);
-            m_nodes.Add(element);
-            GraphWriter output = new GraphWriter(element, this);
-            return output;
+            GraphWriter nodeWriter = AddWriterToLayer(layerName, id, out Element addedNode);
+            m_nodes.Add(addedNode);
+            return nodeWriter;
         }
 
-        
-        public INodeReader GetNode(string id)
-        {
-            return GetNodeFromLayer("User", id);
-        }
+        internal INodeReader  GetNodeReaderFromLayer( string layerName, string id) => GetReaderFromLayer(layerName, id);
+        internal INodeWriter  GetNodeWriterFromLayer( string layerName, string id) => GetWriterFromLayer(layerName, id);
 
-        private INodeReader GetNodeFromLayer(string layerName, string id)
+        private GraphWriter GetWriterFromLayer(string layerName, string id)
         {
-            Element n = SearchRelative(GetLayerRoot(new LayerID() {name = layerName }), id);
-            if (n == null)
+            Element element = GetElementFromLayer(layerName, id);
+            if (element == null)
             {
                 return null;
             }
             else
             {
-                return new GraphReader(n, this);
+                return new GraphWriter(element, this);
             }
-
         }
-
-        public INodeWriter GetNodeWriter(string id)
+        private GraphReader GetReaderFromLayer(string layerName, string id)
         {
-            Element n = SearchInternal(id);
-            if (n == null)
+            Element element = GetElementFromLayer(layerName, id);
+            if (element == null)
             {
                 return null;
             }
             else
             {
-                return new GraphWriter(n, this);
+                return new GraphReader(element, this);
+            }
+        }
+
+        private Element GetElementFromLayer(string layerName, string id)
+        {
+            Element root = GetLayerRoot(new LayerID() {name = layerName });
+            if (root == null)
+            {
+                return null;
+            }
+            else
+            {
+                return SearchRelative(root, id);
+            }
+        }
+
+        private GraphWriter AddWriterToLayer(string layerName, string id, out Element element)
+        {
+            element = AddElementToLayer(layerName, id);
+            if(element == null)
+            {
+                return null;
+            }
+            else
+            {
+                return new GraphWriter(element, this);
+            }
+        }
+
+        private Element AddElementToLayer(string layerName, string id)
+        {
+            Element root = GetLayerRoot(new LayerID() {name = layerName });
+            if (root == null)
+            {
+                return null;
+            }
+            else
+            {
+                AddData(root, id, out Element element);
+                return element;
             }
         }
 

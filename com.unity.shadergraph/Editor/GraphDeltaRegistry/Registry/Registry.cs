@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph.Registry
             return builder;
         }
 
-        public INodeReader GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNode(key.ToString());
+        public INodeReader GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNodeReader(key.ToString());
 
         public RegistryFlags GetFlags(RegistryKey key) => GetBuilder(key).GetRegistryFlags();
 

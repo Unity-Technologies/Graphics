@@ -26,8 +26,8 @@ namespace UnityEditor.ShaderGraph.Registry
 
     public static class GraphDeltaExtensions
     {
-        private const string kRegistryKeyName = "_RegistryKey";
 
+        private const string kRegistryKeyName = "_RegistryKey";
         public static RegistryKey GetRegistryKey(this GraphDelta.INodeReader node)
         {
             node.TryGetField(kRegistryKeyName, out var fieldReader);
@@ -42,25 +42,6 @@ namespace UnityEditor.ShaderGraph.Registry
             return key;
         }
 
-        public static GraphDelta.INodeWriter AddNode<T>(this GraphDelta.IGraphHandler handler, string name, IRegistry registry) where T : INodeDefinitionBuilder
-        {
-            var nodeWriter = handler.AddNode(name);
-            var nodeReader = handler.GetNode(name);
-            var builder = registry.ResolveBuilder<T>();
-            var key = builder.GetRegistryKey();
-
-            builder.BuildNode(nodeReader, nodeWriter, registry);
-            nodeWriter.TryAddField<RegistryKey>(kRegistryKeyName, out var fieldWriter);
-            fieldWriter.TryWriteData(key);
-
-            // Type nodes by default should have an output port of their own type.
-            if (builder.GetRegistryFlags() == RegistryFlags.IsType)
-            {
-                nodeWriter.AddPort<T>("Out", false, true, registry);
-            }
-
-            return nodeWriter;
-        }
 
         public static GraphDelta.IPortWriter AddPort<T>(this GraphDelta.INodeWriter nodeWriter, string name, bool isInput, bool isHorz, IRegistry registry) where T : INodeDefinitionBuilder
         {
@@ -72,9 +53,9 @@ namespace UnityEditor.ShaderGraph.Registry
 
         public static bool TestConnection(this GraphDelta.IGraphHandler handler, string dstNode, string dstPort, string srcNode, string srcPort, IRegistry registry)
         {
-            var dstNodeReader = handler.GetNode(dstNode);
+            var dstNodeReader = handler.GetNodeReader(dstNode);
             dstNodeReader.TryGetPort(dstPort, out var dstPortReader);
-            handler.GetNode(srcNode).TryGetPort(srcPort, out var srcPortReader);
+            handler.GetNodeReader(srcNode).TryGetPort(srcPort, out var srcPortReader);
             return dstNodeReader.TestConnection(dstPortReader, srcPortReader, registry);
         }
 

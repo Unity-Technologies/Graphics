@@ -1,7 +1,7 @@
 {
     "name": "Unity.ShaderGraph.Registry.Tests",
+    "rootNamespace": "",
     "references": [
-        "Unity.ShaderGraph.Registry",
         "Unity.ShaderGraph.GraphDelta"
     ],
     "includePlatforms": [
@@ -17,5 +17,6 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": []
+    "versionDefines": [],
+    "noEngineReferences": false
 }

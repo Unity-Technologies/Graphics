@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             {
                 GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
                 graphHandler.AddNode("foo");
-                Assert.NotNull(graphHandler.GetNode("foo"));
+                Assert.NotNull(graphHandler.GetNodeReader("foo"));
             }
 
             [Test]
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             {
                 GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
                 graphHandler.AddNode("foo");
-                Assert.NotNull(graphHandler.GetNode("foo"));
+                Assert.NotNull(graphHandler.GetNodeReader("foo"));
                 graphHandler.RemoveNode("foo");
             }
 
@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                     node.TryAddPort("Out", false, true, out IPortWriter _);
                 }
 
-                var nodeRef = graphHandler.GetNode("Add");
+                var nodeRef = graphHandler.GetNodeReader("Add");
                 Assert.NotNull(nodeRef);
                 Assert.IsTrue(nodeRef.TryGetPort("A", out IPortReader portReader));
                 Assert.NotNull(portReader);
