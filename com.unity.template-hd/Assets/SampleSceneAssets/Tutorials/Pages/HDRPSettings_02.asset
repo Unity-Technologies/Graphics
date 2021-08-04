@@ -39,11 +39,11 @@ MonoBehaviour:
       Text:
         m_Untranslated: "It is highly recommended to turn off unused features in
           your project to reduce the impact on performance, memory consumption and
-          build time.\r\n\r\n1) Go to <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b> 
-          > <b>HDRP.</b>\r\n\r\n2) Select the HDRPMediumQuality asset. \r\n\r\n3)
+          build time.\r\n\r\n1. Go to <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b> 
+          > <b>HDRP.</b>\r\n\r\n2. Select the HDRPMediumQuality asset. \r\n\r\n3.
           Scroll down to the <b>Lighting</b> foldout and disable the <b>Screen Space
-          Ambient Occlusion.</b>\r\n\r\n4) Notice the darkening effect on the flower
-          pot disappears.\r\n\r\n5) Re-enable the <b>Screen Space Ambient Occlusion.</b>\r\n\n"
+          Ambient Occlusion.</b>\r\n\r\n4. Notice the darkening effect on the flower
+          pot disappears.\r\n\r\n5. Re-enable the <b>Screen Space Ambient Occlusion.</b>\r\n\n"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -78,19 +78,37 @@ MonoBehaviour:
     m_Untranslated: Next
   DoneButton:
     m_Untranslated: Done
-  m_NextButton: 
-  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
-  m_autoAdvance: 0
+  m_AutoAdvance: 0
+  Showing:
+    m_PersistentCalls:
+      m_Calls: []
+  Shown:
+    m_PersistentCalls:
+      m_Calls: []
+  Staying:
+    m_PersistentCalls:
+      m_Calls: []
+  CriteriaValidated:
+    m_PersistentCalls:
+      m_Calls: []
+  MaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  NonMaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
     m_PersistentCalls:
       m_Calls: []
-  m_OnBeforeTutorialQuit:
-    m_PersistentCalls:
-      m_Calls: []
   m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_NextButton: 
+  m_DoneButton: 

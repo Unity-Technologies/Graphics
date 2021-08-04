@@ -40,11 +40,11 @@ MonoBehaviour:
         m_Untranslated: "Settings for post-processing, Fog, Sky, etc. can be applied
           to all scenes in this project by default, by using a <b>Default Volume
           Profile Asset.</b> It is particulalry useful to rely on this system to
-          ensure the consistency of the HDRP settings between all the scenes.\n\r\n1)
+          ensure the consistency of the HDRP settings between all the scenes.\n\r\n1.
           Go to <b>Edit</b> > <b>Project Settings</b> > <b>Graphics</b> > <b>HDRP
           Global Settings</b> and review the <b>Default Volume Profile Asset</b>
-          assigned to the project.\r\n\r\n2) Disable HDRI Sky. The Sky in the scene
-          will disappear.\r\n\r\n3) Undo your changes.\r\n\r\nFor convenience and
+          assigned to the project.\r\n\r\n2. Disable HDRI Sky. The Sky in the scene
+          will disappear.\r\n\r\n3. Undo your changes.\r\n\r\nFor convenience and
           quick access, we also added an instance of these settings in the Scene.
           You can access them with the <i>Hierarchy,</i> in <b>Lighting</b> > <b>Volumes</b>
           > <b>Volume Global.</b> \r"

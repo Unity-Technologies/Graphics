@@ -37,8 +37,8 @@ MonoBehaviour:
       Title:
         m_Untranslated: Tune the Dust VFX
       Text:
-        m_Untranslated: "Inspect the Dust visual effect created for this scene.\r\n\r\n1)
-          In the <i>Hierarchy</i>, select <b>VFX</b> > <b>FloatingDust Cage.</b>\n\r\n2)
+        m_Untranslated: "Inspect the Dust visual effect created for this scene.\r\n\r\n1.
+          In the <i>Hierarchy</i>, select <b>VFX</b> > <b>FloatingDust Cage.</b>\n\r\n2.
           Toggle it on and off in the <i>Inspector.</i>\r\n\r\nNotice how the dust
           particles contribute to the realism of the Scene.\r"
       m_Tutorial: {fileID: 0}

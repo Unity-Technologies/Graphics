@@ -38,8 +38,8 @@ MonoBehaviour:
         m_Untranslated: Explore Local Volumes
       Text:
         m_Untranslated: "In addition to the <b>Global Volume</b> object, there are
-          6 <b>Local</b> volumes used to control HDRP effects in specific rooms.\n\n1)
-          Enable Gizmos in order to see the boundaries of <b>Local</b> volumes.\n\n2)
+          6 <b>Local</b> volumes used to control HDRP effects in specific rooms.\n\n1.
+          Enable Gizmos in order to see the boundaries of <b>Local</b> volumes.\n\n2.
           Select <b>Volume Room 3</b> and turn it on and off. \n\nNotice that is
           fully encompass the 3rd room and it has overrides for Exposure, White Balance
           and Fog."

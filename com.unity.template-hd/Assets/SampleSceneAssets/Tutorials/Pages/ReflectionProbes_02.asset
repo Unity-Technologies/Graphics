@@ -41,15 +41,15 @@ MonoBehaviour:
           Probe, it will automatically receive reflections from the Sky. Therefore,
           placing local Reflection Probes in each room of the template is required
           to avoid a phenomenon called \u201Clight leaking\u201D, and prevent the
-          sky from affecting areas that would normally be occluded.\r\n \r\n1) In
-          the <i>Hierarchy,</i> expand <b>Lighting</b> > <b>Reflection Probes.</b>\r\n\r\n2)
+          sky from affecting areas that would normally be occluded.\r\n\n1. In the
+          <i>Hierarchy,</i> expand <b>Lighting</b> > <b>Reflection Probes.</b>\r\n\r\n2.
           Disable the <b>Room2</b> GameObject which contains all the local <b>Reflection
           Probes</b> for this room.\n\r\nYou can see that if the local <b>Reflection
           Probes</b> in this room are disabled, the sky is automatically reflected
           onto all objects, and therefore it creates unwanted light leaking.\r\n\nReflection
-          Probes can have two types of shape:\n\n\u2022 A <b>Box</b> is useful for
-          setting up reflections for an indoor environment like a room.\n\n\u2022
-          A <b>Sphere</b> may be more suited for an open outdoor environment."
+          Probes can have two types of shape:\n\u2022 A <b>Box</b> is useful for
+          setting up reflections for an indoor environment like a room.\n\u2022 A
+          <b>Sphere</b> may be more suited for an open outdoor environment."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

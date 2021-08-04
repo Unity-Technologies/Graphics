@@ -37,10 +37,10 @@ MonoBehaviour:
       Title:
         m_Untranslated: Tune the Local Volumetric Fog
       Text:
-        m_Untranslated: "1) In the <i>Hierarchy</i> under <b>Lighting,</b> select
-          <b>Local Volumetric Fog.</b> \r\n\n2) Toggle the object off and on.\n\r\nNotice
+        m_Untranslated: "1. In the <i>Hierarchy</i> under <b>Lighting,</b> select
+          <b>Local Volumetric Fog.</b> \r\n\n2. Toggle the object off and on.\n\r\nNotice
           how disabling the <b>Local Volumetric Fog</b> reduces the local fog density,
-          and how the sunlight reacts to it once it has been re-enabled.\n\n3) In
+          and how the sunlight reacts to it once it has been re-enabled.\n\n3. In
           its <i>Inspector,</i> experiment with the <b>Single Scattering Albedo</b>
           tint as well as the <b>Fog Distance</b> to change the look and feel of
           the local fog."

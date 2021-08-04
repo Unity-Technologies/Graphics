@@ -37,12 +37,12 @@ MonoBehaviour:
       Title:
         m_Untranslated: Toggle Light Layers
       Text:
-        m_Untranslated: "Let's see how the Light Layers are activated.\r\n\r\n1)
+        m_Untranslated: "Let's see how the Light Layers are activated.\r\n\r\n1.
           In the <i>Project</i> Window, inside <b>Assets</b> > <b>Settings,</b> select
-          the active HDRP asset, most likely <b>HDRPMediumQuality.</b>\r\n\r\n2)
+          the active HDRP asset, most likely <b>HDRPMediumQuality.</b>\r\n\r\n2.
           In its <i>Inspector</i>, disable the <b>Lighting</b> > <b>Light layers</b>
           checkbox.\r\n\r\nWith the Light layers off, notice that the top lamp\u2019s
-          glass surface casts unwanted shadows on its siblings and on the floor.\n\r\n3)
+          glass surface casts unwanted shadows on its siblings and on the floor.\n\r\n3.
           Turn the Light layers back on and notice how the glass doesn\u2019t cast
           shadow anymore. \r\n\nIn this scenario, the Light Layers are used to force
           each piece of glass to not receive light from other spotlights on the lamp

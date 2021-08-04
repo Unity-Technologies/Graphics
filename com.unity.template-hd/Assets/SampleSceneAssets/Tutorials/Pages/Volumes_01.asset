@@ -42,17 +42,14 @@ MonoBehaviour:
           Fog and Sky settings, among others.
 
 
-
-          Volumes can be set to
-          <b>Global</b> or <b>Local</b> mode.
-
+          Volumes can be set to <b>Global</b>
+          or <b>Local</b> mode.
 
 
-          <b>Global</b> volume overrides
-          are applied to all cameras in the Scene regardless of their position. A
-          <b>Global</b> volume can be considered as an infinitely large and is useful
-          to control settings affecting the entire world, such as Sky and Fog.
-
+          <b>Global</b> volume overrides are applied
+          to all cameras in the Scene regardless of their position. A <b>Global</b>
+          volume can be considered as an infinitely large and is useful to control
+          settings affecting the entire world, such as Sky and Fog.
 
 
           <b>Local</b>

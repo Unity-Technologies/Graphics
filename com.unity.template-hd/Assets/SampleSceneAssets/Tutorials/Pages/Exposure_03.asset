@@ -38,8 +38,8 @@ MonoBehaviour:
         m_Untranslated: Automatic Histogram Exposure
       Text:
         m_Untranslated: "Let's now switch the Exposure Mode to another one that can
-          automatically adpat to the scene's lighting.\n\r\n1) In the <i>Hierarchy,</i>
-          select the <b>Global volume</b> created at the previous step.\n\r\n2) In
+          automatically adpat to the scene's lighting.\n\r\n1. In the <i>Hierarchy,</i>
+          select the <b>Global volume</b> created at the previous step.\n\r\n2. In
           its <i>Inspector,</i> Switch the Mode to <b>Automatic Histogram.</b>\r\n\r\nExplore
           the Scene and notice how the camera now imitates the human eye adaptation
           or the automatic exposure system of a camera. Dark areas may become brighter,

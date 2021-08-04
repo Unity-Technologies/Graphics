@@ -42,29 +42,29 @@ MonoBehaviour:
           ambient occlusion (G), detail mask (B), and smoothness (A).
 
 
-          1)
+          1.
           In the <i>Hierarchy,</i> expand the <b>Props</b> > <b>Room3</b> > <b>Ball_PF</b>
           GameObject.
 
 
-          2) Select the <b>Ball</b> GameObject.
+          2. Select the <b>Ball</b> GameObject.
 
 
-          3)
+          3.
           In its <i>Inspector,</i> expand the <i>Brass_Mat</i> Material.
 
 
-          4)
+          4.
           Remove the <b>Mask Map</b> or set it to None, and see that the ball becomes
           uniformly smooth as the smoothness variations from the Mask Map texture
           are removed.
 
 
-          5) Experiment with the <b>Metalness</b> and <b>Smoothness</b>
+          5. Experiment with the <b>Metalness</b> and <b>Smoothness</b>
           sliders, to change the behavior of the surface.
 
 
-          6) Undo your
+          6. Undo your
           changes.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}

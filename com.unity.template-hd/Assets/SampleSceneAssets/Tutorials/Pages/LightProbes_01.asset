@@ -38,10 +38,10 @@ MonoBehaviour:
         m_Untranslated: What are Light Probes?
       Text:
         m_Untranslated: "<b>Light Probes</b> are another component of baked lighting.
-          They are used to apply indirect lighting to dynamic objects in the Scene.\n\n1)
+          They are used to apply indirect lighting to dynamic objects in the Scene.\n\n1.
           Add a cube in the Scene and set its coordinates to x:26 y:1.5 z:5.5. \n\nYou
           can see that the cube is appropriately lit and receives green indirect
-          lighting from the wall nearby.\n\n2) Move the cube closer to the tree cage.
+          lighting from the wall nearby.\n\n2. Move the cube closer to the tree cage.
           \n\nNotice how the indirect lighting affecting the cube becomes brighter,
           as the cube approaches the strong pool of light.\n"
       m_Tutorial: {fileID: 0}
@@ -78,19 +78,37 @@ MonoBehaviour:
     m_Untranslated: Next
   DoneButton:
     m_Untranslated: Done
-  m_NextButton: 
-  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
-  m_autoAdvance: 0
+  m_AutoAdvance: 0
+  Showing:
+    m_PersistentCalls:
+      m_Calls: []
+  Shown:
+    m_PersistentCalls:
+      m_Calls: []
+  Staying:
+    m_PersistentCalls:
+      m_Calls: []
+  CriteriaValidated:
+    m_PersistentCalls:
+      m_Calls: []
+  MaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  NonMaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
     m_PersistentCalls:
       m_Calls: []
-  m_OnBeforeTutorialQuit:
-    m_PersistentCalls:
-      m_Calls: []
   m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_NextButton: 
+  m_DoneButton: 

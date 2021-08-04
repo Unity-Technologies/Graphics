@@ -38,12 +38,12 @@ MonoBehaviour:
         m_Untranslated: Quality Levels
       Text:
         m_Untranslated: "It is good practice to create several HDRP assets with different
-          settings for specific performance targets and platforms.\r\n\r\n1) Go to
+          settings for specific performance targets and platforms.\r\n\r\n1. Go to
           <b>Edit</b> > <b>Project Settings</b> > <b>Quality.</b> We already provide
           3 quality levels: <b>High, Medium,</b> and <b>Low.</b> <b>Medium</b> is
-          currently active and marked as the default one. \r\n\r\n2) Switch to <b>Low
+          currently active and marked as the default one. \r\n\r\n2. Switch to <b>Low
           Quality</b> and observe the Fog disappeared. This occurs because in the
-          <b>Low Quality</b> level, the Volumetric Fog is disabled. \r\n\r\n3) Change
+          <b>Low Quality</b> level, the Volumetric Fog is disabled. \r\n\r\n3. Change
           back to <b>Medium Quality.</b>\r\n\r\nAlternatively, you can locate the
           <b>Low</b> asset in the Settings folder and verify that indeed <b>Lighting</b>
           > <b>Volumetrics</b> is off in the <b>Low Quality</b> level. You can also

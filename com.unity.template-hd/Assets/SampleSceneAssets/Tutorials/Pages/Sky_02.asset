@@ -38,13 +38,13 @@ MonoBehaviour:
         m_Untranslated: Tune the HDRI Sky
       Text:
         m_Untranslated: "Let\u2019s take a look at how the Sky is set up in this
-          sample Scene.\r\n\r\n1) In the <i>Hierarchy,</i> select <b>Lighting</b>
-          > <b>Volumes</b> > <b>Volume Global.</b>\r\n\r\n2) In its <i>Inspector,</i>
+          sample Scene.\r\n\r\n1. In the <i>Hierarchy,</i> select <b>Lighting</b>
+          > <b>Volumes</b> > <b>Volume Global.</b>\r\n\r\n2. In its <i>Inspector,</i>
           in the <b>Visual Environment</b> override, set the <b>Sky Type</b> to <b>None.</b>
-          Notice that the sky has now disappeared.\n\n3) Undo your change.\n\n4)
+          Notice that the sky has now disappeared.\n\n3. Undo your change.\n\n4.
           In the <b>HDRI Sky</b> override, set the <b>Exposure</b> to 11 EV, to reduce
           the intensity of the sky. As a result, the sky appears darker than the
-          rest of the environment.\r\n\r\n5) Undo your change.\r\n\r\n6) Go to <b>Window</b>
+          rest of the environment.\r\n\r\n5. Undo your change.\r\n\r\n6. Go to <b>Window</b>
           > <b>Rendering</b> > <b>Lighting</b> > <b>Environment</b> tab. Notice the
           same volume profile and sky type are applied. The lightmapper will use
           these sky settings when generating the lightmaps for this scene.\r"

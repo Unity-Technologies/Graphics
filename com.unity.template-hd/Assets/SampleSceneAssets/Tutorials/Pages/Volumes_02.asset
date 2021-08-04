@@ -48,16 +48,16 @@ MonoBehaviour:
       Title:
         m_Untranslated: Explore the Global Volume
       Text:
-        m_Untranslated: "Let\u2019s see how volumes are being used in this Scene.\r\n\r\n1)
-          In the <i>Hierarchy,</i> expand <b>Lighting</b> > <b>Volumes.</b>\r\n\r\n2)
-          Select the <b>Volume Global</b> GameObject.\r\n\n3) Notice the <b>Mode</b>
-          is <b>Global</b> in the <i>Inspector.</i>\r\n\n4) Disable the <b>Tonemapping</b>
-          Override. You can see that the image becomes more washed out as a result.\n\r\n5)
-          Undo your change.\r\n\r\nGlobal volumes have an effect on cameras, wherever
-          both are located. This is important for setting up a baseline for effects
-          that often remain constant thoughtout the scene, no matter the location
-          of the camera, for instance:\n\u2022 Sky\n\u2022 Fog\n\u2022 Shadows\n\u2022
-          Tonemapping\n\u2022 Motion Blur\n\u2022 Film Grain \r"
+        m_Untranslated: "Let\u2019s see how volumes are being used in this Scene.\r\n\r\n1.
+          In the <i>Hierarchy,</i> expand <b>Lighting</b> > <b>Volumes.</b>\r\n\r\n2.
+          Select the <b>Volume Global</b> GameObject.\r\n\n3. Notice the <b>Mode</b>
+          is <b>Global</b> in the <i>Inspector.</i>\r\n\n4. Disable the <b>Tonemapping</b>
+          Override. You can see that the image becomes more washed out as a result.\n\r\n5.
+          Undo your change.\r\n\r\n<b>Global Volumes</b> have an effect on cameras,
+          wherever they are located. This is important for setting up a baseline
+          for effects that often remain constant thoughtout the scene, no matter
+          the location of the camera, for instance:\n\u2022 Sky\n\u2022 Fog\n\u2022
+          Shadows\n\u2022 Tonemapping\n\u2022 Motion Blur\n\u2022 Film Grain \r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -92,19 +92,37 @@ MonoBehaviour:
     m_Untranslated: Next
   DoneButton:
     m_Untranslated: Done
-  m_NextButton: 
-  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
-  m_autoAdvance: 0
+  m_AutoAdvance: 0
+  Showing:
+    m_PersistentCalls:
+      m_Calls: []
+  Shown:
+    m_PersistentCalls:
+      m_Calls: []
+  Staying:
+    m_PersistentCalls:
+      m_Calls: []
+  CriteriaValidated:
+    m_PersistentCalls:
+      m_Calls: []
+  MaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  NonMaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
     m_PersistentCalls:
       m_Calls: []
-  m_OnBeforeTutorialQuit:
-    m_PersistentCalls:
-      m_Calls: []
   m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_NextButton: 
+  m_DoneButton: 

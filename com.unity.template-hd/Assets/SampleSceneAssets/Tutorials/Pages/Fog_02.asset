@@ -37,9 +37,11 @@ MonoBehaviour:
       Title:
         m_Untranslated: Fog parameters
       Text:
-        m_Untranslated: "Let's have a look at some of the most important Fog properties.\n\nIn
-          the <i>Hierarchy,</i> under <b>Lighting</b> > <b>Volumes,</b>  select <b>Volumes
-          Global.</b>\n\r\n<b>Fog Attenuation Distance:</b> Determines how far you
+        m_Untranslated: "1) In the <i>Hierarchy,</i> under <b>Lighting</b> > <b>Volumes,</b> 
+          select <b>Volumes Global.</b>\n\n2) In its <i>Inspector,</i> locate the
+          <b>Volume</b> component and expand the <b>Fog</b> override.\n\n\nThe following
+          properties are some of the most important ones to set up the <b>Fog</b>
+          correctly.\n\r\n<b>Fog Attenuation Distance:</b> Determines how far you
           can see through the Fog in meters. Lower values will produce denser levels
           of Fog. \r\n\r\n<b>Ambient Light Probe Dimmer:</b> Reduces the influence
           of the global ambient probe on the Fog. It is useful for darker indoor

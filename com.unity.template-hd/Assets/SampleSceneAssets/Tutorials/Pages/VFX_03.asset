@@ -37,8 +37,8 @@ MonoBehaviour:
       Title:
         m_Untranslated: Tune the Butterflies VFX
       Text:
-        m_Untranslated: "Let's take a look at the Butterflies VFX.\n\n1) In the <i>Hierarchy,</i>
-          select <b>VFX</b> > <b>Butterflies.</b>\n\n2) In its <i>Inspector,</i>
+        m_Untranslated: "Let's take a look at the Butterflies VFX.\n\n1. In the <i>Hierarchy,</i>
+          select <b>VFX</b> > <b>Butterflies.</b>\n\n2. In its <i>Inspector,</i>
           set the <b>Wing Animation Speed</b> to 0.1. \n\nNotice how the animation
           slows down."
       m_Tutorial: {fileID: 0}

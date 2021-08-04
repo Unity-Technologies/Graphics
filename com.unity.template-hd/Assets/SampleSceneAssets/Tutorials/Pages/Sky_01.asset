@@ -37,13 +37,11 @@ MonoBehaviour:
       Title:
         m_Untranslated: Set up the Sky
       Text:
-        m_Untranslated: "In HDRP, the following steps are required to set up a <b>Sky:</b>\r\n\r\n1)
-          Create or Select a Volume GameObject \n\n2) Choose the type of Sky to render
-          with a <b>Visual Environment</b> override, such as <b>HDRI Sky</b> or <b>Physically
-          Base Sky</b>\n\r\n3) Optionally, add a dedicated override for the selected
-          sky type in order to control its properties.\r\n\r\nCurrently, there are
-          4 types of skies to choose from: \n\u2022 None\n\u2022 HDRI Sky\n\u2022
-          Physically Based Sky\n\u2022 Gradient Sky"
+        m_Untranslated: "In HDRP, the following volume overrides are required to
+          set up the <b>Sky:</b>\r\n\r\n\u2022 A <b>Visual Environment</b> override
+          which defines the type of sky to render, such as <b>HDRI Sky,</b> <b>Physically
+          Base Sky</b> or <b>Gradient Sky.</b>\n\n\u2022 A dedicated Sky override
+          that matches the type of Sky set in the <b>Visual Environment.</b>"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

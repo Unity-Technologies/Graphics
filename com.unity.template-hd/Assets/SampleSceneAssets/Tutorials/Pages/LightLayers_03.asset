@@ -41,20 +41,20 @@ MonoBehaviour:
           Lights.
 
 
-          1) In the <i>Hierarchy,</i> select <b>Props</b> > <b>Room3</b>
+          1. In the <i>Hierarchy,</i> select <b>Props</b> > <b>Room3</b>
           > <b>CeilingLamp_01</b> > <b>CeilingLamp_Lamp_01</b> > <b>CeilingLamp_Glass_01_LOD0.</b>
 
 
-          2)
+          2.
           In its <i>Inspector,</i> notice that the <b>Rendering Layer Mask</b> parameter
           is set to <b>LampsOnly.</b>
 
 
-          3) Select <b>Props</b> > <b>Room3</b>
+          3. Select <b>Props</b> > <b>Room3</b>
           > <b>CeilingLamp_01</b> > <b>Light_Spot_1200lm.</b>
 
 
-          4) Notice
+          4. Notice
           that the <b>Light Layer</b> is set to <b>Mixed...</b> and once the dropdown
           is expanded, see that the <b>Lamp Only</b> layer is disabled.
 
