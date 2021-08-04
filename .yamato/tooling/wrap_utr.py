@@ -4,6 +4,7 @@ import sys
 from os.path import expanduser
 from os import path
 from os import getcwd
+from os import listdir
 
 if __name__ == "__main__":
     cur_sys = platform.system()
@@ -19,4 +20,5 @@ if __name__ == "__main__":
             output = subprocess.call([utr_path] + sys.argv[1:])
         else:
             print(getcwd())
+            print(os.listdir(getcwd()))
             output = subprocess.call(["utr"] + sys.argv[1:])
