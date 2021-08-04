@@ -300,7 +300,14 @@ namespace UnityEditor
                             if (newTransform.IsChildOf(manipulator.transform))
                                 Debug.LogError($"Can't assign '{newTransform.name}' because it's a child of the Light Anchor component");
                             else
+                            {
+                                float newDistance = Vector3.Distance(manipulator.transform.position, newTransform.position);
                                 manipulator.anchorPositionOverride = newTransform;
+                                // Orient the object to face the new override position
+                                manipulator.SynchronizeOnTransform(camera);
+                                // And adjust it's distance to avoid modifying it's position.
+                                manipulator.distance = newDistance;
+                            }
                         }
                         else
                             manipulator.anchorPositionOverride = newTransform;

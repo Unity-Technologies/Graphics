@@ -183,6 +183,17 @@ namespace UnityEngine
 
         Axes GetWorldSpaceAxes(Camera camera)
         {
+            // Fallback when the light anchor object is child of the camera (bad setup)
+            if (transform.IsChildOf(camera.transform))
+            {
+                return new Axes
+                {
+                    up = Vector3.up,
+                    right = Vector3.right,
+                    forward = Vector3.forward,
+                };
+            }
+
             Matrix4x4 viewToWorld = camera.cameraToWorldMatrix;
             if (m_FrameSpace == UpDirection.World)
             {
@@ -213,7 +224,7 @@ namespace UnityEngine
             // TODO: add checkbox that remove this update
             // Realtime Position update
             // Realtime Rotation update
-            if (anchorPositionOverride.hasChanged)
+            if (anchorPositionOverride.hasChanged || Camera.main.transform.hasChanged)
                 UpdateTransform(Camera.main, anchorPosition);
         }
 
