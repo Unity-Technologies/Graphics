@@ -35,7 +35,7 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Explore Local Volumes
+        m_Untranslated: Explore the Local Volumes
       Text:
         m_Untranslated: "In addition to the <b>Global Volume</b> object, there are
           6 <b>Local</b> volumes used to control HDRP effects in specific rooms.\n\n1.

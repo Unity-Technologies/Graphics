@@ -42,13 +42,13 @@ MonoBehaviour:
           > <b>Decals.</b>\r\n\r\n2. In its <i>Inspector,</i> toggle the GameObject
           <b>off</b> and <b>on.</b> See how the decals add variations on the concrete
           surfaces and breakup the texture tiling. \n\n3. Select <b>Structure</b>
-          > <b>Decals</b> > <b>Puddles</b>  > <b>Decal Puddle (11)</b>\n\n4. In its
-          <i>Inspector,</i> reduce the <b>Fade Factor</b> parameter, in order to
-          simulate the puddle drying out.\n\n\n<b>Expert tips</b>\n\n\u2022 Use <b>Decal
-          Layers</b> to specify which surfaces should be affected by which decals.\n\n\u2022
-          Use a custom <b>Pivot</b> to override the origin of the projection.\n\n\u2022
-          Reduce the <b>Draw Distance</b> on Decals to minimize their performance
-          impact."
+          > <b>Decals</b> > <b>Puddles</b>  > <b>Decal Puddle (11).</b>\n\n4. In
+          its <i>Inspector,</i> reduce the <b>Fade Factor</b> parameter, in order
+          to simulate the puddle drying out.\n\n\n<b>Expert tips</b>\n\n\u2022 Use
+          <b>Decal Layers</b> to specify which surfaces should be affected by which
+          decals.\n\n\u2022 Use a custom <b>Pivot</b> to override the origin of the
+          projection.\n\n\u2022 Reduce the <b>Draw Distance</b> on Decals to minimize
+          their performance impact."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

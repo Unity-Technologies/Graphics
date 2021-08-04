@@ -41,7 +41,7 @@ MonoBehaviour:
           to penetrate material and escape in multiple directions. \r\n\r\nYou can
           use it to make organic and translucent materials, like skin and vegetation.
           HDRP implements subsurface scattering using a screen-space blur technique.\r\n\n1.
-          In the <i>Project</i> Window, select the <b>Bamboo_Leaf_A</b> material\n\n2.
+          In the <i>Project</i> Window, select the <b>Bamboo_Leaf_A</b> material.\n\n2.
           In its <i>Inspector,</i> in the <b>Surface Options</b> section, switch
           the <b>Material Type</b> from <b>Subsurface Scattering</b> to <b>Standard.</b>\n\n3.
           Notice that the light cannot penetrate anymore through the leaves, as the

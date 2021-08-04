@@ -40,18 +40,17 @@ MonoBehaviour:
         m_Untranslated: "The following instructions focus on generating the lighting
           with the different Lighting Settings assets to explore the variance in
           quality. These steps are optional and recommended only on powerful machines.
-          \r\n\r\n1. Open <b>Window</b> > <b>Rendering</b> > <b>Lighting</b>\r\n\r\n2.
+          \r\n\r\n1. Open <b>Window</b> > <b>Rendering</b> > <b>Lighting.</b>\r\n\r\n2.
           In the Scene tab, at the very top, assign another Lighting Settings asset,
-          such as <b>LightingSettings1Draft</b>\n\n3. In the bottom right corner
-          of the Lighting Window, click the <b>Generate Lighting</b>\r button, and
-          wait for the generation of the lighting to complete.\n\r\nOnce the bake
-          is complete, notice how the quality of the lightmaps is now much lower
-          with the Draft Lighting Asset, with more apparent blotches of light in
-          certain areas and a disconnection between the pillars and their soft shadows
-          on the ceiling due to the lower texel resolution.\n\nExperiment with the
-          other Lighting Settings assets and compare the results. The Ultra Lighting
-          Asset will provide the best quality, however it will require several minutes
-          of baking."
+          such as <b>LightingSettings1Draft.</b>\n\n3. In the bottom right corner
+          of the Lighting Window, click the <b>Generate Lighting</b>button, and wait
+          for the generation of the lighting to complete.\n\r\nOnce the bake is complete,
+          notice how the quality of the lightmaps is now much lower with the Draft
+          Lighting Asset, with more apparent blotches of light in certain areas and
+          a disconnection between the pillars and their soft shadows on the ceiling
+          due to the lower texel resolution.\n\nExperiment with the other Lighting
+          Settings assets and compare the results. The Ultra Lighting Asset will
+          provide the best quality, however it will require several minutes of baking."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
