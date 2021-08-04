@@ -20,5 +20,5 @@ if __name__ == "__main__":
             output = subprocess.call([utr_path] + sys.argv[1:])
         else:
             print(getcwd())
-            print(os.listdir(getcwd()))
+            print(listdir(getcwd()))
             output = subprocess.call(["utr"] + sys.argv[1:])
