@@ -19,7 +19,4 @@ if __name__ == "__main__":
         if path.exists(utr_path):
             output = subprocess.call([utr_path] + sys.argv[1:])
         else:
-            print(getcwd())
-            print(listdir(getcwd()))
-            print([path.join(getcwd(), "utr")] + sys.argv[1:])
             output = subprocess.call([path.join(getcwd(), "utr")] + sys.argv[1:])
