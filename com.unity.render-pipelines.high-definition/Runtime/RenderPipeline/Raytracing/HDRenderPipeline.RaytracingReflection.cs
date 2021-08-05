@@ -42,16 +42,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 name: string.Format("{0}_ReflectionHistoryBuffer{1}", viewName, frameIndex));
         }
 
+        int CombineRayTracedReflectionsHistoryStateToMask(bool fullResolution, bool rayTraced)
+        {
+            // Combine the flags to define the current mask
+            int flagMask = 0;
+            flagMask |= (fullResolution ? (int)HDCamera.HistoryEffectFlags.FullResolution : 0);
+            flagMask |= (rayTraced ? (int)HDCamera.HistoryEffectFlags.RayTraced : 0);
+            return flagMask;
+        }
+
         private float EvaluateRayTracedReflectionHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
             // Evaluate the history validity
-            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, fullResolution, rayTraced) ? 1.0f : 0.0f;
+            int flagMask = CombineRayTracedReflectionsHistoryStateToMask(fullResolution, rayTraced);
+            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, flagMask) ? 1.0f : 0.0f;
             return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
         }
 
         private void PropagateRayTracedReflectionsHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
-            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, fullResolution, rayTraced);
+            int flagMask = CombineRayTracedReflectionsHistoryStateToMask(fullResolution, rayTraced);
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, flagMask);
         }
 
         #region Direction Generation
