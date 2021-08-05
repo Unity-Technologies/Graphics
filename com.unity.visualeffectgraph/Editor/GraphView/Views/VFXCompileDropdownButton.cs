@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.UI
     {
         private readonly VFXView m_VFXView;
 
-        public VFXCompileDropdownButton(VFXView vfxView) : base("VFXCompileDropdownPanel", "Compile", EditorResources.iconsPath + "PlayButton.png")
+        public VFXCompileDropdownButton(VFXView vfxView) : base("VFXCompileDropdownPanel", "Compile", 2, EditorResources.iconsPath + "PlayButton.png")
         {
             m_VFXView = vfxView;
 
