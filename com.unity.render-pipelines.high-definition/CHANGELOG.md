@@ -29,7 +29,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when switching between non-persistent cameras when path tarcing is enabled (case 1337843).
 - Fixed issue with the LayerMaskParameter class storing an erroneous mask value (case 1345515).
 - Fixed issue with vertex color defaulting to 0.0 when not defined, in ray/path tracing (case 1348821).
-- Fix issue with a compute dispatch being with 0 threads on extremely small resolutions.
+- Fixed issue with a compute dispatch being with 0 threads on extremely small resolutions.
+- Fixed incorrect light list indexing when TAA is enabled (case 1352444).
+- Fixed Additional Velocity for Alembic not taking correctly into account vertex animation
+- Fixed wrong LUT initialization in Wireframe mode.
 
 ## [10.6.0] - 2021-04-29
 

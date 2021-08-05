@@ -1364,7 +1364,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
+        internal Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
             // Do not add extra jitter in VR unless requested (micro-variations from head tracking are usually enough)
             if (xr.enabled && !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.xrSettings.cameraJitter)
