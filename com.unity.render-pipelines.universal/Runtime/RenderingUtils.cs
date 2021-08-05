@@ -451,5 +451,11 @@ namespace UnityEngine.Rendering.Universal
 
             return true;
         }
+
+        internal static bool MultisampleDepthResolveSupported()
+        {
+            // TODO: add stencil resolve capability check when it's available.
+            return SystemInfo.supportsMultisampleResolveDepth;
+        }
     }
 }

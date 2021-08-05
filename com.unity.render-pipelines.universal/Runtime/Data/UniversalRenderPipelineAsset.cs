@@ -125,6 +125,17 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// TODO
+    /// </summary>
+    public enum CopyColorAndDepthMode
+    {
+        /// <summary>TODO</summary>
+        AfterOpaque,
+        /// <summary>TODO</summary>
+        AfterTransparent
+    }
+
+    /// <summary>
     /// Defines the update frequency for the Volume Framework.
     /// </summary>
     public enum VolumeFrameworkUpdateMode
@@ -161,7 +172,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_RequireOpaqueTexture = false;
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] bool m_SupportsTerrainHoles = true;
-        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
@@ -209,6 +219,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_MixedLightingSupported = true;
         [SerializeField] bool m_SupportsLightLayers = false;
         [SerializeField][Obsolete] PipelineDebugLevel m_DebugLevel;
+        [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
+        [SerializeField] CopyColorAndDepthMode m_CopyColorAndDepthMode = CopyColorAndDepthMode.AfterOpaque;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
@@ -631,6 +643,16 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_StoreActionsOptimization; }
             set { m_StoreActionsOptimization = value; }
+        }
+
+        /// <summary>
+        /// TODO
+        /// </summary>
+        /// <returns>TODO</returns>
+        public CopyColorAndDepthMode copyColorAndDepthMode
+        {
+            get { return m_CopyColorAndDepthMode; }
+            set { m_CopyColorAndDepthMode = value; }
         }
 
         public bool supportsHDR

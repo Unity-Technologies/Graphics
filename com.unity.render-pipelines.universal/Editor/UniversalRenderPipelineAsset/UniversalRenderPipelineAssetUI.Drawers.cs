@@ -130,6 +130,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(serialized.opaqueDownsamplingProp, Styles.opaqueDownsamplingText);
                 EditorGUI.EndDisabledGroup();
                 EditorGUILayout.PropertyField(serialized.supportsTerrainHolesProp, Styles.supportsTerrainHolesText);
+
+                EditorGUILayout.PropertyField(serialized.copyColorAndDepthModeProperty, Styles.copyColorAndDepthModeText);
             }
         }
 
@@ -140,6 +142,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.debugLevelProp, Styles.debugLevel);
             EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevel);
             EditorGUILayout.PropertyField(serialized.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
+            //EditorGUILayout.PropertyField(serialized.copyColorAndDepthModeProperty, Styles.copyColorAndDepthModeText);
         }
 
         static void DrawQuality(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
