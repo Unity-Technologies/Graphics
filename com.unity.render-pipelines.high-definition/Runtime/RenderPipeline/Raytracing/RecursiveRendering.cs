@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [AdditionalProperty]
         public RayTracingFallbackHierachyParameter lastBounceFallbackHierarchy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
-        
+
         /// <summary>
         /// Default constructor for the recursive rendering volume component.
         /// </summary>

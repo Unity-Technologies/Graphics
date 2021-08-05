@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the fallback hierarchy for lighting the last bounce.")]
         [AdditionalProperty]
         public RayMarchingFallbackHierarchyParameter lastBounceFallbackHierarchy = new RayMarchingFallbackHierarchyParameter(RayMarchingFallbackHierarchy.ReflectionProbesAndSky);
-        
+
         /// <summary>
         /// Defines the layers that GI should include.
         /// </summary>
