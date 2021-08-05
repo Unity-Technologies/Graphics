@@ -63,7 +63,10 @@ CBUFFER_START(ShaderVariablesClouds)
     float _AltitudeDistortion;
     float _ErosionFactorCompensation;
     int _EnableFastToneMapping;
-    float _Padding1;
+    int _IsPlanarReflection;
+    float2 _Padding1;
+    int _LowResolutionEvaluation;
+    int _EnableIntegration;
     float4 _DistanceBasedWeights[12];
 CBUFFER_END
 

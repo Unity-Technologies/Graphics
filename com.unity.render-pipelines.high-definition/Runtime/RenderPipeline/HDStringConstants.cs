@@ -470,6 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
 
         // Clouds
+        public static readonly int _VolumetricCloudsSourceDepth = Shader.PropertyToID("_VolumetricCloudsSourceDepth");
         public static readonly int _CloudsLightingTexture = Shader.PropertyToID("_CloudsLightingTexture");
         public static readonly int _CloudsLightingTextureRW = Shader.PropertyToID("_CloudsLightingTextureRW");
         public static readonly int _HalfResDepthBufferRW = Shader.PropertyToID("_HalfResDepthBufferRW");
