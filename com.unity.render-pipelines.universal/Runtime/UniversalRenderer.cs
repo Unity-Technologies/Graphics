@@ -249,7 +249,6 @@ namespace UnityEngine.Rendering.Universal
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorAttachment");
-            m_NormalsTexture = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_CameraNormalsTexture"), 0, CubemapFace.Unknown, -1), "_CameraNormalsTexture");
             m_OpaqueColor = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_CameraOpaqueTexture"), 0, CubemapFace.Unknown, -1), "_CameraOpaqueTexture");
 
             supportedRenderingFeatures = new RenderingFeatures()
@@ -604,6 +603,48 @@ namespace UnityEngine.Rendering.Universal
                 CommandBufferPool.Release(cmd);
             }
 
+            // Allocate normal texture if used
+            if (requiresDepthPrepass && renderPassInputs.requiresNormalsTexture)
+            {
+                var normalDescriptor = cameraTargetDescriptor;
+                normalDescriptor.depthBufferBits = 0;
+                // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
+                normalDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+                // Find compatible render-target format for storing normals.
+                // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
+                // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
+                if (this.actualRenderingMode == RenderingMode.Deferred)
+                    normalDescriptor.graphicsFormat = m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferNormalSmoothnessIndex); // the one used by the gbuffer.
+                else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render))
+                    normalDescriptor.graphicsFormat = GraphicsFormat.R8G8B8A8_SNorm; // Preferred format
+                else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Render))
+                    normalDescriptor.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat; // fallback
+                else
+                    normalDescriptor.graphicsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
+
+                CommandBuffer cmd = CommandBufferPool.Get();
+                if (this.actualRenderingMode == RenderingMode.Forward)
+                {
+                    if (RenderingUtils.RTHandleNeedsReAlloc(m_NormalsTexture, normalDescriptor, false))
+                    {
+                        m_NormalsTexture?.Release();
+                        m_NormalsTexture = RTHandles.Alloc(normalDescriptor, filterMode: FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraNormalsTexture");
+                    }
+                    cmd.SetGlobalTexture(m_NormalsTexture.name, m_NormalsTexture.nameID);
+                }
+                else
+                {
+                    if (RenderingUtils.RTHandleNeedsReAlloc(m_DeferredLights.GbufferAttachments[(int)m_DeferredLights.GBufferNormalSmoothnessIndex], normalDescriptor, false))
+                    {
+                        m_DeferredLights.GbufferAttachments[(int)m_DeferredLights.GBufferNormalSmoothnessIndex]?.Release();
+                        m_DeferredLights.GbufferAttachments[(int)m_DeferredLights.GBufferNormalSmoothnessIndex] = RTHandles.Alloc(normalDescriptor, filterMode: FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: m_DeferredLights.GbufferAttachments[(int)m_DeferredLights.GBufferNormalSmoothnessIndex].name);
+                    }
+                    cmd.SetGlobalTexture(m_DeferredLights.GbufferAttachments[(int)m_DeferredLights.GBufferNormalSmoothnessIndex].name, m_DeferredLights.GbufferAttachments[(int)m_DeferredLights.GBufferNormalSmoothnessIndex].nameID);
+                }
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
+
             if (requiresDepthPrepass)
             {
                 if (renderPassInputs.requiresNormalsTexture)
@@ -615,12 +656,8 @@ namespace UnityEngine.Rendering.Universal
                         // to get them before the SSAO pass.
 
                         int gbufferNormalIndex = m_DeferredLights.GBufferNormalSmoothnessIndex;
-                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_ActiveCameraDepthAttachment, m_DeferredLights.GbufferAttachments[gbufferNormalIndex]);
+                        m_DepthNormalPrepass.Setup(m_ActiveCameraDepthAttachment, m_DeferredLights.GbufferAttachments[gbufferNormalIndex]);
 
-                        // Change the normal format to the one used by the gbuffer.
-                        RenderTextureDescriptor normalDescriptor = m_DepthNormalPrepass.normalDescriptor;
-                        normalDescriptor.graphicsFormat = m_DeferredLights.GetGBufferFormat(gbufferNormalIndex);
-                        m_DepthNormalPrepass.normalDescriptor = normalDescriptor;
                         // Only render forward-only geometry, as standard geometry will be rendered as normal into the gbuffer.
                         if (RenderPassEvent.AfterRenderingGbuffer <= renderPassInputs.requiresDepthNormalAtEvent &&
                             renderPassInputs.requiresDepthNormalAtEvent <= RenderPassEvent.BeforeRenderingOpaques)
@@ -628,7 +665,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_DepthTexture, m_NormalsTexture);
+                        m_DepthNormalPrepass.Setup(m_DepthTexture, m_NormalsTexture);
                     }
 
                     EnqueuePass(m_DepthNormalPrepass);

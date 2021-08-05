@@ -6,14 +6,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 {
     public class DepthNormalOnlyPass : ScriptableRenderPass
     {
-        internal RenderTextureDescriptor normalDescriptor { get; set; }
-        internal bool allocateNormal { get; set; } = true;
         internal List<ShaderTagId> shaderTagIds { get; set; }
 
         private RTHandle depthHandle { get; set; }
-        private RenderTargetHandle normalHandle { get; set; }
+        private RTHandle normalHandle { get; set; }
         private FilteringSettings m_FilteringSettings;
-        private int m_RendererMSAASamples = 1;
 
         // Constants
         private static readonly List<ShaderTagId> k_DepthNormals = new List<ShaderTagId> { new ShaderTagId("DepthNormals"), new ShaderTagId("DepthNormalsOnly") };
@@ -32,90 +29,27 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass
         /// </summary>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RTHandle depthHandle, RenderTargetHandle normalHandle)
+        public void Setup(RTHandle depthHandle, RTHandle normalHandle)
         {
-            // Find compatible render-target format for storing normals.
-            // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
-            // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
-            GraphicsFormat normalsFormat;
-            if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render))
-                normalsFormat = GraphicsFormat.R8G8B8A8_SNorm; // Preferred format
-            else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Render))
-                normalsFormat = GraphicsFormat.R16G16B16A16_SFloat; // fallback
-            else
-                normalsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
-
             this.depthHandle = depthHandle;
-
-            m_RendererMSAASamples = baseDescriptor.msaaSamples;
-
-            // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
-            baseDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
-
             this.normalHandle = normalHandle;
-            baseDescriptor.graphicsFormat = normalsFormat;
-            baseDescriptor.depthBufferBits = 0;
-            normalDescriptor = baseDescriptor;
-
-            this.allocateNormal = true;
-            this.shaderTagIds = k_DepthNormals;
-        }
-
-        /// <summary>
-        /// Configure the pass
-        /// </summary>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RTHandle depthHandle, RTHandle normalHandle)
-        {
-            // Find compatible render-target format for storing normals.
-            // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
-            // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
-            GraphicsFormat normalsFormat;
-            if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render))
-                normalsFormat = GraphicsFormat.R8G8B8A8_SNorm; // Preferred format
-            else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Render))
-                normalsFormat = GraphicsFormat.R16G16B16A16_SFloat; // fallback
-            else
-                normalsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
-
-            this.depthHandle = depthHandle;
-
-            m_RendererMSAASamples = baseDescriptor.msaaSamples;
-
-            // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
-            baseDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
-
-            this.normalHandle = new RenderTargetHandle(normalHandle);
-            baseDescriptor.graphicsFormat = normalsFormat;
-            baseDescriptor.depthBufferBits = 0;
-            normalDescriptor = baseDescriptor;
-
-            this.allocateNormal = true;
             this.shaderTagIds = k_DepthNormals;
         }
 
         /// <inheritdoc/>
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            if (this.allocateNormal)
-            {
-                RenderTextureDescriptor desc = normalDescriptor;
-                desc.msaaSamples = renderingData.cameraData.renderer.useDepthPriming ? m_RendererMSAASamples : 1;
-                cmd.GetTemporaryRT(normalHandle.id, desc, FilterMode.Point);
-            }
 
             if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
             {
                 ConfigureTarget(
-                    new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
+                    new RenderTargetIdentifier(normalHandle.nameID, 0, CubemapFace.Unknown, -1),
                     new RenderTargetIdentifier(renderingData.cameraData.renderer.cameraDepthTarget, 0, CubemapFace.Unknown, -1)
                 );
             }
             else
             {
-                ConfigureTarget(
-                    new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
-                    new RenderTargetIdentifier(depthHandle.nameID, 0, CubemapFace.Unknown, -1)
-                );
+                ConfigureTarget(normalHandle, depthHandle);
             }
 
             ConfigureClear(ClearFlag.All, Color.black);
@@ -152,13 +86,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 throw new ArgumentNullException("cmd");
             }
-
-            if (normalHandle != RenderTargetHandle.CameraTarget)
-            {
-                if (this.allocateNormal)
-                    cmd.ReleaseTemporaryRT(normalHandle.id);
-                normalHandle = RenderTargetHandle.CameraTarget;
-            }
+            normalHandle = null;
             depthHandle = null;
         }
     }
