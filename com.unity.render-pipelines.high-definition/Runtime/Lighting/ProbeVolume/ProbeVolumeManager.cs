@@ -132,10 +132,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnBakeCompleted()
         {
-            var volumesCurrent = (volumesSelected.Count > 0) ? volumesSelected : m_Volumes;
             foreach (var volume in m_Volumes)
             {
+                var index = m_Volumes.IndexOf(volume);
+                if (index == -1)
+                    continue;
+
                 volume.OnBakeCompleted();
+
+                // cleanup buffers
+                var handle = new ProbeVolumeHandle(this, index);
+                volume.CleanupBuffers();
+                ProbeVolumeDynamicGI.instance.CleanupPropagation(handle);
             }
 
             if (volumesSelected.Count > 0)
