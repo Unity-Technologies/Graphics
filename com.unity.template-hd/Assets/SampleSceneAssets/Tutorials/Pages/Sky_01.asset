@@ -41,7 +41,18 @@ MonoBehaviour:
           set up the <b>Sky:</b>\r\n\r\n\u2022 A <b>Visual Environment</b> override
           which defines the type of sky to render, such as <b>HDRI Sky,</b> <b>Physically
           Base Sky</b> or <b>Gradient Sky.</b>\n\n\u2022 A dedicated Sky override
-          that matches the type of Sky set in the <b>Visual Environment.</b>"
+          that matches the type of Sky set in the <b>Visual Environment.</b>\n\nIn
+          the <b>Visual Environment</b> override, it is important to select an <b>Ambient
+          Mode</b> to specify how the global ambient lighting if generated from the
+          sky. Two modes are available:\n\n\u2022 <b>Dynamic:</b> The ambient lighting
+          is automatically refreshed based on the currently rendered sky. This mode
+          is very straightforward as it will ensure the ambient lighting in the scene
+          always matches the rendered sky seen by the camera.\n\n\u2022 <b>Static:</b>
+          The ambient lighting will be generated based on the Volume Profile assigned
+          in the <b>Window</b> > <b>Rendering</b> > <b>Lighting</b> > <b>Environment</b>
+          tab. This mode is useful when another sky may be used for light baking,
+          and said sky differs from the sky that should be rendered by the camera
+          itself."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
