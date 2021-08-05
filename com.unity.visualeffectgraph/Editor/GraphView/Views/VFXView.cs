@@ -522,13 +522,17 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
 
+        internal bool GetIsRuntimeMode() => m_IsRuntimeMode;
+
         internal void ToggleRuntimeMode()
         {
             m_IsRuntimeMode = !m_IsRuntimeMode;
             controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
         }
 
-        void ToggleShaderValidationChanged()
+        internal bool GetShaderValidation() => m_ForceShaderValidation;
+
+        internal void ToggleShaderValidationChanged()
         {
             m_ForceShaderValidation = !m_ForceShaderValidation;
             controller.graph.SetForceShaderValidation(m_ForceShaderValidation);
