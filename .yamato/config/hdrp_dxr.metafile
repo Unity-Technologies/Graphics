@@ -4,8 +4,7 @@ project:
 test_platforms:
   - type: Standalone
   - type: playmode
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:
@@ -20,12 +19,21 @@ platforms:
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
         model: rtx2080
-pr:
-  dependencies:
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone
-        - playmode
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - Standalone
+            - playmode
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      []
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

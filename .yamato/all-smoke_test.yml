@@ -7,7 +7,10 @@
 ---
 
 PR_Smoke_Test_2019.4:
-    name: Smoke_Test PR Job - 2019.4
+    name: PR Smoke_Test on 2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_2019.4
          rerun: on_new_revision
@@ -15,11 +18,27 @@ PR_Smoke_Test_2019.4:
          rerun: on_new_revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_2019.4
          rerun: on_new_revision
+Extra_Smoke_Test_2019.4:
+    name: Extra Smoke_Test on 2019.4
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies: []
+Smoke_Test_2019.4:
+    name: Smoke_Test on 2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-smoke_test.yml#PR_Smoke_Test_2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-smoke_test.yml#Extra_Smoke_Test_2019.4
+         rerun: on_new_revision
 PR_Smoke_Test_fast-2019.4:
-    name: Smoke_Test PR Job - fast-2019.4
+    name: PR Smoke_Test on fast-2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_fast-2019.4
          rerun: on_new_revision
@@ -27,11 +46,28 @@ PR_Smoke_Test_fast-2019.4:
          rerun: on_new_revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_fast-2019.4
          rerun: on_new_revision
+Extra_Smoke_Test_fast-2019.4:
+    name: Extra Smoke_Test on fast-2019.4
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies: []
+Smoke_Test_fast-2019.4:
+    name: Smoke_Test on fast-2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-smoke_test.yml#PR_Smoke_Test_fast-2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-smoke_test.yml#Extra_Smoke_Test_fast-2019.4
+         rerun: on_new_revision
 PR_Smoke_Test_CUSTOM-REVISION:
-    name: Smoke_Test PR Job - CUSTOM-REVISION
+    name: PR Smoke_Test on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
@@ -39,7 +75,21 @@ PR_Smoke_Test_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+Extra_Smoke_Test_CUSTOM-REVISION:
+    name: Extra Smoke_Test on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies: []
+Smoke_Test_CUSTOM-REVISION:
+    name: Smoke_Test on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-smoke_test.yml#PR_Smoke_Test_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-smoke_test.yml#Extra_Smoke_Test_CUSTOM-REVISION
+         rerun: on_new_revision

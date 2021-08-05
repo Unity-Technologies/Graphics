@@ -7,33 +7,83 @@
 ---
 
 PR_VFX_URP_2019.4:
-    name: VFX_URP PR Job - 2019.4
+    name: PR VFX_URP on 2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_mono_Linear_2019.4
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_2019.4
          rerun: on_new_revision
+Extra_VFX_URP_2019.4:
+    name: Extra VFX_URP on 2019.4
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies: []
+VFX_URP_2019.4:
+    name: VFX_URP on 2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx_urp.yml#Extra_VFX_URP_2019.4
+         rerun: on_new_revision
 PR_VFX_URP_fast-2019.4:
-    name: VFX_URP PR Job - fast-2019.4
+    name: PR VFX_URP on fast-2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_mono_Linear_fast-2019.4
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_fast-2019.4
          rerun: on_new_revision
+Extra_VFX_URP_fast-2019.4:
+    name: Extra VFX_URP on fast-2019.4
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies: []
+VFX_URP_fast-2019.4:
+    name: VFX_URP on fast-2019.4
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_fast-2019.4
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx_urp.yml#Extra_VFX_URP_fast-2019.4
+         rerun: on_new_revision
 PR_VFX_URP_CUSTOM-REVISION:
-    name: VFX_URP PR Job - CUSTOM-REVISION
+    name: PR VFX_URP on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
     dependencies:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+Extra_VFX_URP_CUSTOM-REVISION:
+    name: Extra VFX_URP on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+    dependencies: []
+VFX_URP_CUSTOM-REVISION:
+    name: VFX_URP on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+    dependencies:
+      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-vfx_urp.yml#Extra_VFX_URP_CUSTOM-REVISION
+         rerun: on_new_revision
