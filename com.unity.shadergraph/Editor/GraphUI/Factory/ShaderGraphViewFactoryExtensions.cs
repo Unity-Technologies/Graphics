@@ -14,5 +14,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.Factory
             ui.SetupBuildAndUpdate(model, store, elementBuilder.View, elementBuilder.Context);
             return ui;
         }
+
+        public static IModelUI CreateRedirectNode(this ElementBuilder elementBuilder, CommandDispatcher store,
+            RedirectNodeModel model)
+        {
+            var ui = new RedirectNode();
+            ui.SetupBuildAndUpdate(model, store, elementBuilder.View, elementBuilder.Context);
+            return ui;
+        }
     }
 }
