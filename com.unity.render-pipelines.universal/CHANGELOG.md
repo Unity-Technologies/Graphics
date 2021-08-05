@@ -109,6 +109,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SRP batcher not working on OpenGL.
 - Fixed an error where multisampled texture being bound to a non-multisampled sampler in XR.
 - Fixed terrain hole shadowing [case 1349305]
+- Fixed soft shadows shader variants not set to multi_compile_fragment on some shaders (gbuffer pass, speedtree shaders, WavingGrass shader).
 
 ## [10.2.0] - 2020-10-19
 
