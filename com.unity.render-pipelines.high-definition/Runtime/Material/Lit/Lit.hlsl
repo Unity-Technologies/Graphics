@@ -640,7 +640,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     outGBuffer3 *= GetCurrentExposureMultiplier();
 
 #ifdef LIGHT_LAYERS
-    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, builtinData.renderingLayers / 255.0);
+    // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
+    OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, (builtinData.renderingLayers & 0x000000FF) / 255.0);
 #endif
 
 #ifdef SHADOWS_SHADOWMASK

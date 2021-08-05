@@ -1,0 +1,9 @@
+default_stages: [commit]
+repos:
+  - repo: git@github.cds.internal.unity3d.com:theo-penavaire/gfx-automation-tools.git
+    rev: 892e7fb
+    hooks:
+      - id: file-extension-to-lowercase
+      - id: check-shader-includes
+      - id: check-branch-name
+        stages: [push]

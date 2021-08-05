@@ -146,6 +146,9 @@ namespace UnityEditor.Rendering.Universal
             // Terrain Upgraders              //
             ////////////////////////////////////
             upgraders.Add(new TerrainUpgrader("Nature/Terrain/Standard"));
+            upgraders.Add(new SpeedTreeUpgrader("Nature/SpeedTree"));
+            upgraders.Add(new SpeedTreeBillboardUpgrader("Nature/SpeedTree Billboard"));
+            upgraders.Add(new SpeedTree8Upgrader("Nature/SpeedTree8"));
 
             ////////////////////////////////////
             // Particle Upgraders             //
@@ -273,6 +276,11 @@ namespace UnityEditor.Rendering.Universal
                 material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
             else
                 material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
+
+            if (material.IsKeywordEnabled("_ALPHATEST_ON"))
+            {
+                material.SetFloat("_AlphaClip", 1.0f);
+            }
 
             material.SetFloat("_WorkflowMode", 1.0f);
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
@@ -413,6 +421,28 @@ namespace UnityEditor.Rendering.Universal
         public TerrainUpgrader(string oldShaderName)
         {
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.TerrainLit));
+        }
+    }
+
+    internal class SpeedTreeUpgrader : MaterialUpgrader
+    {
+        internal SpeedTreeUpgrader(string oldShaderName)
+        {
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7));
+        }
+    }
+    internal class SpeedTreeBillboardUpgrader : MaterialUpgrader
+    {
+        internal SpeedTreeBillboardUpgrader(string oldShaderName)
+        {
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7Billboard));
+        }
+    }
+    internal class SpeedTree8Upgrader : MaterialUpgrader
+    {
+        internal SpeedTree8Upgrader(string oldShaderName)
+        {
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8));
         }
     }
 

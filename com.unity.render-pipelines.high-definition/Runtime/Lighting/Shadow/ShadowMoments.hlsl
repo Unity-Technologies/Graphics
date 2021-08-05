@@ -1,3 +1,5 @@
+#ifndef SHADOW_MOMENTS_INCLUDED
+#define SHADOW_MOMENTS_INCLUDED
 // Library header containing various useful functions for doing moment based shadow maps.
 // Supported flavors are VSM, EVSM and MSM
 
@@ -131,3 +133,4 @@ float ShadowMoments_SolveDelta4MSM( float3 z, float4 b, float lightLeakBias)
 
     return saturate( ((1.0 - attenuation) - lightLeakBias) / (1.0 - lightLeakBias) );
 }
+#endif

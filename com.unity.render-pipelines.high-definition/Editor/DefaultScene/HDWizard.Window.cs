@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 messageType: MessageType.Info);
             public static readonly ConfigStyle vrSinglePassInstancing = new ConfigStyle(
                 label: "Single-Pass Instancing",
-                error: "Single-Pass Instancing must be enabled in Occulus Pluggin.\nGo in Edit > Project Settings > XR Plugin Manager > Oculus and change Stereo Rendering Mode to Single Pass Instanced.\n(This can't be verified by the Wizard)",
+                error: "Single-Pass Instancing must be enabled in Oculus Pluggin.\nGo in Edit > Project Settings > XR Plugin Manager > Oculus and change Stereo Rendering Mode to Single Pass Instanced.\n(This can't be verified by the Wizard)",
                 messageType: MessageType.Info);
             public static readonly ConfigStyle vrLegacyHelpersPackage = new ConfigStyle(
                 label: "XR Legacy Helpers Package",

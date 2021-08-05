@@ -173,6 +173,7 @@ namespace UnityEditor.Rendering.Universal
             // Render State Overrides
             ZWriteOverride = "ZWrite On",
             ZTestOverride = "ZTest LEqual",
+            ColorMaskOverride = "ColorMask 0",
 
             // Pass setup
             includes = new List<string>()
@@ -223,8 +224,7 @@ namespace UnityEditor.Rendering.Universal
             },
 
             // Render State Overrides
-            ZWriteOverride = "ZWrite On",
-            ZTestOverride = "ZTest LEqual",
+            CullOverride = "Cull Off",
 
             // Pass setup
             includes = new List<string>()

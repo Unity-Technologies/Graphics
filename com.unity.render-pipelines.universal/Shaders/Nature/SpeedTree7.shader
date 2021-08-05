@@ -64,8 +64,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Name "SceneSelectionPass"
             Tags{"LightMode" = "SceneSelectionPass"}
 
-            ColorMask 0
-
             HLSLPROGRAM
 
             #pragma vertex SpeedTree7VertDepth
@@ -89,6 +87,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
         {
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
+
+            ColorMask 0
 
             HLSLPROGRAM
 

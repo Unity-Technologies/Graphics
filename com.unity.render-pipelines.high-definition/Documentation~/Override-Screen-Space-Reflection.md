@@ -2,9 +2,15 @@
 
 The **Screen Space Reflection** (SSR) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate reflections. For information about how SSR works in HDRP, see the [reflection documentation](Reflection-in-HDRP.md#ScreenSpaceReflection).
 
-## Using Screen Space Reflection
+## Enabling Screen Space Reflection
 
-To use SSR in your Scene, you must enable it for your Cameras. In the Inspector for your [HDRP Asset](HDRP-Asset.md), go to the **Default Frame Settings > Lighting > Reflections** section and enable the **Screen Space Reflection** checkbox.
+[!include[](snippets/Volume-Override-Enable.md)]
+
+For this feature:
+The property to enable in your HDRP Asset is: **Lighting > Reflections > Screen Space Reflection**.
+The property to enable in your Frame Settings is: **Lighting > Screen Space Reflection**.
+
+## Using Screen Space Reflection
 
 HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and modify SSR properties, you must add a **Screen Space Reflection** override to a [Volume](Volumes.md) in your Scene. To add **Screen Space Reflection** to a Volume:
 
@@ -15,6 +21,8 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 ## Properties
 
 ![](Images/Override-ScreenSpaceReflection1.png)
+
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |

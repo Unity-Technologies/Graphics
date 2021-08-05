@@ -215,7 +215,7 @@ namespace UnityEditor.VFX
         {
             return Path.GetFullPath(path)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                #if !UNITY_STANDALONE_LINUX
+                #if !UNITY_EDITOR_LINUX
                 .ToLowerInvariant()
                 #endif
                 ;
@@ -411,6 +411,7 @@ namespace UnityEditor.VFX
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_ACTUAL (0)");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_MOTION_VECTOR (1)");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_SELECTION (2)");
+            globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_SHADOW (3)");
 
             foreach (var attribute in allCurrentAttributes)
                 globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(CultureInfo.InvariantCulture), "CURRENT");

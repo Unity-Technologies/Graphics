@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent useEmissionIntensityText = new GUIContent("Use Emission Intensity", "When enabled, this Material separates emission color and intensity. This makes the Emission Map into an LDR color and exposes the Emission Intensity property.");
             public static GUIContent emissionMapText = new GUIContent("Emission Map", "Specifies a map (RGB) that the Material uses for emission.");
             public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "Sets the overall strength of the emission effect.");
-            public static GUIContent emissiveExposureWeightText = new GUIContent("Exposure weight", "Control the percentage of emission to expose.");
+            public static GUIContent emissiveExposureWeightText = new GUIContent("Exposure weight", "Controls how the camera exposure influences the perceived intensity of the emissivity. A weight of 0 means that the emissive intensity is calculated ignoring the exposure; increasing this weight progressively increases the influence of exposure on the final emissive value.");
 
             public static GUIContent[] maskMapText =
             {
@@ -323,11 +323,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
                 }
 
-                EditorGUILayout.HelpBox(
-                    "Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals.\nThere is a performance cost of enabling this option.",
-                    MessageType.Info);
+                if (!perChannelMask)
+                {
+                    EditorGUILayout.HelpBox("Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals.\nThere is a performance cost of enabling this option.",
+                                            MessageType.Info);
+                }
             }
-
         }
     }
 }

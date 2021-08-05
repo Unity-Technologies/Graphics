@@ -58,4 +58,6 @@ float3 _LightDirection;
 #define GEOM_TYPE_LEAF 2
 #define GEOM_TYPE_FACINGLEAF 3
 
+#define _Surface 0.0 // Speed Trees are always opaque
+
 #endif

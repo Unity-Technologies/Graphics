@@ -1,20 +1,25 @@
 # Diffusion Profile
 
-The High Definition Render Pipeline (HDRP) stores most [subsurface scattering](Subsurface-Scattering.html) settings in a __Diffusion Profile__ Asset. You can assign a __Diffusion Profile__ Asset directly to Materials that use Subsurface Scattering.
+The High Definition Render Pipeline (HDRP) stores most [Subsurface Scattering](Subsurface-Scattering.md) settings in a __Diffusion Profile__ Asset. You can assign a __Diffusion Profile__ Asset directly to Materials that use Subsurface Scattering.
 
-To create a Diffusion Profile, navigate to __Assets > Create > Rendering > Diffusion Profile__. To use it, open your HDRP Asset and add it to the __Diffusion Profile List__ property.
+To create a Diffusion Profile, navigate to __Assets > Create > Rendering > Diffusion Profile__.
+
+* To use it by default, open your HDRP Asset and, in the **Material** section, add it to the __Diffusion Profile List__.
+* To use it in a particular [Volume](Volumes.md), select a Volume with a [Diffusion Profile Override](Override-Diffusion-Profile.md) and add it to the **Diffusion Profile List** .
+
+## Properties
 
 | Property| Description |
 |:---|:---|
 | **Name** | The name of the Diffusion Profile. |
-| **Scattering Distance** | Use the color picker to select the shape and blur radius of the Diffusion Profile. Defines how far light travels below the surface. This affects the color bleeding and blurring behavior of Subsurface Scattering, as well as the color tint of Transmission. |
-| **Max Radius** | An informative helper value that displays the effective maximum radius (in millimeters) of the effect you define in Scattering Distance. You can not change this value directly. |
-| **Index of Refraction** | Use the slider to set the refractive behavior of the Material. Larger values increase the intensity of specular reflection. For example, the index of refraction of skin is about 1.4. For more example values for the index of refraction of different materials, see Pixel and Poly’s [list of indexes of refraction values](https://pixelandpoly.com/ior.html). |
+| **Scattering Distance** | Use the color picker (circle icon) to define how far each light channel in the Diffusion Profile travels below the surface:<br/><br/>**R**: Defines how far the red light channel travels below the surface.<br/>**G**: Controls how far the green light channel travels below the surface.<br/>**B**: Controls how far the blue light channel travels below the surface.<br/><br/>The overall color affects the Transmission tint. |
+| **Max Radius** | The maximum radius of the effect you define in **Scattering Distance**. The size of this value depends on the world scale. For example, when the world scale is 1, this value is in meters. When the world scale is 0.001, this value is in millimeters.<br/><br/>When the size of this radius is smaller than a pixel on the screen, HDRP does not apply Subsurface Scattering. |
+| **Index of Refraction** | This value is controlled by the highest of the **Scattering Distance** RGB values.Use the slider to set the refractive behavior of the Material. Larger values increase the intensity of specular reflection. For example, the index of refraction of skin is about 1.4. For more example values for the index of refraction of different materials, see Pixel and Poly’s [list of indexes of refraction values](https://pixelandpoly.com/ior.html). |
 | **World Scale** | Controls the scale of Unity’s world units for this Diffusion Profile. By default, HDRP assumes that 1 Unity unit is 1 meter. This property only affects the subsurface scattering pass. |
 
 
 
-## Subsurface Scattering only
+### Subsurface Scattering only
 
 | Property| Description |
 |:---|:---|
@@ -22,7 +27,7 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > Diffu
 
 
 
-## Transmission only
+### Transmission only
 
 | Property| Description |
 |:---|:---|
@@ -33,7 +38,7 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > Diffu
 
 
 
-## Profile Previews
+### Profile Previews
 
 | Property| Description |
 |:---|:---|

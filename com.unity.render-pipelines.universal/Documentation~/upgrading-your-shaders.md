@@ -1,17 +1,23 @@
 # Upgrading your Shaders
 
-If your Project uses shaders from the built-in render pipeline, and you want to [switch your Project to use the Universal Render Pipeline instead](installing-universalrp-into-an-existing-project), you must convert those Shaders to the URP Shaders. This is because built-in Lit shaders are not compatible with URP Shaders. For an overview of the mapping between built-in shaders and URP Shaders, see [Shader mappings](#shader-mappings).
+Lit shaders from the Built-in Render Pipeline are not compatible with URP shaders. When migrating a project from the Built-in Render Pipeline to URP, it's necessary to convert the shaders.
 
-To upgrade built-in Shaders:
+Unity provides the option to convert the built-in (non-custom) Built-in Render Pipeline shaders to URP-compatible shaders. If your project uses custom shaders, you need to convert them manually yo URP-compatible shaders. For information on writing  URP-compatible shaders, see [Writing custom shaders](writing-custom-shaders-urp.md).
 
-1. Open your Project in Unity, and go to __Edit__ > __Render Pipeline__ > **Universal Render Pipeline**. 
+To convert the built-in (non-custom) Built-in Render Pipeline shaders:
+
+1. Open your Project in Unity, and go to __Edit__ > __Render Pipeline__ > **Universal Render Pipeline**.
 2. According to your needs, select either __Upgrade Project Materials to URP Materials__ or __Upgrade Selected Materials to URP Materials__.
 
-**Note:** These changes cannot be undone. Backup your Project before you upgrade it.
+For an overview of the mapping between Built-in Render Pipeline shaders and URP shaders, see [Shader mappings](#shader-mappings).
 
-**Tip:** If the Preview thumbnails in Project View are incorrect after you've upgraded, try right-clicking anywhere in the Project View window and selecting __Reimport All__.
+> **Note:** These changes cannot be undone. Backup your project before you upgrade it.
+
+> **Tip:** If the Preview thumbnails in Project View are incorrect after you've upgraded, try right-clicking anywhere in the Project View window and selecting __Reimport All__.
 
 For [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html) Shaders, Unity does not re-generate Materials when you re-import them, unless you click the **Generate Materials** or **Apply & Generate Materials** button.
+
+<a name="built-in-to-urp-shader-mappings"></a>
 
 ## Shader mappings
 

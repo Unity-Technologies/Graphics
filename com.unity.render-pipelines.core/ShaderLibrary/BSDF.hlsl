@@ -1,6 +1,10 @@
 #ifndef UNITY_BSDF_INCLUDED
 #define UNITY_BSDF_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 // Note: All NDF and diffuse term have a version with and without divide by PI.
@@ -223,7 +227,7 @@ real V_SmithJointGGX(real NdotL, real NdotV, real roughness, real partLambdaV)
     real lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
     // Simplify visibility term: (2.0 * NdotL * NdotV) /  ((4.0 * NdotL * NdotV) * (lambda_v + lambda_l))
-    return 0.5 / (lambdaV + lambdaL);
+    return 0.5 / max(lambdaV + lambdaL, REAL_MIN);
 }
 
 real V_SmithJointGGX(real NdotL, real NdotV, real roughness)
@@ -635,4 +639,9 @@ real3 D_KajiyaKay(real3 T, real3 H, real specularExponent)
 
     return dirAttn * norm * PositivePow(sinTHSq, 0.5 * n);
 }
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
+
 #endif // UNITY_BSDF_INCLUDED

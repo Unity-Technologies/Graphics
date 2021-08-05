@@ -152,7 +152,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
@@ -200,7 +200,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
@@ -248,7 +248,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
@@ -294,7 +294,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
@@ -330,7 +330,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
@@ -368,7 +368,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
@@ -407,7 +407,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
@@ -480,7 +480,7 @@ Shader "HDRP/Unlit"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingForward.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl"
 
             ENDHLSL
         }
@@ -515,7 +515,7 @@ Shader "HDRP/Unlit"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingGBuffer.hlsl"
 
             ENDHLSL
         }
@@ -544,7 +544,7 @@ Shader "HDRP/Unlit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingVisibility.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl"
 
             ENDHLSL
         }

@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Output Particle Mesh"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleMeshes"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
-        public override bool supportsUV { get { return shaderGraph == null; } }
+        public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
         public override bool implementsMotionVector { get { return true; } }
         public override CullMode defaultCullMode { get { return CullMode.Back;  } }
 
@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
-            if (shaderGraph == null)
+            if (GetOrRefreshShaderGraphObject() == null)
                 yield return slotExpressions.First(o => o.name == "mainTexture");
         }
 
@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (shaderGraph == null)
+                if (GetOrRefreshShaderGraphObject() == null)
                     foreach (var property in PropertiesFromType("OptionalInputProperties"))
                         yield return property;
                 foreach (var property in base.inputProperties)

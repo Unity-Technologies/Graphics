@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginProperty(lineRect, label, m_IsGlobal);
             {
                 EditorGUI.BeginChangeCheck();
-                isGlobal = EditorGUILayout.Popup(label, isGlobal, m_Modes);
+                isGlobal = EditorGUI.Popup(lineRect, label, isGlobal, m_Modes);
                 if (EditorGUI.EndChangeCheck())
                     m_IsGlobal.boolValue = isGlobal == 0;
             }

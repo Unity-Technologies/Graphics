@@ -62,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Use the y flipped device projection matrix as light projection matrix
         public Matrix4x4            deviceProjectionYFlip;
         public Matrix4x4            deviceProjection;
+        public Matrix4x4            projection;
         public Matrix4x4            shadowToWorld;
         public Vector3              position;
         public Vector4              zBufferParam;

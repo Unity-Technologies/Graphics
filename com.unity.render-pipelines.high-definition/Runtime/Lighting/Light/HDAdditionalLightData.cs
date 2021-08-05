@@ -1455,6 +1455,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal MeshRenderer emissiveMeshRenderer { get; private set; }
 
 #if UNITY_EDITOR
+        bool m_NeedsPrefabInstanceCheck = false;
         bool needRefreshPrefabInstanceEmissiveMeshes = false;
 #endif
         bool needRefreshEmissiveMeshesFromTimeLineUpdate = false;
@@ -1830,8 +1831,8 @@ namespace UnityEngine.Rendering.HighDefinition
             HDShadowUtils.ExtractDirectionalLightData(
                 visibleLight, viewportSize, (uint)requestIndex, shadowSettings.cascadeShadowSplitCount.value,
                 shadowSettings.cascadeShadowSplits, nearPlaneOffset, cullResults, lightIndex,
-                out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                out shadowRequest.deviceProjection, out shadowRequest.splitData
+                out shadowRequest.view, out invViewProjection, out shadowRequest.projection,
+                out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
             );
 
             cullingSphere = shadowRequest.splitData.cullingSphere;
@@ -1905,8 +1906,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             HDShadowUtils.ExtractPointLightData(
                                 visibleLight, viewportSize, shadowNearPlane,
                                 normalBias, (uint)index, out shadowRequest.view,
-                                out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                                out shadowRequest.deviceProjection, out shadowRequest.splitData
+                                out invViewProjection, out shadowRequest.projection,
+                                out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
                             );
                             break;
                         case HDLightType.Spot:
@@ -1914,8 +1915,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             HDShadowUtils.ExtractSpotLightData(
                                 spotLightShape, spotAngleForShadows, shadowNearPlane, aspectRatio, shapeWidth,
                                 shapeHeight, visibleLight, viewportSize, normalBias,
-                                out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                                out shadowRequest.deviceProjection, out shadowRequest.splitData
+                                out shadowRequest.view, out invViewProjection, out shadowRequest.projection,
+                                out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
                             );
                             break;
                         case HDLightType.Directional:
@@ -1928,7 +1929,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     Vector2 shapeSize = new Vector2(shapeWidth, m_ShapeHeight);
                                     float offset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
                                     Vector3 shadowOffset = offset * visibleLight.GetForward();
-                                    HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.deviceProjection, out shadowRequest.splitData);
+                                    HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData);
                                     break;
                                 case AreaLightShape.Tube:
                                     //Tube do not cast shadow at the moment.
@@ -2004,7 +2005,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // shadow clip planes (used for tessellation clipping)
-            GeometryUtility.CalculateFrustumPlanes(shadowRequest.deviceProjectionYFlip * shadowRequest.view, m_ShadowFrustumPlanes);
+            GeometryUtility.CalculateFrustumPlanes(shadowRequest.projection * shadowRequest.view, m_ShadowFrustumPlanes);
             if (shadowRequest.frustumPlanes?.Length != 6)
                 shadowRequest.frustumPlanes = new Vector4[6];
             // Left, right, top, bottom, near, far.
@@ -2149,6 +2150,16 @@ namespace UnityEngine.Rendering.HighDefinition
 #if !UNITY_EDITOR
             if (!m_Animated)
                 return;
+#endif
+
+#if UNITY_EDITOR
+
+            // If modification are due to change on prefab asset that are non overridden on this prefab instance
+            if (m_NeedsPrefabInstanceCheck && PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
+            {
+                needRefreshPrefabInstanceEmissiveMeshes = true;
+            }
+            m_NeedsPrefabInstanceCheck = false;
 #endif
 
 #if UNITY_EDITOR
@@ -2350,14 +2361,15 @@ namespace UnityEngine.Rendering.HighDefinition
             DisableCachedShadowSlot();
             m_ShadowMapRenderedSinceLastRequest = false;
 
-#if UNITY_EDITOR
-            // If modification are due to change on prefab asset that are non overridden on this prefab instance
-            if (PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
+            if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
             {
-                // As we cannot Create/Destroy in OnValidate, delay call to next Update
-                // To do this, wo set the same flag on prefab instances
-                needRefreshPrefabInstanceEmissiveMeshes = true;
+                emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
             }
+
+#if UNITY_EDITOR
+            // If modification are due to change on prefab asset, we want to have prefab instances to self-update, but we cannot check in OnValidate if this is part of
+            // prefab instance. So we delay the check on next update (and before teh LateUpdate logic)
+            m_NeedsPrefabInstanceCheck = true;
 #endif
         }
 
@@ -2660,6 +2672,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Force to clamp the shape if we changed the type of the light
             shapeWidth = m_ShapeWidth;
             shapeHeight = m_ShapeHeight;
+
+#if UNITY_EDITOR
+            legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
+#endif
         }
 
         /// <summary>

@@ -1,21 +1,23 @@
 # Volume Overrides
 
-__Volume Overrides__ are structures which contain values that override the default properties in a [Volume Profile](Volume-Profile.html). The Universal Render Pipeline (URP) uses these Profiles within the [Volume](Volumes.html) framework. For example, you could use a Volume Override in your Unity Project to darken the outside edges of yours Scene. 
+__Volume Overrides__ let you change or extend the default properties in a [Volume Profile](VolumeProfile.md).
 
-![__Vignette__ is an example of a Volume Override.](Images/Inspectors/Vignette.png)
+URP implements post-processing effects as Volume Overrides. For example, the following image shows the Vignette post-processing effect in the URP Template SampleScene.
 
-Each Volume Override property has a checkbox on its left. Enable the checkbox to make that property editable. This also tells URP to use that property for this Volume component rather than the default value. If you disable the checkbox, URP ignores the property you set and uses the Volume’s default value for that property instead.
+![Vignette post-processing effect in the URP Template SampleScene](Images/post-proc/post-proc-as-volume-override.png)
 
-Override checkboxes allow you to override as many or as few values on a Volume component as you want. To quickly toggle all the properties between editable or not, click the __All__ or __None__ shortcuts in the top left of the Volume Override respectively. 
+In a the Volume Override, checkboxes to the left of each property let you enable or disable specific properties. If you disable a property, URP uses the Volume’s default value for that property instead. To turn all properties on or off, use the __All__ or __None__ shortcuts above the property list.
 
-## Using Volume Overrides
+![Volume Override property list](Images/post-proc/volume-override-property-list.png)
 
-To render both a global vignette and a local vignette in a certain area of your Scene:
+## <a name="volume-add-override"></a>How to add a Volume Override to a Volume component
 
-1. Create a global Volume (menu: __GameObject__ &gt; __Volume__ &gt; __Global Volume__).
-2. Click the **New** button next to the **Profile** property to add a new Volume Profile to the Volume.
-3. Select __Add Override__ > __Vignette__, and leave it with the default settings.
-4. Create a local Volume. To add a **Local** Volume with a box boundary, select __GameObject__ &gt; __Volume__ &gt; __Box Volume__.
-5. Select __Add Override__ &gt; __Vignette__.Then, in the __Vignette__ Inspector, override the properties them with your preferred values.
+To add a Volume Override to a Volume component:
 
-Now, whenever your Camera is within the bounds of the local Volume's Collider, URP uses the __Vignette__ values from that Volume. Whenever your Camera is outside the bounds of the local Volume's Collider, URP uses the __Vignette__ values from the global Volume
+1. Select a GameObject with the Volume component.
+
+2. In the Inspector window, click Add Override.
+
+    ![Add Override](Images/post-proc/volume-add-override.png)
+
+    Use the search field to search for an Override, or select an Override from the menu.

@@ -134,7 +134,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 color = MixFog(color, input.uv0AndFogCoord.z);
-                alpha = OutputAlpha(alpha);
+                alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
             }

@@ -1,6 +1,6 @@
 # Split Toning
 
-This effect tints different areas of the image based on luminance values, to help you achieve a more distinctive look. You can use this to add different color tones to the shadows and highlights in your Scene. 
+This effect tints different areas of the image based on luminance values, to help you achieve a more distinctive look. You can use this to add different color tones to the shadows and highlights in your Scene.
 
 ## Using Split Toning
 

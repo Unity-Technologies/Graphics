@@ -1,9 +1,16 @@
 # Contact Shadows
 The Contact Shadows [Volume Override](Volume-Components.html) specifies properties which control the behavior of Contacts Shadows. Contact Shadows are shadows that The High Definition Render Pipeline (HDRP) [ray marches](Glossary.html#RayMarching) in screen space inside the depth buffer. The goal of using Contact Shadows is to capture small details that regular shadow mapping algorithms fail to capture.
 
-## Using Contact Shadows
 
-To use Contact Shadows in your Scene, you must first enable them for your Cameras. In the Inspector for your HDRP Asset, go to the **Default Frame Settings > Lighting** section and enable the **Contact Shadows** checkbox. All Cameras can now render Contact Shadows unless you override a Camera’s individual [Frame Settings](Frame-Settings.html).
+## Enabling Contact Shadows
+[!include[](snippets/Volume-Override-Enable.md)]
+
+For this feature:
+The property to enable in your HDRP Asset is: **Lighting > Shadows > Use Contact Shadows**.
+The property to enable in your Frame Settings is: **Lighting > Contact Shadows**.
+
+
+## Using Contact Shadows
 
 **Contact Shadows** use the [Volume](Volumes.html) framework, so to enable and modify **Contact Shadow** properties, you must add a **Contact Shadows** override to a [Volume](Volumes.html) in your Scene. To add **Contact Shadows** to a Volume:
 
@@ -19,6 +26,8 @@ Only one Light can cast Contact Shadows at a time. This means that, if you have 
 ## Properties
 
 ![](Images/Override-ContactShadows1.png)
+
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | Property                  | Description                                                    |
 | :------------------------ | :----------------------------------------------------------- |

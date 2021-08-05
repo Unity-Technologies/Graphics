@@ -1,7 +1,7 @@
 using UnityEditor.AssetImporters;
-using UnityEditor.Experimental;
 using UnityEngine;
-using UnityEditor.Experimental.AssetImporters;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -33,6 +33,10 @@ namespace UnityEditor.Rendering.Universal
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
+            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
+            if (!pipelineAsset || pipelineAsset.GetType() != typeof(UniversalRenderPipelineAsset))
+                return;
+
             if (Is3DsMaxPhysicalMaterial(description))
             {
                 CreateFrom3DsPhysicalMaterial(description, material, clips);

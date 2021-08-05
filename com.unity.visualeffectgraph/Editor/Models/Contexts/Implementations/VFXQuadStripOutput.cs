@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
             get
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
-                if (shaderGraph == null)
+                if (GetOrRefreshShaderGraphObject() == null)
                     properties = properties.Concat(PropertiesFromType("OptionalInputProperties"));
                 if (tilingMode == StripTilingMode.Custom)
                     properties = properties.Concat(PropertiesFromType("CustomUVInputProperties"));
@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if (shaderGraph == null)
+            if (GetOrRefreshShaderGraphObject() == null)
                 yield return slotExpressions.First(o => o.name == "mainTexture");
             if (tilingMode == StripTilingMode.Custom)
                 yield return slotExpressions.First(o => o.name == "texCoord");

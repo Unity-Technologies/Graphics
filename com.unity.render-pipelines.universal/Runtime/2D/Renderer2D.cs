@@ -65,6 +65,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         protected override void Dispose(bool disposing)
         {
+            // always dispose unmanaged resources
+            m_PostProcessPass.Cleanup();
+            m_FinalPostProcessPass.Cleanup();
+            m_ColorGradingLutPass.Cleanup();
+            
             CoreUtils.Destroy(m_BlitMaterial);
         }
 

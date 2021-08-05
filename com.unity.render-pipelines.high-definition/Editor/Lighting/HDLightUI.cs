@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         enum ShadowmaskMode
         {
-            ShadowMask,
+            Shadowmask,
             DistanceShadowmask
         }
 
@@ -248,7 +248,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.lightlayersMask, s_Styles.lightLayer);
 
                     // If we're not in decoupled mode for light layers, we sync light with shadow layers:
-                    if (serialized.linkLightLayers.boolValue && change.changed)
+                    if (serialized.linkLightLayers.boolValue && change.changed && !serialized.lightlayersMask.hasMultipleDifferentValues)
                         SyncLightAndShadowLayers(serialized, owner);
                 }
             }
@@ -964,14 +964,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUI.BeginProperty(nonLightmappedOnlyRect, s_Styles.nonLightmappedOnly, serialized.nonLightmappedOnly);
                         {
                             EditorGUI.BeginChangeCheck();
-                            ShadowmaskMode shadowmask = serialized.nonLightmappedOnly.boolValue ? ShadowmaskMode.ShadowMask : ShadowmaskMode.DistanceShadowmask;
+                            ShadowmaskMode shadowmask = serialized.nonLightmappedOnly.boolValue ? ShadowmaskMode.Shadowmask : ShadowmaskMode.DistanceShadowmask;
                             shadowmask = (ShadowmaskMode)EditorGUI.EnumPopup(nonLightmappedOnlyRect, s_Styles.nonLightmappedOnly, shadowmask);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 Undo.RecordObjects(owner.targets, "Light Update Shadowmask Mode");
-                                serialized.nonLightmappedOnly.boolValue = shadowmask == ShadowmaskMode.ShadowMask;
+                                serialized.nonLightmappedOnly.boolValue = shadowmask == ShadowmaskMode.Shadowmask;
                                 foreach (Light target in owner.targets)
-                                    target.lightShadowCasterMode = shadowmask == ShadowmaskMode.ShadowMask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
+                                    target.lightShadowCasterMode = shadowmask == ShadowmaskMode.Shadowmask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
                             }
                         }
                         EditorGUI.EndProperty();
@@ -1091,7 +1091,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (change.changed)
                             Undo.RecordObjects(owner.targets, "Undo Light Layers Changed");
                     }
-                    if (!serialized.linkLightLayers.hasMultipleDifferentValues)
+                    if (!serialized.linkLightLayers.hasMultipleDifferentValues && !serialized.lightlayersMask.hasMultipleDifferentValues)
                     {
                         using (new EditorGUI.DisabledGroupScope(serialized.linkLightLayers.boolValue))
                         {

@@ -30,9 +30,13 @@
 *.sublime-workspace
 *.suo
 *.userprefs
+*.log
 .npmrc
 ShaderGraph/DebugOutput.meta
 ShaderGraph/DebugOutput/**
 ShaderGraph/Testing/IntegrationTests/.Failed
 TestProjects/*/ProjectSettings/ProjectVersion.txt
 node_modules
+
+.yamato/script/path.config
+manifest-updater.py

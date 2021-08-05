@@ -3126,9 +3126,27 @@ namespace UnityEngine.Rendering.HighDefinition
             var kernel = cs.FindKernel("ClearList");
 
             cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._LightListToClear, bufferToClear);
-            cmd.SetComputeIntParam(cs, HDShaderIDs._LightListEntries, bufferToClear.count);
+            Vector2 countAndOffset = new Vector2Int(bufferToClear.count, 0);
 
             int groupSize = 64;
+            int totalNumberOfGroupsNeeded = (bufferToClear.count + groupSize - 1) / groupSize;
+
+            const int maxAllowedGroups = 65535;
+            // On higher resolutions we might end up with more than 65535 group which is not allowed, so we need to to have multiple dispatches.
+            int i = 0;
+            while (totalNumberOfGroupsNeeded > 0)
+            {
+                countAndOffset.y = maxAllowedGroups * i;
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._LightListEntriesAndOffset, countAndOffset);
+
+                int currGroupCount = Math.Min(maxAllowedGroups, totalNumberOfGroupsNeeded);
+
+                cmd.DispatchCompute(cs, kernel, currGroupCount, 1, 1);
+
+                totalNumberOfGroupsNeeded -= currGroupCount;
+                i++;
+            }
+
             cmd.DispatchCompute(cs, kernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
         }
 

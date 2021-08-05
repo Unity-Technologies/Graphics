@@ -98,8 +98,12 @@ namespace UnityEngine.Rendering.Universal
             PerFrameBuffer.unity_DeltaTime = Shader.PropertyToID("unity_DeltaTime");
             PerFrameBuffer._TimeParameters = Shader.PropertyToID("_TimeParameters");
 
+            // In QualitySettings.antiAliasing disabled state uses value 0, where in URP 1
+            int qualitySettingsMsaaSampleCount = QualitySettings.antiAliasing > 0 ? QualitySettings.antiAliasing : 1;
+            bool msaaSampleCountNeedsUpdate = qualitySettingsMsaaSampleCount != asset.msaaSampleCount;
+
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
-            if (QualitySettings.antiAliasing != asset.msaaSampleCount)
+            if (msaaSampleCountNeedsUpdate)
             {
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
 #if ENABLE_VR && ENABLE_VR_MODULE
@@ -333,12 +337,18 @@ namespace UnityEngine.Rendering.Universal
                 if (!IsMultiPassStereoEnabled(baseCamera))
                 {
                     var baseCameraRendererType = baseCameraAdditionalData?.scriptableRenderer.GetType();
+                    bool shouldUpdateCameraStack = false;
 
                     for (int i = 0; i < cameraStack.Count; ++i)
                     {
                         Camera currCamera = cameraStack[i];
+                        if (currCamera == null)
+                        {
+                            shouldUpdateCameraStack = true;
+                            continue;
+                        }
 
-                        if (currCamera != null && currCamera.isActiveAndEnabled)
+                        if (currCamera.isActiveAndEnabled)
                         {
                             currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data);
 
@@ -362,6 +372,10 @@ namespace UnityEngine.Rendering.Universal
                             anyPostProcessingEnabled |= data.renderPostProcessing;
                             lastActiveOverlayCameraIndex = i;
                         }
+                    }
+                    if (shouldUpdateCameraStack)
+                    {
+                        baseCameraAdditionalData.UpdateCameraStack();
                     }
                 }
                 else
@@ -496,6 +510,18 @@ namespace UnityEngine.Rendering.Universal
             cameraData = new CameraData();
             InitializeStackedCameraData(camera, additionalCameraData, ref cameraData);
             InitializeAdditionalCameraData(camera, additionalCameraData, resolveFinalTarget, ref cameraData);
+
+            ///////////////////////////////////////////////////////////////////
+            // Descriptor settings                                            /
+            ///////////////////////////////////////////////////////////////////
+
+            int msaaSamples = 1;
+            if (camera.allowMSAA && asset.msaaSampleCount > 1)
+                msaaSamples = (camera.targetTexture != null) ? camera.targetTexture.antiAliasing : asset.msaaSampleCount;
+
+            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
+            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
+                cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -597,9 +623,6 @@ namespace UnityEngine.Rendering.Universal
             ///////////////////////////////////////////////////////////////////
             // Settings that control output of the camera                     /
             ///////////////////////////////////////////////////////////////////
-            int msaaSamples = 1;
-            if (baseCamera.allowMSAA && settings.msaaSampleCount > 1)
-                msaaSamples = (baseCamera.targetTexture != null) ? baseCamera.targetTexture.antiAliasing : settings.msaaSampleCount;
             cameraData.isHdrEnabled = baseCamera.allowHDR && settings.supportsHDR;
 
             Rect cameraRect = baseCamera.rect;
@@ -623,10 +646,6 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.defaultOpaqueSortFlags = canSkipFrontToBackSorting ? noFrontToBackOpaqueFlags : commonOpaqueFlags;
             cameraData.captureActions = CameraCaptureBridge.GetCaptureActions(baseCamera);
-
-            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
-            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(baseCamera, cameraData.renderScale,
-                cameraData.isStereoEnabled, cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel);
         }
 
         /// <summary>
@@ -914,14 +933,18 @@ namespace UnityEngine.Rendering.Universal
                 if (currLight == null)
                     break;
 
-                if (currLight == sunLight)
-                    return i;
-
-                // In case no shadow light is present we will return the brightest directional light
-                if (currVisibleLight.lightType == LightType.Directional && currLight.intensity > brightestLightIntensity)
+                if (currVisibleLight.lightType == LightType.Directional)
                 {
-                    brightestLightIntensity = currLight.intensity;
-                    brightestDirectionalLightIndex = i;
+                    // Sun source needs be a directional light
+                    if (currLight == sunLight)
+                        return i;
+
+                    // In case no sun light is present we will return the brightest directional light
+                    if (currLight.intensity > brightestLightIntensity)
+                    {
+                        brightestLightIntensity = currLight.intensity;
+                        brightestDirectionalLightIndex = i;
+                    }
                 }
             }
 

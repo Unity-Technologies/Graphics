@@ -10,6 +10,8 @@ At runtime, HDRP looks at all of the enabled Volumes attached to active GameObje
 
 Volumes can contain different combinations of Volume overrides. For example, one Volume may hold a Physically Based Sky Volume override while other Volumes hold an Exponential Fog Volume override.
 
+Note that, for Volumes with the same priority, there is no guarantee on the order in which HDRP evaluates them. This means that, depending on creation order, a global Volume can take precedence over a local Volume. The result is that a Camera can go within the bounds of a local Volume but still exclusively use the Volume Override properties from a global Volume in the Scene.
+
 ## Properties
 
 ![image alt text](Images/Volumes1.png)

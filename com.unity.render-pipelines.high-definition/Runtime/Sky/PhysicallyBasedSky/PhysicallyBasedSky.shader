@@ -7,7 +7,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
     // #pragma enable_d3d11_debug_symbols
     #pragma editor_sync_compilation
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -147,7 +147,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                             float w = saturate(1 - r * rcp(light.flareSize));
 
                             color *= light.flareTint;
-                            scale *= pow(w, light.flareFalloff);
+                            scale *= SafePositivePow(w, light.flareFalloff);
                         }
 
                         radiance += color * scale;

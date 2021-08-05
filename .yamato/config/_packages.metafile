@@ -57,6 +57,14 @@ packages:
 platforms:
   - name: Win
   - name: OSX
-agent_pack: package_ci_win_large 
-agent_publish: package_ci_win_large 
-agent_publish_all: package_ci_ubuntu_large 
+agent_pack: package_ci_win_large
+agent_publish: package_ci_win_large
+agent_publish_all: package_ci_ubuntu_large
+
+publish_all_tracks:
+  - 2019.4
+
+
+# upm-ci command flags
+projectcontext_test_min_upmci_flags: --project-path TestProjects/SRP_SmokeTest --type vetting-tests --extra-create-project-arg="-upmNoDefaultPackages"
+projectcontext_test_upmci_flags: --project-path TestProjects/SRP_SmokeTest --type vetting-tests --extra-create-project-arg="-upmNoDefaultPackages"

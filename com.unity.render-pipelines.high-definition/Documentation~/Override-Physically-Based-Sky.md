@@ -20,16 +20,20 @@ You can use Physically Based Sky to simulate the sky during both daytime and nig
 Physically Based Sky uses the [Volume](Volumes.html) framework. To enable and modify **Physically Based Sky** properties, add a **Physically Based Sky** override to a [Volume](Volumes.html) in your Scene. To add **Physically Based Sky** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-
 2. In the Inspector, go to **Add Override > Sky** and select **Physically Based Sky**.
+3. If the Scene does not contain a Directional [Light](Light-Component.md), create one (menu: **GameObject > Light > Directional Light**). For physically correct results, set the Light's intensity to 130,000 lux.
 
 Next, set the Volume to use **Physically Based Sky**. The [Visual Environment](Override-Visual-Environment.html) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Physically Based Sky**. HDRP now renders a **Physically Based Sky** for any Camera this Volume affects.
 
 To change how much the atmosphere attenuates light, you can change the density of both air and aerosol molecules (participating media) in the atmosphere. You can also use aerosols to simulate real-world pollution or fog.
 
+**Note:** When Unity initializes a Physically Based Sky, it performs a resource-intensive operation which can cause the frame rate of your project to drop for a few frames. Once Unity has completed this operation, it stores the data in a cache to access the next time Unity initializes this volume. However, you may experience this frame rate drop if you have two Physically Based Sky volumes with different properties and switch between them.
+
 ![](Images/Override-PhysicallyBasedSky4.png)
 
 ## Properties
+
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 ### Planet
 
@@ -104,7 +108,7 @@ To make this section visible, disable **Earth Preset**.
 
 This sky type is a practical implementation of the method outlined in the paper [Precomputed Atmospheric Scattering](http://www-ljk.imag.fr/Publications/Basilic/com.lmc.publi.PUBLI_Article@11e7cdda2f7_f64b69/article.pdf) (Bruneton and Neyret, 2008).
 
-This technique assumes that you always view the Scene from above the surface of the planet. This means that if you go below the planet's surface, the sky renders black. Where the surface of the planet is depends on whether you enable or disable **Spherical Mode**:
+This technique assumes that you always view the Scene from above the surface of the planet. This means that if a camera goes below the planet's surface, the sky renders as it would do if the camera was at ground level. Where the surface of the planet is depends on whether you enable or disable **Spherical Mode**:
 
 * If you enable **Spherical Mode**, the **Planetary Radius** and **Planet Center Position** properties define where the surface is. In this mode, the surface is at the distance set in **Planetary Radius** away from the position set in **Planet Center Position**.
 * Otherwise, the **Sea Level** property defines where the surface is. In this mode, the surface stretches out infinitely on the xz plane and **Sea Level** sets its world space height.
