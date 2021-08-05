@@ -324,7 +324,8 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.halfResolution = !fullResolution;
             deferredParameters.rayCountType = (int)RayCountValues.ReflectionDeferred;
             deferredParameters.lodBias = settings.textureLodBias.value;
-            deferredParameters.fallbackHierarchy = (int)(settings.fallbackHierachy.value);
+            deferredParameters.rayMissFallbackHierarchy = (int)(settings.rayMissFallbackHierarchy.value);
+            deferredParameters.lastBounceFallbackHierarchy = (int)(settings.lastBounceFallbackHierarchy.value);
 
             // Ray Marching parameters
             deferredParameters.mixedTracing = (settings.tracing.value == RayCastingMode.Mixed && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred) && !transparent;
@@ -357,7 +358,8 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
             deferredParameters.raytracingCB._RaytracingPreExposition = 0;
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 0;
-            deferredParameters.raytracingCB._RayTracingFallbackHierarchy = deferredParameters.fallbackHierarchy;
+            deferredParameters.raytracingCB._RayTracingRayMissFallbackHierarchy = deferredParameters.rayMissFallbackHierarchy;
+            deferredParameters.raytracingCB._RayTracingLastBounceFallbackHierarchy = deferredParameters.lastBounceFallbackHierarchy;
 
             return deferredParameters;
         }
@@ -417,7 +419,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float minSmoothness;
             public float smoothnessFadeStart;
             public float lodBias;
-            public int fallbackHierarchy;
+            public int rayMissfallbackHierarchy;
+            public int lastBouncefallbackHierarchy;
 
             // Other parameters
             public RayTracingAccelerationStructure accelerationStructure;
@@ -457,7 +460,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.minSmoothness = settings.minSmoothness;
                 passData.smoothnessFadeStart = settings.smoothnessFadeStart;
                 passData.lodBias = settings.textureLodBias.value;
-                passData.fallbackHierarchy = (int)settings.fallbackHierachy.value;
+                passData.rayMissfallbackHierarchy = (int)settings.rayMissFallbackHierarchy.value;
+                passData.lastBouncefallbackHierarchy = (int)settings.lastBounceFallbackHierarchy.value;
 
                 // Other parameters
                 passData.accelerationStructure = RequestAccelerationStructure();
@@ -496,7 +500,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = data.minSmoothness;
                         data.shaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = data.smoothnessFadeStart;
                         data.shaderVariablesRayTracingCB._RayTracingLodBias = data.lodBias;
-                        data.shaderVariablesRayTracingCB._RayTracingFallbackHierarchy = data.fallbackHierarchy;
+                        data.shaderVariablesRayTracingCB._RayTracingRayMissFallbackHierarchy = data.rayMissfallbackHierarchy;
+                        data.shaderVariablesRayTracingCB._RayTracingLastBounceFallbackHierarchy = data.lastBouncefallbackHierarchy;
+
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Inject the ray-tracing sampling data

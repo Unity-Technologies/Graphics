@@ -38,6 +38,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Minmal Smoothness for Reflection. If the surface has a smoothness value below this threshold, a reflection ray will not be case and it will fallback on other techniques.")]
         public ClampedFloatParameter minSmoothness = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Controls which sources are used to fallback on when the traced ray misses.
+        /// </summary>
+        [AdditionalProperty]
+        public RayTracingFallbackHierachyParameter rayMissFallbackHierarchy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
+
+        /// <summary>
+        /// Controls the fallback hierarchy for lighting the last bounce.
+        /// </summary>
+        [AdditionalProperty]
+        public RayTracingFallbackHierachyParameter lastBounceFallbackHierarchy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
+        
         /// <summary>
         /// Default constructor for the recursive rendering volume component.
         /// </summary>

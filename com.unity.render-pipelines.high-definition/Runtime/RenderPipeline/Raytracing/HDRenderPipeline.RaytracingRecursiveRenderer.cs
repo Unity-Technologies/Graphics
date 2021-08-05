@@ -69,6 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float rayLength;
             public int maxDepth;
             public float minSmoothness;
+            public int rayMissFallbackHiearchy;
+            public int lastBounceFallbackHiearchy;
 
             // Other data
             public RayTracingAccelerationStructure accelerationStructure;
@@ -105,6 +107,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayLength = recursiveSettings.rayLength.value;
                 passData.maxDepth = recursiveSettings.maxDepth.value;
                 passData.minSmoothness = recursiveSettings.minSmoothness.value;
+                passData.rayMissFallbackHiearchy = (int)recursiveSettings.rayMissFallbackHierarchy.value;
+                passData.lastBounceFallbackHiearchy = (int)recursiveSettings.lastBounceFallbackHierarchy.value;
 
                 // Other data
                 passData.accelerationStructure = RequestAccelerationStructure();
@@ -139,6 +143,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RaytracingRayMaxLength = data.rayLength;
                         data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = data.maxDepth;
                         data.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = data.minSmoothness;
+                        data.shaderVariablesRayTracingCB._RayTracingRayMissFallbackHierarchy = data.rayMissFallbackHiearchy;
+                        data.shaderVariablesRayTracingCB._RayTracingLastBounceFallbackHierarchy = data.lastBounceFallbackHiearchy;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Fecth the temporary buffers we shall be using
