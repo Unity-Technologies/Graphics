@@ -12,6 +12,19 @@ static const int2 IndexToLocalOffsetCoords[9] = {int2(-1, -1), int2(0, -1),  int
                                                 , int2(-1, 0), int2(0, 0),  int2(1, 0)
                                                 , int2(-1, 1) , int2(0, 1), int2(1, 1)};
 
+// The bilateral upscale function (2x2 neighborhood, color3 version), uniform weight version
+float3 BilUpColor3_Uniform(float HiDepth, float4 LowDepths, float3 lowValue0, float3 lowValue1, float3 lowValue2, float3 lowValue3)
+{
+    float4 weights = float4(3, 3, 3, 3) / (abs(HiDepth - LowDepths) + _UpsampleTolerance);
+    float TotalWeight = dot(weights, 1) + _NoiseFilterStrength;
+    float3 WeightedSum = lowValue0 * weights.x
+                        + lowValue1 * weights.y
+                        + lowValue2 * weights.z
+                        + lowValue3 * weights.w
+                        + _NoiseFilterStrength;
+    return WeightedSum / TotalWeight;
+}
+
 // THe bilateral upscale function (2x2 neighborhood, color3 version)
 float3 BilUpColor3(float HiDepth, float4 LowDepths, float3 lowValue0, float3 lowValue1, float3 lowValue2, float3 lowValue3)
 {
@@ -42,6 +55,15 @@ float4 BilUpColor(float HiDepth, float4 LowDepths, float4 lowValue0, float4 lowV
 float BilUpSingle(float HiDepth, float4 LowDepths, float4 lowValue)
 {
     float4 weights = float4(9, 3, 1, 3) / (abs(HiDepth - LowDepths) + _UpsampleTolerance);
+    float TotalWeight = dot(weights, 1) + _NoiseFilterStrength;
+    float WeightedSum = dot(lowValue, weights) + _NoiseFilterStrength;
+    return WeightedSum / TotalWeight;
+}
+
+// The bilateral upscale function (2x2 neighborhood) (single channel version), uniform version
+float BilUpSingle_Uniform(float HiDepth, float4 LowDepths, float4 lowValue)
+{
+    float4 weights = float4(3, 3, 3, 3) / (abs(HiDepth - LowDepths) + _UpsampleTolerance);
     float TotalWeight = dot(weights, 1) + _NoiseFilterStrength;
     float WeightedSum = dot(lowValue, weights) + _NoiseFilterStrength;
     return WeightedSum / TotalWeight;

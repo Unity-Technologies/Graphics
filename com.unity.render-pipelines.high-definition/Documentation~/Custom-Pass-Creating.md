@@ -374,7 +374,7 @@ You can also use this method to render GameObjects in a Custom Pass that are not
 
 Unity renders all objects in a Custom Pass using the Forward rendering path**.** This can cause issues if your scene is set to render using **Deferred Only**. In the [**HDRP Asset**](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.3/manual/HDRP-Asset.html), change the **Lit Shader Mode** to **Both** to avoid issues when you build your project.
 
-### Using a Custom Buffer Format
+### Using the Custom Buffer
 
 You can use custom buffers to store the result of your passes, and execute that later in the rendering process, or between two Custom Passes. You can sample these custom buffers in any kind of Custom Pass shader using the following functions:
 
@@ -397,6 +397,10 @@ To change the buffer format of the Custom Pass component in your HDRP asset, go 
 | R16G16B16A16 | 64                 | This format has the highest precision but uses twice as much memory as R8G8B8A8 and R11G11B10. |
 
 ![](Images/Custom_Pass_HDRPAsset_CBF.png)
+
+You can sample the custom color and depth buffers in Shader Graph using the following nodes:
+- [Custom Color Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/HD-Custom-Color-Node.html)
+- [Custom Depth Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/HD-Custom-Depth-Node.html)
 
 ## Disabling custom passes
 

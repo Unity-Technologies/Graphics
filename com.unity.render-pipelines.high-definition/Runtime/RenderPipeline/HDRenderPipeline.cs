@@ -296,15 +296,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
-            {
-                ColorUtils.s_LensAttenuation = 0.65f;
-            }
-            else if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.PerfectLens)
-            {
-                ColorUtils.s_LensAttenuation = 0.78f;
-            }
-
 #if ENABLE_VIRTUALTEXTURES
             VirtualTexturingSettingsSRP settings = asset.virtualTexturingSettings;
 
@@ -381,7 +372,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
                     probeDebugMesh = defaultResources.assets.sphereMesh,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
-                    sceneBounds = m_GlobalSettings.GetOrCreateAPVSceneBounds()
+                    sceneBounds = m_GlobalSettings.GetOrCreateAPVSceneBounds(),
+                    shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
             }
@@ -648,6 +640,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="disposing">Is disposing.</param>
         protected override void Dispose(bool disposing)
         {
+            Graphics.ClearRandomWriteTargets();
+            Graphics.SetRenderTarget(null);
             DisposeProbeCameraPool();
 
             UnsetRenderingFeatures();
@@ -977,7 +971,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool useOptimalSettings = hdCam.deepLearningSuperSamplingUseCustomAttributes
                     ? hdCam.deepLearningSuperSamplingUseOptimalSettings
                     : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings;
-                m_DLSSPass.SetupAutomaticDRSScaling(useOptimalSettings, camera, xrPass, ref outDrsSettings);
+                m_DLSSPass.SetupDRSScaling(useOptimalSettings, camera, xrPass, ref outDrsSettings);
             }
         }
 
@@ -1071,6 +1065,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             m_GlobalSettings.GetOrCreateDefaultVolume();
 
+            if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
+            {
+                ColorUtils.s_LensAttenuation = 0.65f;
+            }
+            else if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.PerfectLens)
+            {
+                ColorUtils.s_LensAttenuation = 0.78f;
+            }
 
             DecalSystem.instance.StartDecalUpdateJobs();
 
@@ -1186,7 +1188,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
-                    dynResHandler.runUpscalerFilterOnFullResolution = hdCam != null && hdCam.cameraCanRenderDLSS;
+                    dynResHandler.runUpscalerFilterOnFullResolution = (hdCam != null && hdCam.cameraCanRenderDLSS) || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
 
                     RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
 
@@ -1579,6 +1581,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Make sure that the volumetric cloud animation data is in sync with the parent camera.
                             hdCamera.volumetricCloudsAnimationData = hdParentCamera.volumetricCloudsAnimationData;
                             useFetchedGpuExposure = true;
+                        }
+                        else
+                        {
+                            hdCamera.realtimeReflectionProbe = (visibleProbe.mode == ProbeSettings.Mode.Realtime);
                         }
 
                         hdCamera.SetParentCamera(hdParentCamera, useFetchedGpuExposure, fetchedGpuExposure); // Used to inherit the properties of the view

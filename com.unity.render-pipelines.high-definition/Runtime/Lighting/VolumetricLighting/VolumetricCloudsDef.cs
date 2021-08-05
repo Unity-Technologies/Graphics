@@ -71,6 +71,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Maximal temporal accumulation
         public float _TemporalAccumulationFactor;
 
+        // Direction to the sun
+        public Vector2 _Padding0;
+        public float _FadeInStart;
+        public float _FadeInDistance;
+
         // Scattering Tint
         public Vector4 _ScatteringTint;
 
@@ -128,8 +133,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _ErosionFactorCompensation;
         // Fast tonemapping settings
         public int _EnableFastToneMapping;
+        // Flag that defines if the current camera is a planar reflection
+        public int _IsPlanarReflection;
+
         // Padding
-        public float _Padding;
+        public Vector2 _Padding1;
+        // Flag that defines if the clouds should be evaluated at full resolution
+        public int _LowResolutionEvaluation;
+        // Flag that defines if the we should enable integration, checkerboard rendering, etc.
+        public int _EnableIntegration;
 
         [HLSLArray(3 * 4, typeof(Vector4))]
         public fixed float _DistanceBasedWeights[12 * 4];

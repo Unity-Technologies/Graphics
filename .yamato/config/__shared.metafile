@@ -12,9 +12,7 @@ editors: # applied for all yml files
     ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
       enabled: True
-      green_abv_required: False
       nr_commits_to_retrieve: 1
-      store_green_revisions: False
     allow_triggers: True
     variables:
       CACHE_ARGS: '{{cache.flags}}'
@@ -24,9 +22,7 @@ editors: # applied for all yml files
     ono_branch_var: ONO_BRANCH_2021_2
     editor_pinning:
       enabled: True
-      green_abv_required: False
       nr_commits_to_retrieve: 100
-      store_green_revisions: False
     allow_triggers: True
     variables:
       CACHE_ARGS: '{{cache.flags}}'
@@ -35,7 +31,6 @@ editors: # applied for all yml files
     rerun_strategy: on_new_revision
     editor_pinning:
       enabled: False
-      green_abv_required: False
     fast: False
     allow_triggers: False
     variables:
@@ -286,7 +281,7 @@ platforms:
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: graphics-foundation/mac-10.15:latest
+        image: graphics-foundation/mac-10.15:v0.0.1-672710
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx

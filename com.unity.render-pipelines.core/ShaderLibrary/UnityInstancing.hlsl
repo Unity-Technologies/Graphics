@@ -355,18 +355,29 @@
             #define unity_ProbesOcclusion UNITY_ACCESS_INSTANCED_PROP(unity_Builtins2, unity_ProbesOcclusionArray)
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins2)
+
+    UNITY_INSTANCING_BUFFER_START(PerDraw3)
+        UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_PrevObjectToWorldArray)
+        UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_PrevWorldToObjectArray)
+    UNITY_INSTANCING_BUFFER_END(unity_Builtins3)
     #endif
 
     // TODO: What about UNITY_DONT_INSTANCE_OBJECT_MATRICES for DOTS?
     #if defined(UNITY_DOTS_INSTANCING_ENABLED)
         #undef UNITY_MATRIX_M
         #undef UNITY_MATRIX_I_M
+        #undef UNITY_PREV_MATRIX_M
+        #undef UNITY_PREV_MATRIX_I_M
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
-            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_ObjectToWorld)))
-            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_WorldToObject)))
+            #define UNITY_MATRIX_M        ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_ObjectToWorld)))
+            #define UNITY_MATRIX_I_M      ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_WorldToObject)))
+            #define UNITY_PREV_MATRIX_M   ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousM)))
+            #define UNITY_PREV_MATRIX_I_M ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousMI)))
         #else
-            #define UNITY_MATRIX_M      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_ObjectToWorld))
-            #define UNITY_MATRIX_I_M    LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_WorldToObject))
+            #define UNITY_MATRIX_M        LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_ObjectToWorld))
+            #define UNITY_MATRIX_I_M      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_WorldToObject))
+            #define UNITY_PREV_MATRIX_M   LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousM))
+            #define UNITY_PREV_MATRIX_I_M LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousMI))
         #endif
     #else
 
@@ -383,11 +394,15 @@
         #endif
 
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
-            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray))
-            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY, unity_WorldToObjectArray))
+            #define UNITY_MATRIX_M         ApplyCameraTranslationToMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray))
+            #define UNITY_MATRIX_I_M       ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY, unity_WorldToObjectArray))
+            #define UNITY_PREV_MATRIX_M    ApplyCameraTranslationToMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins3, unity_PrevObjectToWorldArray))
+            #define UNITY_PREV_MATRIX_I_M  ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins3, unity_PrevWorldToObjectArray))
         #else
-            #define UNITY_MATRIX_M      UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
-            #define UNITY_MATRIX_I_M    UNITY_ACCESS_INSTANCED_PROP(UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY, unity_WorldToObjectArray)
+            #define UNITY_MATRIX_M         UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
+            #define UNITY_MATRIX_I_M       UNITY_ACCESS_INSTANCED_PROP(UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY, unity_WorldToObjectArray)
+            #define UNITY_PREV_MATRIX_M    UNITY_ACCESS_INSTANCED_PROP(unity_Builtins3, unity_PrevObjectToWorldArray)
+            #define UNITY_PREV_MATRIX_I_M  UNITY_ACCESS_INSTANCED_PROP(unity_Builtins3, unity_PrevWorldToObjectArray)
         #endif
     #endif
 
