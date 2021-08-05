@@ -46,6 +46,7 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 | - **Denoiser Radius**          | Set the radius of the spatio-temporal filter.                |
 | - **Second Denoiser Pass**     | Enable this feature to process a second denoiser pass. This helps to remove noise from the effect. |
 | **Depth Tolerance** | Use the slider to control the tolerance when comparing the depth of the GameObjects on screen and the depth buffer. Because the SSR algorithm can not distinguish thin GameObjects from thick ones, this property helps trace rays behind GameObjects. The algorithm applies this property to every GameObject uniformly. |
+| **Ray Miss Hierarchy**         | Defines if HDRP should use the reflection probes, the sky, both or nothing as a fall-back for screen space global illumination when a ray doesn't find an intersection. |
 
 ### Ray-traced
 
@@ -53,6 +54,8 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 
 | Property                       | Description                                                  |
 | ------------------------------ | ------------------------------------------------------------ |
+| **Ray Miss Hierarchy**         | Defines if HDRP should use the reflection probes, the sky, both or nothing as a fall-back for ray-traced global illumination when a ray doesn't find an intersection. |
+| **Last Bounce Hierarchy**      | Defines if HDRP should use the reflection probes, the sky, both or nothing as a fall-back for ray-traced global illumination when lighting the last bounce. |
 | **Tracing**                    | Specifies the method HDRP uses to calculate global illumination. Depending on the option you select, the properties visible in the Inspector change. For more information on what the options do, see [tracing modes](#tracing-modes). The options are:<br/>&#8226; **Ray Marching**: Uses a screen-space ray marching solution to calculate global illumination. For the list of properties this option exposes, see [Screen-space](#screen-space).<br/>&#8226; **Ray Tracing**: Uses ray tracing to calculate global illumination. For information on ray-traced global illumination, see [ray-traced global illumination](Ray-Traced-Global-Illumination.md). For the list of properties this option exposes, see [Ray-traced](#ray-traced).<br/>&#8226; **Mixed**: Uses a combination of ray tracing and ray marching to calculate global illumination. For the list of properties this option exposes, see [Ray-traced](#ray-traced). |
 | **LayerMask**                  | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Mode**                       | Defines if HDRP should evaluate the effect in **Performance** or **Quality** mode.<br/>This property only appears if you select set **Supported Ray Tracing Mode** in your HDRP Asset to **Both**. |

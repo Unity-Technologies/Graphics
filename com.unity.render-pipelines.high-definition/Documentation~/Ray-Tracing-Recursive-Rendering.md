@@ -41,3 +41,5 @@ Since recursive rendering uses an independent render pass, HDRP cannot render an
 | **Max Depth**  | Controls the maximum number of times a ray can reflect or refract before it stops and returns the final color. Increasing this value increases execution time exponentially. |
 | **Max Ray Length** | Controls the length of the rays that HDRP uses for ray tracing. If a ray doesn't find an intersection, then the ray returns the color of the sky. |
 | **Min Smoothness** | Defines the threshold at which reflection rays are not cast if the smoothness value of the target surface is inferior to the one defined by the parameter. |
+| **Ray Miss Hierarchy**         | Defines if HDRP should use the reflection probes, the sky, both or nothing as a fall-back for recursive rendering when a ray doesn't find an intersection. |
+| **Last Bounce Hierarchy**      | Defines if HDRP should use the reflection probes, the sky, both or nothing as a fall-back for recursive rendering when lighting the last bounce. |
