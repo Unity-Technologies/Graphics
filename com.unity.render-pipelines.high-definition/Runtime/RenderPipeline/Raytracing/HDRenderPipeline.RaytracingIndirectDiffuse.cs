@@ -184,9 +184,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int texHeight;
             public int viewCount;
 
-            // Generation parameters
-            public int upscaleRadius;
-
             // Additional resources
             public Texture2DArray blueNoiseTexture;
             public Texture2D scramblingTexture;
@@ -211,9 +208,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.texWidth = hdCamera.actualWidth;
                 passData.texHeight = hdCamera.actualHeight;
                 passData.viewCount = hdCamera.viewCount;
-
-                // Set the generation parameters
-                passData.upscaleRadius = settings.upscaleRadius;
 
                 // Grab the right kernel
                 passData.upscaleCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
@@ -240,7 +234,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.upscaleCS, data.upscaleKernel, HDShaderIDs._RaytracingDirectionBuffer, data.directionBuffer);
                         ctx.cmd.SetComputeTextureParam(data.upscaleCS, data.upscaleKernel, HDShaderIDs._BlueNoiseTexture, data.blueNoiseTexture);
                         ctx.cmd.SetComputeTextureParam(data.upscaleCS, data.upscaleKernel, HDShaderIDs._ScramblingTexture, data.scramblingTexture);
-                        ctx.cmd.SetComputeIntParam(data.upscaleCS, HDShaderIDs._SpatialFilterRadius, data.upscaleRadius);
 
                         // Output buffer
                         ctx.cmd.SetComputeTextureParam(data.upscaleCS, data.upscaleKernel, HDShaderIDs._UpscaledIndirectDiffuseTextureRW, data.outputBuffer);
