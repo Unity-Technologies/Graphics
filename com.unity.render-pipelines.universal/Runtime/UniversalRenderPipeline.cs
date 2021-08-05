@@ -186,7 +186,6 @@ namespace UnityEngine.Rendering.Universal
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
             ShaderData.instance.Dispose();
-            DeferredShaderData.instance.Dispose();
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XRSystem?.Dispose();
