@@ -801,11 +801,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 #if UNITY_2021_1_OR_NEWER
                         cameras.Clear();
                         cameras.Add(layer.camera);
-                        renderPipeline.InternalRender(cntx, cameras);
 #else
                         cameras[0] = layer.camera;
-                        renderPipeline.InternalRender(cntx, cameras);
 #endif
+                        renderPipeline.InternalRender(cntx, cameras);
                     }
                 }
             }
