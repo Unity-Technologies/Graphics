@@ -1,4 +1,4 @@
 <tr>
 <td>**Add Custom Velocity**</td>
-<td>Indicates whether HDRP modifies the motion vector according to the provided velocity. The provided velocity (difference between current frame position and last frame position) in object space is added on top of the motion vector calculation. This allows to have correct motion vector for procedural geometry calculated outside of Shader Graph and the motion vector will still take into account other deformations (Skinning, Vertex Animation...).</td>
+<td>Indicates whether HDRP changes the motion vector according to the provided velocity. HDRP adds the provided velocity (the difference between the current frame position and the last frame position) to the motion vector calculation. This provides correct motion vector calculations for any procedural geometry that HDRP calculates outside of Shader Graph. The motion vector still takes into account other deformations (for example, skinning or vertex animation).</td>
 </tr>
