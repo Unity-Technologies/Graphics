@@ -219,6 +219,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeTextureSize, Styles.probeVolumeMemoryBudget);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.probeVolumeSHBands, Styles.probeVolumeSHBands);
+
+                int estimatedVMemCost = ProbeReferenceVolume.instance.GetVideoMemoryCost();
+                if (estimatedVMemCost == 0)
+                {
+                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost 0.\nProbe reference volume is not used in the scene and resources haven't been allocated yet.", MessageType.Info, wide: true);
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost {estimatedVMemCost/(1000 * 1000)} MB.", MessageType.Info, wide: true);
+                }
             }
             else
             {
@@ -339,7 +349,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportShadowMask, Styles.supportShadowMaskContent);
 
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests, Styles.maxRequestContent);
+            if (EditorGUI.EndChangeCheck())
+                serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests.intValue = Mathf.Max(1, serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests.intValue);
 
             if (!serialized.renderPipelineSettings.supportedLitShaderMode.hasMultipleDifferentValues)
             {
@@ -374,7 +387,11 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.IndentLevelScope())
             {
                 scalableSetting.ValueGUI<int>(Styles.shadowResolutionTiers);
+
+                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.DelayedIntField(resolutionProperty, Styles.maxShadowResolution);
+                if (EditorGUI.EndChangeCheck())
+                    resolutionProperty.intValue = Mathf.Max(1, resolutionProperty.intValue);
 
                 EditorGUILayout.LabelField(Styles.shadowLightAtlasSubTitle, EditorStyles.boldLabel);
 
@@ -689,14 +706,14 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawDepthOfFieldQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
             {
-                EditorGUILayout.LabelField(Styles.nearBlurSubTitle);
+                EditorGUILayout.LabelField(Styles.nearBlurSubTitle, EditorStyles.miniLabel);
                 ++EditorGUI.indentLevel;
                 {
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.NearBlurSampleCount.GetArrayElementAtIndex(tier), Styles.sampleCountQuality);
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.NearBlurMaxRadius.GetArrayElementAtIndex(tier), Styles.maxRadiusQuality);
                 }
                 --EditorGUI.indentLevel;
-                EditorGUILayout.LabelField(Styles.farBlurSubTitle);
+                EditorGUILayout.LabelField(Styles.farBlurSubTitle, EditorStyles.miniLabel);
                 ++EditorGUI.indentLevel;
                 {
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.FarBlurSampleCount.GetArrayElementAtIndex(tier), Styles.sampleCountQuality);
@@ -782,7 +799,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIRayLength.GetArrayElementAtIndex(tier), Styles.RTGIRayLength);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIClampValue.GetArrayElementAtIndex(tier), Styles.RTGIClampValue);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIFullResolution.GetArrayElementAtIndex(tier), Styles.RTGIFullResolution);
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIUpScaleRadius.GetArrayElementAtIndex(tier), Styles.RTGIUpScaleRadius);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIRaySteps.GetArrayElementAtIndex(tier), Styles.RTGIRaySteps);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIDenoise.GetArrayElementAtIndex(tier), Styles.RTGIDenoise);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.RTGIHalfResDenoise.GetArrayElementAtIndex(tier), Styles.RTGIHalfResDenoise);
@@ -864,8 +880,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
+            EditorGUI.BeginChangeCheck();
             serialized.renderPipelineSettings.lodBias.ValueGUI<float>(Styles.LODBias);
+            if (EditorGUI.EndChangeCheck())
+            {
+                for (var i = 0; i < serialized.renderPipelineSettings.lodBias.GetSchemaLevelCount(); ++i)
+                {
+                    var prop = serialized.renderPipelineSettings.lodBias.values.GetArrayElementAtIndex(i);
+                    prop.SetInline(Mathf.Max(0.01f, prop.GetInline<float>()));
+                }
+            }
+
+            EditorGUI.BeginChangeCheck();
             serialized.renderPipelineSettings.maximumLODLevel.ValueGUI<int>(Styles.maximumLODLevel);
+            if (EditorGUI.EndChangeCheck())
+            {
+                for (var i = 0; i < serialized.renderPipelineSettings.maximumLODLevel.GetSchemaLevelCount(); ++i)
+                {
+                    var prop = serialized.renderPipelineSettings.maximumLODLevel.values.GetArrayElementAtIndex(i);
+                    prop.SetInline(Mathf.Clamp(prop.GetInline<int>(), 0, 7));
+                }
+            }
 
             EditorGUILayout.Space(); //to separate with following sub sections
         }

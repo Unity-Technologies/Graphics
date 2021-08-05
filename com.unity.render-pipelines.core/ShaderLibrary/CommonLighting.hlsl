@@ -356,7 +356,7 @@ real ClampNdotV(real NdotV)
 void GetBSDFAngle(real3 V, real3 L, real NdotL, real NdotV,
                   out real LdotV, out real NdotH, out real LdotH, out real invLenLV)
 {
-    // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114).
+    // Optimized math. Ref: PBR Diffuse Lighting for GGX + Smith Microsurfaces (slide 114), assuming |L|=1 and |V|=1
     LdotV = dot(L, V);
     invLenLV = rsqrt(max(2.0 * LdotV + 2.0, FLT_EPS));    // invLenLV = rcp(length(L + V)), clamp to avoid rsqrt(0) = inf, inf * 0 = NaN
     NdotH = saturate((NdotL + NdotV) * invLenLV);

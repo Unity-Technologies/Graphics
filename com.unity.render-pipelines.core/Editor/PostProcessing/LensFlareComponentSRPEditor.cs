@@ -79,8 +79,8 @@ namespace UnityEditor.Rendering
                     ++EditorGUI.indentLevel;
                     EditorGUILayout.PropertyField(m_ScaleByDistanceCurve, Styles.scaleByDistanceCurve);
                     --EditorGUI.indentLevel;
-                    EditorGUILayout.PropertyField(m_RadialScreenAttenuationCurve, Styles.radialScreenAttenuationCurve);
                 }
+                EditorGUILayout.PropertyField(m_RadialScreenAttenuationCurve, Styles.radialScreenAttenuationCurve);
             }
             EditorGUILayout.LabelField(Styles.occlusionData.text, EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(m_UseOcclusion, Styles.enableOcclusion);
