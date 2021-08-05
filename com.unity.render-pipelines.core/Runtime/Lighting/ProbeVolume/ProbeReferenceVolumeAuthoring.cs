@@ -274,8 +274,11 @@ namespace UnityEngine.Experimental.Rendering
                     if (brick.subdivisionLevel < 0)
                         continue;
 
-                    Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
-                    Vector3 scaledPos = brick.position + scaledSize / 2;
+                    float brickSize = prv.BrickSize(brick.subdivisionLevel);
+                    float minBrickSize = prv.MinBrickSize();
+                    Vector3 scaledSize = new Vector3(brickSize, brickSize, brickSize);
+                    Vector3 scaledPos = new Vector3(brick.position.x * minBrickSize, brick.position.y * minBrickSize, brick.position.z * minBrickSize) + scaledSize / 2;
+
                     m_MeshGizmo.AddWireCube(scaledPos, scaledSize, subdivColors[brick.subdivisionLevel]);
                 }
             }
@@ -315,7 +318,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            m_MeshGizmo.Draw(ProbeReferenceVolume.instance.GetRefSpaceToWS(), gizmoName: "Probe Volume Cell Rendering");
+            m_MeshGizmo.Draw(Matrix4x4.identity, gizmoName: "Probe Volume Cell Rendering");
         }
 
         public ProbeDilationSettings GetDilationSettings()

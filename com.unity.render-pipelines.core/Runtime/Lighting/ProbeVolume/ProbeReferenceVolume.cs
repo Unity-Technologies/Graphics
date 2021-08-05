@@ -427,7 +427,6 @@ namespace UnityEngine.Experimental.Rendering
 
         internal struct RefVolTransform
         {
-            public Matrix4x4 refSpaceToWS;
             public Vector3 posWS;
             public Quaternion rot;
             public float scale;
@@ -1022,7 +1021,6 @@ namespace UnityEngine.Experimental.Rendering
             m_Transform.posWS = Vector3.zero;
             m_Transform.rot = Quaternion.identity;
             m_Transform.scale = 1f;
-            m_Transform.refSpaceToWS = Matrix4x4.identity;
         }
 
         /// <summary>
@@ -1046,7 +1044,6 @@ namespace UnityEngine.Experimental.Rendering
             m_Transform.posWS = position;
             m_Transform.rot = rotation;
             m_Transform.scale = minBrickSize;
-            m_Transform.refSpaceToWS = Matrix4x4.TRS(m_Transform.posWS, m_Transform.rot, Vector3.one * m_Transform.scale);
         }
 
         internal void SetMaxSubdivision(int maxSubdivision) => m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels);
@@ -1054,7 +1051,6 @@ namespace UnityEngine.Experimental.Rendering
         internal float BrickSize(int subdivisionLevel) => m_Transform.scale * CellSize(subdivisionLevel);
         internal float MinBrickSize() => m_Transform.scale;
         internal float MaxBrickSize() => BrickSize(m_MaxSubdivision - 1);
-        internal Matrix4x4 GetRefSpaceToWS() => m_Transform.refSpaceToWS;
         internal RefVolTransform GetTransform() => m_Transform;
         internal int GetMaxSubdivision() => m_MaxSubdivision;
         internal int GetMaxSubdivision(float multiplier) => Mathf.CeilToInt(m_MaxSubdivision * multiplier);
