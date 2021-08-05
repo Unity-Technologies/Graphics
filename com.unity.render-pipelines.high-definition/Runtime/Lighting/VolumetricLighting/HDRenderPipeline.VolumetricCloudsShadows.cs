@@ -79,6 +79,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.finalHeight = 1;
             cameraData.viewCount = 1;
             cameraData.enableExposureControl = false;
+            cameraData.lowResolution = false;
+            cameraData.enableIntegration = false;
             UpdateShaderVariableslClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, true);
 
             return parameters;
