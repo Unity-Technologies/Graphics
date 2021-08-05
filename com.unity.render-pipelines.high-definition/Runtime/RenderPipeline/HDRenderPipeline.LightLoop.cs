@@ -767,7 +767,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDeferredLightingCompute)))
             {
-                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, data.lightListBuffer);
                 data.deferredComputeShader.shaderKeywords = null;
 
                 switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
@@ -812,6 +811,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
                     cmd.SetComputeTextureParam(data.deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                     cmd.SetComputeTextureParam(data.deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV, colorBuffers[1]);
+                    cmd.SetComputeBufferParam(data.deferredComputeShader, kernel, HDShaderIDs.g_vLightListTile, data.lightListBuffer);
 
                     cmd.SetComputeTextureParam(data.deferredComputeShader, kernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
 
@@ -872,8 +872,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDeferredLightingComputeAsPixel)))
             {
-                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, data.lightListBuffer);
-
                 cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthTexture);
                 cmd.SetGlobalBuffer(HDShaderIDs.g_TileFeatureFlags, data.tileFeatureFlagsBuffer);
                 cmd.SetGlobalBuffer(HDShaderIDs.g_TileList, data.tileListBuffer);
@@ -882,11 +880,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Must set stencil parameters through Material.
                 if (data.outputSplitLighting)
                 {
+                    s_DeferredTileSplitLightingMat.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
+                    s_DeferredTileRegularLightingMat.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
+
                     RenderComputeAsPixelDeferredLighting(data, colorBuffers, s_DeferredTileSplitLightingMat, true, cmd);
                     RenderComputeAsPixelDeferredLighting(data, colorBuffers, s_DeferredTileRegularLightingMat, false, cmd);
                 }
                 else
                 {
+                    s_DeferredTileMat.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
                     RenderComputeAsPixelDeferredLighting(data, colorBuffers, s_DeferredTileMat, false, cmd);
                 }
             }
@@ -894,8 +896,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderPixelDeferredLighting(DeferredLightingPassData data, RenderTargetIdentifier[] colorBuffers, CommandBuffer cmd)
         {
-            cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, data.lightListBuffer);
-
             // First, render split lighting.
             if (data.outputSplitLighting)
             {
@@ -922,6 +922,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     currentLightingMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting);
                     currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
                 }
+
+                currentLightingMaterial.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightListBuffer);
 
                 CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, colorBuffers[0], data.depthBuffer);
             }
@@ -1401,7 +1403,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Send light list to the compute
                         ctx.cmd.SetComputeBufferParam(data.contactShadowsCS, data.kernel, HDShaderIDs._LightDatas, data.lightLoopLightData.lightData);
-                        ctx.cmd.SetComputeBufferParam(data.contactShadowsCS, data.kernel, HDShaderIDs.g_vLightListGlobal, data.lightList);
+                        ctx.cmd.SetComputeBufferParam(data.contactShadowsCS, data.kernel, HDShaderIDs.g_vLightListTile, data.lightList);
 
                         ctx.cmd.SetComputeTextureParam(data.contactShadowsCS, data.kernel, data.depthTextureParameterName, data.depthTexture);
                         ctx.cmd.SetComputeTextureParam(data.contactShadowsCS, data.kernel, HDShaderIDs._ContactShadowTextureUAV, data.contactShadowsTexture);
@@ -1419,7 +1421,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // Send light list to the compute
                             ctx.cmd.SetRayTracingBufferParam(data.contactShadowsRTS, HDShaderIDs._LightDatas, data.lightLoopLightData.lightData);
-                            ctx.cmd.SetRayTracingBufferParam(data.contactShadowsRTS, HDShaderIDs.g_vLightListGlobal, data.lightList);
+                            ctx.cmd.SetRayTracingBufferParam(data.contactShadowsRTS, HDShaderIDs.g_vLightListTile, data.lightList);
 
                             ctx.cmd.SetRayTracingTextureParam(data.contactShadowsRTS, HDShaderIDs._DepthTexture, data.depthTexture);
                             ctx.cmd.SetRayTracingTextureParam(data.contactShadowsRTS, HDShaderIDs._ContactShadowTextureUAV, data.contactShadowsTexture);
