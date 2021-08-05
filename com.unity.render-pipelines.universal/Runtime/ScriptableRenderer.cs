@@ -338,8 +338,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!(m_IsPipelineExecuting || isCameraColorTargetValid))
                 {
                     Debug.LogWarning("You can only call cameraColorTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
-                    // TODO: Ideally we should return an error texture (BuiltinRenderTextureType.None?)
-                    // but this might break some existing content, so we return the pipeline texture in the hope it gives a "soft" upgrade to users.
+                    return BuiltinRenderTextureType.None;
                 }
 
                 return m_CameraColorTarget.nameID;
