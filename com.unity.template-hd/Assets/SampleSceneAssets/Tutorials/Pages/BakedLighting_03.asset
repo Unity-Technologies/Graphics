@@ -45,7 +45,7 @@ MonoBehaviour:
           bake. \r\n\r\nMost of the provided Lighting Settings assets take advantage
           of the GPU Lightmapper, which offers much faster baking speed compared
           to the CPU Lightmapper, as long as you use a discrete GPU with sufficient
-          processing power and video memory.\r\n"
+          processing power and video memory."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

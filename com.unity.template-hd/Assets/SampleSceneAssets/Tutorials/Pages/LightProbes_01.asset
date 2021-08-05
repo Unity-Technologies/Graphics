@@ -43,7 +43,7 @@ MonoBehaviour:
           can see that the cube is appropriately lit and receives green indirect
           lighting from the wall nearby.\n\n2. Move the cube closer to the tree cage.
           \n\nNotice how the indirect lighting affecting the cube becomes brighter,
-          as the cube approaches the strong pool of light.\n"
+          as the cube approaches the strong pool of light."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

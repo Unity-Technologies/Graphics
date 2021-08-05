@@ -35,7 +35,7 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Light Layers
+        m_Untranslated: Set up Light Layers
       Text:
         m_Untranslated: 'Let''s see how you can assign Light Layers to objects and
           Lights.

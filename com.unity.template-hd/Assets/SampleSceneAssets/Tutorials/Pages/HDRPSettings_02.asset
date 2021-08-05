@@ -43,7 +43,7 @@ MonoBehaviour:
           > <b>HDRP.</b>\r\n\r\n2. Select the HDRPMediumQuality asset. \r\n\r\n3.
           Scroll down to the <b>Lighting</b> foldout and disable the <b>Screen Space
           Ambient Occlusion.</b>\r\n\r\n4. Notice the darkening effect on the flower
-          pot disappears.\r\n\r\n5. Re-enable the <b>Screen Space Ambient Occlusion.</b>\r\n\n"
+          pot disappears.\r\n\r\n5. Re-enable the <b>Screen Space Ambient Occlusion.</b>\r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

@@ -49,7 +49,7 @@ MonoBehaviour:
           Use the <b>Compensation</b> overrie to slightly nudge the exposure up or
           down in case you aren't exactly satisfied with the exposure value selected
           by the system.\n\n\u2022 HDRP offers wide range of mid grey targets, from
-          12.5% to 18% grey, to simulate the exposure system from most camera manufacturers.\n"
+          12.5% to 18% grey, to simulate the exposure system from most camera manufacturers."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

@@ -35,30 +35,26 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Inspect the Light cookie
+        m_Untranslated: Inspect Light Cookies
       Text:
         m_Untranslated: 'You can assign Light cookies in the Light component.
 
-          
 
           1.
           In the <i>Project</i> Window, select <b>Light_Spot_1600lm.</b>
 
-          
 
           2.
           In its <i>Inspector,</i> in the <b>Emission</b> foldout, select the Cookie
           property and remove the assigned texture.
 
-          
 
-          3. Undo
-          this change.
+          3. Undo this change.
 
 
-          Notice how the light shape changed: the edges
-          no longer had a smooth transition, and some fine details were lost around
-          the center of the light.'
+          Notice
+          how the light shape changed: the edges no longer had a smooth transition,
+          and some fine details were lost around the center of the light.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

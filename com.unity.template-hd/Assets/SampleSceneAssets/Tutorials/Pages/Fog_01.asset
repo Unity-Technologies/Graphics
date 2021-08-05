@@ -41,7 +41,7 @@ MonoBehaviour:
           atmospheres, to increase the perception of depth in the Scene. \n\nThe
           Fog can react to the lighting to create beautiful volumetric effects, such
           as sunrays.\n\nLike most other HDRP effects, the Fog can be controlled
-          via a Volume override.\n"
+          via a Volume override."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
