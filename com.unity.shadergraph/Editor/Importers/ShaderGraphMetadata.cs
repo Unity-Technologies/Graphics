@@ -8,27 +8,27 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
+    struct GraphInputData
+    {
+        public string referenceName;
+        public bool isKeyword;
+        public PropertyType propertyType;
+        public KeywordType keywordType;
+
+        public bool isCompoundProperty;
+        public List<SubPropertyData> subProperties;
+    }
+
+    [Serializable]
+    struct SubPropertyData
+    {
+        public string referenceName;
+        public PropertyType propertyType;
+    }
+
+    [Serializable]
     class MinimalCategoryData
     {
-        [Serializable]
-        public struct GraphInputData
-        {
-            public string referenceName;
-            public bool isKeyword;
-            public PropertyType propertyType;
-            public KeywordType keywordType;
-
-            public bool isCompoundProperty;
-            public List<SubPropertyData> subProperties;
-        }
-
-        [Serializable]
-        public struct SubPropertyData
-        {
-            public string referenceName;
-            public PropertyType propertyType;
-        }
-
         // ShaderLab doesn't understand virtual texture inputs, they need to be processed to replace the virtual texture input with the layers that compose it instead
         public static GraphInputData ProcessVirtualTextureProperty(VirtualTextureShaderProperty virtualTextureShaderProperty)
         {

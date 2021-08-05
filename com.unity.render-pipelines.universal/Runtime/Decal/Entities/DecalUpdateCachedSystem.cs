@@ -58,23 +58,23 @@ namespace UnityEngine.Rendering.Universal
 
         public override void SetCapacity(int newCapacity)
         {
-            ResizeNativeArray(ref decalToWorlds, newCapacity);
-            ResizeNativeArray(ref normalToWorlds, newCapacity);
-            ResizeNativeArray(ref sizeOffsets, newCapacity);
-            ResizeNativeArray(ref drawDistances, newCapacity);
-            ResizeNativeArray(ref angleFades, newCapacity);
-            ResizeNativeArray(ref uvScaleBias, newCapacity);
-            ResizeNativeArray(ref layerMasks, newCapacity);
-            ResizeNativeArray(ref sceneLayerMasks, newCapacity);
-            ResizeNativeArray(ref fadeFactors, newCapacity);
-            ResizeNativeArray(ref boundingSpheres, newCapacity);
-            ResizeNativeArray(ref scaleModes, newCapacity);
-            ResizeNativeArray(ref positions, newCapacity);
-            ResizeNativeArray(ref rotation, newCapacity);
-            ResizeNativeArray(ref scales, newCapacity);
-            ResizeNativeArray(ref dirty, newCapacity);
+            decalToWorlds.ResizeArray(newCapacity);
+            normalToWorlds.ResizeArray(newCapacity);
+            sizeOffsets.ResizeArray(newCapacity);
+            drawDistances.ResizeArray(newCapacity);
+            angleFades.ResizeArray(newCapacity);
+            uvScaleBias.ResizeArray(newCapacity);
+            layerMasks.ResizeArray(newCapacity);
+            sceneLayerMasks.ResizeArray(newCapacity);
+            fadeFactors.ResizeArray(newCapacity);
+            boundingSpheres.ResizeArray(newCapacity);
+            scaleModes.ResizeArray(newCapacity);
+            positions.ResizeArray(newCapacity);
+            rotation.ResizeArray(newCapacity);
+            scales.ResizeArray(newCapacity);
+            dirty.ResizeArray(newCapacity);
 
-            ResizeArray(ref boundingSphereArray, newCapacity);
+            ArrayExtensions.ResizeArray(ref boundingSphereArray, newCapacity);
             capacity = newCapacity;
         }
 
@@ -204,19 +204,19 @@ namespace UnityEngine.Rendering.Universal
 
             private float DistanceBetweenQuaternions(quaternion a, quaternion b)
             {
-                return math.dot(a.value, b.value);
+                return math.distancesq(a.value, b.value);
             }
 
             public void Execute(int index, TransformAccess transform)
             {
                 // Check if transform changed
-                bool positionChanged = math.dot(transform.position, positions[index]) > minDistance;
+                bool positionChanged = math.distancesq(transform.position, positions[index]) > minDistance;
                 if (positionChanged)
                     positions[index] = transform.position;
                 bool rotationChanged = DistanceBetweenQuaternions(transform.rotation, rotations[index]) > minDistance;
                 if (rotationChanged)
                     rotations[index] = transform.rotation;
-                bool scaleChanged = math.dot(transform.localScale, scales[index]) > minDistance;
+                bool scaleChanged = math.distancesq(transform.localScale, scales[index]) > minDistance;
                 if (scaleChanged)
                     scales[index] = transform.localScale;
 

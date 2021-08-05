@@ -45,7 +45,7 @@ Shader "Renderers/RenderersTemplate"
 
             // Toggle fog on transparent
             #define _ENABLE_FOG_ON_TRANSPARENT
-            
+
             // List all the attributes needed in your shader (will be passed to the vertex shader)
             // you can see the complete list of these attributes in VaryingMesh.hlsl
             #define ATTRIBUTES_NEED_TEXCOORD0
@@ -55,7 +55,7 @@ Shader "Renderers/RenderersTemplate"
             // List all the varyings needed in your fragment shader
             #define VARYINGS_NEED_TEXCOORD0
             #define VARYINGS_NEED_TANGENT_TO_WORLD
-            
+
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassRenderers.hlsl"
 
             TEXTURE2D(_ColorMap);
@@ -84,7 +84,7 @@ Shader "Renderers/RenderersTemplate"
 #endif
 
                 // Write back the data to the output structures
-                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+                ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
                 ZERO_INITIALIZE(SurfaceData, surfaceData);
                 builtinData.opacity = opacity;
                 builtinData.emissiveColor = float3(0, 0, 0);

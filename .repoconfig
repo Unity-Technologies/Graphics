@@ -10,7 +10,6 @@ path-ignore=<<EOT
 |artifacts
 |imgs
 |com\.unity\.testing\.graphics-performance
-|com\.unity\.testing\.hdrp
 |com\.unity\.testing\.visualeffectgraph
 )(/|$)
 |
@@ -23,15 +22,11 @@ path-ignore=<<EOT
  |TestProjects\/HDRP_HybridTests                            # So remove the test projects one by one as they are progressively being reformatted
  |TestProjects\/HDRP_PerformanceTests                       # New test projects folder will automatically be included in the formatting checks since they aren't in that list
  |TestProjects\/HDRP_RuntimeTests
- |TestProjects\/HDRP_Tests
  |TestProjects\/Shadergraph
  |TestProjects\/ShadergraphUniversalStereo
  |TestProjects\/SRP_SmokeTest
  |TestProjects\/UniversalGfxTestStereo
  |TestProjects\/UniversalHybridTest
- |TestProjects\/UniversalGraphicsTest_2D
- |TestProjects\/UniversalGraphicsTest_PostPro
- |TestProjects\/UniversalGraphicsTest_Terrain
  |TestProjects\/VisualEffectGraph_HDRP
  |TestProjects\/VisualEffectGraph_URP
 )/|
@@ -48,4 +43,6 @@ path=<<EOT
 |^com\.unity\.[^\/]*\/\w+~\/[^&]+$                          # allows editor excluded folders, like Documentation~, for core package
 |^com\.unity\.[^\/]*\/Packages\/com\.unity\.[^\/]*\/\w+~\/  # as above but for embedded packages
 |^com\.unity\.[^\/]*\/[^@]+@\d+x\.                          # industry standard for icons with differnet resolution
+|^TestProjects\/                                            # allow all names for test files
+|^com\.unity\.testing\.hdrp                                 # as above but for testing packages
 EOT

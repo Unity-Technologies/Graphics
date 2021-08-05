@@ -244,8 +244,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint     _EnableDecals;
         public uint     _DecalCount;
 
-        public uint _OffScreenRendering;
-        public uint _OffScreenDownsampleFactor;
+        public float _OffScreenDownsampleFactor;
+        public uint  _OffScreenRendering;
         public uint _XRViewCount;
         public int  _FrameCount;
 

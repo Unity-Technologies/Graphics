@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     // - Always clears the stencil buffer
     // - Clears the alpha channel if desired
     // - Clears the RGB channel to the color of a texture using a specified stretching mode
+    [HideInInspector]
     internal class CustomClear : CustomPass
     {
         internal class ShaderIDs

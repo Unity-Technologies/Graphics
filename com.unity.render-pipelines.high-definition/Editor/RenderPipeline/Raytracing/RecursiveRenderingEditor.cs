@@ -45,7 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
 
                 if (m_Enable.overrideState.boolValue && m_Enable.value.boolValue)
                 {
-                    using (new HDEditorUtils.IndentScope())
+                    using (new IndentLevelScope())
                     {
                         PropertyField(m_LayerMask);
                         PropertyField(m_MaxDepth);

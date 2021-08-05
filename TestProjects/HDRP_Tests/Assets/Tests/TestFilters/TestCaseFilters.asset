@@ -24,6 +24,24 @@ MonoBehaviour:
     Reason: Fail on DX12 XR but not DX12...
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: db02f2dc6427fce4b9372c28c86f0f73, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: temporarily disabled
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: db02f2dc6427fce4b9372c28c86f0f73, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: temporarily disabled
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 439ce9822b2644f4ea064429ed2c5955, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -40,33 +58,6 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: With rendergraph - unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: f1d648a459637e342b078667ecd64f74, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: not working  correctly on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: crash with xr
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 6293ce393e2851d4e9827ff3dadd2673, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: incoclusive on  XR yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 602816355ed2fb94383bb6396823e77e, type: 3}

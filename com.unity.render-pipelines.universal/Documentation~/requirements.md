@@ -7,10 +7,10 @@ This page contains information on system requirements and compatibility of this 
 The following table shows the compatibility of URP package versions with different Unity Editor versions.
 
 | Package version | Minimum Unity version | Maximum Unity version |
-|-----------------|-----------------------|-----------------------|
-| 10.1.x          | 2020.2.0b5            | 2020.2.x              |
-| 10.0.x          | 2020.2.0a20           | 2020.2.x              |
-| 9.x.x           | 2020.1.0b6            | 2020.2.x              |
+| --------------- | --------------------- | --------------------- |
+| 10.1.x          | 2020.2.0b5            | 2020.3.x              |
+| 10.0.x          | 2020.2.0a20           | 2020.3.x              |
+| 9.x.x           | 2020.1.0b6            | 2020.3.x              |
 | 8.2.x           | 2020.1.0b6            | 2020.1.x              |
 | 8.1.x           | 2020.1.0b6            | 2020.1.x              |
 | 8.0.x           | 2020.1.0a23           | 2020.1.x              |

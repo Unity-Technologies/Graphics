@@ -4,6 +4,8 @@ This feature is a replacement pipeline for rendering Meshes in the High Definiti
 
 The smoothness of a Material does not affect the way a ray reflects or refracts, which makes this rendering mode useful for rendering multi-layered transparent GameObjects.
 
+HDRP might display the sky color instead of a GameObject that has ray tracing applied. This happens when the GameObject is further away from the Camera than the Max Ray Length value set in the volume component. To make the GameObject appear correctly, increase the value of the Max Ray Length property.
+
 ![](Images/RayTracingRecursiveRendering1.png)
 
 **Car gear shift rendered with recursive ray tracing**
@@ -37,5 +39,5 @@ Since recursive rendering uses an independent render pass, HDRP cannot render an
 | -------------- | ------------------------------------------------------------ |
 | **LayerMask**  | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Max Depth**  | Controls the maximum number of times a ray can reflect or refract before it stops and returns the final color. Increasing this value increases execution time exponentially. |
-| **Ray Length** | Controls the length of the rays that HDRP uses for ray tracing. If a ray doesn't find an intersection, then the ray returns the color of the sky. |
+| **Max Ray Length** | Controls the length of the rays that HDRP uses for ray tracing. If a ray doesn't find an intersection, then the ray returns the color of the sky. |
 | **Min Smoothness** | Defines the threshold at which reflection rays are not cast if the smoothness value of the target surface is inferior to the one defined by the parameter. |

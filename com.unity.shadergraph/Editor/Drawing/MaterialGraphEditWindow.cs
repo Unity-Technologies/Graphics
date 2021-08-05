@@ -494,9 +494,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDestroy()
         {
-            // Prompting the user if they want to close is mostly handled via the EditorWindow's system (hasSavedChanges).
+            // Prompting the user if they want to close is mostly handled via the EditorWindow's system (hasUnsavedChanges).
             // There's unfortunately a code path (Reload Window) that doesn't go through this path. The old logic is left
-            // here as a fallback to catch this. This does unfortunately produce a double prompt right now on "Discard" though.
+            // here as a fallback to catch this. This has one edge case with "Reload Window" -> "Cancel" which will produce
+            // two shader graph windows: one unmodified (that the editor opens) and one modified (that we open below).
 
             // we are closing the shadergraph window
             MaterialGraphEditWindow newWindow = null;
@@ -1252,8 +1253,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (!AssetFileExists())
                     return DisplayDeletedFromDiskDialog(false);
 
-                // if there are unsaved modifications, ask the user what to do
-                if (GraphHasChangedSinceLastSerialization())
+                // If there are unsaved modifications, ask the user what to do.
+                // If the editor has already handled this check we'll no longer have unsaved changes
+                // (either they saved or they discarded, both of which will set hasUnsavedChanges to false).
+                if (hasUnsavedChanges)
                 {
                     int option = EditorUtility.DisplayDialogComplex(
                         "Shader Graph Has Been Modified",

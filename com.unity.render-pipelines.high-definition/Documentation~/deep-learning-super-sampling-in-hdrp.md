@@ -1,4 +1,4 @@
-# Deep learning super sampling
+# Deep learning super sampling (DLSS)
 
 NVIDIA Deep Learning Super Sampling (DLSS) is a rendering technology that uses artificial intelligence to increase graphics performance. The High Definition Render Pipeline (HDRP) natively supports DLSS. For more information about DLSS see [Deep learning super sampling](https://docs.unity3d.com/2021.2/Documentation/Manual/deep-learning-super-sampling.html).
 

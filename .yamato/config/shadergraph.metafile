@@ -87,12 +87,37 @@ platforms:
 
 jobs:
   - name: PR <PROJECT_NAME>
-    triggers:
-      expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+    # triggers:
+    #   expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
     dependencies:
       - platform: Win
         api: DX11
         build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone
+      - platform: OSX
+        api: OpenGLCore
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - editmode
+      - platform: Linux
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone
+      - platform: OSX
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          # - Standalone
+          - playmode
+      - platform: iPhone
+        api: Metal
+        build_config: il2cpp
         color_space: Linear
         test_platforms:
           - Standalone
@@ -116,32 +141,6 @@ jobs:
           - playmode
       - platform: Android
         api: Vulkan
-        build_config: il2cpp
-        color_space: Linear
-        test_platforms:
-          - Standalone
-  ### TODO: MOVE THE FOLLOWING JOBS BACK TO PR JOBS
-      - platform: OSX
-        api: OpenGLCore
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - editmode
-      - platform: Linux
-        api: Vulkan
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - Standalone
-      - platform: OSX
-        api: Metal
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          # - Standalone
-          - playmode
-      - platform: iPhone
-        api: Metal
         build_config: il2cpp
         color_space: Linear
         test_platforms:

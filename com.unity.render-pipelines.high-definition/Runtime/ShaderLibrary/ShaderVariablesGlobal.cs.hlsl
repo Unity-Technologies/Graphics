@@ -136,8 +136,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float2 _DecalAtlasResolution;
     uint _EnableDecals;
     uint _DecalCount;
+    float _OffScreenDownsampleFactor;
     uint _OffScreenRendering;
-    uint _OffScreenDownsampleFactor;
     uint _XRViewCount;
     int _FrameCount;
     float4 _CoarseStencilBufferSize;

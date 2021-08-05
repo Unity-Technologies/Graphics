@@ -58,6 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kUVBase = "_UVBase";
         MaterialProperty displacementMode = null;
         const string kDisplacementMode = "_DisplacementMode";
+        MaterialProperty tessellationMode = null;
 
         Features    m_Features;
         int         m_LayerIndex;
@@ -94,6 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             detailSmoothnessScale = FindPropertyLayered(kDetailSmoothnessScale, m_LayerCount);
             UVBase = FindPropertyLayered(kUVBase, m_LayerCount);
             displacementMode = FindProperty(kDisplacementMode);
+            tessellationMode = FindProperty(kTessellationMode);
         }
 
         /// <summary>
@@ -141,7 +143,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel--;
 
                 materialEditor.TextureScaleOffsetProperty(detailMap[m_LayerIndex]);
-                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[m_LayerIndex].floatValue != UVBase[m_LayerIndex].floatValue))
+                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel && (UVDetail[m_LayerIndex].floatValue != UVBase[m_LayerIndex].floatValue) &&
+                    tessellationMode == null)
                 {
                     if (materials.All(m => m.GetTexture(isLayeredLit ? kDetailMap + m_LayerIndex : kDetailMap)))
                         EditorGUILayout.HelpBox(Styles.perPixelDisplacementDetailsWarning.text, MessageType.Warning);

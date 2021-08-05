@@ -29,7 +29,11 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The size of the shape.
         /// </summary>
-        public float            shapeLightParametricRadius      => m_ShapeLightParametricRadius;
+        public float            shapeLightParametricRadius
+        {
+            get { return m_ShapeLightParametricRadius; }
+            internal set { m_ShapeLightParametricRadius = value; }
+        }
 
         /// <summary>
         /// The size of the fall-off area. Bigger value corresponds to bigger fall off size.
