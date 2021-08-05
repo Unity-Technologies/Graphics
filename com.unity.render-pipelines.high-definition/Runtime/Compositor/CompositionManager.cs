@@ -358,7 +358,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             //This is a work-around, to make edit and continue work when editing source code
             UnityEditor.AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
 #endif
+#if UNITY_2021_1_OR_NEWER
             RenderPipelineManager.beginContextRendering += ResizeCallback;
+#else
+            RenderPipelineManager.beginFrameRendering += ResizeCallback;
+#endif
         }
 
         public void DeleteLayerRTs()
@@ -553,8 +557,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             // By now the s_CompositorManagedCameras should be empty, but clear it just to be safe
             CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans();
-
+#if UNITY_2021_1_OR_NEWER
             RenderPipelineManager.beginContextRendering -= ResizeCallback;
+#else
+            RenderPipelineManager.beginFrameRendering -= ResizeCallback;
+#endif
         }
 
         public void AddInputFilterAtLayer(CompositionFilter filter, int index)
@@ -746,7 +753,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
         }
 
+#if UNITY_2021_1_OR_NEWER
         void ResizeCallback(ScriptableRenderContext cntx, List<Camera> cameras)
+#else
+        void ResizeCallback(ScriptableRenderContext cntx, Camera[] cameras)
+#endif
         {
             if (m_OutputCamera && enableOutput)
             {
@@ -776,16 +787,23 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             HDRenderPipeline renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             if (enableOutput && renderPipeline != null)
             {
+#if UNITY_2021_1_OR_NEWER
                 List<Camera> cameras = new List<Camera>(1);
+#else
+                Camera[] cameras = new Camera[1];
+#endif
                 foreach (var layer in m_InputLayers)
                 {
                     if (layer.camera && layer.camera.enabled)
                     {
-                        cameras.Clear();
                         // Emit geometry manually for this camera (Unity will not do it for us because we call the internal render)
                         ScriptableRenderContext.EmitGeometryForCamera(layer.camera);
-                        cameras.Add(layer.camera);
 #if UNITY_2021_1_OR_NEWER
+                        cameras.Clear();
+                        cameras.Add(layer.camera);
+                        renderPipeline.InternalRender(cntx, cameras);
+#else
+                        cameras[0] = layer.camera;
                         renderPipeline.InternalRender(cntx, cameras);
 #endif
                     }

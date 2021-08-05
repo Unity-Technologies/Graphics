@@ -1567,7 +1567,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Render(renderContext, cameras);
         }
-
+#else
+        // Only for internal use, outside of SRP people can call Camera.Render()
+        internal void InternalRender(ScriptableRenderContext renderContext, Camera[] cameras)
+        {
+            Render(renderContext, cameras);
+        }
 #endif
 
         /// <summary>
