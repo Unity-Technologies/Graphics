@@ -55,8 +55,12 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                         PropertyField(m_MaxDepth);
                         PropertyField(m_RayLength, k_RayLengthText);
                         PropertyField(m_MinSmoothness);
-                        PropertyField(m_RayMissFallbackHierarchy);
-                        PropertyField(m_LastBounceFallbackHierarchy);
+                        using (new IndentLevelScope())
+                        {
+                            EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
+                            PropertyField(m_RayMissFallbackHierarchy);
+                            PropertyField(m_LastBounceFallbackHierarchy);
+                        }
                     }
                 }
             }
