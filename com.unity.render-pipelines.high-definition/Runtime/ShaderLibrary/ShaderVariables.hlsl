@@ -390,7 +390,6 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_ObjectToWorld)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_WorldToObject)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
@@ -407,7 +406,7 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 // Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared elsewhere
-#define unity_LODFade               UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
+#define unity_LODFade               LoadDOTSInstancedData_LODFade()
 #define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
 #define unity_LightmapIndex         UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
 #define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)

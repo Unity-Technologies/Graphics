@@ -155,6 +155,11 @@ uint GetDOTSInstanceIndex()
     return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.x;
 }
 
+int GetDOTSInstanceCrossfadeSnorm8()
+{
+    return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.y;
+}
+
 bool IsDOTSInstancedProperty(uint metadata)
 {
     return (metadata & 0x80000000) != 0;
@@ -303,6 +308,14 @@ float4 LoadDOTSInstancedData_LightData()
     // Y channel = light count (not supported in DOTS instancing)
     // Z channel = main light strength
     return float4(0, 0, flags & kDOTSInstancingFlagMainLightEnabled ? 1.0f : 0.0f, 0);
+}
+
+float4 LoadDOTSInstancedData_LODFade()
+{
+    int crossfadeSNorm8 = GetDOTSInstanceCrossfadeSnorm8();
+    float crossfade = clamp((float)crossfadeSNorm8, -127, 127);
+    crossfade *= 1.0 / 127;
+    return crossfade;
 }
 
 #undef DEFINE_DOTS_LOAD_INSTANCE_SCALAR
