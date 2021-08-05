@@ -43,7 +43,7 @@ ${VFXBegin:VFXPassGBufferAdditionalPragma}
 //See Lit.shader, these multi_compile aren't used in GBuffer
 //#pragma multi_compile _ _ADDITIONAL_LIGHTS
 //#pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
-#pragma multi_compile _ _SHADOWS_SOFT
+#pragma multi_compile_fragment _ _SHADOWS_SOFT
 #pragma multi_compile_fragment _ _LIGHT_LAYERS
 ${VFXEnd}
 
