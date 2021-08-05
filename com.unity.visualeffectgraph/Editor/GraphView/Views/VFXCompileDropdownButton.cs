@@ -7,25 +7,35 @@ namespace UnityEditor.VFX.UI
 {
     class VFXCompileDropdownButton : DropDownButtonBase
     {
-        private readonly VFXView m_VFXView;
+        readonly VFXView m_VFXView;
+        readonly Toggle m_AutoCompileToggle;
+        readonly Toggle m_RuntimeModeToggle;
+        readonly Toggle m_shaderValidationToggle;
 
         public VFXCompileDropdownButton(VFXView vfxView) : base("VFXCompileDropdownPanel", "Compile", 2, EditorResources.iconsPath + "PlayButton.png")
         {
             m_VFXView = vfxView;
 
-            var autoCompileToggle = m_PopupContent.Q<Toggle>("autoCompile");
-            autoCompileToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleAutoCompile);
+            m_AutoCompileToggle = m_PopupContent.Q<Toggle>("autoCompile");
+            m_AutoCompileToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleAutoCompile);
 
-            var runtimeModeToggle = m_PopupContent.Q<Toggle>("runtimeMode");
-            runtimeModeToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleRuntimeMode);
+            m_RuntimeModeToggle = m_PopupContent.Q<Toggle>("runtimeMode");
+            m_RuntimeModeToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleRuntimeMode);
 
-            var shaderValidationToggle = m_PopupContent.Q<Toggle>("shaderValidation");
-            shaderValidationToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleShaderValidation);
+            m_shaderValidationToggle = m_PopupContent.Q<Toggle>("shaderValidation");
+            m_shaderValidationToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleShaderValidation);
         }
 
         
         protected override Vector2 GetPopupPosition() => this.m_VFXView.ViewToScreenPosition(worldBound.position);
         protected override Vector2 GetPopupSize() => new Vector2(150, 70);
+
+        protected override void OnOpenPopup()
+        {
+            m_AutoCompileToggle.value = VFXViewWindow.currentWindow.autoCompile;
+            m_RuntimeModeToggle.value = m_VFXView.GetIsRuntimeMode();
+            m_shaderValidationToggle.value = m_VFXView.GetShaderValidation();
+        }
 
         protected override void OnMainButton()
         {
@@ -34,7 +44,7 @@ namespace UnityEditor.VFX.UI
 
         void OnToggleAutoCompile(ChangeEvent<bool> evt)
         {
-            VFXViewWindow.currentWindow.autoCompile = !VFXViewWindow.currentWindow.autoCompile;
+            VFXViewWindow.currentWindow.autoCompile = evt.newValue;
         }
 
         void OnToggleRuntimeMode(ChangeEvent<bool> evt)
@@ -44,7 +54,7 @@ namespace UnityEditor.VFX.UI
 
         void OnToggleShaderValidation(ChangeEvent<bool> evt)
         {
-            m_VFXView.ToggleRuntimeMode();
+            m_VFXView.ToggleShaderValidationChanged();
         }
     }
 }
