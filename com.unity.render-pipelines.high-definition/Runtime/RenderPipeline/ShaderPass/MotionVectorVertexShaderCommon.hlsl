@@ -141,9 +141,6 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
 #endif
 
         float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
-#if defined(_ADD_PRECOMPUTED_VELOCITY)
-        effectivePositionOS -= inputPass.precomputedVelocity;
-#endif
 
 
 
@@ -170,11 +167,19 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
         previousMesh.positionOS -= GetCustomVelocity(previousMesh);
 #endif
 
+#if defined(_ADD_PRECOMPUTED_VELOCITY)
+        previousMesh.positionOS -= inputPass.precomputedVelocity;
+#endif
+
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else
 
 #if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
         effectivePositionOS -= GetCustomVelocity(inputMesh);
+#endif
+
+#if defined(_ADD_PRECOMPUTED_VELOCITY)
+        effectivePositionOS -= inputPass.precomputedVelocity;
 #endif
 
         float3 previousPositionRWS = TransformPreviousObjectToWorld(effectivePositionOS);
