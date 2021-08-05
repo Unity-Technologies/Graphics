@@ -77,7 +77,7 @@ Shader "HDRP/Lit"
 
         // Following options are for the GUI inspector and different from the input parameters above
         // These option below will cause different compilation flag.
-        [Enum(Off, 0, From Ambient Occlusion, 1, From Bent Normals, 2, From Spherical Gaussians, 3, From Anisotropic Spherical Gaussians, 4)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
+        [Enum(Off, 0, From Ambient Occlusion, 1, From AO and Bent Normals, 2, From AO and Bent Normals (SG), 3, From AO and Bent Normals (ASG), 4)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
 
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         // Used only to serialize the LDR and HDR emissive color in the material UI,
