@@ -29,7 +29,6 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_trunk:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  choco install python3 && refreshenv
       -  |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
@@ -218,7 +217,6 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_2021.2:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  choco install python3 && refreshenv
       -  |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
@@ -407,7 +405,6 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_ref_images_il2cpp_Linear_CUSTOM-REV
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
-      -  choco install python3 && refreshenv
       -  |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
