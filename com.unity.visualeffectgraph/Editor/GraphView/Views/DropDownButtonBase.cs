@@ -3,18 +3,37 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class DropDownButtonBase : VisualElement
+    public interface IResponsiveElement
     {
-        private readonly bool m_HasLeftSeparator;
+        int Priority { get; }
+        bool IsCompact { get; set;}
+        bool CanCompact { get; }
+        float GetSavedSpace();
+    }
 
-        private EditorWindow m_CurrentPopup;
+    abstract class DropDownButtonBase : VisualElement, IResponsiveElement
+    {
+        readonly bool m_HasLeftSeparator;
+        readonly Button m_MainButton;
+        readonly Label m_Label;
+
+        EditorWindow m_CurrentPopup;
 
         protected readonly VisualElement m_PopupContent;
+        private bool m_IsCompact;
 
 
-        protected DropDownButtonBase(string uxmlSource, string mainButtonLabel, string icon = null, bool hasSeparatorBefore = false, bool hasSeparatorAfter = false)
+        protected DropDownButtonBase(
+            string uxmlSource,
+            string mainButtonLabel,
+            int priority,
+            string icon = null,
+            bool hasSeparatorBefore = false,
+            bool hasSeparatorAfter = false)
         {
             style.flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row);
+
+            Priority = priority;
 
             if (hasSeparatorBefore)
             {
@@ -24,19 +43,20 @@ namespace UnityEditor.VFX.UI
                 Add(separator);
             }
 
-            var toggleButton = new Button(OnMainButton) { name = "button" };
-            toggleButton.style.flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row);
+            m_MainButton = new Button(OnMainButton) { name = "button" };
+            m_MainButton.style.flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row);
             if (icon != null)
             {
-                toggleButton.Add(new Image { image = EditorGUIUtility.LoadIcon(icon) });
-                toggleButton.Add(new Label(mainButtonLabel));
+                m_MainButton.Add(new Image { image = EditorGUIUtility.LoadIcon(icon) });
+                m_Label = new Label(mainButtonLabel);
+                m_MainButton.Add(m_Label);
             }
             else
             {
-                toggleButton.text = mainButtonLabel;
+                m_MainButton.text = mainButtonLabel;
             }
+            Add(m_MainButton);
 
-            Add(toggleButton); 
             var dropDownButton = new Button(OnOpenPopupInternal) {name = "arrow" };
             dropDownButton.Add(new VisualElement());
             Add(dropDownButton);
@@ -53,6 +73,18 @@ namespace UnityEditor.VFX.UI
             tpl.CloneTree(m_PopupContent);
             contentContainer.AddStyleSheetPath("VFXSaveDropDownPanel");
         }
+
+        public int Priority { get; }
+
+        public bool CanCompact => m_Label != null;
+
+        public bool IsCompact
+        {
+            get => m_IsCompact;
+            set => SetCompact(value);
+        }
+
+        public float GetSavedSpace() => m_Label.localBound.size.x;
 
         protected virtual void OnOpenPopup() {}
         protected virtual void OnMainButton() {}
@@ -85,6 +117,24 @@ namespace UnityEditor.VFX.UI
                 bounds.xMin += 6;
             }
             m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(), new [] { PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft });
+        }
+
+        private void SetCompact(bool isCompact)
+        {
+            if (CanCompact)
+            {
+                if (isCompact)
+                {
+                    m_MainButton.Remove(m_Label);
+                    tooltip = m_Label.text;
+                }
+                else
+                {
+                    m_MainButton.Add(m_Label);
+                    tooltip = null;
+                }
+                m_IsCompact = isCompact;
+            }
         }
     }
 }

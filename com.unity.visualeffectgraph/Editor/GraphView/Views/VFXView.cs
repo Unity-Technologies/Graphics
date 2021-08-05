@@ -453,6 +453,7 @@ namespace UnityEditor.VFX.UI
 
             var helpDropDownButton = new VFXHelpDropdownButton(this);
             m_Toolbar.Add(helpDropDownButton);
+            m_Toolbar.RegisterCallback<GeometryChangedEvent>(OnToolbarGeometryChanged);
             // End Toolbar
 
             m_NoAssetLabel = new Label("\n\n\nTo begin creating Visual Effects, create a new Visual Effect Graph Asset.\n(or double-click an existing Visual Effect Graph in the project view)") { name = "no-asset"};
@@ -743,6 +744,48 @@ namespace UnityEditor.VFX.UI
         void ToggleComponentBoard(ChangeEvent<bool> e)
         {
             ToggleComponentBoard();
+        }
+
+        private void OnToolbarGeometryChanged(GeometryChangedEvent evt)
+        {
+            var requiredWidth = m_Toolbar
+                .Children()
+                .Where(x => x is not ToolbarSpacer)
+                .Sum(x => x.contentRect.width)
+                // Keep a margin to kick this behavior before the toolbar jumps on two lines
+                + 32;
+            var availableWidth = evt.newRect.width;
+
+            if (requiredWidth > availableWidth)
+            {
+                m_Toolbar
+                    .Children()
+                    .OfType<IResponsiveElement>()
+                    .Where(x => x.CanCompact && !x.IsCompact)
+                    .OrderByDescending(x => x.Priority)
+                    .TakeWhile(x =>
+                    {
+                        x.IsCompact = true;
+                        requiredWidth -= x.GetSavedSpace();
+                        return requiredWidth > availableWidth;
+                    })
+                    .ToArray();
+            }
+            else if (requiredWidth < availableWidth)
+            {
+                m_Toolbar
+                    .Children()
+                    .OfType<IResponsiveElement>()
+                    .Where(x => x.CanCompact && x.IsCompact)
+                    .OrderBy(x => x.Priority)
+                    .TakeWhile(x =>
+                    {
+                        requiredWidth += x.GetSavedSpace();
+                        return requiredWidth < availableWidth;
+                    })
+                    .ToList()
+                    .ForEach(x => x.IsCompact = false);
+            }
         }
 
         public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
