@@ -1,30 +1,40 @@
 ﻿using System.Linq;
+using System.Text;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
+using UnityEditor.ShaderGraph.GraphUI.Utilities;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
 {
-    public class RedirectNode : CollapsibleInOutNode
+    public class RedirectNode : Node
     {
         protected override void BuildPartList()
         {
-            base.BuildPartList();
+            PartList.AppendPart(InOutPortContainerPart.Create(portContainerPartName, Model, this, ussClassName));
+            AddToClassList("sg-redirect-node");
+            this.AddStylesheet("RedirectNode.uss");
+        }
 
-            PartList.AppendPart(new DebugStringPart("redir-debug-src", Model, this, ussClassName, ge =>
+        protected override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            base.BuildContextualMenu(evt);
+
+            // TODO: Remove
+            evt.menu.InsertAction(0, "Log Source and Destinations", _ =>
             {
-                var src = ((RedirectNodeModel) ge).ResolveSource();
+                var src = ((RedirectNodeModel) Model).ResolveSource();
+                var dsts = ((RedirectNodeModel) Model).ResolveDestinations().ToList();
 
-                return src is null ? "No source" : $"Source: {GetPortDisplayString(src)}";
-            }));
-
-            PartList.AppendPart(new DebugStringPart("redir-debug-dst", Model, this, ussClassName, ge =>
-            {
-                var dsts = ((RedirectNodeModel) ge).ResolveDestinations().ToList();
-
-                return !dsts.Any()
+                var msg = new StringBuilder($"Node {Model.Guid}\n");
+                msg.AppendLine(src is null ? "No source" : $"Source: {GetPortDisplayString(src)}");
+                msg.AppendLine(!dsts.Any()
                     ? "No destinations"
-                    : $"Destinations: \n\t{string.Join(", \n\t", dsts.Select(GetPortDisplayString))}";
-            }));
+                    : $"Destinations: \n\t{string.Join(", \n\t", dsts.Select(GetPortDisplayString))}");
+
+                Debug.Log(msg.ToString());
+            });
         }
 
         static string GetPortDisplayString(IPortModel port)
