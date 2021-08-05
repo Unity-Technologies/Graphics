@@ -112,9 +112,12 @@ namespace UnityEditor.VFX.UI
 
     abstract class DropDownButtonBase : VisualElement
     {
+        private readonly bool hasLeftSeparator;
+
         private EditorWindow m_CurrentPopup;
 
         protected readonly VisualElement m_PopupContent;
+
 
         public DropDownButtonBase(string uxmlSource, string mainButtonLabel, string icon = null, bool hasSeparatorBefore = false, bool hasSeparatorAfter = false)
         {
@@ -122,6 +125,7 @@ namespace UnityEditor.VFX.UI
 
             if (hasSeparatorBefore)
             {
+                this.hasLeftSeparator = true;
                 var separator = new VisualElement();
                 separator.AddToClassList("separator");
                 Add(separator);
@@ -181,7 +185,13 @@ namespace UnityEditor.VFX.UI
             m_CurrentPopup.rootVisualElement.AddStyleSheetPath("VFXSaveDropDownPanel");
 
             OnOpenPopup();
-            m_CurrentPopup.ShowAsDropDown(new Rect(GetPopupPosition(), localBound.size), GetPopupSize());
+            var bounds = new Rect(GetPopupPosition(), localBound.size);
+            // Offset the bounds to align the popup with the real dropdown left edge
+            if (hasLeftSeparator)
+            {
+                bounds.xMin += 6;
+            }
+            m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(), new [] { PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft });
         }
     }
 
