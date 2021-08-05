@@ -404,6 +404,14 @@ platforms:
         setup_utr:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
             retries: 2
+        call_utr_hikey:
+          - command: |5-
+                    set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                    set /p GIT_REVISIONDATE=<revdate.tmp
+                    echo %GIT_REVISIONDATE%
+                    del revdate.tmp
+                    utr <UTR_FLAGS>
         call_utr:
           - command: |5-
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -420,6 +428,11 @@ platforms:
             retries: 2
         turn_off_firewall:
           - command: NetSh Advfirewall set allprofiles state off
+        connect_bokken_hikey:
+          - command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
+            retries: 2
+          - command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
+            retries: 2
         connect_bokken:
           - command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
             retries: 2
