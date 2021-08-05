@@ -56,6 +56,8 @@
 
 // ----------------------------------------------------------------------------
 
+#ifndef DOTS_INSTANCING_ON // UnityPerDraw cbuffer doesn't exist with hybrid renderer
+
 CBUFFER_START(UnityPerDraw)
 
     float4x4 unity_ObjectToWorld;
@@ -98,6 +100,38 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_MotionVectorsParams;
 
 CBUFFER_END
+
+#else // else ifdef DOTS_INSTANCING_ON
+
+// Define those matrices to make sure everything compile, but this is not supposed to actually be used with DOTS_INSTANCING_ON defined.
+static const float4x4 unity_ObjectToWorld = float4x4
+(
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1
+);
+static const float4x4 unity_WorldToObject = float4x4
+(
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1
+);
+
+// Hybrid renderer doesn't support texture based probe volumes.
+static const float4 unity_ProbeVolumeParams = float4(0,0,0,0);
+static const float4x4 unity_ProbeVolumeWorldToObject = float4x4
+(
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1
+);
+static const float4 unity_ProbeVolumeSizeInv = float4(1,1,1,0);
+static const float4 unity_ProbeVolumeMin = float4(0,0,0,0);
+
+#endif
 
 CBUFFER_START(UnityPerDrawRare)
     float4x4 glstate_matrix_transpose_modelview0;
