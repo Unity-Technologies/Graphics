@@ -354,6 +354,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed viewport size when TAA is executed after dynamic res upscale (case 1348541).
 - Fixed the camera near plane not being taken into account when rendering the clouds (case 1353548).
 - Fixed controls for clouds fade in (case 1353548).
+- Reduced the number shader variants for the volumetric clouds.
+- Fixed motion vector for custom meshes loaded from compute buffer in shader graph (like Hair)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
