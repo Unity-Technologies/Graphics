@@ -38,10 +38,7 @@ namespace UnityEditor.Rendering.Universal
             CED.Group(
                 DrawerProjection
                 ),
-            PhysicalCamera.Drawer,
-            CED.Group(
-                CameraUI.Drawer_FieldClippingPlanes
-            )
+            PhysicalCamera.Drawer
         );
 
         public static readonly CED.IDrawer SectionStackSettings =

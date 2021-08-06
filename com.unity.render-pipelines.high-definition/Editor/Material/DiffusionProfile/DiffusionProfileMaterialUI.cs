@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     static class DiffusionProfileMaterialUI
     {
-        static GUIContent    diffusionProfileNotInHDRPAsset = new GUIContent("Make sure this Diffusion Profile is referenced in either a Diffusion Profile Override or the HDRP Global Settings. If the Diffusion Profile is not referenced in either, HDRP cannot use it. To add a reference to the Diffusion Profile in the HDRP Global Settings, press Fix.", EditorGUIUtility.IconContent("console.infoicon").image);
+        internal static GUIContent    diffusionProfileNotInHDRPAsset = new GUIContent("Make sure this Diffusion Profile is referenced in either a Diffusion Profile Override or the HDRP Global Settings. If the Diffusion Profile is not referenced in either, HDRP cannot use it. To add a reference to the Diffusion Profile in the HDRP Global Settings, press Fix.", EditorGUIUtility.IconContent("console.infoicon").image);
 
         public static bool IsSupported(MaterialEditor materialEditor)
         {
@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawDiffusionProfileWarning(diffusionProfile);
         }
 
-        static void DrawDiffusionProfileWarning(DiffusionProfileSettings materialProfile)
+        internal static void DrawDiffusionProfileWarning(DiffusionProfileSettings materialProfile)
         {
             if (materialProfile != null && !HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == materialProfile))
             {

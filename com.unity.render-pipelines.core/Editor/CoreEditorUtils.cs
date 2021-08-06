@@ -98,13 +98,21 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="message">The message with icon if need.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
+        public static void DrawFixMeBox(GUIContent message, Action action)
+        {
+            if (HelpBoxWithButton(message, "Fix"))
+                action();
+        }
+
+        /// <summary>Draw a help box with the Fix button.</summary>
         /// <param name="text">The message text.</param>
         /// <param name="messageType">The type of the message.</param>
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(string text, MessageType messageType, Action action)
         {
-            if (HelpBoxWithButton(text, messageType, "Fix"))
-                action();
+            DrawFixMeBox(EditorGUIUtility.TrTextContentWithIcon(text, CoreEditorStyles.GetMessageTypeIcon(messageType)), action);
         }
         
         /// <summary>Draw a help box with a button.</summary>
@@ -114,18 +122,7 @@ namespace UnityEditor.Rendering
         /// <returns>True if the button is clicked</returns>
         public static bool HelpBoxWithButton(string message, MessageType type, string buttonLabel = "Open")
         {
-            var icon = "console.infoicon";
-            switch (type)
-            {
-                case MessageType.Error:
-                    icon = "console.erroricon";
-                    break;
-                case MessageType.Warning:
-                    icon = "console.warnicon";
-                    break;
-            }
-            var label = new GUIContent(message, EditorGUIUtility.IconContent(icon).image);
-            return HelpBoxWithButton(label, buttonLabel);
+            return HelpBoxWithButton(EditorGUIUtility.TrTextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(type)), buttonLabel);
         }
         
         /// <summary>Draw a help box with a button.</summary>
@@ -178,6 +175,23 @@ namespace UnityEditor.Rendering
             for (var i = 0; i < labels.Length; ++i)
                 labelWidth = Mathf.Max(EditorStyles.label.CalcSize(labels[i]).x, labelWidth);
             return labelWidth;
+        }
+
+        /// <summary>
+        /// Draws an <see cref="EditorGUI.EnumPopup"/> for the given property
+        /// </summary>
+        /// <typeparam name="TEnum"></typeparam>
+        /// <param name="rect">The rect where the drop down will be drawn</param>
+        /// <param name="label">The label for the drop down</param>
+        /// <param name="serializedProperty">The <see cref="SerializedProperty"/> to modify</param>
+        public static void DrawEnumPopup<TEnum>(Rect rect, GUIContent label, SerializedProperty serializedProperty)
+            where TEnum : Enum
+        {
+            EditorGUI.BeginChangeCheck();
+            var newValue = (TEnum)EditorGUI.EnumPopup(rect, label, serializedProperty.GetEnumValue<TEnum>());
+            if (EditorGUI.EndChangeCheck())
+                serializedProperty.SetEnumValue(newValue);
+            EditorGUI.EndProperty();
         }
 
         /// <summary>
@@ -322,6 +336,8 @@ namespace UnityEditor.Rendering
         /// <param name="isBoxed"> [optional] is the eader contained in a box style ? </param>
         /// <param name="hasMoreOptions"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="toggleMoreOptions"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
+        /// <param name="documentationURL">[optional] The URL that the Unity Editor opens when the user presses the help button on the header.</param>
+        /// <param name="contextAction">[optional] The callback that the Unity Editor executes when the user presses the burger menu on the header.</param>
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = "", Action<Vector2> contextAction = null)
         {
