@@ -54,15 +54,15 @@ namespace UnityEditor.Rendering.Universal
     enum VolumeFeatures
     {
         None = 0,
-        Calculated = (1 << 1),
-        LensDistortion = (1 << 2),
-        Bloom = (1 << 3),
-        CHROMATIC_ABERRATION = (1 << 4),
-        ToneMaping = (1 << 5),
-        FilmGrain = (1 << 6),
-        DepthOfField = (1 << 7),
-        CameraMotionBlur = (1 << 8),
-        PaniniProjection = (1 << 9),
+        Calculated = (1 << 0),
+        LensDistortion = (1 << 1),
+        Bloom = (1 << 2),
+        CHROMATIC_ABERRATION = (1 << 3),
+        ToneMaping = (1 << 4),
+        FilmGrain = (1 << 5),
+        DepthOfField = (1 << 6),
+        CameraMotionBlur = (1 << 7),
+        PaniniProjection = (1 << 8),
     }
 
     internal class ShaderPreprocessor : IPreprocessShaders
@@ -363,7 +363,7 @@ namespace UnityEditor.Rendering.Universal
                 return true;
             }
 
-            var stripOffVariants = UniversalRenderPipelineGlobalSettings.instance?.stripOffVariants ?? true;
+            var stripOffVariants = UniversalRenderPipelineGlobalSettings.instance?.stripOffVariants == true;
             var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripOffVariants);
 
             // strip main light shadows, cascade and screen variants
@@ -473,31 +473,31 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripVolumeFeatures(VolumeFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            var stripOffVariants = UniversalRenderPipelineGlobalSettings.instance?.stripOffVariants ?? true;
+            var stripOffVariants = UniversalRenderPipelineGlobalSettings.instance?.stripOffVariants == true;
             var stripTool = new StripTool<VolumeFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripOffVariants);
 
-            if (stripTool.StripMultiCompile(m_LensDistortion, VolumeFeatures.LensDistortion))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_LensDistortion, VolumeFeatures.LensDistortion))
                 return true;
 
-            if (stripTool.StripMultiCompile(m_ChromaticAberration, VolumeFeatures.CHROMATIC_ABERRATION))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_ChromaticAberration, VolumeFeatures.CHROMATIC_ABERRATION))
                 return true;
 
-            if (stripTool.StripMultiCompile(m_BloomLQ, VolumeFeatures.Bloom))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_BloomLQ, VolumeFeatures.Bloom))
                 return true;
-            if (stripTool.StripMultiCompile(m_BloomHQ, VolumeFeatures.Bloom))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_BloomHQ, VolumeFeatures.Bloom))
                 return true;
-            if (stripTool.StripMultiCompile(m_BloomLQDirt, VolumeFeatures.Bloom))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_BloomLQDirt, VolumeFeatures.Bloom))
                 return true;
-            if (stripTool.StripMultiCompile(m_BloomHQDirt, VolumeFeatures.Bloom))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_BloomHQDirt, VolumeFeatures.Bloom))
                 return true;
 
-            if (stripTool.StripMultiCompile(m_HdrGrading, VolumeFeatures.ToneMaping))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_HdrGrading, VolumeFeatures.ToneMaping))
                 return true;
-            if (stripTool.StripMultiCompile(m_ToneMapACES, VolumeFeatures.ToneMaping))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_ToneMapACES, VolumeFeatures.ToneMaping))
                 return true;
-            if (stripTool.StripMultiCompile(m_ToneMapNeutral, VolumeFeatures.ToneMaping))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_ToneMapNeutral, VolumeFeatures.ToneMaping))
                 return true;
-            if (stripTool.StripMultiCompile(m_FilmGrain, VolumeFeatures.FilmGrain))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_FilmGrain, VolumeFeatures.FilmGrain))
                 return true;
 
             // Strip post processing shaders
@@ -619,7 +619,7 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnusedPass(features, snippetData))
                 return true;
 
-            if (UniversalRenderPipelineGlobalSettings.instance?.stripBuiltinShaders ?? true)
+            if (UniversalRenderPipelineGlobalSettings.instance?.stripBuiltinShaders == true)
             {
                 if (StripUnusedShaders(features, shader))
                     return true;
@@ -681,7 +681,7 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
 
-                if (UniversalRenderPipelineGlobalSettings.instance?.staticVolumeProfile ?? true)
+                if (UniversalRenderPipelineGlobalSettings.instance?.staticVolumeProfile == true)
                 {
                     if (!removeInput && StripVolumeFeatures(ShaderBuildPreprocessor.volumeFeatures, shader, snippetData, compilerDataList[i]))
                     {
@@ -840,7 +840,7 @@ namespace UnityEditor.Rendering.Universal
 
         private static void FetchAllSupportedFeaturesFromVolumes()
         {
-            if (UniversalRenderPipelineGlobalSettings.instance?.staticVolumeProfile ?? false)
+            if (UniversalRenderPipelineGlobalSettings.instance?.staticVolumeProfile == false)
                 return;
 
             s_VolumeFeatures = VolumeFeatures.Calculated;
@@ -871,6 +871,8 @@ namespace UnityEditor.Rendering.Universal
                     s_VolumeFeatures |= VolumeFeatures.CameraMotionBlur;
                 if (asset.Has<PaniniProjection>())
                     s_VolumeFeatures |= VolumeFeatures.PaniniProjection;
+                if (asset.Has<ChromaticAberration>())
+                    s_VolumeFeatures |= VolumeFeatures.CHROMATIC_ABERRATION;
             }
         }
 
@@ -879,10 +881,12 @@ namespace UnityEditor.Rendering.Universal
             ShaderFeatures shaderFeatures;
             shaderFeatures = ShaderFeatures.MainLight;
 
-            if (pipelineAsset.supportsMainLightShadows && pipelineAsset.shadowCascadeCount > 1)
-                shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
-            else if (pipelineAsset.supportsMainLightShadows)
-                shaderFeatures |= ShaderFeatures.MainLightShadows;
+            //if (pipelineAsset.supportsMainLightShadows && pipelineAsset.shadowCascadeCount > 1)
+            //    shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
+            //else if (pipelineAsset.supportsMainLightShadows)
+            // Users can modify shadow cascade count at runtime, we can strip it
+            shaderFeatures |= ShaderFeatures.MainLightShadows;
+            shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
 
             if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerVertex)
             {
