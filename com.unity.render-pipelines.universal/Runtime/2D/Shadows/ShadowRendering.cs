@@ -115,18 +115,6 @@ namespace UnityEngine.Rendering.Universal
             return rendererData.spriteUnshadowMaterial[colorIndex];
         }
 
-        private static Material GetGeometryUnshadowMaterial(this Renderer2DData rendererData, int colorIndex)
-        {
-            //rendererData.geometryUnshadowMaterial = null;
-            if (rendererData.geometryUnshadowMaterial == null || rendererData.geometryUnshadowMaterial.Length == 0 || rendererData.geometryUnshadowShader != rendererData.geometryUnshadowMaterial[0].shader)
-            {
-                rendererData.geometryUnshadowMaterial = CreateMaterials(rendererData.geometryUnshadowShader);
-            }
-
-            return rendererData.geometryUnshadowMaterial[colorIndex];
-        }
-
-
         public static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int shadowIndex)
         {
             CreateShadowRenderTexture(pass, m_RenderTargets[shadowIndex], renderingData, cmdBuffer);

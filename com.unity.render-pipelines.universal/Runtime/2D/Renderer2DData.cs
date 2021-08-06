@@ -82,9 +82,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Reload("Shaders/2D/Shadow2D-Unshadow-Sprite.shader")]
         Shader m_SpriteUnshadowShader = null;
 
-        [SerializeField, Reload("Shaders/2D/Shadow2D-Unshadow-Geometry.shader")]
-        Shader m_GeometryUnshadowShader = null;
-
         [SerializeField, Reload("Shaders/Utils/FallbackError.shader")]
         Shader m_FallbackErrorShader;
 
