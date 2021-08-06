@@ -139,6 +139,8 @@ HDRP 12.0 includes the following physical camera improvements:
 Improved the quality of the physically-based Depth Of Field.
 ![](Images/HDRPFeatures-BetterDoF.png)
 
+This HDRP version includes a new shader specifically formatted for [Custom Render Textures](https://docs.unity3d.com/Manual/class-CustomRenderTexture.html) in **Assets > Create > Shader > Custom Render Texture**. To use this shader, create a new Material and assign it to the Custom Render Texture's **Material** field.
+
 ## Issues resolved
 
 For information on issues resolved in version 12 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/changelog/CHANGELOG.html).
