@@ -237,11 +237,12 @@ namespace UnityEngine.Rendering.Universal
             // Always create this pass even in deferred because we use it for wireframe rendering in the Editor or offscreen depth texture rendering.
             m_RenderOpaqueForwardPass = new DrawObjectsPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
 
-            bool copyColorAndDepthAfterTransparents = UniversalRenderPipeline.asset.copyColorAndDepthMode == CopyColorAndDepthMode.AfterTransparent;
+            bool copyColorAfterTransparents = UniversalRenderPipeline.asset.copyColorAndDepthMode == CopyColorAndDepthMode.AfterTransparent;
+            bool copyDepthAfterTransparents = UniversalRenderPipeline.asset.copyDepthMode == CopyColorAndDepthMode.AfterTransparent;
 
-            m_CopyDepthPass = new CopyDepthPass(copyColorAndDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
+            m_CopyDepthPass = new CopyDepthPass(copyDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
-            m_CopyColorPass = new CopyColorPass(copyColorAndDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
+            m_CopyColorPass = new CopyColorPass(copyColorAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
 #endif
@@ -463,8 +464,9 @@ namespace UnityEngine.Rendering.Universal
             // Aim to have the most optimized render pass event for Depth Copy (The aim is to minimize the number of render passes)
             if (requiresDepthTexture)
             {
-                bool copyColorAndDepthAfterTransparents = UniversalRenderPipeline.asset.copyColorAndDepthMode == CopyColorAndDepthMode.AfterTransparent;
-                RenderPassEvent copyDepthPassEvent = copyColorAndDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
+                bool copyDepthAfterTransparents = UniversalRenderPipeline.asset.copyDepthMode == CopyColorAndDepthMode.AfterTransparent;
+
+                RenderPassEvent copyDepthPassEvent = copyDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
                 // RenderPassInputs's requiresDepthTexture is configured through ScriptableRenderPass's ConfigureInput function
                 if (renderPassInputs.requiresDepthTexture)
                 {
@@ -690,7 +692,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 bool isCopyDepthAfterTransparent = m_CopyDepthPass.renderPassEvent == RenderPassEvent.AfterRenderingTransparents;
-                if (cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported())
+                if (!copyColorPass && cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported())
                 {
                     if (opaquePassDepthStoreAction == RenderBufferStoreAction.Store)
                         opaquePassDepthStoreAction = isCopyDepthAfterTransparent ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.StoreAndResolve; // TODO: we shouldn't need to set Resolve here. Wating for a Metal backend fix to land

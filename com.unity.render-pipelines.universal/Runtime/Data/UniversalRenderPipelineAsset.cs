@@ -129,6 +129,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum CopyColorAndDepthMode
     {
+        None,
         /// <summary>TODO</summary>
         AfterOpaque,
         /// <summary>TODO</summary>
@@ -168,7 +169,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal int m_DefaultRendererIndex = 0;
 
         // General settings
-        [SerializeField] bool m_RequireDepthTexture = false;
+        [SerializeField] CopyColorAndDepthMode m_RequireDepthTexture = CopyColorAndDepthMode.None;
         [SerializeField] bool m_RequireOpaqueTexture = false;
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] bool m_SupportsTerrainHoles = true;
@@ -613,10 +614,16 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public bool supportsCameraDepthTexture
+        public CopyColorAndDepthMode copyDepthMode
         {
             get { return m_RequireDepthTexture; }
             set { m_RequireDepthTexture = value; }
+        }
+
+        public bool supportsCameraDepthTexture
+        {
+            get { return m_RequireDepthTexture != CopyColorAndDepthMode.None; }
+            //set { m_RequireDepthTexture = value ? CopyColorAndDepthMode.AfterOpaque : CopyColorAndDepthMode.None; }
         }
 
         public bool supportsCameraOpaqueTexture
