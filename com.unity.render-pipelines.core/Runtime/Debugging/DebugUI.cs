@@ -207,6 +207,12 @@ namespace UnityEngine.Rendering
             public float refreshRate = 0.1f;
 
             /// <summary>
+            /// Optional C# numeric format string.
+            /// See https://docs.microsoft.com/en-us/dotnet/standard/base-types/standard-numeric-format-strings
+            /// </summary>
+            public string formatString = null;
+
+            /// <summary>
             /// Constructor.
             /// </summary>
             public Value()
@@ -230,6 +236,8 @@ namespace UnityEngine.Rendering
             /// <returns>The formatted value string.</returns>
             public virtual string GetValueString()
             {
+                if (formatString != null)
+                    return String.Format(String.Format("{{0:{0}}}", formatString), GetValue());
                 return $"{GetValue()}";
             }
         }

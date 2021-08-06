@@ -891,7 +891,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 result.Add(new DebugUI.Value
                 {
                     displayName = sampler.name,
-                    getter = () => string.Format("{0:F2}", GetSamplerTiming(type, sampler)),
+                    formatString = "F2",
+                    getter = () => GetSamplerTiming(type, sampler),
                     refreshRate = 1.0f / 5.0f
                 });
             }
@@ -920,7 +921,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 result.Add(new DebugUI.Value
                 {
                     displayName = sampler.name,
-                    getter = () => string.Format("{0:F2}", GetSamplerTiming(type, sampler)),
+                    getter = () => GetSamplerTiming(type, sampler),
                     refreshRate = 1.0f / 5.0f
                 });
             }
@@ -976,13 +977,13 @@ namespace UnityEngine.Rendering.HighDefinition
         void RegisterDisplayStatsDebug()
         {
             var list = new List<DebugUI.Widget>();
-            list.Add(new DebugUI.Value { displayName = "Frame Rate (fps)", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 5f });
-            list.Add(new DebugUI.Value { displayName = "Frame Time (ms)", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 5f });
-            list.Add(new DebugUI.Value { displayName = "CPU Full Frame (ms)", getter = () => m_Data.frameTimingData?.AveragedSample.FullFrameTime ?? 0f });
-            list.Add(new DebugUI.Value { displayName = "CPU Main Thread Frame (ms)", getter = () => m_Data.frameTimingData?.AveragedSample.MainThreadCPUFrameTime ?? 0f });
-            list.Add(new DebugUI.Value { displayName = "CPU Render Thread Frame (ms)", getter = () => m_Data.frameTimingData?.AveragedSample.RenderThreadCPUFrameTime ?? 0f });
-            list.Add(new DebugUI.Value { displayName = "CPU Main Thread Present Wait (ms)", getter = () => m_Data.frameTimingData?.AveragedSample.MainThreadCPUPresentWaitTime ?? 0f });
-            list.Add(new DebugUI.Value { displayName = "GPU Frame (ms)", getter = () => m_Data.frameTimingData?.AveragedSample.GPUFrameTime ?? 0f });
+            list.Add(new DebugUI.Value { displayName = "Frame Rate (fps)", formatString = "F2", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 5f });
+            list.Add(new DebugUI.Value { displayName = "Frame Time (ms)", formatString = "F2", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 5f });
+            list.Add(new DebugUI.Value { displayName = "CPU Full Frame (ms)", formatString = "F2", getter = () => m_Data.frameTimingData?.AveragedSample.FullFrameTime ?? 0f });
+            list.Add(new DebugUI.Value { displayName = "CPU Main Thread Frame (ms)", formatString = "F2", getter = () => m_Data.frameTimingData?.AveragedSample.MainThreadCPUFrameTime ?? 0f });
+            list.Add(new DebugUI.Value { displayName = "CPU Render Thread Frame (ms)", formatString = "F2", getter = () => m_Data.frameTimingData?.AveragedSample.RenderThreadCPUFrameTime ?? 0f });
+            list.Add(new DebugUI.Value { displayName = "CPU Main Thread Present Wait (ms)", formatString = "F2", getter = () => m_Data.frameTimingData?.AveragedSample.MainThreadCPUPresentWaitTime ?? 0f });
+            list.Add(new DebugUI.Value { displayName = "GPU Frame (ms)", formatString = "F2", getter = () => m_Data.frameTimingData?.AveragedSample.GPUFrameTime ?? 0f });
             list.Add(new DebugUI.Foldout
             {
                 opened = true,
@@ -2051,11 +2052,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 values[index] = i;
                 index++;
             }
-        }
-
-        static string FormatVector(Vector3 v)
-        {
-            return string.Format("({0:F6}, {1:F6}, {2:F6})", v.x, v.y, v.z);
         }
 
         internal static void RegisterCamera(IFrameSettingsHistoryContainer container)
