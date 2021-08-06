@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.Universal
         Calculated = (1 << 0),
         LensDistortion = (1 << 1),
         Bloom = (1 << 2),
-        CHROMATIC_ABERRATION = (1 << 3),
+        ChromaticAberration = (1 << 3),
         ToneMaping = (1 << 4),
         FilmGrain = (1 << 5),
         DepthOfField = (1 << 6),
@@ -479,7 +479,7 @@ namespace UnityEditor.Rendering.Universal
             if (stripTool.StripMultiCompileKeepOffVariant(m_LensDistortion, VolumeFeatures.LensDistortion))
                 return true;
 
-            if (stripTool.StripMultiCompileKeepOffVariant(m_ChromaticAberration, VolumeFeatures.CHROMATIC_ABERRATION))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_ChromaticAberration, VolumeFeatures.ChromaticAberration))
                 return true;
 
             if (stripTool.StripMultiCompileKeepOffVariant(m_BloomLQ, VolumeFeatures.Bloom))
@@ -872,7 +872,7 @@ namespace UnityEditor.Rendering.Universal
                 if (asset.Has<PaniniProjection>())
                     s_VolumeFeatures |= VolumeFeatures.PaniniProjection;
                 if (asset.Has<ChromaticAberration>())
-                    s_VolumeFeatures |= VolumeFeatures.CHROMATIC_ABERRATION;
+                    s_VolumeFeatures |= VolumeFeatures.ChromaticAberration;
             }
         }
 
