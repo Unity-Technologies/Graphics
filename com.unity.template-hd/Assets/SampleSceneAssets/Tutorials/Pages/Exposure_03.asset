@@ -20,7 +20,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: c305ffb347c37dc4093c0209326df22a, type: 3}
+      m_Image: {fileID: 2800000, guid: 8cbe590286f326b45ade0a84e9b1dc93, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -38,18 +38,20 @@ MonoBehaviour:
         m_Untranslated: Automatic Histogram Exposure
       Text:
         m_Untranslated: "Let's now switch the Exposure Mode to another one that can
-          automatically adpat to the scene's lighting.\n\r\n1. In the <i>Hierarchy,</i>
-          select the <b>Global volume</b> created at the previous step.\n\r\n2. In
+          automatically adpat to the Scene's lighting.\n\r\n1. In the <i>Hierarchy,</i>
+          select the <b>Global Volume</b> created at the previous step.\n\r\n2. In
           its <i>Inspector,</i> Switch the Mode to <b>Automatic Histogram.</b>\r\n\r\nExplore
           the Scene and notice how the camera now imitates the human eye adaptation
           or the automatic exposure system of a camera. Dark areas may become brighter,
-          and bright ones may turn darker.\r\n\n\n<b>Expert tips</b>\n\n\u2022 Use
-          the <b>Limit Min</b> and <b>Limit Max</b> overrides to control how much
-          the Automatic Exposure can fluctuate within a fixed range of values.\n\n\u2022
+          and bright ones may turn darker, automatically.\r\n\n\n<b>Expert tips</b>\n\n\u2022
+          Use the <b>Limit Min</b> and <b>Limit Max</b> overrides to control how
+          much the Automatic Exposure can fluctuate within a fixed range of values,
+          to prevent it from displaying too dark or too bright images.\n\n\u2022
           Use the <b>Compensation</b> overrie to slightly nudge the exposure up or
           down in case you aren't exactly satisfied with the exposure value selected
-          by the system.\n\n\u2022 HDRP offers wide range of mid grey targets, from
-          12.5% to 18% grey, to simulate the exposure system from most camera manufacturers."
+          by the system.\n\n\u2022 HDRP offers a wide range of mid grey targets,
+          from 12.5% to 18% grey, to simulate the exposure system from most camera
+          manufacturers."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -69,8 +71,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 66.16438, y: 3.5631676, z: 0.091934875}
-    m_Rotation: {x: -0.016692033, y: 0.7094488, z: 0.01680719, w: 0.70436}
+    m_Pivot: {x: 11.319556, y: -1.3037515, z: 8.75719}
+    m_Rotation: {x: -0.16761531, y: -0.44646597, z: 0.085546084, w: -0.8748008}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
