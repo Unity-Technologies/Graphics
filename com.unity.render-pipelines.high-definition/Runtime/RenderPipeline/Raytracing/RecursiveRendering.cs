@@ -43,13 +43,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls which sources are used to fallback on when the traced ray misses.
         /// </summary>
         [AdditionalProperty]
-        public RayTracingFallbackHierachyParameter rayMissFallbackHierarchy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
+        [Tooltip("Controls which sources are used to fallback on when the traced ray misses.")]
+        public RayTracingFallbackHierachyParameter rayMiss = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
 
         /// <summary>
         /// Controls the fallback hierarchy for lighting the last bounce.
         /// </summary>
         [AdditionalProperty]
-        public RayTracingFallbackHierachyParameter lastBounceFallbackHierarchy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
+        [Tooltip("Controls the fallback hierarchy for lighting the last bounce.")]
+        public RayTracingFallbackHierachyParameter lastBounce = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
 
         /// <summary>
         /// Default constructor for the recursive rendering volume component.

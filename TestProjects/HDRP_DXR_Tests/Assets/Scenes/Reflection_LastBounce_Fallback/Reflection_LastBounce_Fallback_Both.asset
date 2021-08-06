@@ -161,10 +161,10 @@ MonoBehaviour:
     m_Value: 2
   m_MinSmoothness:
     m_OverrideState: 0
-    m_Value: 0.9
+    m_Value: 0.4
   m_SmoothnessFadeStart:
     m_OverrideState: 0
-    m_Value: 0.9
+    m_Value: 0.5
   reflectSky:
     m_OverrideState: 0
     m_Value: 1
@@ -183,7 +183,7 @@ MonoBehaviour:
   m_RayMaxIterations:
     m_OverrideState: 0
     m_Value: 32
-  rayMissFallbackHierarchy:
+  rayMiss:
     m_OverrideState: 1
     m_Value: 0
   lastBounceFallbackHierarchy:
@@ -208,7 +208,7 @@ MonoBehaviour:
     m_Value: 1
   m_DenoiserRadius:
     m_OverrideState: 0
-    m_Value: 8
+    m_Value: 12
   m_AffectSmoothSurfaces:
     m_OverrideState: 0
     m_Value: 0

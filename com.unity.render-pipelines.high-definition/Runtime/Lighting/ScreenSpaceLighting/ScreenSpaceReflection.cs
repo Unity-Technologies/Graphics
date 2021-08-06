@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [FormerlySerializedAs("fallbackHierachy")]
         [AdditionalProperty]
-        public RayTracingFallbackHierachyParameter rayMissFallbackHierarchy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
+        public RayTracingFallbackHierachyParameter rayMiss = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
 
         /// <summary>
         /// Controls the fallback hierarchy for lighting the last bounce.

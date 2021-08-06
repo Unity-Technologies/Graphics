@@ -324,7 +324,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.halfResolution = !fullResolution;
             deferredParameters.rayCountType = (int)RayCountValues.ReflectionDeferred;
             deferredParameters.lodBias = settings.textureLodBias.value;
-            deferredParameters.rayMissFallbackHierarchy = (int)(settings.rayMissFallbackHierarchy.value);
+            deferredParameters.rayMiss = (int)(settings.rayMiss.value);
             deferredParameters.lastBounceFallbackHierarchy = (int)(settings.lastBounceFallbackHierarchy.value);
 
             // Ray Marching parameters
@@ -358,7 +358,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
             deferredParameters.raytracingCB._RaytracingPreExposition = 0;
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 0;
-            deferredParameters.raytracingCB._RayTracingRayMissFallbackHierarchy = deferredParameters.rayMissFallbackHierarchy;
+            deferredParameters.raytracingCB._RayTracingRayMissFallbackHierarchy = deferredParameters.rayMiss;
             deferredParameters.raytracingCB._RayTracingLastBounceFallbackHierarchy = deferredParameters.lastBounceFallbackHierarchy;
 
             return deferredParameters;
@@ -460,7 +460,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.minSmoothness = settings.minSmoothness;
                 passData.smoothnessFadeStart = settings.smoothnessFadeStart;
                 passData.lodBias = settings.textureLodBias.value;
-                passData.rayMissfallbackHierarchy = (int)settings.rayMissFallbackHierarchy.value;
+                passData.rayMissfallbackHierarchy = (int)settings.rayMiss.value;
                 passData.lastBouncefallbackHierarchy = (int)settings.lastBounceFallbackHierarchy.value;
 
                 // Other parameters

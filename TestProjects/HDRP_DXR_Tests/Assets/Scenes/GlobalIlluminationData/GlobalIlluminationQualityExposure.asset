@@ -342,7 +342,7 @@ MonoBehaviour:
   tracing:
     m_OverrideState: 1
     m_Value: 2
-  rayMissFallbackHierarchy:
+  rayMiss:
     m_OverrideState: 1
     m_Value: 0
   depthBufferThickness:

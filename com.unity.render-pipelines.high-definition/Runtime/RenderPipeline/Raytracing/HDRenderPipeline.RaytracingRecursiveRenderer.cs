@@ -107,8 +107,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayLength = recursiveSettings.rayLength.value;
                 passData.maxDepth = recursiveSettings.maxDepth.value;
                 passData.minSmoothness = recursiveSettings.minSmoothness.value;
-                passData.rayMissFallbackHiearchy = (int)recursiveSettings.rayMissFallbackHierarchy.value;
-                passData.lastBounceFallbackHiearchy = (int)recursiveSettings.lastBounceFallbackHierarchy.value;
+                passData.rayMissFallbackHiearchy = (int)recursiveSettings.rayMiss.value;
+                passData.lastBounceFallbackHiearchy = (int)recursiveSettings.lastBounce.value;
 
                 // Other data
                 passData.accelerationStructure = RequestAccelerationStructure();

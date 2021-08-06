@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the fallback hierarchy for indirect diffuse in case the ray misses.")]
         [FormerlySerializedAs("fallbackHierarchy")]
         [AdditionalProperty]
-        public RayMarchingFallbackHierarchyParameter rayMissFallbackHierarchy = new RayMarchingFallbackHierarchyParameter(RayMarchingFallbackHierarchy.ReflectionProbesAndSky);
+        public RayMarchingFallbackHierarchyParameter rayMiss = new RayMarchingFallbackHierarchyParameter(RayMarchingFallbackHierarchy.ReflectionProbesAndSky);
         #endregion
 
         #region RayMarching

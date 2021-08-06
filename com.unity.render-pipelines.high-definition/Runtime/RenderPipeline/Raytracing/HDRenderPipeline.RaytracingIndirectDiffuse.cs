@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.halfResolution = !fullResolution;
             deferredParameters.rayCountType = (int)RayCountValues.DiffuseGI_Deferred;
             deferredParameters.lodBias = settings.textureLodBias.value;
-            deferredParameters.rayMissFallbackHierarchy = (int)settings.rayMissFallbackHierarchy.value;
+            deferredParameters.rayMiss = (int)settings.rayMiss.value;
             deferredParameters.lastBounceFallbackHierarchy = (int)settings.lastBounceFallbackHierarchy.value;
 
             // Ray marching
@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
             deferredParameters.raytracingCB._RaytracingPreExposition = 1;
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 1;
-            deferredParameters.raytracingCB._RayTracingRayMissFallbackHierarchy = deferredParameters.rayMissFallbackHierarchy;
+            deferredParameters.raytracingCB._RayTracingRayMissFallbackHierarchy = deferredParameters.rayMiss;
             deferredParameters.raytracingCB._RayTracingLastBounceFallbackHierarchy = deferredParameters.lastBounceFallbackHierarchy;
 
             return deferredParameters;
@@ -372,7 +372,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float clampValue;
             public int bounceCount;
             public int lodBias;
-            public int rayMissFallbackHierarchy;
+            public int rayMiss;
             public int lastBounceFallbackHierarchy;
 
             // Other parameters
@@ -408,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.clampValue = settings.clampValue;
                 passData.bounceCount = settings.bounceCount.value;
                 passData.lodBias = settings.textureLodBias.value;
-                passData.rayMissFallbackHierarchy = (int)settings.rayMissFallbackHierarchy.value;
+                passData.rayMiss = (int)settings.rayMiss.value;
                 passData.lastBounceFallbackHierarchy = (int)settings.lastBounceFallbackHierarchy.value;
 
                 // Grab the additional parameters
@@ -461,7 +461,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = data.bounceCount;
                         data.shaderVariablesRayTracingCB._RayTracingDiffuseLightingOnly = 1;
                         data.shaderVariablesRayTracingCB._RayTracingLodBias = data.lodBias;
-                        data.shaderVariablesRayTracingCB._RayTracingRayMissFallbackHierarchy = data.rayMissFallbackHierarchy;
+                        data.shaderVariablesRayTracingCB._RayTracingRayMissFallbackHierarchy = data.rayMiss;
                         data.shaderVariablesRayTracingCB._RayTracingLastBounceFallbackHierarchy = data.lastBounceFallbackHierarchy;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 

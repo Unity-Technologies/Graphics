@@ -14,8 +14,8 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_MaxDepth;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_MinSmoothness;
-        SerializedDataParameter m_RayMissFallbackHierarchy;
-        SerializedDataParameter m_LastBounceFallbackHierarchy;
+        SerializedDataParameter m_RayMiss;
+        SerializedDataParameter m_LastBounce;
 
         public override void OnEnable()
         {
@@ -26,8 +26,8 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MaxDepth = Unpack(o.Find(x => x.maxDepth));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
             m_MinSmoothness = Unpack(o.Find(x => x.minSmoothness));
-            m_RayMissFallbackHierarchy = Unpack(o.Find(x => x.rayMissFallbackHierarchy));
-            m_LastBounceFallbackHierarchy = Unpack(o.Find(x => x.lastBounceFallbackHierarchy));
+            m_RayMiss = Unpack(o.Find(x => x.rayMiss));
+            m_LastBounce = Unpack(o.Find(x => x.lastBounce));
         }
 
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "This defines the maximal travel distance of rays.");
@@ -58,8 +58,8 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                         using (new IndentLevelScope())
                         {
                             EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
-                            PropertyField(m_RayMissFallbackHierarchy);
-                            PropertyField(m_LastBounceFallbackHierarchy);
+                            PropertyField(m_RayMiss);
+                            PropertyField(m_LastBounce);
                         }
                     }
                 }

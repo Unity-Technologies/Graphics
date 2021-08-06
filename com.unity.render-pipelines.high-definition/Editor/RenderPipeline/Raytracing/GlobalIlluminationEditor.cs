@@ -12,14 +12,14 @@ namespace UnityEditor.Rendering.HighDefinition
         // Shared rasterization / ray tracing parameter
         SerializedDataParameter m_Enable;
         SerializedDataParameter m_Tracing;
-        SerializedDataParameter m_RayMissFallbackHierarchy;
+        SerializedDataParameter m_RayMiss;
 
         // Screen space global illumination parameters
         SerializedDataParameter m_DepthBufferThickness;
         SerializedDataParameter m_RaySteps;
 
         // Ray tracing generic attributes
-        SerializedDataParameter m_LastBounceFallbackHierarchy;
+        SerializedDataParameter m_LastBounce;
         SerializedDataParameter m_LayerMask;
         SerializedDataParameter m_ReceiverMotionRejection;
         SerializedDataParameter m_TextureLodBias;
@@ -57,14 +57,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_Enable = Unpack(o.Find(x => x.enable));
             m_Tracing = Unpack(o.Find(x => x.tracing));
-            m_RayMissFallbackHierarchy = Unpack(o.Find(x => x.rayMissFallbackHierarchy));
+            m_RayMiss = Unpack(o.Find(x => x.rayMiss));
 
             // SSGI Parameters
             m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
             m_RaySteps = Unpack(o.Find(x => x.maxRaySteps));
 
             // Ray Tracing shared parameters
-            m_LastBounceFallbackHierarchy = Unpack(o.Find(x => x.lastBounceFallbackHierarchy));
+            m_LastBounce = Unpack(o.Find(x => x.lastBounceFallbackHierarchy));
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
             m_ReceiverMotionRejection = Unpack(o.Find(x => x.receiverMotionRejection));
             m_TextureLodBias = Unpack(o.Find(x => x.textureLodBias));
@@ -99,8 +99,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of global illumination rays. The higher this value is, the more expensive ray traced global illumination is.");
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Depth Tolerance", "Controls the tolerance when comparing the depth of two pixels.");
-        static public readonly GUIContent k_RayMissFallbackHierarchyText = EditorGUIUtility.TrTextContent("Ray Miss Hierarchy", "Controls the fallback hierarchy for indirect diffuse in case the ray misses.");
-        static public readonly GUIContent k_LastBounceFallbackHierarchyText = EditorGUIUtility.TrTextContent("Last Bounce Hierarchy", "Controls the fallback hierarchy for lighting the last bounce.");
+        static public readonly GUIContent k_RayMissFallbackHierarchyText = EditorGUIUtility.TrTextContent("Ray Miss", "Controls the fallback hierarchy for indirect diffuse in case the ray misses.");
+        static public readonly GUIContent k_LastBounceFallbackHierarchyText = EditorGUIUtility.TrTextContent("Last Bounce", "Controls the fallback hierarchy for lighting the last bounce.");
         static public readonly GUIContent k_MaxMixedRaySteps = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for mixed tracing.");
 
         static public readonly GUIContent k_DenoiseText = EditorGUIUtility.TrTextContent("Denoise", "Denoise the screen space GI.");
@@ -191,8 +191,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (new IndentLevelScope())
                     {
                         EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
-                        PropertyField(m_RayMissFallbackHierarchy, k_RayMissFallbackHierarchyText);
-                        PropertyField(m_LastBounceFallbackHierarchy, k_LastBounceFallbackHierarchyText);
+                        PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
+                        PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
                     }
 
                     if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
@@ -246,7 +246,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         DenoiserSSGUI();
                     }
                     PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
-                    PropertyField(m_RayMissFallbackHierarchy, k_RayMissFallbackHierarchyText);
+                    PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
                 }
             }
         }
