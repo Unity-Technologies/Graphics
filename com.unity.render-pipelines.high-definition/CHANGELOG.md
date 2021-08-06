@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue where bloom filtering was wrong when using multiple cameras
+- Improved a bit the area cookie behavior for higher smoothness values to reduce artifacts.
+- Fixed the incorrect value written to the VT feedback buffer when VT is not used.
+- Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
+- Fixed distortion when resizing the graphics compositor window in builds (case 1328968).
 
 ## [10.6.0] - 2021-04-29
 
