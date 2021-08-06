@@ -978,10 +978,32 @@ namespace UnityEngine.Rendering.HighDefinition
             var list = new List<DebugUI.Widget>();
             list.Add(new DebugUI.Value { displayName = "Frame Rate (fps)", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 5f });
             list.Add(new DebugUI.Value { displayName = "Frame Time (ms)", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 5f });
-
+            list.Add(new DebugUI.Value { displayName = "CPU Full Frame (ms)", getter = () => m_Data.frameTimingData?.AveragedSample.FullFrameTime ?? 0f });
+            list.Add(new DebugUI.Value { displayName = "CPU Main Thread Frame (ms)", getter = () => m_Data.frameTimingData?.AveragedSample.MainThreadCPUFrameTime ?? 0f });
+            list.Add(new DebugUI.Value { displayName = "CPU Render Thread Frame (ms)", getter = () => m_Data.frameTimingData?.AveragedSample.RenderThreadCPUFrameTime ?? 0f });
+            list.Add(new DebugUI.Value { displayName = "CPU Main Thread Present Wait (ms)", getter = () => m_Data.frameTimingData?.AveragedSample.MainThreadCPUPresentWaitTime ?? 0f });
+            list.Add(new DebugUI.Value { displayName = "GPU Frame (ms)", getter = () => m_Data.frameTimingData?.AveragedSample.GPUFrameTime ?? 0f });
             list.Add(new DebugUI.Foldout
             {
-                displayName = "Realtime Profiler",
+                opened = true,
+                displayName = "Bottlenecks",
+                children =
+                {
+#if UNITY_EDITOR
+                    new DebugUI.Container { displayName = "Not supported in Editor" }
+#else
+                    new DebugUI.ProgressBarValue { displayName = "CPU", getter = () => m_Data.frameTimingData?.BottleneckStats.CPU ?? 0f },
+                    new DebugUI.ProgressBarValue { displayName = "GPU", getter = () => m_Data.frameTimingData?.BottleneckStats.GPU ?? 0f },
+                    new DebugUI.ProgressBarValue { displayName = "Present limited", getter = () => m_Data.frameTimingData?.BottleneckStats.PresentLimited ?? 0f },
+                    new DebugUI.ProgressBarValue { displayName = "Balanced", getter = () => m_Data.frameTimingData?.BottleneckStats.Balanced ?? 0f },
+#endif
+                }
+            });
+
+#if true // DEBUG, REMOVE
+            list.Add(new DebugUI.Foldout
+            {
+                displayName = "Realtime Profiler Debug",
                 children =
                 {
                     new DebugUI.IntField
@@ -996,51 +1018,43 @@ namespace UnityEngine.Rendering.HighDefinition
                         min = () => 1,
                         max = () => 100
                     },
-                    new DebugUI.Value
+                    new DebugUI.IntField
                     {
-                        displayName = "CPU Full Frame (ms)",
-                        getter = () => m_Data.frameTimingData?.AveragedSample.FullFrameTime ?? 0f
-                    },
-                    new DebugUI.Value
-                    {
-                        displayName = "CPU Main Thread Frame (ms)",
-                        getter = () => m_Data.frameTimingData?.AveragedSample.MainThreadCPUFrameTime ?? 0f
-                    },
-                    new DebugUI.Value
-                    {
-                        displayName = "CPU Render Thread Frame (ms)",
-                        getter = () => m_Data.frameTimingData?.AveragedSample.RenderThreadCPUFrameTime ?? 0f
-                    },
-                    new DebugUI.Value
-                    {
-                        displayName = "GPU Frame (ms)",
-                        getter = () => m_Data.frameTimingData?.AveragedSample.GPUFrameTime ?? 0f
-                    },
-                    new DebugUI.Container
-                    {
-                        displayName = "Bottlenecks",
-                        children =
+                        displayName = "Bottleneck History Size",
+                        getter = () => m_Data.frameTimingData?.BottleneckHistorySize ?? 0,
+                        setter = (value) =>
                         {
-                            new DebugUI.IntField
-                            {
-                                displayName = "Bottleneck History Size",
-                                getter = () => m_Data.frameTimingData?.BottleneckHistorySize ?? 0,
-                                setter = (value) =>
-                                {
-                                    if (m_Data.frameTimingData != null)
-                                        m_Data.frameTimingData.BottleneckHistorySize = value;
-                                },
-                                min = () => 1,
-                                max = () => 100
-                            },
-                            new DebugUI.ProgressBarValue { displayName = "CPU", getter = () => m_Data.frameTimingData?.BottleneckStats.CPU ?? 0f },
-                            new DebugUI.ProgressBarValue { displayName = "GPU", getter = () => m_Data.frameTimingData?.BottleneckStats.GPU ?? 0f },
-                            new DebugUI.ProgressBarValue { displayName = "Present limited", getter = () => m_Data.frameTimingData?.BottleneckStats.PresentLimited ?? 0f },
-                            new DebugUI.ProgressBarValue { displayName = "Balanced", getter = () => m_Data.frameTimingData?.BottleneckStats.Balanced ?? 0f },
+                            if (m_Data.frameTimingData != null)
+                                m_Data.frameTimingData.BottleneckHistorySize = value;
+                        },
+                        min = () => 1,
+                        max = () => 100
+                    },
+                    new DebugUI.IntField
+                    {
+                        displayName = "Force VSyncCount",
+                        min = () => - 1,
+                        max = () => 4,
+                        getter = () => QualitySettings.vSyncCount,
+                        setter = (value) =>
+                        {
+                            QualitySettings.vSyncCount = value;
                         }
-                    }
+                    },
+                    new DebugUI.IntField
+                    {
+                        displayName = "Force TargetFrameRate",
+                        min = () => - 1,
+                        max = () => 1000,
+                        getter = () => Application.targetFrameRate,
+                        setter = (value) =>
+                        {
+                            Application.targetFrameRate = value;
+                        }
+                    },
                 }
             });
+#endif
 
             EnableProfilingRecorders();
             list.Add(new DebugUI.BoolField { displayName = "Update every second with average", getter = () => data.averageProfilerTimingsOverASecond, setter = value => data.averageProfilerTimingsOverASecond = value });

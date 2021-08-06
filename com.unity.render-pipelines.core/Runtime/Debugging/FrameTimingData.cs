@@ -33,6 +33,7 @@ public class FrameTimingData
     {
         public float FullFrameTime;
         public float MainThreadCPUFrameTime;
+        public float MainThreadCPUPresentWaitTime;
         public float RenderThreadCPUFrameTime;
         public float GPUFrameTime;
     };
@@ -111,6 +112,7 @@ public class FrameTimingData
         {
             frameTime.FullFrameTime = (float)timing.First().cpuFrameTime;
             frameTime.MainThreadCPUFrameTime = (float)timing.First().cpuMainThreadFrameTime;
+            frameTime.MainThreadCPUPresentWaitTime = (float)timing.First().cpuMainThreadPresentWaitTime;
             frameTime.RenderThreadCPUFrameTime = (float)timing.First().cpuRenderThreadFrameTime;
             frameTime.GPUFrameTime = (float)timing.First().gpuFrameTime;
         }
@@ -148,10 +150,11 @@ public class FrameTimingData
 
     void ComputeAverages()
     {
-        AveragedSample.FullFrameTime               = m_Samples.Average(s => s.FullFrameTime);
-        AveragedSample.MainThreadCPUFrameTime      = m_Samples.Average(s => s.MainThreadCPUFrameTime);
-        AveragedSample.RenderThreadCPUFrameTime    = m_Samples.Average(s => s.RenderThreadCPUFrameTime);
-        AveragedSample.GPUFrameTime                = m_Samples.Average(s => s.GPUFrameTime);
+        AveragedSample.FullFrameTime                = m_Samples.Average(s => s.FullFrameTime);
+        AveragedSample.MainThreadCPUFrameTime       = m_Samples.Average(s => s.MainThreadCPUFrameTime);
+        AveragedSample.MainThreadCPUPresentWaitTime = m_Samples.Average(s => s.MainThreadCPUPresentWaitTime);
+        AveragedSample.RenderThreadCPUFrameTime     = m_Samples.Average(s => s.RenderThreadCPUFrameTime);
+        AveragedSample.GPUFrameTime                 = m_Samples.Average(s => s.GPUFrameTime);
     }
 
     Bottlenecks ComputeBottleneckStats()
@@ -186,28 +189,34 @@ public class FrameTimingData
 
     static PerformanceBottleneck DetermineBottleneck(FrameTimeSample s)
     {
-        if (s.GPUFrameTime == 0 || s.MainThreadCPUFrameTime == 0 || s.RenderThreadCPUFrameTime == 0)
-            return PerformanceBottleneck.Indeterminate; // Missing data
+        const float kNearFullFrameTimeThresholdPercent = 0.2f;
+        const float kNonZeroPresentWaitTimeMs = 0.5f;
 
-        const float balancedThreshold = 0.2f;
-        float fullFrameTimeWithMargin = (1f - balancedThreshold) * s.FullFrameTime;
+        if (s.GPUFrameTime == 0 || s.MainThreadCPUFrameTime == 0) // In direct mode, render thread doesn't exist
+            return PerformanceBottleneck.Indeterminate; // Missing data
+        float fullFrameTimeWithMargin = (1f - kNearFullFrameTimeThresholdPercent) * s.FullFrameTime;
 
         // GPU time is close to frame time, CPU times are not
         if (s.GPUFrameTime              > fullFrameTimeWithMargin &&
             s.MainThreadCPUFrameTime    < fullFrameTimeWithMargin &&
             s.RenderThreadCPUFrameTime  < fullFrameTimeWithMargin)
             return PerformanceBottleneck.GPU;
+
         // One of the CPU times is close to frame time, GPU is not
         if (s.GPUFrameTime              < fullFrameTimeWithMargin &&
             (s.MainThreadCPUFrameTime   > fullFrameTimeWithMargin ||
              s.RenderThreadCPUFrameTime  > fullFrameTimeWithMargin))
             return PerformanceBottleneck.CPU;
 
-        // None of the times are close to frame time
-        if (s.GPUFrameTime              < fullFrameTimeWithMargin &&
-            s.MainThreadCPUFrameTime    < fullFrameTimeWithMargin &&
-            s.RenderThreadCPUFrameTime  < fullFrameTimeWithMargin)
-            return PerformanceBottleneck.PresentLimited;
+        // Main thread waited due to Vsync or target frame rate
+        if (s.MainThreadCPUPresentWaitTime > kNonZeroPresentWaitTimeMs)
+        {
+            // None of the times are close to frame time
+            if (s.GPUFrameTime              < fullFrameTimeWithMargin &&
+                s.MainThreadCPUFrameTime    < fullFrameTimeWithMargin &&
+                s.RenderThreadCPUFrameTime  < fullFrameTimeWithMargin)
+                return PerformanceBottleneck.PresentLimited;
+        }
 
         return PerformanceBottleneck.Balanced;
     }
