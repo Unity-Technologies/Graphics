@@ -314,5 +314,16 @@ namespace UnityEngine.Rendering
         {
             s_DefaultInstance.ResetReferenceSize(width, height);
         }
+
+        /// <summary>
+        /// Returns the ratio against the current target's max resolution
+        /// </summary>
+        /// <param name="width">width to utilize</param>
+        /// <param name="height">height to utilize</param>
+        /// <returns> retruns the width,height / maxTargetSize.xy ratio. </returns>
+        public static Vector2 CalculateRatioAgainstMaxSize(int width, int height)
+        {
+            return s_DefaultInstance.CalculateRatioAgainstMaxSize(new Vector2Int(width, height));
+        }
     }
 }

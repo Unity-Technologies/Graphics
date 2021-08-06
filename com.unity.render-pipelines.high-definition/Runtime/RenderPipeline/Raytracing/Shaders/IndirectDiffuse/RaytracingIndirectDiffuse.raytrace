@@ -34,9 +34,10 @@ RW_TEXTURE2D_X(float4, _IndirectDiffuseTextureRW);
 [shader("miss")]
 void MissShaderIndirectDiffuse(inout RayIntersection rayIntersection : SV_RayPayload)
 {
-    rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0f, 0).xyz;
+    float3 rayDirection = WorldRayDirection();
+    rayIntersection.color = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayDirection, 0.0f, 0).xyz;
     rayIntersection.t = _RaytracingRayMaxLength;
-    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), rayIntersection.color);
+    ApplyFogAttenuation(WorldRayOrigin(), rayDirection, rayIntersection.color);
 }
 
 [shader("raygeneration")]
@@ -104,10 +105,12 @@ void RayGenIntegration()
         rayDescriptor.TMin = 0.0f;
         rayDescriptor.TMax = _RaytracingRayMaxLength;
 
+        // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
+        ApplyCameraRelativeXR(rayDescriptor.Origin);
+
         // Create and init the RayIntersection structure for this
         RayIntersection rayIntersection;
         rayIntersection.color = float3(0.0, 0.0, 0.0);
-        rayIntersection.incidentDirection = rayDescriptor.Direction;
         rayIntersection.origin = rayDescriptor.Origin;
         rayIntersection.t = -1.0f;
         rayIntersection.remainingDepth = 1;

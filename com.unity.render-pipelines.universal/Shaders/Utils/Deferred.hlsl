@@ -7,7 +7,7 @@
 
 #define PREFERRED_CBUFFER_SIZE (64 * 1024)
 #define SIZEOF_VEC4_TILEDATA 1 // uint4
-#define SIZEOF_VEC4_PUNCTUALLIGHTDATA 5 // 5 * float4
+#define SIZEOF_VEC4_PUNCTUALLIGHTDATA 6 // 6 * float4
 #define MAX_DEPTHRANGE_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / 4) // Should be ushort, but extra unpacking code is "too expensive"
 #define MAX_TILES_PER_CBUFFER_PATCH (PREFERRED_CBUFFER_SIZE / (16 * SIZEOF_VEC4_TILEDATA))
 #define MAX_PUNCTUALLIGHT_PER_CBUFFER_BATCH (PREFERRED_CBUFFER_SIZE / (16 * SIZEOF_VEC4_PUNCTUALLIGHTDATA))
@@ -45,6 +45,7 @@ struct PunctualLightData
     float3 spotDirection;       // spotLights support
     int flags;                  // Light flags (enum kLightFlags and LightFlag in C# code)
     float4 occlusionProbeInfo;
+    uint layerMask;             // Optional light layer mask
 };
 
 Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, half4 shadowMask, int shadowLightIndex, bool materialFlagReceiveShadowsOff)
@@ -73,6 +74,9 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
     {
         light.shadowAttenuation = AdditionalLightShadow(shadowLightIndex, positionWS, lightDirection, shadowMask, punctualLightData.occlusionProbeInfo);
     }
+
+    light.layerMask = punctualLightData.layerMask;
+
     return light;
 }
 

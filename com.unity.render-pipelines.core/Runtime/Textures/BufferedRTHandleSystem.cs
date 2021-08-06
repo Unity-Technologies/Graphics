@@ -143,6 +143,29 @@ namespace UnityEngine.Rendering
             m_RTHandleSystem.ResetReferenceSize(width, height);
         }
 
+        /// <summary>
+        /// Queries the number of RT handle buffers allocated for a buffer ID.
+        /// </summary>
+        /// <param name="bufferId">The buffer ID to query.</param>
+        public int GetNumFramesAllocated(int bufferId)
+        {
+            if (!m_RTHandles.ContainsKey(bufferId))
+                return 0;
+
+            return m_RTHandles[bufferId].Length;
+        }
+
+        /// <summary>
+        /// Returns the ratio against the current target's max resolution
+        /// </summary>
+        /// <param name="width">width to utilize</param>
+        /// <param name="height">height to utilize</param>
+        /// <returns> retruns the width,height / maxTargetSize.xy ratio. </returns>
+        public Vector2 CalculateRatioAgainstMaxSize(int width, int height)
+        {
+            return m_RTHandleSystem.CalculateRatioAgainstMaxSize(new Vector2Int(width, height));
+        }
+
         void Swap()
         {
             foreach (var item in m_RTHandles)

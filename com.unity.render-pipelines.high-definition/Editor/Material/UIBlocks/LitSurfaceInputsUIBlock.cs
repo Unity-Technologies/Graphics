@@ -440,12 +440,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.TexturePropertySingleLine(Styles.bentNormalMapOSText, bentNormalMapOS[m_LayerIndex]);
             }
 
-            DisplacementMode displaceMode = (DisplacementMode)displacementMode.floatValue;
+            DisplacementMode displaceMode = BaseLitGUI.GetFilteredDisplacementMode(displacementMode);
             if (displaceMode != DisplacementMode.None || (m_Features & Features.HeightMap) != 0)
             {
                 EditorGUI.BeginChangeCheck();
                 materialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[m_LayerIndex]);
-                if (!heightMap[m_LayerIndex].hasMixedValue && heightMap[m_LayerIndex].textureValue != null && !displacementMode.hasMixedValue)
+                if (!heightMap[m_LayerIndex].hasMixedValue && heightMap[m_LayerIndex].textureValue != null && !BaseLitGUI.HasMixedDisplacementMode(displacementMode))
                 {
                     EditorGUI.indentLevel++;
                     if (displaceMode == DisplacementMode.Pixel)

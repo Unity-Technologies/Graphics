@@ -231,6 +231,28 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             Dispose(true);
         }
 
+        /// <summary>
+        /// Allow or not pass culling based on renderer list results
+        /// By default all passes can be culled out if the render graph detects they are using a renderer list that is empty (does not draw any geometry)
+        /// In some cases, a pass may not write or read any texture but rather do something with side effects (like setting a global texture parameter for example).
+        /// This function can be used to tell the system that it should not cull this pass.
+        /// </summary>
+        /// <param name="value">True to allow pass culling.</param>
+        public void AllowRendererListCulling(bool value)
+        {
+            m_RenderPass.AllowRendererListCulling(value);
+        }
+
+        /// <summary>
+        /// Used to indicate that a pass depends on an external renderer list (that is not directly used in this pass).
+        /// </summary>
+        /// <param name="input">The renderer list handle this pass depends on.</param>
+        public RendererListHandle DependsOn(in RendererListHandle input)
+        {
+            m_RenderPass.UseRendererList(input);
+            return input;
+        }
+
         #endregion
 
         #region Internal Interface

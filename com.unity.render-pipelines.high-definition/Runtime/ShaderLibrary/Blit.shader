@@ -187,7 +187,40 @@ Shader "Hidden/HDRP/Blit"
             ENDHLSL
         }
 
-        // 15. Bilinear quad with luminance (grayscale), RGBA to YYYY
+        // 15. Project Cube to Octahedral 2d quad with luminance (grayscale), RGBA to YYYY
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuad
+                #pragma fragment FragOctahedralProjectLuminance
+            ENDHLSL
+        }
+
+        // 16. Project Cube to Octahedral 2d quad with with A to RGBA (AAAA)
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuad
+                #pragma fragment FragOctahedralProjectAlphaToRGBA
+            ENDHLSL
+        }
+
+        // 17. Project Cube to Octahedral 2d quad with with R to RGBA (RRRR)
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuad
+                #pragma fragment FragOctahedralProjectRedToRGBA
+            ENDHLSL
+        }
+
+        // 18. Bilinear quad with luminance (grayscale), RGBA to YYYY
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
@@ -198,7 +231,7 @@ Shader "Hidden/HDRP/Blit"
             ENDHLSL
         }
 
-        // 16. Bilinear quad with A to RGBA
+        // 19. Bilinear quad with A to RGBA (AAAA)
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
@@ -209,7 +242,7 @@ Shader "Hidden/HDRP/Blit"
             ENDHLSL
         }
 
-        // 17. Bilinear quad with R to RGBA
+        // 20. Bilinear quad with R to RGBA (RRRR)
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off

@@ -164,11 +164,16 @@ $precision {tmpMaxHeight} = {amplitude} * 0.01; // cm in the interface so we mul
 $precision3 {tmpViewDirUV}    = normalize($precision3({tmpViewDir}.xy * {tmpMaxHeight}, {tmpViewDir}.z)); // TODO: skip normalize
 
 PerPixelHeightDisplacementParam {tmpPOMParam};
-{tmpPOMParam}.uv = {uvs};");
+{tmpPOMParam}.uv = {heightmap}.GetTransformedUV({uvs});");
+
+            // to avoid crashes when steps gets too big, and
+            // to avoid divide by zero, we clamp it to the range [1, 256]
+            // This should compile out when steps is a static value.
+            steps = "max(min(" + steps + ", 256), 1)";
 
             sb.AppendLines($@"
 $precision {tmpOutHeight};
-$precision2 {GetVariableNameForSlot(kParallaxUVsOutputSlotId)} = {uvs} + ParallaxOcclusionMapping{GetFunctionName()}({lod}, {lodThreshold}, {steps}, {tmpViewDirUV}, {tmpPOMParam}, {tmpOutHeight}, TEXTURE2D_ARGS({heightmap}.tex, {sampler}.samplerstate));
+$precision2 {GetVariableNameForSlot(kParallaxUVsOutputSlotId)} = {heightmap}.GetTransformedUV({uvs}) + ParallaxOcclusionMapping{GetFunctionName()}({lod}, {lodThreshold}, {steps}, {tmpViewDirUV}, {tmpPOMParam}, {tmpOutHeight}, TEXTURE2D_ARGS({heightmap}.tex, {sampler}.samplerstate));
 
 $precision {GetVariableNameForSlot(kPixelDepthOffsetOutputSlotId)} = ({tmpMaxHeight} - {tmpOutHeight} * {tmpMaxHeight}) / max({tmpNdotV}, 0.0001);
 ");

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering
 {
+    [PreferBinarySerialization]
     internal class ProbeVolumeAsset : ScriptableObject
     {
         [Serializable]
@@ -13,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering
             First,
             AddProbeVolumesAtlasEncodingModes,
             PV2,
+            ChunkBasedIndex,
             Max,
             Current = Max - 1
         }
@@ -22,11 +24,14 @@ namespace UnityEngine.Experimental.Rendering
 
         [SerializeField] internal List<ProbeReferenceVolume.Cell> cells = new List<ProbeReferenceVolume.Cell>();
 
-        [SerializeField] internal Vector3Int maxCellIndex;
+        [SerializeField] internal Vector3Int maxCellPosition;
+        [SerializeField] internal Vector3Int minCellPosition;
+        [SerializeField] internal Bounds globalBounds;
+
 
         [SerializeField] internal ProbeVolumeSHBands bands;
 
-        [SerializeField] private string m_AssetFullPath = "UNINITIALIZED!";
+        [SerializeField] string m_AssetFullPath = "UNINITIALIZED!";
 
         public string GetSerializedFullPath()
         {

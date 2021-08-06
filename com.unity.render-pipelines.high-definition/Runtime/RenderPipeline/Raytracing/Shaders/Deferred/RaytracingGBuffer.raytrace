@@ -52,16 +52,13 @@ RW_TEXTURE2D_X(float4, _GBufferTexture3RW); // Bake lighting and/or emissive
 int _RaytracingHalfResolution;
 uint _RayTracingLayerMask;
 int _RayCountType;
+uint _RayBinViewOffset;
+uint _RayBinTileViewOffset;
 
 [shader("miss")]
 void MissShaderGBuffer(inout RayIntersectionGBuffer rayIntersection : SV_RayPayload)
 {
-    if (_RaytracingIncludeSky != 0)
-    {
-        rayIntersection.gbuffer3 = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, WorldRayDirection(), 0.0f, 0);
-        ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), rayIntersection.gbuffer3.xyz);
-    }
-    rayIntersection.t = -1.0;
+    rayIntersection.t = 0;
 }
 
 struct PixelCoordinates
@@ -76,12 +73,6 @@ struct PixelCoordinates
 
 void TraceGBuffer(PixelCoordinates coords)
 {
-    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(coords.outputCoords)] = _RaytracingRayMaxLength;
-    _GBufferTexture0RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(1.0, 0.0, 0.5, 1.0);
-    _GBufferTexture1RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
-    _GBufferTexture2RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
-    _GBufferTexture3RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
-
     // Read the depth value
     float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, coords.geometryCoords);
 
@@ -89,13 +80,16 @@ void TraceGBuffer(PixelCoordinates coords)
     float4 direction = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, coords.directionCoords);
 
     // If this is the background, or UnL is null or this pixel has been flagged as invalid, no
-    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || direction.w < 0.0)
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || direction.w <= 0.0)
     {
-        _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(coords.outputCoords)] = _RaytracingRayMaxLength;
-        _GBufferTexture0RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
-        _GBufferTexture1RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
-        _GBufferTexture2RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
-        _GBufferTexture3RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+        if (direction.w < 0.0)
+        {
+            _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(coords.outputCoords)] = _RaytracingRayMaxLength;
+            _GBufferTexture0RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+            _GBufferTexture1RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+            _GBufferTexture2RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+            _GBufferTexture3RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+        }
         return;
     }
 
@@ -119,6 +113,9 @@ void TraceGBuffer(PixelCoordinates coords)
     rayDescriptor.Direction = direction.xyz;
     rayDescriptor.TMin = 0.0;
     rayDescriptor.TMax = _RaytracingRayMaxLength;
+    
+    // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
+    ApplyCameraRelativeXR(rayDescriptor.Origin);
 
     // Create and init the RayIntersection structure for this
     RayIntersectionGBuffer rayIntersection;
@@ -181,6 +178,8 @@ void RayGenGBufferBinned()
     // Grab the dimensions of the current raytrace shader
     uint3 LaunchIndex = DispatchRaysIndex();
 
+    UNITY_XR_ASSIGN_VIEW_INDEX(LaunchIndex.z);
+
     // Pixel coordinate of the current pixel
     uint2 currentBinIndex = uint2(LaunchIndex.x % _BufferSizeX, LaunchIndex.x / _BufferSizeX);
 
@@ -192,11 +191,11 @@ void RayGenGBufferBinned()
 
     // Read and unpack the coordiante to screen space coordinates
     uint globalBinIndex = tileIndex * RAY_BINNING_TILE_SIZE * RAY_BINNING_TILE_SIZE + localTileIndex;
-    uint packedPixelCoordinate = _RayBinResult[globalBinIndex];
+    uint packedPixelCoordinate = _RayBinResult[globalBinIndex + _RayBinViewOffset * LaunchIndex.z];
     uint2 currentPixelCoord = uint2((packedPixelCoordinate & 0xffff0000) >> 16, packedPixelCoordinate & 0xffff);
 
     // If the local index of this pixel is beyond the valid count, no need to compute it
-    if (localTileIndex > _RayBinSizeResult[tileIndex])
+    if (localTileIndex > _RayBinSizeResult[tileIndex + _RayBinTileViewOffset * LaunchIndex.z])
         return;
 
     // For the full res ray tracing, everything is read from the same pixel coordinates

@@ -168,7 +168,7 @@ TextureImporter:
       213: 21300108
     second: Scavengers_SpriteSheet_54
   externalObjects: {}
-  serializedVersion: 10
+  serializedVersion: 11
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -188,6 +188,8 @@ TextureImporter:
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMasterTextureLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -198,7 +200,7 @@ TextureImporter:
     serializedVersion: 2
     filterMode: 0
     aniso: 16
-    mipBias: -100
+    mipBias: 0
     wrapU: 1
     wrapV: 1
     wrapW: 1
@@ -219,10 +221,13 @@ TextureImporter:
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
   maxTextureSizeSet: 0
   compressionQualitySet: 0
   textureFormatSet: 0
   ignorePngGamma: 0
+  applyGammaDecoding: 1
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
@@ -1404,6 +1409,62 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    nameFileIdTable:
+      Scavengers_SpriteSheet_27: 21300054
+      Scavengers_SpriteSheet_2: 21300004
+      Scavengers_SpriteSheet_45: 21300090
+      Scavengers_SpriteSheet_16: 21300032
+      Scavengers_SpriteSheet_49: 21300098
+      Scavengers_SpriteSheet_13: 21300026
+      Scavengers_SpriteSheet_25: 21300050
+      Scavengers_SpriteSheet_21: 21300042
+      Scavengers_SpriteSheet_3: 21300006
+      Scavengers_SpriteSheet_39: 21300078
+      Scavengers_SpriteSheet_12: 21300024
+      Scavengers_SpriteSheet_24: 21300048
+      Scavengers_SpriteSheet_8: 21300016
+      Scavengers_SpriteSheet_11: 21300022
+      Scavengers_SpriteSheet_29: 21300058
+      Scavengers_SpriteSheet_18: 21300036
+      Scavengers_SpriteSheet_22: 21300044
+      Scavengers_SpriteSheet_48: 21300096
+      Scavengers_SpriteSheet_4: 21300008
+      Scavengers_SpriteSheet_30: 21300060
+      Scavengers_SpriteSheet_35: 21300070
+      Scavengers_SpriteSheet_9: 21300018
+      Scavengers_SpriteSheet_40: 21300080
+      Scavengers_SpriteSheet_19: 21300038
+      Scavengers_SpriteSheet_15: 21300030
+      Scavengers_SpriteSheet_6: 21300012
+      Scavengers_SpriteSheet_52: 21300104
+      Scavengers_SpriteSheet_28: 21300056
+      Scavengers_SpriteSheet_33: 21300066
+      Scavengers_SpriteSheet_34: 21300068
+      Scavengers_SpriteSheet_17: 21300034
+      Scavengers_SpriteSheet_37: 21300074
+      Scavengers_SpriteSheet_38: 21300076
+      Scavengers_SpriteSheet_20: 21300040
+      Scavengers_SpriteSheet_32: 21300064
+      Scavengers_SpriteSheet_42: 21300084
+      Scavengers_SpriteSheet_36: 21300072
+      Scavengers_SpriteSheet_31: 21300062
+      Scavengers_SpriteSheet_41: 21300082
+      Scavengers_SpriteSheet_10: 21300020
+      Scavengers_SpriteSheet_5: 21300010
+      Scavengers_SpriteSheet_14: 21300028
+      Scavengers_SpriteSheet_53: 21300106
+      Scavengers_SpriteSheet_51: 21300102
+      Scavengers_SpriteSheet_1: 21300002
+      Scavengers_SpriteSheet_44: 21300088
+      Scavengers_SpriteSheet_43: 21300086
+      Scavengers_SpriteSheet_7: 21300014
+      Scavengers_SpriteSheet_0: 21300000
+      Scavengers_SpriteSheet_23: 21300046
+      Scavengers_SpriteSheet_47: 21300094
+      Scavengers_SpriteSheet_46: 21300092
+      Scavengers_SpriteSheet_50: 21300100
+      Scavengers_SpriteSheet_54: 21300108
+      Scavengers_SpriteSheet_26: 21300052
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

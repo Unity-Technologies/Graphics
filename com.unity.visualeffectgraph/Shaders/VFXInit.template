@@ -4,14 +4,22 @@ ${VFXGlobalDeclaration}
 
 #define USE_DEAD_LIST (VFX_USE_ALIVE_CURRENT && !HAS_STRIPS)
 
+#define USE_PREFIX_SUM ((VFX_STATIC_SOURCE_COUNT > 1) || (VFX_USE_DYNAMIC_SOURCE_COUNT))
+
 RWByteAddressBuffer attributeBuffer;
 ByteAddressBuffer sourceAttributeBuffer;
+#if USE_PREFIX_SUM
+StructuredBuffer<uint> prefixSumSpawnCount;
+#endif
 
 CBUFFER_START(initParams)
 #if !VFX_USE_SPAWNER_FROM_GPU
     uint nbSpawned;					// Numbers of particle spawned
     uint spawnIndex;				// Index of the first particle spawned
     uint dispatchWidth;
+#if VFX_USE_DYNAMIC_SOURCE_COUNT
+    uint nbEvents;					// Number of spawn events
+#endif
 #else
     uint offsetInAdditionalOutput;
 	uint nbMax;
@@ -88,7 +96,27 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		uint particleIndex = id + currentSpawnIndex;
 		
 #if !VFX_USE_SPAWNER_FROM_GPU
-        ${VFXComputeSourceIndex}
+        int sourceIndex = 0;
+
+        #if !VFX_USE_DYNAMIC_SOURCE_COUNT
+            uint nbEvents = VFX_STATIC_SOURCE_COUNT;
+        #endif
+
+        #if USE_PREFIX_SUM
+            uint left = 0;
+            uint right = max(nbEvents, 1) - 1;
+            while (left <= right)
+            {
+                sourceIndex = (int)((left + right) / 2);
+                if (id < prefixSumSpawnCount[sourceIndex] && (sourceIndex == 0 || id >= prefixSumSpawnCount[sourceIndex-1]))
+                    break;
+
+                if (id < prefixSumSpawnCount[sourceIndex])
+                    right = sourceIndex - 1;
+                else
+                    left = sourceIndex + 1;
+            }
+        #endif
 #endif
 
 		Attributes attributes = (Attributes)0;

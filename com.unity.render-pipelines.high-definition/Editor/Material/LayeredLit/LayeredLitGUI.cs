@@ -38,11 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                uiBlocks.OnGUI(materialEditor, props);
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
-            }
+            uiBlocks.OnGUI(materialEditor, props);
         }
 
         // Material property name for Layered Lit keyword setup
@@ -77,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
-        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupLayeredLitKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => SetupLayeredLitKeywordsAndPass(material);
 
         static public void SetupLayersMappingKeywords(Material material)
         {

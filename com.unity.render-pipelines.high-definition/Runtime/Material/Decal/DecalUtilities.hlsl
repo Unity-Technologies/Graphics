@@ -63,6 +63,9 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 float2 sampleDiffuseDdx = positionDSDdx.xz * decalData.diffuseScaleBias.xy; // factor in the atlas scale
                 float2 sampleDiffuseDdy = positionDSDdy.xz * decalData.diffuseScaleBias.xy;
                 float  lodDiffuse = ComputeTextureLOD(sampleDiffuseDdx, sampleDiffuseDdy, _DecalAtlasResolution, 0.5);
+                #if defined(SHADEROPTIONS_GLOBAL_MIP_BIAS) && SHADEROPTIONS_GLOBAL_MIP_BIAS != 0
+                lodDiffuse += _GlobalMipBias;
+                #endif
 
                 src *= SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleDiffuse, lodDiffuse);
             }
@@ -100,6 +103,9 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 float2 sampleMaskDdx = positionDSDdx.xz * decalData.maskScaleBias.xy;
                 float2 sampleMaskDdy = positionDSDdy.xz * decalData.maskScaleBias.xy;
                 float  lodMask = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution, 0.5);
+                #if defined(SHADEROPTIONS_GLOBAL_MIP_BIAS) && SHADEROPTIONS_GLOBAL_MIP_BIAS != 0
+                lodMask += _GlobalMipBias;
+                #endif
 
                 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleMask, lodMask);
                 src.z *= decalData.scalingBAndRemappingM.y; // Blue channel (opacity)
@@ -138,7 +144,8 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
         // Normal
         if (affectFlags & 2)
         {
-            float3 normalTS;
+            float4 src = float4(0.0, 0.0, 0.0, 0.0);
+            float3 normalTS = float3(0.0, 0.0, 1.0);
 
             // We use scaleBias value to now if we have init a texture. 0 mean a texture is bound
             bool normalTextureBound = (decalData.normalScaleBias.x > 0) && (decalData.normalScaleBias.y > 0);
@@ -151,15 +158,24 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 float2 sampleNormalDdx = positionDSDdx.xz * decalData.normalScaleBias.xy;
                 float2 sampleNormalDdy = positionDSDdy.xz * decalData.normalScaleBias.xy;
                 float  lodNormal = ComputeTextureLOD(sampleNormalDdx, sampleNormalDdy, _DecalAtlasResolution, 0.5);
+                #if defined(SHADEROPTIONS_GLOBAL_MIP_BIAS) && SHADEROPTIONS_GLOBAL_MIP_BIAS != 0
+                lodNormal += _GlobalMipBias;
+                #endif
+
+                #ifdef DECAL_SURFACE_GRADIENT
+                float3x3 tangentToWorld = transpose((float3x3)decalData.normalToWorld);
+                float2 deriv = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleNormal, lodNormal));
+                src.xyz = SurfaceGradientFromTBN(deriv, tangentToWorld[0], tangentToWorld[1]);
+                #else
                 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleNormal, lodNormal));
-            }
-            else
-            {
-                normalTS = float3(0.0, 0.0, 1.0);
+                #endif
             }
 
-            float4 src;
-            src.xyz = mul((float3x3)decalData.normalToWorld, normalTS) * 0.5 + 0.5; // The " * 0.5 + 0.5" mimic what is happening when calling EncodeIntoDBuffer()
+            #ifndef DECAL_SURFACE_GRADIENT
+            src.xyz = mul((float3x3)decalData.normalToWorld, normalTS);
+            #endif
+
+            src.xyz = src.xyz * 0.5 + 0.5; // Mimic what is happening when calling EncodeIntoDBuffer()
             src.w = (decalData.blendParams.x == 1.0) ? maskMapBlend : albedoMapBlend;
 
             // Accumulate in dbuffer (mimic what ROP are doing)
@@ -259,6 +275,14 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
     DecalSurfaceData decalSurfaceData;
     DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
 
+#if defined(DECAL_SURFACE_GRADIENT) && !defined(SURFACE_GRADIENT)
+    // The caller doesn't expect a surface gradient but our dbuffer has volume gradients accumulated in it.
+    // Make sure we return some sensible normal by first removing any colinear component (to the vertex normal)
+    // of the volume gradient before resolving it: ie convert the volume gradient to a proper surface gradient wrt vtxNormal:
+    float3 surfGrad = SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
+    decalSurfaceData.normalWS.xyz = SurfaceGradientResolveNormal(vtxNormal, surfGrad);
+#endif
+
     return decalSurfaceData;
 }
 
@@ -267,12 +291,12 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, 
     float3 vtxNormal = input.tangentToWorld[2];
     DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, vtxNormal, alpha);
 
-#ifdef _DOUBLESIDED_ON
+#if (!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT)) && defined(_DOUBLESIDED_ON)
     // 'doubleSidedConstants' is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode.
     // It's float3(1, 1, 1) in the none mode.
-    float3 flipSign = input.isFrontFace ? float3(1.0, 1.0, 1.0) : _DoubleSidedConstants.xyz;
-    decalSurfaceData.normalWS.xyz *= flipSign;
-#endif // _DOUBLESIDED_ON
+    float flipSign = input.isFrontFace ? 1.0 : _DoubleSidedConstants.x;
+    decalSurfaceData.normalWS.xy *= flipSign;
+#endif
 
     return decalSurfaceData;
 }

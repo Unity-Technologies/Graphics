@@ -17,11 +17,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Uses the physical Camera to set focusing properties.
         /// </summary>
+        [InspectorName("Physical Camera")]
         UsePhysicalCamera,
 
         /// <summary>
         /// Uses custom distance values to set the focus.
         /// </summary>
+        [InspectorName("Manual Ranges")]
         Manual
     }
 
@@ -48,9 +50,25 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Options for the source of the focus distance HDRP uses in the depth of field calculations.
+    /// </summary>
+    public enum FocusDistanceMode
+    {
+        /// <summary>
+        /// Uses the focus distance from the Volume component.
+        /// </summary>
+        Volume,
+
+        /// <summary>
+        /// Uses the focus distance from the physical camera.
+        /// </summary>
+        Camera
+    }
+
+    /// <summary>
     /// A volume component that holds settings for the Depth Of Field effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Depth Of Field", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Post-Processing-Depth-of-Field")]
     public sealed class DepthOfField : VolumeComponentWithQuality, IPostProcessComponent
     {
@@ -66,10 +84,16 @@ namespace UnityEngine.Rendering.HighDefinition
         //
 
         /// <summary>
-        /// Sets the distance to the focus point from the Camera.
+        /// The distance to the focus plane from the Camera.
         /// </summary>
-        [Tooltip("Sets the distance to the focus point from the Camera.")]
+        [Tooltip("The distance to the focus plane from the Camera.")]
         public MinFloatParameter focusDistance = new MinFloatParameter(10f, 0.1f);
+
+        /// <summary>
+        /// Specifies where to read the focus distance from.
+        /// </summary>
+        [Tooltip("Specifies where to read the focus distance from..")]
+        public FocusDistanceModeParameter focusDistanceMode = new FocusDistanceModeParameter(FocusDistanceMode.Volume);
 
         // -------------------------------------------
         // Manual settings
@@ -285,6 +309,7 @@ namespace UnityEngine.Rendering.HighDefinition
         BoolParameter m_HighQualityFiltering = new BoolParameter(true);
 
         [AdditionalProperty]
+        [Tooltip("When enabled, HDRP uses a more accurate but slower physically based algorithm to compute the depth of field effect.")]
         [SerializeField]
         BoolParameter m_PhysicallyBased = new BoolParameter(false);
 
@@ -338,5 +363,20 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public DepthOfFieldResolutionParameter(DepthOfFieldResolution value, bool overrideState = false) : base(value, overrideState) {}
+    }
+
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="FocusDistanceModeParameter"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class FocusDistanceModeParameter : VolumeParameter<FocusDistanceMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="FocusDistanceModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public FocusDistanceModeParameter(FocusDistanceMode value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

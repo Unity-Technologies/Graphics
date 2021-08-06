@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Shader/RedPP"
+Shader "Hidden/Shader/RedPP"
 {
     HLSLINCLUDE
 

@@ -46,8 +46,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             switch (getter())
             {
                 case bool b: elem = new Toggle { value = b, tooltip = displayName.tooltip } as BaseField<Data>; break;
-                case int i: elem = new IntegerField { value = i, tooltip = displayName.tooltip } as BaseField<Data>; break;
-                case float f: elem = new FloatField { value = f, tooltip = displayName.tooltip } as BaseField<Data>; break;
+                case int i: elem = new IntegerField { value = i, tooltip = displayName.tooltip, isDelayed = true} as BaseField<Data>; break;
+                case float f: elem = new FloatField { value = f, tooltip = displayName.tooltip, isDelayed = true } as BaseField<Data>; break;
                 case Enum e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip }; break;
                 default: throw new Exception($"Can't create UI field for type {getter().GetType()}, please add it if it's relevant. If you can't consider using TargetPropertyGUIContext.AddProperty instead.");
             }

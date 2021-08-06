@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine.VFX;
 using static UnityEditor.VFX.VFXAbstractRenderedOutput;
 using static UnityEngine.Rendering.HighDefinition.HDRenderQueue;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     class VFXHDRPSubOutput : VFXSRPSubOutput
     {
@@ -31,11 +32,18 @@ namespace UnityEditor.VFX
         }
         public override bool supportsExcludeFromTAA { get { return !owner.isBlendModeOpaque; } }
 
+        bool GeneratesWithShaderGraph()
+        {
+            return owner is VFXShaderGraphParticleOutput shaderGraphOutput &&
+                shaderGraphOutput.GetOrRefreshShaderGraphObject() != null &&
+                shaderGraphOutput.GetOrRefreshShaderGraphObject().generatesWithShaderGraph;
+        }
+
         public override bool supportsMaterialOffset
         {
             get
             {
-                if (owner.isBlendModeOpaque)
+                if (owner.isBlendModeOpaque && !(owner is VFXDecalHDRPOutput))
                     return false;
                 return true;
             }
@@ -45,7 +53,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (!supportsQueueSelection)
+                if (!supportsQueueSelection || GeneratesWithShaderGraph())
                 {
                     yield return "transparentRenderQueue";
                     yield return "opaqueRenderQueue";
@@ -74,7 +82,7 @@ namespace UnityEditor.VFX
         }
 
         protected bool isLit => owner is VFXAbstractParticleHDRPLitOutput;
-        protected bool supportsQueueSelection => !(owner is VFXAbstractDistortionOutput); // TODO Should be made in a more abstract way
+        protected bool supportsQueueSelection => !((owner is VFXAbstractDistortionOutput) || (owner is VFXDecalHDRPOutput)); // TODO Should be made in a more abstract way
 
         public override IEnumerable<int> GetFilteredOutEnumerators(string name)
         {
@@ -139,7 +147,10 @@ namespace UnityEditor.VFX
         private int GetRenderQueueOffset()
         {
             var renderQueueType = GetRenderQueueType();
-            return HDRenderQueue.ChangeType(renderQueueType, GetMaterialOffset(), owner.hasAlphaClipping);
+            var materialOffset = GetMaterialOffset();
+            return owner is VFXDecalHDRPOutput ?
+                HDRenderQueue.Clamps(k_RenderQueue_AllOpaque, ChangeType(renderQueueType, 0, owner.hasAlphaClipping) + materialOffset) :
+                ChangeType(renderQueueType, materialOffset, owner.hasAlphaClipping);
         }
 
         private int GetMaterialOffset()

@@ -94,9 +94,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
                 supportDecals = true,
                 supportDecalLayers = false,
+                supportSurfaceGradient = true,
+                decalNormalBufferHP = false,
                 msaaSampleCount = MSAASamples.None,
                 supportMotionVectors = true,
-                supportRuntimeDebugDisplay = false,
                 supportRuntimeAOVAPI = false,
                 supportDitheringCrossFade = true,
                 supportTerrainHole = false,
@@ -251,6 +252,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportDecals;
         /// <summary>Support decal Layers.</summary>
         public bool supportDecalLayers;
+        /// <summary>Support surface gradient for decal normal blending.</summary>
+        public bool supportSurfaceGradient;
+        /// <summary>High precision normal buffer.</summary>
+        public bool decalNormalBufferHP;
         /// <summary>Name for decal layer 0.</summary>
         public string decalLayerName0
         {
@@ -314,8 +319,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Support motion vectors.</summary>
         public bool supportMotionVectors;
+
         /// <summary>Support runtime debug display.</summary>
-        public bool supportRuntimeDebugDisplay;
+        public bool supportRuntimeDebugDisplay
+        {
+            get => HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
+            set => HDRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay = value;
+        }
         /// <summary>Support runtime AOV API.</summary>
         public bool supportRuntimeAOVAPI;
         /// <summary>Support dithered cross-fade.</summary>
@@ -414,6 +424,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         [FormerlySerializedAs("decalLayerName7"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteDecalLayerName7;
+
+        [SerializeField]
+        [FormerlySerializedAs("supportRuntimeDebugDisplay"), Obsolete("Moved to HDGlobal Settings")]
+        internal bool m_ObsoleteSupportRuntimeDebugDisplay;
     #pragma warning restore 618
     }
 }

@@ -157,6 +157,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         cb._DebugRenderingLayersColors[i * 4 + j] = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugRenderingLayersColors[i][j];
                 }
 
+                if (IsAPVEnabled())
+                {
+                    var subdivColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
+                    for (int i = 0; i < 7; ++i)
+                    {
+                        for (int j = 0; j < 4; ++j)
+                            cb._DebugAPVSubdivColors[i * 4 + j] = subdivColors[i][j];
+                    }
+                }
+
                 cb._DebugLightingMode = (int)debugLightingMode;
                 cb._DebugLightLayersMask = (int)m_CurrentDebugDisplaySettings.GetDebugLightLayersMask();
                 cb._DebugShadowMapMode = (int)m_CurrentDebugDisplaySettings.GetDebugShadowMapMode();
@@ -351,6 +361,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetFloat(HDShaderIDs._TransparencyOverdrawMaxPixelCost, (float)data.debugDisplaySettings.data.transparencyDebugSettings.maxPixelCost);
                         mpb.SetFloat(HDShaderIDs._QuadOverdrawMaxQuadCost, (float)data.debugDisplaySettings.data.maxQuadCost);
                         mpb.SetFloat(HDShaderIDs._VertexDensityMaxPixelCost, (float)data.debugDisplaySettings.data.maxVertexDensity);
+                        mpb.SetFloat(HDShaderIDs._MinMotionVector, data.debugDisplaySettings.data.minMotionVectorLength);
 
                         if (fullscreenBuffer != null)
                             ctx.cmd.SetRandomWriteTarget(1, fullscreenBuffer);
@@ -642,7 +653,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.debugViewTilesMaterial.SetFloat(HDShaderIDs._ClusterDebugDistance, lightingDebug.clusterDebugDistance);
                             data.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(data.hdCamera));
                             data.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(data.hdCamera));
-                            data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListGlobal, bUseClustered ? data.perVoxelLightList : data.lightList);
+                            data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightList);
+                            data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListCluster, data.perVoxelLightList);
+
                             data.debugViewTilesMaterial.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramidTexture);
                             data.debugViewTilesMaterial.EnableKeyword(bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                             data.debugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
@@ -838,8 +851,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugImageHistogramCS = defaultResources.shaders.debugImageHistogramCS;
                 passData.debugImageHistogramKernel = passData.debugImageHistogramCS.FindKernel("KHistogramGen");
                 passData.imageHistogram = m_DebugImageHistogramBuffer;
-                passData.cameraWidth = hdCamera.actualWidth;
-                passData.cameraHeight = hdCamera.actualHeight;
+                passData.cameraWidth = postProcessViewportSize.x;
+                passData.cameraHeight = postProcessViewportSize.y;
                 passData.source = builder.ReadTexture(source);
 
                 builder.SetRenderFunc(
@@ -1041,13 +1054,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle perVoxelOffset;
             public DBufferOutput dbuffer;
             public GBufferOutput gbuffer;
+            public TextureHandle depthBuffer;
 
             public Texture clearColorTexture;
             public RenderTexture clearDepthTexture;
             public bool clearDepth;
         }
 
-        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer, GBufferOutput gbuffer)
+        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer, GBufferOutput gbuffer, TextureHandle depthBuffer)
         {
             bool msaa = hdCamera.msaaEnabled;
 
@@ -1070,6 +1084,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.debugGBufferMaterial = m_currentDebugViewMaterialGBuffer;
                     passData.outputColor = builder.WriteTexture(output);
                     passData.gbuffer = ReadGBuffer(gbuffer, builder);
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
 
                     builder.SetRenderFunc(
                         (DebugViewMaterialData data, RenderGraphContext context) =>
@@ -1079,6 +1094,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 data.debugGBufferMaterial.SetTexture(HDShaderIDs._GBufferTexture[i], gbufferHandles.mrt[i]);
                             }
+                            data.debugGBufferMaterial.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
 
                             HDUtils.DrawFullScreen(context.cmd, data.debugGBufferMaterial, data.outputColor);
                         });
@@ -1143,6 +1159,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle    output;
             public int              mipIndex;
             public bool             xrTexture;
+            public bool             useCustomScaleBias;
+            public Vector4          customScaleBias;
         }
 
         void PushFullScreenLightingDebugTexture(RenderGraph renderGraph, TextureHandle input, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
@@ -1163,6 +1181,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, Vector2 scales, FullScreenDebugMode debugMode, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat, bool xrTexture = true)
+        {
+            if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
+            {
+                PushFullScreenDebugTexture(renderGraph, input, true, scales, colorFormat, xrTexture: xrTexture);
+            }
+        }
+
         void PushFullScreenDebugTextureMip(RenderGraph renderGraph, TextureHandle input, int lodCount, Vector4 scaleBias, FullScreenDebugMode debugMode, GraphicsFormat colorFormat = GraphicsFormat.R16G16B16A16_SFloat)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
@@ -1175,30 +1201,62 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat, int mipIndex = -1, bool xrTexture = true)
         {
+            PushFullScreenDebugTexture(renderGraph, input, false, new Vector2(1.0f, 1.0f), rtFormat, mipIndex, xrTexture);
+        }
+
+        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, bool useCustomScaleBias, Vector2 customScales, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat, int mipIndex = -1, bool xrTexture = true)
+        {
             using (var builder = renderGraph.AddRenderPass<PushFullScreenDebugPassData>("Push Full Screen Debug", out var passData))
             {
                 passData.mipIndex = mipIndex;
                 passData.xrTexture = xrTexture;
                 passData.input = builder.ReadTexture(input);
-                passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                if (useCustomScaleBias)
+                {
+                    passData.useCustomScaleBias = true;
+                    passData.customScaleBias = new Vector4(customScales.x, customScales.y, 0.0f, 0.0f);
+                }
+
+                passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, false, true)
                     { colorFormat = rtFormat, name = "DebugFullScreen" }), 0);
 
                 builder.SetRenderFunc(
                     (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
                     {
-                        if (data.xrTexture)
+                        if (data.useCustomScaleBias)
                         {
-                            if (data.mipIndex != -1)
-                                HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.mipIndex);
+                            if (data.xrTexture)
+                            {
+                                if (data.mipIndex != -1)
+                                    HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.customScaleBias, data.mipIndex);
+                                else
+                                    HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.customScaleBias);
+                            }
                             else
-                                HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output);
+                            {
+                                CoreUtils.SetRenderTarget(ctx.cmd, data.output);
+                                if (data.mipIndex != -1)
+                                    HDUtils.BlitTexture2D(ctx.cmd, data.input, data.customScaleBias, data.mipIndex, false);
+                                else
+                                    HDUtils.BlitTexture2D(ctx.cmd, data.input, data.customScaleBias, 0.0f, false);
+                            }
                         }
                         else
                         {
-                            if (data.mipIndex != -1)
-                                HDUtils.BlitCameraTexture2D(ctx.cmd, data.input, data.output, data.mipIndex);
+                            if (data.xrTexture)
+                            {
+                                if (data.mipIndex != -1)
+                                    HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.mipIndex);
+                                else
+                                    HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output);
+                            }
                             else
-                                HDUtils.BlitCameraTexture2D(ctx.cmd, data.input, data.output);
+                            {
+                                if (data.mipIndex != -1)
+                                    HDUtils.BlitCameraTexture2D(ctx.cmd, data.input, data.output, data.mipIndex);
+                                else
+                                    HDUtils.BlitCameraTexture2D(ctx.cmd, data.input, data.output);
+                            }
                         }
                     });
 

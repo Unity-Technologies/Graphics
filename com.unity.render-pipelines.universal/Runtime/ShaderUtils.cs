@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.Universal
         SpeedTree7,
         SpeedTree7Billboard,
         SpeedTree8,
+        // If you add a value here, also add it to ShaderID in Editor/ShaderUtils.cs
     }
 
     public static class ShaderUtils

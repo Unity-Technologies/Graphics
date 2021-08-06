@@ -42,8 +42,8 @@ namespace UnityEngine.Rendering.HighDefinition
         IndirectDiffuseOcclusion,
         /// <summary>Display indirect specular occlusion.</summary>
         IndirectSpecularOcclusion,
-        /// <summary>Display Probe Volumes.</summary>
-        ProbeVolume
+        /// <summary>Display Probe Volumes Sampled Subdivision.</summary>
+        ProbeVolumeSampledSubdivision
     }
 
     /// <summary>
@@ -374,7 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return debugLightingMode == DebugLightingMode.LuxMeter || debugLightingMode == DebugLightingMode.LuminanceMeter ||
                 debugLightingMode == DebugLightingMode.VisualizeCascade || debugLightingMode == DebugLightingMode.VisualizeShadowMasks ||
                 debugLightingMode == DebugLightingMode.IndirectDiffuseOcclusion || debugLightingMode == DebugLightingMode.IndirectSpecularOcclusion ||
-                debugLightingMode == DebugLightingMode.ProbeVolume;
+                debugLightingMode == DebugLightingMode.ProbeVolumeSampledSubdivision;
         }
 
         internal static Vector4[] GetDefaultRenderingLayersColorPalette()

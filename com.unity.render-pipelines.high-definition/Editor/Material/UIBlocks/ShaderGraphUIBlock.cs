@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -105,13 +106,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((m_Features & Features.ExposedProperties) != 0)
                 PropertiesDefaultGUI(properties);
 
-            // If we change a property in a shadergraph, we trigger a material keyword reset
-            if (CheckPropertyChanged(properties))
-            {
-                foreach (var material in materials)
-                    HDShaderUtils.ResetMaterialKeywords(material);
-            }
-
             if ((m_Features & Features.DiffusionProfileAsset) != 0)
                 DrawDiffusionProfileUI();
 
@@ -125,16 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="properties">List of Material Properties to draw</param>
         protected void PropertiesDefaultGUI(MaterialProperty[] properties)
         {
-            for (var i = 0; i < properties.Length; i++)
-            {
-                if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
-                    continue;
-
-                float h = materialEditor.GetPropertyHeight(properties[i], properties[i].displayName);
-                Rect r = EditorGUILayout.GetControlRect(true, h, EditorStyles.layerMaskField);
-
-                materialEditor.ShaderProperty(r, properties[i], properties[i].displayName);
-            }
+            ShaderGraphPropertyDrawers.DrawShaderGraphGUI(materialEditor, properties);
         }
 
         /// <summary>

@@ -1,16 +1,17 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Class <c>ShadowCaster2D</c> contains properties used for shadow casting
     /// </summary>
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    [AddComponentMenu("Rendering/2D/Shadow Caster 2D (Experimental)")]
+
+    [AddComponentMenu("Rendering/2D/Shadow Caster 2D")]
+    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
+
     public class ShadowCaster2D : ShadowCasterGroup2D, ISerializationCallbackReceiver
     {
         public enum ComponentVersions
@@ -44,6 +45,25 @@ namespace UnityEngine.Experimental.Rendering.Universal
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;
         int m_PreviousPathHash = 0;
+
+        internal Vector3    m_CachedPosition;
+        internal Vector3    m_CachedLossyScale;
+        internal Quaternion m_CachedRotation;
+        internal Matrix4x4  m_CachedShadowMatrix;
+        internal Matrix4x4  m_CachedInverseShadowMatrix;
+        internal Matrix4x4  m_CachedLocalToWorldMatrix;
+
+        internal override void CacheValues()
+        {
+            m_CachedPosition = transform.position;
+            m_CachedLossyScale = transform.lossyScale;
+            m_CachedRotation = transform.rotation;
+
+            m_CachedShadowMatrix = Matrix4x4.TRS(m_CachedPosition, m_CachedRotation, Vector3.one);
+            m_CachedInverseShadowMatrix = m_CachedShadowMatrix.inverse;
+
+            m_CachedLocalToWorldMatrix = transform.localToWorldMatrix;
+        }
 
         /// <summary>
         /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
@@ -87,13 +107,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal bool IsLit(Light2D light)
         {
-            Vector3 deltaPos = light.transform.position - (m_ProjectedBoundingSphere.position + transform.position);
+            // Oddly adding and subtracting vectors is expensive here because of the new structures created...
+            Vector3 deltaPos;
+            deltaPos.x = m_ProjectedBoundingSphere.position.x + m_CachedPosition.x;
+            deltaPos.y = m_ProjectedBoundingSphere.position.y + m_CachedPosition.y;
+            deltaPos.z = m_ProjectedBoundingSphere.position.z + m_CachedPosition.z;
+
+            deltaPos.x = light.m_CachedPosition.x - deltaPos.x;
+            deltaPos.y = light.m_CachedPosition.y - deltaPos.y;
+            deltaPos.z = light.m_CachedPosition.z - deltaPos.z;
+
             float distanceSq = Vector3.SqrMagnitude(deltaPos);
 
-            float lightRadiusSq = light.boundingSphere.radius * light.boundingSphere.radius;
-            float projectedRadiusSq = m_ProjectedBoundingSphere.radius * m_ProjectedBoundingSphere.radius;
-
-            return distanceSq <= (lightRadiusSq + projectedRadiusSq);
+            float radiiLength = light.boundingSphere.radius + m_ProjectedBoundingSphere.radius;
+            return distanceSq <= (radiiLength * radiiLength);
         }
 
         internal bool IsShadowedLayer(int layer)

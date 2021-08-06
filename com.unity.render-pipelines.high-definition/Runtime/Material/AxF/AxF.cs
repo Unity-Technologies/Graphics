@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3  specularColor;
 
             [SurfaceDataAttributes("Fresnel F0")]
-            public Vector3  fresnelF0;
+            public Vector3  fresnel0;
 
             [SurfaceDataAttributes("Specular Lobe")]
             public Vector3  specularLobe; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
@@ -152,12 +152,12 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("", true)]
             public Vector3  tangentWS;
             [SurfaceDataAttributes("", true)]
-            public Vector3  biTangentWS;
+            public Vector3  bitangentWS;
 
             // SVBRDF Variables
             public Vector3  diffuseColor;
             public Vector3  specularColor;
-            public Vector3  fresnelF0;
+            public Vector3  fresnel0;
             public float perceptualRoughness; // approximated for SSAO
             public Vector3  roughness; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
             public float    height_mm;
@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public AxF() {}
 
-        public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
+        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
         {
             // Create Materials
             m_preIntegratedFGDMaterial_Ward = CoreUtils.CreateEngineMaterial(defaultResources.shaders.preIntegratedFGD_WardPS);
@@ -282,6 +282,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_precomputedFGDTablesAreInit || m_preIntegratedFGDMaterial_Ward == null || m_preIntegratedFGDMaterial_CookTorrance == null)
             {
+                return;
+            }
+
+            if (GL.wireframe)
+            {
+                m_preIntegratedFGD_Ward.Create();
+                m_preIntegratedFGD_CookTorrance.Create();
                 return;
             }
 

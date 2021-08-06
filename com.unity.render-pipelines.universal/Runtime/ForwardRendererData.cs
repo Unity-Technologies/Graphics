@@ -41,14 +41,14 @@ namespace UnityEngine.Rendering.Universal
             public Shader materialErrorPS;
         }
 
+        public ShaderResources shaders = null;
+
         public PostProcessData postProcessData = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         [Reload("Runtime/Data/XRSystemData.asset")]
         public XRSystemData xrSystemData = null;
 #endif
-
-        public ShaderResources shaders = null;
 
         protected override ScriptableRenderer Create()
         {

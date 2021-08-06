@@ -1,16 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.EditorTools;
-using UnityEditor.Experimental.Rendering.Universal.Path2D;
+using UnityEditor.Rendering.Universal.Path2D;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
-using UnityEditor.AnimatedValues;
-using UnityEditor.Rendering.Universal;
-using UnityEditor.Rendering;
 
 
-namespace UnityEditor.Experimental.Rendering.Universal
+namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(Light2D))]
     [CanEditMultipleObjects]
@@ -103,7 +99,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             public static GUIContent deprecatedParametricLightWarningSingle = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Light to a Freeform Light to enjoy similar light functionality.", MessageType.Warning);
             public static GUIContent deprecatedParametricLightWarningMulti = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Lights to Freeform Lights to enjoy similar light functionality.", MessageType.Warning);
-            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade from the menu. Edit > Rendering > Lights > Upgrade Project/Scene URP Parametric Lights to Freeform");
+            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade from the menu. Window > Rendering > Render Pipeline Converter > URP 2D Converters");
             public static GUIContent deprecatedParametricLightButtonSingle = EditorGUIUtility.TrTextContent("Upgrade Parametric Light");
             public static GUIContent deprecatedParametricLightButtonMulti = EditorGUIUtility.TrTextContent("Upgrade Parametric Lights");
 
@@ -490,7 +486,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         Light2D light = (Light2D)targets[i];
 
                         if (light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric)
-                            Renderer2DUpgrader.UpgradeParametricLight(light);
+                            ParametricToFreeformLightUpgrader.UpgradeParametricLight(light);
                     }
                 }
             }
@@ -752,7 +748,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
                     }
 
-                    Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
+                    if (falloffShape.Count > 0)
+                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
 
                     for (int i = 0; i < light.shapePath.Length - 1; ++i)
                     {
@@ -760,7 +757,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
                             t.TransformPoint(light.shapePath[i + 1]));
                     }
 
-                    Handles.DrawLine(t.TransformPoint(light.shapePath[light.shapePath.Length - 1]), t.TransformPoint(light.shapePath[0]));
+                    if (light.shapePath.Length > 0)
+                        Handles.DrawLine(t.TransformPoint(light.shapePath[light.shapePath.Length - 1]), t.TransformPoint(light.shapePath[0]));
                 }
                 break;
             }

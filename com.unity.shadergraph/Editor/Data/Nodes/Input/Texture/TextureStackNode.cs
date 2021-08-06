@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         if (feedbackVariables.Count == 0)
                         {
-                            string feedBackCode = "surface.VTPackedFeedback = float4(1.0f,1.0f,1.0f,.0f);";
+                            string feedBackCode = "surface.VTPackedFeedback = float4(1.0f,1.0f,1.0f,1.0f);";
                             surfaceDescriptionFunction.AppendLine(feedBackCode);
                         }
                         else if (feedbackVariables.Count == 1)

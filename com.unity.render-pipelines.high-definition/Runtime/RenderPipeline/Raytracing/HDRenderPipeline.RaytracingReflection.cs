@@ -42,16 +42,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 name: string.Format("{0}_ReflectionHistoryBuffer{1}", viewName, frameIndex));
         }
 
+        int CombineRayTracedReflectionsHistoryStateToMask(bool fullResolution, bool rayTraced)
+        {
+            // Combine the flags to define the current mask
+            int flagMask = 0;
+            flagMask |= (fullResolution ? (int)HDCamera.HistoryEffectFlags.FullResolution : 0);
+            flagMask |= (rayTraced ? (int)HDCamera.HistoryEffectFlags.RayTraced : 0);
+            return flagMask;
+        }
+
         private float EvaluateRayTracedReflectionHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
             // Evaluate the history validity
-            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, fullResolution, rayTraced) ? 1.0f : 0.0f;
+            int flagMask = CombineRayTracedReflectionsHistoryStateToMask(fullResolution, rayTraced);
+            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, flagMask) ? 1.0f : 0.0f;
             return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
         }
 
         private void PropagateRayTracedReflectionsHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
-            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, fullResolution, rayTraced);
+            int flagMask = CombineRayTracedReflectionsHistoryStateToMask(fullResolution, rayTraced);
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.RayTracedReflections, flagMask);
         }
 
         #region Direction Generation
@@ -78,15 +89,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        TextureHandle DirGenRTR(RenderGraph renderGraph, HDCamera hdCamera, ScreenSpaceReflection settings, TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle clearCoatTexture, bool transparent)
+        TextureHandle DirGenRTR(RenderGraph renderGraph, HDCamera hdCamera, ScreenSpaceReflection settings, TextureHandle depthBuffer, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle clearCoatTexture, bool fullResolution, bool transparent)
         {
-            using (var builder = renderGraph.AddRenderPass<DirGenRTRPassData>("Generating the rays for RTR", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseDirectionGeneration)))
+            using (var builder = renderGraph.AddRenderPass<DirGenRTRPassData>("Generating the rays for RTR", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionDirectionGeneration)))
             {
                 builder.EnableAsyncCompute(false);
 
                 // Set the camera parameters
-                passData.texWidth = settings.fullResolution ? hdCamera.actualWidth : hdCamera.actualWidth / 2;
-                passData.texHeight = settings.fullResolution ? hdCamera.actualHeight : hdCamera.actualHeight / 2;
+                passData.texWidth = fullResolution ? hdCamera.actualWidth : hdCamera.actualWidth / 2;
+                passData.texHeight = fullResolution ? hdCamera.actualHeight : hdCamera.actualHeight / 2;
                 passData.viewCount = hdCamera.viewCount;
 
                 // Set the generation parameters
@@ -94,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Grab the right kernel
                 passData.directionGenCS = m_GlobalSettings.renderPipelineRayTracingResources.reflectionRaytracingCS;
-                if (settings.fullResolution)
+                if (fullResolution)
                     passData.dirGenKernel = transparent ? m_RaytracingReflectionsTransparentFullResKernel : m_RaytracingReflectionsFullResKernel;
                 else
                     passData.dirGenKernel = transparent ? m_RaytracingReflectionsTransparentHalfResKernel : m_RaytracingReflectionsHalfResKernel;
@@ -103,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
 
-                passData.depthBuffer = builder.ReadTexture(depthPyramid);
+                passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.clearCoatMaskTexture = builder.ReadTexture(clearCoatTexture);
@@ -172,14 +183,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle AdjustWeightRTR(RenderGraph renderGraph, HDCamera hdCamera, ScreenSpaceReflection settings,
-            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle clearCoatTexture, TextureHandle lightingTexture, TextureHandle directionTexture)
+            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle clearCoatTexture, TextureHandle lightingTexture, TextureHandle directionTexture, bool fullResolution)
         {
             using (var builder = renderGraph.AddRenderPass<AdjustWeightRTRPassData>("Adjust Weight RTR", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionAdjustWeight)))
             {
                 builder.EnableAsyncCompute(false);
 
-                passData.texWidth = settings.fullResolution ? hdCamera.actualWidth : hdCamera.actualWidth / 2;
-                passData.texHeight = settings.fullResolution ? hdCamera.actualHeight : hdCamera.actualHeight / 2;
+                passData.texWidth = fullResolution ? hdCamera.actualWidth : hdCamera.actualWidth / 2;
+                passData.texHeight = fullResolution ? hdCamera.actualHeight : hdCamera.actualHeight / 2;
                 passData.viewCount = hdCamera.viewCount;
 
                 // Requires parameters
@@ -188,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Other parameters
                 passData.reflectionFilterCS = m_GlobalSettings.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
-                passData.adjustWeightKernel = settings.fullResolution ? m_ReflectionAdjustWeightKernel : m_ReflectionRescaleAndAdjustWeightKernel;
+                passData.adjustWeightKernel = fullResolution ? m_ReflectionAdjustWeightKernel : m_ReflectionRescaleAndAdjustWeightKernel;
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
 
                 passData.depthStencilBuffer = builder.ReadTexture(depthPyramid);
@@ -249,7 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputTexture;
         }
 
-        TextureHandle UpscaleRTR(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle lightingTexture)
+        TextureHandle UpscaleRTR(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle lightingTexture)
         {
             using (var builder = renderGraph.AddRenderPass<UpscaleRTRPassData>("Upscale RTR", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscale)))
             {
@@ -261,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.reflectionFilterCS = m_GlobalSettings.renderPipelineRayTracingResources.reflectionBilateralFilterCS;
                 passData.upscaleKernel = m_ReflectionUpscaleKernel;
 
-                passData.depthStencilBuffer = builder.ReadTexture(depthPyramid);
+                passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
                 passData.lightingTexture = builder.ReadTexture(lightingTexture);
                 passData.outputTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Reflection Ray Reflections" }));
@@ -295,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReflectionHistoryBufferAllocatorFunction, 1);
         }
 
-        DeferredLightingRTParameters PrepareReflectionDeferredLightingRTParameters(HDCamera hdCamera)
+        DeferredLightingRTParameters PrepareReflectionDeferredLightingRTParameters(HDCamera hdCamera, bool fullResolution, bool transparent)
         {
             DeferredLightingRTParameters deferredParameters = new DeferredLightingRTParameters();
 
@@ -310,9 +321,16 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.rayBinning = true;
             deferredParameters.layerMask.value = (int)RayTracingRendererFlag.Reflection;
             deferredParameters.diffuseLightingOnly = false;
-            deferredParameters.halfResolution = !settings.fullResolution;
+            deferredParameters.halfResolution = !fullResolution;
             deferredParameters.rayCountType = (int)RayCountValues.ReflectionDeferred;
             deferredParameters.lodBias = settings.textureLodBias.value;
+            deferredParameters.fallbackHierarchy = (int)(settings.fallbackHierachy.value);
+
+            // Ray Marching parameters
+            deferredParameters.mixedTracing = (settings.tracing.value == RayCastingMode.Mixed && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred) && !transparent;
+            deferredParameters.raySteps = settings.rayMaxIterationsRT;
+            deferredParameters.nearClipPlane = hdCamera.camera.nearClipPlane;
+            deferredParameters.farClipPlane = hdCamera.camera.farClipPlane;
 
             // Camera data
             deferredParameters.width = hdCamera.actualWidth;
@@ -324,32 +342,28 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.rayBinSizeResult = m_RayBinSizeResult;
             deferredParameters.accelerationStructure = RequestAccelerationStructure();
             deferredParameters.lightCluster = RequestLightCluster();
+            deferredParameters.mipChainBuffer = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
             // Shaders
+            deferredParameters.rayMarchingCS = m_GlobalSettings.renderPipelineRayTracingResources.rayMarchingCS;
             deferredParameters.gBufferRaytracingRT = m_GlobalSettings.renderPipelineRayTracingResources.gBufferRaytracingRT;
             deferredParameters.deferredRaytracingCS = m_GlobalSettings.renderPipelineRayTracingResources.deferredRaytracingCS;
             deferredParameters.rayBinningCS = m_GlobalSettings.renderPipelineRayTracingResources.rayBinningCS;
-
-            // XRTODO: add ray binning support for single-pass
-            if (deferredParameters.viewCount > 1 && deferredParameters.rayBinning)
-            {
-                deferredParameters.rayBinning = false;
-            }
 
             // Make a copy of the previous values that were defined in the CB
             deferredParameters.raytracingCB = m_ShaderVariablesRayTracingCB;
             // Override the ones we need to
             deferredParameters.raytracingCB._RaytracingRayMaxLength = settings.rayLength;
             deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
-            deferredParameters.raytracingCB._RaytracingIncludeSky = settings.reflectSky.value ? 1 : 0;
             deferredParameters.raytracingCB._RaytracingPreExposition = 0;
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 0;
+            deferredParameters.raytracingCB._RayTracingFallbackHierarchy = deferredParameters.fallbackHierarchy;
 
             return deferredParameters;
         }
 
         TextureHandle RenderReflectionsPerformance(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, TextureHandle clearCoatTexture, Texture skyTexture,
+            in PrepassOutput prepassOutput, TextureHandle rayCountTexture, TextureHandle clearCoatTexture, Texture skyTexture,
             ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
         {
             // Pointer to the final result
@@ -358,24 +372,28 @@ namespace UnityEngine.Rendering.HighDefinition
             // Fetch all the settings
             ScreenSpaceReflection settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
-            TextureHandle directionBuffer = DirGenRTR(renderGraph, hdCamera, settings, depthPyramid, stencilBuffer, normalBuffer, clearCoatTexture, transparent);
+            // Evaluate if the effect runs in full res
+            bool fullResolution = settings.fullResolution || !RayTracingHalfResAllowed();
 
-            DeferredLightingRTParameters deferredParamters = PrepareReflectionDeferredLightingRTParameters(hdCamera);
-            TextureHandle lightingBuffer = DeferredLightingRT(renderGraph, in deferredParamters, directionBuffer, depthPyramid, normalBuffer, skyTexture, rayCountTexture);
+            // Generate the directions for the effect
+            TextureHandle directionBuffer = DirGenRTR(renderGraph, hdCamera, settings, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, clearCoatTexture, fullResolution, transparent);
 
-            rtrResult = AdjustWeightRTR(renderGraph, hdCamera, settings, depthPyramid, normalBuffer, clearCoatTexture, lightingBuffer, directionBuffer);
+            DeferredLightingRTParameters deferredParamters = PrepareReflectionDeferredLightingRTParameters(hdCamera, fullResolution, transparent);
+            TextureHandle lightingBuffer = DeferredLightingRT(renderGraph, in deferredParamters, directionBuffer, prepassOutput, skyTexture, rayCountTexture);
+
+            rtrResult = AdjustWeightRTR(renderGraph, hdCamera, settings, prepassOutput.depthBuffer, prepassOutput.normalBuffer, clearCoatTexture, lightingBuffer, directionBuffer, fullResolution);
 
             // Denoise if required
             if (settings.denoise && !transparent)
             {
-                rtrResult = DenoiseReflection(renderGraph, hdCamera, settings.fullResolution, settings.denoiserRadius, singleReflectionBounce: true, settings.affectSmoothSurfaces,
-                    rtrResult, depthPyramid, normalBuffer, motionVectors, clearCoatTexture);
+                rtrResult = DenoiseReflection(renderGraph, hdCamera, fullResolution, settings.denoiserRadius, singleReflectionBounce: true, settings.affectSmoothSurfaces,
+                    rtrResult, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.motionVectorsBuffer, clearCoatTexture);
             }
 
             // We only need to upscale if the effect was not rendered in full res
-            if (!settings.fullResolution)
+            if (!fullResolution)
             {
-                rtrResult = UpscaleRTR(renderGraph, hdCamera, depthPyramid, rtrResult);
+                rtrResult = UpscaleRTR(renderGraph, hdCamera, prepassOutput.depthBuffer, rtrResult);
             }
 
             return rtrResult;
@@ -399,6 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float minSmoothness;
             public float smoothnessFadeStart;
             public float lodBias;
+            public int fallbackHierarchy;
 
             // Other parameters
             public RayTracingAccelerationStructure accelerationStructure;
@@ -438,6 +457,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.minSmoothness = settings.minSmoothness;
                 passData.smoothnessFadeStart = settings.smoothnessFadeStart;
                 passData.lodBias = settings.textureLodBias.value;
+                passData.fallbackHierarchy = (int)settings.fallbackHierachy.value;
 
                 // Other parameters
                 passData.accelerationStructure = RequestAccelerationStructure();
@@ -466,7 +486,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Global reflection parameters
                         data.shaderVariablesRayTracingCB._RaytracingIntensityClamp = data.clampValue;
-                        data.shaderVariablesRayTracingCB._RaytracingIncludeSky = data.reflectSky;
                         // Inject the ray generation data
                         data.shaderVariablesRayTracingCB._RaytracingRayMaxLength = data.rayLength;
                         data.shaderVariablesRayTracingCB._RaytracingNumSamples = data.sampleCount;
@@ -477,6 +496,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = data.minSmoothness;
                         data.shaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = data.smoothnessFadeStart;
                         data.shaderVariablesRayTracingCB._RayTracingLodBias = data.lodBias;
+                        data.shaderVariablesRayTracingCB._RayTracingFallbackHierarchy = data.fallbackHierarchy;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Inject the ray-tracing sampling data
@@ -550,7 +570,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderRayTracedReflections(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle clearCoatTexture, Texture skyTexture, TextureHandle rayCountTexture,
+            in PrepassOutput prepassOutput, TextureHandle clearCoatTexture, Texture skyTexture, TextureHandle rayCountTexture,
             ShaderVariablesRaytracing shaderVariablesRaytracing, bool transparent)
         {
             ScreenSpaceReflection reflectionSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
@@ -559,18 +579,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Based on what the asset supports, follow the volume or force the right mode.
             if (m_Asset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
-                qualityMode = reflectionSettings.mode.value == RayTracingMode.Quality;
+                qualityMode = (reflectionSettings.tracing.value == RayCastingMode.RayTracing) && (reflectionSettings.mode.value == RayTracingMode.Quality);
             else
                 qualityMode = m_Asset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality;
 
 
             if (qualityMode)
                 return RenderReflectionsQuality(renderGraph, hdCamera,
-                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, clearCoatTexture, skyTexture,
+                    prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, rayCountTexture, clearCoatTexture, skyTexture,
                     shaderVariablesRaytracing, transparent);
             else
                 return RenderReflectionsPerformance(renderGraph, hdCamera,
-                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, clearCoatTexture, skyTexture,
+                    prepassOutput, rayCountTexture, clearCoatTexture, skyTexture,
                     shaderVariablesRaytracing, transparent);
         }
     }

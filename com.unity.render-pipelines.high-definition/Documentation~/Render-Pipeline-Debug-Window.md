@@ -2,7 +2,6 @@
 
 The **Render Pipeline Debug** window is a specific window for the Scriptable Render Pipeline that contains debugging and visualization tools. You can use these tools to quickly understand and solve any issues you might encounter. It contains mostly graphics-related tools but you can extend it to include tools for any other field, such as animation. The **Render Pipeline Debug** window separates debug items into different sections as follows:
 
-- [Render Graph](#RenderGraphPanel)
 - [Decals](#DecalsPanel)
 - [Display Stats](#StatsPanel)
 - [Material](#MaterialPanel)
@@ -17,7 +16,7 @@ The Render Pipeline Debugger window.
 
 ## Using the Render Pipeline Debugger window
 
-To open the Render Pipeline Debugger window in the Editor, go to  **Window > Analysis > Render Pipeline Debugger**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
+To open the Render Pipeline Debugger window in the Editor, go to  **Window > Analysis > Rendering Debugger**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window. You can disable the shortcut through the [enableWindowHotkey variable](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@12.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableWindowHotkey).
 
 You can display read-only items such as the FPS counter independently of the **Render Pipeline Debugger** window. This means that when you disable the **Render Pipeline Debugger** window, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
 
@@ -40,20 +39,6 @@ To display the current active item independently of the debug window:
 - **Keyboard**: Press the right Shift key.
 - **Xbox controller**: Press the X button.
 - **PlayStation controller**: Press the Square button.
-
-<a name="RenderGraphPanel"></a>
-
-## Render Graph panel
-
-The **Render Graph** panel has tools that you can use to debug the [Render Graph](https://docs.unity3d.com/2020.2/Documentation/Manual/render-graph.html) used by HDRP.
-
-| **Debug Option**  | **Description**                                              |
-| ----------------- | ------------------------------------------------------------ |
-| **Clear Render Targets at creation**  | Enable the checkbox to make the Render Graph system clear render targets the first time it uses them |
-| **Disable Pass Culling**              | Enable the checkbox to render passes which have no impact on the final render. |
-| **Immediate Mode**                    | Enable the checkbox to make the Render Graph system evaluate passes immediately after it creates them. |
-| **Log Frame Information**             | Press the button to log in the Console informations about the passes rendered during a frame. |
-| **Log Resources**                     | Press the button to log in the Console the list of resources used when rendering a frame. |
 
 <a name="DecalsPanel"></a>
 
@@ -96,19 +81,21 @@ The **display stats** panel is only visible in play mode and can be used to debu
 
 The **Material** panel has tools that you can use to visualize different Material properties.
 
-| **Debug Option**             | **Description**                                              |
-| ---------------------------- | ------------------------------------------------------------ |
-| **Common Material Property** | Use the drop-down to select a Material property to visualize on every GameObject on screen. All HDRP Materials share the properties available. |
-| **Material**                 | Use the drop-down to select a Material property to visualize on every GameObject on screen using a specific Shader. The properties available depend on the HDRP Material type you select in the drop-down. |
-| **Engine**                   | Use the drop-down to select a Material property to visualize on every GameObject on a screen that uses a specific Shader. The properties available are the same as **Material** but are in the form that the lighting engine uses them (for example, **Smoothness** is **Perceptual Roughness**). |
-| **Attributes**               | Use the drop-down to select a 3D GameObject attribute, like Texture Coordinates or Vertex Color, to visualize on screen. |
-| **Properties**               | Use the drop-down to select a property that the debugger uses to highlight GameObjects on screen. The debugger highlights GameObjects that use a Material with the property that you select. |
-| **GBuffer**                  | Use the drop-down to select a property to visualize from the GBuffer for deferred Materials. |
-| **Material Validator**       | Use the drop-down to select properties to show validation colors for.<br/>&#8226; **Diffuse Color**: Select this option to check if the diffuse colors in your Scene adheres to an acceptable [PBR](Glossary.md#PhysicallyBasedRendering) range. If the Material color is out of this range, the debugger displays it in the **Too High Color** color if it is above the range, or in the **Too Low Color** if it is below the range.<br/>&#8226; **Metal or SpecularColor**: Select this option to check if a pixel contains a metallic or specular color that adheres to an acceptable PBR range. If it does not, the debugger highlights it in the **Not A Pure Metal Color**.For information about the acceptable PBR ranges in Unity, see the [Material Charts documentation](https://docs.unity3d.com/Manual/StandardShaderMaterialCharts.html). |
-| **- Too High Color**         | Use the color picker to select the color that the debugger displays when a Material's diffuse color is above the acceptable PBR range.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
-| **- Too Low Color**          | Use the color picker to select the color that the debugger displays when a Material's diffuse color is below the acceptable PBR range.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
-| **- Not A Pure Metal Color** | Use the color picker to select the color that the debugger displays if a pixel defined as metallic has a non-zero albedo value. The debugger only highlights these pixels if you enable the **True Metals** checkbox.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
-| **- Pure Metals**            | Enable the checkbox to make the debugger highlight any pixels which Unity defines as metallic, but which have a non-zero albedo value. The debugger uses the **Not A Pure Metal Color** to highlight these pixels.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
+| **Debug Option**                                 | **Description**                                              |
+| ----------------------------                     | ------------------------------------------------------------ |
+| **Common Material Property**                     | Use the drop-down to select a Material property to visualize on every GameObject on screen. All HDRP Materials share the properties available. |
+| **Material**                                     | Use the drop-down to select a Material property to visualize on every GameObject on screen using a specific Shader. The properties available depend on the HDRP Material type you select in the drop-down. |
+| **Engine**                                       | Use the drop-down to select a Material property to visualize on every GameObject on a screen that uses a specific Shader. The properties available are the same as **Material** but are in the form that the lighting engine uses them (for example, **Smoothness** is **Perceptual Roughness**). |
+| **Attributes**                                   | Use the drop-down to select a 3D GameObject attribute, like Texture Coordinates or Vertex Color, to visualize on screen. |
+| **Properties**                                   | Use the drop-down to select a property that the debugger uses to highlight GameObjects on screen. The debugger highlights GameObjects that use a Material with the property that you select. |
+| **GBuffer**                                      | Use the drop-down to select a property to visualize from the GBuffer for deferred Materials. |
+| **Material Validator**                           | Use the drop-down to select properties to show validation colors for.<br/>&#8226; **Diffuse Color**: Select this option to check if the diffuse colors in your Scene adheres to an acceptable [PBR](Glossary.md#PhysicallyBasedRendering) range. If the Material color is out of this range, the debugger displays it in the **Too High Color** color if it is above the range, or in the **Too Low Color** if it is below the range.<br/>&#8226; **Metal or SpecularColor**: Select this option to check if a pixel contains a metallic or specular color that adheres to an acceptable PBR range. If it does not, the debugger highlights it in the **Not A Pure Metal Color**.For information about the acceptable PBR ranges in Unity, see the [Material Charts documentation](https://docs.unity3d.com/Manual/StandardShaderMaterialCharts.html). |
+| **- Too High Color**                             | Use the color picker to select the color that the debugger displays when a Material's diffuse color is above the acceptable PBR range.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
+| **- Too Low Color**                              | Use the color picker to select the color that the debugger displays when a Material's diffuse color is below the acceptable PBR range.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
+| **- Not A Pure Metal Color**                     | Use the color picker to select the color that the debugger displays if a pixel defined as metallic has a non-zero albedo value. The debugger only highlights these pixels if you enable the **True Metals** checkbox.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
+| **- Pure Metals**                                | Enable the checkbox to make the debugger highlight any pixels which Unity defines as metallic, but which have a non-zero albedo value. The debugger uses the **Not A Pure Metal Color** to highlight these pixels.<br/>This property only appears when you select **Diffuse Color** or **Metal or SpecularColor** from the **Material Validator** drop-down. |
+| **Override Global Material Texture Mip Bias**    | Enable the checkbox to override the mipmap level bias of texture samplers in material shaders. Use the **Debug Global Material Texture Mip Bias Value** to control the mipmap level bias override.<br/>When using this feature, be aware of the following:<br/>&#8226; It only affects gbuffer, forward opaque, transparency and decal passes. <br/>&#8226; It does not affect virtual texturing sampling.<br/>&#8226; It does not affect custom passes. |
+| **Debug Global Material Texture Mip Bias Value** | Use the slider to control the amount of mip bias of texture samplers in material shaders. |
 
 If the geometry or the shading normal is denormalized, the view renders the target pixel red.
 
@@ -151,17 +138,19 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **- Filter Layers**                   | Use the drop-down to filter light layers that you want to visialize. Objects having a matching layer will be displayed in a specific color. |
 | **- Layers Color**                    | Use the color pickers to select the display color of each light layer. |
 
-| **Material Overrides**               | **Description**                                              |
-| ------------------------------------ | ------------------------------------------------------------ |
-| **Override Smoothness**              | Enable the checkbox to override the smoothness for the entire Scene. |
-| **- Smoothness**                     | Use the slider to set the smoothness override value that HDRP uses for the entire Scene. |
-| **Override Albedo**                  | Enable the checkbox to override the albedo for the entire Scene. |
-| **- Albedo**                         | Use the color picker to set the albedo color that HDRP uses for the entire Scene. |
-| **Override Normal**                  | Enable the checkbox to override the normals for the entire Scene with object normals for lighting debug. |
-| **Override Specular Color**          | Enable the checkbox to override the specular color for the entire Scene. |
-| **- Specular Color**                 | Use the color picker to set the specular color that HDRP uses for the entire Scene. |
-| **Override Emissive Color**          | Enable the checkbox to override the emissive color for the entire Scene. |
-| **- Emissive Color**                 | Use the color picker to set the emissive color that HDRP uses for the entire Scene. |
+| **Material Overrides**         | **Description**                                              |
+| ------------------------------ | ------------------------------------------------------------ |
+| **Override Smoothness**        | Enable the checkbox to override the smoothness for the entire Scene. |
+| **- Smoothness**               | Use the slider to set the smoothness override value that HDRP uses for the entire Scene. |
+| **Override Albedo**            | Enable the checkbox to override the albedo for the entire Scene. |
+| **- Albedo**                   | Use the color picker to set the albedo color that HDRP uses for the entire Scene. |
+| **Override Normal**            | Enable the checkbox to override the normals for the entire Scene with object normals for lighting debug. |
+| **Override Specular Color**    | Enable the checkbox to override the specular color for the entire Scene. |
+| **- Specular Color**           | Use the color picker to set the specular color that HDRP uses for the entire Scene. |
+| **Override Ambient Occlusion** | Enable the checkbox to override the ambient occlusion for the entire Scene. |
+| **- Ambient Occlusion**        | Use the slider to set the Ambient Occlusion override value that HDRP uses for the entire Scene. |
+| **Override Emissive Color**    | Enable the checkbox to override the emissive color for the entire Scene. |
+| **- Emissive Color**           | Use the color picker to set the emissive color that HDRP uses for the entire Scene. |
 
 | **Debug Option**                     | **Description**                                              |
 | ------------------------------------ | ------------------------------------------------------------ |
@@ -226,7 +215,29 @@ The **Color Picker** works with whichever debug mode HDRP displays at the time. 
 | **- Range Threshold 3**       | Set the final split for the intensity range.<br/>This property only appears when you enable the **False Color Mode** checkbox. |
 | **MSAA Samples**              | Use the drop-down to select the number of samples the debugger uses for [MSAA](Anti-Aliasing.md#MSAA). |
 | **Freeze Camera for Culling** | Use the drop-down to select a Camera to freeze in order to check its culling. To check if the Camera's culling works correctly, freeze the Camera and move occluders around it. |
-| **Enable Render Graph**       | Enable the checkbox to use the Render Graph for rendering. |
+
+
+| **Debug Option**  | **Description**                                              |
+| ----------------- | ------------------------------------------------------------ |
+| **Clear Render Targets at creation**  | Enable the checkbox to make the Render Graph system clear render targets the first time it uses them |
+| **Disable Pass Culling**              | Enable the checkbox to render passes which have no impact on the final render. |
+| **Immediate Mode**                    | Enable the checkbox to make the Render Graph system evaluate passes immediately after it creates them. |
+| **Log Frame Information**             | Press the button to log in the Console informations about the passes rendered during a frame. |
+| **Log Resources**                     | Press the button to log in the Console the list of resources used when rendering a frame. |
+
+The **NVIDIA device debug view** is a panel that shows a list of the current feature states of NVIDIA Deep Learning Super Sampling (DLSS). Each row represents an active screen in which DLSS is running.
+
+| **Information**          | **Description**    |
+| ------------------------ | ------------------ |
+| **NVUnityPlugin Version**| Shows the current internal version id of the NVIDIA Unity Plugin that interacts with DLSS. |
+| **NGX API Version**      | Shows the actual version which DLSS operates on. |
+| **Device Status**        | Shows the current status of the NVIDIA driver. If an internal error occurred when initializing the driver, Unity displays the error here. |
+| **DLSS Supported**       | Shows **True** if your project supports DLSS at runtime. Otherwise, shows **False**. |
+| **DLSS Slot ID**         | Shows an internal ID for the particular DLSS view being displayed. |
+| **Status**               | Shows whether the view is **valid** or **invalid**. A view is invalid if there is an internal error, or if the Scriptable Render Pipeline passes incorrect parameters. |
+| **Input resolution**     | Shows the current input resolution. Unity calculates this from the screen percentage specified for dynamic resolution scaling. |
+| **Output resolution**    | Shows the target resolution for this particular DLSS view. |
+| **Quality**              | Shows the quality selected for this particular DLSS view.  |
 
 <a name="CameraPanel"></a>
 

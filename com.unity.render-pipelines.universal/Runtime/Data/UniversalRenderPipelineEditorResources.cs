@@ -43,6 +43,9 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Runtime/Materials/TerrainLit.mat")]
             public Material terrainLit;
+
+            [Reload("Runtime/Materials/Decal.mat")]
+            public Material decal;
         }
 
         public ShaderResources shaders;

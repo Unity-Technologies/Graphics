@@ -198,7 +198,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Run the temporal denoiser
             TextureHandle historyBuffer = renderGraph.ImportTexture(RequestRayTracedSSSHistoryTexture(hdCamera));
-            return GetTemporalFilter().Denoise(renderGraph, hdCamera, singleChannel: false, historyValidity, rayTracedSSS, renderGraph.defaultResources.blackTextureXR, historyBuffer, depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
+            HDTemporalFilter.TemporalFilterParameters filterParams;
+            filterParams.singleChannel = false;
+            filterParams.historyValidity = historyValidity;
+            filterParams.occluderMotionRejection = false;
+            filterParams.receiverMotionRejection = true;
+            filterParams.exposureControl = false;
+
+            return GetTemporalFilter().Denoise(renderGraph, hdCamera, filterParams,
+                rayTracedSSS, renderGraph.defaultResources.blackTextureXR, historyBuffer,
+                depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
         }
 
         class ComposeRTSSSPassData
@@ -288,11 +297,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Denoise the result
                 rtsssResult = DenoiseRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, normalBuffer, motionVectorsBuffer, historyValidationTexture);
 
-                // Compose it
-                rtsssResult = CombineRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, sssColor, ssgiBuffer, diffuseBuffer, colorBuffer);
-
                 // Push this version of the texture for debug
                 PushFullScreenDebugTexture(renderGraph, rtsssResult, FullScreenDebugMode.RayTracedSubSurface);
+
+                // Compose it
+                rtsssResult = CombineRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, sssColor, ssgiBuffer, diffuseBuffer, colorBuffer);
 
                 // Return the result
                 return rtsssResult;

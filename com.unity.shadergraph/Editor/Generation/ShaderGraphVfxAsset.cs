@@ -43,10 +43,16 @@ namespace UnityEditor.ShaderGraph.Internal
         public const int AlphaThresholdSlotId = 7;
 
         [SerializeField]
+        public bool generatesWithShaderGraph;
+
+        [SerializeField]
         public bool lit;
 
         [SerializeField]
         public bool alphaClipping;
+
+        [SerializeField]
+        internal ShaderStageCapability[] m_PropertiesStages;
 
         [SerializeField]
         internal GraphCompilationResult compilationResult;
@@ -132,6 +138,38 @@ namespace UnityEditor.ShaderGraph.Internal
             {
                 EnsureProperties();
                 return m_Data.m_Properties.SelectValue().ToList();
+            }
+        }
+
+        public List<AbstractShaderProperty> fragmentProperties
+        {
+            get
+            {
+                EnsureProperties();
+                var allProperties = m_Data.m_Properties.SelectValue().ToList();
+                var fragProperties =  new List<AbstractShaderProperty>();
+                for (var i = 0; i < allProperties.Count(); i++)
+                {
+                    if ((m_PropertiesStages[i] & ShaderStageCapability.Fragment) != 0)
+                        fragProperties.Add(allProperties[i]);
+                }
+                return fragProperties;
+            }
+        }
+
+        public List<AbstractShaderProperty> vertexProperties
+        {
+            get
+            {
+                EnsureProperties();
+                var allProperties = m_Data.m_Properties.SelectValue().ToList();
+                var vertexProperties =  new List<AbstractShaderProperty>();
+                for (var i = 0; i < allProperties.Count(); i++)
+                {
+                    if ((m_PropertiesStages[i] & ShaderStageCapability.Vertex) != 0)
+                        vertexProperties.Add(allProperties[i]);
+                }
+                return vertexProperties;
             }
         }
 

@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Holds the physical settings set on cameras.
     /// </summary>
     [Serializable]
-    public class HDPhysicalCamera
+    public struct HDPhysicalCamera
     {
         /// <summary>
         /// The minimum allowed aperture.
@@ -31,18 +31,28 @@ namespace UnityEngine.Rendering.HighDefinition
         public const int kMaxBladeCount = 11;
 
         // Camera body
-        [SerializeField][Min(1f)] int m_Iso = 200;
-        [SerializeField][Min(0f)] float m_ShutterSpeed = 1f / 200f;
+        [SerializeField][Min(1f)] int m_Iso;
+        [SerializeField][Min(0f)] float m_ShutterSpeed;
 
         // Lens
         // Note: focalLength is already defined in the regular camera component
-        [SerializeField][Range(kMinAperture, kMaxAperture)] float m_Aperture = 16f;
+        [SerializeField][Range(kMinAperture, kMaxAperture)] float m_Aperture;
+        [SerializeField][Min(0.1f)] float m_FocusDistance;
 
         // Aperture shape
-        [SerializeField][Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount = 5;
-        [SerializeField] Vector2 m_Curvature = new Vector2(2f, 11f);
-        [SerializeField][Range(0f, 1f)] float m_BarrelClipping = 0.25f;
-        [SerializeField][Range(-1f, 1f)] float m_Anamorphism = 0f;
+        [SerializeField][Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount;
+        [SerializeField] Vector2 m_Curvature;
+        [SerializeField][Range(0f, 1f)] float m_BarrelClipping;
+        [SerializeField][Range(-1f, 1f)] float m_Anamorphism;
+
+        /// <summary>
+        /// The focus distance of the lens. The Depth of Field Volume override uses this value if you set focusDistanceMode to FocusDistanceMode.Camera.
+        /// </summary>
+        public float focusDistance
+        {
+            get => m_FocusDistance;
+            set => m_FocusDistance = Mathf.Max(value, 0.1f);
+        }
 
         /// <summary>
         /// The sensor sensitivity (ISO).
@@ -116,15 +126,28 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Copies the settings of this instance to another instance.
         /// </summary>
         /// <param name="c">The instance to copy the settings to.</param>
+        [Obsolete("The CopyTo method is obsolete and does not work anymore. Use the assignement operator instead to get a copy of the HDPhysicalCamera parameters.", true)]
         public void CopyTo(HDPhysicalCamera c)
         {
-            c.iso = iso;
-            c.shutterSpeed = shutterSpeed;
-            c.aperture = aperture;
-            c.bladeCount = bladeCount;
-            c.curvature = curvature;
-            c.barrelClipping = barrelClipping;
-            c.anamorphism = anamorphism;
+        }
+
+        /// <summary>
+        /// A set of default physical camera parameters.
+        /// </summary>
+        /// <returns>Returns a set of default physical camera parameters.</returns>
+        public static HDPhysicalCamera GetDefaults()
+        {
+            HDPhysicalCamera val = new HDPhysicalCamera();
+            val.iso = 200;
+            val.shutterSpeed = 1f / 200f;
+            val.aperture = 16;
+            val.focusDistance = 10;
+            val.bladeCount = 5;
+            val.curvature = new Vector2(2f, 11f);
+            val.barrelClipping = 0.25f;
+            val.anamorphism = 0;
+
+            return val;
         }
     }
 
@@ -194,6 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The non oblique projection matrix for a particular camera.</returns>
         public delegate Matrix4x4 NonObliqueProjectionGetter(Camera camera);
 
+        [ExcludeCopy]
         Camera m_Camera;
 
         /// <summary>
@@ -301,8 +325,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, ringing artifacts (dark or strangely saturated edges) caused by history sharpening will be improved. This comes at a potential loss of sharpness upon motion.</summary>
         public bool taaAntiHistoryRinging = false;
 
+        /// <summary> Determines how much the history buffer is blended together with current frame result. Higher values means more history contribution. </summary>
+        [Range(0.6f, 0.95f)]
+        public float taaBaseBlendFactor = 0.875f;
+
         /// <summary>Physical camera parameters.</summary>
-        public HDPhysicalCamera physicalParameters = new HDPhysicalCamera();
+        [ValueCopy] // reference should not be same. only content.
+        public HDPhysicalCamera physicalParameters = HDPhysicalCamera.GetDefaults();
 
         /// <summary>Vertical flip mode.</summary>
         public FlipYMode flipYMode;
@@ -331,6 +360,35 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable to retain history buffers even if the camera is disabled.</summary>
         public bool hasPersistentHistory = false;
 
+        /// <summary>Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera.</summary>
+        [Tooltip("Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera")]
+        public bool allowDeepLearningSuperSampling = true;
+
+        /// <summary>If set to true, NVIDIA Deep Learning Super Sampling (DLSS) will utilize the Quality setting set on this camera instead of the one specified in the quality asset.</summary>
+        [Tooltip("If set to true, NVIDIA Deep Learning Super Sampling (DLSS) will utilize the Quality setting set on this camera instead of the one specified in the quality asset.")]
+        public bool deepLearningSuperSamplingUseCustomQualitySettings = false;
+
+        /// <summary>Selects a performance quality setting for NVIDIA Deep Learning Super Sampling (DLSS) for this camera of this project.</summary>
+        [Tooltip("Selects a performance quality setting for NVIDIA Deep Learning Super Sampling (DLSS) for this camera of this project.")]
+        public uint deepLearningSuperSamplingQuality = 0;
+
+        /// <summary>If set to true, NVIDIA Deep Learning Super Sampling (DLSS) will utilize the Quality setting set on this camera instead of the one specified in the quality asset of this project.</summary>
+        [Tooltip("If set to true, NVIDIA Deep Learning Super Sampling (DLSS) will utilize the attributes (Optimal Settings and Sharpness) specified on this camera, instead of the ones specified in the quality asset of this project.")]
+        public bool deepLearningSuperSamplingUseCustomAttributes = false;
+
+        /// <summary>Sets the sharpness and scale automatically for NVIDIA Deep Learning Super Sampling (DLSS) for this camera, depending on the values of quality settings.</summary>
+        [Tooltip("Sets the sharpness and scale automatically for NVIDIA Deep Learning Super Sampling (DLSS) for this camera, depending on the values of quality settings.")]
+        public bool deepLearningSuperSamplingUseOptimalSettings = true;
+
+        /// <summary>Sets the Sharpening value for NVIDIA Deep Learning Super Sampling (DLSS) for this camera.</summary>
+        [Tooltip("Sets the Sharpening value for NVIDIA Deep Learning Super Sampling (DLSS) for this camera.")]
+        [Range(0, 1)]
+        public float deepLearningSuperSamplingSharpening = 0;
+
+        /// internal state set by the runtime wether DLSS is enabled or not on this camera, depending on the results of all other settings.
+        [ExcludeCopy]
+        internal bool cameraCanRenderDLSS = false;
+
         /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
         public event Action<ScriptableRenderContext, HDCamera> customRender;
         /// <summary>True if any Custom Render event is registered for this camera.</summary>
@@ -346,15 +404,23 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The object used as a target for centering the Exposure's Procedural Mask metering mode when target object option is set (See Exposure Volume Component).</summary>
         public GameObject exposureTarget = null;
 
+        /// <summary> Mip bias used on texture samplers during material rendering </summary>
+        public float materialMipBias = 0;
+
         internal float probeCustomFixedExposure = 1.0f;
+
+        [ExcludeCopy]
         internal float deExposureMultiplier = 1.0f;
 
         [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
         FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera();
+
         /// <summary>Mask specifying which frame settings are overridden when using custom frame settings.</summary>
         public FrameSettingsOverrideMask renderingPathCustomFrameSettingsOverrideMask;
+
         /// <summary>When using default frame settings, specify which type of frame settings to use.</summary>
         public FrameSettingsRenderType defaultFrameSettings;
+
         /// <summary>Custom frame settings.</summary>
         public ref FrameSettings renderingPathCustomFrameSettings => ref m_RenderingPathCustomFrameSettings;
 
@@ -367,6 +433,7 @@ namespace UnityEngine.Rendering.HighDefinition
         FrameSettings IFrameSettingsHistoryContainer.frameSettings
             => m_RenderingPathCustomFrameSettings;
 
+        [ExcludeCopy]
         FrameSettingsHistory m_RenderingPathHistory = new FrameSettingsHistory()
         {
             defaultType = FrameSettingsRenderType.Camera
@@ -391,8 +458,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // => m_FrameSettingsHistory.TriggerReset
             => () => m_RenderingPathHistory.TriggerReset();
 
+        [ExcludeCopy]
         internal ProfilingSampler profilingSampler;
 
+        [ExcludeCopy]
         AOVRequestDataCollection m_AOVRequestDataCollection = new AOVRequestDataCollection(null);
 
         /// <summary>Set AOV requests to use.</summary>
@@ -489,7 +558,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Use for debug windows
         // When camera name change we need to update the name in DebugWindows.
         // This is the purpose of this class
+        [ExcludeCopy]
         bool m_IsDebugRegistered = false;
+        [ExcludeCopy]
         string m_CameraRegisterName;
 
         // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
@@ -497,6 +568,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Unity support two type of preview: Camera preview and material preview. This property allow to know that we are an editor camera preview when the type is preview.
         /// </summary>
+        [field: ExcludeCopy]
         public bool isEditorCameraPreview { get; internal set; }
 
         // This is use to copy data into camera for the Reset() workflow in camera editor
@@ -515,13 +587,38 @@ namespace UnityEngine.Rendering.HighDefinition
             data.antialiasing = antialiasing;
             data.dithering = dithering;
             data.xrRendering = xrRendering;
-            physicalParameters.CopyTo(data.physicalParameters);
+            data.SMAAQuality = SMAAQuality;
+            data.stopNaNs = stopNaNs;
+            data.taaSharpenStrength = taaSharpenStrength;
+            data.TAAQuality = TAAQuality;
+            data.taaHistorySharpening = taaHistorySharpening;
+            data.taaAntiFlicker = taaAntiFlicker;
+            data.taaMotionVectorRejection = taaMotionVectorRejection;
+            data.taaAntiHistoryRinging = taaAntiHistoryRinging;
+            data.taaBaseBlendFactor = taaBaseBlendFactor;
+            data.flipYMode = flipYMode;
+            data.fullscreenPassthrough = fullscreenPassthrough;
+            data.allowDynamicResolution = allowDynamicResolution;
+            data.invertFaceCulling = invertFaceCulling;
+            data.probeLayerMask = probeLayerMask;
+            data.hasPersistentHistory = hasPersistentHistory;
+            data.exposureTarget = exposureTarget;
+            physicalParameters = data.physicalParameters;
 
             data.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
             data.renderingPathCustomFrameSettingsOverrideMask = renderingPathCustomFrameSettingsOverrideMask;
             data.defaultFrameSettings = defaultFrameSettings;
 
             data.probeCustomFixedExposure = probeCustomFixedExposure;
+
+            data.allowDeepLearningSuperSampling = allowDeepLearningSuperSampling;
+            data.deepLearningSuperSamplingUseCustomQualitySettings = deepLearningSuperSamplingUseCustomQualitySettings;
+            data.deepLearningSuperSamplingQuality = deepLearningSuperSamplingQuality;
+            data.deepLearningSuperSamplingUseCustomAttributes = deepLearningSuperSamplingUseCustomAttributes;
+            data.deepLearningSuperSamplingUseOptimalSettings = deepLearningSuperSamplingUseOptimalSettings;
+            data.deepLearningSuperSamplingSharpening = deepLearningSuperSamplingSharpening;
+
+            data.materialMipBias = materialMipBias;
 
             // We must not copy the following
             //data.m_IsDebugRegistered = m_IsDebugRegistered;
@@ -534,6 +631,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specify a custom getter for non oblique projection matrix.
         /// </summary>
+        [ExcludeCopy]
         public NonObliqueProjectionGetter nonObliqueProjectionGetter = GeometryUtils.CalculateProjectionMatrix;
 
         /// <summary>

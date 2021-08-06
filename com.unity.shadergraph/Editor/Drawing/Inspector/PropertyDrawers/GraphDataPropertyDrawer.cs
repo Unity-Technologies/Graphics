@@ -102,10 +102,34 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     // Get settings for Target
                     var context = new TargetPropertyGUIContext();
+                    // Indent the content of the foldout
+                    context.globalIndentLevel++;
                     target.GetPropertiesGUI(ref context, onChange, RegisterActionToUndo);
+                    context.globalIndentLevel--;
                     element.Add(context);
                 }
             }
+
+#if VFX_GRAPH_10_0_0_OR_NEWER
+            // Inform the user that VFXTarget is deprecated, if they are using one.
+            var activeTargetSRP = graphData.m_ActiveTargets.Where(t => !(t.value is VFXTarget));
+            if (graphData.m_ActiveTargets.Any(t => t.value is VFXTarget) //Use Old VFXTarget
+                && activeTargetSRP.Any()
+                && activeTargetSRP.All(o => o.value.CanSupportVFX()))
+            {
+                var vfxWarning = new HelpBoxRow(MessageType.Info);
+
+                var vfxWarningLabel = new Label("The Visual Effect target is deprecated.\n" +
+                    "Use the SRP target(s) instead, and enable 'Support VFX Graph' in the Graph Inspector.\n" +
+                    "Then, you can remove the Visual Effect Target.");
+
+                vfxWarningLabel.style.color = new StyleColor(Color.white);
+                vfxWarningLabel.style.whiteSpace = WhiteSpace.Normal;
+
+                vfxWarning.Add(vfxWarningLabel);
+                element.Add(vfxWarning);
+            }
+#endif
 
             return element;
         }

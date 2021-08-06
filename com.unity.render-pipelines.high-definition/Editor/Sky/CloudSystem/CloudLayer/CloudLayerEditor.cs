@@ -10,9 +10,8 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(CloudLayer))]
     class CloudLayerEditor : VolumeComponentEditor
     {
-        readonly GUIContent sunLabel        = new GUIContent("Sun light", "The main directional light, used for lighting and shadow casting.");
-        readonly GUIContent shadowTiling    = new GUIContent("Shadow Tiling", "The tiling of the cloud shadows texture. Controlled by the cookie size parameter on the sun light.");
-        readonly GUIContent scrollLabel     = new GUIContent("Scroll Orientation", "Sets the orientation of the distortion (in degrees).");
+        readonly GUIContent scrollOrientationLabel = new GUIContent("Orientation", "Controls the orientation of the distortion relative to the X world vector (in degrees).\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.");
+        readonly GUIContent scrollSpeedLabel       = new GUIContent("Speed", "Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
 
         struct CloudMapParameter
         {
@@ -24,7 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedDataParameter exposure;
 
             public SerializedDataParameter distortion;
-            public SerializedDataParameter scrollDirection;
+            public SerializedDataParameter scrollOrientation;
             public SerializedDataParameter scrollSpeed;
             public SerializedDataParameter flowmap;
 
@@ -54,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 tint = Unpack(p.Find(x => x.tint)),
                 exposure = Unpack(p.Find(x => x.exposure)),
                 distortion = Unpack(p.Find(x => x.distortionMode)),
-                scrollDirection = Unpack(p.Find(x => x.scrollDirection)),
+                scrollOrientation = Unpack(p.Find(x => x.scrollOrientation)),
                 scrollSpeed = Unpack(p.Find(x => x.scrollSpeed)),
                 flowmap = Unpack(p.Find(x => x.flowmap)),
 
@@ -67,7 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_Opacity, m_UpperHemisphereOnly, m_LayerCount;
         SerializedDataParameter m_Resolution, m_ShadowResolution;
-        SerializedDataParameter m_ShadowMultiplier, m_ShadowTint;
+        SerializedDataParameter m_ShadowMultiplier, m_ShadowTint, m_ShadowSize;
         CloudMapParameter[] m_Layers;
 
         public override void OnEnable()
@@ -84,6 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShadowMultiplier = Unpack(o.Find(x => x.shadowMultiplier));
             m_ShadowTint = Unpack(o.Find(x => x.shadowTint));
             m_ShadowResolution = Unpack(o.Find(x => x.shadowResolution));
+            m_ShadowSize = Unpack(o.Find(x => x.shadowSize));
 
             m_Layers = new CloudMapParameter[]
             {
@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader(label);
 
             PropertyField(map.cloudMap);
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 for (int i = 0; i < 4; i++)
                     PropertyField(map.opacities[i]);
@@ -108,18 +108,20 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(map.exposure);
 
             PropertyField(map.distortion);
-            using (new HDEditorUtils.IndentScope())
+            if (map.distortion.value.intValue != (int)CloudDistortionMode.None)
             {
-                PropertyField(map.scrollDirection, scrollLabel);
-                PropertyField(map.scrollSpeed);
+                EditorGUI.indentLevel++;
+                PropertyField(map.scrollOrientation, scrollOrientationLabel);
+                PropertyField(map.scrollSpeed, scrollSpeedLabel);
                 if (map.distortion.value.intValue == (int)CloudDistortionMode.Flowmap)
                 {
                     PropertyField(map.flowmap);
                 }
+                EditorGUI.indentLevel--;
             }
 
             PropertyField(map.lighting);
-            using (new HDEditorUtils.IndentScope())
+            using (new IndentLevelScope())
             {
                 PropertyField(map.steps);
                 PropertyField(map.thickness);
@@ -131,8 +133,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            bool prevShadows = CastShadows;
-
             PropertyField(m_Opacity);
             if (showAdditionalProperties)
                 PropertyField(m_UpperHemisphereOnly);
@@ -144,39 +144,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_LayerCount.value.intValue == (int)CloudMapMode.Double)
                 PropertyField(m_Layers[1], "Layer B");
 
-            Light sun = HDRenderPipeline.currentPipeline?.GetCurrentSunLight();
-            if (sun != null && sun.TryGetComponent(out HDAdditionalLightData hdSun))
-            {
-                PropertyField(m_ShadowMultiplier);
-                PropertyField(m_ShadowTint);
-                if (showAdditionalProperties)
-                    PropertyField(m_ShadowResolution);
+            PropertyField(m_ShadowMultiplier);
+            PropertyField(m_ShadowTint);
+            if (showAdditionalProperties)
+                PropertyField(m_ShadowResolution);
 
-                bool shadows = CastShadows;
-                if (prevShadows && !shadows)
-                    sun.cookie = null;
-                else if (shadows && sun.cookie == null)
-                {
-                    Undo.RecordObject(hdSun, "Change cookie size");
-                    hdSun.shapeHeight = 500;
-                    hdSun.shapeWidth = 500;
-                }
-
-                using (new EditorGUI.DisabledScope(true))
-                {
-                    using (new EditorGUILayout.HorizontalScope())
-                    {
-                        GUILayout.Space(20);
-                        EditorGUILayout.ObjectField(sunLabel, sun, typeof(Light), true);
-                    }
-                    using (new EditorGUILayout.HorizontalScope())
-                    {
-                        GUILayout.Space(20);
-                        var size = new Vector2(hdSun.shapeWidth, hdSun.shapeHeight);
-                        EditorGUILayout.Vector2Field(shadowTiling, size);
-                    }
-                }
-            }
+            PropertyField(m_ShadowSize);
         }
     }
 }

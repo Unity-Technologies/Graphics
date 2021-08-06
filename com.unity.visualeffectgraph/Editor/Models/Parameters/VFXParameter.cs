@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Collections.ObjectModel;
+using UnityEditor.VFX.UI;
 using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX
@@ -22,6 +23,33 @@ namespace UnityEditor.VFX
             m_ExposedName = "exposedName";
             m_Exposed = false;
             m_UICollapsed = false;
+        }
+
+        public static VFXParameter Duplicate(string copyName, VFXParameter source)
+        {
+            var newVfxParameter = (VFXParameter)ScriptableObject.CreateInstance(source.GetType());
+
+            newVfxParameter.m_ExposedName = copyName;
+            newVfxParameter.m_Exposed = source.m_Exposed;
+            newVfxParameter.m_UICollapsed = source.m_UICollapsed;
+            newVfxParameter.m_Order = source.m_Order + 1;
+            newVfxParameter.m_Category = source.m_Category;
+            newVfxParameter.m_Min = source.m_Min;
+            newVfxParameter.m_Max = source.m_Max;
+            newVfxParameter.m_IsOutput = source.m_IsOutput;
+            newVfxParameter.m_EnumValues = source.m_EnumValues?.ToList();
+            newVfxParameter.m_Tooltip = source.m_Tooltip;
+            newVfxParameter.m_ValueFilter = source.m_ValueFilter;
+            newVfxParameter.subgraphMode = source.subgraphMode;
+            newVfxParameter.m_ValueExpr = source.m_ValueExpr;
+            newVfxParameter.Init(source.type);
+
+            if (!source.isOutput)
+            {
+                newVfxParameter.value = source.value;
+            }
+
+            return newVfxParameter;
         }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, FormerlySerializedAs("m_exposedName")]
@@ -424,7 +452,7 @@ namespace UnityEditor.VFX
                 VFXSlot slot = VFXSlot.Create(new VFXProperty(_type, "o"), VFXSlot.Direction.kOutput);
                 AddSlot(slot);
 
-                if (!typeof(UnityEngine.Object).IsAssignableFrom(_type))
+                if (!typeof(UnityEngine.Object).IsAssignableFrom(_type) && _type != typeof(GraphicsBuffer))
                     slot.value = System.Activator.CreateInstance(_type);
             }
             else

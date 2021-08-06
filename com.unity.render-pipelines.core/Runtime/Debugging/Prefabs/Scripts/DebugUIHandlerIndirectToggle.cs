@@ -35,6 +35,13 @@ namespace UnityEngine.Rendering.UI
         public void Init()
         {
             UpdateValueLabel();
+
+            valueToggle.onValueChanged.AddListener(OnToggleValueChanged);
+        }
+
+        void OnToggleValueChanged(bool value)
+        {
+            setter(index, value);
         }
 
         /// <summary>

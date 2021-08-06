@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Albedo + SSS Profile and mask / Specular occlusion (when no SSS)
         // This will be used during GBuffer and/or forward passes.
-        TextureHandle CreateSSSBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
+        TextureHandle CreateSSSBuffer(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSamples)
         {
             bool msaa = msaaSamples != MSAASamples.None;
 #if UNITY_2020_2_OR_NEWER
@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite = !msaa,
                 bindTextureMS = msaa,
                 msaaSamples = msaaSamples,
-                clearBuffer = NeedClearGBuffer(),
+                clearBuffer = NeedClearGBuffer(hdCamera),
                 clearColor = Color.clear,
                 name = msaa ? "SSSBufferMSAA" : "SSSBuffer"
 #if UNITY_2020_2_OR_NEWER

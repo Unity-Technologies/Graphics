@@ -34,8 +34,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_StackLit;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "StackLit SubShader", "");
         protected override string raytracingInclude => CoreIncludes.kStackLitRaytracing;
+        protected override string pathtracingInclude => CoreIncludes.kStackLitPathtracing;
         protected override string subShaderInclude => CoreIncludes.kStackLit;
 
+        // SubShader features
+        protected override bool supportPathtracing => true;
         protected override bool supportDistortion => true;
         protected override bool requireSplitLighting => stackLitData.subsurfaceScattering;
 
@@ -122,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descriptor = base.GetRaytracingSubShaderDescriptor();
 
             if (stackLitData.subsurfaceScattering)
-                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface(true));
+                descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface());
 
             return descriptor;
         }

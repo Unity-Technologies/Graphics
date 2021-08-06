@@ -1,6 +1,26 @@
 #ifndef UNITY_DEBUG_INCLUDED
 #define UNITY_DEBUG_INCLUDED
 
+// UX-verified colorblind-optimized debug colors, listed in order of increasing perceived "hotness"
+#define DEBUG_COLORS_COUNT 12
+#define kDebugColorBlack        float4(0.0   / 255.0, 0.0   / 255.0, 0.0   / 255.0, 1.0) // #000000
+#define kDebugColorLightPurple  float4(166.0 / 255.0, 70.0  / 255.0, 242.0 / 255.0, 1.0) // #A646F2
+#define kDebugColorDeepBlue     float4(0.0   / 255.0, 26.0  / 255.0, 221.0 / 255.0, 1.0) // #001ADD
+#define kDebugColorSkyBlue      float4(65.0  / 255.0, 152.0 / 255.0, 224.0 / 255.0, 1.0) // #4198E0
+#define kDebugColorLightBlue    float4(158.0 / 255.0, 228.0 / 255.0, 251.0 / 255.0, 1.0) // #1A1D21
+#define kDebugColorTeal         float4(56.0  / 255.0, 243.0 / 255.0, 176.0 / 255.0, 1.0) // #38F3B0
+#define kDebugColorBrightGreen  float4(168.0 / 255.0, 238.0 / 255.0, 46.0  / 255.0, 1.0) // #A8EE2E
+#define kDebugColorBrightYellow float4(255.0 / 255.0, 253.0 / 255.0, 76.0  / 255.0, 1.0) // #FFFD4C
+#define kDebugColorDarkYellow   float4(255.0 / 255.0, 214.0 / 255.0, 0.0   / 255.0, 1.0) // #FFD600
+#define kDebugColorOrange       float4(253.0 / 255.0, 152.0 / 255.0, 0.0   / 255.0, 1.0) // #FD9800
+#define kDebugColorBrightRed    float4(255.0 / 255.0, 67.0  / 255.0, 51.0  / 255.0, 1.0) // #FF4333
+#define kDebugColorDarkRed      float4(132.0 / 255.0, 10.0  / 255.0, 54.0  / 255.0, 1.0) // #840A36
+
+// UX-verified colorblind-optimized "heat color gradient"
+static const float4 kDebugColorGradient[DEBUG_COLORS_COUNT] = { kDebugColorBlack, kDebugColorLightPurple, kDebugColorDeepBlue,
+    kDebugColorSkyBlue, kDebugColorLightBlue, kDebugColorTeal, kDebugColorBrightGreen, kDebugColorBrightYellow,
+    kDebugColorDarkYellow, kDebugColorOrange, kDebugColorBrightRed, kDebugColorDarkRed };
+
 #define TRANSPARENCY_OVERDRAW_COST 1.0
 #define TRANSPARENCY_OVERDRAW_A 1.0
 
@@ -84,6 +104,27 @@ bool SampleDebugFontNumber(int2 pixCoord, uint number)
     }
 }
 
+// Draws a heatmap with numbered tiles, with increasingly "hot" background colors depending on n,
+// where values at or above maxN receive strong red background color.
+float4 OverlayHeatMap(uint2 pixCoord, uint2 tileSize, uint n, uint maxN, float opacity)
+{
+    int colorIndex = 1 + (int)floor(10 * (log2((float)n + 0.1f) / log2(float(maxN))));
+    colorIndex = clamp(colorIndex, 0, DEBUG_COLORS_COUNT-1);
+    float4 col = kDebugColorGradient[colorIndex];
+
+    int2 coord = (pixCoord & (tileSize - 1)) - int2(tileSize.x/4+1, tileSize.y/3-3);
+
+    float4 color = float4(PositivePow(col.rgb, 2.2), opacity * col.a);
+    if (n >= 0)
+    {
+        if (SampleDebugFontNumber(coord, n))        // Shadow
+            color = float4(0, 0, 0, 1);
+        if (SampleDebugFontNumber(coord + 1, n))    // Text
+            color = float4(1, 1, 1, 1);
+    }
+    return color;
+}
+
 float4 GetStreamingMipColor(uint mipCount, float4 mipInfo)
 {
     // alpha is amount to blend with source color (0.0 = use original, 1.0 = use new color)
@@ -164,35 +205,31 @@ float4 GetMipLevelColor(float2 uv, float4 texelSize)
     return color;
 }
 
-float3 GetDebugMipColor(float3 originalColor, Texture2D tex, float4 texelSize, float2 uv)
+float3 GetDebugMipColor(float3 originalColor, float4 texelSize, float2 uv)
 {
     // https://aras-p.info/blog/2011/05/03/a-way-to-visualize-mip-levels/
-    float4 mipColor= GetMipLevelColor(uv, texelSize);
+    float4 mipColor = GetMipLevelColor(uv, texelSize);
     return lerp(originalColor, mipColor.rgb, mipColor.a);
 }
 
-float3 GetDebugMipCountColor(float3 originalColor, Texture2D tex)
+float3 GetDebugMipCountColor(float3 originalColor, uint mipCount)
 {
-    uint mipCount = GetMipCount(tex);
-
     float4 mipColor = GetSimpleMipCountColor(mipCount);
     return lerp(originalColor, mipColor.rgb, mipColor.a);
 }
 
-float3 GetDebugStreamingMipColor(Texture2D tex, float4 mipInfo)
+float3 GetDebugStreamingMipColor(uint mipCount, float4 mipInfo)
 {
-    uint mipCount = GetMipCount(tex);
     return GetStreamingMipColor(mipCount, mipInfo).xyz;
 }
 
-float3 GetDebugStreamingMipColorBlended(float3 originalColor, Texture2D tex, float4 mipInfo)
+float3 GetDebugStreamingMipColorBlended(float3 originalColor, uint mipCount, float4 mipInfo)
 {
-    uint mipCount = GetMipCount(tex);
     float4 mipColor = GetStreamingMipColor(mipCount, mipInfo);
     return lerp(originalColor, mipColor.rgb, mipColor.a);
 }
 
-float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex, float4 texelSize, float2 uv, float4 mipInfo)
+float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, uint mipCount, float4 texelSize, float2 uv, float4 mipInfo)
 {
     uint originalTextureMipCount = uint(mipInfo.y);
     if (originalTextureMipCount != 0)
@@ -204,7 +241,6 @@ float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex
         // w = 0
 
         // Mip count has been reduced but the texelSize was not updated to take that into account
-        uint mipCount = GetMipCount(tex);
         uint mipReductionLevel = originalTextureMipCount - mipCount;
         uint mipReductionFactor = 1 << mipReductionLevel;
         if (mipReductionFactor)
@@ -214,7 +250,7 @@ float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex
             texelSize.zw *= oneOverMipReductionFactor;
         }
     }
-    return GetDebugMipColor(originalColor, tex, texelSize, uv);
+    return GetDebugMipColor(originalColor, texelSize, uv);
 }
 
 // mipInfo :
@@ -222,7 +258,7 @@ float3 GetDebugMipColorIncludingMipReduction(float3 originalColor, Texture2D tex
 // y = original mip count for texture
 // z = desired on screen mip level
 // w = 0
-float3 GetDebugMipReductionColor(Texture2D tex, float4 mipInfo)
+float3 GetDebugMipReductionColor(uint mipCount, float4 mipInfo)
 {
     float3 outColor = float3(1.0, 0.0, 1.0); // Can't calculate without original mip count - return magenta
 
@@ -230,7 +266,6 @@ float3 GetDebugMipReductionColor(Texture2D tex, float4 mipInfo)
     if (originalTextureMipCount != 0)
     {
         // Mip count has been reduced but the texelSize was not updated to take that into account
-        uint mipCount = GetMipCount(tex);
         uint mipReductionLevel = originalTextureMipCount - mipCount;
 
         float mipCol = float(mipReductionLevel) / 14.0;

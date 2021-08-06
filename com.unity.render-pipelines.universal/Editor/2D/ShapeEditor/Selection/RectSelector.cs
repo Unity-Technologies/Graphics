@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework;
+using UnityEditor.Rendering.Universal.Path2D.GUIFramework;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     internal abstract class RectSelector<T> : ISelector<T>
     {

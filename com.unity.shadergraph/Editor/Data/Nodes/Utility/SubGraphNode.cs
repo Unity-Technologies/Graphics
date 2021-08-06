@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireScreenPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
+        , IMayRequirePositionPredisplacement
         , IMayRequireVertexColor
         , IMayRequireTime
         , IMayRequireFaceSign
@@ -85,13 +86,19 @@ namespace UnityEditor.ShaderGraph
         string m_SerializedSubGraph = string.Empty;
 
         [NonSerialized]
-        SubGraphAsset m_SubGraph;
+        SubGraphAsset m_SubGraph; // This should not be accessed directly by most code -- use the asset property instead, and check for NULL! :)
 
         [SerializeField]
         List<string> m_PropertyGuids = new List<string>();
 
         [SerializeField]
         List<int> m_PropertyIds = new List<int>();
+
+        [SerializeField]
+        List<string> m_Dropdowns = new List<string>();
+
+        [SerializeField]
+        List<string> m_DropdownSelectedEntries = new List<string>();
 
         public string subGraphGuid
         {
@@ -127,6 +134,7 @@ namespace UnityEditor.ShaderGraph
                     return;
                 }
                 m_SubGraph.LoadGraphData();
+                m_SubGraph.LoadDependencyData();
 
                 name = m_SubGraph.name;
             }
@@ -182,7 +190,50 @@ namespace UnityEditor.ShaderGraph
 
         public override bool canSetPrecision
         {
-            get { return asset.subGraphGraphPrecision == GraphPrecision.Graph; }
+            get { return asset?.subGraphGraphPrecision == GraphPrecision.Graph;  }
+        }
+
+        public override void GetInputSlots<T>(MaterialSlot startingSlot, List<T> foundSlots)
+        {
+            var allSlots = new List<T>();
+            GetInputSlots<T>(allSlots);
+            var info = asset?.GetOutputDependencies(startingSlot.RawDisplayName());
+            if (info != null)
+            {
+                foreach (var slot in allSlots)
+                {
+                    if (info.ContainsSlot(slot))
+                        foundSlots.Add(slot);
+                }
+            }
+        }
+
+        public override void GetOutputSlots<T>(MaterialSlot startingSlot, List<T> foundSlots)
+        {
+            var allSlots = new List<T>();
+            GetOutputSlots<T>(allSlots);
+            var info = asset?.GetInputDependencies(startingSlot.RawDisplayName());
+            if (info != null)
+            {
+                foreach (var slot in allSlots)
+                {
+                    if (info.ContainsSlot(slot))
+                        foundSlots.Add(slot);
+                }
+            }
+        }
+
+        ShaderStageCapability GetSlotCapability(MaterialSlot slot)
+        {
+            SlotDependencyInfo dependencyInfo;
+            if (slot.isInputSlot)
+                dependencyInfo = asset?.GetInputDependencies(slot.RawDisplayName());
+            else
+                dependencyInfo = asset?.GetOutputDependencies(slot.RawDisplayName());
+
+            if (dependencyInfo != null)
+                return dependencyInfo.capabilities;
+            return ShaderStageCapability.All;
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
@@ -218,6 +269,19 @@ namespace UnityEditor.ShaderGraph
                 prop.SetupConcretePrecision(this.concretePrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
                 arguments.Add(GetSlotValue(inSlotId, generationMode, prop.concretePrecision));
+
+                if (prop.isConnectionTestable)
+                    arguments.Add(IsSlotConnected(inSlotId) ? "true" : "false");
+            }
+
+            var dropdowns = asset.dropdowns;
+            foreach (var dropdown in dropdowns)
+            {
+                var name = GetDropdownEntryName(dropdown.referenceName);
+                if (dropdown.ContainsEntry(name))
+                    arguments.Add(dropdown.IndexOfName(name).ToString());
+                else
+                    arguments.Add(dropdown.value.ToString());
             }
 
             // pass surface inputs through
@@ -233,7 +297,7 @@ namespace UnityEditor.ShaderGraph
                 arguments.Add(feedbackVar);
             }
 
-            sb.AppendIndentation();
+            sb.TryAppendIndentation();
             sb.Append(asset.functionName);
             sb.Append("(");
             bool firstArg = true;
@@ -333,6 +397,14 @@ namespace UnityEditor.ShaderGraph
                 // Copy defaults
                 switch (prop.concreteShaderValueType)
                 {
+                    case ConcreteSlotValueType.SamplerState:
+                    {
+                        var tSlot = slot as SamplerStateMaterialSlot;
+                        var tProp = prop as SamplerStateShaderProperty;
+                        if (tSlot != null && tProp != null)
+                            tSlot.defaultSamplerState = tProp.value;
+                    }
+                    break;
                     case ConcreteSlotValueType.Matrix4:
                     {
                         var tSlot = slot as Matrix4MaterialSlot;
@@ -446,10 +518,9 @@ namespace UnityEditor.ShaderGraph
                 validNames.Add(id);
             }
 
-            var outputStage = asset.effectiveShaderStage;
-
             foreach (var slot in asset.outputs)
             {
+                var outputStage = GetSlotCapability(slot);
                 var newSlot = MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(),
                     slot.shaderOutputName, SlotType.Output, Vector4.zero, outputStage, slot.hidden);
                 AddSlot(newSlot);
@@ -470,9 +541,8 @@ namespace UnityEditor.ShaderGraph
                 GetInputSlots(slots);
                 GetOutputSlots(slots);
 
-                var outputStage = asset.effectiveShaderStage;
                 foreach (MaterialSlot slot in slots)
-                    slot.stageCapability = outputStage;
+                    slot.stageCapability = GetSlotCapability(slot);
             }
         }
 
@@ -505,12 +575,12 @@ namespace UnityEditor.ShaderGraph
             else if (!asset.isValid)
             {
                 hasError = true;
-                owner.AddValidationError(objectId, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
+                owner.AddValidationError(objectId, $"Sub Graph has errors, asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
             else if (!owner.isSubGraph && owner.activeTargets.Any(x => asset.unsupportedTargets.Contains(x)))
             {
                 SetOverrideActiveState(ActiveState.ExplicitInactive);
-                owner.AddValidationError(objectId, $"Subgraph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid} contains nodes that are unsuported by the current active targets");
+                owner.AddValidationError(objectId, $"Sub Graph contains nodes that are unsupported by the current active targets, asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
 
             // detect disconnected VT properties, and VT layer count mismatches
@@ -559,6 +629,17 @@ namespace UnityEditor.ShaderGraph
             {
                 visitor.AddShaderProperty(property);
             }
+        }
+
+        public AbstractShaderProperty GetShaderProperty(int id)
+        {
+            var index = m_PropertyIds.IndexOf(id);
+            if (index >= 0)
+            {
+                var guid = m_PropertyGuids[index];
+                return asset?.inputs.Where(x => x.guid.ToString().Equals(guid)).FirstOrDefault();
+            }
+            return null;
         }
 
         public void CollectShaderKeywords(KeywordCollector keywords, GenerationMode generationMode)
@@ -665,6 +746,14 @@ namespace UnityEditor.ShaderGraph
             return asset.requirements.requiresPosition;
         }
 
+        public NeededCoordinateSpace RequiresPositionPredisplacement(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            if (asset == null)
+                return NeededCoordinateSpace.None;
+
+            return asset.requirements.requiresPositionPredisplacement;
+        }
+
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
             if (asset == null)
@@ -735,6 +824,26 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return asset.requirements.requiresVertexID;
+        }
+
+        public string GetDropdownEntryName(string referenceName)
+        {
+            var index = m_Dropdowns.IndexOf(referenceName);
+            return index >= 0 ? m_DropdownSelectedEntries[index] : string.Empty;
+        }
+
+        public void SetDropdownEntryName(string referenceName, string value)
+        {
+            var index = m_Dropdowns.IndexOf(referenceName);
+            if (index >= 0)
+            {
+                m_DropdownSelectedEntries[index] = value;
+            }
+            else
+            {
+                m_Dropdowns.Add(referenceName);
+                m_DropdownSelectedEntries.Add(value);
+            }
         }
     }
 }

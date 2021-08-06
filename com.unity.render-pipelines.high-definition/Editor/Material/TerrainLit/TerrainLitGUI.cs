@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
     class TerrainLitGUI : HDShaderGUI, ITerrainLayerCustomUI
     {
         const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveDecal;
+        const AdvancedOptionsUIBlock.Features advancedOptionsFeatures = AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion;
 
         [Flags]
         enum Expandable
@@ -25,26 +26,22 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
             new SurfaceOptionUIBlock(MaterialUIBlock.ExpandableBit.Base, features: surfaceOptionFeatures),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, AdvancedOptionsUIBlock.Features.Instancing),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, features: advancedOptionsFeatures),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             FindMaterialProperties(props);
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                uiBlocks.Initialize(materialEditor, props);
-                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
-                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().OnGUI();
 
-                // TODO: move the terrain UI to a MaterialUIBlock to clarify the code
-                DrawTerrainGUI(materialEditor);
+            uiBlocks.Initialize(materialEditor, props);
+            uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
+            uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().OnGUI();
 
-                uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().UpdateMaterialProperties(props);
-                uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().OnGUI();
+            // TODO: move the terrain UI to a MaterialUIBlock to clarify the code
+            DrawTerrainGUI(materialEditor);
 
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
-            }
+            uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().UpdateMaterialProperties(props);
+            uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().OnGUI();
         }
 
         private class StylesLayer
@@ -374,6 +371,6 @@ namespace UnityEditor.Rendering.HighDefinition
             return true;
         }
 
-        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupTerrainLitKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => SetupTerrainLitKeywordsAndPass(material);
     }
 } // namespace UnityEditor

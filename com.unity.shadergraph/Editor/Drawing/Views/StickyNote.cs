@@ -208,7 +208,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             tpl.CloneTree(this);
 
-            capabilities = Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable | Capabilities.Selectable;
+            capabilities = Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable | Capabilities.Selectable | Capabilities.Copiable | Capabilities.Groupable;
 
             m_Title = this.Q<Label>(name: "title");
             if (m_Title != null)
@@ -243,6 +243,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddToClassList("selectable");
             UpdateThemeClasses();
             UpdateSizeClasses();
+            // Manually set the layer of the sticky note so it's always on top. This used to be in the uss
+            // but that causes issues with re-laying out at times that can do weird things to selection.
+            this.layer = -100;
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }

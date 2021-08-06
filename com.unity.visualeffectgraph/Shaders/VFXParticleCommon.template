@@ -29,6 +29,21 @@ o.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy * uvScale + uvBias;
 #endif
 #endif
 
+#ifdef VFX_VARYING_ANGLEFADE
+${VFXLoadParameter:{angleFade}}
+o.VFX_VARYING_ANGLEFADE = angleFade;
+#endif
+
+#ifdef VFX_VARYING_FADEFACTOR
+${VFXLoadParameter:{fadeFactor}}
+o.VFX_VARYING_FADEFACTOR = fadeFactor;
+#endif
+
+#ifdef VFX_VARYING_DECALLAYER
+${VFXLoadParameter:{decalLayerMask}}
+o.VFX_VARYING_DECALLAYER = decalLayerMask;
+#endif
+
 #if defined(VFX_VARYING_POSWS)
 o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
 #endif
@@ -116,7 +131,10 @@ ${VFXBegin:VFXVertexComputeCurrentAndPreviousClipPos}
 #if VFX_FEATURE_MOTION_VECTORS
 #if defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)
 #ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
-uint elementToVFXBaseIndex = index * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 + 1);
+uint viewTotal = asuint(cameraXRSettings.x);
+uint viewCount = asuint(cameraXRSettings.y);
+uint viewOffset = asuint(cameraXRSettings.z);
+uint elementToVFXBaseIndex = index * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 * viewTotal + 1);
 #else
 uint elementToVFXBaseIndex = index * 13;
 #endif
@@ -125,7 +143,10 @@ o.VFX_VARYING_VELOCITY_CPOS = o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = float4(0.0f
 if (asuint(currentFrameIndex) - previousFrameIndex == 1u)    //if (dot(previousElementToVFX[0], 1) != 0)
 {
 #ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
-	uint2 read = elementToVFXBufferPrevious.Load3((elementToVFXBaseIndex + (id % VFX_FEATURE_MOTION_VECTORS_VERTS) * 2) << 2);
+	uint elementToVFXIndex = elementToVFXBaseIndex + (id % VFX_FEATURE_MOTION_VECTORS_VERTS) * viewCount * 2;
+	elementToVFXIndex += viewOffset * viewCount * VFX_FEATURE_MOTION_VECTORS_VERTS * 2;
+	elementToVFXIndex += unity_StereoEyeIndex * 2;
+	uint2 read = elementToVFXBufferPrevious.Load2(elementToVFXIndex << 2);
 	o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.xy = asfloat(read);
 	o.VFX_VARYING_VELOCITY_CPOS = TransformPositionVFXToNonJitteredClip(vPos);
 	o.VFX_VARYING_VELOCITY_CPOS /= o.VFX_VARYING_VELOCITY_CPOS.w;
@@ -182,7 +203,11 @@ ${VFXBegin:VFXPassDepthCommonFragmentUnlit}
 #endif
 
 #ifdef VFX_SHADERGRAPH
-${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+	#if (SHADERPASS == SHADERPASS_DEPTHNORMALSONLY)
+	${SHADERGRAPH_PIXEL_CODE_DEPTHNORMALS}
+	#else
+	${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+	#endif
 #endif
 
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
@@ -218,7 +243,11 @@ void frag(ps_input i
 	VFXTransformPSInputs(i);
     #ifdef VFX_SHADERGRAPH
         ${VFXAdditionalInterpolantsPreparation}
-        ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
+		#if (SHADERPASS == SHADERPASS_DEPTHNORMALSONLY)
+		${SHADERGRAPH_PIXEL_CALL_DEPTHNORMALS}
+		#else
+		${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
+		#endif
         float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
     #else
         float alpha = VFXGetFragmentColor(i).a;

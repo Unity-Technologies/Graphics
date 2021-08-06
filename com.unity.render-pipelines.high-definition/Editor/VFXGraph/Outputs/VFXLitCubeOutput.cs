@@ -3,12 +3,12 @@ using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     [VFXInfo(experimental = true)]
     class VFXLitCubeOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name { get { return "Output Particle Lit Cube"; } }
+        public override string name { get { return "Output Particle HDRP Lit Cube"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitCube"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
         public override bool implementsMotionVector { get { return true; } }

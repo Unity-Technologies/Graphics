@@ -46,6 +46,8 @@ namespace  UnityEditor.VFX.UI
         [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3011)]
         public static void ShowWindow()
         {
+            VFXLibrary.LogUnsupportedSRP();
+
             GetWindow<VFXViewWindow>();
         }
 
@@ -55,6 +57,8 @@ namespace  UnityEditor.VFX.UI
         }
         public void LoadAsset(VisualEffectAsset asset, VisualEffect effectToAttach)
         {
+            VFXLibrary.LogUnsupportedSRP();
+
             string assetPath = AssetDatabase.GetAssetPath(asset);
 
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -265,7 +269,7 @@ namespace  UnityEditor.VFX.UI
                     {
                         filename = controller.name;
 
-                        if (!graph.saved)
+                        if (EditorUtility.IsDirty(graph))
                         {
                             filename += "*";
                         }

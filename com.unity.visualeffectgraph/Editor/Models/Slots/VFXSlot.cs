@@ -47,9 +47,9 @@ namespace UnityEditor.VFX
                         slotValue = m_FieldInfoCache.GetValue(parentValue);
                     }
 
-                    if (slotValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type))
+                    if (slotValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type) && property.type != typeof(GraphicsBuffer))
                     {
-                        Debug.Log("null value in slot of type" + property.type.UserFriendlyName());
+                        Debug.Log("null value in slot of type " + property.type.UserFriendlyName());
                     }
                     return slotValue;
                 }
@@ -381,6 +381,11 @@ namespace UnityEditor.VFX
                 foreach (var subInfo in property.SubProperties())
                 {
                     var subSlot = CreateSub(subInfo, direction);
+                    if (slot.property.attributes.attributes.OfType<MinMaxAttribute>().Any())
+                    {
+                        var parentRange = property.attributes.FindRange();
+                        subSlot.UpdateAttributes(new VFXPropertyAttributes(new RangeAttribute(parentRange.x, parentRange.y)), false);
+                    }
                     if (subSlot != null)
                     {
                         subSlot.Attach(slot, false);
@@ -475,11 +480,28 @@ namespace UnityEditor.VFX
                 dst = dst.children.First();
             }
 
-            if (copySubLinks && src.GetNbChildren() == dst.GetNbChildren())
+            if (copySubLinks)
             {
-                int nbSubSlots = src.GetNbChildren();
-                for (int i = 0; i < nbSubSlots; ++i)
-                    CopyLinks(dst[i], src[i], notify);
+                if (src.GetNbChildren() == dst.GetNbChildren())
+                {
+                    //If number of slot is equal, copy index by index (OrientedBox <=> Transform)
+                    foreach (var srcSlot in src.children)
+                    {
+                        int nbSubSlots = src.GetNbChildren();
+                        for (int i = 0; i < nbSubSlots; ++i)
+                            CopyLinks(dst[i], src[i], notify);
+                    }
+                }
+                else
+                {
+                    //If number slot is different, try matching by name (Sphere without angles during sanitize)
+                    foreach (var srcSlot in src.children)
+                    {
+                        var dstSlot = dst.children.FirstOrDefault(o => o.name == srcSlot.name);
+                        if (dstSlot != null)
+                            CopyLinks(dstSlot, srcSlot, notify);
+                    }
+                }
             }
         }
 
