@@ -454,8 +454,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal static bool MultisampleDepthResolveSupported()
         {
-            // TODO: add stencil resolve capability check when it's available.
-            return SystemInfo.supportsMultisampleResolveDepth;
+            // TODO: bump package to 2022.1.0a6
+            // Should we also check if the format has stencil and check stencil resolve capability only in that case?
+            return SystemInfo.supportsMultisampleResolveDepth && SystemInfo.supportsMultisampleResolveStencil;
         }
     }
 }
