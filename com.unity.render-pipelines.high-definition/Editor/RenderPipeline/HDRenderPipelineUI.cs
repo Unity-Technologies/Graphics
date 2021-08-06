@@ -582,7 +582,7 @@ namespace UnityEditor.Rendering.HighDefinition
             --EditorGUI.indentLevel;
 
 #if ENABLE_NVIDIA && !ENABLE_NVIDIA_MODULE
-            if (HDEditorUtils.HelpBoxWithButton(Styles.DLSSPackageLabel, MessageType.Info, Styles.DLSSInstallButton))
+            if (CoreEditorUtils.HelpBoxWithButton(Styles.DLSSPackageLabel, MessageType.Info, Styles.DLSSInstallButton))
                 PackageManager.Client.Add("com.unity.modules.nvidia");
 #endif
         }

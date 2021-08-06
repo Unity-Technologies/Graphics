@@ -45,12 +45,14 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             static GUIContent s_CachedGUIContent = new GUIContent();
+            static float s_HighlightDuration = 0.7f;
 
             Vector2 m_HDRPAssetListScrollView = Vector2.zero;
             List<HDRPAssetLocations> m_HDRPAssets = new List<HDRPAssetLocations>();
             ReorderableList m_HDRPAssetsUIList;
             Editor m_Cached;
             int m_SelectedHDRPAssetIndex = -1;
+            float m_HighlightStart = 0.0f;
 
             public QualitySettingsPanelIMGUI()
             {
@@ -75,8 +77,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_SelectedHDRPAssetIndex = m_HDRPAssets.FindIndex((asset) => asset.asset == currentAsset);
                 m_HDRPAssetsUIList.index = m_SelectedHDRPAssetIndex;
             }
-
-            float highlightStart = 0.0f;
 
             /// <summary>
             /// entry point of the GUI of the HDRP's quality settings panel
@@ -103,15 +103,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     Editor.CreateCachedEditor(asset.asset, typeof(HDRenderPipelineEditor), ref m_Cached);
                     ((HDRenderPipelineEditor)m_Cached).largeLabelWidth = false;
                     m_Cached.OnInspectorGUI();
+
                     if (Highlighter.active)
                     {
                         if (Highlighter.activeVisible)
                         {
-                            if (Time.realtimeSinceStartup - highlightStart > 0.7f)
+                            if (Time.realtimeSinceStartup - m_HighlightStart > s_HighlightDuration)
                                 Highlighter.Stop();
                         }
                         else
-                            highlightStart = Time.realtimeSinceStartup;
+                            m_HighlightStart = Time.realtimeSinceStartup;
                     }
                 }
             }

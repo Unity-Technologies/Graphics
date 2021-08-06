@@ -77,6 +77,22 @@ namespace UnityEditor.Rendering
         static System.Lazy<GUIStyle> m_SubSectionHeaderStyle = new(() => new GUIStyle(EditorStyles.boldLabel));
         /// <summary>Style of Sub-Section Headers.</summary>
         public static GUIStyle subSectionHeaderStyle => m_SubSectionHeaderStyle.Value;
+        
+        static GUIStyle m_HelpBox;
+        /// <summary>Style for a help box</summary>
+        public static GUIStyle helpBox
+        {
+            get
+            {
+                if (m_HelpBox == null)
+                {
+                    m_HelpBox = new GUIStyle() { imagePosition = ImagePosition.ImageLeft, fontSize = 10, wordWrap = true };
+                    m_HelpBox.normal.textColor = EditorStyles.helpBox.normal.textColor;
+                }
+
+                return m_HelpBox;
+            }
+        }
 
         #endregion
 

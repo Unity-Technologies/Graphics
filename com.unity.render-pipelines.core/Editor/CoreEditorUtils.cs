@@ -97,26 +97,70 @@ namespace UnityEditor.Rendering
             DrawFixMeBox(text, MessageType.Warning, action);
         }
 
-        // UI Helpers
         /// <summary>Draw a help box with the Fix button.</summary>
         /// <param name="text">The message text.</param>
         /// <param name="messageType">The type of the message.</param>
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(string text, MessageType messageType, Action action)
         {
-            EditorGUILayout.HelpBox(text, messageType);
-
-            GUILayout.Space(-32);
-            using (new EditorGUILayout.HorizontalScope())
+            if (HelpBoxWithButton(text, messageType, "Fix"))
+                action();
+        }
+        
+        /// <summary>Draw a help box with a button.</summary>
+        /// <param name="message">The message text.</param>
+        /// <param name="type">The type of the message.</param>
+        /// <param name="buttonLabel">The button text.</param>
+        /// <returns>True if the button is clicked</returns>
+        public static bool HelpBoxWithButton(string message, MessageType type, string buttonLabel = "Open")
+        {
+            var icon = "console.infoicon";
+            switch (type)
             {
-                GUILayout.FlexibleSpace();
-
-                if (GUILayout.Button("Fix", GUILayout.Width(60)))
-                    action();
-
-                GUILayout.Space(8);
+                case MessageType.Error:
+                    icon = "console.erroricon";
+                    break;
+                case MessageType.Warning:
+                    icon = "console.warnicon";
+                    break;
             }
-            GUILayout.Space(11);
+            var label = new GUIContent(message, EditorGUIUtility.IconContent(icon).image);
+            return HelpBoxWithButton(label, buttonLabel);
+        }
+        
+        /// <summary>Draw a help box with a button.</summary>
+        /// <param name="label">The message text.</param>
+        /// <param name="buttonLabel">The button text.</param>
+        /// <returns>True if the button is clicked</returns>
+        public static bool HelpBoxWithButton(GUIContent label, string buttonLabel = "Open")
+        {
+            EditorGUILayout.BeginHorizontal();
+
+            float indent = EditorGUI.indentLevel * 15 - EditorStyles.helpBox.margin.left;
+            GUILayoutUtility.GetRect(indent, EditorGUIUtility.singleLineHeight, EditorStyles.helpBox, GUILayout.ExpandWidth(false));
+
+            Rect leftRect = GUILayoutUtility.GetRect(new GUIContent(buttonLabel), EditorStyles.miniButton, GUILayout.ExpandWidth(false));
+            Rect rect = GUILayoutUtility.GetRect(label, EditorStyles.helpBox);
+            Rect boxRect = new Rect(leftRect.x, rect.y, rect.xMax - leftRect.xMin, rect.height);
+
+            int oldIndent = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+
+            if (Event.current.type == EventType.Repaint)
+                EditorStyles.helpBox.Draw(boxRect, false, false, false, false);
+
+            Rect labelRect = new Rect(boxRect.x + 4, boxRect.y + 3, rect.width - 8, rect.height);
+            EditorGUI.LabelField(labelRect, label, CoreEditorStyles.helpBox);
+
+            var buttonRect = leftRect;
+            buttonRect.x += rect.width - 2;
+            buttonRect.y = rect.yMin + (rect.height - EditorGUIUtility.singleLineHeight) / 2;
+            bool clicked = GUI.Button(buttonRect, buttonLabel);
+
+            EditorGUI.indentLevel = oldIndent;
+            EditorGUILayout.EndHorizontal();
+
+            return clicked;
         }
 
         /// <summary>
