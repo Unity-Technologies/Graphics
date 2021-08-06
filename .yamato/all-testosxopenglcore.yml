@@ -33,9 +33,9 @@ TestOsxOpenGLCore_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-osx-openglcore.yml#URP_Terrain_OSX_OpenGLCore_editmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/vfx_urp-linux-openglcore.yml#Build_VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk
-         rerun: on_new_revision
       -  path: .yamato/vfx_urp-osx-openglcore.yml#Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/vfx_urp-osx-openglcore.yml#VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk
          rerun: on_new_revision
 TestOsxOpenGLCore_2021.2:
     name: TestOsxOpenGLCore on 2021.2
@@ -61,9 +61,9 @@ TestOsxOpenGLCore_2021.2:
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-osx-openglcore.yml#URP_Terrain_OSX_OpenGLCore_editmode_mono_Linear_2021.2
          rerun: on_new_revision
-      -  path: .yamato/vfx_urp-linux-openglcore.yml#Build_VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_2021.2
-         rerun: on_new_revision
       -  path: .yamato/vfx_urp-osx-openglcore.yml#Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/vfx_urp-osx-openglcore.yml#VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_2021.2
          rerun: on_new_revision
 TestOsxOpenGLCore_CUSTOM-REVISION:
     name: TestOsxOpenGLCore on CUSTOM-REVISION
@@ -89,7 +89,7 @@ TestOsxOpenGLCore_CUSTOM-REVISION:
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-osx-openglcore.yml#URP_Terrain_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/vfx_urp-linux-openglcore.yml#Build_VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/vfx_urp-osx-openglcore.yml#Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/vfx_urp-osx-openglcore.yml#VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

@@ -12,5 +12,5 @@ jobs:
     - .yamato/urp_lighting-osx-openglcore.yml#URP_Lighting_OSX_OpenGLCore_editmode_mono_Linear_<TRACK>
     - .yamato/urp_postpro-osx-openglcore.yml#URP_PostPro_OSX_OpenGLCore_editmode_mono_Linear_<TRACK>
     - .yamato/urp_terrain-osx-openglcore.yml#URP_Terrain_OSX_OpenGLCore_editmode_mono_Linear_<TRACK>
-    - .yamato/vfx_urp-linux-openglcore.yml#Build_VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_<TRACK>
     - .yamato/vfx_urp-osx-openglcore.yml#Build_VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_<TRACK>
+    - .yamato/vfx_urp-osx-openglcore.yml#VFX_URP_OSX_OpenGLCore_Standalone_PerformanceTests_mono_Linear_<TRACK>
