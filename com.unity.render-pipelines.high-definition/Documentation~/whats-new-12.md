@@ -22,13 +22,13 @@ From HDRP 12.0, you can enable [tessellation](Tessellation.md) on any HDRP [Mast
 
 For more information about tessellation, see the [Tessellation documentation](Tessellation.md).
 
-### Adding Custom Velocity support for ShaderGraph Master Stack
+### Adding custom Velocity support for ShaderGraph Master Stack
 
 From HDRP 12.0, you can enable custom Velocity on any HDRP [Master Stack](master-stack-hdrp.md). The option is in the Master Stack settings and adds one new input to the Vertex Block:
 
 * Velocity
 
-This allow to provide an additional velocity in case of procedural geometry (Like for generated hair strands) and get correct motion vector.
+You can use this Vertex Block to create an additional velocity for procedural geometry (for example, generated hair strands) and to get a correct motion vector value.
 
 ### Cloud System
 
