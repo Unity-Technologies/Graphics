@@ -204,7 +204,7 @@ namespace UnityEditor.ShaderGraph
             for (int p = 0; p < permutations.Count; p++)
             {
                 // ShaderStringBuilder.Append doesnt apply indentation
-                sb.AppendIndentation();
+                sb.TryAppendIndentation();
 
                 // Append correct if
                 bool isLast = false;

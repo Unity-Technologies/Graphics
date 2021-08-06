@@ -47,9 +47,9 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent[] ShadowResolutionDefaultOptions =
             {
                 new GUIContent("Custom"),
-                UniversalRenderPipelineAssetEditor.Styles.additionalLightsShadowResolutionTierNames[0],
-                UniversalRenderPipelineAssetEditor.Styles.additionalLightsShadowResolutionTierNames[1],
-                UniversalRenderPipelineAssetEditor.Styles.additionalLightsShadowResolutionTierNames[2],
+                UniversalRenderPipelineAssetUI.Styles.additionalLightsShadowResolutionTierNames[0],
+                UniversalRenderPipelineAssetUI.Styles.additionalLightsShadowResolutionTierNames[1],
+                UniversalRenderPipelineAssetUI.Styles.additionalLightsShadowResolutionTierNames[2],
             };
 
             // Bias (default or custom)
@@ -57,8 +57,8 @@ namespace UnityEditor.Rendering.Universal
             public static int[] optionDefaultValues = { 0, 1 };
             public static GUIContent[] displayedDefaultOptions =
             {
-                new GUIContent("Custom"),
-                new GUIContent("Use Pipeline Settings")
+                EditorGUIUtility.TrTextContent("Custom"),
+                EditorGUIUtility.TrTextContent("Use settings from Render Pipeline Asset")
             };
 
             public static readonly GUIContent LightLayer = EditorGUIUtility.TrTextContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");

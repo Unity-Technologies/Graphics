@@ -24,7 +24,7 @@ public class HDRP_TestSettings_Editor : Editor
 
         liveViewSize = GUILayout.Toggle(liveViewSize, "Auto update game view.");
 
-        if ( GUILayout.Button( "Set Game View Size") || liveViewSize && ( prevWidth != typedTarget.ImageComparisonSettings.TargetWidth || prevHeight != typedTarget.ImageComparisonSettings.TargetHeight ) )
+        if (GUILayout.Button("Set Game View Size") || liveViewSize && (prevWidth != typedTarget.ImageComparisonSettings.TargetWidth || prevHeight != typedTarget.ImageComparisonSettings.TargetHeight))
         {
             prevWidth = typedTarget.ImageComparisonSettings.TargetWidth;
             prevHeight = typedTarget.ImageComparisonSettings.TargetHeight;
@@ -32,20 +32,20 @@ public class HDRP_TestSettings_Editor : Editor
             SetGameViewSize();
         }
 
-		if (GUILayout.Button("Fix Texts"))
-		{
-			TextMeshPixelSize[] texts = FindObjectsOfType<TextMeshPixelSize>();
-			foreach( TextMeshPixelSize text in texts )
-			{
-				text.CorrectPosition();
-			}
+        if (GUILayout.Button("Fix Texts"))
+        {
+            TextMeshPixelSize[] texts = FindObjectsOfType<TextMeshPixelSize>();
+            foreach (TextMeshPixelSize text in texts)
+            {
+                text.CorrectPosition();
+            }
 
-			UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
-		}
+            UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
+        }
     }
 
     void SetGameViewSize()
-	{
+    {
         if (typedTarget == null) return;
 
         GameViewUtils.SetGameViewSize(typedTarget.ImageComparisonSettings.TargetWidth, typedTarget.ImageComparisonSettings.TargetHeight);

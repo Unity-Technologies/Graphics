@@ -15,7 +15,7 @@ public class LightScriptCreator : MonoBehaviour
 
     public Material     transparentShadowCastingMaterial;
 
-    IEnumerable< Vector2Int > GetGridPositions()
+    IEnumerable<Vector2Int> GetGridPositions()
     {
         for (int x = 0; x < gridWidth; x++)
             for (int y = 0; y < gridHeight; y++)
@@ -33,7 +33,7 @@ public class LightScriptCreator : MonoBehaviour
 
             // Position the light in front of the plane
             go.transform.localPosition = new Vector3(position.x, position.y, -3);
-            
+
             var hdLight = go.AddHDLight(HDLightTypeAndShape.Point);
 
             // Set global parameters
@@ -116,7 +116,7 @@ public class LightScriptCreator : MonoBehaviour
                     hdLight.EnableShadows(true);
                     hdLight.SetShadowResolution(Mathf.NextPowerOfTwo(Random.Range(32, 512)));
                     var occluder = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                    occluder.GetComponent< MeshRenderer >().sharedMaterial = transparentShadowCastingMaterial;
+                    occluder.GetComponent<MeshRenderer>().sharedMaterial = transparentShadowCastingMaterial;
                     occluder.transform.SetParent(hdLight.transform, false);
                     occluder.transform.localPosition = new Vector3(0, 0, 0.5f);
                     occluder.transform.localScale = Vector3.one * 0.4f;

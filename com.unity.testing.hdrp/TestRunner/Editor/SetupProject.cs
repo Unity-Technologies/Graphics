@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,7 +9,7 @@ using UnityEditor.Rendering;
 
 public static class SetupProject
 {
-	public static Dictionary<string, string> RPAssets = new Dictionary<string, string>
+    public static Dictionary<string, string> RPAssets = new Dictionary<string, string>
     {
         { "deferred", "Assets/GraphicTests/Common/RP_Assets/HDRP_Test_Def.asset" },
         { "deferred-depth-prepass", "Assets/GraphicTests/Common/RP_Assets/HDRP_Test_Def_DepthPrepass.asset" },
@@ -25,7 +25,7 @@ public static class SetupProject
         { "forward", () => {SetRPAsset("forward");} }
     };
 
-    public static void SetRPAsset( string rpAssetIdentifier )
+    public static void SetRPAsset(string rpAssetIdentifier)
     {
         RenderPipelineAsset rpAsset = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>(RPAssets[rpAssetIdentifier]);
 

@@ -18,10 +18,10 @@ namespace UnityEditor.Rendering
 
         private static readonly Color[] kCascadeColors =
         {
-            new Color(0.5f, 0.5f, 0.6f, 1.0f),
-            new Color(0.5f, 0.6f, 0.5f, 1.0f),
-            new Color(0.6f, 0.6f, 0.5f, 1.0f),
-            new Color(0.6f, 0.5f, 0.5f, 1.0f),
+            new Color(0.5f, 0.5f, 0.7f, 1.0f),
+            new Color(0.5f, 7, 0.5f, 1.0f),
+            new Color(0.7f, 0.7f, 0.5f, 1.0f),
+            new Color(0.7f, 0.5f, 0.5f, 1.0f),
         };
         private static readonly Color kDisabledColor = new Color(0.5f, 0.5f, 0.5f, 0.4f); //Works with both personal and pro skin
 
@@ -205,7 +205,7 @@ namespace UnityEditor.Rendering
                 // Draw cascade text
                 float cascadeValueForText = useMetric ? cascadeValue * baseMetric : cascadeValue * 100;
                 string cascadeText = $"{i}\n{cascadeValueForText:F1}{formatSymbol}";
-                DrawLabelGUI(cascadeRect, cascadeText, Color.white);
+                DrawLabelGUI(cascadeRect, cascadeText, Color.black);
 
                 if (cascade.borderHandleState != HandleState.Hidden)
                 {
@@ -245,7 +245,7 @@ namespace UnityEditor.Rendering
                     {
                         borderText = $"{i}\u2192{i + 1}\n{borderValueForText:F1}{formatSymbol}";
                     }
-                    DrawLabelGUI(borderRect, borderText, Color.white);
+                    DrawLabelGUI(borderRect, borderText, Color.black);
                 }
 
                 if (!isLastCascade) // Don't draw partition for last cascade
@@ -342,9 +342,11 @@ namespace UnityEditor.Rendering
         private static float DrawLabelGUI(Rect rect, string text, Color color)
         {
             var cachedColor = GUI.backgroundColor;
+            var oldColor = GUI.color;
             GUI.color = color;
             GUI.Label(rect, text, s_TextCenteredStyle);
             GUI.backgroundColor = cachedColor;
+            GUI.color = oldColor;
             return rect.width;
         }
 
