@@ -452,8 +452,14 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
-        internal static bool MultisampleDepthResolveSupported()
+        // TODO: remove useRenderPassEnabled parameter when depth resolve support is added to RenderPass (URP-1009)
+        internal static bool MultisampleDepthResolveSupported(bool useRenderPassEnabled)
         {
+            return false;
+
+            if (useRenderPassEnabled)
+                return false;
+
             // TODO: bump package to 2022.1.0a6
             // Should we also check if the format has stencil and check stencil resolve capability only in that case?
             return SystemInfo.supportsMultisampleResolveDepth && SystemInfo.supportsMultisampleResolveStencil;

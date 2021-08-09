@@ -241,6 +241,8 @@ namespace UnityEngine.Rendering.Universal
             bool copyDepthAfterTransparents = UniversalRenderPipeline.asset.copyDepthMode == CopyColorAndDepthMode.AfterTransparent;
 
             m_CopyDepthPass = new CopyDepthPass(copyDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
+            // TODO: remove CoyDepthPass RenderPass checks when depth resolve support is added to RenderPass (URP-1009)
+            m_CopyDepthPass.m_UseRenderPassEnabled = useRenderPassEnabled;
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(copyColorAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
@@ -692,7 +694,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 bool isCopyDepthAfterTransparent = m_CopyDepthPass.renderPassEvent == RenderPassEvent.AfterRenderingTransparents;
-                if (!copyColorPass && cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported())
+                if (!copyColorPass && cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled))
                 {
                     if (opaquePassDepthStoreAction == RenderBufferStoreAction.Store)
                         opaquePassDepthStoreAction = isCopyDepthAfterTransparent ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.StoreAndResolve; // TODO: we shouldn't need to set Resolve here. Wating for a Metal backend fix to land
@@ -760,14 +762,14 @@ namespace UnityEngine.Rendering.Universal
 
                 // if this is not lastCameraInTheStack we still need to Store, since the MSAA buffer might be needed by the Overlay cameras
                 RenderBufferStoreAction transparentPassColorStoreAction = cameraTargetDescriptor.msaaSamples > 1 && lastCameraInTheStack ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
-                RenderBufferStoreAction transparentPassDepthStoreAction = requiresDepthCopyPass ? RenderBufferStoreAction.Store : RenderBufferStoreAction.DontCare;
+                RenderBufferStoreAction transparentPassDepthStoreAction = RenderBufferStoreAction.DontCare;
 
                 // If CopyDepthPass pass event is scheduled on or after AfterRenderingTransparent, we will need to store the depth buffer or resolve (store for now until latest trunk has depth resolve support) it for MSAA case
                 if (requiresDepthCopyPass && m_CopyDepthPass.renderPassEvent >= RenderPassEvent.AfterRenderingTransparents)
                     transparentPassDepthStoreAction = RenderBufferStoreAction.Store;
 
                 // handle depth resolve on platforms supporting it
-                if (cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported() && transparentPassDepthStoreAction == RenderBufferStoreAction.Store)
+                if (cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled) && transparentPassDepthStoreAction == RenderBufferStoreAction.Store)
                     transparentPassDepthStoreAction = RenderBufferStoreAction.Resolve;
 
                 m_RenderTransparentForwardPass.ConfigureColorStoreAction(transparentPassColorStoreAction);
@@ -1054,7 +1056,7 @@ namespace UnityEngine.Rendering.Universal
 
                     depthDescriptor.bindMS |= depthDescriptor.msaaSamples > 1 && primedDepth && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
 
-                    if (depthDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported())
+                    if (depthDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled))
                         depthDescriptor.bindMS = false;
 
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
