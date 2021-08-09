@@ -403,15 +403,24 @@ namespace UnityEngine.Rendering.HighDefinition
             return resGroup == ResolutionGroup.BeforeDynamicResUpscale;
         }
 
-        TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph, string name, bool dynamicResolution, GraphicsFormat colorFormat, bool useMipMap)
+        TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph, string name, bool dynamicResolution, GraphicsFormat colorFormat, bool useMipMap, bool forceAfterPostScale = false)
         {
-            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, dynamicResolution, true)
+            var texDesc = new TextureDesc(Vector2.one, dynamicResolution, true)
             {
                 name = name,
                 colorFormat = colorFormat,
                 useMipMap = useMipMap,
                 enableRandomWrite = true
-            });
+            };
+
+            if (forceAfterPostScale || (ResolutionGroup.AfterDynamicResUpscale == resGroup && DynamicResolutionHandler.instance.DynamicResolutionEnabled() && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost))
+            {
+                texDesc.sizeMode = TextureSizeMode.Explicit;
+                texDesc.width = m_AfterDynamicResUpscaleRes.x;
+                texDesc.height = m_AfterDynamicResUpscaleRes.y;
+            }
+
+            return renderGraph.CreateTexture(texDesc);
         }
 
         TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph, string name, bool useMipMap = false)
@@ -426,7 +435,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle GetPostprocessUpsampledOutputHandle(RenderGraph renderGraph, string name)
         {
-            return GetPostprocessOutputHandle(renderGraph, name, false, GetPostprocessTextureFormat(), false);
+            bool forceAfterPostScale = DynamicResolutionHandler.instance.DynamicResolutionEnabled()
+                && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost;
+
+            return GetPostprocessOutputHandle(renderGraph, name, false, GetPostprocessTextureFormat(), false, forceAfterPostScale);
         }
 
         TextureHandle RenderPostProcess(RenderGraph     renderGraph,
@@ -1397,8 +1409,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                 passData.motionVecTexture = builder.ReadTexture(motionVectors);
 
                                 passData.source = builder.ReadTexture(source);
-                                passData.destination = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                                    { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "CustomPostProcesDestination" }), 0);
+                                var destinationDesc = renderGraph.GetTextureDesc(passData.source);
+                                destinationDesc.name = "CustomPostProcesDestination";
+                                destinationDesc.enableRandomWrite = true;
+                                passData.destination = builder.UseColorBuffer(renderGraph.CreateTexture(destinationDesc), 0);
+
                                 passData.hdCamera = hdCamera;
                                 passData.customPostProcess = customPP;
                                 builder.SetRenderFunc(
@@ -1651,7 +1666,7 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.nextMVLen = (!postDoF) ? builder.WriteTexture(renderGraph.ImportTexture(nextMVLen)) : TextureHandle.nullHandle;
 
             TextureHandle dest;
-            if (TAAU && DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+            if (TAAU)
             {
                 dest = GetPostprocessUpsampledOutputHandle(renderGraph, outputName);
             }
@@ -3491,12 +3506,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             resGroup = newResGroup;
+            bool enableScaling = ResolutionGroup.BeforeDynamicResUpscale == resGroup;
 
             // Change the post process resolution for any passes that read it during Render Graph setup
-            camera.SetPostProcessScreenSize(postProcessViewportSize.x, postProcessViewportSize.y);
+            camera.SetPostProcessScreenSize(postProcessViewportSize.x, postProcessViewportSize.y, enableScaling);
 
             // Change the post process resolution for any passes that read it during Render Graph execution
-            UpdatePostProcessScreenSize(renderGraph, camera, postProcessViewportSize.x, postProcessViewportSize.y);
+            UpdatePostProcessScreenSize(renderGraph, camera, postProcessViewportSize.x, postProcessViewportSize.y, enableScaling);
         }
 
         #endregion

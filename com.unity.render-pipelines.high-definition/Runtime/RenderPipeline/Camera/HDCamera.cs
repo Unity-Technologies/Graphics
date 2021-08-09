@@ -964,11 +964,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void SetPostProcessScreenSize(int width, int height)
+        internal void SetPostProcessScreenSize(int width, int height, bool enableScaling = true)
         {
             m_PostProcessScreenSize = new Vector4((float)width, (float)height, 1.0f / (float)width, 1.0f / (float)height);
 
-            Vector2 scales = RTHandles.CalculateRatioAgainstMaxSize(width, height);
+            Vector2 scales = enableScaling ? RTHandles.CalculateRatioAgainstMaxSize(width, height) : new Vector2(1.0f, 1.0f);
             m_PostProcessRTScales = new Vector4(scales.x, scales.y, m_PostProcessRTScales.x, m_PostProcessRTScales.y);
         }
 
