@@ -21,6 +21,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             commandDispatcher.RegisterCommandHandler<AddPortCommand>(AddPortCommand.DefaultCommandHandler);
             commandDispatcher.RegisterCommandHandler<RemovePortCommand>(RemovePortCommand.DefaultCommandHandler);
 
+            commandDispatcher.RegisterCommandHandler<AddRedirectNodeCommand>(AddRedirectNodeCommand.DefaultHandler);
+
             // Overrides for default GTF commands
             commandDispatcher.RegisterCommandHandler<CreateEdgeCommand>(ShaderGraphCommandHandlers.HandleCreateEdgeCommand);
         }

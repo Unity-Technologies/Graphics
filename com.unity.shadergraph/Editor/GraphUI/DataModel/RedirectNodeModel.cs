@@ -13,7 +13,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
     {
         [SerializeField]
         TypeHandle m_RedirectType = TypeHandle.Float;
-        IPortModel m_InputPort, m_OutputPort;
+
+        public IPortModel InputPort { get; private set; }
+        public IPortModel OutputPort { get; private set; }
 
         /// <summary>
         /// Copies the type from a given input port to this redirect node.
@@ -34,7 +36,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         {
             if (includeSelf) yield return this;
 
-            foreach (var connectedEdge in m_OutputPort.GetConnectedEdges())
+            foreach (var connectedEdge in OutputPort.GetConnectedEdges())
             {
                 var port = connectedEdge.ToPort;
                 if (port.NodeModel is not RedirectNodeModel redirect) continue;
@@ -50,7 +52,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         /// <returns>IEnumerable of destination ports. Will not include ports on redirect nodes.</returns>
         public IEnumerable<IPortModel> ResolveDestinations()
         {
-            foreach (var connectedEdge in m_OutputPort.GetConnectedEdges())
+            foreach (var connectedEdge in OutputPort.GetConnectedEdges())
             {
                 var port = connectedEdge.ToPort;
                 if (port.NodeModel is RedirectNodeModel redirect)
@@ -70,7 +72,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         /// <returns>The port that this redirect node's value comes from, or null if none is connected.</returns>
         public IPortModel ResolveSource()
         {
-            var port = m_InputPort.GetConnectedEdges().FirstOrDefault()?.FromPort;
+            var port = InputPort.GetConnectedEdges().FirstOrDefault()?.FromPort;
             if (port == null) return null;
 
             if (port.NodeModel is RedirectNodeModel redirect)
@@ -85,8 +87,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         {
             base.OnDefineNode();
 
-            m_InputPort = this.AddDataInputPort("In", m_RedirectType, options: PortModelOptions.NoEmbeddedConstant);
-            m_OutputPort = this.AddDataOutputPort("Out", m_RedirectType);
+            InputPort = this.AddDataInputPort("In", m_RedirectType, options: PortModelOptions.NoEmbeddedConstant);
+            OutputPort = this.AddDataOutputPort("Out", m_RedirectType);
         }
     }
 }
