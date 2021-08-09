@@ -146,10 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float roughnessRadial;
 
             // Dual scattering
-            public float directFraction;
-            public Vector3 forwardTransmittance;
-            public Vector3 forwardVariance;
-            public Vector3 localScattering;
+            public float fiberCount;
         };
 
 
@@ -169,9 +166,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private const int m_DimAbsorption = 64;
         private bool m_PreIntegratedFiberScatteringIsInit;
 
-        // X - Roughness
-        // Y - Theta
-        // Z - Absorption
+        // X - Theta
+        // Y - Absorption
         private RenderTexture m_PreIntegratedFiberAverageScatteringLUT;
         private bool m_PreIntegratedFiberAverageScatteringIsInit;
 
@@ -205,15 +201,14 @@ namespace UnityEngine.Rendering.HighDefinition
             };
             m_PreIntegratedFiberScatteringLUT.Create();
 
-            m_PreIntegratedFiberAverageScatteringLUT = new RenderTexture(m_DimTheta, m_DimBeta, m_DimAbsorption, GraphicsFormat.R16G16B16A16_SFloat)
+            m_PreIntegratedFiberAverageScatteringLUT = new RenderTexture(m_DimTheta, m_DimAbsorption, 0, GraphicsFormat.R16G16B16A16_SFloat)
             {
-                dimension = TextureDimension.Tex3D,
-                volumeDepth = m_DimAbsorption,
+                dimension = TextureDimension.Tex2D,
                 enableRandomWrite = true,
                 hideFlags = HideFlags.HideAndDontSave,
                 filterMode = FilterMode.Point,
                 wrapMode = TextureWrapMode.Clamp,
-                name = CoreUtils.GetRenderTargetAutoName(m_DimTheta, m_DimBeta, m_DimAbsorption, GraphicsFormat.R16G16B16A16_SFloat, "PreIntegratedAverageFiberScattering")
+                name = CoreUtils.GetRenderTargetAutoName(m_DimTheta, m_DimAbsorption, 0, GraphicsFormat.R16G16B16A16_SFloat, "PreIntegratedAverageFiberScattering")
             };
             m_PreIntegratedFiberAverageScatteringLUT.Create();
 
@@ -251,9 +246,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_PreIntegratedFiberAverageScatteringIsInit)
             {
                 cmd.SetComputeTextureParam(m_PreIntegratedFiberScatteringCS, 1, _PreIntegratedAverageHairFiberScatteringUAV, m_PreIntegratedFiberAverageScatteringLUT);
-                cmd.DispatchCompute(m_PreIntegratedFiberScatteringCS, 1, HDUtils.DivRoundUp(m_DimTheta, 8), HDUtils.DivRoundUp(m_DimBeta, 8), HDUtils.DivRoundUp(m_DimAbsorption, 8));
+                cmd.DispatchCompute(m_PreIntegratedFiberScatteringCS, 1, HDUtils.DivRoundUp(m_DimTheta, 8), HDUtils.DivRoundUp(m_DimBeta, 8), 1);
 
-                m_PreIntegratedFiberAverageScatteringIsInit = true;
+                m_PreIntegratedFiberAverageScatteringIsInit = false;
             }
         }
 

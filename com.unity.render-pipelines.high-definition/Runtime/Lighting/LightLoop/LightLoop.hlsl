@@ -200,7 +200,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.shadowContext    = InitShadowContext();
     context.shadowValue      = 1;
     context.sampleReflection = 0;
-    ZERO_INITIALIZE(MultipleScatteringData, context.scatteringData);
 
     // With XR single-pass and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
     // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
@@ -228,25 +227,18 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
                 float3 L = -light.forward;
 
+        // In case of multiple scattering, for now we eat the VGPR cost and evaluate the sun shadow during directional light contribution evaluation.
+#ifndef LIGHT_EVALUATES_MULTIPLE_SCATTERING
                 // Is it worth sampling the shadow map?
                 if ((light.lightDimmer > 0) && (light.shadowDimmer > 0) && // Note: Volumetric can have different dimmer, thus why we test it here
                     IsNonZeroBSDF(V, L, preLightData, bsdfData) &&
                     !ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex))
                 {
-                    float3 shadowProxyPositionWS = posInput.positionWS;
-
-#ifdef LIGHT_EVALUATES_MULTIPLE_SCATTERING
-                    // Since we evaluate the sun light early in this case for shadows (as well as for biasing the shadow), we cache the result in the context.
-                    context.scatteringData = EvaluateMultipleScattering_Light(posInput, L);
-
-                    // ...and adjusts the sampled shadow position (if necessary).
-                    EvaluateMultipleScattering_ShadowProxy(context.scatteringData, shadowProxyPositionWS);
-#endif
-
                     context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
-                                                                          posInput.positionSS, shadowProxyPositionWS, GetNormalForShadowBias(bsdfData),
+                                                                          posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
                                                                           light.shadowIndex, L);
                 }
+#endif
             }
         }
     }

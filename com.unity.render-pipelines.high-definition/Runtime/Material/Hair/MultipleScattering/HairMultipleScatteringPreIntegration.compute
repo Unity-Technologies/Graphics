@@ -4,6 +4,9 @@
 // This define is required for invoking BSDF.
 #define HAS_LIGHTLOOP
 
+// Instead of indirectly setting up the angles we inform the BSDF that we will be explicitly setting them.
+// #define HAIR_OVERRIDE_ANGLE_BSDF
+
 #define DIM 64
 #define SPHERE_SAMPLES 128
 #define DPHI radians(2)
@@ -52,6 +55,13 @@ SurfaceData ConfigureFiberSurface(float diffuseColor, float perceptualSmoothness
     return surfaceData;
 }
 
+void ClampRoughness(inout BSDFData bsdfData)
+{
+    bsdfData.roughnessR   = max(0.05, bsdfData.roughnessR);
+    bsdfData.roughnessTT  = max(0.05, bsdfData.roughnessTT);
+    bsdfData.roughnessTRT = max(0.05, bsdfData.roughnessTRT);
+}
+
 // Parameterization:
 // X - Perceptual Smoothness
 // Y - Theta
@@ -74,11 +84,8 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
     // Use the conversion from the surface data to compute all of the per-lobe bsdf information.
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(uint2(0, 0), surfaceData);
 
-    // Need to clamp the roughness manually since we invoke the BSDF manually.
-    // Without it, we get some artifacting in the LUT.
-    bsdfData.roughnessR   = max(0.05, bsdfData.roughnessR);
-    bsdfData.roughnessTT  = max(0.05, bsdfData.roughnessTT);
-    bsdfData.roughnessTRT = max(0.05, bsdfData.roughnessTRT);
+    // Need to clamp the roughness manually since we invoke the BSDF manually, without it, we get some artifacting in the LUT.
+    ClampRoughness(bsdfData);
 
     // Unused in this case.
     PreLightData preLightData;
@@ -133,67 +140,65 @@ void Main (uint3 dispatchThreadID : SV_DispatchThreadID)
 // TODO: This LUT and the above are parameterized the exact same way. Find a way to combine them into one sample?
 // -----------------------------------------------------------------
 
-RWTexture3D<float4> _PreIntegratedAverageHairFiberScatteringUAV;
+RWTexture2D<float4> _PreIntegratedAverageHairFiberScatteringUAV;
 
-#define FLAGS_R   MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT
-#define FLAGS_TT  MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R  | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT
-#define FLAGS_TRT MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R  | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT
+#define FLAGS_R   MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_LONGITUDINAL | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT
+#define FLAGS_TT  MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_LONGITUDINAL | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R  | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT
+#define FLAGS_TRT MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_LONGITUDINAL | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R  | MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT
 
-[numthreads(8, 8, 8)]
-void PreIntegrateAzimuthalScattering (uint3 dispatchThreadID : SV_DispatchThreadID)
+[numthreads(8, 8, 1)]
+void PreIntegrateAzimuthalScattering (uint2 dispatchThreadID : SV_DispatchThreadID)
 {
     // Convert the dispatch coordinates to the generation space [0,1].
-    float3 UVW = float3(((float3)dispatchThreadID + 0.5) / DIM);
+    float2 UV = float2(((float2)dispatchThreadID + 0.5) / DIM);
 
     // Configure a theoretical hair fiber to evaluate the average attenuation.
-    SurfaceData surfaceDataR   = ConfigureFiberSurface(UVW.z, UVW.x, FLAGS_R);
-    SurfaceData surfaceDataTT  = ConfigureFiberSurface(UVW.z, UVW.x, FLAGS_TT);
-    SurfaceData surfaceDataTRT = ConfigureFiberSurface(UVW.z, UVW.x, FLAGS_TRT);
+    // Note, since we only evaluate the azimuthal scattering we can parameterize to 2D since roughness has no effect on this component.
+    SurfaceData surfaceDataR   = ConfigureFiberSurface(UV.y, 0.5, FLAGS_R);
+    SurfaceData surfaceDataTT  = ConfigureFiberSurface(UV.y, 0.5, FLAGS_TT);
+    SurfaceData surfaceDataTRT = ConfigureFiberSurface(UV.y, 0.5, FLAGS_TRT);
 
     // Use the conversion from the surface data to compute all of the per-lobe bsdf information.
     BSDFData bsdfDataR   = ConvertSurfaceDataToBSDFData(uint2(0, 0), surfaceDataR);
     BSDFData bsdfDataTT  = ConvertSurfaceDataToBSDFData(uint2(0, 0), surfaceDataTT);
     BSDFData bsdfDataTRT = ConvertSurfaceDataToBSDFData(uint2(0, 0), surfaceDataTRT);
 
-    // Need to clamp the roughness manually since we invoke the BSDF manually.
-    // Without it, we get some artifacting in the LUT.
-    // TODO: all
-    // bsdfData.roughnessR   = max(0.05, bsdfData.roughnessR);
-    // bsdfData.roughnessTT  = max(0.05, bsdfData.roughnessTT);
-    // bsdfData.roughnessTRT = max(0.05, bsdfData.roughnessTRT);
+    // Need to clamp the roughness manually since we invoke the BSDF manually, without it, we get some artifacting in the LUT.
+    ClampRoughness(bsdfDataR);
+    ClampRoughness(bsdfDataTT);
+    ClampRoughness(bsdfDataTRT);
 
     // Unused in this case.
     PreLightData preLightData;
     ZERO_INITIALIZE(PreLightData, preLightData);
 
     // Configure the initial incident theta direction.
-    float sinThetaI = UVW.y;
+    float sinThetaI = UV.x;
+
+    // We are analyzing the front scattering, so place a viewer on the negative X axis.
+    float3 V = float3(-1, 0, 0);
 
     float3 A = 0;
+    uint   C = 0;
 
-    for (uint w = 0; w < SPHERE_SAMPLES; w++)
+    // Integrate over all incident phi.
+    for (float phi = -HALF_PI; phi < HALF_PI; phi += DPHI)
     {
-       float2 U = Hammersley2d(w, SPHERE_SAMPLES);
-       float3 V = SampleSphereUniform(U.x, U.y);
+       // Places a light on the back scattering hemisphere (due to the constriction of phi to the -pi/2 to pi/2 range).
+       float3 L = SphericalToCartesian(phi, sinThetaI);
 
-       // Integrate over all incident phi.
-       for (float phi = -HALF_PI; phi < HALF_PI; phi += DPHI)
-       {
-           // Places a light on the back scattering hemisphere (due to the constriction of phi to the -pi/2 to pi/2 range).
-           float3 L = SphericalToCartesian(phi, sinThetaI);
+       // Invoke the fiber scattering function.
+       CBSDF cbsdfR   = EvaluateBSDF(V, L, preLightData, bsdfDataR);
+       CBSDF cbsdfTT  = EvaluateBSDF(V, L, preLightData, bsdfDataTT);
+       CBSDF cbsdfTRT = EvaluateBSDF(V, L, preLightData, bsdfDataTRT);
 
-           // Invoke the fiber scattering function.
-           CBSDF cbsdfR   = EvaluateBSDF(V, L, preLightData, bsdfDataR);
-           CBSDF cbsdfTT  = EvaluateBSDF(V, L, preLightData, bsdfDataTT);
-           CBSDF cbsdfTRT = EvaluateBSDF(V, L, preLightData, bsdfDataTRT);
+       // Integrating over a semi-circle, thus PDF = 1/pi
+       A +=  float3( cbsdfR.specR.x,
+                     cbsdfTT.specR.x,
+                     cbsdfTRT.specR.x );
 
-
-           A += float3( cbsdfR.specR.x,
-                        cbsdfTT.specR.x,
-                        cbsdfTRT.specR.x ) / INV_FOUR_PI;
-       }
+       C++;
     }
 
-
-    _PreIntegratedAverageHairFiberScatteringUAV[dispatchThreadID] = INV_PI * float4(A, 1);
+    _PreIntegratedAverageHairFiberScatteringUAV[dispatchThreadID] = (2 / PI) * float4(A / float(C), 1);
 }

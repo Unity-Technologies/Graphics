@@ -12,10 +12,6 @@
 struct HDShadowContext { float unused; };
 #endif
 
-#ifndef HAVE_MULTIPLE_SCATTERING_DATA
-struct MultipleScatteringData { float unused; };
-#endif
-
 // LightLoopContext is not visible from Material (user should not use these properties in Material file)
 // It allow the lightloop to have transmit sampling information (do we use atlas, or texture array etc...)
 struct LightLoopContext
@@ -27,9 +23,6 @@ struct LightLoopContext
     uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
     real contactShadowFade;     // combined fade factor of all contact shadows
     SHADOW_TYPE shadowValue;    // Stores the value of the cascade shadow map
-
-    // Stores the multiple scattering data for the sun light.
-    MultipleScatteringData scatteringData;
 };
 
 // LightLoopOutput is the output of the LightLoop fuction call.
