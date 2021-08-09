@@ -26,8 +26,9 @@ namespace UnityEditor.VFX.UI
         protected DropDownButtonBase(
             string uxmlSource,
             string mainButtonLabel,
+            string mainButtonName,
+            string iconPath,
             int priority,
-            string icon = null,
             bool hasSeparatorBefore = false,
             bool hasSeparatorAfter = false)
         {
@@ -43,11 +44,12 @@ namespace UnityEditor.VFX.UI
                 Add(separator);
             }
 
-            m_MainButton = new Button(OnMainButton) { name = "button" };
-            m_MainButton.style.flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row);
-            if (icon != null)
+            m_MainButton = new Button(OnMainButton) { name = mainButtonName };
+            m_MainButton.AddToClassList("dropdown-button");
+            m_MainButton.AddToClassList("unity-toolbar-toggle");
+            if (!string.IsNullOrEmpty(iconPath))
             {
-                m_MainButton.Add(new Image { image = EditorGUIUtility.LoadIcon(icon) });
+                m_MainButton.Add(new Image {image = EditorGUIUtility.LoadIcon(iconPath)});
                 m_Label = new Label(mainButtonLabel);
                 m_MainButton.Add(m_Label);
             }
@@ -57,7 +59,9 @@ namespace UnityEditor.VFX.UI
             }
             Add(m_MainButton);
 
-            var dropDownButton = new Button(OnOpenPopupInternal) {name = "arrow" };
+            var dropDownButton = new Button(OnOpenPopupInternal);
+            dropDownButton.AddToClassList("dropdown-arrow");
+            dropDownButton.AddToClassList("unity-toolbar-toggle");
             dropDownButton.Add(new VisualElement());
             Add(dropDownButton);
 
@@ -71,7 +75,7 @@ namespace UnityEditor.VFX.UI
             m_PopupContent = new VisualElement();
             var tpl = VFXView.LoadUXML(uxmlSource);
             tpl.CloneTree(m_PopupContent);
-            contentContainer.AddStyleSheetPath("VFXSaveDropDownPanel");
+            contentContainer.AddStyleSheetPath("VFXToolbar");
         }
 
         public int Priority { get; }
@@ -105,9 +109,9 @@ namespace UnityEditor.VFX.UI
             {
                 m_PopupContent.parent.Remove(m_PopupContent);
             }
+            m_CurrentPopup.rootVisualElement.AddStyleSheetPath("VFXToolbar");
             m_CurrentPopup.rootVisualElement.Add(m_PopupContent);
             m_CurrentPopup.rootVisualElement.AddToClassList("popup");
-            m_CurrentPopup.rootVisualElement.AddStyleSheetPath("VFXSaveDropDownPanel");
 
             OnOpenPopup();
             var bounds = new Rect(GetPopupPosition(), localBound.size);
@@ -116,6 +120,7 @@ namespace UnityEditor.VFX.UI
             {
                 bounds.xMin += 6;
             }
+
             m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(), new [] { PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft });
         }
 

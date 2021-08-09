@@ -1,3 +1,4 @@
+using System.IO;
 using UnityEditor.Experimental;
 
 using UnityEngine;
@@ -12,7 +13,13 @@ namespace UnityEditor.VFX.UI
         readonly Toggle m_RuntimeModeToggle;
         readonly Toggle m_shaderValidationToggle;
 
-        public VFXCompileDropdownButton(VFXView vfxView) : base("VFXCompileDropdownPanel", "Compile", 2, EditorResources.iconsPath + "PlayButton.png")
+        public VFXCompileDropdownButton(VFXView vfxView)
+            : base(
+            "VFXCompileDropdownPanel",
+            "Compile",
+            "compile-button",
+            Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/compile.png"),
+            2)
         {
             m_VFXView = vfxView;
 
@@ -28,7 +35,7 @@ namespace UnityEditor.VFX.UI
 
         
         protected override Vector2 GetPopupPosition() => this.m_VFXView.ViewToScreenPosition(worldBound.position);
-        protected override Vector2 GetPopupSize() => new Vector2(150, 70);
+        protected override Vector2 GetPopupSize() => new Vector2(150, 68);
 
         protected override void OnOpenPopup()
         {
