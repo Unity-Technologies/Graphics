@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI.DataModel
@@ -10,16 +11,43 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
     [SearcherItem(typeof(ShaderGraphStencil), SearcherContext.Graph, "Redirect (TEMP)")]
     public class RedirectNodeModel : NodeModel
     {
-        TypeHandle m_RedirectType = TypeHandle.Unknown;
-
-        public TypeHandle RedirectType
-        {
-            get => m_RedirectType;
-            set => m_RedirectType = value;
-        }
-
+        [SerializeField]
+        TypeHandle m_RedirectType = TypeHandle.Float;
         IPortModel m_InputPort, m_OutputPort;
 
+        /// <summary>
+        /// Copies the type from a given input port to this redirect node.
+        /// </summary>
+        /// <param name="input">Input port to copy type data from.</param>
+        public void UpdateTypeFrom(IPortModel input)
+        {
+            m_RedirectType = input.DataTypeHandle;
+            DefineNode();
+        }
+
+        /// <summary>
+        /// Recursively gets the tree of redirect nodes rooted at this RedirectNodeModel.
+        /// </summary>
+        /// <param name="includeSelf">If true, this RedirectNodeModel will be yielded first.</param>
+        /// <returns>An IEnumerable of redirect node descendants.</returns>
+        public IEnumerable<RedirectNodeModel> GetRedirectTree(bool includeSelf = false)
+        {
+            if (includeSelf) yield return this;
+
+            foreach (var connectedEdge in m_OutputPort.GetConnectedEdges())
+            {
+                var port = connectedEdge.ToPort;
+                if (port.NodeModel is not RedirectNodeModel redirect) continue;
+
+                yield return redirect;
+                foreach (var nodeModel in redirect.GetRedirectTree()) yield return nodeModel;
+            }
+        }
+
+        /// <summary>
+        /// Walks the graph to find all non-redirect ports that receive a value from this redirect node.
+        /// </summary>
+        /// <returns>IEnumerable of destination ports. Will not include ports on redirect nodes.</returns>
         public IEnumerable<IPortModel> ResolveDestinations()
         {
             foreach (var connectedEdge in m_OutputPort.GetConnectedEdges())
@@ -27,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
                 var port = connectedEdge.ToPort;
                 if (port.NodeModel is RedirectNodeModel redirect)
                 {
-                    foreach (var nodeModel in redirect.ResolveDestinations()) yield return nodeModel;
+                    foreach (var portModel in redirect.ResolveDestinations()) yield return portModel;
                 }
                 else
                 {
@@ -36,6 +64,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             }
         }
 
+        /// <summary>
+        /// Walks the graph to find the non-redirect port that supplies a value to this redirect node.
+        /// </summary>
+        /// <returns>The port that this redirect node's value comes from, or null if none is connected.</returns>
         public IPortModel ResolveSource()
         {
             var port = m_InputPort.GetConnectedEdges().FirstOrDefault()?.FromPort;

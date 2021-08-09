@@ -20,6 +20,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             // TODO: Instead of having this be a monolithic list of commands all gathered here, can we can break them up into being registered by individual controllers?
             commandDispatcher.RegisterCommandHandler<AddPortCommand>(AddPortCommand.DefaultCommandHandler);
             commandDispatcher.RegisterCommandHandler<RemovePortCommand>(RemovePortCommand.DefaultCommandHandler);
+
+            // Overrides for default GTF commands
+            commandDispatcher.RegisterCommandHandler<CreateEdgeCommand>(ShaderGraphCommandHandlers.HandleCreateEdgeCommand);
         }
     }
 }

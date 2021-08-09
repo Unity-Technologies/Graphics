@@ -5,6 +5,8 @@ using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI.Utilities;
 using UnityEditor.ShaderGraph.Registry;
+using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI.DataModel
@@ -24,7 +26,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
                 src.graphDataName, ((ShaderGraphStencil) Stencil).GetRegistry());
         }
 
-        bool TryConnect(GraphDataPortModel src, GraphDataPortModel dst)
+        public bool TryConnect(GraphDataPortModel src, GraphDataPortModel dst)
         {
             return GraphHandler.TryConnect(
                 dst.graphDataNodeModel.graphDataName, dst.graphDataName,
@@ -90,24 +92,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             }
 
             return base.IsCompatiblePort(startPortModel, compatiblePortModel);
-        }
-
-        protected override IEdgeModel InstantiateEdge(IPortModel toPort, IPortModel fromPort,
-            SerializableGUID guid = default)
-        {
-            if ((fromPort, toPort) is (GraphDataPortModel fromDataPort, GraphDataPortModel toDataPort))
-            {
-                // Returning null from InstantiateEdge causes problems. Compatibility should have been ensured before
-                // this point.
-                if (!TryConnect(fromDataPort, toDataPort))
-                    AssertHelpers.Fail(
-                        $"Failed to connect ports " +
-                        $"{fromDataPort.graphDataName} ({fromDataPort.graphDataNodeModel.graphDataName}) and " +
-                        $"{toDataPort.graphDataName} ({toDataPort.graphDataNodeModel.graphDataName}) " +
-                        "despite being reported compatible");
-            }
-
-            return base.InstantiateEdge(toPort, fromPort, guid);
         }
     }
 }
