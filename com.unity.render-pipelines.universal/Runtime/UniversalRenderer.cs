@@ -693,13 +693,18 @@ namespace UnityEngine.Rendering.Universal
                 }
 #endif
 
-                bool isCopyDepthAfterTransparent = m_CopyDepthPass.renderPassEvent == RenderPassEvent.AfterRenderingTransparents;
-                if (!copyColorPass && cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled))
+                // handle multisample depth resolve by setting the appropriate store actions if supported
+                if (requiresDepthCopyPass && cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled))
                 {
-                    if (opaquePassDepthStoreAction == RenderBufferStoreAction.Store)
-                        opaquePassDepthStoreAction = isCopyDepthAfterTransparent ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.StoreAndResolve; // TODO: we shouldn't need to set Resolve here. Wating for a Metal backend fix to land
-                    else if (opaquePassDepthStoreAction == RenderBufferStoreAction.DontCare)
-                        opaquePassDepthStoreAction = RenderBufferStoreAction.Resolve;
+                    bool isCopyDepthAfterTransparent = m_CopyDepthPass.renderPassEvent == RenderPassEvent.AfterRenderingTransparents;
+
+                    if (!(copyColorPass && isCopyDepthAfterTransparent))
+                    {
+                        if (opaquePassDepthStoreAction == RenderBufferStoreAction.Store)
+                            opaquePassDepthStoreAction = isCopyDepthAfterTransparent ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.StoreAndResolve; // TODO: we shouldn't need to set Resolve here. Waiting for a Metal backend fix to land
+                        else if (opaquePassDepthStoreAction == RenderBufferStoreAction.DontCare)
+                            opaquePassDepthStoreAction = RenderBufferStoreAction.Resolve;
+                    }
                 }
 
                 m_RenderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
@@ -766,11 +771,14 @@ namespace UnityEngine.Rendering.Universal
 
                 // If CopyDepthPass pass event is scheduled on or after AfterRenderingTransparent, we will need to store the depth buffer or resolve (store for now until latest trunk has depth resolve support) it for MSAA case
                 if (requiresDepthCopyPass && m_CopyDepthPass.renderPassEvent >= RenderPassEvent.AfterRenderingTransparents)
+                {
                     transparentPassDepthStoreAction = RenderBufferStoreAction.Store;
 
-                // handle depth resolve on platforms supporting it
-                if (cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled) && transparentPassDepthStoreAction == RenderBufferStoreAction.Store)
-                    transparentPassDepthStoreAction = RenderBufferStoreAction.Resolve;
+                    // handle depth resolve on platforms supporting it
+                    if (cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled))
+                        transparentPassDepthStoreAction = RenderBufferStoreAction.Resolve;
+                }
+
 
                 m_RenderTransparentForwardPass.ConfigureColorStoreAction(transparentPassColorStoreAction);
                 m_RenderTransparentForwardPass.ConfigureDepthStoreAction(transparentPassDepthStoreAction);
