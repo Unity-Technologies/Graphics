@@ -7,8 +7,6 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 {
-    // Create a temporary searcher item for redirect nodes. Eventually, they will be created through other means.
-    [SearcherItem(typeof(ShaderGraphStencil), SearcherContext.Graph, "Redirect (TEMP)")]
     public class RedirectNodeModel : NodeModel
     {
         [SerializeField]
