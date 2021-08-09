@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (LightUtility.CheckForChange(m_CastsShadows, ref m_PreviousCastsShadows))
             {
-                if (m_CastsShadows)
+                if (m_CastsShadows || m_SelfShadows)
                     ShadowCasterGroup2DManager.AddGroup(this);
                 else
                     ShadowCasterGroup2DManager.RemoveGroup(this);
