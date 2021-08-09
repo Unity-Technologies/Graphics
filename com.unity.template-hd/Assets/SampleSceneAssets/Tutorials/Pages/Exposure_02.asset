@@ -40,7 +40,6 @@ MonoBehaviour:
         m_Untranslated: 'In this example, let''s override the exposure globally.
 
 
-
           1.
           Right click in the <i>Hierarchy,</i> and create a <b>Volume</b> > <b>Global
           Volume.</b>

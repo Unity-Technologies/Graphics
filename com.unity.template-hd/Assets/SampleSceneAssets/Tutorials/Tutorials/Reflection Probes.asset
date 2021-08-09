@@ -15,6 +15,7 @@ MonoBehaviour:
   TutorialTitle:
     m_Untranslated: Reflection Probes
   m_TutorialTitle: 
+  m_ProgressTrackingEnabled: 1
   m_LessonId: 1017
   m_Version: 1
   m_Scene: {fileID: 102900000, guid: 3db1837cc97a95e4c98610966fac2b0b, type: 3}
@@ -34,13 +35,29 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 0
-  m_ExitBehavior: 1
-  m_SkipTutorialBehavior: 0
   m_WindowLayout: {fileID: 0}
   m_Pages:
     m_Items:
     - {fileID: 11400000, guid: f4d6b0802eb2b594fb9f50f7791c924c, type: 2}
     - {fileID: 11400000, guid: 6095fcfd0c49b0f47bb3279aa67391c5, type: 2}
-    - {fileID: 11400000, guid: 545b9570f94040b4c9fbdefbbeaa484e, type: 2}
+    - {fileID: 11400000, guid: 11cf057090665424e8fbd5eed6307a53, type: 2}
     - {fileID: 11400000, guid: 3eaea39409b7d6e4f944faa2a68245d9, type: 2}
-    - {fileID: 11400000, guid: 84033c599eb6ff24ca2c9816698fc94a, type: 2}
+    - {fileID: 11400000, guid: 3eaea39409b7d6e4f944faa2a68245d9, type: 2}
+  Modified:
+    m_PersistentCalls:
+      m_Calls: []
+  Initiated:
+    m_PersistentCalls:
+      m_Calls: []
+  PageInitiated:
+    m_PersistentCalls:
+      m_Calls: []
+  GoingBack:
+    m_PersistentCalls:
+      m_Calls: []
+  Completed:
+    m_PersistentCalls:
+      m_Calls: []
+  Quit:
+    m_PersistentCalls:
+      m_Calls: []
