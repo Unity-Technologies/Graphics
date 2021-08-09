@@ -359,6 +359,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed incorrect light list indexing when TAA is enabled (case 1352444).
 - Fixed Additional Velocity for Alembic not taking correctly into account vertex animation
 - Fixed wrong LUT initialization in Wireframe mode.
+- Fixed the clouds missing in the ambient probe and in the static and dynamic sky.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

@@ -60,13 +60,15 @@ CBUFFER_START(ShaderVariablesClouds)
     float4x4 _CameraViewProjection_NO;
     float4x4 _CameraInverseViewProjection_NO;
     float4x4 _CameraPrevViewProjection_NO;
+    float4x4 _CloudsPixelCoordToViewDirWS;
     float _AltitudeDistortion;
     float _ErosionFactorCompensation;
     int _EnableFastToneMapping;
     int _IsPlanarReflection;
-    float2 _Padding1;
     int _LowResolutionEvaluation;
     int _EnableIntegration;
+    int _RenderForSky;
+    int _Padding1;
     float4 _DistanceBasedWeights[12];
 CBUFFER_END
 

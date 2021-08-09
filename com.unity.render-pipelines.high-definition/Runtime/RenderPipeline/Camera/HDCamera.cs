@@ -1258,6 +1258,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 visualSky.skySettings = skyManager.GetDefaultPreviewSkyInstance();
                 visualSky.cloudSettings = null;
+                visualSky.volumetricClouds = null;
                 lightingSky = visualSky;
                 skyAmbientMode = SkyAmbientMode.Dynamic;
             }
@@ -1268,6 +1269,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
                 visualSky.cloudSettings = SkyManager.GetCloudSetting(volumeStack);
+                visualSky.volumetricClouds = SkyManager.GetVolumetricClouds(volumeStack);
 
                 lightingSky = visualSky;
 
@@ -1281,9 +1283,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         SkySettings newSkyOverride = SkyManager.GetSkySetting(skyManager.lightingOverrideVolumeStack);
                         CloudSettings newCloudOverride = SkyManager.GetCloudSetting(skyManager.lightingOverrideVolumeStack);
+                        VolumetricClouds newVolumetricCloudsOverride = SkyManager.GetVolumetricClouds(skyManager.lightingOverrideVolumeStack);
 
                         if ((m_LightingOverrideSky.skySettings != null && newSkyOverride == null) ||
-                            (m_LightingOverrideSky.cloudSettings != null && newCloudOverride == null))
+                            (m_LightingOverrideSky.cloudSettings != null && newCloudOverride == null) ||
+                            (m_LightingOverrideSky.volumetricClouds != null && newVolumetricCloudsOverride == null))
                         {
                             // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
                             // Resetting the visual sky hash will ensure that.
@@ -1291,6 +1295,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             m_LightingOverrideSky.skySettings = newSkyOverride;
                             m_LightingOverrideSky.cloudSettings = newCloudOverride;
+                            m_LightingOverrideSky.volumetricClouds = newVolumetricCloudsOverride;
                             lightingSky = m_LightingOverrideSky;
                         }
                     }

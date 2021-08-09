@@ -30,6 +30,13 @@ namespace UnityEngine.Rendering.HighDefinition
         CloudSettings m_CloudSettings; // This one contain only property values from overridden properties in the original profile component
         CloudSettings m_CloudSettingsFromProfile;
 
+        // Volumetric Clouds
+        [SerializeField]
+        bool m_StaticLightingVolumetricClouds = false;
+        int m_LastComputedVolumetricCloudHash;
+        VolumetricClouds m_VolumetricClouds;
+        VolumetricClouds m_VolumetricCloudSettingsFromProfile;
+
         internal SkySettings skySettings
         {
             get
@@ -65,6 +72,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     ResetCloud();
                 }
                 return m_CloudSettings;
+            }
+        }
+
+        internal VolumetricClouds volumetricClouds
+        {
+            get
+            {
+                return m_StaticLightingVolumetricClouds ? m_VolumetricClouds : null;
             }
         }
 
@@ -177,6 +192,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+
+        void GetVolumetricCloudVolume(VolumeProfile profile, out VolumetricClouds volumetricClouds)
+        {
+            volumetricClouds = null;
+            if (profile != null)
+                profile.TryGet<VolumetricClouds>(out volumetricClouds);
+        }
+
         private int InitComponentFromProfile<T>(T component, T componentFromProfile, Type type)
             where T : VolumeComponent
         {
@@ -250,6 +273,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void UpdateCurrentStaticLightingVolumetricClouds()
+        {
+            // First, grab the cloud settings of the right type in the profile.
+            CoreUtils.Destroy(m_VolumetricClouds);
+            m_VolumetricClouds = null;
+            m_LastComputedVolumetricCloudHash = 0;
+            GetVolumetricCloudVolume(m_Profile, out m_VolumetricCloudSettingsFromProfile);
+            m_VolumetricClouds = (VolumetricClouds)ScriptableObject.CreateInstance(typeof(VolumetricClouds));
+            m_LastComputedVolumetricCloudHash = InitComponentFromProfile(m_VolumetricClouds, m_VolumetricCloudSettingsFromProfile, typeof(VolumetricClouds));
+        }
+
         // All actions done in this method are because Editor won't go through setters so we need to manually check consistency of our data.
         void OnValidate()
         {
@@ -261,6 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_StaticLightingSkyUniqueID = 0;
                 m_StaticLightingCloudsUniqueID = 0;
+                m_StaticLightingVolumetricClouds = false;
             }
 
             // If we detect that the profile has changed, we need to reset the static lighting sky.
@@ -282,6 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UpdateCurrentStaticLightingSky();
             UpdateCurrentStaticLightingClouds();
+            UpdateCurrentStaticLightingVolumetricClouds();
             if (m_Profile != null)
                 SkyManager.RegisterStaticLightingSky(this);
         }
@@ -293,6 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ResetSky();
             ResetCloud();
+            ResetVolumetricCloud();
         }
 
         void Update()
@@ -301,6 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 UpdateCurrentStaticLightingSky();
                 UpdateCurrentStaticLightingClouds();
+                UpdateCurrentStaticLightingVolumetricClouds();
                 m_NeedUpdateStaticLightingSky = false;
             }
         }
@@ -319,6 +357,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CloudSettings = null;
             m_CloudSettingsFromProfile = null;
             m_LastComputedCloudHash = 0;
+        }
+
+        void ResetVolumetricCloud()
+        {
+            CoreUtils.Destroy(m_VolumetricClouds);
+            m_VolumetricClouds = null;
+            m_CloudSettingsFromProfile = null;
+            m_LastComputedVolumetricCloudHash = 0;
         }
     }
 }

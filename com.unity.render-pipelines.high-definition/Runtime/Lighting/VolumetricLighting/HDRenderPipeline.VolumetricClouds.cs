@@ -24,10 +24,13 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_CloudRenderKernel;
         int m_CloudReprojectKernel;
         int m_PreUpscaleCloudsKernel;
+        int m_PreUpscaleCloudsSkyKernel;
         int m_UpscaleAndCombineCloudsKernelColorCopy;
         int m_UpscaleAndCombineCloudsKernelColorRW;
+        int m_UpscaleAndCombineCloudsSkyKernel;
         int m_CombineCloudsKernelColorCopy;
         int m_CombineCloudsKernelColorRW;
+        int m_CombineCloudsSkyKernel;
 
         // Combine pass via hardware blending, used in case of MSAA color target.
         Material m_CloudCombinePass;
@@ -63,6 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                               0.119433f, 0.535261f, 0.324652f, 0.196912f, 0.882497f, 0.535261f, 0.0439369f, 0.196912f, 0.119433f,
                                                               0.119433f, 0.196912f, 0.0439369f, 0.535261f, 0.882497f, 0.196912f, 0.324652f, 0.535261f, 0.119433f,
                                                               0.0439369f, 0.196912f, 0.119433f, 0.196912f, 0.882497f, 0.535261f, 0.119433f, 0.535261f, 0.324652f};
+
         struct VolumetricCloudsCameraData
         {
             public TVolumetricCloudsCameraType cameraType;
@@ -95,10 +99,13 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CloudRenderKernel = volumetricCloudsCS.FindKernel("RenderClouds");
             m_CloudReprojectKernel = volumetricCloudsCS.FindKernel("ReprojectClouds");
             m_PreUpscaleCloudsKernel = volumetricCloudsCS.FindKernel("PreUpscaleClouds");
+            m_PreUpscaleCloudsSkyKernel = volumetricCloudsCS.FindKernel("PreUpscaleCloudsSky");
             m_UpscaleAndCombineCloudsKernelColorCopy = volumetricCloudsCS.FindKernel("UpscaleAndCombineClouds_ColorCopy");
             m_UpscaleAndCombineCloudsKernelColorRW = volumetricCloudsCS.FindKernel("UpscaleAndCombineClouds_ColorRW");
+            m_UpscaleAndCombineCloudsSkyKernel = volumetricCloudsCS.FindKernel("UpscaleAndCombineCloudsSky");
             m_CombineCloudsKernelColorCopy = volumetricCloudsCS.FindKernel("CombineClouds_ColorCopy");
             m_CombineCloudsKernelColorRW = volumetricCloudsCS.FindKernel("CombineClouds_ColorRW");
+            m_CombineCloudsSkyKernel = volumetricCloudsCS.FindKernel("CombineCloudsSky");
 
             // Create the material needed for the combination
             m_CloudCombinePass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.volumetricCloudsCombinePS);
@@ -109,6 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Initialize the additional sub components
             InitializeVolumetricCloudsMap();
             InitializeVolumetricCloudsShadows();
+            InitializeVolumetricCloudsAmbientProbe();
         }
 
         void ReleaseVolumetricClouds()
@@ -122,6 +130,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Release the additional sub components
             ReleaseVolumetricCloudsMap();
             ReleaseVolumetricCloudsShadows();
+            ReleaseVolumetricCloudsStaticTextures();
+            ReleaseVolumetricCloudsAmbientProbe();
         }
 
         void AllocatePresetTextures()
@@ -316,7 +326,8 @@ namespace UnityEngine.Rendering.HighDefinition
             Default,
             RealtimeReflection,
             BakedReflection,
-            PlanarReflection
+            PlanarReflection,
+            Sky
         };
 
         TVolumetricCloudsCameraType GetCameraType(HDCamera hdCamera)
@@ -483,7 +494,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Evaluate the ambient probe data
-            SetPreconvolvedAmbientLightProbe(ref cb, hdCamera, settings);
+            SetPreconvolvedAmbientLightProbe(ref cb, settings);
 
             if (shadowPass)
             {
@@ -508,8 +519,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cb._EnableFastToneMapping = cameraData.enableExposureControl ? 1 : 0;
+            
             cb._LowResolutionEvaluation = cameraData.lowResolution ? 1 : 0;
             cb._EnableIntegration = cameraData.enableIntegration ? 1 : 0;
+            cb._RenderForSky = cameraData.cameraType == TVolumetricCloudsCameraType.Sky ?  1 : 0;
 
             unsafe
             {
@@ -553,7 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_Asset.renderPipelineResources.textures.worleyNoise32RGB;
         }
 
-        void FillVolumetricCloudsCommonData(HDCamera hdCamera, VolumetricClouds settings, TVolumetricCloudsCameraType cameraType, in CloudModelData cloudModelData, ref VolumetricCloudCommonData commonData)
+        void FillVolumetricCloudsCommonData(bool enableExposureControl, VolumetricClouds settings, TVolumetricCloudsCameraType cameraType, in CloudModelData cloudModelData, ref VolumetricCloudCommonData commonData)
         {
             commonData.cameraType = cameraType;
             commonData.localClouds = settings.localClouds.value;
@@ -587,7 +600,7 @@ namespace UnityEngine.Rendering.HighDefinition
             BlueNoise blueNoise = GetBlueNoiseManager();
             commonData.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
             commonData.sunLight = GetMainLight();
-            commonData.enableExposureControl = hdCamera.exposureControlFS;
+            commonData.enableExposureControl = enableExposureControl;
         }
 
         void UpdateVolumetricClouds(HDCamera hdCamera, in VolumetricClouds settings)
@@ -665,6 +678,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle currentHandle = RequestVolumetricCloudsShadowTexture(settings);
                 PushFullScreenDebugTexture(m_RenderGraph, renderGraph.ImportTexture(currentHandle), FullScreenDebugMode.VolumetricCloudsShadow, xrTexture: false);
             }
+
+            // Compute the ambient probe that will be used for clouds
+            PreRenderVolumetricClouds_AmbientProbe(renderGraph, hdCamera);
 
             // Evaluate the cloud map
             PreRenderVolumetricCloudMap(renderGraph, hdCamera, in settings);

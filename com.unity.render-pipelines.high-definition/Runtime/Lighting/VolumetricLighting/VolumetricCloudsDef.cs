@@ -71,8 +71,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Maximal temporal accumulation
         public float _TemporalAccumulationFactor;
 
-        // Direction to the sun
-        public Vector2 _Padding0;
+        // Padding
+        public Vector2 Padding0;
+        // Parameters for the fade in
         public float _FadeInStart;
         public float _FadeInDistance;
 
@@ -126,23 +127,26 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _CameraViewProjection_NO;
         public Matrix4x4 _CameraInverseViewProjection_NO;
         public Matrix4x4 _CameraPrevViewProjection_NO;
+        public Matrix4x4 _CloudsPixelCoordToViewDirWS;
 
         // Controls the intensity of the wind distortion at high altitudes
         public float _AltitudeDistortion;
         // Internal parameters that compensates the erosion factor to match between the different erosion noises
         public float _ErosionFactorCompensation;
-        // Fast tonemapping settings
+        // Fast tone mapping settings
         public int _EnableFastToneMapping;
         // Flag that defines if the current camera is a planar reflection
         public int _IsPlanarReflection;
 
-        // Padding
-        public Vector2 _Padding1;
         // Flag that defines if the clouds should be evaluated at full resolution
         public int _LowResolutionEvaluation;
         // Flag that defines if the we should enable integration, checkerboard rendering, etc.
         public int _EnableIntegration;
-
+        // Render the clouds for the sky
+        public int _RenderForSky;
+        // Padding
+        public int Padding1;
+        
         [HLSLArray(3 * 4, typeof(Vector4))]
         public fixed float _DistanceBasedWeights[12 * 4];
     }
