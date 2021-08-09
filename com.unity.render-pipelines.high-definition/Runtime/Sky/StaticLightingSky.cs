@@ -192,7 +192,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-
         void GetVolumetricCloudVolume(VolumeProfile profile, out VolumetricClouds volumetricClouds)
         {
             volumetricClouds = null;

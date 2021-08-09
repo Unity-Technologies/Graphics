@@ -602,7 +602,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Render the volumetric clouds into the cubemap
                 if (volumetricClouds != null)
                     HDRenderPipeline.currentPipeline.RenderVolumetricClouds_Sky(m_BuiltinParameters.commandBuffer, m_BuiltinParameters.hdCamera, m_facePixelCoordToViewDirMatrices,
-                                                                            m_BuiltinParameters.volumetricClouds, (int)m_BuiltinParameters.screenSize.x, (int)m_BuiltinParameters.screenSize.y, renderingContext.skyboxCubemapRT);
+                        m_BuiltinParameters.volumetricClouds, (int)m_BuiltinParameters.screenSize.x, (int)m_BuiltinParameters.screenSize.y, renderingContext.skyboxCubemapRT);
 
                 // Generate mipmap for our cubemap
                 Debug.Assert(renderingContext.skyboxCubemapRT.rt.autoGenerateMips == false);

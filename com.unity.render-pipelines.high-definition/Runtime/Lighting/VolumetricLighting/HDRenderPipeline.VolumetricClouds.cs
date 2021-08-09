@@ -519,7 +519,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cb._EnableFastToneMapping = cameraData.enableExposureControl ? 1 : 0;
-            
+
             cb._LowResolutionEvaluation = cameraData.lowResolution ? 1 : 0;
             cb._EnableIntegration = cameraData.enableIntegration ? 1 : 0;
             cb._RenderForSky = cameraData.cameraType == TVolumetricCloudsCameraType.Sky ?  1 : 0;

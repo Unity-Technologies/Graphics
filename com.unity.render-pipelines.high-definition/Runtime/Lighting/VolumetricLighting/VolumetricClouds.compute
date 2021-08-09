@@ -1172,7 +1172,7 @@ void PreUpscaleCloudsSky(uint3 dispatchThreadId : SV_DispatchThreadID,
     // Make sure all values are loaded in LDS by now.
     GroupMemoryBarrierWithGroupSync();
 #endif
-    
+
     // Grab the cloud data
 #ifdef WITHOUT_LDS
     float4 cloudLighting = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord);
@@ -1279,7 +1279,7 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     upsampleData.lowDepthC = UNITY_RAW_FAR_CLIP_VALUE;
     float4 currentClouds = highDepth == UNITY_RAW_FAR_CLIP_VALUE ? BilUpColor3x3(highDepth, upsampleData) : float4(0.0, 0.0, 0.0, 1.0);
 #endif
-    
+
     // De-tonemap the inscattering value
     currentClouds.xyz = unapplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
@@ -1340,7 +1340,7 @@ void UPSAMPLE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID,
         return;
 
     float4 currentClouds = GetCloudLighting_LDS(groupThreadId, int2(0, 0));
-    
+
     // De-tonemap the inscattering value
     currentClouds.xyz = unapplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);

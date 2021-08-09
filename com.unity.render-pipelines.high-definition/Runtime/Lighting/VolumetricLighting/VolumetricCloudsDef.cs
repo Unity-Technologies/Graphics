@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _RenderForSky;
         // Padding
         public int Padding1;
-        
+
         [HLSLArray(3 * 4, typeof(Vector4))]
         public fixed float _DistanceBasedWeights[12 * 4];
     }
