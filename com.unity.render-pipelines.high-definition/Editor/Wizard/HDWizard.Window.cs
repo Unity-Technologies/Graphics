@@ -228,7 +228,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static bool CanShowWizard()
         {
             // If the user has more than one SRP installed, only show the Wizard if the pipeline is HDRP
-            return HDRenderPipeline.isReady;
+            return HDRenderPipeline.isReady || RenderPipelineManager.currentPipeline == null;
         }
 
         void OnGUI()
@@ -252,10 +252,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void WizardBehaviourDelayed()
         {
-            if (!HDProjectSettings.wizardIsStartPopup)
-                throw new Exception(
-                    $"HDProjectSettings.wizardIsStartPopup must be true");
-
             if (frameToWait > 0)
             {
                 --frameToWait;
@@ -264,6 +260,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // No need to update this method, unsubscribe from the application update
             EditorApplication.update -= WizardBehaviourDelayed;
+
+            // If the wizard does not need to be shown at start up, do nothing.
+            if (!HDProjectSettings.wizardIsStartPopup)
+                return;
 
             //Application.isPlaying cannot be called in constructor. Do it here
             if (Application.isPlaying)
@@ -307,10 +307,6 @@ namespace UnityEditor.Rendering.HighDefinition
         [Callbacks.DidReloadScripts]
         static void WizardBehaviour()
         {
-            // If the wizard does not need to be shown at start up, do nothing.
-            if (!HDProjectSettings.wizardIsStartPopup)
-                return;
-
             //We need to wait at least one frame or the popup will not show up
             frameToWait = 10;
             EditorApplication.update += WizardBehaviourDelayed;

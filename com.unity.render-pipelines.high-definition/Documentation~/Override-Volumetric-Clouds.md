@@ -99,13 +99,16 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | **Earth Curvature**               | The curvature of the cloud volume. This defines the distance at which the clouds intersect with the horizon. |
 | **Lowest Cloud Altitude**         | The altitude of the lowest cloud in meters.                  |
 | **Cloud Thickness**               | The thickness of the volumetric clouds volume in meters.     |
+| **Fade In Mode**                  | Controls the mode in which the clouds fade in when close to the camera's near plane.|
+| **Fade In Start**                 | Controls the minimal distance at which clouds start appearing.|
+| **Fade In Distance**              | Controls the distance that it takes for the clouds to reach their complete density.|
 
 ### Wind
 
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
-| **Global Wind Speed**            | Sets the global wind speed in kilometers per hour.           |
-| - **Orientation**                | Controls the orientation of the wind relative to the world-space direction x-axis. |
+| **Global Wind Speed**            | Sets the global wind speed in kilometers per hour.<br />This value can be relative to the **Global Wind Speed** defined in the **Visual Environment**. |
+| - **Orientation**                | Controls the orientation of the wind relative to the world-space direction x-axis.<br />This value can be relative to the **Global Wind Orientation** defined in the **Visual Environment**. |
 | - **Cloud Map Speed Multiplier** | The multiplier to apply to the speed of the cloud map.       |
 | - **Shape Speed Multiplier**     | The multiplier to apply to the speed of larger cloud shapes. |
 | - **Erosion Speed Multiplier**   | The multiplier to apply to the speed of erosion cloud shapes. |
@@ -143,8 +146,7 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 
 This section lists any limitations that HDRP's volumetric clouds have:
 
-- Volumetric clouds do not appear in [Reflection Probes](Reflection-Probe.md).
-- HDRP uses the [main Camera](https://docs.unity3d.com/ScriptReference/Camera-main.html) to generate the shadow cookie for volumetric clouds. This means that volumetric cloud shadows do not look correct from the point of view of other Cameras.
+- By default volumetric clouds are disabled on [Planar Reflection Probes](Planar-Reflection-Probe.md) and realtime [Reflection Probes](Reflection-Probe.md) because of the performance cost.
+- When enabled for [Reflection Probes](Reflection-Probe.md), the volumetric clouds are rendered at low resolution, without any form of temporal accumulation for performance and stability reasons.
+- By default volumetric clouds are enabled on the baked [Reflection Probes](Reflection-Probe.md) if the asset allows it. They are rendered at full resolution without any form of temporal accumulation.
 - Volumetric clouds do not appear in ray-traced effects.
-- Volumetric clouds currently do not work on Metal.
-- Volumetric clouds currently do not work on Xbox.

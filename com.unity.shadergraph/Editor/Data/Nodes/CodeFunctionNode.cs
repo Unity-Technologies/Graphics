@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireScreenPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
+        , IMayRequirePositionPredisplacement
         , IMayRequireVertexColor
     {
         [NonSerialized]
@@ -499,6 +500,18 @@ namespace UnityEditor.ShaderGraph
                 var binding = NeededCoordinateSpace.None;
                 foreach (var slot in tempSlots)
                     binding |= slot.RequiresPosition();
+                return binding;
+            }
+        }
+
+        public NeededCoordinateSpace RequiresPositionPredisplacement(ShaderStageCapability stageCapability)
+        {
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(tempSlots);
+                var binding = NeededCoordinateSpace.None;
+                foreach (var slot in tempSlots)
+                    binding |= slot.RequiresPositionPredisplacement();
                 return binding;
             }
         }

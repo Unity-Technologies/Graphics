@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Remove the lens flare to the queue of PostProcess
+        /// Remove the lens flare from the queue of PostProcess
         /// </summary>
         void OnDisable()
         {
@@ -110,11 +110,11 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Add or remove the lens flare to the queue of PostProcess
+        /// Add or remove the lens flare from the queue of PostProcess
         /// </summary>
         void OnValidate()
         {
-            if (lensFlareData != null)
+            if (isActiveAndEnabled && lensFlareData != null)
             {
                 LensFlareCommonSRP.Instance.AddData(this);
             }

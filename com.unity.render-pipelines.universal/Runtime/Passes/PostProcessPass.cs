@@ -432,6 +432,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
+            // Panini projection is done as a fullscreen pass after all depth-based effects are done
+            // and before bloom kicks in
+            if (m_PaniniProjection.IsActive() && !isSceneViewCamera)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
+                {
+                    DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination());
+                    Swap(ref renderer);
+                }
+            }
+
             // Lens Flare
             if (!LensFlareCommonSRP.Instance.IsEmpty())
             {
@@ -454,17 +465,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
                 {
                     DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
-                }
-            }
-
-            // Panini projection is done as a fullscreen pass after all depth-based effects are done
-            // and before bloom kicks in
-            if (m_PaniniProjection.IsActive() && !isSceneViewCamera)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
-                {
-                    DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination());
-                    Swap(ref renderer);
                 }
             }
 
@@ -523,8 +523,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                 {
                     cameraTarget = (m_Destination == RenderTargetHandle.CameraTarget) ? cameraTarget : m_Destination.Identifier();
+                    m_ResolveToScreen = cameraData.resolveFinalTarget || (m_Destination == cameraTargetHandle || m_HasFinalPass == true);
                 }
-
 
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
                 bool finishPostProcessOnScreen = m_ResolveToScreen;
@@ -915,14 +915,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
         {
-            var nonJitteredCameraProj = camera.projectionMatrix;
-            var cameraProj = nonJitteredCameraProj;
-            var gpuProj = GL.GetGPUProjectionMatrix(cameraProj, false);
             var gpuView = camera.worldToCameraMatrix;
-            var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(nonJitteredCameraProj, true);
+            var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
             // Zero out the translation component.
             gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
-            var gpuVP = gpuNonJitteredProj * gpuView;
+            var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
 
             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)Screen.width, (float)Screen.height,
                 usePanini, paniniDistance, paniniCropToFit,

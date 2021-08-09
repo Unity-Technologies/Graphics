@@ -86,24 +86,42 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
         }
 
         if (weight > 0.0)
+        {
+            // Apply the fog attenuation
             ApplyFogAttenuation(sourcePosInput.positionWS, rayDirection, finalColor);
+
+            // In the case of the sky we always want to operate the clamping in hsv space (reflections and indirect diffuse)
+            finalColor = RgbToHsv(finalColor * GetCurrentExposureMultiplier());
+            finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
+            finalColor = HsvToRgb(finalColor);
+        }
     }
     else if (rayDistance < 0.0f)
     {
         finalColor = LOAD_TEXTURE2D_X(_GBufferTexture3, currentCoord).rgb;
+
+        // Expose, clamp and inverse exposure. Though depending on the signal nature we go for different clamping strategies
+        if (_RaytracingPreExposition)
+        {
+            // Convert to HSV space
+            finalColor = RgbToHsv(finalColor);
+
+            // Expose and clamp the final color
+            finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
+
+            // Convert back to HSV space
+            finalColor = HsvToRgb(finalColor);
+        }
+        else
+        {
+            finalColor = clamp(finalColor, 0.0, _RaytracingIntensityClamp);
+        }
     }
 
     // If the distance is negative, this means it is a sky pixel or an unlit material
     if (rayDistance <= 0.0f)
     {
-        // Convert to HSV space
-        finalColor = RgbToHsv(finalColor * GetCurrentExposureMultiplier());
-
-        // Expose and clamp the final color
-        finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
-
-        // Convert back to HSV space
-        _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(HsvToRgb(finalColor) * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier()), 0.0);
+        _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier()), 0.0);
         return;
     }
 
