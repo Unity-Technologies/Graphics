@@ -88,13 +88,21 @@ namespace UnityEngine.Rendering.HighDefinition
         // Function that fills the buffer with the ambient probe values
         unsafe void SetPreconvolvedAmbientLightProbe(ref ShaderVariablesClouds cb, VolumetricClouds settings)
         {
-            SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.UndoCosineRescaling(m_CloudsAmbientProbe);
-            probeSH = SphericalHarmonicMath.RescaleCoefficients(probeSH, settings.ambientLightProbeDimmer.value);
-            SphericalHarmonicMath.PackCoefficients(m_PackedCoeffsClouds, probeSH);
+            if (m_CloudsAmbientProbeIsReady)
+            {
+                SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.UndoCosineRescaling(m_CloudsAmbientProbe);
+                probeSH = SphericalHarmonicMath.RescaleCoefficients(probeSH, settings.ambientLightProbeDimmer.value);
+                SphericalHarmonicMath.PackCoefficients(m_PackedCoeffsClouds, probeSH);
 
-            // Evaluate the probe at the top and bottom (above and under the clouds)
-            cb._AmbientProbeTop = EvaluateAmbientProbe(Vector3.down);
-            cb._AmbientProbeBottom = EvaluateAmbientProbe(Vector3.up);
+                // Evaluate the probe at the top and bottom (above and under the clouds)
+                cb._AmbientProbeTop = EvaluateAmbientProbe(Vector3.down);
+                cb._AmbientProbeBottom = EvaluateAmbientProbe(Vector3.up);
+            }
+            else
+            {
+                cb._AmbientProbeTop = Vector4.zero;
+                cb._AmbientProbeBottom = Vector4.zero;
+            }
         }
 
         public void OnComputeAmbientProbeDone(AsyncGPUReadbackRequest request)

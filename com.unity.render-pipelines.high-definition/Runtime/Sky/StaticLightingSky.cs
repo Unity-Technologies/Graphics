@@ -279,8 +279,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VolumetricClouds = null;
             m_LastComputedVolumetricCloudHash = 0;
             GetVolumetricCloudVolume(m_Profile, out m_VolumetricCloudSettingsFromProfile);
-            m_VolumetricClouds = (VolumetricClouds)ScriptableObject.CreateInstance(typeof(VolumetricClouds));
-            m_LastComputedVolumetricCloudHash = InitComponentFromProfile(m_VolumetricClouds, m_VolumetricCloudSettingsFromProfile, typeof(VolumetricClouds));
+
+            if (m_VolumetricCloudSettingsFromProfile != null)
+            {
+                m_VolumetricClouds = (VolumetricClouds)ScriptableObject.CreateInstance(typeof(VolumetricClouds));
+                m_LastComputedVolumetricCloudHash = InitComponentFromProfile(m_VolumetricClouds, m_VolumetricCloudSettingsFromProfile, typeof(VolumetricClouds));
+            }
         }
 
         // All actions done in this method are because Editor won't go through setters so we need to manually check consistency of our data.
