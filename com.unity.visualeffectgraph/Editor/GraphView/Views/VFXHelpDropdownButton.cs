@@ -1,5 +1,4 @@
 using System.Linq;
-
 using UnityEditor.Experimental;
 using UnityEditor.PackageManager.UI;
 
@@ -24,7 +23,14 @@ namespace UnityEditor.VFX.UI
         readonly Button m_installSamplesButton;
         readonly Button m_installHelpersButton;
 
-        public VFXHelpDropdownButton(VFXView vfxView) : base("VFXHelpDropdownPanel", "Help", 3, EditorResources.iconsPath + "_Help.png", true)
+        public VFXHelpDropdownButton(VFXView vfxView)
+            : base(
+                "VFXHelpDropdownPanel",
+                "Help",
+                "help-button",
+                EditorResources.iconsPath + "_Help.png",
+                3,
+                true)
         {
             m_VFXView = vfxView;
 
@@ -48,7 +54,7 @@ namespace UnityEditor.VFX.UI
         }
 
         protected override Vector2 GetPopupPosition() => this.m_VFXView.ViewToScreenPosition(worldBound.position);
-        protected override Vector2 GetPopupSize() => new Vector2(200, 200);
+        protected override Vector2 GetPopupSize() => new Vector2(200, 224);
 
         protected override void OnOpenPopup()
         {
