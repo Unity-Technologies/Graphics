@@ -39,7 +39,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 'In this example, let''s override the exposure globally.
 
-          
+
 
           1.
           Right click in the <i>Hierarchy,</i> and create a <b>Volume</b> > <b>Global
@@ -55,15 +55,14 @@ MonoBehaviour:
           other volumes in the Scene.
 
 
-          4. Add an <b>Exposure</b> override
-          and set its <b>Mode</b> to <b>Fixed</b> and its <b>Fixed Exposure</b> value
+          4. Add an <b>Exposure</b> override,
+          set its <b>Mode</b> to <b>Fixed</b> and its <b>Fixed Exposure</b> value
           to 3.
 
 
           5. Head to the other rooms which receive a larger amount
           of light, and notice how much brighter they appear, almost solid white.
 
-          
 
           6.
           Using the <b>Fixed Exposure</b> slider, increase the Exposure value between
