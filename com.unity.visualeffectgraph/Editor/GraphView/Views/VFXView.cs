@@ -393,6 +393,7 @@ namespace UnityEditor.VFX.UI
                     }
                     NewControllerSet();
                     AttachToSelection();
+                    m_ComponentBoard.ResetPlayRate();
                 }
             }
         }

@@ -59,8 +59,6 @@ namespace UnityEditor.VFX
         const string kRendererFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Renderer";
         const string kPropertyFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Properties";
 
-        private readonly List<VisualEffect> selectedVisualEffects = new List<VisualEffect>();
-
         bool showGeneralCategory;
         bool showRendererCategory;
         bool showPropertyCategory;
@@ -89,28 +87,6 @@ namespace UnityEditor.VFX
         SerializedObject m_SingleSerializedObject;
         SerializedObject[] m_OtherSerializedObjects;
 
-        public VisualEffectEditor()
-        {
-            Selection.selectionChanged += OnSelectionChanged;
-        }
-
-        private void OnSelectionChanged()
-        {
-            var newSelection = Selection.gameObjects
-                .Select(x => x.GetComponent<VisualEffect>())
-                .Where(x => x != null)
-                .ToArray();
-
-            // Reset play rate for unselected visual effects
-            selectedVisualEffects
-                .Where(x => x != null)
-                .Except(newSelection)
-                .ToList()
-                .ForEach(x => x.playRate = 1f);
-            selectedVisualEffects.Clear();
-            selectedVisualEffects.AddRange(newSelection);
-        }
-
         protected void OnEnable()
         {
             m_SingleSerializedObject = targets.Length == 1 ? serializedObject : new SerializedObject(targets[0]);
@@ -136,12 +112,6 @@ namespace UnityEditor.VFX
 
         protected void OnDisable()
         {
-            foreach (var effect in targets.Cast<VisualEffect>().Where(x => x != null))
-            {
-                effect.pause = false;
-                effect.playRate = 1.0f;
-            }
-
             OnDisableWithoutResetting();
             if (s_EffectUi == this)
                 s_EffectUi = null;

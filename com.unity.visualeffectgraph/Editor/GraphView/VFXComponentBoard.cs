@@ -528,9 +528,16 @@ namespace UnityEditor.VFX.UI
             VisualEffect target = effect != null ? effect : Selection.activeGameObject?.GetComponent<VisualEffect>();
             if (target != null && m_View.controller?.graph != null && m_AttachedComponent != target)
             {
+                if (m_AttachedComponent != null)
+                {
+                    m_AttachedComponent.playRate = 1;
+                }
+
                 m_AttachedComponent = target;
                 m_Subtitle.text = m_AttachedComponent.name;
                 m_LastKnownPauseState = !m_AttachedComponent.pause;
+                m_AttachedComponent.playRate = m_LastKnownPlayRate >= 0 ? m_LastKnownPlayRate : 1;
+
                 UpdatePlayButton();
 
                 if (m_UpdateItem == null)
@@ -622,11 +629,16 @@ namespace UnityEditor.VFX.UI
             if (Math.Abs(m_LastKnownPlayRate - m_AttachedComponent.playRate) > 1e-4)
             {
                 m_LastKnownPlayRate = m_AttachedComponent.playRate;
-                float playRateValue = m_AttachedComponent.playRate * VisualEffectControl.playRateToValue;
-                m_PlayRateSlider.value = Mathf.Pow(playRateValue, 1 / VisualEffectControl.sliderPower);
-                if (m_PlayRateField != null && !m_PlayRateField.HasFocus())
-                    m_PlayRateField.value = Mathf.RoundToInt(playRateValue);
+                SetPlayrateSlider(m_AttachedComponent.playRate);
             }
+        }
+
+        void SetPlayrateSlider(float value)
+        {
+            float playRateValue = value * VisualEffectControl.playRateToValue;
+            m_PlayRateSlider.value = Mathf.Pow(playRateValue, 1 / VisualEffectControl.sliderPower);
+            if (m_PlayRateField != null && !m_PlayRateField.HasFocus())
+                m_PlayRateField.value = Mathf.RoundToInt(playRateValue);
         }
 
         void ToggleAttach()
@@ -758,6 +770,12 @@ namespace UnityEditor.VFX.UI
                     SortEventList();
                 }
             }
+        }
+
+        internal void ResetPlayRate()
+        {
+            m_LastKnownPlayRate = -1f;
+            SetPlayrateSlider(1f);
         }
 
         void SortEventList()
