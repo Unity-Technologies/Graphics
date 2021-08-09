@@ -78,7 +78,7 @@ This example code uses a `ClampedFloatParameter` that you can clamp to a range. 
 
 HDRP calls the `IsActive()`function before the `Render` function to process the effect. If this function returns `false`, HDRP does not process the effect. It is good practice to check every property configuration where the effect either breaks or does nothing. In this example, `IsActive()` makes sure that HDRP can find the `GrayScale.shader` and that the intensity is greater than 0.
 
-The `injectionPoint` override allows you to specify where in the pipeline HDRP executes the effect. You can choose from the following injection points:
+The **injectionPoint** override allows you to specify where in the pipeline HDRP executes the effect. There are currently five injection points:
 
 * **AfterOpaqueAndSky**
 
@@ -86,7 +86,9 @@ The `injectionPoint` override allows you to specify where in the pipeline HDRP e
 
 * **BeforePostProcess**
 
-* **AfterPostProcess**
+* **AfterPostProcessBlurs.**
+
+* **AfterPostProcess.**
 
 The following diagram gives more information on where HDRP injects custom post-process passes:
 ![](Images/HDRP-frame-graph-diagram.png)
@@ -226,13 +228,15 @@ HDRP allows you to customize the order of your custom post-processing effect at 
 
 HDRP processes effects from the top of the list to the bottom and the order of execution for each list is:
 
-1. Before Transparent.
+1. After Opaque And Sky.
 
-2. Before TAA
+2. Before TAA.
 
 3. Before Post Process.
 
-4. After Post Process.
+4. After Post Process Blurs.
+
+5. After Post Process.
 
 <a name="CustomEditor"></a>
 
@@ -285,6 +289,20 @@ sealed class GrayScaleEditor : VolumeComponentEditor
 ```
 This custom editor is not really useful as it produces the same result as the editor that Unity creates. Custom Volume component editors also support an [additonal properties toggle](More-Options.md). To add it, you have to set hasAdvancedMode override to true. Then, inside the OnInspectorGUI, you can use the isInAdvancedMode boolean to display more properties.
 
+## Dynamic resolution and DLSS support
+
+If you want to use DLSS and/or dynamic resolution on your pass, and you need to interpolate or sample UVs from color / normal or velocity, you must use the following functions to calculate the correct UVs:
+
+```glsl
+#include "Packages/com.unity.render-pipelines.high-dynamic/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+//...
+
+float2 UVs = ... //the uvs coming from the interpolator
+float2 correctUvs = ClampAndScaleUVForBilinearPostProcessTexture(UV); // use these uvs to sample color / normal and velocity
+
+```
+
 ## TroubleShooting
 
 If your effect does not display correctly:
@@ -296,6 +314,8 @@ If your effect does not display correctly:
 * In the Volume that contains your post process, make sure that it has a high enough priority and that your Camera is inside its bounds.
 
 * Check that your shader doesn't contain any **clip()** instructions, that the blend mode is set to Off and the output alpha is always 1.
+
+* If your effect does not work with dynamic resolution, use the _PostProcessScreenSize constant to make it fit the size of the screen correctly. You only need to do this when you use dynamic resolution scaling (DRS), and you need normal / velocity and color.
 
 ## Known issues and Limitations
 
