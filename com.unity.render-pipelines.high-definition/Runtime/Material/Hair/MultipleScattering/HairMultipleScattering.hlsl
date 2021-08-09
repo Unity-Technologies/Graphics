@@ -1,12 +1,14 @@
 // Inform the lightloop and evaluation to perform the necesarry tracing work and invoke the hair dual scattering implementation.
 #define LIGHT_EVALUATES_MULTIPLE_SCATTERING
 
-#define STRAND_DIAMETER_MILLIMETERS 0.02
+#define STRAND_DIAMETER_MILLIMETERS 0.5
 #define STRAND_DIAMETER_METERS      (STRAND_DIAMETER_MILLIMETERS * METERS_PER_MILLIMETER)
 
-#define DIRECT_ILLUMINATION_THRESHOLD 0.25
+#define DIRECT_ILLUMINATION_THRESHOLD 1
 
 TEXTURE3D(_PreIntegratedHairFiberScattering);
+
+TEXTURE2D(_PreIntegratedAverageHairFiberScattering);
 
 #define FRONT 0
 #define BACK  1
@@ -17,6 +19,9 @@ struct HairScatteringData
     float3 averageScattering [2];
     float3 averageVariance   [2];
     float3 averageShift      [2];
+
+    // Average azimuthal scattering.
+    float3x3 NG;
 };
 
 float3 ScatteringSpreadGaussian(float3 x, float3 v)
@@ -26,7 +31,7 @@ float3 ScatteringSpreadGaussian(float3 x, float3 v)
 
 // TODO: Currently the dual scattering approximation is assuming to be used for hair fibers, but it can be used for other
 // fiber materials (ie Fabric). It would be good to eventually generalize this and move it out of hair material evaluation.
-HairScatteringData GetHairScatteringData(BSDFData bsdfData, float sinThetaI)
+HairScatteringData GetHairScatteringData(BSDFData bsdfData, float3 alpha, float3 beta, float sinThetaI)
 {
     HairScatteringData scatteringData;
     ZERO_INITIALIZE(HairScatteringData, scatteringData);
@@ -44,18 +49,29 @@ HairScatteringData GetHairScatteringData(BSDFData bsdfData, float sinThetaI)
         float2 G = SAMPLE_TEXTURE3D_LOD(_PreIntegratedHairFiberScattering, s_linear_clamp_sampler, float3(X, Y, Z.g), 0).xy;
         float2 B = SAMPLE_TEXTURE3D_LOD(_PreIntegratedHairFiberScattering, s_linear_clamp_sampler, float3(X, Y, Z.b), 0).xy;
 
-        scatteringData.averageScattering[FRONT] = abs(float3(R.x, G.x, B.x));
-        scatteringData.averageScattering[BACK]  = abs(float3(R.y, G.y, B.y));
+        scatteringData.averageScattering[FRONT] = float3(R.x, G.x, B.x);
+        scatteringData.averageScattering[BACK]  = float3(R.y, G.y, B.y);
+    }
+
+    // 2) Sample the average azimuthal scattering
+    {
+        // Prepare the sampling coordiante
+        float  X = abs(sinThetaI);
+        float3 Y = clamp((bsdfData.diffuseColor), 0.01, 0.99); // Need to clamp the absorption a bit due to artifacts at these boundaries.
+
+        // Sample the LUT for each color channel (wavelength).
+        // Note that we parameterize by diffuse color, not absorption, to fit in [0, 1].
+        float3 R = SAMPLE_TEXTURE2D_LOD(_PreIntegratedAverageHairFiberScattering, s_linear_clamp_sampler, float2(X, Y.r), 0).xyz;
+        float3 G = SAMPLE_TEXTURE2D_LOD(_PreIntegratedAverageHairFiberScattering, s_linear_clamp_sampler, float2(X, Y.g), 0).xyz;
+        float3 B = SAMPLE_TEXTURE2D_LOD(_PreIntegratedAverageHairFiberScattering, s_linear_clamp_sampler, float2(X, Y.b), 0).xyz;
+
+        scatteringData.NG = float3x3( float3(R.x, G.x, B.x),
+                                      float3(R.y, G.y, B.y),
+                                      float3(R.z, G.z, B.z) );
     }
 
     // 2) Compute the average scattering variance
     {
-        const float3 beta = float3(
-            bsdfData.roughnessR,
-            bsdfData.roughnessTT,
-            bsdfData.roughnessTRT
-        );
-
         // Here we should be deriving the average variance with the per-component (R, TT, TRT)
         // BSDF average in the hemisphere, and not the BSDF average per-absorption channel.
 
@@ -74,53 +90,30 @@ HairScatteringData GetHairScatteringData(BSDFData bsdfData, float sinThetaI)
 
     // 3) Compute the average scattering shift
     {
-        const float3 shift = float3(
-            bsdfData.cuticleAngleR,
-            bsdfData.cuticleAngleTT,
-            bsdfData.cuticleAngleTRT
-        );
-
         // Here we should be deriving the average shift with the per-component (R, TT, TRT)
         // BSDF average in the hemisphere, and not the BSDF average per-absorption channel.
 
         // Front scattering (Disney Eq. 13)
         {
             const float3 af = scatteringData.averageScattering[FRONT];
-            scatteringData.averageShift[FRONT] = dot(shift, af) / (af.r + af.g + af.b);
+            scatteringData.averageShift[FRONT] = dot(alpha, af) / (af.r + af.g + af.b);
         }
 
         // Back scattering (Disney Eq. 14)
         {
             const float3 ab = scatteringData.averageScattering[BACK];
-            scatteringData.averageShift[BACK] = dot(shift, ab) / (ab.r + ab.g + ab.b);
+            scatteringData.averageShift[BACK] = dot(alpha, ab) / (ab.r + ab.g + ab.b);
         }
     }
 
     return scatteringData;
 }
 
-void EvaluateMultipleScattering_Material(float3 V, float3 L, MultipleScatteringData lightScatteringData, inout BSDFData bsdfData)
+// void EvaluateMultipleScattering_Material(float3 V, float3 L, MultipleScatteringData lightScatteringData, inout BSDFData bsdfData)
+float3 EvaluateMultipleScattering(float3 Fs, BSDFData bsdfData, float3 alpha, float3 beta, float thetaH, float cosThetaD, float sinThetaI)
 {
-    float3 T = bsdfData.hairStrandDirectionWS;
-
-    // The dot product of an incident direction with the strand direction gives the sine
-    // of the angle between the incident direction and the normal plane.
-    float sinThetaI = dot(T, L);
-
-    // TEMP: Extra angle derivation, this is redundant work as we already do this for the same light on the BSDF evaluation.
-    float thetaH, thetaD;
-    {
-        float sinThetaR = dot(T, V);
-
-        float thetaI = FastASin(sinThetaI);
-        float thetaR = FastASin(sinThetaR);
-
-        thetaH = (thetaI + thetaR) * 0.5;
-        thetaD = (thetaR - thetaI) * 0.5;
-    }
-
     // Fetch the various preintegrated data.
-    HairScatteringData hairScatteringData = GetHairScatteringData(bsdfData, sinThetaI);
+    HairScatteringData hairScatteringData = GetHairScatteringData(bsdfData, alpha, beta, sinThetaI);
 
     // Solve for multiple scattering in a volume of hair fibers with concepts from:
     // "Dual Scattering Approximation for Fast Multiple Scattering in Hair" (Zinke et. al)
@@ -128,15 +121,16 @@ void EvaluateMultipleScattering_Material(float3 V, float3 L, MultipleScatteringD
     // "A BSSRDF Model for Efficient Rendering of Fur with Global Illumination" (Yan et. al)
 
     // Pre-define some shorthand for the symbols.
-    const float  n   = lightScatteringData.fiberCount;
-    const float3 af  = hairScatteringData.averageScattering[FRONT];
-    const float3 ab  = hairScatteringData.averageScattering[BACK];
-    const float3 sf  = hairScatteringData.averageShift[FRONT];
-    const float3 sb  = hairScatteringData.averageShift[BACK];
-    const float3 Bf  = hairScatteringData.averageVariance[FRONT];
-    const float3 Bb  = hairScatteringData.averageVariance[BACK];
-    const float3 Bf2 = Sq(Bf);
-    const float3 Bb2 = Sq(Bb);
+    const float  n    = bsdfData.fiberCount;
+    const float3 af   = hairScatteringData.averageScattering[FRONT];
+    const float3 ab   = hairScatteringData.averageScattering[BACK];
+    const float3 sf   = hairScatteringData.averageShift[FRONT];
+    const float3 sb   = hairScatteringData.averageShift[BACK];
+    const float3 Bf   = hairScatteringData.averageVariance[FRONT];
+    const float3 Bb   = hairScatteringData.averageVariance[BACK];
+    const float3 Bf2  = Sq(Bf);
+    const float3 Bb2  = Sq(Bb);
+    const float3x3 NG = hairScatteringData.NG;
 
     // Global scattering.
     // -----------------------------------------------------------------------------------
@@ -144,21 +138,17 @@ void EvaluateMultipleScattering_Material(float3 V, float3 L, MultipleScatteringD
     // can be approximated with this constant to match most path traced references.
     const float df = 0.7;
 
-    if (n > DIRECT_ILLUMINATION_THRESHOLD)
-    {
-        // Approximate the transmittance by assuming that all hair strands between the shading point and the light are
-        // oriented the same. This is suitable for long, straighter hair ( Eq. 6 Disney ).
-        bsdfData.forwardTransmittance = df * pow(af, n);
+    // Approximate the transmittance by assuming that all hair strands between the shading point and the light are
+    // oriented the same. This is suitable for long, straighter hair ( Eq. 6 Disney ).
+    float3 Tf = df * pow(af, n);
 
-        // Approximate the accumulated variance, by assuming strands all have the same average roughness and inclination. ( Eq. 7 Disney )
-        bsdfData.forwardVariance = Bf2 * n;
-    }
-    else
-    {
-        // If directly illuminated (no intersecting strands).
-        bsdfData.forwardTransmittance = 1;
-        bsdfData.forwardVariance      = 0;
-    }
+    // Approximate the accumulated variance, by assuming strands all have the same average roughness and inclination. ( Eq. 7 Disney )
+    float3 sigmaF = Bf2 * n;
+
+    // Blend the forward transmittance and variance toward their directly lit values. (Better than binary test)
+    const float directFraction = 1 - saturate(n);
+    Tf     = lerp(Tf,     1, directFraction);
+    sigmaF = lerp(sigmaF, 0, directFraction);
 
     // Local scattering.
     // ------------------------------------------------------------------------------------
@@ -194,7 +184,7 @@ void EvaluateMultipleScattering_Material(float3 V, float3 L, MultipleScatteringD
     float3 A3 = (ab3 * af2) / afI3;
     float3 Ab = A1 + A3;
 
-    // Computes the average longitudinal shift ( Eq. 16 ).
+    // Computes the average longitudinal shift ( Eq. 16  ).
     float3 shiftB = 1 - ((2 * ab2) / afI2);
     float3 shiftF = ((2 * afI2) + (4 * af2 * ab2)) / afI3;
     float3 deltaB = (sb * shiftB) + (sf * shiftF);
@@ -206,12 +196,20 @@ void EvaluateMultipleScattering_Material(float3 V, float3 L, MultipleScatteringD
     sigmaB  = Sq(sigmaB);
 
     // Computes the average back scattering spread ( Eq. 15 ).
-    float3 Sb = ScatteringSpreadGaussian(thetaH - deltaB, sigmaB + bsdfData.forwardVariance);
+    float3 Sb = ScatteringSpreadGaussian(thetaH - deltaB, sigmaB + sigmaF);
 
     // Resolve the overall local scattering term ( Eq. 9 & 10 ).
-    bsdfData.localScattering  = 2 * Ab * Sb;
-    bsdfData.localScattering /= cos(thetaD);
-    bsdfData.localScattering *= db;
+    float3 fsBack  = 2 * Ab * Sb;
+           fsBack /= cosThetaD;
+           fsBack *= db;
 
-    bsdfData.directFraction = n < DIRECT_ILLUMINATION_THRESHOLD ? 1 : 0;
+    // Resolve the approximated multiple scattering.
+    // ------------------------------------------------------------------------------------
+    const float3 MG = D_LongitudinalScatteringGaussian(thetaH - alpha, beta + sigmaF);
+    const float3 fsScatter = mul(MG, NG);
+
+    const float3 Fdirect   = directFraction * (Fs + fsBack);
+    const float3 Fscatter  = (Tf - directFraction) * df * (fsScatter + PI * fsBack);
+
+    return Fdirect + Fscatter;
 }

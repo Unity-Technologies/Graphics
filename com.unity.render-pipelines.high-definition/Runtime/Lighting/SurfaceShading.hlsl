@@ -93,23 +93,20 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
 #endif
         {
 #ifdef LIGHT_EVALUATES_MULTIPLE_SCATTERING
-            MultipleScatteringData scatteringData;
+            MultipleScatteringData scatteringData = EvaluateMultipleScattering_Light(posInput, L);
 
             if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
             {
-                // If the sun light shadows are already evaluated, then scattering data is too.
-                scatteringData = lightLoopContext.scatteringData;
-            }
-            else
-            {
-                scatteringData = EvaluateMultipleScattering_Light(posInput, L);
+                // Due to self-occlusion from shadows within the scattering volume, we call this to modify the sampled position for shadows.
+                EvaluateMultipleScattering_ShadowProxy(scatteringData, posInput.positionWS);
+
+                lightLoopContext.shadowValue = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext,
+                                                                               posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
+                                                                               light.shadowIndex, L);
             }
 
-            // Due to self-occlusion from shadows within the scattering volume, we call this to modify the sampled position for shadows.
-            EvaluateMultipleScattering_ShadowProxy(scatteringData, posInput.positionWS);
-
-            // Fill the BSDF data with the approximated multiple scattering terms for this light.
-            EvaluateMultipleScattering_Material(V, L, scatteringData, bsdfData);
+            // Propagate the fiber count to the BSDF.
+            bsdfData.fiberCount = scatteringData.fiberCount;
 #endif
 
             SHADOW_TYPE shadow = EvaluateShadow_Directional(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData));
@@ -201,8 +198,8 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
             // Due to self-occlusion from shadows within the a volume, we call this to modify the sampled position for shadows.
             EvaluateMultipleScattering_ShadowProxy(scatteringData, posInput.positionWS);
 
-            // Fill the BSDF data with the approximated multiple scattering terms for this light.
-            EvaluateMultipleScattering_Material(V, L, scatteringData, bsdfData);
+            // Propagate the fiber count to the BSDF.
+            bsdfData.fiberCount = scatteringData.fiberCount;
 #endif
             // This code works for both surface reflection and thin object transmission.
             SHADOW_TYPE shadow = EvaluateShadow_Punctual(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData), L, distances);

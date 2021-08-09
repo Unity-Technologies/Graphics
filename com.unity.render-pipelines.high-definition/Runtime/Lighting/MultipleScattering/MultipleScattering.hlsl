@@ -64,7 +64,7 @@ MultipleScatteringData EvaluateMultipleScattering_Light(PositionInputs posInputs
     float3 shadowProxyPositionWS = VolumeUVWToWorld(shadowProxyCoord);
     data.shadowProxyPositionRWS = GetCameraRelativePositionWS(shadowProxyPositionWS);
 #else
-    // TODO: More optimal routine (ie Deep Opacity Maps).
+    // TODO: Optimized routine (ie Deep Opacity Maps).
 #endif
 
     return data;

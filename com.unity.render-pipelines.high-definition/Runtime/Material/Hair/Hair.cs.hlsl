@@ -70,10 +70,7 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TT (1481)
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TRT (1482)
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_RADIAL (1483)
-#define DEBUGVIEW_HAIR_BSDFDATA_DIRECT_FRACTION (1484)
-#define DEBUGVIEW_HAIR_BSDFDATA_FORWARD_TRANSMITTANCE (1485)
-#define DEBUGVIEW_HAIR_BSDFDATA_FORWARD_VARIANCE (1486)
-#define DEBUGVIEW_HAIR_BSDFDATA_LOCAL_SCATTERING (1487)
+#define DEBUGVIEW_HAIR_BSDFDATA_FIBER_COUNT (1484)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Hair+SurfaceData
 // PackingRules = Exact
@@ -134,10 +131,7 @@ struct BSDFData
     float roughnessTT;
     float roughnessTRT;
     float roughnessRadial;
-    float directFraction;
-    float3 forwardTransmittance;
-    float3 forwardVariance;
-    float3 localScattering;
+    float fiberCount;
 };
 
 //
@@ -320,17 +314,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_RADIAL:
             result = bsdfdata.roughnessRadial.xxx;
             break;
-        case DEBUGVIEW_HAIR_BSDFDATA_DIRECT_FRACTION:
-            result = bsdfdata.directFraction.xxx;
-            break;
-        case DEBUGVIEW_HAIR_BSDFDATA_FORWARD_TRANSMITTANCE:
-            result = bsdfdata.forwardTransmittance;
-            break;
-        case DEBUGVIEW_HAIR_BSDFDATA_FORWARD_VARIANCE:
-            result = bsdfdata.forwardVariance;
-            break;
-        case DEBUGVIEW_HAIR_BSDFDATA_LOCAL_SCATTERING:
-            result = bsdfdata.localScattering;
+        case DEBUGVIEW_HAIR_BSDFDATA_FIBER_COUNT:
+            result = bsdfdata.fiberCount.xxx;
             break;
     }
 }
