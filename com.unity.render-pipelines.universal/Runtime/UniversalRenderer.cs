@@ -249,7 +249,6 @@ namespace UnityEngine.Rendering.Universal
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorAttachment");
-            m_OpaqueColor = RTHandles.Alloc(new RenderTargetIdentifier(Shader.PropertyToID("_CameraOpaqueTexture"), 0, CubemapFace.Unknown, -1), "_CameraOpaqueTexture");
 
             supportedRenderingFeatures = new RenderingFeatures()
             {
@@ -752,9 +751,30 @@ namespace UnityEngine.Rendering.Universal
 
             if (copyColorPass)
             {
-                // TODO: Downsampling method should be store in the renderer instead of in the asset.
+                // TODO: Downsampling method should be stored in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
                 Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
+
+                var descriptor = cameraTargetDescriptor;
+                descriptor.msaaSamples = 1;
+                descriptor.depthBufferBits = 0;
+                if (downsamplingMethod == Downsampling._2xBilinear)
+                {
+                    descriptor.width /= 2;
+                    descriptor.height /= 2;
+                }
+                else if (downsamplingMethod == Downsampling._4xBox || downsamplingMethod == Downsampling._4xBilinear)
+                {
+                    descriptor.width /= 4;
+                    descriptor.height /= 4;
+                }
+
+                if (RenderingUtils.RTHandleNeedsReAlloc(m_OpaqueColor, descriptor, false))
+                {
+                    m_OpaqueColor?.Release();
+                    m_OpaqueColor = RTHandles.Alloc(descriptor, filterMode: downsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear, wrapMode: TextureWrapMode.Clamp, name: "_CameraOpaqueTexture");
+                }
+
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment, m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }
