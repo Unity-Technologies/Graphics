@@ -7,8 +7,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 {
     public class AddRedirectNodeCommand : UndoableCommand
     {
-        public IEdgeModel Edge;
-        public Vector2 Position;
+        static readonly Vector2 k_HalfRedirectSize = new Vector2(49, 25) / 2;
+
+        public readonly IEdgeModel Edge;
+        public readonly Vector2 Position;
 
         public AddRedirectNodeCommand(IEdgeModel edge, Vector2 position)
         {
@@ -27,14 +29,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             graphModel.DeleteEdge(command.Edge);
             updater.MarkDeleted(command.Edge);
 
-            var redirectNode = graphModel.CreateNode<RedirectNodeModel>(position: command.Position);
-            redirectNode.UpdateTypeFrom(fromPort);
-            updater.MarkNew(redirectNode);
+            var nodeModel = graphModel.CreateNode<RedirectNodeModel>(position: command.Position - k_HalfRedirectSize);
+            nodeModel.UpdateTypeFrom(fromPort);
+            updater.MarkNew(nodeModel);
 
             updater.MarkNew(new[]
             {
-                graphModel.CreateEdge(redirectNode.InputPort, fromPort),
-                graphModel.CreateEdge(toPort, redirectNode.OutputPort)
+                graphModel.CreateEdge(nodeModel.InputPort, fromPort),
+                graphModel.CreateEdge(toPort, nodeModel.OutputPort)
             });
         }
     }
