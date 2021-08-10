@@ -816,7 +816,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //MSAA only supported in forward and when not using ray tracing.
             if (sanitizedFrameSettings.litShaderMode != LitShaderMode.Forward || pipelineSupportsRayTracing)
                 sanitizedFrameSettings.msaaMode = MSAAMode.None;
-            bool msaa = (sanitizedFrameSettings.msaaMode == MSAAMode.FromHDRPAsset && renderPipelineSettings.msaaSampleCount != MSAASamples.None) || sanitizedFrameSettings.msaaMode != MSAAMode.None;
+            bool msaa = sanitizedFrameSettings.msaaMode == MSAAMode.FromHDRPAsset ? renderPipelineSettings.msaaSampleCount != MSAASamples.None : sanitizedFrameSettings.msaaMode != MSAAMode.None;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AlphaToMask] &= msaa;
 
             // Screen space shadows are not compatible with MSAA
