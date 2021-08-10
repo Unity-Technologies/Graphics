@@ -43,5 +43,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             return RegistryInstance;
         }
 
+        public override IGraphProcessor CreateGraphProcessor()
+        {
+            return new ShaderGraphProcessor();
+        }
     }
 }
