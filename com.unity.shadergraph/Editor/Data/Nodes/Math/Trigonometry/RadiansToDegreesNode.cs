@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
         public RadiansToDegreesNode()
         {
             name = "Radians To Degrees";
+            synonyms = new string[] { "radtodeg" };
         }
 
         protected override MethodInfo GetFunctionToConvert()
