@@ -13,7 +13,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty opaqueDownsamplingProp { get; }
         public SerializedProperty supportsTerrainHolesProp { get; }
         public SerializedProperty storeActionsOptimizationProperty { get; }
-        public SerializedProperty copyColorAndDepthModeProperty { get; }
 
         public SerializedProperty hdr { get; }
         public SerializedProperty msaa { get; }
@@ -123,7 +122,6 @@ namespace UnityEditor.Rendering.Universal
             volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
 
             storeActionsOptimizationProperty = serializedObject.FindProperty("m_StoreActionsOptimization");
-            copyColorAndDepthModeProperty = serializedObject.FindProperty("m_CopyColorAndDepthMode");
 
             colorGradingMode = serializedObject.FindProperty("m_ColorGradingMode");
             colorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");

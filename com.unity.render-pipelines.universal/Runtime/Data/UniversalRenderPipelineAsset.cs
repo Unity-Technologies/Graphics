@@ -127,13 +127,14 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// TODO
     /// </summary>
-    public enum CopyColorAndDepthMode
+    public enum CopyDepthMode
     {
+        /// <summary>TODO</summary>
         None,
         /// <summary>TODO</summary>
-        AfterOpaque,
+        AfterOpaques,
         /// <summary>TODO</summary>
-        AfterTransparent
+        AfterTransparents
     }
 
     /// <summary>
@@ -169,7 +170,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal int m_DefaultRendererIndex = 0;
 
         // General settings
-        [SerializeField] CopyColorAndDepthMode m_RequireDepthTexture = CopyColorAndDepthMode.None;
+        [SerializeField] CopyDepthMode m_RequireDepthTexture = CopyDepthMode.None;
         [SerializeField] bool m_RequireOpaqueTexture = false;
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] bool m_SupportsTerrainHoles = true;
@@ -221,7 +222,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsLightLayers = false;
         [SerializeField][Obsolete] PipelineDebugLevel m_DebugLevel;
         [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
-        [SerializeField] CopyColorAndDepthMode m_CopyColorAndDepthMode = CopyColorAndDepthMode.AfterOpaque;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
@@ -614,7 +614,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public CopyColorAndDepthMode copyDepthMode
+        public CopyDepthMode copyDepthMode
         {
             get { return m_RequireDepthTexture; }
             set { m_RequireDepthTexture = value; }
@@ -622,8 +622,7 @@ namespace UnityEngine.Rendering.Universal
 
         public bool supportsCameraDepthTexture
         {
-            get { return m_RequireDepthTexture != CopyColorAndDepthMode.None; }
-            //set { m_RequireDepthTexture = value ? CopyColorAndDepthMode.AfterOpaque : CopyColorAndDepthMode.None; }
+            get { return m_RequireDepthTexture != CopyDepthMode.None; }
         }
 
         public bool supportsCameraOpaqueTexture
@@ -650,16 +649,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_StoreActionsOptimization; }
             set { m_StoreActionsOptimization = value; }
-        }
-
-        /// <summary>
-        /// TODO
-        /// </summary>
-        /// <returns>TODO</returns>
-        public CopyColorAndDepthMode copyColorAndDepthMode
-        {
-            get { return m_CopyColorAndDepthMode; }
-            set { m_CopyColorAndDepthMode = value; }
         }
 
         public bool supportsHDR

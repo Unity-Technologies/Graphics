@@ -237,14 +237,13 @@ namespace UnityEngine.Rendering.Universal
             // Always create this pass even in deferred because we use it for wireframe rendering in the Editor or offscreen depth texture rendering.
             m_RenderOpaqueForwardPass = new DrawObjectsPass(URPProfileId.DrawOpaqueObjects, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference);
 
-            bool copyColorAfterTransparents = UniversalRenderPipeline.asset.copyColorAndDepthMode == CopyColorAndDepthMode.AfterTransparent;
-            bool copyDepthAfterTransparents = UniversalRenderPipeline.asset.copyDepthMode == CopyColorAndDepthMode.AfterTransparent;
+            bool copyDepthAfterTransparents = UniversalRenderPipeline.asset.copyDepthMode == CopyDepthMode.AfterTransparents;
 
             m_CopyDepthPass = new CopyDepthPass(copyDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             // TODO: remove CoyDepthPass RenderPass checks when depth resolve support is added to RenderPass (URP-1009)
             m_CopyDepthPass.m_UseRenderPassEnabled = useRenderPassEnabled;
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
-            m_CopyColorPass = new CopyColorPass(copyColorAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
+            m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
 #endif
@@ -466,7 +465,7 @@ namespace UnityEngine.Rendering.Universal
             // Aim to have the most optimized render pass event for Depth Copy (The aim is to minimize the number of render passes)
             if (requiresDepthTexture)
             {
-                bool copyDepthAfterTransparents = UniversalRenderPipeline.asset.copyDepthMode == CopyColorAndDepthMode.AfterTransparent;
+                bool copyDepthAfterTransparents = UniversalRenderPipeline.asset.copyDepthMode == CopyDepthMode.AfterTransparents;
 
                 RenderPassEvent copyDepthPassEvent = copyDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
                 // RenderPassInputs's requiresDepthTexture is configured through ScriptableRenderPass's ConfigureInput function

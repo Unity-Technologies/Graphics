@@ -130,8 +130,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(serialized.opaqueDownsamplingProp, Styles.opaqueDownsamplingText);
                 EditorGUI.EndDisabledGroup();
                 EditorGUILayout.PropertyField(serialized.supportsTerrainHolesProp, Styles.supportsTerrainHolesText);
-
-                EditorGUILayout.PropertyField(serialized.copyColorAndDepthModeProperty, Styles.copyColorAndDepthModeText);
             }
         }
 
