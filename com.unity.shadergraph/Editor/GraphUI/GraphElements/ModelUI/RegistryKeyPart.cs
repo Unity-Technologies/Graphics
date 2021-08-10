@@ -1,4 +1,5 @@
 ﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
@@ -18,8 +19,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
 
         protected override void UpdatePartFromModel()
         {
-            if (m_Model is not RegistryNodeModel registryNodeModel) return;
-            m_Root.text = $"Registry Key: {registryNodeModel.registryKey}";
+            if (m_Model is not GraphDataNodeModel graphDataNode) return;
+            m_Root.text = $"Registry Key: {graphDataNode.registryKey}";
         }
 
         Label m_Root;
