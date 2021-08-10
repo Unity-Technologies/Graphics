@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added common include file for meta pass functionality (case 1211436)
 - Added OverridablePropertyScope (for VolumeComponentEditor child class only) to handle the Additional Property, the override checkbox and disable display and decorator attributes in one scope.
 - Added IndentLevelScope (for VolumeComponentEditor child class only) to handle indentation of the field and the checkbox.
+- Added an option to change the visibilty of the Volumes Gizmos (Solid, Wireframe, Everything), available at Preferences > Core Render Pipeline
 - Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
 - Added UNITY_PREV_MATRIX_M and UNITY_PREV_MATRIX_I_M shader macros to support instanced motion vector rendering
 
@@ -97,6 +98,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Serialize the Probe Volume asset as binary to improve footprint on disk and loading speed.
 - LensFlare Element editor now have Thumbnail preview
 - Improved IntegrateLDCharlie() to use uniform stratified sampling for faster convergence towards the ground truth
+- DynamicResolutionHandler.GetScaledSize function now clamps, and never allows to return a size greater than its input.
 
 ## [11.0.0] - 2020-10-21
 
