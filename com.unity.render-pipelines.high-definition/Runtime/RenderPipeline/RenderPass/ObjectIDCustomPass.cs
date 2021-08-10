@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// If a scene uses dynamic objects or procedural object placement, then the user script should call
         /// this function to assign Object IDs to the new objects.
         /// </summary>
-        public void AssignObjectIDs()
+        public virtual void AssignObjectIDs()
         {
             var rendererList = Resources.FindObjectsOfTypeAll(typeof(Renderer));
 

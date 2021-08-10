@@ -159,12 +159,54 @@ However, not all materials are supported by every injection point in a draw rend
 
 When Unity renders a material that is not supported by the current injection point, it results in an undefined behavior. For example, rendering GameObjects with lit shaders in the **After Opaque Depth And Normal** injection point produces unexpected results.
 
-<a name="Custom-Renderers-Pass-shader"></a>
-
 ## Object ID Custom Pass
-HDRP includes a specialization of a Draw Renderers Custom Pass that draws the objects in the scene with a unique color (Object ID). This pass has the same parameters as the Draw Renderers Custom Pass except the material override option, which is hidden because this pass uses a built-in material that draws the Object ID colors. The Object IDs are generated before the first execution of the pass occurs. If a user script generates new objects procedurally, then the method AssignObjectIDs should be called manually, to generate new IDs.
+The **Object ID Custom Pass** draws GameObjects in the scene with a unique color (`Object ID`).
 
-If some customization is required to the way Object IDs are generated, then we recommend writing a new Draw Renderers Custom Pass with a Custom Renderers Pass shader that provides the required functionality. You can find more details regarding Custom Renderers Pass shaders in the next section.
+This pass has the same parameters as the [Draw Renderers Custom Pass](#Draw-Renderers-Custom-Pass) except the Material property is hidden because this pass uses a built-in Material to draw the Object ID colors.
+
+HDRP generates Object IDs before executing this custom pass. If you use a script to generate new GameObjects procedurally, call `AssignObjectIDs` to generate new Object IDs.
+
+The default `AssignObjectIDs` implementation assigns the Object ID colors incrementaly, as you see bellow:
+```c#
+public virtual void AssignObjectIDs()
+{
+    var rendererList = Resources.FindObjectsOfTypeAll(typeof(Renderer));
+
+    int index = 0;
+    foreach (Renderer renderer in rendererList)
+    {
+        MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+        float hue = (float)index / rendererList.Length;
+        propertyBlock.SetColor("ObjectColor", Color.HSVToRGB(hue, 0.7f, 1.0f));
+        renderer.SetPropertyBlock(propertyBlock);
+        index++;
+    }
+}
+```
+
+To customize the way Unity generates Object IDs, override the `AssignObjectIDs` method, as you see in the next example, which assignes Object ID colors randomly:
+```c#
+class RandomObjectIDs : ObjectIDCustomPass
+{
+    public override void AssignObjectIDs()
+    {
+        var rendererList = Resources.FindObjectsOfTypeAll(typeof(Renderer));
+        System.Random rand = new System.Random();
+
+        int index = 0;
+        foreach (Renderer renderer in rendererList)
+        {
+            MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+            float hue = (float)rand.NextDouble();
+            propertyBlock.SetColor("ObjectColor", Color.HSVToRGB(hue, 0.7f, 1.0f));
+            renderer.SetPropertyBlock(propertyBlock);
+            index++;
+        }
+    }
+}
+```
+
+<a name="Custom-Renderers-Pass-shader"></a>
 
 ## Custom Renderers Pass shader
 
