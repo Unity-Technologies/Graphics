@@ -48,6 +48,7 @@ namespace UnityEditor.Rendering.Universal
         RenderPassEnabled = (1 << 26),
         MainLightShadowsCascade = (1 << 27),
         DrawProcedural = (1 << 28),
+        ScreenSpaceOcclusionAfterOpaque = (1 << 29),
     }
 
     [Flags]
@@ -140,8 +141,6 @@ namespace UnityEditor.Rendering.Universal
         Shader m_InternalFlare = Shader.Find("Hidden/Internal-Flare");
         Shader m_InternalHalo = Shader.Find("Hidden/Internal-Halo");
         Shader m_InternalMotionVectors = Shader.Find("Hidden/Internal-MotionVectors");
-        Shader m_BlitFromTex2DToTexArraySlice = Shader.Find("Hidden/VR/BlitFromTex2DToTexArraySlice");
-        Shader BlitTexArraySlice = Shader.Find("Hidden/VR/BlitTexArraySlice");
         Shader StencilDeferred = Shader.Find("Hidden/Universal Render Pipeline/StencilDeferred");
 
         int m_TotalVariantsInputCount;
@@ -434,8 +433,17 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             // Screen Space Occlusion
-            if (stripTool.StripMultiCompile(m_ScreenSpaceOcclusion, ShaderFeatures.ScreenSpaceOcclusion))
-                return true;
+            if (IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceOcclusionAfterOpaque))
+            {
+                // SSAO after opaque setting requires off variants
+                if (stripTool.StripMultiCompileKeepOffVariant(m_ScreenSpaceOcclusion, ShaderFeatures.ScreenSpaceOcclusion))
+                    return true;
+            }
+            else
+            {
+                if (stripTool.StripMultiCompile(m_ScreenSpaceOcclusion, ShaderFeatures.ScreenSpaceOcclusion))
+                    return true;
+            }
 
             // Decal DBuffer
             if (stripTool.StripMultiCompile(
@@ -588,12 +596,6 @@ namespace UnityEditor.Rendering.Universal
             if (shader == m_InternalHalo)
                 return true;
             if (shader == m_InternalMotionVectors)
-                return true;
-
-            // Strip builtin pipeline vr shaders
-            if (shader == m_BlitFromTex2DToTexArraySlice)
-                return true;
-            if (shader == BlitTexArraySlice)
                 return true;
 
             if (!IsFeatureEnabled(features, ShaderFeatures.DeferredShading))
@@ -952,6 +954,9 @@ namespace UnityEditor.Rendering.Universal
                         // Check for Screen Space Ambient Occlusion Renderer Feature
                         ScreenSpaceAmbientOcclusion ssao = rendererFeature as ScreenSpaceAmbientOcclusion;
                         hasScreenSpaceOcclusion |= ssao != null;
+
+                        if (ssao.afterOpaque)
+                            shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
 
                         // Check for Decal Renderer Feature
                         DecalRendererFeature decal = rendererFeature as DecalRendererFeature;
