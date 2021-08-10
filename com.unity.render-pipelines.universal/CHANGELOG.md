@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Render Settings Converter to the Render Pipeline Converter, this tool creates and assigns URP Assets based off rendering settings of a Builtin project.
 - XR: Added Late Latching support to reduce VR latency (Quest).
 - Added a help button on material editor to show the shader documentation page
+- The Depth Texture option now allows to specify if URP should copy the depth after the opaques pass or after the transparents pass. This can lead to bandwidth savings on mobile.
 
 ### Changed
 - Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
