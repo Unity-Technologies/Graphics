@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering
     [CoreRPHelpURL("Volumes", "com.unity.render-pipelines.high-definition")]
     [ExecuteAlways]
     [AddComponentMenu("Miscellaneous/Volume")]
-    public class Volume : MonoBehaviour, IVolume
+    public partial class Volume : MonoBehaviour, IVolume
     {
         [SerializeField, FormerlySerializedAs("isGlobal")]
         private bool m_IsGlobal = true;
@@ -17,18 +17,31 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Specifies whether to apply the Volume to the entire Scene or not.
         /// </summary>
-        [Tooltip("When enabled, the Volume is applied to the entire Scene.")]
         public bool isGlobal
         {
             get => m_IsGlobal;
             set => m_IsGlobal = value;
         }
 
+        [Tooltip("When multiple Volumes affect the same settings, Unity uses this value to determine which Volume to use. A Volume with the highest Priority value takes precedence.")]
+        [SerializeField]
+        int m_Priority = 0;
+
         /// <summary>
         /// The Volume priority in the stack. A higher value means higher priority. This supports negative values.
         /// </summary>
-        [Tooltip("When multiple Volumes affect the same settings, Unity uses this value to determine which Volume to use. A Volume with the highest Priority value takes precedence.")]
-        public float priority = 0f;
+        public int priority
+        {
+            get => m_Priority;
+            set
+            {
+                if (m_Priority != value)
+                {
+                    m_Priority = value;
+                    VolumeManager.instance.SetLayerDirty(gameObject.layer);
+                }
+            }
+        }
 
         /// <summary>
         /// The outer distance to start blending from. A value of 0 means no blending and Unity applies
@@ -109,7 +122,6 @@ namespace UnityEngine.Rendering
 
         // Needed for state tracking (see the comments in Update)
         int m_PreviousLayer;
-        float m_PreviousPriority;
         VolumeProfile m_InternalProfile;
 
         void OnEnable()
@@ -132,16 +144,6 @@ namespace UnityEngine.Rendering
             // Because no event is raised when the layer changes, we have to track it on every
             // frame :/
             UpdateLayer();
-
-            // Same for priority. We could use a property instead, but it doesn't play nice with the
-            // serialization system. Using a custom Attribute/PropertyDrawer for a property is
-            // possible but it doesn't work with Undo/Redo in the editor, which makes it useless for
-            // our case.
-            if (priority != m_PreviousPriority)
-            {
-                VolumeManager.instance.SetLayerDirty(gameObject.layer);
-                m_PreviousPriority = priority;
-            }
 
 #if UNITY_EDITOR
             // In the editor, we refresh the list of colliders at every frame because it's frequent to add/remove them

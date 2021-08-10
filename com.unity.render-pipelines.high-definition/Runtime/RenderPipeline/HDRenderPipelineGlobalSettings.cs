@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var go = new GameObject("Default Volume") { hideFlags = HideFlags.HideAndDontSave };
                 s_DefaultVolume = go.AddComponent<Volume>();
                 s_DefaultVolume.isGlobal = true;
-                s_DefaultVolume.priority = float.MinValue;
+                s_DefaultVolume.priority = int.MinValue;
                 s_DefaultVolume.sharedProfile = GetOrCreateDefaultVolumeProfile();
 #if UNITY_EDITOR
                 UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += () =>

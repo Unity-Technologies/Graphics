@@ -155,7 +155,14 @@ namespace UnityEditor.Rendering
             }
 
             EditorGUILayout.PropertyField(m_Weight);
+
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_Priority);
+            if (EditorGUI.EndChangeCheck())
+            {
+                foreach (MonoBehaviour target in targets)
+                    VolumeManager.instance.SetLayerDirty(target.gameObject.layer);
+            }
 
             bool assetHasChanged = false;
             bool showCopy = m_Profile.objectReferenceValue != null;

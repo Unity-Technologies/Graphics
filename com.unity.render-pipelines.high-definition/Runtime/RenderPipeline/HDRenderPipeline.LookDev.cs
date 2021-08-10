@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volumeGO.name = "StageVolume";
             Volume volume = volumeGO.AddComponent<Volume>();
             volume.isGlobal = true;
-            volume.priority = float.MaxValue;
+            volume.priority = int.MaxValue;
             volume.enabled = false;
 
 
