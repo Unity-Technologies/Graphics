@@ -120,6 +120,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (currentMaterial == null || currentMaterial.shader == null)
                 return false;
 
+            // We consider non-editable materials as "invalid" (see case 1319956)
+            if ((currentMaterial.hideFlags & HideFlags.NotEditable) != HideFlags.None)
+                return false;
+
             bool isValid;
 
             // We use a cache, to speed up the case where materials/shaders are reused many times

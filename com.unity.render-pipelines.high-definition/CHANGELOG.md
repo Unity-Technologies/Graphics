@@ -462,6 +462,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed upscaling issue that is exagerated by DLSS (case 1347250).
 - Improvements to the RTGI denoising.
 - Remove Bilinear and Lanczos upscale filter.
+- Changed behaviour of meshes which have been assigned non-editable materials, in ray/path tracing. Such meshes will not be added to the acceleration structure anymore (case 1319956).
 
 ## [11.0.0] - 2020-10-21
 
