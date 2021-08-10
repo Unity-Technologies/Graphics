@@ -5,12 +5,14 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class VolumetricClouds : IVersionable<VolumetricClouds.Version>, ISerializationCallbackReceiver
     {
+        /// <summary>Called before serializing</summary>
         public void OnBeforeSerialize()
         {
             if (m_Version == Version.Count) // serializing a newly created object
                 m_Version = Version.Count - 1; // mark as up to date
         }
 
+        /// <summary>Called after deserializing</summary>
         public void OnAfterDeserialize()
         {
             if (m_Version == Version.Count) // deserializing and object without version
