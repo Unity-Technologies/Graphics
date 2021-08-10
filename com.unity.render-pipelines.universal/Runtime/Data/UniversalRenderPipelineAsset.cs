@@ -125,15 +125,15 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// TODO
+    /// Defines if Unity will copy the depth that can be bound in shaders as _CameraDepthTexture, and if the depth will be copied after the opaques pass or after the transparents pass.
     /// </summary>
     public enum CopyDepthMode
     {
-        /// <summary>TODO</summary>
+        /// <summary>Will not be copied</summary>
         None,
-        /// <summary>TODO</summary>
+        /// <summary>Will be copied after the opaques pass</summary>
         AfterOpaques,
-        /// <summary>TODO</summary>
+        /// <summary>Will be copied after the transparents pass</summary>
         AfterTransparents
     }
 

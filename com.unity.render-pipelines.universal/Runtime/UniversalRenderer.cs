@@ -778,7 +778,6 @@ namespace UnityEngine.Rendering.Universal
                         transparentPassDepthStoreAction = RenderBufferStoreAction.Resolve;
                 }
 
-
                 m_RenderTransparentForwardPass.ConfigureColorStoreAction(transparentPassColorStoreAction);
                 m_RenderTransparentForwardPass.ConfigureDepthStoreAction(transparentPassDepthStoreAction);
                 EnqueuePass(m_RenderTransparentForwardPass);
