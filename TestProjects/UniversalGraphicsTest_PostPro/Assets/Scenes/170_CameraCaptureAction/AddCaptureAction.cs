@@ -10,7 +10,7 @@ public class AddCaptureAction : MonoBehaviour
     public Mesh Mesh;
     public Material Material;
     Camera m_Camera;
-    
+
     void OnEnable()
     {
         m_Camera = GetComponent<Camera>();
