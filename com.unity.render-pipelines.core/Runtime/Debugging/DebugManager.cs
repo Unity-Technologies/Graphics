@@ -246,15 +246,15 @@ namespace UnityEngine.Rendering
             if (widget == null)
                 return;
 
-            var valueWidget = widget as DebugUI.Value;
-            if (valueWidget == null)
+            if (widget is not DebugUI.Value &&
+                widget is not DebugUI.ValueTuple)
             {
-                Debug.Log("Only DebugUI.Value items can be made persistent.");
+                Debug.Log("Only DebugUI.Value and DebugUI.ValueTuple items can be made persistent.");
                 return;
             }
 
             CheckPersistentCanvas();
-            m_RootUIPersistentCanvas.Toggle(valueWidget);
+            m_RootUIPersistentCanvas.Toggle(widget);
         }
 
         void OnPanelDirty(DebugUI.Panel panel)

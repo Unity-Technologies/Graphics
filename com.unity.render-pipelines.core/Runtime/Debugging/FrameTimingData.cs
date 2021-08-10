@@ -31,6 +31,7 @@ public class FrameTimingData
     /// </summary>
     public struct FrameTimeSample
     {
+        public float FramesPerSecond;
         public float FullFrameTime;
         public float MainThreadCPUFrameTime;
         public float MainThreadCPUPresentWaitTime;
@@ -39,9 +40,19 @@ public class FrameTimingData
     };
 
     /// <summary>
-    /// Frame timing data representing data average over the Frame Time History Window.
+    /// Frame timing data representing averaged values over the Frame Time History Window.
     /// </summary>
-    public FrameTimeSample AveragedSample;
+    public FrameTimeSample SampleAverage;
+
+    /// <summary>
+    /// Frame timing data representing minimum values over the Frame Time History Window.
+    /// </summary>
+    public FrameTimeSample SampleMin;
+
+    /// <summary>
+    /// Frame timing data representing maximum values over the Frame Time History Window.
+    /// </summary>
+    public FrameTimeSample SampleMax;
 
     /// <summary>
     /// Size of the Frame Time History Window.
@@ -90,7 +101,7 @@ public class FrameTimingData
     {
         m_Samples.Clear();
         m_BottleneckHistory.Clear();
-        AveragedSample = new FrameTimeSample();
+        SampleAverage = new FrameTimeSample();
         BottleneckStats = new Bottlenecks();
     }
 
@@ -111,6 +122,7 @@ public class FrameTimingData
         if (timing.Length > 0)
         {
             frameTime.FullFrameTime = (float)timing.First().cpuFrameTime;
+            frameTime.FramesPerSecond = 1000f / frameTime.FullFrameTime;
             frameTime.MainThreadCPUFrameTime = (float)timing.First().cpuMainThreadFrameTime;
             frameTime.MainThreadCPUPresentWaitTime = (float)timing.First().cpuMainThreadPresentWaitTime;
             frameTime.RenderThreadCPUFrameTime = (float)timing.First().cpuRenderThreadFrameTime;
@@ -120,7 +132,7 @@ public class FrameTimingData
         m_Samples.Add(frameTime);
 
         ComputeAverages();
-        var bottleneck = DetermineBottleneck(AveragedSample);
+        var bottleneck = DetermineBottleneck(SampleAverage);
 
         while (m_BottleneckHistory.Count > BottleneckHistorySize)
         {
@@ -150,11 +162,28 @@ public class FrameTimingData
 
     void ComputeAverages()
     {
-        AveragedSample.FullFrameTime                = m_Samples.Average(s => s.FullFrameTime);
-        AveragedSample.MainThreadCPUFrameTime       = m_Samples.Average(s => s.MainThreadCPUFrameTime);
-        AveragedSample.MainThreadCPUPresentWaitTime = m_Samples.Average(s => s.MainThreadCPUPresentWaitTime);
-        AveragedSample.RenderThreadCPUFrameTime     = m_Samples.Average(s => s.RenderThreadCPUFrameTime);
-        AveragedSample.GPUFrameTime                 = m_Samples.Average(s => s.GPUFrameTime);
+        // TODO optimize
+
+        SampleAverage.FramesPerSecond              = m_Samples.Average(s => s.FramesPerSecond);
+        SampleAverage.FullFrameTime                = m_Samples.Average(s => s.FullFrameTime);
+        SampleAverage.MainThreadCPUFrameTime       = m_Samples.Average(s => s.MainThreadCPUFrameTime);
+        SampleAverage.MainThreadCPUPresentWaitTime = m_Samples.Average(s => s.MainThreadCPUPresentWaitTime);
+        SampleAverage.RenderThreadCPUFrameTime     = m_Samples.Average(s => s.RenderThreadCPUFrameTime);
+        SampleAverage.GPUFrameTime                 = m_Samples.Average(s => s.GPUFrameTime);
+
+        SampleMin.FramesPerSecond              = m_Samples.Min(s => s.FramesPerSecond);
+        SampleMin.FullFrameTime                = m_Samples.Min(s => s.FullFrameTime);
+        SampleMin.MainThreadCPUFrameTime       = m_Samples.Min(s => s.MainThreadCPUFrameTime);
+        SampleMin.MainThreadCPUPresentWaitTime = m_Samples.Min(s => s.MainThreadCPUPresentWaitTime);
+        SampleMin.RenderThreadCPUFrameTime     = m_Samples.Min(s => s.RenderThreadCPUFrameTime);
+        SampleMin.GPUFrameTime                 = m_Samples.Min(s => s.GPUFrameTime);
+
+        SampleMax.FramesPerSecond              = m_Samples.Max(s => s.FramesPerSecond);
+        SampleMax.FullFrameTime                = m_Samples.Max(s => s.FullFrameTime);
+        SampleMax.MainThreadCPUFrameTime       = m_Samples.Max(s => s.MainThreadCPUFrameTime);
+        SampleMax.MainThreadCPUPresentWaitTime = m_Samples.Max(s => s.MainThreadCPUPresentWaitTime);
+        SampleMax.RenderThreadCPUFrameTime     = m_Samples.Max(s => s.RenderThreadCPUFrameTime);
+        SampleMax.GPUFrameTime                 = m_Samples.Max(s => s.GPUFrameTime);
     }
 
     Bottlenecks ComputeBottleneckStats()

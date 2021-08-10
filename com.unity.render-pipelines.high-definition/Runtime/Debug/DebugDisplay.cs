@@ -870,30 +870,42 @@ namespace UnityEngine.Rendering.HighDefinition
             return 0.0f;
         }
 
-        ObservableList<DebugUI.Widget> BuildProfilingSamplerList(DebugProfilingType type)
+        ObservableList<DebugUI.Widget> BuildProfilingSamplerList()
         {
             var result = new ObservableList<DebugUI.Widget>();
 
-            // Find the right accumulated dictionary and add it there if not existing yet.
-            var accumulatedDictionary = type == DebugProfilingType.CPU ? m_AccumulatedCPUTiming :
-                type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
-                m_AccumulatedGPUTiming;
-
-
-            foreach (var sampler in m_RecordedSamplers)
+            DebugUI.Value createWidgetForSampler(ProfilingSampler sampler, DebugProfilingType type)
             {
-                sampler.enableRecording = true;
+                // Find the right accumulated dictionary and add it there if not existing yet.
+                var accumulatedDictionary = type == DebugProfilingType.CPU ? m_AccumulatedCPUTiming :
+                    type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
+                    m_AccumulatedGPUTiming;
+
                 if (!accumulatedDictionary.ContainsKey(sampler.name))
                 {
                     accumulatedDictionary.Add(sampler.name, new AccumulatedTiming());
                 }
-
-                result.Add(new DebugUI.Value
+                return new()
                 {
-                    displayName = sampler.name,
                     formatString = "F2",
                     getter = () => GetSamplerTiming(type, sampler),
-                    refreshRate = 1.0f / 5.0f
+                };
+            }
+
+            foreach (var sampler in m_RecordedSamplers)
+            {
+                sampler.enableRecording = true;
+
+                result.Add(new DebugUI.ValueTuple
+                {
+                    displayName = sampler.name,
+                    refreshRate = 1.0f / 5.0f,
+                    values = new[]
+                    {
+                        createWidgetForSampler(sampler, DebugProfilingType.CPU),
+                        createWidgetForSampler(sampler, DebugProfilingType.InlineCPU),
+                        createWidgetForSampler(sampler, DebugProfilingType.GPU),
+                    }
                 });
             }
 
@@ -977,16 +989,84 @@ namespace UnityEngine.Rendering.HighDefinition
         void RegisterDisplayStatsDebug()
         {
             var list = new List<DebugUI.Widget>();
-            list.Add(new DebugUI.Value { displayName = "Frame Rate (fps)", formatString = "F2", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 5f });
-            list.Add(new DebugUI.Value { displayName = "Frame Time (ms)", formatString = "F2", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 5f });
-            list.Add(new DebugUI.Value { displayName = "CPU Full Frame (ms)", formatString = "F2", getter = () => m_Data.frameTimingData?.AveragedSample.FullFrameTime ?? 0f });
-            list.Add(new DebugUI.Value { displayName = "CPU Main Thread Frame (ms)", formatString = "F2", getter = () => m_Data.frameTimingData?.AveragedSample.MainThreadCPUFrameTime ?? 0f });
-            list.Add(new DebugUI.Value { displayName = "CPU Render Thread Frame (ms)", formatString = "F2", getter = () => m_Data.frameTimingData?.AveragedSample.RenderThreadCPUFrameTime ?? 0f });
-            list.Add(new DebugUI.Value { displayName = "CPU Main Thread Present Wait (ms)", formatString = "F2", getter = () => m_Data.frameTimingData?.AveragedSample.MainThreadCPUPresentWaitTime ?? 0f });
-            list.Add(new DebugUI.Value { displayName = "GPU Frame (ms)", formatString = "F2", getter = () => m_Data.frameTimingData?.AveragedSample.GPUFrameTime ?? 0f });
+            list.Add(new DebugUI.Foldout()
+            {
+                displayName = "Frame Stats",
+                opened = true,
+                columnLabels = new string[] { "Avg", "Min", "Max" },
+                children =
+                {
+                    new DebugUI.ValueTuple
+                    {
+                        displayName = "Frame Rate (fps)",
+                        refreshRate = 1f / 5f,
+                        values = new[]
+                        {
+                            new DebugUI.Value { displayName = "FPS (Avg)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleAverage.FramesPerSecond },
+                            new DebugUI.Value { displayName = "FPS (Min)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleMin.FramesPerSecond },
+                            new DebugUI.Value { displayName = "FPS (Max)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleMax.FramesPerSecond },
+                        }
+                    },
+                    new DebugUI.ValueTuple
+                    {
+                        displayName = "Frame Time (ms)",
+                        refreshRate = 1f / 5f,
+                        values = new[]
+                        {
+                            new DebugUI.Value { displayName = "Frame Time (Avg)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleAverage.FullFrameTime },
+                            new DebugUI.Value { displayName = "Frame Time (Min)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleMin.FullFrameTime },
+                            new DebugUI.Value { displayName = "Frame Time (Max)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleMax.FullFrameTime },
+                        }
+                    },
+                    new DebugUI.ValueTuple
+                    {
+                        displayName = "CPU Main Thread Frame (ms)",
+                        refreshRate = 1f / 5f,
+                        values = new[]
+                        {
+                            new DebugUI.Value { displayName = "Main Thread (Avg)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleAverage.MainThreadCPUFrameTime },
+                            new DebugUI.Value { displayName = "Main Thread (Min)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleMin.MainThreadCPUFrameTime },
+                            new DebugUI.Value { displayName = "Main Thread (Max)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleMax.MainThreadCPUFrameTime },
+                        }
+                    },
+                    new DebugUI.ValueTuple
+                    {
+                        displayName = "CPU Render Thread Frame (ms)",
+                        refreshRate = 1f / 5f,
+                        values = new[]
+                        {
+                            new DebugUI.Value { displayName = "Render Thread (Avg)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleAverage.RenderThreadCPUFrameTime },
+                            new DebugUI.Value { displayName = "Render Thread (Min)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleMin.RenderThreadCPUFrameTime },
+                            new DebugUI.Value { displayName = "Render Thread (Max)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleMax.RenderThreadCPUFrameTime },
+                        }
+                    },
+                    new DebugUI.ValueTuple
+                    {
+                        displayName = "CPU Main Thread Present Wait (ms)",
+                        refreshRate = 1f / 5f,
+                        values = new[]
+                        {
+                            new DebugUI.Value { displayName = "Present Wait (Avg)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleAverage.MainThreadCPUPresentWaitTime },
+                            new DebugUI.Value { displayName = "Present Wait (Min)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleMin.MainThreadCPUPresentWaitTime },
+                            new DebugUI.Value { displayName = "Present Wait (Max)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleMax.MainThreadCPUPresentWaitTime },
+                        }
+                    },
+                    new DebugUI.ValueTuple
+                    {
+                        displayName = "GPU Frame (ms)",
+                        refreshRate = 1f / 5f,
+                        values = new[]
+                        {
+                            new DebugUI.Value { displayName = "GPU Frame (Avg)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleAverage.GPUFrameTime },
+                            new DebugUI.Value { displayName = "GPU Frame (Min)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleMin.GPUFrameTime },
+                            new DebugUI.Value { displayName = "GPU Frame (Max)", formatString = "F2", getter = () => m_Data.frameTimingData.SampleMax.GPUFrameTime },
+                        }
+                    }
+                }
+            });
+
             list.Add(new DebugUI.Foldout
             {
-                opened = true,
                 displayName = "Bottlenecks",
                 children =
                 {
@@ -1001,7 +1081,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             });
 
-#if true // DEBUG, REMOVE
+#if false // DEBUG, REMOVE
             list.Add(new DebugUI.Foldout
             {
                 displayName = "Realtime Profiler Debug",
@@ -1059,15 +1139,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             EnableProfilingRecorders();
             list.Add(new DebugUI.BoolField { displayName = "Update every second with average", getter = () => data.averageProfilerTimingsOverASecond, setter = value => data.averageProfilerTimingsOverASecond = value });
-            list.Add(new DebugUI.Foldout("CPU timings (Command Buffers)", BuildProfilingSamplerList(DebugProfilingType.CPU)));
-            list.Add(new DebugUI.Foldout("GPU timings", BuildProfilingSamplerList(DebugProfilingType.GPU)));
+            list.Add(new DebugUI.Foldout("Detailed Stats", BuildProfilingSamplerList(), new[] { "CPU", "CPUInline", "GPU" }));
+
             if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? true)
             {
                 EnableProfilingRecordersRT();
                 list.Add(new DebugUI.Foldout("CPU timings RT (Command Buffers)", BuildProfilingSamplerListRT(DebugProfilingType.CPU)));
                 list.Add(new DebugUI.Foldout("GPU timings RT", BuildProfilingSamplerListRT(DebugProfilingType.GPU)));
             }
-            list.Add(new DebugUI.Foldout("Inline CPU timings", BuildProfilingSamplerList(DebugProfilingType.InlineCPU)));
             list.Add(new DebugUI.BoolField { displayName = "Count Rays (MRays/Frame)", getter = () => data.countRays, setter = value => data.countRays = value, onValueChanged = RefreshDisplayStatsDebug });
             if (data.countRays)
             {
@@ -1755,31 +1834,38 @@ namespace UnityEngine.Rendering.HighDefinition
                     var row = new DebugUI.Table.Row()
                     {
                         displayName = "Volume Info",
-                        children = { new DebugUI.Value() {
-                                         displayName = "Interpolated Value",
-                                         getter = () => {
-                                             // This getter is called first at each render
-                                             // It is used to update the volumes
-                                             if (Time.time - timer < refreshRate)
-                                                 return "";
-                                             timer = Time.deltaTime;
-                                             if (data.volumeDebugSettings.selectedCameraIndex != 0)
-                                             {
-                                                 var newVolumes = data.volumeDebugSettings.GetVolumes();
-                                                 if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
-                                                 {
-                                                     for (int i = 0; i < newVolumes.Length; i++)
-                                                     {
-                                                         var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
-                                                         table.SetColumnVisibility(i + 1, visible);
-                                                     }
-                                                     return "";
-                                                 }
-                                             }
-                                             RefreshVolumeDebug(null, false);
-                                             return "";
-                                         }
-                                     } }
+                        children =
+                        {
+                            new DebugUI.Value()
+                            {
+                                displayName = "Interpolated Value",
+                                getter = () =>
+                                {
+                                    // This getter is called first at each render
+                                    // It is used to update the volumes
+                                    if (Time.time - timer < refreshRate)
+                                        return "";
+                                    timer = Time.deltaTime;
+                                    if (data.volumeDebugSettings.selectedCameraIndex != 0)
+                                    {
+                                        var newVolumes = data.volumeDebugSettings.GetVolumes();
+                                        if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
+                                        {
+                                            for (int i = 0; i < newVolumes.Length; i++)
+                                            {
+                                                var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
+                                                table.SetColumnVisibility(i + 1, visible);
+                                            }
+
+                                            return "";
+                                        }
+                                    }
+
+                                    RefreshVolumeDebug(null, false);
+                                    return "";
+                                }
+                            }
+                        }
                     };
                     row.opened = true;
 

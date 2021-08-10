@@ -11,9 +11,9 @@ namespace UnityEngine.Rendering.UI
         public Text nameLabel;
         /// <summary>Value of the value field.</summary>
         public Text valueLabel;
-        DebugUI.Value m_Field;
 
-        float m_Timer;
+        DebugUI.Value m_Field;
+        protected internal float m_Timer;
 
         /// <summary>
         /// OnEnable implementation.

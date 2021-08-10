@@ -269,5 +269,33 @@ namespace UnityEngine.Rendering
                 return $"{percentage:P1}";
             }
         }
+
+        /// <summary>
+        /// Tuple of Value widgets for creating tabular UI.
+        /// </summary>
+        public class ValueTuple : Widget
+        {
+            /// <summary>
+            /// Number of elements in the tuple.
+            /// </summary>
+            public int numElements
+            {
+                get
+                {
+                    Assert.IsTrue(values.Length > 0);
+                    return values.Length;
+                }
+            }
+
+            /// <summary>
+            /// Value widgets.
+            /// </summary>
+            public Value[] values;
+
+            /// <summary>
+            /// Refresh rate for the read-only values (runtime only)
+            /// </summary>
+            public float refreshRate = 0.1f;
+        }
     }
 }

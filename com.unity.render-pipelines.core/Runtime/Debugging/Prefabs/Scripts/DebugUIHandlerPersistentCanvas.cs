@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -7,10 +8,11 @@ namespace UnityEngine.Rendering.UI
     {
         public RectTransform panel;
         public RectTransform valuePrefab;
+        public RectTransform valueTuplePrefab;
 
-        List<DebugUIHandlerValue> m_Items = new List<DebugUIHandlerValue>();
+        List<DebugUIHandlerWidget> m_Items = new List<DebugUIHandlerWidget>();
 
-        internal void Toggle(DebugUI.Value widget)
+        internal void Toggle(DebugUI.Widget widget)
         {
             int index = m_Items.FindIndex(x => x.GetWidget() == widget);
 
@@ -24,9 +26,25 @@ namespace UnityEngine.Rendering.UI
             }
 
             // Add
-            var go = Instantiate(valuePrefab, panel, false).gameObject;
+            GameObject go;
+            DebugUIHandlerWidget uiHandler;
+
+            if (widget is DebugUI.Value)
+            {
+                go = Instantiate(valuePrefab, panel, false).gameObject;
+                uiHandler = go.GetComponent<DebugUIHandlerValue>();
+            }
+            else if (widget is DebugUI.ValueTuple)
+            {
+                go = Instantiate(valueTuplePrefab, panel, false).gameObject;
+                uiHandler = go.GetComponent<DebugUIHandlerValueTuplePersistent>();
+            }
+            else
+            {
+                throw new NotSupportedException("Unsupported widget type");
+            }
+
             go.name = widget.displayName;
-            var uiHandler = go.GetComponent<DebugUIHandlerValue>();
             uiHandler.SetWidget(widget);
             m_Items.Add(uiHandler);
         }

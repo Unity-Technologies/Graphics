@@ -26,6 +26,43 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
+    /// Builtin Drawer for ValueTuple Debug Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.ValueTuple))]
+    public sealed class DebugUIDrawerValueTuple : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for ValueTuple DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.ValueTuple>(widget);
+
+            var labelRect = PrepareControlRect();
+            EditorGUI.PrefixLabel(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
+
+            // Following layout should match DebugUIDrawerFoldout to make column labels align
+            Rect drawRect = GUILayoutUtility.GetLastRect();
+            const int oneColumnWidth = 70;
+            int indent = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0; //be at left of rects
+            for (int i = 0; i < w.numElements; i++)
+            {
+                var columnRect = drawRect;
+                columnRect.x += EditorGUIUtility.labelWidth + i * oneColumnWidth;
+                columnRect.width = oneColumnWidth;
+                EditorGUI.LabelField(columnRect, w.values[i].GetValueString());
+            }
+            EditorGUI.indentLevel = indent;
+
+            return true;
+        }
+    }
+
+    /// <summary>
     /// Builtin Drawer for ProgressBarValue Debug Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.ProgressBarValue))]
@@ -482,8 +519,8 @@ namespace UnityEditor.Rendering
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
-            var s = Cast<DebugStateBool>(state);
-            return s.value;
+            var w = Cast<DebugUI.Foldout>(widget);
+            return w.opened;
         }
 
         /// <summary>
