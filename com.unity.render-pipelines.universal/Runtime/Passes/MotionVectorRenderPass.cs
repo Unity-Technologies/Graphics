@@ -10,11 +10,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if ENABLE_VR && ENABLE_XR_MODULE
         const string kPreviousViewProjectionMatrixStero = "_PrevViewProjMStereo";
 #endif
-        const GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
+        internal static readonly GraphicsFormat m_TargetFormat = GraphicsFormat.R16G16_SFloat;
 
         static readonly string[] s_ShaderTags = new string[] { "MotionVectors" };
 
-        RTHandle m_Destination;
+        RTHandle m_Color;
+        RTHandle m_Depth;
         readonly Material m_CameraMaterial;
         readonly Material m_ObjectMaterial;
 
@@ -33,19 +34,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         #endregion
 
         #region State
-        internal void Setup(RTHandle destination, PreviousFrameData frameData)
+        internal void Setup(RTHandle color, RTHandle depth, PreviousFrameData frameData)
         {
             m_MotionData = frameData;
-            m_Destination = destination;
+            m_Color = color;
+            m_Depth = depth;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            var rtd = cameraTextureDescriptor;
-            rtd.graphicsFormat = m_TargetFormat;
-            // Configure Render Target
-            cmd.GetTemporaryRT(Shader.PropertyToID(m_Destination.name), rtd, FilterMode.Point);
-            ConfigureTarget(m_Destination);
+            cmd.SetGlobalTexture(m_Color.name, m_Color.nameID);
+            cmd.SetGlobalTexture(m_Depth.name, m_Depth.nameID);
+            ConfigureTarget(m_Color, m_Depth);
         }
 
         #endregion
@@ -131,22 +131,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Draw Renderers
             context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
-        }
-
-        #endregion
-
-        #region Cleanup
-        public override void FrameCleanup(CommandBuffer cmd)
-        {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
-            // Reset Render Target
-            if (m_Destination != null)
-            {
-                cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_Destination.name));
-                m_Destination = null;
-            }
         }
 
         #endregion
