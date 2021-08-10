@@ -3657,6 +3657,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public float bloomScatterParam;
             public Vector4 thresholdParams;
+            public Vector4 bloomScaleParams;
 
             public TextureHandle source;
             public TextureHandle[] mipsDown = new TextureHandle[k_MaxBloomMipCount + 1];
@@ -3696,6 +3697,9 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.bloomUpsampleKernel = passData.bloomUpsampleCS.FindKernel("KMain");
             passData.bloomScatterParam = Mathf.Lerp(0.05f, 0.95f, m_Bloom.scatter.value);
             passData.thresholdParams = GetBloomThresholdParams();
+
+            Vector2 rtScales = RTHandles.CalculateRatioAgainstMaxSize(postProcessViewportSize.x, postProcessViewportSize.y);
+            passData.bloomScaleParams = new Vector4(rtScales.x, rtScales.y, rtScales.x, rtScales.y);
 
             var resolution = m_Bloom.resolution;
             float scaleW = 1f / ((int)resolution / 2f);
@@ -3759,10 +3763,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // The bicubic filtering function is SampleTexture2DBicubic, and it requires the underlying texture's
             // unscaled pixel sizes to compute the offsets of the samples.
             // For more info please see the implementation of SampleTexture2DBicubic
-            m_BloomBicubicParams.x /= RTHandles.rtHandleProperties.rtHandleScale.x;
-            m_BloomBicubicParams.y /= RTHandles.rtHandleProperties.rtHandleScale.y;
-            m_BloomBicubicParams.z *= RTHandles.rtHandleProperties.rtHandleScale.x;
-            m_BloomBicubicParams.w *= RTHandles.rtHandleProperties.rtHandleScale.y;
+            m_BloomBicubicParams.x /= rtScales.x;
+            m_BloomBicubicParams.y /= rtScales.y;
+            m_BloomBicubicParams.z *= rtScales.x;
+            m_BloomBicubicParams.w *= rtScales.y;
 
             passData.mipsUp[0] = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(mip0Scale, IsDynamicResUpscaleTargetEnabled(), true)
             {
@@ -3817,6 +3821,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, data.mipsUp[0]); // Use m_BloomMipsUp as temp target
                                 ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
                                 ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomThreshold, data.thresholdParams);
+                                ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomRtScales, data.bloomScaleParams);
                                 DispatchWithGuardBands(ctx.cmd, cs, kernel, size, data.viewCount);
 
                                 cs = data.bloomBlurCS;
@@ -3824,6 +3829,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, data.mipsUp[0]);
                                 ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, data.mipsDown[0]);
+                                ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomRtScales, data.bloomScaleParams);
                                 ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
                                 DispatchWithGuardBands(ctx.cmd, cs, kernel, size, data.viewCount);
                             }
@@ -3839,6 +3845,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, src);
                                 ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, dst);
+                                ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomRtScales, data.bloomScaleParams);
                                 ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
                                 DispatchWithGuardBands(ctx.cmd, cs, kernel, size, data.viewCount);
                             }
@@ -3862,6 +3869,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(data.bloomScatterParam, 0f, 0f, 0f));
                                 ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomBicubicParams, new Vector4(lowSize.x, lowSize.y, 1f / lowSize.x, 1f / lowSize.y));
                                 ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(highSize.x, highSize.y, 1f / highSize.x, 1f / highSize.y));
+                                ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomRtScales, data.bloomScaleParams);
                                 DispatchWithGuardBands(ctx.cmd, cs, kernel, highSize, data.viewCount);
                             }
                         });

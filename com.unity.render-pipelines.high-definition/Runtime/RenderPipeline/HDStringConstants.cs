@@ -848,6 +848,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InputHighTexture               = Shader.PropertyToID("_InputHighTexture");
         public static readonly int _BloomBicubicParams             = Shader.PropertyToID("_BloomBicubicParams");
         public static readonly int _BloomThreshold                 = Shader.PropertyToID("_BloomThreshold");
+        public static readonly int _BloomRtScales                  = Shader.PropertyToID("_BloomRtScales");
+
 
         public static readonly int _ChromaSpectralLut              = Shader.PropertyToID("_ChromaSpectralLut");
         public static readonly int _ChromaParams                   = Shader.PropertyToID("_ChromaParams");
