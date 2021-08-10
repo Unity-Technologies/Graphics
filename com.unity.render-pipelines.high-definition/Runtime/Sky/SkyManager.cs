@@ -73,6 +73,21 @@ namespace UnityEngine.Rendering.HighDefinition
         public static RenderTargetIdentifier nullRT = -1;
     }
 
+    /// <summary>
+    /// Parameters passed to sun light cookie rendering functions.
+    /// </summary>
+    public struct BuiltinSunCookieParameters
+    {
+        /// <summary>Camera used for rendering.</summary>
+        public HDCamera                 hdCamera;
+        /// <summary>Command buffer used for rendering.</summary>
+        public CommandBuffer            commandBuffer;
+        /// <summary>Current cloud settings.</summary>
+        public CloudSettings            cloudSettings;
+        /// <summary>Current sun light.</summary>
+        public Light                    sunLight;
+    }
+
     struct CachedSkyContext
     {
         public Type                 type;

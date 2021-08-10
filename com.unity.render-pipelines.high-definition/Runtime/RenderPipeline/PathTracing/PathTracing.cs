@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Path Tracing effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing (Preview)")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Ray Tracing/Path Tracing (Preview)", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Ray-Tracing-Path-Tracing")]
     public sealed class PathTracing : VolumeComponent
     {
@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky for Path Tracing", out var passData))
             {
                 passData.visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-                passData.sunLight = GetCurrentSunLight();
+                passData.sunLight = GetMainLight();
                 passData.hdCamera = hdCamera;
                 passData.colorBuffer = builder.WriteTexture(skyBuffer);
                 passData.depthTexture = builder.WriteTexture(CreateDepthBuffer(renderGraph, true, MSAASamples.None));
@@ -360,6 +360,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int camID = hdCamera.camera.GetInstanceID();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
+
+            // Check if the camera has a valid history buffer and if not reset the accumulation.
+            // This can happen if a script disables and re-enables the camera (case 1337843).
+            if (!hdCamera.isPersistent && hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing) == null)
+            {
+                m_SubFrameManager.Reset(camID);
+            }
 
             if (!m_SubFrameManager.isRecording)
             {

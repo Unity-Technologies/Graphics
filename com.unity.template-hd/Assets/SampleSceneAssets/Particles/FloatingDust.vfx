@@ -1109,9 +1109,9 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 8926484042661614842}
   - {fileID: 8926484042661614770}
   - {fileID: 8926484042661614771}
+  - {fileID: 8926484042661614842}
   - {fileID: 8926484042661614772}
   m_OutputSlots: []
   m_Label: 
@@ -1147,16 +1147,16 @@ MonoBehaviour:
   materialSettings:
     m_PropertyNames: []
     m_PropertyValues: []
-  materialType: 4
-  onlyAmbientLighting: 0
-  diffusionProfileAsset: {fileID: 11400000, guid: 78322c7f82657514ebe48203160e3f39, type: 2}
-  multiplyThicknessWithAlpha: 0
   useBaseColorMap: 3
   useMaskMap: 0
   useNormalMap: 0
   useEmissiveMap: 0
   colorMode: 1
   useEmissive: 0
+  materialType: 4
+  onlyAmbientLighting: 0
+  diffusionProfileAsset: {fileID: 11400000, guid: 78322c7f82657514ebe48203160e3f39, type: 2}
+  multiplyThicknessWithAlpha: 0
   doubleSided: 0
   preserveSpecularLighting: 0
   enableShadows: 1

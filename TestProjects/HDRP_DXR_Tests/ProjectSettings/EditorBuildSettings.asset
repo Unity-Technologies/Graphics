@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/Scenes/102_ReflectionsPerfHalfRes.unity
     guid: 5fd2fada5be46b04898ce4c60cd49a90
   - enabled: 1
+    path: Assets/Scenes/103_ReflectionsLOD.unity
+    guid: 4e11e67ddf8db1c4da0cee717b4665cc
+  - enabled: 1
     path: Assets/Scenes/103_ReflectionsQuality.unity
     guid: 7c94f7315cc5f9948836ed2db6950643
   - enabled: 1
@@ -42,14 +45,23 @@ EditorBuildSettings:
     path: Assets/Scenes/108_ReflectionsHybridHalfRes.unity
     guid: 4a71d9b31d3fb4e40a56b5be93a15b8d
   - enabled: 1
-    path: Assets/Scenes/108_ReflectionEmissive_Perf_Exposure_12.unity
-    guid: 9256657e1a6d16c4ba20bef7ab633c92
+    path: Assets/Scenes/108_Emissive_Perf_Exposure_0.unity
+    guid: 84d0d38a16a53224e9a6612392dafaa7
   - enabled: 1
-    path: Assets/Scenes/108_ReflectionEmissive_Quality_Exposure_0.unity
-    guid: 12bcdb701fced1643b60e5e4f1cedcbe
+    path: Assets/Scenes/108_Emissive_Perf_Exposure_12.unity
+    guid: be0043f6b7479bf42b72b90e96aefa07
   - enabled: 1
-    path: Assets/Scenes/108_ReflectionEmissive_Quality_Exposure_12.unity
-    guid: b458f5a4df209624aa568bb522890c6a
+    path: Assets/Scenes/108_Emissive_Perf_Exposure_15.unity
+    guid: 7ff67506dcffea441921e0a8c1110f8b
+  - enabled: 1
+    path: Assets/Scenes/108_Emissive_Quality_Exposure_0.unity
+    guid: db95b9a238c140246bcb4f826ef5d8d7
+  - enabled: 1
+    path: Assets/Scenes/108_Emissive_Quality_Exposure_12.unity
+    guid: f6793d50f5b5c9b42a4604ffcb450849
+  - enabled: 1
+    path: Assets/Scenes/108_Emissive_Quality_Exposure_15.unity
+    guid: 17802fede7f11db4bb4ec0c698f4a943
   - enabled: 1
     path: Assets/Scenes/109_ReflectionFallbackBoth.unity
     guid: 7dd9ef30d1f9f704a9dbcc3e68cc4475
@@ -245,6 +257,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/1000_RaytracingQualityKeyword_PathTracer_Default.unity
     guid: e94f1768c0fea4843a93cf691ba136fd
+  - enabled: 1
+    path: Assets/Scenes/1001_HalfResolutionThreshold_RTR.unity
+    guid: 00792ceab642d9a4fbff4eb1b6d68993
+  - enabled: 1
+    path: Assets/Scenes/1001_HalfResolutionThreshold_RTGI.unity
+    guid: d72a8275f2fd56346bbc0e64277f06ea
   - enabled: 1
     path: Assets/Scenes/2000_Debug_ScreenSpaceGlobalIllumination.unity
     guid: 8389bea7a4b533e439040027eee5ccf1

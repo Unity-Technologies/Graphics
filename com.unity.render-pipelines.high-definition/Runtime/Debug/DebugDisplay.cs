@@ -1268,9 +1268,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 shadows.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.ShadowRangeMinimumValue, getter = () => data.lightingDebugSettings.shadowMinValue, setter = value => data.lightingDebugSettings.shadowMinValue = value });
                 shadows.children.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.ShadowRangeMaximumValue, getter = () => data.lightingDebugSettings.shadowMaxValue, setter = value => data.lightingDebugSettings.shadowMaxValue = value });
-#if UNITY_EDITOR
-                shadows.children.Add(new DebugUI.Button { nameAndTooltip = LightingStrings.LogCachedShadowAtlasStatus, action = () => HDCachedShadowManager.instance.PrintLightStatusInCachedAtlas() });
-#endif
                 list.Add(shadows);
             }
 
@@ -1392,9 +1389,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             enumType = typeof(DebugLightLayersMask)
                         };
 
-                        var asset = (RenderPipelineManager.currentPipeline as HDRenderPipeline).asset;
                         for (int i = 0; i < 8; i++)
-                            field.enumNames[i + 1].text = asset.renderingLayerMaskNames[i];
+                            field.enumNames[i + 1].text = HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerMaskNames[i];
                         container.children.Add(field);
                     }
 
@@ -1402,10 +1398,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int i = 0; i < 8; i++)
                     {
                         int index = i;
-                        var asset = (RenderPipelineManager.currentPipeline as HDRenderPipeline).asset;
                         layersColor.children.Add(new DebugUI.ColorField
                         {
-                            displayName = asset.renderingLayerMaskNames[i],
+                            displayName = HDRenderPipelineGlobalSettings.instance.prefixedRenderingLayerMaskNames[i],
                             flags = DebugUI.Flags.EditorOnly,
                             getter = () => data.lightingDebugSettings.debugRenderingLayersColors[index],
                             setter = value => data.lightingDebugSettings.debugRenderingLayersColors[index] = value
@@ -1872,6 +1867,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             .OrderBy(t => t.MetadataToken);
                         foreach (var field in fields)
                         {
+                            if (field.GetCustomAttributes(typeof(ObsoleteAttribute), false).Length != 0)
+                                continue;
                             var fieldType = field.FieldType;
                             if (fieldType.IsSubclassOf(typeof(VolumeParameter)))
                                 AddRow(field, baseName ?? "");

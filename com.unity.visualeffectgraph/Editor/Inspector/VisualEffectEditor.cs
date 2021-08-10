@@ -642,7 +642,6 @@ namespace UnityEditor.VFX
             if (displayFoldout)
             {
                 rect.x += 14;
-                rect.y += 2;
                 rect.width -= 2;
                 result = EditorGUI.Toggle(rect, foldoutState, Styles.foldoutStyle);
             }
@@ -1209,11 +1208,11 @@ namespace UnityEditor.VFX
             public static readonly string[] s_DefaultRenderingLayerNames = GetDefaultRenderingLayerNames();
             private static string[] GetDefaultRenderingLayerNames()
             {
-                //Find UnityEditor.RendererEditorBase.defaultRenderingLayerNames by reflection to avoid any breakage due to an API change
+                //Find UnityEditor.RendererEditorBase.defaultPrefixedRenderingLayerNames by reflection to avoid any breakage due to an API change
                 var type = Type.GetType("UnityEditor.RendererEditorBase, UnityEditor");
                 if (type != null)
                 {
-                    var property = type.GetProperty("defaultRenderingLayerNames", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic | BindingFlags.Public);
+                    var property = type.GetProperty("defaultPrefixedRenderingLayerNames", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic | BindingFlags.Public);
                     if (property != null)
                     {
                         var invokeResult = property.GetMethod.Invoke(null, null);
@@ -1265,6 +1264,10 @@ namespace UnityEditor.VFX
             {
                 m_SerializedRenderers.Update();
 
+                EditorGUI.indentLevel += 1;
+                // Ugly hack to indent the header group because "indentLevel" is not taken into account
+                var x = EditorStyles.inspectorDefaultMargins.padding.left;
+                EditorStyles.inspectorDefaultMargins.padding.left -= 24;
                 bool showProbesCategory = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShowProbesCategory, Contents.probeSettings);
                 if (showProbesCategory != m_ShowProbesCategory)
                 {
@@ -1334,9 +1337,9 @@ namespace UnityEditor.VFX
                     if (m_RenderingLayerMask != null)
                     {
                         string[] layerNames = null;
-                        var srpAsset = QualitySettings.renderPipeline ?? GraphicsSettings.currentRenderPipeline;
+                        var srpAsset = GraphicsSettings.currentRenderPipeline;
                         if (srpAsset != null)
-                            layerNames = srpAsset.renderingLayerMaskNames;
+                            layerNames = srpAsset.prefixedRenderingLayerMaskNames;
 
                         if (layerNames == null)
                             layerNames = s_DefaultRenderingLayerNames;
@@ -1383,6 +1386,8 @@ namespace UnityEditor.VFX
                     }
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
+                EditorStyles.inspectorDefaultMargins.padding.left = x;
+                EditorGUI.indentLevel -= 1;
 
                 m_SerializedRenderers.ApplyModifiedProperties();
             }
