@@ -99,6 +99,9 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | **Earth Curvature**               | The curvature of the cloud volume. This defines the distance at which the clouds intersect with the horizon. |
 | **Lowest Cloud Altitude**         | The altitude of the lowest cloud in meters.                  |
 | **Cloud Thickness**               | The thickness of the volumetric clouds volume in meters.     |
+| **Fade In Mode**                  | Controls the mode in which the clouds fade in when close to the camera's near plane.|
+| **Fade In Start**                 | Controls the minimal distance at which clouds start appearing.|
+| **Fade In Distance**              | Controls the distance that it takes for the clouds to reach their complete density.|
 
 ### Wind
 

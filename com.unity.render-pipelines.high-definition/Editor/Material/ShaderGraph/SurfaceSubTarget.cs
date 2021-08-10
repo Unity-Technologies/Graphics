@@ -235,6 +235,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (builtinData.depthOffset)
                 context.AddField(HDStructFields.FragInputs.positionRWS);
 
+            context.AddField(HDFields.CustomVelocity, systemData.customVelocity);
+
             context.AddField(HDFields.TessellationFactor, systemData.tessellation);
             context.AddField(HDFields.TessellationDisplacement, systemData.tessellation);
         }
@@ -273,6 +275,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Misc
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset, builtinData.depthOffset);
+
+            context.AddBlock(HDBlockFields.VertexDescription.CustomVelocity, systemData.customVelocity);
 
             context.AddBlock(HDBlockFields.VertexDescription.TessellationFactor, systemData.tessellation);
             context.AddBlock(HDBlockFields.VertexDescription.TessellationDisplacement, systemData.tessellation);

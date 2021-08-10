@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 public class SetCameraDrsFilter : MonoBehaviour
 {
-    public DynamicResUpscaleFilter DrsFilter = DynamicResUpscaleFilter.Bilinear;
+    public DynamicResUpscaleFilter DrsFilter = DynamicResUpscaleFilter.CatmullRom;
 
     private Camera m_Camera = null;
 
