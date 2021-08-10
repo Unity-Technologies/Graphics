@@ -1185,6 +1185,15 @@ namespace UnityEngine.Rendering.HighDefinition
             panel.children.Add(m_DebugDisplayStatsItems);
         }
 
+        void UnregisterDisplayStatsDebug()
+        {
+            DisableProfilingRecorders();
+            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? true)
+                DisableProfilingRecordersRT();
+
+            UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
+        }
+
         void RegisterMaterialDebug()
         {
             var list = new List<DebugUI.Widget>();
@@ -1242,7 +1251,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RefreshDisplayStatsDebug<T>(DebugUI.Field<T> field, T value)
         {
-            UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
+            UnregisterDisplayStatsDebug();
             RegisterDisplayStatsDebug();
         }
 
@@ -2104,12 +2113,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Data.frameTimingData = null;
 
             UnregisterDebugItems(k_PanelDecals, m_DebugDecalsAffectingTransparentItems);
-
-            DisableProfilingRecorders();
-            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? true)
-                DisableProfilingRecordersRT();
-            UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
-
+            UnregisterDisplayStatsDebug();
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
             UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
