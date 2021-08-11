@@ -3,24 +3,14 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    public interface IResponsiveElement
-    {
-        int Priority { get; }
-        bool IsCompact { get; set;}
-        bool CanCompact { get; }
-        float GetSavedSpace();
-    }
-
-    abstract class DropDownButtonBase : VisualElement, IResponsiveElement
+    abstract class DropDownButtonBase : VisualElement
     {
         readonly bool m_HasLeftSeparator;
         readonly Button m_MainButton;
-        readonly Label m_Label;
 
         EditorWindow m_CurrentPopup;
 
         protected readonly VisualElement m_PopupContent;
-        private bool m_IsCompact;
 
 
         protected DropDownButtonBase(
@@ -28,20 +18,17 @@ namespace UnityEditor.VFX.UI
             string mainButtonLabel,
             string mainButtonName,
             string iconPath,
-            int priority,
             bool hasSeparatorBefore = false,
             bool hasSeparatorAfter = false)
         {
             style.flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row);
 
-            Priority = priority;
-
             if (hasSeparatorBefore)
             {
                 m_HasLeftSeparator = true;
-                var separator = new VisualElement();
-                separator.AddToClassList("separator");
-                Add(separator);
+                var divider = new VisualElement();
+                divider.AddToClassList("separator");
+                Add(divider);
             }
 
             m_MainButton = new Button(OnMainButton) { name = mainButtonName };
@@ -49,15 +36,19 @@ namespace UnityEditor.VFX.UI
             m_MainButton.AddToClassList("unity-toolbar-toggle");
             if (!string.IsNullOrEmpty(iconPath))
             {
-                m_MainButton.Add(new Image {image = EditorGUIUtility.LoadIcon(iconPath)});
-                m_Label = new Label(mainButtonLabel);
-                m_MainButton.Add(m_Label);
+                var icon = new Image {image = EditorGUIUtility.LoadIcon(iconPath)};
+                m_MainButton.Add(icon);
+                tooltip = mainButtonLabel;
             }
             else
             {
                 m_MainButton.text = mainButtonLabel;
             }
             Add(m_MainButton);
+
+            var separator = new VisualElement();
+            separator.AddToClassList("dropdown-separator");
+            Add(separator);
 
             var dropDownButton = new Button(OnOpenPopupInternal);
             dropDownButton.AddToClassList("dropdown-arrow");
@@ -67,9 +58,9 @@ namespace UnityEditor.VFX.UI
 
             if (hasSeparatorAfter)
             {
-                var separator = new VisualElement();
-                separator.AddToClassList("separator");
-                Add(separator);
+                var divider = new VisualElement();
+                divider.AddToClassList("separator");
+                Add(divider);
             }
 
             m_PopupContent = new VisualElement();
@@ -77,18 +68,6 @@ namespace UnityEditor.VFX.UI
             tpl.CloneTree(m_PopupContent);
             contentContainer.AddStyleSheetPath("VFXToolbar");
         }
-
-        public int Priority { get; }
-
-        public bool CanCompact => m_Label != null;
-
-        public bool IsCompact
-        {
-            get => m_IsCompact;
-            set => SetCompact(value);
-        }
-
-        public float GetSavedSpace() => m_Label.localBound.size.x;
 
         protected virtual void OnOpenPopup() {}
         protected virtual void OnMainButton() {}
@@ -122,24 +101,6 @@ namespace UnityEditor.VFX.UI
             }
 
             m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(), new [] { PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft });
-        }
-
-        private void SetCompact(bool isCompact)
-        {
-            if (CanCompact)
-            {
-                if (isCompact)
-                {
-                    m_MainButton.Remove(m_Label);
-                    tooltip = m_Label.text;
-                }
-                else
-                {
-                    m_MainButton.Add(m_Label);
-                    tooltip = null;
-                }
-                m_IsCompact = isCompact;
-            }
         }
     }
 }

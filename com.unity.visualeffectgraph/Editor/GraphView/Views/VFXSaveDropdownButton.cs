@@ -1,5 +1,8 @@
+using System.IO;
+
 using UnityEditor.Experimental;
 using UnityEditor.VersionControl;
+
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -16,7 +19,6 @@ namespace UnityEditor.VFX.UI
                 "Save",
                 "save-button",
                 EditorResources.iconsPath + "SaveActive.png",
-                1,
                 false,
                 true)
         {
@@ -53,6 +55,11 @@ namespace UnityEditor.VFX.UI
         private void OnSaveAs()
         {
             Debug.Log("save as");
+            var originalPath = AssetDatabase.GetAssetPath(m_VFXView.controller.model);
+            var newFilePath = EditorUtility.SaveFilePanelInProject("Save VFX Graph As...", Path.GetFileNameWithoutExtension(originalPath), "vfx", "", Path.GetDirectoryName(originalPath));
+            //newFilePath = newFilePath.Replace(Application.dataPath, "Assets");
+            m_VFXView.SaveAs(newFilePath);
+
             ClosePopup();
         }
 
@@ -64,11 +71,6 @@ namespace UnityEditor.VFX.UI
         void OnSelectAsset()
         {
             m_VFXView.SelectAsset();
-        }
-
-        void OnResyncMaterial()
-        {
-            //controller.graph.Invalidate(VFXModel.InvalidationCause.kMaterialChanged);
         }
     }
 }

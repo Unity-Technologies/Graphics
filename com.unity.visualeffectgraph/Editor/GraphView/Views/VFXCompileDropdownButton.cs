@@ -1,5 +1,4 @@
 using System.IO;
-using UnityEditor.Experimental;
 
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -11,15 +10,15 @@ namespace UnityEditor.VFX.UI
         readonly VFXView m_VFXView;
         readonly Toggle m_AutoCompileToggle;
         readonly Toggle m_RuntimeModeToggle;
-        readonly Toggle m_shaderValidationToggle;
+        readonly Toggle m_ShaderValidationToggle;
+        readonly Button m_ResyncMaterial;
 
         public VFXCompileDropdownButton(VFXView vfxView)
             : base(
             "VFXCompileDropdownPanel",
             "Compile",
             "compile-button",
-            Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/compile.png"),
-            2)
+            Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/compile.png"))
         {
             m_VFXView = vfxView;
 
@@ -29,19 +28,22 @@ namespace UnityEditor.VFX.UI
             m_RuntimeModeToggle = m_PopupContent.Q<Toggle>("runtimeMode");
             m_RuntimeModeToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleRuntimeMode);
 
-            m_shaderValidationToggle = m_PopupContent.Q<Toggle>("shaderValidation");
-            m_shaderValidationToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleShaderValidation);
+            m_ShaderValidationToggle = m_PopupContent.Q<Toggle>("shaderValidation");
+            m_ShaderValidationToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleShaderValidation);
+
+            m_ResyncMaterial = m_PopupContent.Q<Button>("resyncMaterial");
+            m_ResyncMaterial.clicked += OnResyncMaterial;
         }
 
         
         protected override Vector2 GetPopupPosition() => this.m_VFXView.ViewToScreenPosition(worldBound.position);
-        protected override Vector2 GetPopupSize() => new Vector2(150, 68);
+        protected override Vector2 GetPopupSize() => new Vector2(150, 88);
 
         protected override void OnOpenPopup()
         {
             m_AutoCompileToggle.value = VFXViewWindow.currentWindow.autoCompile;
             m_RuntimeModeToggle.value = m_VFXView.GetIsRuntimeMode();
-            m_shaderValidationToggle.value = m_VFXView.GetShaderValidation();
+            m_ShaderValidationToggle.value = m_VFXView.GetShaderValidation();
         }
 
         protected override void OnMainButton()
@@ -62,6 +64,11 @@ namespace UnityEditor.VFX.UI
         void OnToggleShaderValidation(ChangeEvent<bool> evt)
         {
             m_VFXView.ToggleShaderValidationChanged();
+        }
+
+        void OnResyncMaterial()
+        {
+            m_VFXView.controller.graph.Invalidate(VFXModel.InvalidationCause.kMaterialChanged);
         }
     }
 }
