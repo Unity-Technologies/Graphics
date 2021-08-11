@@ -355,6 +355,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the camera near plane not being taken into account when rendering the clouds (case 1353548).
 - Fixed controls for clouds fade in (case 1353548).
 - Reduced the number shader variants for the volumetric clouds.
+- Fixed motion vector for custom meshes loaded from compute buffer in shader graph (like Hair)
+- Fixed incorrect light list indexing when TAA is enabled (case 1352444).
+- Fixed Additional Velocity for Alembic not taking correctly into account vertex animation
+- Fixed wrong LUT initialization in Wireframe mode.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
