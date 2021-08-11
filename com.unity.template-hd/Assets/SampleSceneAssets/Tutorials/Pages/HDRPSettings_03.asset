@@ -42,10 +42,10 @@ MonoBehaviour:
           <b>Edit</b> > <b>Project Settings</b> > <b>Quality.</b> We already provide
           3 quality levels: <b>High, Medium,</b> and <b>Low.</b> <b>Medium</b> is
           currently active and marked as the default one. \r\n\r\n2. Switch to <b>Low
-          Quality</b> and observe the Fog disappeared. This occurs because in the
-          <b>Low Quality</b> level, the Volumetric Fog is disabled. \r\n\r\n3. Change
-          back to <b>Medium Quality.</b>\r\n\r\nAlternatively, you can locate the
-          <b>Low</b> asset in the Settings folder and verify that indeed <b>Lighting</b>
+          Quality</b> and observe the Fog disappeared. \n\nThis occurs because in
+          the <b>Low Quality</b> level, the Volumetric Fog is disabled. \r\n\r\n3.
+          Change back to <b>Medium Quality.</b>\r\n\r\nAlternatively, you can locate
+          the <b>Low</b> asset in the Settings folder and verify that indeed <b>Lighting</b>
           > <b>Volumetrics</b> is off in the <b>Low Quality</b> level. You can also
           switch to the <b>High Quality</b> level and see how it affects the overall
           shadow filtering quality and resolution.\r"

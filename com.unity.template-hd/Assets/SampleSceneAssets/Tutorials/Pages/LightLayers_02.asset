@@ -43,11 +43,10 @@ MonoBehaviour:
           In its <i>Inspector,</i> disable the <b>Lighting</b> > <b>Light layers</b>
           checkbox.\r\n\r\nWith the Light layers off, notice that the top lamp\u2019s
           glass surface casts unwanted shadows on its siblings and on the floor.\n\r\n3.
-          Turn the Light layers back on and notice how the glass doesn\u2019t cast
-          shadow anymore. \r\n\nIn this scenario, the Light Layers are used to force
-          each piece of glass to not receive light from other spotlights on the lamp
-          fixture.\n\r\n<b>Note:</b> By default, Light layers are turned off for
-          new projects.\r"
+          Turn the Light layers back on. \n\nNotice how the glass doesn\u2019t cast
+          shadow anymore. In this scenario, the Light Layers are used to force each
+          piece of glass to not receive light from other spotlights on the lamp fixture.\n\r\n<b>Note:</b>
+          By default, Light layers are turned off for new projects.\r"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

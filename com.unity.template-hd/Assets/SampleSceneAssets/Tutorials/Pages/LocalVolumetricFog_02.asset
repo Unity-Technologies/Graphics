@@ -43,7 +43,7 @@ MonoBehaviour:
           and how the sunlight reacts to it once it has been re-enabled.\n\n3. In
           its <i>Inspector,</i> experiment with the <b>Single Scattering Albedo</b>
           tint as well as the <b>Fog Distance</b> to change the look and feel of
-          the local fog."
+          the local fog.\n\n4. Undo your changes."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

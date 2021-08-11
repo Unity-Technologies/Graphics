@@ -54,7 +54,7 @@ MonoBehaviour:
           > <b>CeilingLamp_01</b> > <b>Light_Spot_1200lm.</b>
 
 
-          4. Notice
+          Notice
           that the <b>Light Layer</b> is set to <b>Mixed...</b> and once the dropdown
           is expanded, see that the <b>Lamp Only</b> layer is disabled.
 
@@ -66,10 +66,20 @@ MonoBehaviour:
           shadows are produced.
 
 
-          Obviously, Light layers are not physically
-          correct, because light cannot be blocked this way in real-life. However,
-          in practice, this feature is extremely useful to avoid unwanted illumination,
-          shadowing and light leaking in more difficult lighting scenarios.'
+
+          <b>Expert Tips</b>
+
+
+          Obviously,
+          Light layers are not physically correct, because light cannot be blocked
+          this way in real-life. However, in practice, this feature is extremely
+          useful to avoid unwanted illumination, shadowing and light leaking in more
+          difficult lighting scenarios.
+
+
+          Light layers can be used to fix
+          indoor and outdoor light leaking, and selectively light a character in
+          a cutscene without affecting the rest of the environment or other characters.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

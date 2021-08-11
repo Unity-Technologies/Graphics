@@ -37,15 +37,22 @@ MonoBehaviour:
       Title:
         m_Untranslated: Lightmapper Settings
       Text:
-        m_Untranslated: "In the Lighting window, you can find all the Lightmapper
+        m_Untranslated: "In the <b>Lighting</b> Window, you can find all the Lightmapper
           settings. These can be stored as <b>Lighting Settings</b> assets, at the
-          very top of the window in the Scene tab.\r\n\r\nIn this template there
-          are 5 assets with different levels of quality, which have a direct impact
-          on how long the bake will take: the higher the quality, the longer the
-          bake. \r\n\r\nMost of the provided Lighting Settings assets take advantage
-          of the GPU Lightmapper, which offers much faster baking speed compared
-          to the CPU Lightmapper, as long as you use a discrete GPU with sufficient
-          processing power and video memory."
+          very top of the window in the <b>Scene</b> tab.\r\n\r\nIn this template,
+          5  <b>Lighting Settings</b> assets with different levels of quality are
+          provided. Each level has a direct impact on how long the bake will take:
+          the higher the quality, the longer the bake. \r\n\r\nMost of the provided
+          Lighting Settings assets take advantage of the GPU Lightmapper, which offers
+          much faster baking speed compared to the CPU Lightmapper, as long as you
+          use a discrete GPU with sufficient processing power and video memory.\n\n\n<b>Important</b>\r\n\nTo
+          correctly integrate the lighting from the Sky in a light bake, the Lightmapper
+          requires a Volume Profile with at least one type of <b>Sky</b> override
+          to be assigned inside the <b>Environment</b> tab, at the top of the <b>Lighting</b>
+          Window, for every Scene. \n\nIf you do not specify a Volume Profile with
+          a Sky override, the Lightmapper will consider the Sky is black. Therefore
+          there might be a discrepancy between the resulting indirect lighting and
+          the Sky rendered by the camera itself."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

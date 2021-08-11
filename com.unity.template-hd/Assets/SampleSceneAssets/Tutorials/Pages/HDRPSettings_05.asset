@@ -20,7 +20,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: fe95a7a8bd7b1f44288442c6a4f60bee, type: 3}
+      m_Image: {fileID: 2800000, guid: d9f140aac3c252e4aae3fbbfb3594a97, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -35,15 +35,54 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Congratulations!
+        m_Untranslated: Frame Settings
       Text:
-        m_Untranslated: "In this tutorial, you learned the basics of HDRP settings.\n\nYou
-          can also watch  a<a href=\"https://youtu.be/yqCHiZrgKzs?t=243\">video</a>
-          tutorial to learn more about the Graphics settings.\n\nFor more details,
-          check out the corresponding documentation:\n\u2022<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/HDRP-Asset.html\">HDRP
-          assets</a>\n\u2022<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Scalability-Manual.html\">Scalability
-          (Quality levels)</a>\n\u2022<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Frame-Settings.html\">Frame
-          Settings</a>"
+        m_Untranslated: 'You can control exactly which HDRP features the cameras
+          and reflection probes can render, such as Rendering features, Post-Processing,
+          Lighting, LODs, etc.
+
+
+          1. Go to <b>Edit</b> > <b>Project Settings</b>
+          > <b>Graphics</b> > <b>HDRP Global Settings.</b>
+
+
+          2. Scroll
+          down to the <b>Frame Settings</b> section.
+
+
+          3. Under  <b>Camera</b>
+          > <b>Lighting</b> > <b>Rendering,</b> disable the <b>Decals.</b>
+
+
+          Note
+          that the water puddles and other dirt decals have disappears, now that
+          the feature has been disabled for all cameras, by default.
+
+
+          4.
+          Re-enable the <b>Decals.</b>
+
+
+
+          <b>Expert Tips</b>
+
+
+          Each
+          Camera and Reflection Probe component will let you override these default
+          settings, via the <b>Custom Frame Settings</b> checkbox.
+
+
+          For
+          instance, if a specific Reflection Probe in a Scene doesn''t need to render
+          Shadows Maps, Decals, or Volumetric Clouds, make sure you disable these
+          features to maximise performance. You may also tune the <b>Maxmum LOD Level</b>
+          to pevent Realtime Reflections from rendering unecessarily detailed objects,
+          and recoup precious rendering time.
+
+
+          Mastering <b>Frame Settings</b>
+          and per-object <b>Custom Frame Settings</b> is crucial to reach an optimal
+          framerate. '
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -63,8 +102,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 9.263008
-    m_Pivot: {x: 12.194905, y: 5.3052034, z: -3.711152}
-    m_Rotation: {x: -0.009810818, y: 0.8040248, z: 0.013265719, w: 0.5943942}
+    m_Pivot: {x: 4.573871, y: 5.9112844, z: 6.9082503}
+    m_Rotation: {x: -0.034261636, y: 0.47704676, z: 0.018612023, w: 0.8780315}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

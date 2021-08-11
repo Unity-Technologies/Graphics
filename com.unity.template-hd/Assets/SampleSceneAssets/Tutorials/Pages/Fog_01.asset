@@ -40,8 +40,9 @@ MonoBehaviour:
         m_Untranslated: "In HDRP, the <b>Fog</b> system can be used to simulate denser
           atmospheres, to increase the perception of depth in the Scene. \n\nThe
           Fog can react to the lighting to create beautiful volumetric effects, such
-          as sunrays.\n\nLike most other HDRP effects, the Fog can be controlled
-          via a Volume override."
+          as sunrays, when using <b>Volumetric Fog,</b> based on a camera frustum
+          voxel technique often called \"froxel\".\n\nLike most other HDRP effects,
+          the Fog can be controlled via a Volume override."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
