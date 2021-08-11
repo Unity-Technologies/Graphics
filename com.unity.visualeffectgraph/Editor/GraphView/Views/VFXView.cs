@@ -129,7 +129,7 @@ namespace UnityEditor.VFX.UI
             var isAttached = m_vfxView.attachedComponent != null;
             var selectedVisualEffect = Selection.activeGameObject?.GetComponent<VisualEffect>();
 
-            var isCompatible = selectedVisualEffect?.visualEffectAsset == m_vfxView.controller.graph.visualEffectResource.asset;
+            var isCompatible = selectedVisualEffect != null && selectedVisualEffect.visualEffectAsset == m_vfxView.controller.graph.visualEffectResource.asset;
             GUI.enabled = isAttached || selectedVisualEffect != null && isCompatible;
             var buttonContent = isAttached
                 ? VFXView.Contents.detach
