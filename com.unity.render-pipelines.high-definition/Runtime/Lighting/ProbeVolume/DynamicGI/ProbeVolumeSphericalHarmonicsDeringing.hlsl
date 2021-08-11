@@ -11,13 +11,6 @@ float ComputeLuminance(float3 color)
     return dot(color, float3(0.25, 0.5, 0.25));
 }
 
-// Dering the 9x float3 SH coefficients, and write out the corresponding shCoefficientIndex for the current pixel.
-// Needed for isolating individual color channels in deringing code.
-struct SHOutgoingRadiosityScalar
-{
-    float data[SH_COEFFICIENT_COUNT];
-};
-
 SHOutgoingRadiosityScalar SHOutgoingRadiosityReadColorChannel(SHOutgoingRadiosity shOutgoingRadiosity, int colorChannelIndex)
 {
     SHOutgoingRadiosityScalar shOutgoingRadiosityScalar;
@@ -44,168 +37,6 @@ void SHOutgoingRadiosityWriteColorChannel(inout SHOutgoingRadiosity shOutgoingRa
     {
         shOutgoingRadiosity.data[i][colorChannelIndex] = shOutgoingRadiosityScalar.data[i];
     }
-}
-
-void SHOutgoingRadiosityScalarRotateBand1(float3x3 M, inout float x[3])
-{
-    float3 SH = float3(-x[2], -x[0], x[1]);
-
-    x[0] = dot(SH, -float3(M[0][1], M[1][1], M[2][1]));
-    x[1] = dot(SH, float3(M[0][2], M[1][2], M[2][2]));
-    x[2] = dot(SH, -float3(M[0][0], M[1][0], M[2][0]));
-}
-
-void SHOutgoingRadiosityScalarRotateBand2(float3x3 M, inout float x[5])
-{
-    // Decomposed + factored version of 5x5 matrix multiply of invA * sh from source.
-    const float k0 = 0.9152912328637689;
-    const float k1 = 0.9152912328637689 * 2.0;
-    const float k2 = 1.5853309190424043;
-    float sh0 = x[1] * -0.5 + (x[3] * 0.5 + x[4]); // 2x MADD
-    float sh1 = (x[0] + (k2 / k0) * x[2] + x[3] + x[4]) * 0.5;
-    float sh2 = x[0];
-    float sh3 = -x[3];
-    float sh4 = -x[1];
-
-    const float k = 1.0 / sqrt(2.0);
-    const float kInv = sqrt(2.0);
-    const float k3 = k0 * 2.0 * K3SQRT5DIV4SQRTPI * k * k; // sqrt(3.0) / 2.0
-    const float k4 = k0 * 2.0 * -KALMOSTONETHIRD;
-
-    // Decomposed + factored version of 5x5 matrix multiply of 5 normals projected to 5 SH2 bands.
-    // Column 0
-    {
-        float3 rn0 = float3(M[0][0], M[0][1], M[0][2]) * kInv; // (float3(1, 0, 0) * M) / k;
-        x[0] = (rn0.x * rn0.y) * sh0;
-        x[1] = (-rn0.y * rn0.z) * sh0;
-        x[2] = (rn0.z * rn0.z * k3 + k4) * sh0;
-        x[3] = (-rn0.x * rn0.z) * sh0;
-        x[4] = (rn0.x * rn0.x - rn0.y * rn0.y) * sh0;
-    }
-
-    // Column 1
-    {
-        float3 rn1 = float3(M[2][0], M[2][1], M[2][2]) * kInv; // (float3(0, 0, 1) * M) / k;
-        x[0] += (rn1.x * rn1.y) * sh1;
-        x[1] += (-rn1.y * rn1.z) * sh1;
-        x[2] += (rn1.z * rn1.z * k3 + k4) * sh1;
-        x[3] += (-rn1.x * rn1.z) * sh1;
-        x[4] += (rn1.x * rn1.x - rn1.y * rn1.y) * sh1;
-    }
-
-    // Column 2
-    {
-        float3 rn2 = float3(M[0][0] + M[1][0], M[0][1] + M[1][1], M[0][2] + M[1][2]); // (float3(k, k, 0) * M) / k;
-        x[0] += (rn2.x * rn2.y) * sh2;
-        x[1] += (-rn2.y * rn2.z) * sh2;
-        x[2] += (rn2.z * rn2.z * k3 + k4) * sh2;
-        x[3] += (-rn2.x * rn2.z) * sh2;
-        x[4] += (rn2.x * rn2.x - rn2.y * rn2.y) * sh2;
-    }
-
-    // Column 3
-    {
-        float3 rn3 = float3(M[0][0] + M[2][0], M[0][1] + M[2][1], M[0][2] + M[2][2]); // (float3(k, 0, k) * M) / k;
-        x[0] += (rn3.x * rn3.y) * sh3;
-        x[1] += (-rn3.y * rn3.z) * sh3;
-        x[2] += (rn3.z * rn3.z * k3 + k4) * sh3;
-        x[3] += (-rn3.x * rn3.z) * sh3;
-        x[4] += (rn3.x * rn3.x - rn3.y * rn3.y) * sh3;
-    }
-
-    // Column 4
-    {
-        float3 rn4 = float3(M[1][0] + M[2][0], M[1][1] + M[2][1], M[1][2] + M[2][2]); // (float3(0, k, k) * M) / k;
-        x[0] += (rn4.x * rn4.y) * sh4;
-        x[1] += (-rn4.y * rn4.z) * sh4;
-        x[2] += (rn4.z * rn4.z * k3 + k4) * sh4;
-        x[3] += (-rn4.x * rn4.z) * sh4;
-        x[4] += (rn4.x * rn4.x - rn4.y * rn4.y) * sh4;
-    }
-
-    x[4] *= 0.5;
-}
-
-void SHOutgoingRadiosityScalarRotate(float3x3 M, inout SHOutgoingRadiosityScalar shOutgoingRadiosityScalar)
-{
-    float x1[3];
-    x1[0] = shOutgoingRadiosityScalar.data[1];
-    x1[1] = shOutgoingRadiosityScalar.data[2];
-    x1[2] = shOutgoingRadiosityScalar.data[3];
-    SHOutgoingRadiosityScalarRotateBand1(M, x1);
-    float x2[5];
-    x2[0] = shOutgoingRadiosityScalar.data[4];
-    x2[1] = shOutgoingRadiosityScalar.data[5];
-    x2[2] = shOutgoingRadiosityScalar.data[6];
-    x2[3] = shOutgoingRadiosityScalar.data[7];
-    x2[4] = shOutgoingRadiosityScalar.data[8];
-    SHOutgoingRadiosityScalarRotateBand2(M, x2);
-    shOutgoingRadiosityScalar.data[1] = x1[0];
-    shOutgoingRadiosityScalar.data[2] = x1[1];
-    shOutgoingRadiosityScalar.data[3] = x1[2];
-    shOutgoingRadiosityScalar.data[4] = x2[0];
-    shOutgoingRadiosityScalar.data[5] = x2[1];
-    shOutgoingRadiosityScalar.data[6] = x2[2];
-    shOutgoingRadiosityScalar.data[7] = x2[3];
-    shOutgoingRadiosityScalar.data[8] = x2[4];
-}
-
-// optimal linear direction, related to bent normal, etc.
-float3 SHOutgoingRadiosityScalarGetOptimalLinear(const SHOutgoingRadiosityScalar shOutgoingRadiosityScalar)
-{
-    return float3(-shOutgoingRadiosityScalar.data[3], -shOutgoingRadiosityScalar.data[1], shOutgoingRadiosityScalar.data[2]);
-}
-
-// source: Building an Orthonormal Basis, Revisited
-// http://jcgt.org/published/0006/01/01/
-// Same as reference implementation, except transposed.
-float3x3 ComputeTangentToWorldMatrix(float3 n)
-{
-    float3x3 res;
-    res[2][0] = n.x;
-    res[2][1] = n.y;
-    res[2][2] = n.z;
-
-    float s = (n.z >= 0.0f) ? 1.0f : -1.0f;
-    float a = -1.0f / (s + n.z);
-    float b = n.x * n.y * a;
-
-    res[0][0] = 1.0f + s * n.x * n.x * a;
-    res[0][1] = s * b;
-    res[0][2] = -s * n.x;
-
-    res[1][0] = b;
-    res[1][1] = s + n.y * n.y * a;
-    res[1][2] = -n.y;
-
-    return res;
-}
-
-void FrameFromNormal(float3 normal, out float3 tangent, out float3 binormal)
-{
-#if 0
-    // PPSloan version:
-    if (abs(normal.x) > abs(normal.z))
-    {
-        binormal.x = -normal.y;
-        binormal.y = normal.x;
-        binormal.z = 0.0f;
-    }
-    else
-    {
-        binormal.x = 0.0f;
-        binormal.y = -normal.z;
-        binormal.z = normal.y;
-    }
-
-    binormal = normalize(binormal);
-    tangent = cross(binormal, normal);
-#else
-    float3x3 tangentToWorldMatrix = ComputeTangentToWorldMatrix(normal);
-    float3x3 worldToTangentMatrix = transpose(transpose(tangentToWorldMatrix)); // TODO: Test this transpose - from the conversion from glsl to hlsl
-    binormal = worldToTangentMatrix[1];
-    tangent = worldToTangentMatrix[0];
-#endif
 }
 
 // a * z^2 + b * z + c + ce is the function, we add the window parameters l2, l1
@@ -569,7 +400,7 @@ void SHZHDeRingFull(float zh[3], inout float4 window, const float q1err, const f
 
 void SHOutgoingRadiosityScalarComputeWindow(const SHOutgoingRadiosityScalar shOutgoingRadiosityScalar, inout float4 window)
 {
-    float3 optLin = SHOutgoingRadiosityScalarGetOptimalLinear(shOutgoingRadiosityScalar);
+    float3 optLin = SHOutgoingRadiosityScalarGetOptimalLinearDirection(shOutgoingRadiosityScalar);
 
     float vecMag = sqrt(dot(optLin, optLin));
 

@@ -35,6 +35,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter propagationSharpness = new ClampedFloatParameter(2.0f, 0.0f, 16.0f);
         [Tooltip("Advanced control for the SG sharpness used when evaluating the influence of infinite bounce light near surfaces")]
         public ClampedFloatParameter infiniteBounceSharpness = new ClampedFloatParameter(2.0f, 0.0f, 16.0f);
+        [Tooltip("Advanced control for probe propagation combine pass.\nSamplePeakAndProject: Spherical gaussians will simply be evaluated at their peak and projected to convert to spherical harmonics.\nSHFromSGFit: A spherical gaussian to spherical harmonic function fit is used, which is physically plausible.\nSHFromSGFitWithCosineWindow: A spherical gaussian with an additional cosine window to spherical harmonic function fit is used, which is physically plausible. Less directional blur than SHFromSGFit.")]
+        public SHFromSGModeParameter shFromSGMode = new SHFromSGModeParameter(SHFromSGMode.SamplePeakAndProject);
         [Tooltip("Advanced control for darkening down the indirect light on invalid probes")]
         public ClampedFloatParameter leakMultiplier = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
         [Tooltip("Advanced control to bias the distance from the normal of the hit surface to perform direct lighting evaluation on")]
@@ -47,5 +49,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Tooltip("Advanced control to clear all dynamic GI buffers in the event lighting blows up when tuning")]
         public BoolParameter clear = new BoolParameter(false);
+
+        [Serializable]
+        public enum SHFromSGMode
+        {
+            SamplePeakAndProject = 0,
+            SHFromSGFit,
+            SHFromSGFitWithCosineWindow
+        };
+
+        [Serializable]
+        public sealed class SHFromSGModeParameter : VolumeParameter<SHFromSGMode>
+        {
+            public SHFromSGModeParameter(SHFromSGMode value, bool overrideState = false)
+                : base(value, overrideState) {}
+        }
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline

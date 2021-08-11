@@ -169,16 +169,36 @@ float SHEvaluateDirectionNormalOnlyFromCoefficientIndex(float3 v, int coefficien
 
 #define SH_COEFFICIENT_COUNT (9)
 #define SH_PACKED_COEFFICIENT_COUNT (7)
+#define ZH_COEFFICIENT_COUNT (3)
 
 struct SHIncomingIrradiance
 {
     float3 data[SH_COEFFICIENT_COUNT];
 };
 
+struct SHIncomingIrradianceScalar
+{
+    float data[SH_COEFFICIENT_COUNT];
+};
+
+struct ZHWindow
+{
+    float data[ZH_COEFFICIENT_COUNT];
+};
+
+struct SHWindow
+{
+    float data[SH_COEFFICIENT_COUNT];
+};
 
 struct SHOutgoingRadiosity
 {
     float3 data[SH_COEFFICIENT_COUNT];
+};
+
+struct SHOutgoingRadiosityScalar
+{
+    float data[SH_COEFFICIENT_COUNT];
 };
 
 struct SHOutgoingRadiosityWithProjectedConstants
@@ -214,9 +234,19 @@ float3 IncomingRadianceCompute(SHIncomingIrradiance sh, float3 direction)
 
 void SHIncomingIrradianceAccumulate(inout SHIncomingIrradiance shIncomingIrradiance, float3 direction, float3 incomingRadiance)
 {
+    [unroll]
     for (int i = 0; i < SH_COEFFICIENT_COUNT; ++i)
     {
         shIncomingIrradiance.data[i] += SHEvaluateDirectionFromCoefficientIndex(direction, i) * incomingRadiance;
+    }
+}
+
+void SHIncomingIrradianceAccumulateFromSHIncomingIrradiance(inout SHIncomingIrradiance shIncomingIrradiance, SHIncomingIrradiance x)
+{
+    [unroll]
+    for (int i = 0; i < SH_COEFFICIENT_COUNT; ++i)
+    {
+        shIncomingIrradiance.data[i] += x.data[i];
     }
 }
 
@@ -238,6 +268,7 @@ SHOutgoingRadiosity SHOutgoingRadiosityComputeFromIncomingIrradiance(SHIncomingI
 
     SHOutgoingRadiosity shOutgoingRadiosity;
 
+    [unroll]
     for (int i = 0; i < SH_COEFFICIENT_COUNT; ++i)
     {
         shOutgoingRadiosity.data[i] = shIncomingIrradiance.data[i] * shConvolveCosineLobeConstants[i] * INV_PI;
@@ -275,6 +306,8 @@ SHIncomingIrradiance SHIncomingIrradianceCompute(SHOutgoingRadiosity shOutgoingR
 SHOutgoingRadiosityWithProjectedConstants SHOutgoingRadiosityWithProjectedConstantsCompute(SHOutgoingRadiosity shOutgoingRadiosity)
 {
     SHOutgoingRadiosityWithProjectedConstants shOutgoingRadiosityWithProjectedConstants;
+    
+    [unroll]
     for (int i = 0; i < SH_COEFFICIENT_COUNT; ++i)
     {
         shOutgoingRadiosityWithProjectedConstants.data[i] = shOutgoingRadiosity.data[i] * SHEvaluateDirectionConstantOnlyFromCoefficientIndex(i);
@@ -369,6 +402,8 @@ SHOutgoingRadiosityWithProjectedConstants SHOutgoingRadiosityWithProjectedConsta
 SHOutgoingRadiosity SHOutgoingRadiosityCompute(SHOutgoingRadiosityWithProjectedConstants shOutgoingRadiosityWithProjectedConstants)
 {
     SHOutgoingRadiosity shOutgoingRadiosity;
+    
+    [unroll]
     for (int i = 0; i < SH_COEFFICIENT_COUNT; ++i)
     {
         shOutgoingRadiosity.data[i] = shOutgoingRadiosityWithProjectedConstants.data[i] / SHEvaluateDirectionConstantOnlyFromCoefficientIndex(i);
@@ -380,6 +415,8 @@ SHOutgoingRadiosity SHOutgoingRadiosityCompute(SHOutgoingRadiosityWithProjectedC
 float3 OutgoingRadianceCompute(SHOutgoingRadiosity shOutgoingRadiosity, float3 direction)
 {
     float3 outgoingRadiance = 0;
+
+    [unroll]
     for (int i = 0; i < SH_COEFFICIENT_COUNT; ++i)
     {
         outgoingRadiance += shOutgoingRadiosity.data[i] * SHEvaluateDirectionFromCoefficientIndex(direction, i);
@@ -391,6 +428,8 @@ float3 OutgoingRadianceCompute(SHOutgoingRadiosity shOutgoingRadiosity, float3 d
 float3 OutgoingRadianceCompute(SHOutgoingRadiosityWithProjectedConstants shOutgoingRadiosityWithProjectedConstants, float3 direction)
 {
     float3 outgoingRadiance = 0;
+
+    [unroll]
     for (int i = 0; i < SH_COEFFICIENT_COUNT; ++i)
     {
         outgoingRadiance += shOutgoingRadiosityWithProjectedConstants.data[i] * SHEvaluateDirectionNormalOnlyFromCoefficientIndex(direction, i);
@@ -401,6 +440,7 @@ float3 OutgoingRadianceCompute(SHOutgoingRadiosityWithProjectedConstants shOutgo
 
 void SHOutgoingRadiosityBlend(inout SHOutgoingRadiosity destOutgoingRadiosity, float destBlend, SHOutgoingRadiosity srcOutgoingRadiosity, float srcBlend)
 {
+    [unroll]
     for(int i=0; i < SH_COEFFICIENT_COUNT; ++i)
     {
         destOutgoingRadiosity.data[i] = destOutgoingRadiosity.data[i] * destBlend + srcOutgoingRadiosity.data[i] * srcBlend;
@@ -513,6 +553,28 @@ void SHOutgoingRadiosityRotate(float3x3 M, inout SHOutgoingRadiosity shOutgoingR
     shOutgoingRadiosity.data[8] = x2[4];
 }
 
+void SHIncomingIrradianceRotate(float3x3 M, inout SHIncomingIrradiance shIncomingIrradiance)
+{
+    // SH Rotation of Irradiance is identical to rotation of radiosity.
+    // Under the hood here, copy the data to radiosity, rotate, then copy back
+    // TODO: Make sure the compiler is doing the right thing here (avoiding this copy).
+    SHOutgoingRadiosity shOutgoingRadiosity;
+    
+    [unroll]
+    for (int i = 0; i < 9; ++i)
+    {
+        shOutgoingRadiosity.data[i] = shIncomingIrradiance.data[i];
+    }
+
+    SHOutgoingRadiosityRotate(M, shOutgoingRadiosity);
+
+    [unroll]
+    for (i = 0; i < 9; ++i)
+    {
+        shIncomingIrradiance.data[i] = shOutgoingRadiosity.data[i];
+    }
+}
+
 void SHOutgoingRadiosityWithProjectedConstantsRotateBand1(float3x3 M, inout float3 x[3])
 {
     float3x3 SH = float3x3(x[2], x[0], x[1]);
@@ -612,6 +674,245 @@ void SHOutgoingRadiosityWithProjectedConstantsRotate(float3x3 M, inout SHOutgoin
     shOutgoingRadiosityWithProjectedConstants.data[6] = x2[2];
     shOutgoingRadiosityWithProjectedConstants.data[7] = x2[3];
     shOutgoingRadiosityWithProjectedConstants.data[8] = x2[4];
+}
+
+void SHOutgoingRadiosityScalarRotateBand1(float3x3 M, inout float x[3])
+{
+    float3 SH = float3(-x[2], -x[0], x[1]);
+
+    x[0] = dot(SH, -float3(M[0][1], M[1][1], M[2][1]));
+    x[1] = dot(SH, float3(M[0][2], M[1][2], M[2][2]));
+    x[2] = dot(SH, -float3(M[0][0], M[1][0], M[2][0]));
+}
+
+void SHOutgoingRadiosityScalarRotateBand2(float3x3 M, inout float x[5])
+{
+    // Decomposed + factored version of 5x5 matrix multiply of invA * sh from source.
+    const float k0 = 0.9152912328637689;
+    const float k1 = 0.9152912328637689 * 2.0;
+    const float k2 = 1.5853309190424043;
+    float sh0 = x[1] * -0.5 + (x[3] * 0.5 + x[4]); // 2x MADD
+    float sh1 = (x[0] + (k2 / k0) * x[2] + x[3] + x[4]) * 0.5;
+    float sh2 = x[0];
+    float sh3 = -x[3];
+    float sh4 = -x[1];
+
+    const float k = 1.0 / sqrt(2.0);
+    const float kInv = sqrt(2.0);
+    const float k3 = k0 * 2.0 * K3SQRT5DIV4SQRTPI * k * k; // sqrt(3.0) / 2.0
+    const float k4 = k0 * 2.0 * -KALMOSTONETHIRD;
+
+    // Decomposed + factored version of 5x5 matrix multiply of 5 normals projected to 5 SH2 bands.
+    // Column 0
+    {
+        float3 rn0 = float3(M[0][0], M[0][1], M[0][2]) * kInv; // (float3(1, 0, 0) * M) / k;
+        x[0] = (rn0.x * rn0.y) * sh0;
+        x[1] = (-rn0.y * rn0.z) * sh0;
+        x[2] = (rn0.z * rn0.z * k3 + k4) * sh0;
+        x[3] = (-rn0.x * rn0.z) * sh0;
+        x[4] = (rn0.x * rn0.x - rn0.y * rn0.y) * sh0;
+    }
+
+    // Column 1
+    {
+        float3 rn1 = float3(M[2][0], M[2][1], M[2][2]) * kInv; // (float3(0, 0, 1) * M) / k;
+        x[0] += (rn1.x * rn1.y) * sh1;
+        x[1] += (-rn1.y * rn1.z) * sh1;
+        x[2] += (rn1.z * rn1.z * k3 + k4) * sh1;
+        x[3] += (-rn1.x * rn1.z) * sh1;
+        x[4] += (rn1.x * rn1.x - rn1.y * rn1.y) * sh1;
+    }
+
+    // Column 2
+    {
+        float3 rn2 = float3(M[0][0] + M[1][0], M[0][1] + M[1][1], M[0][2] + M[1][2]); // (float3(k, k, 0) * M) / k;
+        x[0] += (rn2.x * rn2.y) * sh2;
+        x[1] += (-rn2.y * rn2.z) * sh2;
+        x[2] += (rn2.z * rn2.z * k3 + k4) * sh2;
+        x[3] += (-rn2.x * rn2.z) * sh2;
+        x[4] += (rn2.x * rn2.x - rn2.y * rn2.y) * sh2;
+    }
+
+    // Column 3
+    {
+        float3 rn3 = float3(M[0][0] + M[2][0], M[0][1] + M[2][1], M[0][2] + M[2][2]); // (float3(k, 0, k) * M) / k;
+        x[0] += (rn3.x * rn3.y) * sh3;
+        x[1] += (-rn3.y * rn3.z) * sh3;
+        x[2] += (rn3.z * rn3.z * k3 + k4) * sh3;
+        x[3] += (-rn3.x * rn3.z) * sh3;
+        x[4] += (rn3.x * rn3.x - rn3.y * rn3.y) * sh3;
+    }
+
+    // Column 4
+    {
+        float3 rn4 = float3(M[1][0] + M[2][0], M[1][1] + M[2][1], M[1][2] + M[2][2]); // (float3(0, k, k) * M) / k;
+        x[0] += (rn4.x * rn4.y) * sh4;
+        x[1] += (-rn4.y * rn4.z) * sh4;
+        x[2] += (rn4.z * rn4.z * k3 + k4) * sh4;
+        x[3] += (-rn4.x * rn4.z) * sh4;
+        x[4] += (rn4.x * rn4.x - rn4.y * rn4.y) * sh4;
+    }
+
+    x[4] *= 0.5;
+}
+
+void SHOutgoingRadiosityScalarRotate(float3x3 M, inout SHOutgoingRadiosityScalar shOutgoingRadiosityScalar)
+{
+    float x1[3];
+    x1[0] = shOutgoingRadiosityScalar.data[1];
+    x1[1] = shOutgoingRadiosityScalar.data[2];
+    x1[2] = shOutgoingRadiosityScalar.data[3];
+    SHOutgoingRadiosityScalarRotateBand1(M, x1);
+    float x2[5];
+    x2[0] = shOutgoingRadiosityScalar.data[4];
+    x2[1] = shOutgoingRadiosityScalar.data[5];
+    x2[2] = shOutgoingRadiosityScalar.data[6];
+    x2[3] = shOutgoingRadiosityScalar.data[7];
+    x2[4] = shOutgoingRadiosityScalar.data[8];
+    SHOutgoingRadiosityScalarRotateBand2(M, x2);
+    shOutgoingRadiosityScalar.data[1] = x1[0];
+    shOutgoingRadiosityScalar.data[2] = x1[1];
+    shOutgoingRadiosityScalar.data[3] = x1[2];
+    shOutgoingRadiosityScalar.data[4] = x2[0];
+    shOutgoingRadiosityScalar.data[5] = x2[1];
+    shOutgoingRadiosityScalar.data[6] = x2[2];
+    shOutgoingRadiosityScalar.data[7] = x2[3];
+    shOutgoingRadiosityScalar.data[8] = x2[4];
+}
+
+void ZHWindowRotateBand1(float3x3 M, float zhWindowL1, out float shWindowL1[3])
+{
+    // Same as SHOutgoingRadiosityScalarRotate1 but specialized for zonal harmonics,
+    // which only have 1 non zero value per order - the value along Z. In the case of SHL2 this is c0, c2, and c6.
+    shWindowL1[0] = zhWindowL1 * -M[2][1];
+    shWindowL1[1] = zhWindowL1 * M[2][2];
+    shWindowL1[2] = zhWindowL1 * -M[2][0];
+}
+
+void ZHWindowRotateBand2(float3x3 M, float zhWindowL2, out float shWindowL2[5])
+{
+    // Same as SHOutgoingRadiosityScalarRotate2 but specialized for zonal harmonics,
+    // which only have 1 non zero value per order - the value along Z. In the case of SHL2 this is c0, c2, and c6.
+
+    // Decomposed + factored version of 5x5 matrix multiply of invA * sh from source.
+    const float k0 = 0.9152912328637689;
+    const float k1 = 0.9152912328637689 * 2.0;
+    const float k2 = 1.5853309190424043;
+    float sh1 = ((k2 / k0) * zhWindowL2) * 0.5;
+
+    const float k = 1.0 / sqrt(2.0);
+    const float kInv = sqrt(2.0);
+    const float k3 = k0 * 2.0 * K3SQRT5DIV4SQRTPI * k * k; // sqrt(3.0) / 2.0
+    const float k4 = k0 * 2.0 * -KALMOSTONETHIRD;
+
+    // Decomposed + factored version of 5x5 matrix multiply of 5 normals projected to 5 SH2 bands.
+    // Column 1
+    {
+        float3 rn1 = float3(M[2][0], M[2][1], M[2][2]) * kInv; // (float3(0, 0, 1) * M) / k;
+        shWindowL2[0] = (rn1.x * rn1.y) * sh1;
+        shWindowL2[1] = (-rn1.y * rn1.z) * sh1;
+        shWindowL2[2] = (rn1.z * rn1.z * k3 + k4) * sh1;
+        shWindowL2[3] = (-rn1.x * rn1.z) * sh1;
+        shWindowL2[4] = (rn1.x * rn1.x - rn1.y * rn1.y) * sh1;
+    }
+
+    shWindowL2[4] *= 0.5;
+}
+
+void ZHWindowRotate(float3x3 M, out SHWindow shWindow, in ZHWindow zhWindow)
+{
+    float shWindowL1[3];
+    float zhWindowL1 = zhWindow.data[1];
+    ZHWindowRotateBand1(M, zhWindowL1, shWindowL1);
+    float shWindowL2[5];
+    float zhWindowL2 = zhWindow.data[2];
+    ZHWindowRotateBand2(M, zhWindowL2, shWindowL2);
+    shWindow.data[0] = zhWindow.data[0];
+    shWindow.data[1] = shWindowL1[0];
+    shWindow.data[2] = shWindowL1[1];
+    shWindow.data[3] = shWindowL1[2];
+    shWindow.data[4] = shWindowL2[0];
+    shWindow.data[5] = shWindowL2[1];
+    shWindow.data[6] = shWindowL2[2];
+    shWindow.data[7] = shWindowL2[3];
+    shWindow.data[8] = shWindowL2[4];
+}
+
+// source: Building an Orthonormal Basis, Revisited
+// http://jcgt.org/published/0006/01/01/
+// Same as reference implementation, except transposed.
+float3x3 ComputeTangentToWorldMatrix(float3 n)
+{
+    float3x3 res;
+    res[2][0] = n.x;
+    res[2][1] = n.y;
+    res[2][2] = n.z;
+
+    float s = (n.z >= 0.0f) ? 1.0f : -1.0f;
+    float a = -1.0f / (s + n.z);
+    float b = n.x * n.y * a;
+
+    res[0][0] = 1.0f + s * n.x * n.x * a;
+    res[0][1] = s * b;
+    res[0][2] = -s * n.x;
+
+    res[1][0] = b;
+    res[1][1] = s + n.y * n.y * a;
+    res[1][2] = -n.y;
+
+    return res;
+}
+
+void FrameFromNormal(float3 normal, out float3 tangent, out float3 binormal)
+{
+    float3x3 tangentToWorldMatrix = ComputeTangentToWorldMatrix(normal);
+    float3x3 worldToTangentMatrix = tangentToWorldMatrix;
+    binormal = worldToTangentMatrix[1];
+    tangent = worldToTangentMatrix[0];
+}
+
+void SHIncomingIrradianceConvolveSHWindow(inout SHIncomingIrradiance shIncomingIrradiance, SHWindow shWindow)
+{
+    [unroll]
+    for (int i = 0; i < SH_COEFFICIENT_COUNT; ++i)
+    {
+        shIncomingIrradiance.data[i] *= shWindow.data[i];
+    }
+}
+
+SHWindow SHWindowComputeFromZHWindow(ZHWindow zhWindow, float3 zhDirection)
+{
+    SHWindow shWindow;
+    float3x3 tangentToWorldMatrix = ComputeTangentToWorldMatrix(zhDirection);
+    ZHWindowRotate(tangentToWorldMatrix, shWindow, zhWindow);
+
+    return shWindow;
+}
+
+SHIncomingIrradiance SHIncomingIrradianceComputeFromSHWindowAndRadiance(SHWindow shWindow, float3 radiance)
+{
+    SHIncomingIrradiance shIncomingIrradiance;
+
+    [unroll]
+    for (int c = 0; c < SH_COEFFICIENT_COUNT; ++c)
+    {
+        shIncomingIrradiance.data[c] = shWindow.data[c] * radiance;
+    }
+
+    return shIncomingIrradiance;
+}
+
+void SHIncomingIrradianceConvolveZHWindow(inout SHIncomingIrradiance shIncomingIrradiance, ZHWindow zhWindow, float3 zhDirection)
+{
+    SHWindow shWindow = SHWindowComputeFromZHWindow(zhWindow, zhDirection);
+
+    SHIncomingIrradianceConvolveSHWindow(shIncomingIrradiance, shWindow);
+}
+
+// optimal linear direction, related to bent normal, etc.
+float3 SHOutgoingRadiosityScalarGetOptimalLinearDirection(const SHOutgoingRadiosityScalar shOutgoingRadiosityScalar)
+{
+    return float3(-shOutgoingRadiosityScalar.data[3], -shOutgoingRadiosityScalar.data[1], shOutgoingRadiosityScalar.data[2]);
 }
 
 //////////// Francesco's Versions

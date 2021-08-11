@@ -480,6 +480,30 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
 
+            cmd.SetComputeFloatParam(shader, "_PropagationSharpness", giSettings.propagationSharpness.value);
+
+            switch (giSettings.shFromSGMode.value)
+            {
+                case ProbeDynamicGI.SHFromSGMode.SamplePeakAndProject:
+                {
+                    CoreUtils.SetKeyword(shader, "SH_FROM_SG_PBR_FIT", false);
+                    CoreUtils.SetKeyword(shader, "SH_FROM_SG_PBR_FIT_WITH_COSINE_WINDOW", false);
+                    break;
+                }
+                case ProbeDynamicGI.SHFromSGMode.SHFromSGFit:
+                {
+                    CoreUtils.SetKeyword(shader, "SH_FROM_SG_PBR_FIT", true);
+                    CoreUtils.SetKeyword(shader, "SH_FROM_SG_PBR_FIT_WITH_COSINE_WINDOW", false);
+                    break;
+                }
+                case ProbeDynamicGI.SHFromSGMode.SHFromSGFitWithCosineWindow:
+                {
+                    CoreUtils.SetKeyword(shader, "SH_FROM_SG_PBR_FIT", false);
+                    CoreUtils.SetKeyword(shader, "SH_FROM_SG_PBR_FIT_WITH_COSINE_WINDOW", true);
+                    break;
+                }
+                default: break;
+            }
 
             int dispatchX = (numProbes + 63) / 64;
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
