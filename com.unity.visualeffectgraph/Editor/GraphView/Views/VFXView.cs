@@ -385,7 +385,8 @@ namespace UnityEditor.VFX.UI
         public static Texture2D LoadImage(string text)
         {
             string path = string.Format("{0}/VFX/{1}.png", VisualEffectAssetEditorUtility.editorResourcesPath, text);
-            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            return EditorGUIUtility.LoadIcon(path);
+            //return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }
 
         SelectionDragger m_SelectionDragger;
@@ -441,8 +442,8 @@ namespace UnityEditor.VFX.UI
             flexSpacer.style.flexGrow = 1f;
             m_Toolbar.Add(flexSpacer);
 
-            var toggleBlackboard = new ToolbarToggle();
-            toggleBlackboard.text = "Blackboard";
+            var toggleBlackboard = new ToolbarToggle { tooltip = "Blackboard" };
+            toggleBlackboard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/variableswindow.png"))});
             toggleBlackboard.RegisterCallback<ChangeEvent<bool>>(ToggleBlackboard);
             m_Toolbar.Add(toggleBlackboard);
 
@@ -453,7 +454,6 @@ namespace UnityEditor.VFX.UI
 
             var helpDropDownButton = new VFXHelpDropdownButton(this);
             m_Toolbar.Add(helpDropDownButton);
-            m_Toolbar.RegisterCallback<GeometryChangedEvent>(OnToolbarGeometryChanged);
             // End Toolbar
 
             m_NoAssetLabel = new Label("\n\n\nTo begin creating Visual Effects, create a new Visual Effect Graph Asset.\n(or double-click an existing Visual Effect Graph in the project view)") { name = "no-asset"};
@@ -748,48 +748,6 @@ namespace UnityEditor.VFX.UI
         void ToggleComponentBoard(ChangeEvent<bool> e)
         {
             ToggleComponentBoard();
-        }
-
-        private void OnToolbarGeometryChanged(GeometryChangedEvent evt)
-        {
-            var requiredWidth = m_Toolbar
-                .Children()
-                .Where(x => x is not ToolbarSpacer)
-                .Sum(x => x.contentRect.width)
-                // Keep a margin to kick this behavior before the toolbar jumps on two lines
-                + 32;
-            var availableWidth = evt.newRect.width;
-
-            if (requiredWidth > availableWidth)
-            {
-                m_Toolbar
-                    .Children()
-                    .OfType<IResponsiveElement>()
-                    .Where(x => x.CanCompact && !x.IsCompact)
-                    .OrderByDescending(x => x.Priority)
-                    .TakeWhile(x =>
-                    {
-                        x.IsCompact = true;
-                        requiredWidth -= x.GetSavedSpace();
-                        return requiredWidth > availableWidth;
-                    })
-                    .ToArray();
-            }
-            else if (requiredWidth < availableWidth)
-            {
-                m_Toolbar
-                    .Children()
-                    .OfType<IResponsiveElement>()
-                    .Where(x => x.CanCompact && x.IsCompact)
-                    .OrderBy(x => x.Priority)
-                    .TakeWhile(x =>
-                    {
-                        requiredWidth += x.GetSavedSpace();
-                        return requiredWidth < availableWidth;
-                    })
-                    .ToList()
-                    .ForEach(x => x.IsCompact = false);
-            }
         }
 
         public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
@@ -1428,6 +1386,15 @@ namespace UnityEditor.VFX.UI
                 if (EditorUtility.IsDirty(graph) || UnityEngine.Object.ReferenceEquals(graph, controller.graph))
                     graph.GetResource().WriteAsset();
             }
+        }
+
+        internal void SaveAs(string newPath)
+        {
+            m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
+
+            var resource = controller.graph.visualEffectResource;
+            resource.SetAssetPath(newPath);
+            resource.WriteAsset();
         }
 
         void GetGraphsRecursively(VFXGraph start, HashSet<VFXGraph> graphs)

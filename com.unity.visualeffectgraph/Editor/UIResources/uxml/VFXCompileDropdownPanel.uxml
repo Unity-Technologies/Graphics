@@ -9,4 +9,7 @@
     <ui:Box>
         <ui:Toggle name="shaderValidation" text="Shader Validation" />
     </ui:Box>
+    <ui:Box class="alternate">
+        <ui:Button name="resyncMaterial" text="Resync Material" />
+    </ui:Box>
 </UXML>

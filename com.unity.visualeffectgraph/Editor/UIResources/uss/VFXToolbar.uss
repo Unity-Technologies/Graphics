@@ -16,9 +16,13 @@
     width: 16px;
 }
 
-.dropdown-button > Image, ToolbarToggle > Image
+.dropdown-separator
 {
-    margin-right: 2px;
+    height: 10px;
+    width: 1px;
+    border-color: var(--unity-colors-default-border);
+    opacity: 0.5;
+    align-self: center;
 }
 
 .dropdown-arrow > VisualElement
@@ -62,6 +66,5 @@ Box.section
 
 Box.alternate
 {
-    /*background-color: #3c3c3c;*/
     background-color: var(--unity-colors-alternated_rows-background);
 }

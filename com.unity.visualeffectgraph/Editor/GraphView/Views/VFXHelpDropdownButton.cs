@@ -1,4 +1,5 @@
 using System.Linq;
+
 using UnityEditor.Experimental;
 using UnityEditor.PackageManager.UI;
 
@@ -29,7 +30,6 @@ namespace UnityEditor.VFX.UI
                 "Help",
                 "help-button",
                 EditorResources.iconsPath + "_Help.png",
-                3,
                 true)
         {
             m_VFXView = vfxView;
