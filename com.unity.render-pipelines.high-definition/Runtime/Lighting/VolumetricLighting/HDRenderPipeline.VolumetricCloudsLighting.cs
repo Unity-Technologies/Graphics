@@ -60,8 +60,8 @@ namespace UnityEngine.Rendering.HighDefinition
             float vC = N.x * N.x - N.y * N.y;
             Vector3 x3 = new Vector3(0.0f, 0.0f, 0.0f);
             x3.x = shC.x * vC;
-            x3.x = shC.y * vC;
-            x3.x = shC.z * vC;
+            x3.y = shC.y * vC;
+            x3.z = shC.z * vC;
             return x2 + x3;
         }
 
