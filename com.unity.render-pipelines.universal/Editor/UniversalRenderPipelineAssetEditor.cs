@@ -19,7 +19,9 @@ namespace UnityEditor.Rendering.Universal
         public override void OnInspectorGUI()
         {
             m_SerializedURPAsset.Update();
+            EditorGUILayout.BeginVertical();
             UniversalRenderPipelineAssetUI.Inspector.Draw(m_SerializedURPAsset, this);
+            EditorGUILayout.EndVertical();
             m_SerializedURPAsset.Apply();
         }
 
