@@ -955,7 +955,7 @@ namespace UnityEditor.Rendering.Universal
                         ScreenSpaceAmbientOcclusion ssao = rendererFeature as ScreenSpaceAmbientOcclusion;
                         hasScreenSpaceOcclusion |= ssao != null;
 
-                        if (ssao.afterOpaque)
+                        if (ssao?.afterOpaque ?? false)
                             shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusionAfterOpaque;
 
                         // Check for Decal Renderer Feature
