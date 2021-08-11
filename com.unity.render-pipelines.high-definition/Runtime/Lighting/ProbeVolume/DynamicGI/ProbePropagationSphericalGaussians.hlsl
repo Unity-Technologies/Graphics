@@ -11,7 +11,7 @@ float3 EvaluateSG(uint probeIndex, float3 normal, float sharpness, in float4 _Ra
     for(int i=0; i < NEIGHBOR_AXIS_COUNT; ++i)
     {
         float3 prevAxisRadiance = ReadPreviousPropagationAxis(probeIndex, i);
-        float3 axis = _RayAxis[i];
+        float3 axis = _RayAxis[i].xyz;
 
         SphericalGaussian sg;
         sg.amplitude = 1;
@@ -36,7 +36,7 @@ float3 EvaluateBRDFLambertApproximate(uint probeIndex, float3 surfaceNormal, flo
     for(int i=0; i < NEIGHBOR_AXIS_COUNT; ++i)
     {
         float3 prevAxisRadiance = ReadPreviousPropagationAxis(probeIndex, i);
-        float3 axis = _RayAxis[i];
+        float3 axis = _RayAxis[i].xyz;
 
         SphericalGaussian sg;
         sg.amplitude = 1;

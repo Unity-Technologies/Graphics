@@ -30,7 +30,7 @@ int _RequestBatchSize;
 [numthreads(GROUP_SIZE, 1, 1)]
 void ExtractData(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x < _RequestBatchSize)
+    if (id.x < (uint)_RequestBatchSize)
     {
         ExtraDataRequest req = _RequestsInputData[id.x];
         ExtraDataRequestOutput output;

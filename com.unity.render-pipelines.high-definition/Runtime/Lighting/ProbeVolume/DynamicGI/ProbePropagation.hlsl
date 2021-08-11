@@ -29,7 +29,7 @@ float3 ReadPreviousPropagationAxis(uint probeIndex, uint axisIndex)
     const uint index = probeIndex * NEIGHBOR_AXIS_COUNT + axisIndex;
 
     // TODO: remove this if check with stricter checks on construction side in C#
-    if(index < _RadianceCacheAxisCount)
+    if(index < (uint)_RadianceCacheAxisCount)
     {
         return _PreviousRadianceCacheAxis[index];
     }
@@ -53,7 +53,7 @@ void WritePropagationOutput(uint probeIndex, uint axisIndex, float4 lightingAndW
     const uint index = probeIndex * NEIGHBOR_AXIS_COUNT + axisIndex;
 
     // TODO: remove this if check with stricter checks on construction side in C#
-    if(index < _RadianceCacheAxisCount)
+    if(index < (uint)_RadianceCacheAxisCount)
     {
         const float3 finalRadiance = NormalizeOutputRadiance(lightingAndWeight, probeValidity);
         _RadianceCacheAxis[index] = finalRadiance;
