@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support of direct link event to initialize context (which support several event within the same frame)
 - Structured Graphics Buffer support as exposed type
 - Added HDRP Decal output context.
+- Improved toolbar design: added icons, removed labels and grouped commands into dropdown menus
 
 ### Changed
 - Allow remaking an existing link.
