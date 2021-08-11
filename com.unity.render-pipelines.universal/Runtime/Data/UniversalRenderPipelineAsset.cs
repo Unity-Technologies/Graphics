@@ -157,8 +157,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 9;
-        [SerializeField] int k_AssetPreviousVersion = 9;
+        [SerializeField] int k_AssetVersion = 10;
+        [SerializeField] int k_AssetPreviousVersion = 10;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
@@ -170,7 +170,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal int m_DefaultRendererIndex = 0;
 
         // General settings
-        [SerializeField] CopyDepthMode m_RequireDepthTexture = CopyDepthMode.None;
+        [SerializeField] bool m_RequireDepthTexture = false;
+        [SerializeField] CopyDepthMode m_DepthTextureCopyMode = CopyDepthMode.None;
         [SerializeField] bool m_RequireOpaqueTexture = false;
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] bool m_SupportsTerrainHoles = true;
@@ -614,15 +615,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public CopyDepthMode copyDepthMode
+        internal CopyDepthMode copyDepthMode
         {
-            get { return m_RequireDepthTexture; }
-            set { m_RequireDepthTexture = value; }
+            get { return m_DepthTextureCopyMode; }
+            set { m_DepthTextureCopyMode = value; }
         }
 
         public bool supportsCameraDepthTexture
         {
-            get { return m_RequireDepthTexture != CopyDepthMode.None; }
+            get { return m_DepthTextureCopyMode != CopyDepthMode.None; }
         }
 
         public bool supportsCameraOpaqueTexture
@@ -1152,6 +1153,14 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 9;
             }
 
+            if (k_AssetVersion < 10)
+            {
+                m_DepthTextureCopyMode = m_RequireDepthTexture ? CopyDepthMode.AfterOpaques : CopyDepthMode.None;
+
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 10;
+            }
+
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
@@ -1184,10 +1193,10 @@ namespace UnityEngine.Rendering.Universal
                 asset.k_AssetPreviousVersion = 5;
             }
 
-            if (asset.k_AssetPreviousVersion < 9)
+            if (asset.k_AssetPreviousVersion < 10)
             {
                 // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
-                asset.k_AssetPreviousVersion = 9;
+                asset.k_AssetPreviousVersion = 10;
             }
 
             EditorUtility.SetDirty(asset);

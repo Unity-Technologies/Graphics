@@ -458,13 +458,11 @@ namespace UnityEngine.Rendering.Universal
             if (useRenderPassEnabled)
                 return false;
 
-#if UNITY_2022
-            // TODO: bump package to 2022.1.0a6
-            // Should we also check if the format has stencil and check stencil resolve capability only in that case?
-            return SystemInfo.supportsMultisampleResolveDepth && SystemInfo.supportsMultisampleResolveStencil;
-#else
+            // TODO: re-enable this after branching to 22.1. Also bump package to 2022.1.0a6
             return false;
-#endif
+
+            // Should we also check if the format has stencil and check stencil resolve capability only in that case?
+            //return SystemInfo.supportsMultisampleResolveDepth && SystemInfo.supportsMultisampleResolveStencil;
         }
     }
 }
