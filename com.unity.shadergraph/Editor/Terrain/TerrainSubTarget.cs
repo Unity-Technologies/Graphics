@@ -15,6 +15,48 @@ namespace UnityEditor.ShaderGraph
 
         public static readonly PragmaDescriptor InstancingOptions = new PragmaDescriptor { value = $"instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap" };
 
+        private static void AddRPKeywords(ref PassDescriptor pd, KeywordCollection rpTerrainKeywords, DefineCollection rpTerrainDefines)
+        {
+            if (rpTerrainKeywords != null)
+                pd.keywords.Add(rpTerrainKeywords);
+            if (rpTerrainDefines != null)
+                pd.defines.Add(rpTerrainDefines);
+        }
+
+        public static void PostProcessPass(ref PassDescriptor pd, int shaderIdx, string basemapGenTemplate = "", KeywordCollection rpTerrainKeywords = null, DefineCollection rpTerrainDefines = null, FieldCollection rpBasemapGenFields = null)
+        {
+            switch (shaderIdx)
+            {
+                case (int)TerrainShaders.Main:
+                    pd.keywords.Add(Keywords.MainKeywords);
+                    AddRPKeywords(ref pd, rpTerrainKeywords, rpTerrainDefines);
+                    pd.pragmas.Add(InstancingOptions);
+                    break;
+                case (int)TerrainShaders.BasemapGen:
+                    pd.keywords.Add(Keywords.BasemapGenKeywords);
+                    pd.defines.Add(Defines.BasemapGen);
+                    AddRPKeywords(ref pd, rpTerrainKeywords, rpTerrainDefines);
+                    pd.passTemplatePath = basemapGenTemplate.Equals("") ? kBaseMapGenTemplate : basemapGenTemplate;
+                    pd.requiredFields = rpBasemapGenFields ?? new FieldCollection();
+                    pd.useInPreview = false;
+                    break;
+                case (int)TerrainShaders.Basemap:
+                    pd.defines.Add(Defines.BasePass);
+                    pd.pragmas.Add(InstancingOptions);
+                    pd.useInPreview = false;
+                    break;
+                case (int)TerrainShaders.Add:
+                    pd.keywords.Add(Keywords.MainKeywords);
+                    AddRPKeywords(ref pd, rpTerrainKeywords, rpTerrainDefines);
+                    pd.defines.Add(Defines.AddPass);
+                    pd.pragmas.Add(InstancingOptions);
+                    pd.useInPreview = false;
+                    break;
+                default:
+                    break;
+            }
+        }
+
         public static class Defines
         {
             public static KeywordDescriptor BasemapGenDesc = new KeywordDescriptor()
@@ -35,6 +77,24 @@ namespace UnityEditor.ShaderGraph
                 scope = KeywordScope.Local,
             };
 
+            public static KeywordDescriptor BasePassDesc = new KeywordDescriptor()
+            {
+                displayName = "Base Pass",
+                referenceName = "TERRAIN_SPLAT_BASEPASS",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                scope = KeywordScope.Local,
+            };
+
+            public static KeywordDescriptor AddPassDesc = new KeywordDescriptor()
+            {
+                displayName = "Add Pass",
+                referenceName = "TERRAIN_SPLAT_ADDPASS",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                scope = KeywordScope.Local,
+            };
+
             public static DefineCollection BasemapGen = new DefineCollection
             {
                 { BasemapGenDesc, 1 }
@@ -43,6 +103,16 @@ namespace UnityEditor.ShaderGraph
             public static DefineCollection BasemapGenMain = new DefineCollection
             {
                 { BasemapGenMainDesc, 1 }
+            };
+
+            public static DefineCollection BasePass = new DefineCollection
+            {
+                { BasePassDesc, 1 }
+            };
+
+            public static DefineCollection AddPass = new DefineCollection
+            {
+                { AddPassDesc, 1 }
             };
         }
 
@@ -176,7 +246,7 @@ namespace UnityEditor.ShaderGraph
         private static string kMetallicTexPassTags = "\"Name\" = \"_MetallicTex\" \"Format\" = \"RG16\" \"Size\" = \"1/4\"";
         private static string kBaseMapGenTemplate = "";
 
-        private static PassDescriptor GenerateMainTexPass()
+        private static PassDescriptor GenerateMainTexPass(PassDescriptor subTargetForwardPass)
         {
             return new PassDescriptor()
             {
@@ -188,23 +258,20 @@ namespace UnityEditor.ShaderGraph
                 validVertexBlocks = new BlockFieldDescriptor[] { BlockFields.VertexDescription.Position },
                 validPixelBlocks = new BlockFieldDescriptor[] { BlockFields.SurfaceDescription.BaseColor, BlockFields.SurfaceDescription.Smoothness },
 
-                passTemplatePath = kBaseMapGenTemplate,
+                // Set template in postprocesspass passTemplatePath = kBaseMapGenTemplate,
                 renderStates = RenderStates.BasemapGen,
-                keywords = Keywords.BasemapGenKeywords,
-                defines = new DefineCollection()
-                {
-                    Defines.BasemapGen,
-                    Defines.BasemapGenMain,
-                },
-                pragmas = new PragmaCollection(),
-                structs = new StructCollection(),
-                includes = new IncludeCollection(),
-                sharedTemplateDirectories = new string[0],
+                // Set keywords in postprocesspass keywords = Keywords.BasemapGenKeywords,
+                defines = new DefineCollection() { subTargetForwardPass.defines, Defines.BasemapGenMain },
+                pragmas = subTargetForwardPass.pragmas,
+                structs = subTargetForwardPass.structs,
+                includes = subTargetForwardPass.includes,
+                sharedTemplateDirectories = subTargetForwardPass.sharedTemplateDirectories,
+                customInterpolators = subTargetForwardPass.customInterpolators,
                 lightMode = "",
             };
         }
 
-        private static PassDescriptor GenerateMetallicTexPass()
+        private static PassDescriptor GenerateMetallicTexPass(PassDescriptor subTargetForwardPass)
         {
             return new PassDescriptor()
             {
@@ -214,35 +281,36 @@ namespace UnityEditor.ShaderGraph
                 useInPreview = false,
 
                 validVertexBlocks = new BlockFieldDescriptor[] { BlockFields.VertexDescription.Position },
-                validPixelBlocks = new BlockFieldDescriptor[] { BlockFields.SurfaceDescription.Metallic },
+                validPixelBlocks = new BlockFieldDescriptor[] { BlockFields.SurfaceDescription.Metallic, BlockFields.SurfaceDescription.Occlusion },
 
-                passTemplatePath = kBaseMapGenTemplate,
+                // Set template in postprocesspass passTemplatePath = kBaseMapGenTemplate,
                 renderStates = RenderStates.BasemapGen,
-                keywords = Keywords.BasemapGenKeywords,
-                defines = new DefineCollection { Defines.BasemapGen },
-                pragmas = new PragmaCollection(),
-                structs = new StructCollection(),
-                includes = new IncludeCollection(),
-                sharedTemplateDirectories = new string[0],
+                // Set keywords in postprocesspass keywords = Keywords.BasemapGenKeywords,
+                defines = subTargetForwardPass.defines,
+                pragmas = subTargetForwardPass.pragmas,
+                structs = subTargetForwardPass.structs,
+                includes = subTargetForwardPass.includes,
+                sharedTemplateDirectories = subTargetForwardPass.sharedTemplateDirectories,
+                customInterpolators = subTargetForwardPass.customInterpolators,
                 lightMode = "",
             };
         }
 
-        public static SubShaderDescriptor GetBaseMapGenSubShader()
+        public static SubShaderDescriptor GetBaseMapGenSubShader(PassDescriptor subTargetForwardPass)
         {
             return new SubShaderDescriptor
             {
                 generatesPreview = false,
-                passes = GetPasses(),
+                passes = GetPasses(subTargetForwardPass),
                 shaderId = (int)TerrainShaders.BasemapGen
             };
 
-            PassCollection GetPasses()
+            PassCollection GetPasses(PassDescriptor subTargetForwardPass)
             {
                 var passes = new PassCollection
                 {
-                    GenerateMainTexPass(),
-                    GenerateMetallicTexPass(),
+                    GenerateMainTexPass(subTargetForwardPass),
+                    GenerateMetallicTexPass(subTargetForwardPass),
                 };
                 return passes;
             }
@@ -252,46 +320,22 @@ namespace UnityEditor.ShaderGraph
 
         #region Basemap
         private static string kBaseMapTemplate = "";
-        public static SubShaderDescriptor GetBasemapSubShader(SubShaderDescriptor mainSubShaderDescriptor)
+        public static SubShaderDescriptor GetBasePassSubShader(SubShaderDescriptor mainSubShaderDescriptor)
         {
+            mainSubShaderDescriptor.shaderId = (int)TerrainShaders.Basemap;
             return mainSubShaderDescriptor;
         }
 
         #endregion
 
-        internal static AssetImportContext CreateBasemapGenShader(AssetImportContext ctx)
+        #region AddPass
+        public static SubShaderDescriptor GetAddPassSubShader(SubShaderDescriptor mainSubShaderDescriptor)
         {
-            // Fullscreen triangle VS, PS outputs to _MainTex and _MetallicTex
-            string basemapShaderText = "";
-            // Find subshadergraph for terrain layer blend
-
-#if UNITY_2021_1_OR_NEWER
-            Shader basemapGenShader = ShaderUtil.CreateShaderAsset(ctx, basemapShaderText, false);
-#else
-            // earlier builds of Unity may or may not have it
-            // here we try to invoke the new version via reflection
-            var createShaderAssetMethod = typeof(ShaderUtil).GetMethod(
-                "CreateShaderAsset",
-                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.ExactBinding,
-                null,
-                new Type[] { typeof(AssetImportContext), typeof(string), typeof(bool) },
-                null);
-
-            if (createShaderAssetMethod != null)
-            {
-                shader = createShaderAssetMethod.Invoke(null, new Object[] { ctx, basemapShaderText, false }) as Shader;
-            }
-            else
-            {
-                // method doesn't exist in this version of Unity, call old version
-                // this doesn't create dependencies properly, but is the best that we can do
-                shader = ShaderUtil.CreateShaderAsset(basemapShaderText, false);
-            }
-#endif
-
-            ctx.AddObjectToAsset("BasemapGen", basemapGenShader);
-            return ctx;
+            mainSubShaderDescriptor.shaderId = (int)TerrainShaders.Add;
+            return mainSubShaderDescriptor;
         }
+
+        #endregion
 
         internal static AssetImportContext ImportTerrainShaderGraphAsset(AssetImportContext ctx)
         {

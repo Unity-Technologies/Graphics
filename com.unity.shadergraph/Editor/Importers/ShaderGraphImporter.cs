@@ -194,16 +194,30 @@ Shader ""Hidden/GraphErrorShader2""
                     var basemapGenText = GetShaderText(path, out configuredTextures, assetCollection, graph, shaderIdx: (int)TerrainSubTarget.TerrainShaders.BasemapGen);
 
                     // Output separate file for debug
-                    //string bmgPath = "Assets/BasemapGen.shader";
-                    //string fullPath = Path.GetFullPath(bmgPath);
-                    //File.WriteAllText(fullPath, basemapGenText);
-                    //AssetDatabase.ImportAsset(bmgPath);
+                    string bmgPath = "Assets/BasemapGen.shader";
+                    string fullPath = Path.GetFullPath(bmgPath);
+                    File.WriteAllText(fullPath, basemapGenText);
+                    AssetDatabase.ImportAsset(bmgPath);
 
                     // Add to shadergraph file as subasset
-                    Shader basemapGenShader = CreateShader(ctx, basemapGenText, false);
-                    ReportErrors(graph, basemapGenShader, path);
-                    SetupShaderTextureDefaults(basemapGenShader, configuredTextures);
-                    ctx.AddObjectToAsset("Basemap Gen Shader", basemapGenShader);
+                    //Shader basemapGenShader = CreateShader(ctx, basemapGenText, false);
+                    //ReportErrors(graph, basemapGenShader, path);
+                    //SetupShaderTextureDefaults(basemapGenShader, configuredTextures);
+                    //ctx.AddObjectToAsset("Basemap Gen Shader", basemapGenShader);
+
+                    configuredTextures.Clear();
+                    var basePassText = GetShaderText(path, out configuredTextures, assetCollection, graph, shaderIdx: (int)TerrainSubTarget.TerrainShaders.Basemap);
+                    string basePath = "Assets/BasePass.shader";
+                    string fullBasePath = Path.GetFullPath(basePath);
+                    File.WriteAllText(fullBasePath, basePassText);
+                    AssetDatabase.ImportAsset(basePath);
+
+                    configuredTextures.Clear();
+                    var addPassText = GetShaderText(path, out configuredTextures, assetCollection, graph, shaderIdx: (int)TerrainSubTarget.TerrainShaders.Add);
+                    string addPath = "Assets/AddPass.shader";
+                    string fullAddPath = Path.GetFullPath(addPath);
+                    File.WriteAllText(fullAddPath, addPassText);
+                    AssetDatabase.ImportAsset(addPath);
                 }
             }
 

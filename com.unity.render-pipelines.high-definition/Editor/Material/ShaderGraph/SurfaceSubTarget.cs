@@ -46,22 +46,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         static readonly GUID kSourceCodeGuid = new GUID("f4df7e8f9b8c23648ae50cbca0221e47"); // SurfaceSubTarget.cs
-        public SubShaderDescriptor GetHDBasemapGenSubShader()
-        {
-            SubShaderDescriptor ret = TerrainSubTarget.GetBaseMapGenSubShader();
-
-            var passes = ret.passes.ToArray();
-            PassCollection finalPasses = new PassCollection();
-            for (int i = 0; i < passes.Length; i++)
-            {
-                var passDescriptor = passes[i].descriptor;
-                PostProcessTerrainPass(ref passDescriptor);
-                passDescriptor.passTemplatePath = HDTerrainSubTarget.kTerrainBasemapGenTemplate;
-                finalPasses.Add(passDescriptor, passes[i].fieldConditions);
-            }
-            ret.passes = finalPasses;
-            return ret;
-        }
 
         public override void Setup(ref TargetSetupContext context)
         {
@@ -69,6 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (TargetsTerrain())
             {
                 context.AddShaderDependency(TerrainSubTarget.GetDependencyName(TerrainSubTarget.TerrainShaders.BasemapGen), "");
+                context.AddShaderDependency(TerrainSubTarget.GetDependencyName(TerrainSubTarget.TerrainShaders.Basemap), "");
             }
             var inspector = TargetsTerrain() ? HDTerrainSubTarget.kTerrainGUI : customInspector;
             if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))
@@ -82,7 +67,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (TargetsTerrain())
             {
-                yield return PostProcessSubShader(TerrainSubTarget.GetBaseMapGenSubShader());
+                yield return PostProcessSubShader(TerrainSubTarget.GetBaseMapGenSubShader(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, false, systemData.tessellation)));
+                yield return PostProcessSubShader(TerrainSubTarget.GetBasePassSubShader(GetSubShaderDescriptor()));
+                yield return PostProcessSubShader(TerrainSubTarget.GetAddPassSubShader(GetSubShaderDescriptor()));
             }
 
             // Always omit DXR SubShader for VFX until DXR support is added.
@@ -107,9 +94,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var passes = new PassCollection
                 {
                     // Common "surface" passes
-                    HDShaderPasses.GenerateShadowCaster(supportLighting, TargetsVFX(), systemData.tessellation, TargetsTerrain()),
+                    HDShaderPasses.GenerateShadowCaster(supportLighting, TargetsVFX(), systemData.tessellation),
                     HDShaderPasses.GenerateMETA(supportLighting, TargetsVFX()),
-                    HDShaderPasses.GenerateSceneSelection(supportLighting, TargetsVFX(), systemData.tessellation, TargetsTerrain()),
+                    HDShaderPasses.GenerateSceneSelection(supportLighting, TargetsVFX(), systemData.tessellation),
                     HDShaderPasses.GenerateMotionVectors(supportLighting, supportForward, TargetsVFX(), systemData.tessellation),
                     { HDShaderPasses.GenerateBackThenFront(supportLighting, TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.TransparentBackFace, true)},
                     { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting, TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.TransparentDepthPostPass, true)}
@@ -131,8 +118,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 if (supportForward)
                 {
-                    passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation, TargetsTerrain()));
-                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation, TargetsTerrain()));
+                    passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
+                    passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, TargetsVFX(), systemData.tessellation));
                 }
 
                 if (supportDistortion)

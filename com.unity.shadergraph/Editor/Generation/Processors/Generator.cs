@@ -224,7 +224,9 @@ namespace UnityEditor.ShaderGraph
                             string shaderName = depShader.shaderName;
                             if (shaderName == "" && m_Targets[i].TargetsTerrain())
                                 shaderName = TerrainSubTarget.GetTerrainShaderName(m_Name, depShader.dependencyName);
-                            m_Builder.AppendLine($"Dependency \"{depShader.dependencyName}\" = \"{shaderName}\"");
+                            Shader dep = Shader.Find(shaderName);
+                            if (dep != null)
+                                m_Builder.AppendLine($"Dependency \"{depShader.dependencyName}\" = \"{dep.name}\"");
                         }
                     }
 
@@ -248,7 +250,8 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             // Early out of preview generation if no passes are used in preview
-            if (m_Mode == GenerationMode.Preview && descriptor.generatesPreview == false)
+            // Also skip secondary shader generation in preview mode
+            if (m_Mode == GenerationMode.Preview && (descriptor.generatesPreview == false || descriptor.shaderId > 0))
                 return;
 
             // Early out if we're currently building a shader that doesn't use this subshader
@@ -603,7 +606,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 // Enable this to turn on shader debugging
-                bool debugShader = false;
+                bool debugShader = true;
                 if (debugShader)
                 {
                     passPragmaBuilder.AppendLine("#pragma enable_d3d11_debug_symbols");

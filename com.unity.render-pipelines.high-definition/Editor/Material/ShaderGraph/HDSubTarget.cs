@@ -134,20 +134,39 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         internal static class HDTerrainSubTarget
         {
             public static readonly string kTerrainGUI = "UnityEditor.Rendering.HighDefinition.TerrainGUI";
+            public static string kTerrainSurfaceData = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSurfaceData.hlsl";
+            public static string kTerrainProps = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainProps.hlsl";
+            public static string kTerrainSplatmap = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl";
             public static readonly string kTerrainBasemapGenTemplate = $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/Terrain/BasemapGenShaderPass.template";
+            public static IncludeCollection TerrainIncludes = new IncludeCollection()
+            {
+                { kTerrainSurfaceData, IncludeLocation.Pregraph },
+                { kTerrainSplatmap, IncludeLocation.Pregraph },
+                { kTerrainProps, IncludeLocation.Pregraph },
+            };
+
+            public static FieldCollection BasemapGen = new FieldCollection()
+            {
+                HDStructFields.VaryingsMeshToDS.positionRWS,
+                HDStructFields.VaryingsMeshToDS.texCoord0,
+                HDStructFields.VaryingsMeshToPS.positionCS,
+                HDStructFields.VaryingsMeshToPS.positionRWS,
+                HDStructFields.VaryingsMeshToPS.texCoord0,
+                HDStructFields.FragInputs.positionRWS,
+                HDStructFields.FragInputs.texCoord0,
+            };
+            public static string kTerrainTemplates = "Packages/com.unity.render-pipelines.high-definition/Editor/Material/ShaderGraph/Templates/";
         }
         internal void PostProcessTerrainPass(ref PassDescriptor pd, int shaderIdx = 0)
         {
             if (TargetsTerrain())
             {
-                pd.keywords.Add(CoreKeywordDescriptors.Terrain8Layers);
-                pd.defines.Add(new DefineCollection { { CoreKeywordDescriptors.SurfaceGradient, 1 } });
-                if (shaderIdx == 0)
-                    pd.keywords.Add(TerrainSubTarget.Keywords.MainKeywords);
-                else
-                {
-                    pd.passTemplatePath = HDTerrainSubTarget.kTerrainBasemapGenTemplate;
-                }
+                //pd.pragmas.Add(Pragma.Target(ShaderModel.Target45));
+                pd.includes.Add(HDTerrainSubTarget.TerrainIncludes);
+                TerrainSubTarget.PostProcessPass(ref pd, shaderIdx, HDTerrainSubTarget.kTerrainBasemapGenTemplate,
+                    new KeywordCollection { CoreKeywordDescriptors.Terrain8Layers },
+                    new DefineCollection { { CoreKeywordDescriptors.SurfaceGradient, 1 } },
+                    HDTerrainSubTarget.BasemapGen);
             }
         }
 

@@ -34,6 +34,8 @@ Pass
     // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
     $splice(CustomInterpolatorPreInclude)
 
+    // No shadows in basemap pass; force this define since it's needed by HD include files
+    #define SHADOW_ULTRA_LOW
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl" // Required by Tessellation.hlsl
 	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Tessellation.hlsl"
@@ -44,7 +46,8 @@ Pass
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl" // Required to be include before we include properties as it define DECLARE_STACK_CB
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphHeader.hlsl" // Need to be here for Gradient struct definition
     // Structs needed for ps
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSurfaceData.hlsl"
+    //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitSurfaceData.hlsl"
+    //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl"
 
     // --------------------------------------------------
     // Defines
@@ -163,64 +166,12 @@ Pass
     // --------------------------------------------------
     // Graph
 
-
     // Graph Functions
     $splice(GraphFunctions)
 
     // Graph vertex    
-    #pragma vertex BasemapGenVert
-    CBUFFER_START(UnityTerrain)
-        UNITY_TERRAIN_CB_VARS
-        float4 _Control0_ST;
-    CBUFFER_END
-
-    float2 ComputeControlUV(float2 uv)
-    {
-        // adjust splatUVs so the edges of the terrain tile lie on pixel centers
-        return (uv * (_Control0_TexelSize.zw - 1.0f) + 0.5f) * _Control0_TexelSize.xy;
-    }
-
-    VaryingsMeshType BasemapGenVert(uint vertexID : SV_VertexID)
-    {
-        VaryingsMeshType output;
-        ZERO_INITIALIZE(VaryingsMeshType, output);
-
-        output.positionCS = GetFullScreenTriangleVertexPosition(vertexID);
-        output.texcoord0 = TRANSFORM_TEX(GetFullScreenTriangleTexCoord(vertexID), _Control0);
-        output.texcoord1 = ComputeControlUV(output.texcoord.xy);
-        return output;
-    }
-    FragInputs BuildFragInputs(VaryingsMeshToPS input)
-    {
-        FragInputs output;
-        ZERO_INITIALIZE(FragInputs, output);
-
-        output.positionSS = input.positionCS;       // input.positionCS is SV_Position
-
-        $FragInputs.positionRWS:        output.positionRWS = input.positionRWS;
-        $FragInputs.texCoord0:          output.texCoord0 = input.texCoord0;
-        $FragInputs.texCoord1:          output.texCoord1 = input.texCoord1;
-
-        // splice point to copy custom interpolator fields from varyings to frag inputs
-        $splice(CustomInterpolatorVaryingsToFragInputs)
-
-        return output;
-    }
-
-    // existing HDRP code uses the combined function to go directly from packed to frag inputs
-    FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
-    {
-        UNITY_SETUP_INSTANCE_ID(input);
-        VaryingsMeshToPS unpacked = UnpackVaryingsMeshToPS(input);
-        return BuildFragInputs(unpacked);
-    }
 
     // Graph Pixel
-    #ifdef BASEMAPGEN_MAIN
-    #pragma fragment MainFrag
-    #else
-    #pragma fragment MetallicFrag
-    #endif
     
     $splice(GraphPixel)
 
@@ -228,7 +179,28 @@ Pass
     // Build Graph Inputs
 
 	$features.graphTessellation:  $include("Tessellation.template.hlsl")
-    $features.graphPixel:   $include("Pixel.template.hlsl")
+    $features.graphPixel:   $include("Pixel.template.hlsl")    
+    $features.graphVertex:  $include("BasemapGenVertex.template.hlsl")
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
+    
+    float2 ComputeControlUV(float2 uv)
+    {
+        // adjust splatUVs so the edges of the terrain tile lie on pixel centers
+        return (uv * (_Control0_TexelSize.zw - 1.0f) + 0.5f) * _Control0_TexelSize.xy;
+    }
+
+    PackedVaryingsType Vert(uint vertexID : SV_VertexID)
+    {
+        VaryingsMeshType output;
+        ZERO_INITIALIZE(VaryingsMeshType, output);
+
+        output.positionCS = GetFullScreenTriangleVertexPosition(vertexID);
+        output.texCoord0.xy = TRANSFORM_TEX(GetFullScreenTriangleTexCoord(vertexID), _Control0);
+        output.texCoord0.zw = ComputeControlUV(output.texCoord0.xy);
+        VaryingsType vt;
+        vt.vmesh = output;
+        return PackVaryingsType(vt);
+    }
 
     // --------------------------------------------------
     // Build Surface Data (Specific Material)
@@ -238,7 +210,7 @@ Pass
     // --------------------------------------------------
     // Get Surface And BuiltinData
 
-    void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
+    void GetSurfaceData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData)
     {
         // Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
         #if !defined(SHADER_STAGE_RAY_TRACING) && !defined(_TESSELLATION_DISPLACEMENT)
@@ -298,94 +270,66 @@ Pass
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
 
-        // Builtin Data
-        // For back lighting we use the oposite vertex normal
-        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
-
         #else
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
-
-        ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
-        builtinData.opacity = surfaceDescription.Alpha;
-
-        #if defined(DEBUG_DISPLAY)
-            // Light Layers are currently not used for the Unlit shader (because it is not lit)
-            // But Unlit objects do cast shadows according to their rendering layer mask, which is what we want to
-            // display in the light layers visualization mode, therefore we need the renderingLayers
-            builtinData.renderingLayers = GetMeshRenderingLightLayer();
         #endif
-
-        #endif // SHADER_UNLIT
-
-        #ifdef _ALPHATEST_ON
-            // Used for sharpening by alpha to mask - Alpha to covertage is only used with depth only and forward pass (no shadow pass, no transparent pass)
-            builtinData.alphaClipTreshold = alphaCutoff;
-        #endif
-
-        // override sampleBakedGI - not used by Unlit
-        $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
-        $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
-
-		// If we want to force forward emissive and we have GBuffer pass, don't do anything
-		#if !(SHADERPASS == SHADERPASS_GBUFFER && defined(_FORCE_FORWARD_EMISSIVE))
-        $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
-		#endif
-
-        // Note this will not fully work on transparent surfaces (can check with _SURFACE_TYPE_TRANSPARENT define)
-        // We will always overwrite vt feeback with the nearest. So behind transparent surfaces vt will not be resolved
-        // This is a limitation of the current MRT approach.
-        #ifdef UNITY_VIRTUAL_TEXTURING
-        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
-        #endif
-
-        #if _DEPTHOFFSET_ON
-        builtinData.depthOffset = surfaceDescription.DepthOffset;
-        #endif
-
-        // TODO: We should generate distortion / distortionBlur for non distortion pass
-        #if (SHADERPASS == SHADERPASS_DISTORTION)
-        builtinData.distortion = surfaceDescription.Distortion;
-        builtinData.distortionBlur = surfaceDescription.DistortionBlur;
-        #endif
-
-        #ifndef SHADER_UNLIT
-        // PostInitBuiltinData call ApplyDebugToBuiltinData
-        PostInitBuiltinData(V, posInput, surfaceData, builtinData);
-        #else
-        ApplyDebugToBuiltinData(builtinData);
-        #endif
-
-        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }
-
-    float4 MainFrag(PackedVaryingsToPS packedInput)
+    #ifdef BASEMAPGEN_MAIN
+    float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     {
         FragInputs input = UnpackVaryingsToFragInputs(packedInput);
+        input.customInterpolators.uv = input.positionSS.xy = input.texCoord0.xy;
         
-        float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
-        
-        SurfaceData surfaceData;
-        BuiltinData builtinData;
-        GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
-        return float4(surfaceData.albedo, surfaceData.smoothness);
-    }
+        // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
+        input.positionSS.xy = _OffScreenRendering > 0 ? (uint2)round(input.positionSS.xy * _OffScreenDownsampleFactor) : input.positionSS.xy;
 
-    float2 MetallicFrag(PackedVaryingsToPS packedInput)
+        uint2 tileIndex = uint2(input.positionSS.xy) / GetTileSize();
+
+        // input.positionSS is SV_Position
+        PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, tileIndex);
+
+        #ifdef VARYINGS_NEED_POSITION_WS
+            float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
+        #else
+            // Unused
+            float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
+        #endif
+
+        SurfaceData surfaceData;
+        GetSurfaceData(input, V, posInput, surfaceData);
+        return float4(surfaceData.baseColor, surfaceData.perceptualSmoothness);
+    }
+    #else
+    float2 Frag(PackedVaryingsToPS packedInput) : SV_Target
     {    
         FragInputs input = UnpackVaryingsToFragInputs(packedInput);
-        
-        float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
+        input.customInterpolators.uv = input.positionSS.xy = input.texCoord0.xy;
+
+        // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
+        input.positionSS.xy = _OffScreenRendering > 0 ? (uint2)round(input.positionSS.xy * _OffScreenDownsampleFactor) : input.positionSS.xy;
+
+        uint2 tileIndex = uint2(input.positionSS.xy) / GetTileSize();
+
+        // input.positionSS is SV_Position
+        PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, tileIndex);
+
+        #ifdef VARYINGS_NEED_POSITION_WS
+            float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
+        #else
+            // Unused
+            float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
+        #endif
         
         SurfaceData surfaceData;
-        BuiltinData builtinData;
-        GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
-        return float2(surfaceData.metallic, surfaceData.ao);
+        GetSurfaceData(input, V, posInput, surfaceData);
+        return float2(surfaceData.metallic, surfaceData.ambientOcclusion);
     }
+    #endif
 
     // --------------------------------------------------
     // Main
 
-    $splice(PostGraphIncludes)
+    // Ignore postgraph includes, since we define vert/frag in template. $splice(PostGraphIncludes)
 
     ENDHLSL
 }
