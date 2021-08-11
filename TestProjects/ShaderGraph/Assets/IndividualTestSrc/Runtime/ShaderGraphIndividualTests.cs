@@ -36,7 +36,7 @@ public class ShaderGraphIndividualTests
     public IEnumerator RunIndividualTests(TestAssetTestData data) //reference image, test hash, reference hash
     {
         
-        File.AppendAllLines("Logs/Test.log", new string[] { "Test Started....." });
+        //File.AppendAllLines("Logs/Test.log", new string[] { "Test Started....." });
         // Always wait one frame for scene load
         yield return null;
         if (!data.isCameraPersective)
@@ -49,17 +49,17 @@ public class ShaderGraphIndividualTests
             camera.orthographic = false;
 
         }
-        File.AppendAllLines("Logs/Test.log", new string[] { "Camera retrieved" });
+        //File.AppendAllLines("Logs/Test.log", new string[] { "Camera retrieved" });
         if (data.customMesh != null)
             mesh.GetComponent<MeshFilter>().mesh = data.customMesh;
-        File.AppendAllLines("Logs/Test.log", new string[] { $"Mesh retrieved: {data.customMesh}" });
+        //File.AppendAllLines("Logs/Test.log", new string[] { $"Mesh retrieved: {data.customMesh}" });
         if (data.testMaterial != null)
             sphereRenderer.material = data.testMaterial;
-        File.AppendAllLines("Logs/Test.log", new string[] { $"TestMaterial retrieved: {data.testMaterial}" });
+        //File.AppendAllLines("Logs/Test.log", new string[] { $"TestMaterial retrieved: {data.testMaterial}" });
         try
         {
             ImageAssert.AreEqual(data.referenceImage, camera, data.imageComparisonSettings);
-            File.AppendAllLines("Logs/Test.log", new string[] { "ImageAssert ran" });
+            //File.AppendAllLines("Logs/Test.log", new string[] { "ImageAssert ran" });
             if (!data.SavedResultUpToDate())
             {
 #if UNITY_EDITOR
