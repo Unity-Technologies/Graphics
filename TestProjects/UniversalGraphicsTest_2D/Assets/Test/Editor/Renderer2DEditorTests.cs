@@ -12,7 +12,7 @@ class Renderer2DEditorTests
     [Test]
     public void AllRenderersPostProcessingDisabled()
     {
-        UniversalProjectAssert.AllRenderersPostProcessing(KProjectName, expectDisabled:true,
+        UniversalProjectAssert.AllRenderersPostProcessing(KProjectName, expectDisabled: true,
             new List<string>() { "Assets/CommonAssets/ForwardRenderer.asset" }); // Used by 003_PixelPerfect_PostProcessing
     }
 
@@ -28,5 +28,4 @@ class Renderer2DEditorTests
         UniversalProjectAssert.AllRenderersAreNotUniversalRenderer(KProjectName,
             new List<string>() { "Assets/CommonAssets/ForwardRenderer.asset" }); // Used by 069_2D_Forward_Shader_Compatibility_Forward
     }
-
 }

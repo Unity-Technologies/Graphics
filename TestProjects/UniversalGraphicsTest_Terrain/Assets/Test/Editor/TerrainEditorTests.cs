@@ -9,7 +9,7 @@ class FoundationEditorTests
     [Test]
     public void AllRenderersPostProcessingDisabled()
     {
-        UniversalProjectAssert.AllRenderersPostProcessing(kProjectName, expectDisabled:true);
+        UniversalProjectAssert.AllRenderersPostProcessing(kProjectName, expectDisabled: true);
     }
 
     [Test]
