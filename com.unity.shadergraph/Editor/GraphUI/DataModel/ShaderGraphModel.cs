@@ -19,6 +19,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         //       then, (at least) the following features are broken as a result: reloading assembly, saving, loading.
         public IGraphHandler GraphHandler => m_GraphHandler ??= GraphUtil.CreateGraph();
 
+        /// <summary>
+        /// Tests the connection between two GraphData ports at the data level.
+        /// </summary>
+        /// <param name="src">Source port.</param>
+        /// <param name="dst">Destination port.</param>
+        /// <returns>True if the ports can be connected, false otherwise.</returns>
         bool TestConnection(GraphDataPortModel src, GraphDataPortModel dst)
         {
             return GraphHandler.TestConnection(dst.graphDataNodeModel.graphDataName,
@@ -26,6 +32,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
                 src.graphDataName, ((ShaderGraphStencil) Stencil).GetRegistry());
         }
 
+        /// <summary>
+        /// Tries to connect two GraphData ports at the data level.
+        /// </summary>
+        /// <param name="src">Source port.</param>
+        /// <param name="dst">Destination port.</param>
+        /// <returns>True if the connection was successful, false otherwise.</returns>
         public bool TryConnect(GraphDataPortModel src, GraphDataPortModel dst)
         {
             return GraphHandler.TryConnect(
@@ -66,15 +78,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             if (fromPort.NodeModel is RedirectNodeModel fromRedirect)
             {
                 fromPort = fromRedirect.ResolveSource();
-
-                // TODO: figure out how to match "loose" redirect behavior from ShaderGraph
                 if (fromPort == null) return true;
             }
 
             if (toPort.NodeModel is RedirectNodeModel toRedirect)
             {
                 // Only connect to a hanging branch if it's valid for every connection.
-                // Should not recurse more than once. Resolve{Source,Destinations} return non-redirect nodes.
+                // Should not recurse more than once. ResolveDestinations returns non-redirect nodes.
                 return toRedirect.ResolveDestinations().All(testPort => IsCompatiblePort(fromPort, testPort));
             }
 
