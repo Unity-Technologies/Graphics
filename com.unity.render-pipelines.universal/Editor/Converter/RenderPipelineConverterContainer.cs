@@ -16,5 +16,10 @@ namespace UnityEditor.Rendering.Universal.Converters
         /// This will be shown in the UI to tell the user some information about the converters that this container are targeting.
         /// </summary>
         public abstract string info { get; }
+
+        /// <summary>
+        /// A priority of the Container. The lower the number (can be negative), the higher up it will be shown in the list of Containers.
+        /// </summary>
+        public virtual int priority => 0;
     }
 }
