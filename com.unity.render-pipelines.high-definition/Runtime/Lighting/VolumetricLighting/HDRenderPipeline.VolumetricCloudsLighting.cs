@@ -16,8 +16,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal RTHandle m_CloudsAmbientProbeSky = null;
 
         // Structures to read back the probe from the GPU
-        SphericalHarmonicsL2 m_CloudsAmbientProbe = new SphericalHarmonicsL2();
-        bool m_CloudsAmbientProbeIsReady = false;
+        static SphericalHarmonicsL2 m_CloudsAmbientProbe = new SphericalHarmonicsL2();
+        static bool m_CloudsAmbientProbeIsReady = false;
 
         void InitializeVolumetricCloudsAmbientProbe()
         {
@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void OnComputeAmbientProbeDone(AsyncGPUReadbackRequest request)
+        public static void OnComputeAmbientProbeDone(AsyncGPUReadbackRequest request)
         {
             if (!request.hasError)
             {
