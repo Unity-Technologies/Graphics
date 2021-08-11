@@ -24,7 +24,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             commandDispatcher.RegisterCommandHandler<AddRedirectNodeCommand>(AddRedirectNodeCommand.DefaultHandler);
 
             // Overrides for default GTF commands
-            commandDispatcher.RegisterCommandHandler<CreateEdgeCommand>(ShaderGraphCommandHandlers.HandleCreateEdgeCommand);
+            commandDispatcher.RegisterCommandHandler<CreateEdgeCommand>(ShaderGraphHandlers.HandleCreateEdge);
+            commandDispatcher.RegisterCommandHandler<DeleteElementsCommand>(ShaderGraphHandlers.HandleDeleteElements);
         }
     }
 }
