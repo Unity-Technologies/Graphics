@@ -5,7 +5,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    static class VFXViewPreference
+    public static class VFXViewPreference
     {
         private static bool m_Loaded = false;
         private static bool m_DisplayExperimentalOperator = false;

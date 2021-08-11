@@ -139,7 +139,7 @@ namespace UnityEditor.VFX.UI
         void DisconnectController()
         {
             if (controller.model && controller.graph)
-                controller.graph.SetCompilationMode(VFXCompilationMode.Runtime);
+                controller.graph.SetCompilationMode(VFXViewPreference.forceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
 
 
             m_Controller.UnregisterHandler(this);
