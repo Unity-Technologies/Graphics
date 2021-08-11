@@ -313,13 +313,13 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="path">Path to test.</param>
         /// <return>Returns true if the passed in value is a path to a material.</return>
-        static bool IsMaterialPath(string path)
+        static bool IsMaterialPath(string path) //TODOJENNY: move this to trunk
         {
             if (string.IsNullOrEmpty(path))
             {
                 throw new ArgumentNullException(nameof(path));
             }
-            return path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase);
+            return path.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase);
         }
 
         static MaterialUpgrader GetUpgrader(List<MaterialUpgrader> upgraders, Material material)

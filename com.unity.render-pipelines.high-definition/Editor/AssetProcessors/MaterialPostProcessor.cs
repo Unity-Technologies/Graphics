@@ -70,6 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void RegisterUpgraderReimport()
         {
             UnityEditor.MaterialPostProcessor.onImportedMaterial += OnImportedMaterial;
+            UnityEditor.MaterialPostProcessor.onImportedShaderGraph += OnImportedShaderGraph;
 
             // Register custom dependency on Material version
             AssetDatabase.RegisterCustomDependency(materialVersionDependencyName, Hash128.Compute(MaterialPostprocessor.k_Upgraders.Length));
@@ -176,9 +177,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void OnImportedMaterial(Material material, string assetPath)
+        static void OnImportedShaderGraph(Shader shaderGraph, string assetPath)
         {
-            // TODOJENNY: why do we need that? need to ask Stephane Laroche - maybe code needs to be moved to Vred plugin
             // We intercept shadergraphs just to add them to s_ImportedAssetThatNeedSaving to make them editable when we save assets
             /* if (assetPath.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}"))
              {
@@ -221,7 +221,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     continue;
                 }
             }*/
+        }
 
+        static void OnImportedMaterial(Material material, string assetPath)
+        {
             if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
                 return;
 
