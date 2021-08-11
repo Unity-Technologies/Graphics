@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool needsRefreshingCameraFreezeList = true;
 
-        List<ProfilingSampler> m_RecordedSamplers = new List<ProfilingSampler>();
+        List<HDProfileId> m_RecordedSamplers = new List<HDProfileId>();
 
         // Accumulate values to avg over one second.
         class AccumulatedTiming
@@ -192,14 +192,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 accumulatedValue = 0.0f;
             }
         }
-        Dictionary<string, AccumulatedTiming> m_AccumulatedGPUTiming = new Dictionary<string, AccumulatedTiming>();
-        Dictionary<string, AccumulatedTiming> m_AccumulatedCPUTiming = new Dictionary<string, AccumulatedTiming>();
-        Dictionary<string, AccumulatedTiming> m_AccumulatedInlineCPUTiming = new Dictionary<string, AccumulatedTiming>();
+        Dictionary<int, AccumulatedTiming> m_AccumulatedGPUTiming = new Dictionary<int, AccumulatedTiming>();
+        Dictionary<int, AccumulatedTiming> m_AccumulatedCPUTiming = new Dictionary<int, AccumulatedTiming>();
+        Dictionary<int, AccumulatedTiming> m_AccumulatedInlineCPUTiming = new Dictionary<int, AccumulatedTiming>();
         float m_TimeSinceLastAvgValue = 0.0f;
         int m_AccumulatedFrames = 0;
         const float k_AccumulationTimeInSeconds = 1.0f;
 
-        List<ProfilingSampler> m_RecordedSamplersRT = new List<ProfilingSampler>();
+        List<HDProfileId> m_RecordedSamplersRT = new List<HDProfileId>();
         enum DebugProfilingType
         {
             CPU,
@@ -773,83 +773,73 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Debug.Assert(m_RecordedSamplers.Count == 0);
 
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumeUpdate));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.RenderShadowMaps));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.GBuffer));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumeVoxelization));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricLighting));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricClouds));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricCloudsTrace));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricCloudsReproject));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricCloudsUpscaleAndCombine));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.RenderDeferredLightingCompute));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ForwardOpaque));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ForwardTransparent));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ForwardPreRefraction));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ColorPyramid));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.DepthPyramid));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.PostProcessing));
+            m_RecordedSamplers.Add(HDProfileId.HDRenderPipelineAllRenderRequest);
+            m_RecordedSamplers.Add(HDProfileId.VolumeUpdate);
+            m_RecordedSamplers.Add(HDProfileId.RenderShadowMaps);
+            m_RecordedSamplers.Add(HDProfileId.GBuffer);
+            m_RecordedSamplers.Add(HDProfileId.PrepareLightsForGPU);
+            m_RecordedSamplers.Add(HDProfileId.VolumeVoxelization);
+            m_RecordedSamplers.Add(HDProfileId.VolumetricLighting);
+            m_RecordedSamplers.Add(HDProfileId.VolumetricClouds);
+            m_RecordedSamplers.Add(HDProfileId.VolumetricCloudsTrace);
+            m_RecordedSamplers.Add(HDProfileId.VolumetricCloudsReproject);
+            m_RecordedSamplers.Add(HDProfileId.VolumetricCloudsUpscaleAndCombine);
+            m_RecordedSamplers.Add(HDProfileId.RenderDeferredLightingCompute);
+            m_RecordedSamplers.Add(HDProfileId.ForwardOpaque);
+            m_RecordedSamplers.Add(HDProfileId.ForwardTransparent);
+            m_RecordedSamplers.Add(HDProfileId.ForwardPreRefraction);
+            m_RecordedSamplers.Add(HDProfileId.ColorPyramid);
+            m_RecordedSamplers.Add(HDProfileId.DepthPyramid);
+            m_RecordedSamplers.Add(HDProfileId.PostProcessing);
         }
 
-        void DisableProfilingRecorders()
+        void DisableProfilingRecorders(List<HDProfileId> samplers)
         {
-            foreach (var sampler in m_RecordedSamplers)
+            foreach (var sampler in samplers)
             {
-                sampler.enableRecording = false;
+                ProfilingSampler.Get(sampler).enableRecording = false;
             }
 
-            m_RecordedSamplers.Clear();
+            samplers.Clear();
         }
 
         void EnableProfilingRecordersRT()
         {
             Debug.Assert(m_RecordedSamplersRT.Count == 0);
 
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingBuildCluster));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingCullLights));
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingBuildCluster);
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingCullLights);
 
             // Ray Traced Reflections
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionDirectionGeneration));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionEvaluation));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionAdjustWeight));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionUpscale));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingReflectionFilter));
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingReflectionDirectionGeneration);
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingReflectionEvaluation);
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingReflectionAdjustWeight);
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingReflectionUpscale);
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingReflectionFilter);
 
             // Ray Traced Ambient Occlusion
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingAmbientOcclusion));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterAmbientOcclusion));
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingAmbientOcclusion);
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingFilterAmbientOcclusion);
 
             // Ray Traced Shadows
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDirectionalLightShadow));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingLightShadow));
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingDirectionalLightShadow);
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingLightShadow);
 
             // Ray Traced Indirect Diffuse
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseDirectionGeneration));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseEvaluation));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseUpscale));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterIndirectDiffuse));
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingIndirectDiffuseDirectionGeneration);
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingIndirectDiffuseEvaluation);
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingIndirectDiffuseUpscale);
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingFilterIndirectDiffuse);
 
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDebugOverlay));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.ForwardPreRefraction));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingDepthPrepass));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingFlagMask));
-            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDeferredLighting));
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingDebugOverlay);
+            m_RecordedSamplersRT.Add(HDProfileId.ForwardPreRefraction);
+            m_RecordedSamplersRT.Add(HDProfileId.RayTracingRecursiveRendering);
+            m_RecordedSamplersRT.Add(HDProfileId.RayTracingDepthPrepass);
+            m_RecordedSamplersRT.Add(HDProfileId.RayTracingFlagMask);
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingDeferredLighting);
         }
 
-        void DisableProfilingRecordersRT()
-        {
-            foreach (var sampler in m_RecordedSamplersRT)
-            {
-                sampler.enableRecording = false;
-            }
-
-            m_RecordedSamplersRT.Clear();
-        }
-
-        float GetSamplerTiming(DebugProfilingType type, ProfilingSampler sampler)
+        float GetSamplerTiming(HDProfileId samplerId, ProfilingSampler sampler, DebugProfilingType type)
         {
             if (data.averageProfilerTimingsOverASecond)
             {
@@ -859,7 +849,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_AccumulatedGPUTiming;
 
                 AccumulatedTiming accTiming = null;
-                if (accumulatedDictionary.TryGetValue(sampler.name, out accTiming))
+                if (accumulatedDictionary.TryGetValue((int)samplerId, out accTiming))
                     return accTiming.lastAverage;
             }
             else
@@ -870,30 +860,32 @@ namespace UnityEngine.Rendering.HighDefinition
             return 0.0f;
         }
 
-        ObservableList<DebugUI.Widget> BuildProfilingSamplerWidgetList(List<ProfilingSampler> samplerList)
+        ObservableList<DebugUI.Widget> BuildProfilingSamplerWidgetList(List<HDProfileId> samplerList)
         {
             var result = new ObservableList<DebugUI.Widget>();
 
-            DebugUI.Value createWidgetForSampler(ProfilingSampler sampler, DebugProfilingType type)
+            DebugUI.Value CreateWidgetForSampler(HDProfileId samplerId, ProfilingSampler sampler, DebugProfilingType type)
             {
                 // Find the right accumulated dictionary and add it there if not existing yet.
                 var accumulatedDictionary = type == DebugProfilingType.CPU ? m_AccumulatedCPUTiming :
                     type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
                     m_AccumulatedGPUTiming;
 
-                if (!accumulatedDictionary.ContainsKey(sampler.name))
+                if (!accumulatedDictionary.ContainsKey((int)samplerId))
                 {
-                    accumulatedDictionary.Add(sampler.name, new AccumulatedTiming());
+                    accumulatedDictionary.Add((int)samplerId, new AccumulatedTiming());
                 }
                 return new()
                 {
                     formatString = "F2",
-                    getter = () => GetSamplerTiming(type, sampler),
+                    getter = () => GetSamplerTiming(samplerId, sampler, type),
                 };
             }
 
-            foreach (var sampler in samplerList)
+            foreach (var samplerId in samplerList)
             {
+                var sampler = ProfilingSampler.Get(samplerId);
+
                 sampler.enableRecording = true;
 
                 result.Add(new DebugUI.ValueTuple
@@ -902,9 +894,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     refreshRate = 1.0f / 5.0f,
                     values = new[]
                     {
-                        createWidgetForSampler(sampler, DebugProfilingType.CPU),
-                        createWidgetForSampler(sampler, DebugProfilingType.InlineCPU),
-                        createWidgetForSampler(sampler, DebugProfilingType.GPU),
+                        CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.CPU),
+                        CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.InlineCPU),
+                        CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.GPU),
                     }
                 });
             }
@@ -912,21 +904,23 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        void UpdateListOfAveragedProfilerTimings(List<ProfilingSampler> samplers, bool needUpdatingAverages)
+        void UpdateListOfAveragedProfilerTimings(List<HDProfileId> samplers, bool needUpdatingAverages)
         {
-            foreach (var sampler in samplers)
+            foreach (var samplerId in samplers)
             {
+                var sampler = ProfilingSampler.Get(samplerId);
+
                 // Accumulate.
                 AccumulatedTiming accCPUTiming = null;
-                if (m_AccumulatedCPUTiming.TryGetValue(sampler.name, out accCPUTiming))
+                if (m_AccumulatedCPUTiming.TryGetValue((int)samplerId, out accCPUTiming))
                     accCPUTiming.accumulatedValue += sampler.cpuElapsedTime;
 
                 AccumulatedTiming accInlineCPUTiming = null;
-                if (m_AccumulatedInlineCPUTiming.TryGetValue(sampler.name, out accInlineCPUTiming))
+                if (m_AccumulatedInlineCPUTiming.TryGetValue((int)samplerId, out accInlineCPUTiming))
                     accInlineCPUTiming.accumulatedValue += sampler.inlineCpuElapsedTime;
 
                 AccumulatedTiming accGPUTiming = null;
-                if (m_AccumulatedGPUTiming.TryGetValue(sampler.name, out accGPUTiming))
+                if (m_AccumulatedGPUTiming.TryGetValue((int)samplerId, out accGPUTiming))
                     accGPUTiming.accumulatedValue += sampler.gpuElapsedTime;
 
                 if (needUpdatingAverages)
@@ -1157,9 +1151,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UnregisterDisplayStatsDebug()
         {
-            DisableProfilingRecorders();
+            DisableProfilingRecorders(m_RecordedSamplers);
             if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? true)
-                DisableProfilingRecordersRT();
+                DisableProfilingRecorders(m_RecordedSamplersRT);
 
             UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
         }

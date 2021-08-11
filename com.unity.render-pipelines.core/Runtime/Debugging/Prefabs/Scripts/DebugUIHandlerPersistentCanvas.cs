@@ -49,11 +49,13 @@ namespace UnityEngine.Rendering.UI
             m_Items.Add(uiHandler);
         }
 
+        internal bool IsEmpty()
+        {
+            return m_Items.Count == 0;
+        }
+
         internal void Clear()
         {
-            if (m_Items == null)
-                return;
-
             foreach (var item in m_Items)
                 CoreUtils.Destroy(item.gameObject);
 

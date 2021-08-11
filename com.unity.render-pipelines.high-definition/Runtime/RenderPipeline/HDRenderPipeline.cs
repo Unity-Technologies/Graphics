@@ -1947,7 +1947,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ApplyDebugDisplaySettings(hdCamera, cmd, aovRequest.isValid);
 
-                if (DebugManager.instance.displayRuntimeUI
+                if (DebugManager.instance.displayRuntimeUI || DebugManager.instance.displayPersistentRuntimeUI
 #if UNITY_EDITOR
                     || DebugManager.instance.displayEditorUI
 #endif

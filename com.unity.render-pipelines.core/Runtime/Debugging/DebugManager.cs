@@ -131,15 +131,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Displays the persistent runtime debug window.
         /// </summary>
-        public bool displayPersistentRuntimeUI
-        {
-            get => m_RootUIPersistentCanvas != null && m_PersistentRoot.activeInHierarchy;
-            set
-            {
-                CheckPersistentCanvas();
-                m_PersistentRoot.SetActive(value);
-            }
-        }
+        public bool displayPersistentRuntimeUI => m_RootUIPersistentCanvas != null && m_PersistentRoot.activeInHierarchy && !m_RootUIPersistentCanvas.IsEmpty();
 
         DebugManager()
         {
