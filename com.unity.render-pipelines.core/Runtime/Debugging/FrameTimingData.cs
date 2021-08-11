@@ -1,5 +1,3 @@
-//#define RTPROFILER_DEBUG
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,23 +7,6 @@ using UnityEngine.Rendering;
 
 public class FrameTimingData
 {
-#if RTPROFILER_DEBUG
-    ProfilerCounterValue<float> m_FullFrameTimeCounter              = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Full Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
-    ProfilerCounterValue<float> m_MainThreadCPUFrameTimeCounter     = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Main Thread CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
-    ProfilerCounterValue<float> m_RenderThreadCPUFrameTimeCounter   = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Render Thread CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
-    ProfilerCounterValue<float> m_GPUFrameTimeCounter               = new ProfilerCounterValue<float>(ProfilerCategory.Render, "GPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
-
-    ProfilerCounterValue<float> m_AvgFullFrameTimeCounter              = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Avg Full Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
-    ProfilerCounterValue<float> m_AvgMainThreadCPUFrameTimeCounter     = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Avg Main Thread CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
-    ProfilerCounterValue<float> m_AvgRenderThreadCPUFrameTimeCounter   = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Avg Render Thread CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
-    ProfilerCounterValue<float> m_AvgGPUFrameTimeCounter               = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Avg GPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
-
-    ProfilerCounterValue<float> m_CPUBoundCounter           = new ProfilerCounterValue<float>(ProfilerCategory.Render, "CPU Bound", ProfilerMarkerDataUnit.Percent);
-    ProfilerCounterValue<float> m_GPUBoundCounter           = new ProfilerCounterValue<float>(ProfilerCategory.Render, "GPU Bound", ProfilerMarkerDataUnit.Percent);
-    ProfilerCounterValue<float> m_PresentLimitedCounter     = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Present bound", ProfilerMarkerDataUnit.Percent);
-    ProfilerCounterValue<float> m_BalancedCounter           = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Balanced", ProfilerMarkerDataUnit.Percent);
-#endif
-
     /// <summary>
     /// Represents timing data captured from a single frame.
     /// </summary>
@@ -37,27 +18,72 @@ public class FrameTimingData
         public float MainThreadCPUPresentWaitTime;
         public float RenderThreadCPUFrameTime;
         public float GPUFrameTime;
+
+        internal FrameTimeSample(float initValue)
+        {
+            FramesPerSecond = initValue;
+            FullFrameTime = initValue;
+            MainThreadCPUFrameTime = initValue;
+            MainThreadCPUPresentWaitTime = initValue;
+            RenderThreadCPUFrameTime = initValue;
+            GPUFrameTime = initValue;
+        }
+
+        internal void Add(FrameTimeSample other)
+        {
+            FramesPerSecond += other.FramesPerSecond;
+            FullFrameTime += other.FullFrameTime;
+            MainThreadCPUFrameTime += other.MainThreadCPUFrameTime;
+            MainThreadCPUPresentWaitTime += other.MainThreadCPUPresentWaitTime;
+            RenderThreadCPUFrameTime += other.RenderThreadCPUFrameTime;
+            GPUFrameTime += other.GPUFrameTime;
+        }
+
+        internal void Divide(float denominator)
+        {
+            FramesPerSecond /= denominator;
+            FullFrameTime /= denominator;
+            MainThreadCPUFrameTime /= denominator;
+            MainThreadCPUPresentWaitTime /= denominator;
+            RenderThreadCPUFrameTime /= denominator;
+            GPUFrameTime /= denominator;
+        }
+
+        internal void Min(FrameTimeSample other)
+        {
+            FramesPerSecond = Mathf.Min(FramesPerSecond, other.FramesPerSecond);
+            FullFrameTime = Mathf.Min(FullFrameTime, other.FullFrameTime);
+            MainThreadCPUFrameTime = Mathf.Min(MainThreadCPUFrameTime, other.MainThreadCPUFrameTime);
+            MainThreadCPUPresentWaitTime = Mathf.Min(MainThreadCPUPresentWaitTime, other.MainThreadCPUPresentWaitTime);
+            RenderThreadCPUFrameTime = Mathf.Min(RenderThreadCPUFrameTime, other.RenderThreadCPUFrameTime);
+            GPUFrameTime = Mathf.Min(GPUFrameTime, other.GPUFrameTime);
+        }
+
+        internal void Max(FrameTimeSample other)
+        {
+            FramesPerSecond = Mathf.Max(FramesPerSecond, other.FramesPerSecond);
+            FullFrameTime = Mathf.Max(FullFrameTime, other.FullFrameTime);
+            MainThreadCPUFrameTime = Mathf.Max(MainThreadCPUFrameTime, other.MainThreadCPUFrameTime);
+            MainThreadCPUPresentWaitTime = Mathf.Max(MainThreadCPUPresentWaitTime, other.MainThreadCPUPresentWaitTime);
+            RenderThreadCPUFrameTime = Mathf.Max(RenderThreadCPUFrameTime, other.RenderThreadCPUFrameTime);
+            GPUFrameTime = Mathf.Max(GPUFrameTime, other.GPUFrameTime);
+        }
     };
 
     /// <summary>
     /// Frame timing data representing averaged values over the Frame Time History Window.
     /// </summary>
-    public FrameTimeSample SampleAverage;
+    public FrameTimeSample SampleAverage => m_History.SampleAverage;
 
     /// <summary>
     /// Frame timing data representing minimum values over the Frame Time History Window.
     /// </summary>
-    public FrameTimeSample SampleMin;
+    public FrameTimeSample SampleMin => m_History.SampleMin;
 
     /// <summary>
     /// Frame timing data representing maximum values over the Frame Time History Window.
     /// </summary>
-    public FrameTimeSample SampleMax;
-
-    /// <summary>
-    /// Size of the Frame Time History Window.
-    /// </summary>
-    public int HistorySize { get; set; } = 30;
+    public FrameTimeSample SampleMax => m_History.SampleMax;
 
     /// <summary>
     /// Proportional percentages between different bottleneck categories, representing the portion of
@@ -81,7 +107,53 @@ public class FrameTimingData
     /// </summary>
     public int BottleneckHistorySize { get; set; } = 60;
 
-    List<FrameTimeSample> m_Samples = new List<FrameTimeSample>();
+    class FrameTimeSampleHistory
+    {
+        int numFrames = 30;
+        List<FrameTimeSample> samples = new List<FrameTimeSample>();
+
+        internal FrameTimeSample SampleAverage;
+        internal FrameTimeSample SampleMin;
+        internal FrameTimeSample SampleMax;
+
+        internal void Add(FrameTimeSample sample)
+        {
+            samples.Add(sample);
+        }
+
+        internal void ComputeAggregateValues()
+        {
+            FrameTimeSample average = new();
+            FrameTimeSample min = new(float.MaxValue);
+            FrameTimeSample max = new(float.MinValue);
+            for (int i = 0; i < samples.Count; i++)
+            {
+                var s = samples[i];
+                average.Add(s);
+                min.Min(s);
+                max.Max(s);
+            }
+
+            average.Divide(samples.Count);
+
+            SampleAverage = average;
+            SampleMin = min;
+            SampleMax = max;
+        }
+
+        internal void DiscardOldSamples()
+        {
+            while (samples.Count >= numFrames)
+                samples.RemoveAt(0);
+        }
+
+        internal void Clear()
+        {
+            samples.Clear();
+        }
+    }
+
+    FrameTimeSampleHistory m_History = new();
 
     enum PerformanceBottleneck
     {
@@ -99,9 +171,8 @@ public class FrameTimingData
     /// </summary>
     public void Reset()
     {
-        m_Samples.Clear();
+        m_History.Clear();
         m_BottleneckHistory.Clear();
-        SampleAverage = new FrameTimeSample();
         BottleneckStats = new Bottlenecks();
     }
 
@@ -114,84 +185,40 @@ public class FrameTimingData
         FrameTimingManager.CaptureFrameTimings();
         FrameTimingManager.GetLatestTimings(1, timing);
 
-        while (m_Samples.Count >= HistorySize)
-            m_Samples.RemoveAt(0);
+        m_History.DiscardOldSamples();
 
-        FrameTimeSample frameTime = new FrameTimeSample();
+        FrameTimeSample sample = new FrameTimeSample();
 
         if (timing.Length > 0)
         {
-            frameTime.FullFrameTime = (float)timing.First().cpuFrameTime;
-            frameTime.FramesPerSecond = 1000f / frameTime.FullFrameTime;
-            frameTime.MainThreadCPUFrameTime = (float)timing.First().cpuMainThreadFrameTime;
-            frameTime.MainThreadCPUPresentWaitTime = (float)timing.First().cpuMainThreadPresentWaitTime;
-            frameTime.RenderThreadCPUFrameTime = (float)timing.First().cpuRenderThreadFrameTime;
-            frameTime.GPUFrameTime = (float)timing.First().gpuFrameTime;
+            sample.FullFrameTime = (float)timing.First().cpuFrameTime;
+            sample.FramesPerSecond = 1000f / sample.FullFrameTime;
+            sample.MainThreadCPUFrameTime = (float)timing.First().cpuMainThreadFrameTime;
+            sample.MainThreadCPUPresentWaitTime = (float)timing.First().cpuMainThreadPresentWaitTime;
+            sample.RenderThreadCPUFrameTime = (float)timing.First().cpuRenderThreadFrameTime;
+            sample.GPUFrameTime = (float)timing.First().gpuFrameTime;
         }
 
-        m_Samples.Add(frameTime);
+        m_History.Add(sample);
+        m_History.ComputeAggregateValues();
 
-        ComputeAverages();
         var bottleneck = DetermineBottleneck(SampleAverage);
 
         while (m_BottleneckHistory.Count > BottleneckHistorySize)
         {
             m_BottleneckHistory.RemoveAt(0);
         }
+
         m_BottleneckHistory.Add(bottleneck);
         BottleneckStats = ComputeBottleneckStats();
-
-        #if RTPROFILER_DEBUG
-        const float msToNs = 1e6f;
-        m_FullFrameTimeCounter.Value            = frameTime.FullFrameTime * msToNs;
-        m_MainThreadCPUFrameTimeCounter.Value   = frameTime.MainThreadCPUFrameTime * msToNs;
-        m_RenderThreadCPUFrameTimeCounter.Value = frameTime.RenderThreadCPUFrameTime * msToNs;
-        m_GPUFrameTimeCounter.Value             = frameTime.GPUFrameTime * msToNs;
-
-        m_AvgFullFrameTimeCounter.Value            = AverageSample.FullFrameTime * msToNs;
-        m_AvgMainThreadCPUFrameTimeCounter.Value   = AverageSample.MainThreadCPUFrameTime * msToNs;
-        m_AvgRenderThreadCPUFrameTimeCounter.Value = AverageSample.RenderThreadCPUFrameTime * msToNs;
-        m_AvgGPUFrameTimeCounter.Value             = AverageSample.GPUFrameTime * msToNs;
-
-        m_CPUBoundCounter.Value         = bottleneck == PerformanceBottleneck.CPU ? 100f : 0f;
-        m_GPUBoundCounter.Value         = bottleneck == PerformanceBottleneck.GPU ? 100f : 0f;
-        m_PresentLimitedCounter.Value   = bottleneck == PerformanceBottleneck.PresentLimited ? 100f : 0f;
-        m_BalancedCounter.Value         = bottleneck == PerformanceBottleneck.Balanced ? 100f : 0f;
-        #endif
-    }
-
-    void ComputeAverages()
-    {
-        // TODO optimize
-
-        SampleAverage.FramesPerSecond              = m_Samples.Average(s => s.FramesPerSecond);
-        SampleAverage.FullFrameTime                = m_Samples.Average(s => s.FullFrameTime);
-        SampleAverage.MainThreadCPUFrameTime       = m_Samples.Average(s => s.MainThreadCPUFrameTime);
-        SampleAverage.MainThreadCPUPresentWaitTime = m_Samples.Average(s => s.MainThreadCPUPresentWaitTime);
-        SampleAverage.RenderThreadCPUFrameTime     = m_Samples.Average(s => s.RenderThreadCPUFrameTime);
-        SampleAverage.GPUFrameTime                 = m_Samples.Average(s => s.GPUFrameTime);
-
-        SampleMin.FramesPerSecond              = m_Samples.Min(s => s.FramesPerSecond);
-        SampleMin.FullFrameTime                = m_Samples.Min(s => s.FullFrameTime);
-        SampleMin.MainThreadCPUFrameTime       = m_Samples.Min(s => s.MainThreadCPUFrameTime);
-        SampleMin.MainThreadCPUPresentWaitTime = m_Samples.Min(s => s.MainThreadCPUPresentWaitTime);
-        SampleMin.RenderThreadCPUFrameTime     = m_Samples.Min(s => s.RenderThreadCPUFrameTime);
-        SampleMin.GPUFrameTime                 = m_Samples.Min(s => s.GPUFrameTime);
-
-        SampleMax.FramesPerSecond              = m_Samples.Max(s => s.FramesPerSecond);
-        SampleMax.FullFrameTime                = m_Samples.Max(s => s.FullFrameTime);
-        SampleMax.MainThreadCPUFrameTime       = m_Samples.Max(s => s.MainThreadCPUFrameTime);
-        SampleMax.MainThreadCPUPresentWaitTime = m_Samples.Max(s => s.MainThreadCPUPresentWaitTime);
-        SampleMax.RenderThreadCPUFrameTime     = m_Samples.Max(s => s.RenderThreadCPUFrameTime);
-        SampleMax.GPUFrameTime                 = m_Samples.Max(s => s.GPUFrameTime);
     }
 
     Bottlenecks ComputeBottleneckStats()
     {
         var stats = new Bottlenecks();
-        m_BottleneckHistory.ForEach((PerformanceBottleneck bottleneck) =>
+        for (int i = 0; i < m_BottleneckHistory.Count; i++)
         {
-            switch (bottleneck)
+            switch (m_BottleneckHistory[i])
             {
                 case PerformanceBottleneck.Balanced:
                     stats.Balanced++;
@@ -206,7 +233,7 @@ public class FrameTimingData
                     stats.PresentLimited++;
                     break;
             }
-        });
+        }
 
         stats.Balanced /= m_BottleneckHistory.Count;
         stats.CPU /= m_BottleneckHistory.Count;
