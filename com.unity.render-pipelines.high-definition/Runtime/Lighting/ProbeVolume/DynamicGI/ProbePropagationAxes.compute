@@ -61,8 +61,8 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
     const int index = id.x;
     if (index < _ProbeVolumeNeighborsCount)
     {
-        const uint probeIndex = index / NEIGHBOR_AXIS_COUNT;
-        const uint axisIndex = index - probeIndex * NEIGHBOR_AXIS_COUNT;
+        const uint probeIndex = (uint)index / NEIGHBOR_AXIS_COUNT;
+        const uint axisIndex = (uint)index - probeIndex * NEIGHBOR_AXIS_COUNT;
 
         float4 lightingAndWeight = float4(0, 0, 0, 1);
         uint3 probeCoordinate = ProbeIndexToProbeCoordinatesUint(probeIndex);
@@ -79,11 +79,11 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         float3 incomingRadiance = 0;
         float weight = 0.0f;
         float probeValidity = 0;
-        float3 axis = _RayAxis[axisIndex];
+        float3 axis = _RayAxis[axisIndex].xyz;
 
         for(int i=0; i < NEIGHBOR_AXIS_COUNT; ++i)
         {
-            float3 neighborDirection = _RayAxis[i];
+            float3 neighborDirection = _RayAxis[i].xyz;
             uint sampleAxis = probeIndex * NEIGHBOR_AXIS_COUNT + i;
             NeighborAxis neighbor = _ProbeVolumeNeighbors[sampleAxis];
 
@@ -99,7 +99,7 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             UnpackIndicesAndValidityOnly(neighbor.hitIndexValidity, hitIndex, probeAxisValidity);
             probeValidity += probeAxisValidity;
 
-            if(hitIndex < _HitRadianceCacheAxisCount)
+            if(hitIndex < (uint)_HitRadianceCacheAxisCount)
             {
                 // Hit
                 weight += sgWeight;
@@ -112,9 +112,9 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                 int3 neighborProbeCoordinate = probeCoordinate + offset;
 
                 //TODO: remove missed axis on generation to avoid this branch entirely here
-                if(neighborProbeCoordinate.x >= 0 && neighborProbeCoordinate.x < _ProbeVolumeDGIResolutionX &&
-                   neighborProbeCoordinate.y >= 0 && neighborProbeCoordinate.y < _ProbeVolumeDGIResolutionY &&
-                   neighborProbeCoordinate.z >= 0 && neighborProbeCoordinate.z < _ProbeVolumeDGIResolutionZ)
+                if(neighborProbeCoordinate.x >= 0 && neighborProbeCoordinate.x < (int)_ProbeVolumeDGIResolutionX &&
+                   neighborProbeCoordinate.y >= 0 && neighborProbeCoordinate.y < (int)_ProbeVolumeDGIResolutionY &&
+                   neighborProbeCoordinate.z >= 0 && neighborProbeCoordinate.z < (int)_ProbeVolumeDGIResolutionZ)
                 {
                     uint neighborProbeIndex = ProbeCoordinateToIndex(neighborProbeCoordinate);
                     float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborProbeIndex, axisIndex);

@@ -148,7 +148,8 @@ SHIncomingIrradiance ProjectPropagationAxisFromPeak(uint probeIndex)
 #if !defined(SH_FROM_SG_PBR_FIT_WITH_COSINE_WINDOW)
 float ZHWindowComputeFromSphericalGaussianC0(float sharpness)
 {
-    return pow(sharpness * 1.22962 + 0.823224, -1.25462) * 3.73236 + 0.0289582;
+    // sharpness * 1.22962 + 0.823224 is always positive. abs is to simply make the compiler happy.
+    return pow(abs(sharpness) * 1.22962 + 0.823224, -1.25462) * 3.73236 + 0.0289582;
 }
 
 float ZHWindowComputeFromSphericalGaussianC1(float sharpness)
@@ -173,7 +174,8 @@ float ZHWindowComputeFromSphericalGaussianC2(float sharpness)
 #else
 float ZHWindowComputeFromSphericalGaussianC0(float sharpness)
 {
-    return pow(sharpness * 0.386254 + 1.55848, -1.52661) * 1.72542 + 0.0290483;
+    // sharpness * 0.386254 + 1.55848 is always positive. abs is to simply make the compiler happy.
+    return pow(abs(sharpness) * 0.386254 + 1.55848, -1.52661) * 1.72542 + 0.0290483;
 }
 
 float ZHWindowComputeFromSphericalGaussianC1(float sharpness)
