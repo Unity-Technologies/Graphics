@@ -1980,6 +1980,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do the same for ray tracing if allowed
                 if (m_RayTracingSupported)
                 {
+                    m_RayCountManager.SetRayCountEnabled(m_CurrentDebugDisplaySettings.data.countRays);
                     BuildRayTracingLightData(cmd, hdCamera, m_CurrentDebugDisplaySettings);
                 }
 

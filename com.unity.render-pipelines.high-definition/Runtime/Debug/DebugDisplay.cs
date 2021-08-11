@@ -870,7 +870,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return 0.0f;
         }
 
-        ObservableList<DebugUI.Widget> BuildProfilingSamplerList()
+        ObservableList<DebugUI.Widget> BuildProfilingSamplerWidgetList(List<ProfilingSampler> samplerList)
         {
             var result = new ObservableList<DebugUI.Widget>();
 
@@ -892,7 +892,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 };
             }
 
-            foreach (var sampler in m_RecordedSamplers)
+            foreach (var sampler in samplerList)
             {
                 sampler.enableRecording = true;
 
@@ -906,35 +906,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         createWidgetForSampler(sampler, DebugProfilingType.InlineCPU),
                         createWidgetForSampler(sampler, DebugProfilingType.GPU),
                     }
-                });
-            }
-
-            return result;
-        }
-
-        ObservableList<DebugUI.Widget> BuildProfilingSamplerListRT(DebugProfilingType type)
-        {
-            var result = new ObservableList<DebugUI.Widget>();
-
-            // Find the right accumulated dictionary and add it there if not existing yet.
-            var accumulatedDictionary = type == DebugProfilingType.CPU ? m_AccumulatedCPUTiming :
-                type == DebugProfilingType.InlineCPU ? m_AccumulatedInlineCPUTiming :
-                m_AccumulatedGPUTiming;
-
-
-            foreach (var sampler in m_RecordedSamplersRT)
-            {
-                sampler.enableRecording = true;
-                if (!accumulatedDictionary.ContainsKey(sampler.name))
-                {
-                    accumulatedDictionary.Add(sampler.name, new AccumulatedTiming());
-                }
-
-                result.Add(new DebugUI.Value
-                {
-                    displayName = sampler.name,
-                    getter = () => GetSamplerTiming(type, sampler),
-                    refreshRate = 1.0f / 5.0f
                 });
             }
 
@@ -1139,13 +1110,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             EnableProfilingRecorders();
             list.Add(new DebugUI.BoolField { displayName = "Update every second with average", getter = () => data.averageProfilerTimingsOverASecond, setter = value => data.averageProfilerTimingsOverASecond = value });
-            list.Add(new DebugUI.Foldout("Detailed Stats", BuildProfilingSamplerList(), new[] { "CPU", "CPUInline", "GPU" }));
+            list.Add(new DebugUI.Foldout("Detailed Stats", BuildProfilingSamplerWidgetList(m_RecordedSamplers), new[] { "CPU", "CPUInline", "GPU" }));
 
             if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? true)
             {
                 EnableProfilingRecordersRT();
-                list.Add(new DebugUI.Foldout("CPU timings RT (Command Buffers)", BuildProfilingSamplerListRT(DebugProfilingType.CPU)));
-                list.Add(new DebugUI.Foldout("GPU timings RT", BuildProfilingSamplerListRT(DebugProfilingType.GPU)));
+                list.Add(new DebugUI.Foldout("Ray Tracing Stats", BuildProfilingSamplerWidgetList(m_RecordedSamplersRT), new[] { "CPU", "CPUInline", "GPU" }));
             }
             list.Add(new DebugUI.BoolField { displayName = "Count Rays (MRays/Frame)", getter = () => data.countRays, setter = value => data.countRays = value, onValueChanged = RefreshDisplayStatsDebug });
             if (data.countRays)
