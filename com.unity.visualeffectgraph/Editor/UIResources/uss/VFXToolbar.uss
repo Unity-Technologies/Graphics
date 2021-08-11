@@ -1,7 +1,7 @@
 .dropdown-button, .dropdown-arrow
 {
     margin: 0 0 0 0;
-    border-width: 0;
+    border-width: 0 0 0 1px;
     border-radius: 0;
 }
 
@@ -14,12 +14,14 @@
 .dropdown-arrow
 {
     width: 16px;
+    border-width: 0 1px 0 0;
 }
 
 .dropdown-separator
 {
     height: 10px;
-    width: 1px;
+    width: 2px;
+    border-left-width: 1px;
     border-color: var(--unity-colors-default-border);
     opacity: 0.5;
     align-self: center;
@@ -36,9 +38,6 @@
 .separator
 {
     width: 6px;
-    margin-right: 2px;
-    border-width: 0 1px 0 1px;
-    border-color: var(--unity-colors-default-border);
 }
 
 .popup
