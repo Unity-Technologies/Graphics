@@ -679,7 +679,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DequeueSHBaking();
         }
 
-        private void ClearSHBaking()
+        internal void ClearSHBaking()
         {
             // Lighting data was cleared - clear out any stale SH data.
             m_HasValidSHForNormalization = false;
