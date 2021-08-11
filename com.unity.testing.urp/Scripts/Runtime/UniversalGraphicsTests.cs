@@ -62,7 +62,7 @@ public class UniversalGraphicsTests
         bool allocatesMemory = false;
         var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
 
-        if (settings?.CheckMemoryAllocation ?? true)
+        if (settings == null || settings.CheckMemoryAllocation)
         {
             try
             {
