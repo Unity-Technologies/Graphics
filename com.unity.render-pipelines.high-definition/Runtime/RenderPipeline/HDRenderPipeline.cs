@@ -271,7 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
             QualitySettings.maximumLODLevel = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedMaximumLODLevel(m_Asset);
 
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
-            m_RayTracingSupported = GatherRayTracingSupport(m_Asset.currentPlatformRenderPipelineSettings);
+            m_RayTracingSupported = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
 
 #if UNITY_EDITOR
             UpgradeResourcesIfNeeded();
@@ -445,9 +445,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         void UpgradeResourcesIfNeeded()
         {
-            // The first thing we need to do is to set the defines that depend on the render pipeline settings
-            m_Asset.EvaluateSettings();
-
             // Check that the serialized Resources are not broken
             m_GlobalSettings.EnsureRuntimeResources(forceReload: true);
             m_GlobalSettings.EnsureEditorResources(forceReload: true);

@@ -316,7 +316,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool QualityEnabled()
         {
             // Quality always used for SSR
-            if (!HDRenderPipeline.rayTracingSupportedBySystem || m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
+            if (!HDRenderPipeline.buildTargetSupportsRayTracing || m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
                 return true;
 
             // Handle the quality usage for RTR
