@@ -7,7 +7,7 @@ using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 {
-    public static class ShaderGraphHandlers
+    public static class ShaderGraphCommandOverrides
     {
         public static void HandleCreateEdge(GraphToolState state, CreateEdgeCommand command)
         {
