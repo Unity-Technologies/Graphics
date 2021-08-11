@@ -81,7 +81,7 @@ void GatherLighting(SurfaceHitData hit, inout float4 lighting)
 #if SUPPORTS_AREA_LIGHTS
     // Area lights
     int lastAreaLightIndex = _DynamicGIPunctualLightCount + _DynamicGIAreaLightCount;
-    for (uint areaLightIdx = _DynamicGIPunctualLightCount; areaLightIdx < lastAreaLightIndex; ++areaLightIdx)
+    for (uint areaLightIdx = (uint)_DynamicGIPunctualLightCount; areaLightIdx < (uint)lastAreaLightIndex; ++areaLightIdx)
     {
         light = _DynamicGILightDatas[areaLightIdx];
         lighting.xyz += GetLightingForAxisArea(light, _IndirectScale, hit) * _DirectContribution;
@@ -89,7 +89,7 @@ void GatherLighting(SurfaceHitData hit, inout float4 lighting)
 #endif
 
     // Directional
-    for (uint dirLightIdx = 0; dirLightIdx < _DirectionalLightCount; ++dirLightIdx)
+    for (uint dirLightIdx = 0; dirLightIdx < (uint)_DirectionalLightCount; ++dirLightIdx)
     {
         DirectionalLightData dirData = _DirectionalLightDatas[dirLightIdx];
         // Only support the shadow casting one otherwise result is completely off.
@@ -135,7 +135,7 @@ float3 ProbeCoordinatesToWorldPosition(float3 probeCoordinates, float3x3 probeVo
 SurfaceHitData ConstructSurfaceHit(PackedNeighborHit neighborData, float3 worldPosition, float3x3 probeVolumeLtw)
 {
     float4 albedoDistance = UnpackAlbedoAndDistance(neighborData.albedoDistance, _ProbeVolumeDGIMaxNeighborDistance);
-    float3 axis = UnpackAxis(neighborData.normalAxis);
+    float3 axis = UnpackAxis(neighborData.normalAxis).xyz;
 
     axis = mul(axis, probeVolumeLtw);
 
