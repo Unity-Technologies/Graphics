@@ -7,6 +7,7 @@
 {
     opacity: 1;
     background-color: #767676;
+    -unity-background-image-tint-color: #808080;
 }
 
 .unity-toolbar.unity-disabled *
