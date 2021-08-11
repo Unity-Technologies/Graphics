@@ -18,10 +18,19 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         /// <summary>
         /// Copies the type from a given input port to this redirect node.
         /// </summary>
-        /// <param name="input">Input port to copy type data from.</param>
-        public void UpdateTypeFrom(IPortModel input)
+        /// <param name="fromPort">Port to copy type data from.</param>
+        public void UpdateTypeFrom(IPortModel fromPort)
         {
-            m_RedirectType = input.DataTypeHandle;
+            m_RedirectType = fromPort.DataTypeHandle;
+            DefineNode();
+        }
+
+        /// <summary>
+        /// Clears the type of this redirect node.
+        /// </summary>
+        public void ClearType()
+        {
+            m_RedirectType = TypeHandle.Float;
             DefineNode();
         }
 

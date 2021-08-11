@@ -2,6 +2,10 @@
     display: none;
 }
 
+.sg-redirect-node {
+    width: 56px;
+}
+
 .sg-redirect-node .ge-port-container {
     padding: 8px;
 }

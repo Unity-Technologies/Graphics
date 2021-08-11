@@ -70,6 +70,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             using var selectionUpdater = state.SelectionState.UpdateScope;
             using var graphUpdater = state.GraphViewState.UpdateScope;
 
+            // Reset types on disconnected redirect nodes.
+            foreach (var edge in nonRedirects.OfType<IEdgeModel>())
+            {
+                if (edge.ToPort.NodeModel is not RedirectNodeModel redirect) continue;
+
+                redirect.ClearType();
+                graphUpdater.MarkChanged(redirect);
+            }
+
             // Bypass redirects in a similar manner to GTF's BypassNodesCommand.
             foreach (var redirect in redirects)
             {
@@ -82,13 +91,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 graphUpdater.MarkDeleted(inputEdgeModel);
                 graphUpdater.MarkDeleted(outputEdgeModels);
 
-                if (inputEdgeModel != null && outputEdgeModels.Any())
+                if (inputEdgeModel == null || !outputEdgeModels.Any()) continue;
+
+                foreach (var outputEdgeModel in outputEdgeModels)
                 {
-                    foreach (var outputEdgeModel in outputEdgeModels)
-                    {
-                        var edge = graphModel.CreateEdge(outputEdgeModel.ToPort, inputEdgeModel.FromPort);
-                        graphUpdater.MarkNew(edge);
-                    }
+                    var edge = graphModel.CreateEdge(outputEdgeModel.ToPort, inputEdgeModel.FromPort);
+                    graphUpdater.MarkNew(edge);
                 }
             }
 
