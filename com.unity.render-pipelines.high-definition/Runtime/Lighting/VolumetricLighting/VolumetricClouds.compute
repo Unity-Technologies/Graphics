@@ -9,15 +9,12 @@
 #pragma kernel CombineClouds_ColorCopy              COMBINE_KERNEL=CombineClouds_ColorCopy
 #pragma kernel ComputeVolumetricCloudsShadow
 
-#pragma multi_compile _ CHECKER_BOARD_INTEGRATION
-#pragma multi_compile _ FULL_RESOLUTION_CLOUDS
 #pragma multi_compile _ PHYSICALLY_BASED_SUN
-#pragma multi_compile _ PLANAR_REFLECTION_CAMERA
 #pragma multi_compile _ LOCAL_VOLUMETRIC_CLOUDS
 #pragma multi_compile _ USE_INTERMEDIATE_BUFFER
 
 //#define WITHOUT_LDS
-//#pragma enable_d3d11_debug_symbols
+// #pragma enable_d3d11_debug_symbols
 
 // The number of octaves for the multi-scattering
 #define NUM_MULTI_SCATTERING_OCTAVES 2
@@ -61,6 +58,7 @@
 // Input textures
 TEXTURE2D_X(_HalfResDepthBuffer);
 TEXTURE2D_X(_DepthTexture);
+TEXTURE2D_X(_VolumetricCloudsSourceDepth);
 Texture2D<float4> _CloudMapTexture;
 Texture2D<float3> _CloudLutTexture;
 
@@ -179,13 +177,9 @@ CloudRay BuildRay(uint2 intermediateCoord, float integrationNoise)
     ray.integrationNoise = integrationNoise;
 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
-    #ifdef FULL_RESOLUTION_CLOUDS
-        // Grab the depth value of the pixel
-        ray.depthValue = LOAD_TEXTURE2D_X(_DepthTexture, intermediateCoord.xy).x;
-    #else
-        // Grab the depth value of the pixel (at half resolution)
-        ray.depthValue = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, intermediateCoord.xy).x;
-    #endif
+    // Grab the depth value of the pixel
+    ray.depthValue = LOAD_TEXTURE2D_X(_VolumetricCloudsSourceDepth, intermediateCoord.xy).x;
+
     // Flag is this sky pixel occluded by an object?
     float isOccluded = ray.depthValue != UNITY_RAW_FAR_CLIP_VALUE ? 1.0 : 0.0;
 #else
@@ -194,13 +188,9 @@ CloudRay BuildRay(uint2 intermediateCoord, float integrationNoise)
     float isOccluded = 0.0;
 #endif
 
-#ifdef PLANAR_REFLECTION_CAMERA
     // Compute the world space position of the pixel (or at a virtual position is it the sky)
-    float3 pos = ComputeWorldSpacePosition((intermediateCoord + 0.5) * _IntermediateScreenSize.zw, lerp(0.5, ray.depthValue, isOccluded), _CameraInverseViewProjection_NO);
-#else
-    // Compute the world space position of the pixel (or at a virtual position is it the sky)
-    float3 pos = ComputeWorldSpacePosition((intermediateCoord + 0.5) * _IntermediateScreenSize.zw, lerp(0.5, ray.depthValue, isOccluded), UNITY_MATRIX_I_VP);
-#endif
+    float3 pos = ComputeWorldSpacePosition((intermediateCoord + 0.5) * _IntermediateScreenSize.zw, lerp(0.5, ray.depthValue, isOccluded), _IsPlanarReflection ? _CameraInverseViewProjection_NO : UNITY_MATRIX_I_VP);
+
     // normalize to get the direction
     ray.direction = normalize(pos);
 
@@ -799,22 +789,22 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
     if (any(traceCoord.xy > uint2(_TraceScreenSize.xy)))
         return;
 
-#ifdef FULL_RESOLUTION_CLOUDS
-    uint2 intermediateCoord = traceCoord.xy;
-    // We use the Heitz blue noise method for dithering to get the most visually pleasing noise.
-    float offset = GetBNDSequenceSample(intermediateCoord, _AccumulationFrameIndex, 0);
-#else
-    #ifdef CHECKER_BOARD_INTEGRATION
-        // Compute the half res coordinate that matches this thread (as we virtually do the computation in half res space)
-        int checkerBoardIndex = ComputeCheckerBoardIndex(traceCoord.xy, _SubPixelIndex);
-        uint2 intermediateCoord = traceCoord.xy * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
-        // We use the Heitz blue noise method for dithering to get the most visually pleasing noise.
-        float offset = GetBNDSequenceSample(intermediateCoord, _AccumulationFrameIndex, 0);
-    #else
-        uint2 intermediateCoord = traceCoord.xy * 2;
-        float offset = 0;
-    #endif
-#endif
+    // Depending on if we are in full res or not, use a different intermediate coord
+    uint2 intermediateCoord = traceCoord.xy; // Full resolution case
+    if (_LowResolutionEvaluation)
+    {
+        if (_EnableIntegration)
+        {
+            // Compute the half res coordinate that matches this thread (as we virtually do the computation in half res space)
+            int checkerBoardIndex = ComputeCheckerBoardIndex(traceCoord.xy, _SubPixelIndex);
+            intermediateCoord = traceCoord.xy * 2 + HalfResolutionIndexToOffset(checkerBoardIndex);
+        }
+        else
+            intermediateCoord = traceCoord.xy * 2;
+    }
+
+    // Compute the offset that shall be used (if any)
+    float offset = _EnableIntegration ? GetBNDSequenceSample(intermediateCoord, _AccumulationFrameIndex, 0) : 0.0;
 
     // Build the ray we will use of the ray marching.
     CloudRay ray = BuildRay(intermediateCoord, offset);
@@ -849,15 +839,12 @@ void FillCloudReprojectionLDS(uint groupIndex, uint2 groupOrigin)
     // Compute the sample position
     int2 sampleCoord = int2(clamp(originXY.x + acessCoordX, 0, _TraceScreenSize.x - 1), clamp(originXY.y + acessCoordY, 0, _TraceScreenSize.y - 1));
 
-    #ifdef CHECKER_BOARD_INTEGRATION
-    // Read the sample value
+    // The representative coordinate to use depends if we are using the checkerboard integration pattern (or not)
     int checkerBoardIndex = ComputeCheckerBoardIndex(sampleCoord, _SubPixelIndex);
-    int2 representativeCoord = sampleCoord * 2 + HalfResIndexToCoordinateShift[checkerBoardIndex];
-    #else
-    int2 representativeCoord = sampleCoord * 2;
-    #endif
-    float sampleDP = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
+    int2 representativeCoord = sampleCoord * 2 + (_EnableIntegration ? (int2)HalfResolutionIndexToOffset(checkerBoardIndex) : int2(0, 0));
 
+    // Read the sample values
+    float sampleDP = LOAD_TEXTURE2D_X(_HalfResDepthBuffer, representativeCoord).x;
     float4 sampleVal = LOAD_TEXTURE2D_X(_CloudsLightingTexture, sampleCoord);
     float sampleDC = LOAD_TEXTURE2D_X(_CloudsDepthTexture, sampleCoord).x;
 
@@ -1082,11 +1069,7 @@ void PreUpscaleClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // Compute the local index that tells us the index of this pixel, the strategy for reprojection is a bit different in both cases
     int localIndex = (intermediateCoord.x & 1) + (intermediateCoord.y & 1) * 2;
-    #ifdef CHECKER_BOARD_INTEGRATION
-    int currentIndex = ComputeCheckerBoardIndex(intermediateCoord / 2, _SubPixelIndex);
-    #else
-    int currentIndex = 0;
-    #endif
+    int currentIndex = _EnableIntegration ? ComputeCheckerBoardIndex(intermediateCoord / 2, _SubPixelIndex) : 0;
     if (localIndex == currentIndex)
     {
         // Accumulate the result with the previous frame
@@ -1247,13 +1230,9 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     float cloudDepth = UNITY_RAW_FAR_CLIP_VALUE;
 #endif
 
-#ifdef PLANAR_REFLECTION_CAMERA
     // Compute the pos input of the cloud position
-    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, cloudDepth, _CameraInverseViewProjection_NO, GetWorldToViewMatrix(), 0);
-#else
-    // Compute the pos input of the cloud position
-    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, cloudDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-#endif
+    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, cloudDepth, _IsPlanarReflection ? _CameraInverseViewProjection_NO : UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+
     // Compute the view direction
     float3 viewDir = -normalize(cloudPosInput.positionWS);
 
