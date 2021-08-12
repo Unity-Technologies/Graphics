@@ -1137,12 +1137,23 @@ namespace UnityEditor.Rendering
 
         internal static void BeginAdditionalPropertiesHighlight(AnimFloat animation)
         {
+            // Remove the indentation and fake it using the padding of the VerticalLayout
+            // If we relay on the indentation the following case will happen:
+            // - the indentation (15)
+            // - The minimum margin of any of the siblings of the vertical layout (for instance 3)
+            // - The margin of the internal elements (for instance 3 if we are drawing any textfield)
+            // Ending up in a total "left offset" of 21, while the previous properties had an offset of 18
+            // Ending in a 3px offset for the additional properties, making them unaligned with non additional properties :(
+
+            // Backup the previous values
             s_OldIndentLevel = EditorGUI.indentLevel;
             s_OldLabelWidth = EditorGUIUtility.labelWidth;
-            EditorGUI.indentLevel = 0;
+
             var oldColor = GUI.color;
             GUI.color = Color.Lerp(CoreEditorStyles.backgroundColor, CoreEditorStyles.backgroundHighlightColor, animation.value);
 
+            // Change the indent level and the label width
+            EditorGUI.indentLevel = 0;
             int leftPadding = s_OldIndentLevel * 15; // Indent level from EditorGUI.kIndentPerLevel
             EditorGUIUtility.labelWidth -= leftPadding;
 
