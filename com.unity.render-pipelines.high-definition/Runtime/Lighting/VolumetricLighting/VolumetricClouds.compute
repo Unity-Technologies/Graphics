@@ -888,6 +888,25 @@ void FillCloudReprojectionLDS(uint groupIndex, uint2 groupOrigin)
     gs_cacheDC[groupIndex] = sampleDC;
 }
 
+float4 ClipCloudsToRegion(float4 history, float4 minimum, float4 maximum)
+{
+    float clampedTransmittance = clamp(history.w, minimum.w, maximum.w);
+    // note: only clips towards aabb center (but fast!)
+    float3 center  = 0.5 * (maximum.xyz + minimum.xyz);
+    float3 extents = 0.5 * (maximum.xyz - minimum.xyz);
+
+    // This is actually `distance`, however the keyword is reserved
+    float3 offset = history.xyz - center;
+    float3 v_unit = offset.xyz / extents.xyz;
+    float3 absUnit = abs(v_unit);
+    float maxUnit = Max3(absUnit.x, absUnit.y, absUnit.z);
+
+    if (maxUnit > 1.0)
+        return float4(center + (offset / maxUnit), clampedTransmittance);
+    else
+        return float4(history.xyz, clampedTransmittance);
+}
+
 [numthreads(8, 8, 1)]
 void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
                     int groupIndex : SV_GroupIndex,
@@ -967,6 +986,23 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     if (abs(linearPrevDepth - linearCurrentDepth) > linearCurrentDepth * 0.2)
         validHistory = false;
 
+    // We need to validate that within the 3x3 trace region, at least one of the pixels is not a background pixel (incluing the clouds)
+    float4 lightingMin = float4(FLT_MAX, FLT_MAX, FLT_MAX, 1.0);
+    float4 lightingMax = float4(0, 0, 0, 0.0);
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            #ifdef WITHOUT_LDS
+            float4 cloudLigting = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord + int2(x, y));
+            #else
+            float4 cloudLigting = GetCloudLighting_LDS(groupThreadId, int2(x, y));
+            #endif
+            lightingMin = min(lightingMin, cloudLigting);
+            lightingMax = max(lightingMax, cloudLigting);
+        }
+    }
+
     // Compute the local index that tells us the index of this pixel, the strategy for reprojection is a bit different in both cases
     int localIndex = (intermediateCoord.x & 1) + (intermediateCoord.y & 1) * 2;
     int currentIndex = ComputeCheckerBoardIndex(intermediateCoord / 2, _SubPixelIndex);
@@ -998,6 +1034,8 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
             accumulationFactor *= _TemporalAccumulationFactor;
             sampleCount = min(previousSampleCount + 1.0, 16.0);
         }
+
+        previousResult = ClipCloudsToRegion(previousResult, lightingMin, lightingMax);
 
         // Accumulate the result with the previous frame
         #ifdef WITHOUT_LDS
@@ -1051,6 +1089,9 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
             previousCloudDepth = GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]);
             #endif
         }
+        else
+            previousResult = ClipCloudsToRegion(previousResult, lightingMin, lightingMax);
+
         previousDepth = currentDepth;
     }
 
