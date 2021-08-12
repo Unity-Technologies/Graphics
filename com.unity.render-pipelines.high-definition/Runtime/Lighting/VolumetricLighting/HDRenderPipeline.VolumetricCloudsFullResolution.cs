@@ -69,6 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.finalHeight = parameters.finalHeight;
             cameraData.viewCount = parameters.viewCount;
             cameraData.enableExposureControl = parameters.commonData.enableExposureControl;
+            cameraData.lowResolution = false;
+            cameraData.enableIntegration = true;
             UpdateShaderVariableslClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, false);
 
             return parameters;
@@ -87,8 +89,6 @@ namespace UnityEngine.Rendering.HighDefinition
             BlueNoise.BindDitheredTextureSet(cmd, parameters.commonData.ditheredTextureSet);
 
             // Set the multi compiles
-            CoreUtils.SetKeyword(cmd, "FULL_RESOLUTION_CLOUDS", true);
-            CoreUtils.SetKeyword(cmd, "PLANAR_REFLECTION_CAMERA", false);
             CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.commonData.localClouds);
 
             // Bind the constant buffer
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Ray-march the clouds for this frame
                 CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", parameters.commonData.cloudsCB._PhysicallyBasedSun == 1);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._DepthTexture, depthPyramid);
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._VolumetricCloudsSourceDepth, depthPyramid);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._Worley128RGBA, parameters.commonData.worley128RGBA);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._ErosionNoise, parameters.commonData.erosionNoise);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudMapTexture, parameters.commonData.cloudMapTexture);
@@ -125,9 +125,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.combineKernel, HDShaderIDs._VBufferLighting, volumetricLightingTexture);
                 if (parameters.commonData.cloudsCB._PhysicallyBasedSun == 0)
                 {
-                    cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.combineKernel, HDShaderIDs._AirSingleScatteringTexture, scatteringFallbackTexture);
-                    cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.combineKernel, HDShaderIDs._AerosolSingleScatteringTexture, scatteringFallbackTexture);
-                    cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.combineKernel, HDShaderIDs._MultipleScatteringTexture, scatteringFallbackTexture);
+                    // This has to be done in the global space given that the "correct" one happens in the global space.
+                    // If we do it in the local space, there are some cases when the previous frames local take precedence over the current frame global one.
+                    cmd.SetGlobalTexture(HDShaderIDs._AirSingleScatteringTexture, scatteringFallbackTexture);
+                    cmd.SetGlobalTexture(HDShaderIDs._AerosolSingleScatteringTexture, scatteringFallbackTexture);
+                    cmd.SetGlobalTexture(HDShaderIDs._MultipleScatteringTexture, scatteringFallbackTexture);
                 }
 
                 if (parameters.needsTemporaryBuffer)
@@ -158,8 +160,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Reset all the multi-compiles
-            CoreUtils.SetKeyword(cmd, "FULL_RESOLUTION_CLOUDS", false);
-            CoreUtils.SetKeyword(cmd, "PLANAR_REFLECTION_CAMERA", false);
             CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
         }
 

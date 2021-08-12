@@ -74,6 +74,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public int finalHeight;
             public int viewCount;
             public bool enableExposureControl;
+            public bool lowResolution;
+            public bool enableIntegration;
         }
 
         void InitializeVolumetricClouds()
@@ -436,6 +438,17 @@ namespace UnityEngine.Rendering.HighDefinition
             float sunAttenuation = sunAngleDifference > 2.0f ? 0.5f : 1.0f;
             cb._TemporalAccumulationFactor = settings.temporalAccumulationFactor.value * sunAttenuation;
 
+            if (settings.fadeInMode.value == VolumetricClouds.CloudFadeInMode.Automatic)
+            {
+                cb._FadeInStart = Mathf.Max((cb._HighestCloudAltitude - cb._LowestCloudAltitude) * 0.2f, hdCamera.camera.nearClipPlane);
+                cb._FadeInDistance = (cb._HighestCloudAltitude - cb._LowestCloudAltitude) * 0.3f;
+            }
+            else
+            {
+                cb._FadeInStart = Mathf.Max(settings.fadeInStart.value, hdCamera.camera.nearClipPlane);
+                cb._FadeInDistance = settings.fadeInDistance.value;
+            }
+
             cb._FinalScreenSize.Set((float)cameraData.finalWidth, (float)cameraData.finalHeight, 1.0f / (float)cameraData.finalWidth, 1.0f / (float)cameraData.finalHeight);
             cb._IntermediateScreenSize.Set((float)cameraData.intermediateWidth, (float)cameraData.intermediateHeight, 1.0f / (float)cameraData.intermediateWidth, 1.0f / (float)cameraData.intermediateHeight);
             cb._TraceScreenSize.Set((float)cameraData.traceWidth, (float)cameraData.traceHeight, 1.0f / (float)cameraData.traceWidth, 1.0f / (float)cameraData.traceHeight);
@@ -446,6 +459,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ErosionFactorCompensation = ErosionNoiseTypeToErosionCompensation(settings.erosionNoiseType.value);
 
             // If this is a planar reflection, we need to compute the non oblique matrices
+            cb._IsPlanarReflection = (cameraData.cameraType == TVolumetricCloudsCameraType.PlanarReflection) ? 1 : 0;
             if (cameraData.cameraType == TVolumetricCloudsCameraType.PlanarReflection)
             {
                 // Build a non-oblique projection matrix
@@ -494,6 +508,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cb._EnableFastToneMapping = cameraData.enableExposureControl ? 1 : 0;
+            cb._LowResolutionEvaluation = cameraData.lowResolution ? 1 : 0;
+            cb._EnableIntegration = cameraData.enableIntegration ? 1 : 0;
 
             unsafe
             {

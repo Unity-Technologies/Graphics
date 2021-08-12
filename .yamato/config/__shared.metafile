@@ -281,7 +281,7 @@ platforms:
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: graphics-foundation/mac-10.15:latest
+        image: graphics-foundation/mac-10.15:v0.0.1-672710
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
@@ -386,7 +386,8 @@ platforms:
       - android
     agents_project:
       default:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
       standalone_build:
@@ -398,9 +399,16 @@ platforms:
         setup_utr:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
             retries: 2
-        call_utr:
+        call_utr_hikey:
           - command: |5-
                     set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                    set /p GIT_REVISIONDATE=<revdate.tmp
+                    echo %GIT_REVISIONDATE%
+                    del revdate.tmp
+                    utr <UTR_FLAGS>
+        call_utr:
+          - command: |5-
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
@@ -415,9 +423,12 @@ platforms:
             retries: 2
         turn_off_firewall:
           - command: NetSh Advfirewall set allprofiles state off
-        connect_bokken:
+        connect_bokken_hikey:
           - command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
             retries: 2
+          - command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
+            retries: 2
+        connect_bokken:
           - command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
             retries: 2
         kill_server:
