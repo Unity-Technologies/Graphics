@@ -192,12 +192,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Input depth texture, also bound as read-only RT
         internal RTHandle DepthAttachment { get; set; }
         //
-        internal RenderTargetHandle DepthCopyTexture { get; set; }
+        internal RTHandle DepthCopyTexture { get; set; }
 
         internal RenderTargetIdentifier[] GbufferAttachmentIdentifiers { get; set; }
         internal GraphicsFormat[] GbufferFormats { get; set; }
         internal RenderTargetIdentifier DepthAttachmentIdentifier { get; set; }
-        internal RenderTargetIdentifier DepthCopyTextureIdentifier { get; set; }
 
         // Visible lights indices rendered using stencil volumes.
         NativeArray<ushort> m_stencilVisLights;
@@ -387,12 +386,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.HasDepthPrepass = hasDepthPrepass;
             this.HasNormalPrepass = hasNormalPrepass;
 
-            this.DepthCopyTexture = new RenderTargetHandle(depthCopyTexture);
+            this.DepthCopyTexture = depthCopyTexture;
 
             this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
             this.DepthAttachment = depthAttachment;
 
-            this.DepthCopyTextureIdentifier = this.DepthCopyTexture.Identifier();
             if (this.GbufferAttachmentIdentifiers == null || this.GbufferAttachmentIdentifiers.Length != this.GbufferAttachments.Length)
             {
                 this.GbufferAttachmentIdentifiers = new RenderTargetIdentifier[this.GbufferAttachments.Length];
@@ -416,8 +414,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             // In XR SinglePassInstance mode, the RTs are texture-array and all slices must be bound.
             if (renderingData.cameraData.xr.enabled)
             {
-                this.DepthCopyTextureIdentifier = new RenderTargetIdentifier(this.DepthCopyTextureIdentifier, 0, CubemapFace.Unknown, -1);
-
                 for (int i = 0; i < this.GbufferAttachmentIdentifiers.Length; ++i)
                     this.GbufferAttachmentIdentifiers[i] = new RenderTargetIdentifier(this.GbufferAttachmentIdentifiers[i], 0, CubemapFace.Unknown, -1);
                 this.DepthAttachmentIdentifier = new RenderTargetIdentifier(this.DepthAttachmentIdentifier, 0, CubemapFace.Unknown, -1);
