@@ -360,6 +360,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Additional Velocity for Alembic not taking correctly into account vertex animation
 - Fixed wrong LUT initialization in Wireframe mode.
 - Support undo of HDRP Global Settings asset assignation (case 13429870).
+- Fixed the volumetric clouds offset value bing clamped (case 1357318).
+- Fixed the volumetric clouds having no control over the vertical wind (case 1354920).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
