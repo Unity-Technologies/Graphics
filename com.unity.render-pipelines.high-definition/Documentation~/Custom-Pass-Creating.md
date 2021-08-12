@@ -192,7 +192,7 @@ HDRP generates Object IDs before executing an Object ID custom pass.
 
 If you use a script to generate new GameObjects procedurally, call `AssignObjectIDs` to generate new Object IDs.
 
-The following script example uses the default `AssignObjectIDs`  implementation that assigns Object ID colors incrementally:
+The following script example shows the default `AssignObjectIDs` implementation that assigns Object ID colors incrementally:
 
 ```c#
 public virtual void AssignObjectIDs()
@@ -213,7 +213,7 @@ public virtual void AssignObjectIDs()
 
 #### Generating a Custom Object ID
 
-To customize the way Unity generates a Object ID, override the `AssignObjectIDs` method. The following script example assigns Object ID colors randomly:
+To customize the way Unity generates a Object ID, override the `AssignObjectIDs` method. The following script example uses this method to assign Object ID colors randomly:
 
 ```c#
 class RandomObjectIDs : ObjectIDCustomPass
