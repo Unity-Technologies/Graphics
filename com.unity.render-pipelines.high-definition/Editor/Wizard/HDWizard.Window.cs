@@ -264,9 +264,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void WizardBehaviourDelayed()
         {
+            // We can pass here if HDProjectSettings.wizardIsStartPopup is false. See WizardBehaviour()
             if (!HDProjectSettings.wizardIsStartPopup)
-                throw new Exception(
-                    $"HDProjectSettings.wizardIsStartPopup must be true");
+                return;
 
             if (frameToWait > 0)
             {
@@ -319,9 +319,10 @@ namespace UnityEditor.Rendering.HighDefinition
         [Callbacks.DidReloadScripts]
         static void WizardBehaviour()
         {
-            // If the wizard does not need to be shown at start up, do nothing.
-            if (!HDProjectSettings.wizardIsStartPopup)
-                return;
+            // We should call HDProjectSettings.wizardIsStartPopup to check here.
+            // But if the Wizard is opened while a domain reload occurs, we end up calling
+            // LoadSerializedFileAndForget at a time Unity associate with Constructor. This is not allowed.
+            // As we should wait some frame for everything to be correctly loaded anyway, we do that in WizardBehaviourDelayed.
 
             //We need to wait at least one frame or the popup will not show up
             frameToWait = 10;
