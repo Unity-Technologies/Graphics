@@ -215,6 +215,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             return false;
         }
+
 #endif
 
         /// <summary>

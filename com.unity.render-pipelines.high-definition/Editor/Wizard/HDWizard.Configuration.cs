@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        
+
         [InitializeOnLoadMethod]
         static void Bobby()
         {
@@ -160,7 +160,8 @@ namespace UnityEditor.Rendering.HighDefinition
             List<Entry> entryList = new List<Entry>();
 
             // Add the general and XR entries
-            entryList.AddRange(new[]{
+            entryList.AddRange(new[]
+            {
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpGlobalSettingsAssigned, IsHdrpGlobalSettingsUsedCorrect, FixHdrpGlobalSettingsUsed),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpAssetGraphicsAssigned, IsHdrpAssetGraphicsUsedCorrect, FixHdrpAssetGraphicsUsed),
                 new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpAssetQualityAssigned, IsHdrpAssetQualityUsedCorrect, FixHdrpAssetQualityUsed),
@@ -185,30 +186,33 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (CalculateSelectedBuildTarget() == BuildTarget.PS5)
             {
-                entryList.AddRange(new[]{
-                new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrAutoGraphicsAPIWarning_WindowsOnly, IsDXRAutoGraphicsAPICorrect_WindowsOnly, FixDXRAutoGraphicsAPI_WindowsOnly),
-                            new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrD3D12Warning_WindowsOnly, IsDXRDirect3D12Correct_WindowsOnly, FixDXRDirect3D12_WindowsOnly),
-                            new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrStaticBatching, IsDXRStaticBatchingCorrect, FixDXRStaticBatching),
-                            new Entry(QualityScope.CurrentQuality, InclusiveMode.DXR, Style.dxrActivated, IsDXRActivationCorrect, FixDXRActivation),
-                            new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrBuildTarget, IsValidBuildTarget, FixBuildTarget),
-                            new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrResources, IsDXRResourcesCorrect, FixDXRResources),
+                entryList.AddRange(new[]
+                {
+                    new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrAutoGraphicsAPIWarning_WindowsOnly, IsDXRAutoGraphicsAPICorrect_WindowsOnly, FixDXRAutoGraphicsAPI_WindowsOnly),
+                    new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrD3D12Warning_WindowsOnly, IsDXRDirect3D12Correct_WindowsOnly, FixDXRDirect3D12_WindowsOnly),
+                    new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrStaticBatching, IsDXRStaticBatchingCorrect, FixDXRStaticBatching),
+                    new Entry(QualityScope.CurrentQuality, InclusiveMode.DXR, Style.dxrActivated, IsDXRActivationCorrect, FixDXRActivation),
+                    new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrBuildTarget, IsValidBuildTarget, FixBuildTarget),
+                    new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrResources, IsDXRResourcesCorrect, FixDXRResources),
                 });
             }
             else
             {
-                entryList.AddRange(new[]{
-                new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrAutoGraphicsAPI, IsDXRAutoGraphicsAPICorrect, FixDXRAutoGraphicsAPI),
-                            new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrD3D12, IsDXRDirect3D12Correct, FixDXRDirect3D12),
-                            new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrStaticBatching, IsDXRStaticBatchingCorrect, FixDXRStaticBatching),
-                            new Entry(QualityScope.CurrentQuality, InclusiveMode.DXR, Style.dxrActivated, IsDXRActivationCorrect, FixDXRActivation),
-                            new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrBuildTarget, IsValidBuildTarget, FixBuildTarget),
-                            new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrResources, IsDXRResourcesCorrect, FixDXRResources),
+                entryList.AddRange(new[]
+                {
+                    new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrAutoGraphicsAPI, IsDXRAutoGraphicsAPICorrect, FixDXRAutoGraphicsAPI),
+                    new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrD3D12, IsDXRDirect3D12Correct, FixDXRDirect3D12),
+                    new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrStaticBatching, IsDXRStaticBatchingCorrect, FixDXRStaticBatching),
+                    new Entry(QualityScope.CurrentQuality, InclusiveMode.DXR, Style.dxrActivated, IsDXRActivationCorrect, FixDXRActivation),
+                    new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrBuildTarget, IsValidBuildTarget, FixBuildTarget),
+                    new Entry(QualityScope.Global, InclusiveMode.DXR, Style.dxrResources, IsDXRResourcesCorrect, FixDXRResources),
                 });
             }
 
 
             // Add the Optional checks
-            entryList.AddRange(new[]{
+            entryList.AddRange(new[]
+            {
                 new Entry(QualityScope.CurrentQuality, InclusiveMode.DXROptional, Style.dxrScreenSpaceShadow, IsDXRScreenSpaceShadowCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
                 new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrScreenSpaceShadowFS, IsDXRScreenSpaceShadowFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
                 new Entry(QualityScope.CurrentQuality, InclusiveMode.DXROptional, Style.dxrReflections, IsDXRReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
@@ -220,7 +224,6 @@ namespace UnityEditor.Rendering.HighDefinition
             });
 
             return entryList.ToArray();
-
         }
 
         internal void ReBuildEntryList()
