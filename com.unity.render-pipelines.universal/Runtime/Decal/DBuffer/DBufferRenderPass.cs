@@ -102,8 +102,8 @@ namespace UnityEngine.Rendering.Universal
                 depthDesc.depthStencilFormat = renderingData.cameraData.cameraTargetDescriptor.depthStencilFormat;
                 depthDesc.msaaSamples = 1;
 
-                cmd.GetTemporaryRT(dBufferDepthIndentifier.id, depthDesc);
-                depthIdentifier = dBufferDepthIndentifier.Identifier();
+                cmd.GetTemporaryRT(m_DBufferDepth.id, depthDesc);
+                depthIdentifier = m_DBufferDepth.Identifier();
             }
             else
             {
@@ -189,7 +189,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if (!isDeferred)
-                cmd.ReleaseTemporaryRT(dBufferDepthIndentifier.id);
+                cmd.ReleaseTemporaryRT(m_DBufferDepth.id);
         }
     }
 }
