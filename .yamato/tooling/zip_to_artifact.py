@@ -18,7 +18,6 @@ if __name__ == "__main__":
         print("No update file found, exiting zip script")
         exit(1)
 
-
     if extra_logs:
         with open(update_tests_file_path) as f:
             for line in f.readline():
@@ -39,7 +38,7 @@ if __name__ == "__main__":
                     actual_img_path = path.join(getcwd(), args.root, "Assets", "ActualImages",
                                                 colorspace, editor, test_platform, vr, test_name + ".png")
                     reference_img_path = path.join(getcwd(), args.root, "Assets", "ReferenceImages",
-                                                   colorspace, editor, test_platform, vr, test_name)
+                                                   colorspace, editor, test_platform, vr, test_name + ".png")
                     if extra_logs:
                         print("Adding " + test_name)
                     z.write(actual_img_path, reference_img_path)
@@ -47,4 +46,3 @@ if __name__ == "__main__":
                         z.write(actual_img_path + ".meta", reference_img_path + ".meta")
                 elif extra_logs:
                     print(test_name + " doesn't need to be updated")
-
