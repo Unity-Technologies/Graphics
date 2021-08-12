@@ -140,7 +140,10 @@ namespace UnityEngine.Rendering
             moveHorizontal.repeatMode = DebugActionRepeatMode.Delay;
             moveHorizontal.repeatDelay = 0.16f;
             AddAction(DebugAction.MoveHorizontal, moveHorizontal);
+        }
 
+        internal void EnableInputActions()
+        {
 #if USE_INPUT_SYSTEM
             foreach (var action in debugActionMap)
                 action.Enable();
