@@ -15,7 +15,7 @@ The following table shows the compatibility of URP package versions with differe
 | 8.x             | 2020.1                | 2020.1                |
 | 7.x             | 2019.3                | 2019.4                |
 
-Since the release of Unity 2021.1, graphics packages are part of the core of Unity.
+Since the release of Unity 2021.1, graphics packages are [core Unity packages](https://docs.unity3d.com/2021.2/Documentation/Manual/pack-core.html).
 
 For each release of Unity (alpha, beta, patch release), the main Unity installer contains the up-to-date versions of the following graphics packages: SRP Core, URP, HDRP, Shader Graph, VFX Graph. Since the release of Unity 2021.1, the Package Manager shows only the major revisions of the graphics packages (version 11.0.0 for all Unity 2021.1.x releases, version 12.0.0 for all Unity 2021.2.x releases).
 
