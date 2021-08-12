@@ -190,7 +190,7 @@ namespace UnityEditor.Rendering.Universal.Converters
         private void SetPipelineSettings(UniversalRenderPipelineAsset asset, RenderSettingItem settings)
         {
             // General
-            asset.copyDepthMode = settings.SoftParticles ? CopyDepthMode.AfterOpaques : CopyDepthMode.None;
+            asset.supportsCameraDepthTexture = settings.SoftParticles;
 
             // Quality
             asset.supportsHDR = m_GraphicsTierSettings.HDR;

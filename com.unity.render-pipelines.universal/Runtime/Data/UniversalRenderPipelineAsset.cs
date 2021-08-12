@@ -125,19 +125,6 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// Defines if Unity will copy the depth that can be bound in shaders as _CameraDepthTexture, and if the depth will be copied after the opaques pass or after the transparents pass.
-    /// </summary>
-    public enum CopyDepthMode
-    {
-        /// <summary>Will not be copied</summary>
-        None,
-        /// <summary>Will be copied after the opaques pass</summary>
-        AfterOpaques,
-        /// <summary>Will be copied after the transparents pass</summary>
-        AfterTransparents
-    }
-
-    /// <summary>
     /// Defines the update frequency for the Volume Framework.
     /// </summary>
     public enum VolumeFrameworkUpdateMode
@@ -171,7 +158,6 @@ namespace UnityEngine.Rendering.Universal
 
         // General settings
         [SerializeField] bool m_RequireDepthTexture = false;
-        [SerializeField] CopyDepthMode m_DepthTextureCopyMode = CopyDepthMode.None;
         [SerializeField] bool m_RequireOpaqueTexture = false;
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] bool m_SupportsTerrainHoles = true;
@@ -615,15 +601,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal CopyDepthMode copyDepthMode
-        {
-            get { return m_DepthTextureCopyMode; }
-            set { m_DepthTextureCopyMode = value; }
-        }
-
         public bool supportsCameraDepthTexture
         {
-            get { return m_DepthTextureCopyMode != CopyDepthMode.None; }
+            get { return m_RequireDepthTexture; }
+            set { m_RequireDepthTexture = value; }
         }
 
         public bool supportsCameraOpaqueTexture
@@ -1153,14 +1134,6 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 9;
             }
 
-            if (k_AssetVersion < 10)
-            {
-                m_DepthTextureCopyMode = m_RequireDepthTexture ? CopyDepthMode.AfterOpaques : CopyDepthMode.None;
-
-                k_AssetPreviousVersion = k_AssetVersion;
-                k_AssetVersion = 10;
-            }
-
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
@@ -1193,10 +1166,10 @@ namespace UnityEngine.Rendering.Universal
                 asset.k_AssetPreviousVersion = 5;
             }
 
-            if (asset.k_AssetPreviousVersion < 10)
+            if (asset.k_AssetPreviousVersion < 9)
             {
                 // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
-                asset.k_AssetPreviousVersion = 10;
+                asset.k_AssetPreviousVersion = 9;
             }
 
             EditorUtility.SetDirty(asset);

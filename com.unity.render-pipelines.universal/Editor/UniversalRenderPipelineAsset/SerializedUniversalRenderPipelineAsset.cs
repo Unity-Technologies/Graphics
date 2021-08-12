@@ -9,7 +9,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty defaultRendererProp { get; }
 
         public SerializedProperty requireDepthTextureProp { get; }
-        public SerializedProperty depthTextureCopyModeProp { get; }
         public SerializedProperty requireOpaqueTextureProp { get; }
         public SerializedProperty opaqueDownsamplingProp { get; }
         public SerializedProperty supportsTerrainHolesProp { get; }
@@ -75,7 +74,6 @@ namespace UnityEditor.Rendering.Universal
             this.serializedObject = serializedObject;
 
             requireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
-            depthTextureCopyModeProp = serializedObject.FindProperty("m_DepthTextureCopyMode");
             requireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
             opaqueDownsamplingProp = serializedObject.FindProperty("m_OpaqueDownsampling");
             supportsTerrainHolesProp = serializedObject.FindProperty("m_SupportsTerrainHoles");
