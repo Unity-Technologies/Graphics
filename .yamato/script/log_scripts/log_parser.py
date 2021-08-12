@@ -17,32 +17,42 @@ def load_json(file_path):
         return json.loads(' '.join(json_data))
         #return json.load(f)
 
-def find_matching_pattern(patterns, failure_string):
+def find_matching_patterns(patterns, failure_string):
     '''Finds a matching pattern from a specified list of pattern objects for a specified failure string (e.g. command output).
     Returns the matching pattern object, and the matched substring.'''
+    matches = []
     for pattern in patterns:
             match = re.search(pattern['pattern'], failure_string)
             if match:
+                if len(matches) > 0 and pattern['pattern'] == '.+':
+                    continue
                 print('\nFound match for pattern: ',  pattern['pattern'])
-                return pattern, match # must always find a match, because of the unknown patterns
+                matches.append((pattern, match))
+    tags = [pattern['tags'] for (pattern,_) in matches]
+    flattened_tags = [tag for tag_list in tags for tag in tag_list]
+    conclusion = get_ruling_conclusion([pattern['conclusion'] for (pattern,_) in matches])
+    return matches, flattened_tags, conclusion
 
-def read_hoarder_log(log_file_path):
-    '''Reads error message from hoarder data, when UTR results in non-test related error which is not in the execution log.'''
-    #TODO this can possibly be removed in favor for testresults.json
-    logs = load_json(log_file_path)
-    suites = logs.get('suites') if len(logs.get('suites',[])) > 0 else [{}]
-    failure_reasons = ' '.join(suites[0].get('failureReasons',['']))
-
-    pattern, _ = find_matching_pattern(utr_log_patterns, failure_reasons)
-    return failure_reasons, pattern['tags'], pattern['conclusion']
+def get_ruling_conclusion(conclusions):
+    '''Pick a single conclusion out of several matches in the order of severity'''
+    if 'failure' in conclusions:
+        return 'failure'
+    elif 'inconclusive' in conclusions:
+        return 'inconclusive'
+    elif 'cancelled' in conclusions:
+        return 'cancelled'
+    elif 'success' in conclusions:
+        return 'success'
+    else:
+        return 'failure'
 
 def read_test_results_json(log_file_path):
     '''Reads error messages from TestResults.json.'''
     logs = load_json(log_file_path)
     failure_reasons = ' '.join(logs[-1].get('errors',['']))
 
-    pattern, _ = find_matching_pattern(utr_log_patterns, failure_reasons)
-    return failure_reasons, pattern['tags'], pattern['conclusion']
+    _, tags, conclusion = find_matching_patterns(utr_log_patterns, failure_reasons)
+    return failure_reasons, tags, conclusion
 
 def read_execution_log(log_file_path):
     '''Reads execution logs and returns:
@@ -99,21 +109,25 @@ def parse_failures(logs, local):
     recognizes any known errors, and posts additional data to Yamato.'''
     for cmd in logs.keys():
 
-        # skip parsing successful commands, or failed tests (these get automatically parsed in yamato results)
+        # skip parsing successful commands which have not retried, or failed tests (these get automatically parsed in yamato results)
         # TODO: do we also want to add additional yamato results for these?
-        if logs[cmd]['status'] == 'Success' or any("Reason(s): One or more tests have failed." in line for line in logs[cmd]['output']):
+        if ((logs[cmd]['status'] == 'Success' and not any("Retrying" in line for line in logs[cmd]['output']))
+                or any("Reason(s): One or more tests have failed." in line for line in logs[cmd]['output'])):
             print('Skipping: ', cmd)
             continue
 
         # check if the error matches any known pattern marked in log_patterns.py
         output = '\n'.join(logs[cmd]['output'])
-        pattern, match = find_matching_pattern(execution_log_patterns, output)
+        matching_patterns, tags, conclusion = find_matching_patterns(execution_log_patterns, output)
 
-        # update the command log with input from the matched pattern
         logs[cmd]['title'] = cmd
-        logs[cmd]['summary'] = match.group(0) if pattern['tags'][0] != 'unknown' else 'Unknown failure: check logs for more details.'
-        logs[cmd]['conclusion'] = pattern['conclusion']
-        logs[cmd]['tags'] = pattern['tags']
+        logs[cmd]['conclusion'] = conclusion
+        logs[cmd]['tags'] = tags
+        logs[cmd]['summary'] = ''
+        for pattern,match in matching_patterns: # update the command log with input from the matched pattern
+            logs[cmd]['summary'] +=  match.group(0)  if pattern['tags'][0] != 'unknown' else 'Unknown failure: check logs for more details.'
+
+
 
         # if it is an UTR non-test related error message not shown in Execution log but in test-results, append that to summary
         if  'non-test' in logs[cmd]['tags']:

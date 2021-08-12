@@ -8,14 +8,26 @@
 # TODO: proper tags
 execution_log_patterns = [
     {
+        # ?
+        # TODO:continue searching for pattern even if a failure pattern find before
+        'pattern': r'(Failed after)(.+)(retries)',
+        'tags': ['retry'],
+        'conclusion': 'failure',
+    },
+    {
+        'pattern': r'(Succeeded after)(.+)(retries)',
+        'tags': ['retry'],
+        'conclusion': 'success',
+    },
+    {
         'pattern': r'(command not found)',
         'tags': ['failure'],
-        'conclusion': 'failure',
+        'conclusion': 'failure', # TODO check if conclusion alters final status
     },
     {
         #  Or with newlines: r'(packet_write_poll: Connection to)((.|\n)+)(Operation not permitted)((.|\n)+)(lost connection)',
         'pattern': r'(packet_write_poll: Connection to)(.+)(Operation not permitted)',
-        'tags': ['instability'],
+        'tags': ['packet_write_poll','instability'],
         'conclusion': 'inconclusive',
     },
     {
@@ -33,11 +45,6 @@ execution_log_patterns = [
         'pattern': r'(LTO : error: L0492: LTOP internal error: bad allocation)',
         'tags': ['instability'],
         'conclusion': 'inconclusive',
-    },
-    {
-        'pattern': r'(Failed after)(.+)(retries)',
-        'tags': ['retry'],
-        'conclusion': 'failure',
     },
     {
         'pattern': r'Reason\(s\): One or more tests have failed.', # this one is unused right now since yamato does it automatically
