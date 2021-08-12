@@ -49,36 +49,36 @@ namespace UnityEditor.Rendering.Universal.Converters
             var context = Search.SearchService.CreateContext("asset", "urp:convert-readonly");
 
             Search.SearchService.Request(context, (c, items) =>
-           {
-               // we're going to do this step twice in order to get them ordered, but it should be fast
-               var orderedRequest = items.OrderBy(req =>
-              {
-                  GlobalObjectId.TryParse(req.id, out var gid);
-                  return gid.assetGUID;
-              });
+            {
+                // we're going to do this step twice in order to get them ordered, but it should be fast
+                var orderedRequest = items.OrderBy(req =>
+                {
+                    GlobalObjectId.TryParse(req.id, out var gid);
+                    return gid.assetGUID;
+                });
 
-               foreach (var r in orderedRequest)
-               {
-                   if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
-                   {
-                       continue;
-                   }
+                foreach (var r in orderedRequest)
+                {
+                    if (r == null || !GlobalObjectId.TryParse(r.id, out var gid))
+                    {
+                        continue;
+                    }
 
-                   var label = r.provider.fetchLabel(r, r.context);
-                   var description = r.provider.fetchDescription(r, r.context);
+                    var label = r.provider.fetchLabel(r, r.context);
+                    var description = r.provider.fetchDescription(r, r.context);
 
-                   var item = new ConverterItemDescriptor()
-                   {
-                       name = description.Split('/').Last().Split('.').First(),
-                       info = $"{label}",
-                   };
-                   guids.Add(gid.ToString());
+                    var item = new ConverterItemDescriptor()
+                    {
+                        name = description.Split('/').Last().Split('.').First(),
+                        info = $"{label}",
+                    };
+                    guids.Add(gid.ToString());
 
-                   ctx.AddAssetToConvert(item);
-               }
+                    ctx.AddAssetToConvert(item);
+                }
 
-               callback.Invoke();
-           });
+                callback.Invoke();
+            });
             context?.Dispose();
         }
 
