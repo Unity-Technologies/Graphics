@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
-                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
+                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(pass.overrideCameraTarget ? pass.depthAttachment : m_CameraDepthTarget, (clearFlag & ClearFlag.DepthStencil) == 0, true);
 
                     if ((clearFlag & ClearFlag.DepthStencil) != 0)
@@ -273,6 +273,20 @@ namespace UnityEngine.Rendering.Universal
                 if (hasInput)
                     SetupTransientInputAttachments(m_RenderPassesAttachmentCount[currentPassHash]);
             }
+        }
+
+        bool IsDepthOnlyRenderTexture(RenderTexture t)
+        {
+            if (t.graphicsFormat == GraphicsFormat.None ||
+#pragma warning disable 0618 // Disable deprecation warnings. If you get here once these formats are really gone, the code in this #pragma can simply be removed
+                t.graphicsFormat == GraphicsFormat.DepthAuto ||
+                t.graphicsFormat == GraphicsFormat.ShadowAuto
+#pragma warning restore 0618
+            )
+            {
+                return true;
+            }
+            return false;
         }
 
         internal void SetNativeRenderPassAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, RenderTargetIdentifier passColorAttachment, RenderTargetIdentifier passDepthAttachment, ClearFlag finalClearFlag, Color finalClearColor)
@@ -303,15 +317,15 @@ namespace UnityEngine.Rendering.Universal
 
                     AttachmentDescriptor currentAttachmentDescriptor;
                     var usesTargetTexture = cameraData.targetTexture != null;
-                    var depthOnly = renderPass.depthOnly || (usesTargetTexture && cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
+                    var depthOnly = renderPass.depthOnly || (usesTargetTexture && IsDepthOnlyRenderTexture(cameraData.targetTexture));
                     // Offscreen depth-only cameras need this set explicitly
                     if (depthOnly && usesTargetTexture)
                     {
-                        if (cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto && !pass.overrideCameraTarget)
+                        if (IsDepthOnlyRenderTexture(cameraData.targetTexture) && !pass.overrideCameraTarget)
                             passColorAttachment = new RenderTargetIdentifier(cameraData.targetTexture);
                         else
                             passColorAttachment = renderPass.colorAttachment;
-                        currentAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
+                        currentAttachmentDescriptor = new AttachmentDescriptor(SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
                     }
                     else
                         currentAttachmentDescriptor =
@@ -341,7 +355,7 @@ namespace UnityEngine.Rendering.Universal
                         SetupInputAttachmentIndices(pass);
 
                     // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
-                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
+                    m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget,
                         ((uint)finalClearFlag & (uint)ClearFlag.Depth) == 0, true);
 
@@ -421,7 +435,7 @@ namespace UnityEngine.Rendering.Universal
                 // keep track if this is the current camera's last pass and the RT is the backbuffer (BuiltinRenderTextureType.CameraTarget)
                 bool isLastPassToBB = isLastPass && (m_ActiveColorAttachmentDescriptors[0].loadStoreTarget ==
                     BuiltinRenderTextureType.CameraTarget);
-                var depthOnly = renderPass.depthOnly || (cameraData.targetTexture != null && cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
+                var depthOnly = renderPass.depthOnly || (cameraData.targetTexture != null && IsDepthOnlyRenderTexture(cameraData.targetTexture));
                 bool useDepth = depthOnly || (!renderPass.overrideCameraTarget || (renderPass.overrideCameraTarget && renderPass.depthAttachment != BuiltinRenderTextureType.CameraTarget)) &&
                     (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
 

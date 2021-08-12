@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     customDeclaration = (ssb) =>
                     {
-                        ssb.AppendIndentation();
+                        ssb.TryAppendIndentation();
                         ssb.Append("DECLARE_STACK_CB(");
                         ssb.Append(referenceName);
                         ssb.Append(");");
@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph
                 Action<ShaderStringBuilder> customDecl = (builder) =>
                 {
                     // declare texture stack
-                    builder.AppendIndentation();
+                    builder.TryAppendIndentation();
                     builder.Append("DECLARE_STACK");
                     builder.Append((numLayers <= 1) ? "" : numLayers.ToString());
                     builder.Append("(");
@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendNewLine();
 
                     // declare the actual virtual texture property "variable" as a macro define to the BuildVTProperties function
-                    builder.AppendIndentation();
+                    builder.TryAppendIndentation();
                     builder.Append("#define ");
                     builder.Append(referenceName);
                     builder.Append(" AddTextureType(BuildVTProperties_");

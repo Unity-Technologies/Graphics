@@ -94,7 +94,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent RTGIRayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
             public static readonly GUIContent RTGIClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
             public static readonly GUIContent RTGIFullResolution = EditorGUIUtility.TrTextContent("Full Resolution");
-            public static readonly GUIContent RTGIUpScaleRadius = EditorGUIUtility.TrTextContent("Upscale Radius");
             public static readonly GUIContent RTGIRaySteps = EditorGUIUtility.TrTextContent("Ray Steps");
             public static readonly GUIContent RTGIDenoise = EditorGUIUtility.TrTextContent("Denoise");
             public static readonly GUIContent RTGIHalfResDenoise = EditorGUIUtility.TrTextContent("Half Resolution Denoiser");
@@ -114,7 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Fog
             public static readonly GUIContent FogSettingsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Fog");
             public static readonly GUIContent FogSettingsBudget = EditorGUIUtility.TrTextContent("Volumetric Fog Budget");
-            public static readonly GUIContent FogSettingsRatio = EditorGUIUtility.TrTextContent("Volumetric Fog Ratio");
+            public static readonly GUIContent FogSettingsRatio = EditorGUIUtility.TrTextContent("Resolution Depth Ratio");
 
             public static readonly GUIContent materialQualityLevelContent = EditorGUIUtility.TrTextContent("Default Material Quality Level", "");
 
@@ -242,8 +241,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent minPercentage = EditorGUIUtility.TrTextContent("Minimum Screen Percentage", "Sets the minimum screen percentage that dynamic resolution can reach.");
             public static readonly GUIContent dynResType = EditorGUIUtility.TrTextContent("Dynamic Resolution Type", "Specifies the type of dynamic resolution that HDRP uses.");
             public static readonly GUIContent useMipBias = EditorGUIUtility.TrTextContent("Use Mip Bias", "Offsets the mip bias to recover mode detail. This only works if the camera is utilizing TAA.");
-            public static readonly GUIContent upsampleFilter = EditorGUIUtility.TrTextContent("Upscale Filter", "Specifies the filter that HDRP uses for upscaling.");
-            public static readonly GUIContent fallbackUpsampleFilter = EditorGUIUtility.TrTextContent("Fallback Upscale Filter", "Specifies the filter that HDRP uses for upscaling as a fallback if Prepost Upscaler is not detected.");
+            public static readonly GUIContent upsampleFilter = EditorGUIUtility.TrTextContent("Default Upscale Filter", "Specifies the filter that HDRP uses for upscaling unless overwritten by API by the user.");
+            public static readonly GUIContent fallbackUpsampleFilter = EditorGUIUtility.TrTextContent("Default Fallback Upscale Filter", "Specifies the filter that HDRP uses for upscaling as a fallback if DLSS is not detected. Can be overwritten via API.");
             public static readonly GUIContent forceScreenPercentage = EditorGUIUtility.TrTextContent("Force Screen Percentage", "When enabled, HDRP uses the Forced Screen Percentage value as the screen percentage.");
             public static readonly GUIContent forcedScreenPercentage = EditorGUIUtility.TrTextContent("Forced Screen Percentage", "Sets a specific screen percentage value. HDRP forces this screen percentage for dynamic resolution.");
             public static readonly GUIContent lowResTransparencyMinimumThreshold = EditorGUIUtility.TrTextContent("Low Res Transparency Min Threshold", "The minimum percentage threshold allowed to clamp low resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage.");

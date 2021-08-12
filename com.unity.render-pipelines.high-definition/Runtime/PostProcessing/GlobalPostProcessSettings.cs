@@ -76,6 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public const int k_MaxLutSize = 65;
 
+        [Range(k_MinLutSize, k_MaxLutSize)]
         [SerializeField]
         int m_LutSize;
 
