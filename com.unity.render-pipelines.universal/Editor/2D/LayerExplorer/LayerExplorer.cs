@@ -44,7 +44,6 @@ internal class LayerExplorer : EditorWindow
     }
 
     private List<LayerBatch> batchList;
-    private int primaryIndex;
     private bool isDataPopulated;
 
     private bool PopulateData()
@@ -272,11 +271,12 @@ internal class LayerExplorer : EditorWindow
             switch (batchListView.selectedIndices.Count())
             {
                 case 1:
-                    primaryIndex = batchListView.selectedIndices.First();
+                    int primaryIndex = batchListView.selectedIndices.First();
                     ViewBatch(primaryIndex);
                     break;
                 case 2:
-                    // new indices are at end of the list
+                    // order of new indices isn't deterministic
+                    primaryIndex = batchListView.selectedIndices.First();
                     var secondIndex = batchListView.selectedIndices.Last();
                     CompareBatch(primaryIndex, secondIndex);
                     break;
