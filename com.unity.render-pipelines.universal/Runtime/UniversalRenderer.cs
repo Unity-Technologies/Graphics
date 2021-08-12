@@ -275,6 +275,7 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             m_ForwardLights.Cleanup();
+            m_GBufferPass?.Dispose();
             m_PostProcessPasses.Dispose();
             m_ColorBufferSystem.Dispose();
 

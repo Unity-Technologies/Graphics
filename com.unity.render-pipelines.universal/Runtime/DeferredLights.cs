@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _CookieLightIndex = Shader.PropertyToID("_CookieLightIndex");
         }
 
-        static readonly string[] k_GBufferNames = new string[]
+        internal static readonly string[] k_GBufferNames = new string[]
         {
             "_GBuffer0",
             "_GBuffer1",

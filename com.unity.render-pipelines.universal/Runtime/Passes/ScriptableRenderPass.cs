@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.Universal
 
         public RenderTargetIdentifier depthAttachment
         {
-            get => m_UsesRTHandles ? m_DepthAttachment : m_DepthAttachmentId;
+            get => m_UsesRTHandles ? new RenderTargetIdentifier(m_DepthAttachment.nameID, 0, CubemapFace.Unknown, -1) : m_DepthAttachmentId;
         }
 
         public RTHandle[] colorAttachmentHandles
@@ -449,13 +449,11 @@ namespace UnityEngine.Rendering.Universal
                 Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
 
             m_ColorAttachments = colorAttachments;
+            if (m_ColorAttachmentIds.Length != m_ColorAttachments.Length)
+                m_ColorAttachmentIds = new RenderTargetIdentifier[m_ColorAttachments.Length];
             for (var i = 0; i < m_ColorAttachmentIds.Length; ++i)
             {
-                m_ColorAttachmentIds[i] = 0;
-            }
-            for (var i = 0; i < m_ColorAttachments.Length; ++i)
-            {
-                m_ColorAttachmentIds[i] = colorAttachments[i].nameID;
+                m_ColorAttachmentIds[i] = new RenderTargetIdentifier(colorAttachments[i].nameID, 0, CubemapFace.Unknown, -1);
             }
             m_DepthAttachment = depthAttachment;
             m_DepthAttachmentId = depthAttachment.nameID;
