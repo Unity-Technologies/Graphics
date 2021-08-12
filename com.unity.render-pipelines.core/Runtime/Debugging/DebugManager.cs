@@ -37,7 +37,6 @@ namespace UnityEngine.Rendering
 
         // TODO: Should this live somewhere else? Right now it's the first instance of
         // "SRP-agnostic debug data" that we have.
-        public FrameTimingData FrameTimingData = new FrameTimingData();
 
         void UpdateReadOnlyCollection()
         {
@@ -129,9 +128,25 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Displays the persistent runtime debug window.
+        /// Is the persistent runtime debug window open.
         /// </summary>
         public bool displayPersistentRuntimeUI => m_RootUIPersistentCanvas != null && m_PersistentRoot.activeInHierarchy && !m_RootUIPersistentCanvas.IsEmpty();
+
+        /// <summary>
+        /// Is any debug window or UI currently active.
+        /// </summary>
+        public bool isAnyDebugUIActive
+        {
+            get
+            {
+                return
+                    displayRuntimeUI || displayPersistentRuntimeUI
+#if UNITY_EDITOR
+                    || displayEditorUI
+#endif
+                ;
+            }
+        }
 
         DebugManager()
         {

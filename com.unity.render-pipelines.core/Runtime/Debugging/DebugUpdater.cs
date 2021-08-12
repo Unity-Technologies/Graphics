@@ -70,8 +70,6 @@ namespace UnityEngine.Rendering
                 StartCoroutine(RefreshRuntimeUINextFrame());
                 m_Orientation = Screen.orientation;
             }
-
-            DebugManager.instance.FrameTimingData.UpdateFrameTiming();
         }
 
         static IEnumerator RefreshRuntimeUINextFrame()
