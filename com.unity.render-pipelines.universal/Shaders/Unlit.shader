@@ -69,7 +69,7 @@ Shader "Universal Render Pipeline/Unlit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
@@ -188,7 +188,7 @@ Shader "Universal Render Pipeline/Unlit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11

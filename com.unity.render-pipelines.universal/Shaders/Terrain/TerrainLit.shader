@@ -182,7 +182,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
             #pragma target 2.0

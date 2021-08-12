@@ -1165,7 +1165,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { RenderState.ZTest(ZTest.LEqual) },
                 { RenderState.ZWrite(ZWrite.On) },
                 { UberSwitchedCullRenderState(target) },
-                { RenderState.ColorMask("ColorMask 0") },
+                { RenderState.ColorMask("ColorMask R") },
             };
 
             return result;
