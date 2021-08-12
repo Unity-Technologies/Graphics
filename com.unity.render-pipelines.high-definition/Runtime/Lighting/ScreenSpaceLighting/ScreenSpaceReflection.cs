@@ -144,7 +144,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls which sources are used to fallback on when the traced ray misses.
         /// </summary>
-        public RayTracingFallbackHierachyParameter fallbackHierachy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
+        [FormerlySerializedAs("fallbackHierachy")]
+        [AdditionalProperty]
+        public RayTracingFallbackHierachyParameter rayMiss = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
+
+        /// <summary>
+        /// Controls the fallback hierarchy for lighting the last bounce.
+        /// </summary>
+        [AdditionalProperty]
+        public RayTracingFallbackHierachyParameter lastBounceFallbackHierarchy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
 
         /// <summary>
         /// Layer mask used to include the objects for screen space reflection.
