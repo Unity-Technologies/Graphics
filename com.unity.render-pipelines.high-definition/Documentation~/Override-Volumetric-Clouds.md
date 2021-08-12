@@ -118,6 +118,7 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
 | **Temporal Accumulation Factor** | The amount of temporal accumulation to apply to the clouds. Temporal accumulation increases the visual quality of clouds by decreasing the noise. A higher value produces better quality clouds, but can create [ghosting](Glossary.md#ghosting). |
+| **High Speed Ghosting Reductionr** | Indicates whether to remove the ghosting induced by the temporal accumulation. When active, it may introduce some flickering at lower temporal accumulation factors. |
 | **Num Primary Steps**            | The number of steps to use to evaluate the clouds' transmittance. Higher values linearly increase the resource intensity of the effect. |
 | **Num Light Steps**              | The number of steps to use to evaluate the clouds' lighting. Higher values exponent increase the resource intensity of the effect. |
 
