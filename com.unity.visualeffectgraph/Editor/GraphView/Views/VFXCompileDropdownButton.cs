@@ -15,10 +15,10 @@ namespace UnityEditor.VFX.UI
 
         public VFXCompileDropdownButton(VFXView vfxView)
             : base(
-            "VFXCompileDropdownPanel",
-            "Compile",
-            "compile-button",
-            Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/compile.png"))
+                "VFXCompileDropdownPanel",
+                "Compile",
+                "compile-button",
+                Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/compile.png"))
         {
             m_VFXView = vfxView;
 
@@ -35,7 +35,6 @@ namespace UnityEditor.VFX.UI
             m_ResyncMaterial.clicked += OnResyncMaterial;
         }
 
-        
         protected override Vector2 GetPopupPosition() => this.m_VFXView.ViewToScreenPosition(worldBound.position);
         protected override Vector2 GetPopupSize() => new Vector2(150, 88);
 

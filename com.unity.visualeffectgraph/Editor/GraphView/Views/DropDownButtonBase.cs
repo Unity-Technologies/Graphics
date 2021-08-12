@@ -100,7 +100,7 @@ namespace UnityEditor.VFX.UI
                 bounds.xMin += 6;
             }
 
-            m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(), new [] { PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft });
+            m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(), new[] { PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft });
         }
     }
 }

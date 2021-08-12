@@ -73,6 +73,7 @@ namespace UnityEditor.VFX.UI
         {
             InstallSample(k_AdditionalSamples);
         }
+
         void OnInstallGraphAddition()
         {
             InstallSample(k_AdditionalHelpers);
