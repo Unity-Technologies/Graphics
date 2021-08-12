@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     cloudModelData.densityMultiplier = 0.3f;
                     cloudModelData.shapeFactor = 0.9f;
-                    cloudModelData.shapeScale =  2.0f;
+                    cloudModelData.shapeScale = 2.0f;
                     cloudModelData.erosionFactor = 0.8f;
                     cloudModelData.erosionScale = 50.0f;
                     cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
@@ -368,7 +368,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._NumPrimarySteps = settings.numPrimarySteps.value;
             cb._NumLightSteps = settings.numLightSteps.value;
             // 1000.0f is the maximal distance that a single step can do in theory (otherwise we endup skipping large clouds)
-            cb._MaxRayMarchingDistance = Mathf.Min(settings.cloudThickness.value / 8.0f *  cb._NumPrimarySteps, hdCamera.camera.farClipPlane);
+            cb._MaxRayMarchingDistance = Mathf.Min(settings.cloudThickness.value / 8.0f * cb._NumPrimarySteps, hdCamera.camera.farClipPlane);
             cb._CloudMapTiling.Set(settings.cloudTiling.value.x, settings.cloudTiling.value.y, settings.cloudOffset.value.x, settings.cloudOffset.value.y);
 
             cb._ScatteringTint = Color.white - settings.scatteringTint.value * 0.75f;
@@ -382,7 +382,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // PB Sun/Sky settings
             var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-            cb._PhysicallyBasedSun =  visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased ? 1 : 0;
+            cb._PhysicallyBasedSun = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased ? 1 : 0;
             Light currentSun = GetMainLight();
             if (currentSun != null)
             {

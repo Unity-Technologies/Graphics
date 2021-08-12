@@ -12,10 +12,10 @@ namespace UnityEngine.Rendering.Universal
     {
         #region Version system
 
-        #pragma warning disable CS0414
+#pragma warning disable CS0414
         [SerializeField] int k_AssetVersion = 1;
         [SerializeField] int k_AssetPreviousVersion = 1;
-        #pragma warning restore CS0414
+#pragma warning restore CS0414
 
         public void OnAfterDeserialize()
         {

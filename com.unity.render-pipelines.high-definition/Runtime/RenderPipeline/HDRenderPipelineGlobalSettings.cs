@@ -530,7 +530,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Rendering Layer Names [Light + Decal]
 
-        static readonly string[] k_DefaultLightLayerNames = { "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7"};
+        static readonly string[] k_DefaultLightLayerNames = { "Light Layer default", "Light Layer 1", "Light Layer 2", "Light Layer 3", "Light Layer 4", "Light Layer 5", "Light Layer 6", "Light Layer 7" };
 
         /// <summary>Name for light layer 0.</summary>
         public string lightLayerName0 = k_DefaultLightLayerNames[0];
@@ -702,8 +702,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderingLayerNames[6] = lightLayerName6;
             m_RenderingLayerNames[7] = lightLayerName7;
 
-            m_RenderingLayerNames[8]  = decalLayerName0;
-            m_RenderingLayerNames[9]  = decalLayerName1;
+            m_RenderingLayerNames[8] = decalLayerName0;
+            m_RenderingLayerNames[9] = decalLayerName1;
             m_RenderingLayerNames[10] = decalLayerName2;
             m_RenderingLayerNames[11] = decalLayerName3;
             m_RenderingLayerNames[12] = decalLayerName4;

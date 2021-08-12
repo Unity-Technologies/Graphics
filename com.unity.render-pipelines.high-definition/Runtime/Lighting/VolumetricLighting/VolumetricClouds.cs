@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudControlParameter(CloudControl value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudControlParameter(CloudControl value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudPresetsParameter(CloudPresets value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudPresetsParameter(CloudPresets value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudShadowResolutionParameter(CloudShadowResolution value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudShadowResolutionParameter(CloudShadowResolution value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudMapResolutionParameter(CloudMapResolution value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudMapResolutionParameter(CloudMapResolution value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudErosionNoiseParameter(CloudErosionNoise value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudErosionNoiseParameter(CloudErosionNoise value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudFadeInModeParameter(CloudFadeInMode value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudFadeInModeParameter(CloudFadeInMode value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>

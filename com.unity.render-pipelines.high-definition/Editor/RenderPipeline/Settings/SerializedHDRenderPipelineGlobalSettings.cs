@@ -108,8 +108,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             InitializeCustomPostProcessesLists();
 
-            defaultVolumeProfile  = serializedObject.FindProperty("m_DefaultVolumeProfile");
-            lookDevVolumeProfile  = serializedObject.FindProperty("m_LookDevVolumeProfile");
+            defaultVolumeProfile = serializedObject.FindProperty("m_DefaultVolumeProfile");
+            lookDevVolumeProfile = serializedObject.FindProperty("m_LookDevVolumeProfile");
 
             lightLayerName0 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName0);
             lightLayerName1 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName1);
