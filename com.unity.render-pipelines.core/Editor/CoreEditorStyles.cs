@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering
         /// <summary>Context Menu button style</summary>
         public static GUIStyle contextMenuStyle => m_ContextMenuStyle.Value;
 
-        static System.Lazy<GUIStyle> m_AdditionalPropertiesHighlightStyle = new(() => new GUIStyle { normal = { background = Texture2D.whiteTexture } });
+        static System.Lazy<GUIStyle> m_AdditionalPropertiesHighlightStyle = new(() => new GUIStyle { name = "AdditionalPropertiesHighlightStyle",  normal = { background = Texture2D.whiteTexture } });
         /// <summary>Style of a additional properties highlighted background.</summary>
         public static GUIStyle additionalPropertiesHighlightStyle => m_AdditionalPropertiesHighlightStyle.Value;
 

@@ -1132,17 +1132,31 @@ namespace UnityEditor.Rendering
 
         #endregion
 
+        static int s_OldIndentLevel;
+        static float s_OldLabelWidth = EditorGUIUtility.labelWidth;
+
         internal static void BeginAdditionalPropertiesHighlight(AnimFloat animation)
         {
+            s_OldIndentLevel = EditorGUI.indentLevel;
+            s_OldLabelWidth = EditorGUIUtility.labelWidth;
+            EditorGUI.indentLevel = 0;
             var oldColor = GUI.color;
             GUI.color = Color.Lerp(CoreEditorStyles.backgroundColor, CoreEditorStyles.backgroundHighlightColor, animation.value);
-            EditorGUILayout.BeginVertical(CoreEditorStyles.additionalPropertiesHighlightStyle);
+
+            int leftPadding = s_OldIndentLevel * 15; // Indent level from EditorGUI.kIndentPerLevel
+            EditorGUIUtility.labelWidth -= leftPadding;
+
+            EditorGUILayout.BeginVertical(new GUIStyle(CoreEditorStyles.additionalPropertiesHighlightStyle) { padding = new RectOffset(leftPadding, 0, 0, 0) });
             GUI.color = oldColor;
         }
 
         internal static void EndAdditionalPropertiesHighlight()
         {
             EditorGUILayout.EndVertical();
+
+            // Restore values
+            EditorGUI.indentLevel = s_OldIndentLevel;
+            EditorGUIUtility.labelWidth = s_OldLabelWidth;
         }
     }
 }
