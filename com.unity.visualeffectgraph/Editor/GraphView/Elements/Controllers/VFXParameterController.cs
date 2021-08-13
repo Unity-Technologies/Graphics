@@ -947,7 +947,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return model.GetOutputSlot(0).spaceable;
+                return model.GetNbOutputSlots() > 0 && model.GetOutputSlot(0).spaceable;
             }
         }
 

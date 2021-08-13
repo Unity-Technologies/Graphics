@@ -134,6 +134,25 @@ namespace UnityEngine.Rendering.Universal
             return maxViews;
         }
 
+        internal void BeginLateLatching(Camera camera, XRPass xrPass)
+        {
+            //Only support late latching for multiview use case
+            if (display != null && xrPass.singlePassEnabled && xrPass.viewCount == 2)
+            {
+                display.BeginRecordingIfLateLatched(camera);
+                xrPass.isLateLatchEnabled = true;
+            }
+        }
+
+        internal void EndLateLatching(Camera camera, XRPass xrPass)
+        {
+            if (display != null && xrPass.isLateLatchEnabled)
+            {
+                display.EndRecordingIfLateLatched(camera);
+                xrPass.isLateLatchEnabled = false;
+            }
+        }
+
         internal List<XRPass> SetupFrame(Camera camera, bool enableXRRendering)
         {
             bool xrEnabled = RefreshXrSdk();
