@@ -734,7 +734,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            m_NeedsIndexRebuild = m_Index == null || m_PendingInitInfo.pendingMinCellPosition != minCellPosition || m_PendingInitInfo.pendingMaxCellPosition != maxCellPosition;
+            m_NeedsIndexRebuild |= m_Index == null || m_PendingInitInfo.pendingMinCellPosition != minCellPosition || m_PendingInitInfo.pendingMaxCellPosition != maxCellPosition;
 
             m_PendingInitInfo.pendingMinCellPosition = minCellPosition;
             m_PendingInitInfo.pendingMaxCellPosition = maxCellPosition;
