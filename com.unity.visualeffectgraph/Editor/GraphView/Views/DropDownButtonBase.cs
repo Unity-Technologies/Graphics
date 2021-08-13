@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,10 +9,21 @@ namespace UnityEditor.VFX.UI
 {
     abstract class DropDownButtonBase : VisualElement
     {
+        private class NotifyEditorWindow : EditorWindow
+        {
+            public event Action Destroyed;
+
+            private void OnDestroy()
+            {
+                Destroyed?.Invoke();
+            }
+        }
+
         readonly bool m_HasLeftSeparator;
         readonly Button m_MainButton;
 
-        EditorWindow m_CurrentPopup;
+        NotifyEditorWindow m_CurrentPopup;
+        DateTime m_PopupClosedTimestamp;
 
         protected readonly VisualElement m_PopupContent;
 
@@ -41,7 +53,7 @@ namespace UnityEditor.VFX.UI
             {
                 var icon = new Image {image = EditorGUIUtility.LoadIcon(iconPath)};
                 m_MainButton.Add(icon);
-                tooltip = mainButtonLabel;
+                m_MainButton.tooltip = mainButtonLabel;
             }
             else
             {
@@ -53,7 +65,7 @@ namespace UnityEditor.VFX.UI
             separator.AddToClassList("dropdown-separator");
             Add(separator);
 
-            var dropDownButton = new Button(OnOpenPopupInternal);
+            var dropDownButton = new Button(OnTogglePopup);
             dropDownButton.AddToClassList("dropdown-arrow");
             dropDownButton.AddToClassList("unity-toolbar-toggle");
             dropDownButton.Add(new VisualElement());
@@ -80,32 +92,53 @@ namespace UnityEditor.VFX.UI
         protected void ClosePopup()
         {
             m_CurrentPopup?.Close();
-            m_CurrentPopup = null;
         }
 
-        private void OnOpenPopupInternal()
+        private void OnTogglePopup()
         {
-            m_CurrentPopup = ScriptableObject.CreateInstance<EditorWindow>();
-            m_CurrentPopup.hideFlags = HideFlags.HideAndDontSave;
-            if (m_PopupContent.parent != null)
+            // If the user click on the arrow button while the popup is opened
+            // the popup is then closed (because clicked outside) and immediately reopened
+            // To prevent this behavior we allow the popup to reopen only after a very short period of time after being closed
+            var deltaTime = DateTime.UtcNow - m_PopupClosedTimestamp;
+            if (m_CurrentPopup == null && deltaTime.TotalMilliseconds > 500)
             {
-                m_PopupContent.parent.Remove(m_PopupContent);
-            }
-            m_CurrentPopup.rootVisualElement.AddStyleSheetPath("VFXToolbar");
-            m_CurrentPopup.rootVisualElement.Add(m_PopupContent);
-            m_CurrentPopup.rootVisualElement.AddToClassList("popup");
-            m_CurrentPopup.rootVisualElement.RegisterCallback<KeyUpEvent>(OnKeyUp);
+                m_CurrentPopup = ScriptableObject.CreateInstance<NotifyEditorWindow>();
+                m_CurrentPopup.hideFlags = HideFlags.HideAndDontSave;
+                if (m_PopupContent.parent != null)
+                {
+                    m_PopupContent.parent.Remove(m_PopupContent);
+                }
 
-            OnOpenPopup();
-            var bounds = new Rect(GetPopupPosition(), localBound.size);
-            // Offset the bounds to align the popup with the real dropdown left edge
-            if (m_HasLeftSeparator)
+                m_CurrentPopup.Destroyed += OnPopupClosed;
+                m_CurrentPopup.rootVisualElement.AddStyleSheetPath("VFXToolbar");
+                m_CurrentPopup.rootVisualElement.Add(m_PopupContent);
+                m_CurrentPopup.rootVisualElement.AddToClassList("popup");
+                m_CurrentPopup.rootVisualElement.RegisterCallback<KeyUpEvent>(OnKeyUp);
+
+                OnOpenPopup();
+                var bounds = new Rect(GetPopupPosition(), localBound.size);
+                // Offset the bounds to align the popup with the real dropdown left edge
+                if (m_HasLeftSeparator)
+                {
+                    bounds.xMin += 6;
+                }
+
+                m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(),
+                    new[] {PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft});
+                GetNextFocusable(null, m_PopupContent.Children(), false)?.Focus();
+            }
+            else if (m_CurrentPopup != null)
             {
-                bounds.xMin += 6;
+                ClosePopup();
             }
+        }
 
-            m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(), new[] { PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft });
-            GetNextFocusable(null, m_PopupContent.Children(), false)?.Focus();
+        private void OnPopupClosed()
+        {
+            m_CurrentPopup.Destroyed -= OnPopupClosed;
+            m_CurrentPopup.rootVisualElement.UnregisterCallback<KeyUpEvent>(OnKeyUp);
+            m_CurrentPopup = null;
+            m_PopupClosedTimestamp = DateTime.UtcNow;
         }
 
         private void OnKeyUp(KeyUpEvent evt)
