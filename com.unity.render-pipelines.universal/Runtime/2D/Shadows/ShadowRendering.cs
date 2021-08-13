@@ -300,8 +300,6 @@ namespace UnityEngine.Rendering.Universal
 
                             cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
                             cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
-
-
                             cmdBuffer.SetGlobalColor(k_ShadowColorMaskID, k_ColorLookup[colorBit]);
 
                             var projectedShadowsMaterial = pass.rendererData.GetProjectedShadowMaterial(colorBit);
