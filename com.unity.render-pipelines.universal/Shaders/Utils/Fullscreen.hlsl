@@ -18,16 +18,16 @@ float2 TransformVisibilityMesh(in float4 positionOS, in uint stereoEyeIndex)
     // matrices to transform each eye's visibility mesh
     float4x4 eyeMats[2] = {
         {
-            1, 0, 0, 0,
-            0, 1, 0, 0, 
-            0, 0, 1, 0,
+            1.05, 0, 0, 0,
+            0, 1.05, 0, 0,
+            0, 0, 1.05, 0,
             0, 0, 0, 1,
         },
 
         {
-            -1, 0, 0, 1,
-            0, 1, 0, 0, 
-            0, 0, 1, 0,
+            -1.05, 0, 0, 1,
+            0, 1.05, 0, 0,
+            0, 0, 1.05, 0,
             0, 0, 0, 1,
         }
     };
@@ -55,7 +55,6 @@ struct Varyings
 };
 
 
-
 Varyings FullscreenVert(Attributes input)
 {
     Varyings output;
@@ -66,21 +65,15 @@ Varyings FullscreenVert(Attributes input)
     output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
     output.uv = GetQuadTexCoord(input.vertexID) * _ScaleBias.xy + _ScaleBias.zw;
 #elif _USE_VISIBILITY_MESH
-    float2 test = TransformVisibilityMesh(input.positionOS, unity_StereoEyeIndex);
-
-    output.positionCS = float4(test.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), UNITY_NEAR_CLIP_VALUE, 1.0f);
-    output.uv = test.xy * _ScaleBias.xy + _ScaleBias.zw;
+    float2 meshPos = TransformVisibilityMesh(input.positionOS, unity_StereoEyeIndex);
+    output.positionCS = float4(meshPos.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f), UNITY_NEAR_CLIP_VALUE, 1.0f);
+    output.uv = meshPos.xy * _ScaleBias.xy + _ScaleBias.zw;
 #else
     output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
     output.uv = input.uv;
 #endif 
 
     return output;
-}
-
-Varyings Vert(Attributes input)
-{
-    return FullscreenVert(input);
 }
 
 #endif
