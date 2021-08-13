@@ -23,7 +23,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_AccumulationFactor;
 
         // Ray Tracing
-        SerializedDataParameter m_FallbackHierarchy;
+        SerializedDataParameter m_RayMiss;
+        SerializedDataParameter m_LastBounce;
         SerializedDataParameter m_LayerMask;
         SerializedDataParameter m_TextureLodBias;
         SerializedDataParameter m_RayLength;
@@ -62,7 +63,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AccumulationFactor            = Unpack(o.Find(x => x.accumulationFactor));
 
             // Generic ray tracing
-            m_FallbackHierarchy             = Unpack(o.Find(x => x.fallbackHierachy));
+            m_RayMiss      = Unpack(o.Find(x => x.rayMiss));
+            m_LastBounce   = Unpack(o.Find(x => x.lastBounceFallbackHierarchy));
             m_LayerMask                     = Unpack(o.Find(x => x.layerMask));
             m_TextureLodBias                = Unpack(o.Find(x => x.textureLodBias));
             m_RayLength                     = Unpack(o.Find(x => x.rayLength));
@@ -89,7 +91,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_TracingText = EditorGUIUtility.TrTextContent("Tracing", "Controls the technique used to compute the reflection.Controls the technique used to compute the reflections. Ray marching uses a ray-marched screen-space solution, Ray tracing uses a hardware accelerated world-space solution. Mixed uses first Ray marching, then Ray tracing if it fails to intersect on-screen geometry.");
         static public readonly GUIContent k_ReflectSkyText = EditorGUIUtility.TrTextContent("Reflect Sky", "When enabled, SSR handles sky reflection.");
         static public readonly GUIContent k_LayerMaskText = EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for ray traced reflections.");
-        static public readonly GUIContent k_FallbackHierarchyText = EditorGUIUtility.TrTextContent("Fallback Hierarchy", "Controls the order in which fall backs are used when a ray misses.");
+        static public readonly GUIContent k_RayMissFallbackHierarchyText = EditorGUIUtility.TrTextContent("Ray Miss", "Controls the order in which fall backs are used when a ray misses.");
+        static public readonly GUIContent k_LastBounceFallbackHierarchyText = EditorGUIUtility.TrTextContent("Last Bounce", "Controls the fallback hierarchy for lighting the last bounce.");
         static public readonly GUIContent k_TextureLodBiasText = EditorGUIUtility.TrTextContent("Texture Lod Bias", "The LOD Bias HDRP applies to textures in the reflection. A higher value increases performance and makes denoising easier, but it might reduce visual fidelity.");
         static public readonly GUIContent k_MinimumSmoothnessText = EditorGUIUtility.TrTextContent("Minimum Smoothness", "Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops.");
         static public readonly GUIContent k_SmoothnessFadeStartText = EditorGUIUtility.TrTextContent("Smoothness Fade Start", "Controls the smoothness value at which the smoothness-controlled fade out starts. The fade is in the range [Min Smoothness, Smoothness Fade Start].");
@@ -155,7 +158,12 @@ namespace UnityEditor.Rendering.HighDefinition
         void RayTracedReflectionGUI(RayCastingMode tracingMode)
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            PropertyField(m_FallbackHierarchy, k_FallbackHierarchyText);
+            using (new IndentLevelScope())
+            {
+                EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
+                PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
+                PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
+            }
             PropertyField(m_LayerMask, k_LayerMaskText);
             PropertyField(m_TextureLodBias, k_TextureLodBiasText);
 

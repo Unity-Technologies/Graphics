@@ -311,10 +311,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
-            [Reload("Runtime/PostProcessing/Shaders/UpsampleScene.compute")]
-            public ComputeShader upsampleSceneCS;
             [Reload("Runtime/PostProcessing/Shaders/LensFlareDataDriven.shader")]
             public Shader lensFlareDataDrivenPS;
+            [Reload("Runtime/PostProcessing/Shaders/DLSSBiasColorMask.shader")]
+            public Shader DLSSBiasColorMaskPS;
 
             // Physically based DoF
             [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
@@ -423,6 +423,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture3D worleyNoise128RGBA;
             [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/WorleyNoise32RGB.png")]
             public Texture3D worleyNoise32RGB;
+            [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/PerlinNoise32RGB.png")]
+            public Texture3D perlinNoise32RGB;
 
             // Post-processing
             [Reload(new[]

@@ -35,6 +35,9 @@ CBUFFER_START(ShaderVariablesClouds)
     float _ShapeScale;
     float _ErosionScale;
     float _TemporalAccumulationFactor;
+    float2 _Padding0;
+    float _FadeInStart;
+    float _FadeInDistance;
     float4 _ScatteringTint;
     float4 _FinalScreenSize;
     float4 _IntermediateScreenSize;
@@ -57,8 +60,14 @@ CBUFFER_START(ShaderVariablesClouds)
     float4x4 _CameraViewProjection_NO;
     float4x4 _CameraInverseViewProjection_NO;
     float4x4 _CameraPrevViewProjection_NO;
-    float3 _Padding2;
+    float _AltitudeDistortion;
+    float _ErosionFactorCompensation;
     int _EnableFastToneMapping;
+    int _IsPlanarReflection;
+    float2 _Padding1;
+    int _LowResolutionEvaluation;
+    int _EnableIntegration;
+    float4 _DistanceBasedWeights[12];
 CBUFFER_END
 
 

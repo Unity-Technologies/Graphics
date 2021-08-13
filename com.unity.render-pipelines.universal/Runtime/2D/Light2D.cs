@@ -312,6 +312,16 @@ namespace UnityEngine.Rendering.Universal
             return largestIndex;
         }
 
+        internal Bounds UpdateSpriteMesh()
+        {
+            if (m_LightCookieSprite == null && (m_Vertices.Length != 1 || m_Triangles.Length != 1))
+            {
+                m_Vertices = new LightUtility.LightMeshVertex[1];
+                m_Triangles = new ushort[1];
+            }
+            return LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite);
+        }
+
         internal void UpdateMesh(bool forceUpdate)
         {
             var shapePathHash = LightUtility.GetShapePathHash(shapePath);
@@ -336,7 +346,7 @@ namespace UnityEngine.Rendering.Universal
                         m_LocalBounds = LightUtility.GenerateParametricMesh(this, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                         break;
                     case LightType.Sprite:
-                        m_LocalBounds = LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite);
+                        m_LocalBounds = UpdateSpriteMesh();
                         break;
                     case LightType.Point:
                         m_LocalBounds = LightUtility.GenerateParametricMesh(this, 1.412135f, 0, 0, 4);
@@ -375,13 +385,16 @@ namespace UnityEngine.Rendering.Universal
 
         private void Awake()
         {
-            bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
-            UpdateMesh(updateMesh);
-            if (hasCachedMesh)
+            if (m_LightCookieSprite != null)
             {
-                lightMesh.SetVertexBufferParams(vertices.Length, LightUtility.LightMeshVertex.VertexLayout);
-                lightMesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
-                lightMesh.SetIndices(indices, MeshTopology.Triangles, 0, false);
+                bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
+                UpdateMesh(updateMesh);
+                if (hasCachedMesh)
+                {
+                    lightMesh.SetVertexBufferParams(vertices.Length, LightUtility.LightMeshVertex.VertexLayout);
+                    lightMesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
+                    lightMesh.SetIndices(indices, MeshTopology.Triangles, 0, false);
+                }
             }
         }
 

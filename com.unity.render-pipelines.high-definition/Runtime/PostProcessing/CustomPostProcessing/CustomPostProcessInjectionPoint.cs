@@ -11,6 +11,8 @@ namespace UnityEngine.Rendering.HighDefinition
         BeforeTAA           = 3,
         /// <summary>Before Post Processing.</summary>
         BeforePostProcess   = 1,
+        /// <summary>After Post Process Blurs.</summary>
+        AfterPostProcessBlurs = 4,
         /// <summary>After Post Processing.</summary>
         AfterPostProcess    = 2,
     }

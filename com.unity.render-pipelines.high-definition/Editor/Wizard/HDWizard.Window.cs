@@ -264,10 +264,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void WizardBehaviourDelayed()
         {
-            // We can pass here if HDProjectSettings.wizardIsStartPopup is false. See WizardBehaviour()
-            if (!HDProjectSettings.wizardIsStartPopup)
-                return;
-
             if (frameToWait > 0)
             {
                 --frameToWait;
@@ -276,6 +272,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // No need to update this method, unsubscribe from the application update
             EditorApplication.update -= WizardBehaviourDelayed;
+
+            // If the wizard does not need to be shown at start up, do nothing.
+            if (!HDProjectSettings.wizardIsStartPopup)
+                return;
 
             //Application.isPlaying cannot be called in constructor. Do it here
             if (Application.isPlaying)
