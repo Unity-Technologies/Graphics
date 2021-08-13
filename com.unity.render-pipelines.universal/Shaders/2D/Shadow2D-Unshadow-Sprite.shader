@@ -20,7 +20,8 @@ Shader "Hidden/Shadow2DUnshadowSprite"
                 Ref       1
                 ReadMask  3
                 WriteMask 1
-                Comp      NotEqual
+                //Comp      Greater  // To be totally correct this needs to be always and we need to have another pass probably for global shadows
+                Comp      Always  // To be totally correct this needs to be always and we need to have another pass probably for global shadows
                 Pass      Replace
                 Fail      Keep
             }
@@ -85,8 +86,7 @@ Shader "Hidden/Shadow2DUnshadowSprite"
             BlendOp Add
             ZWrite Off
 
-            //ColorMask [_ShadowColorMask]
-            ColorMask GA
+            ColorMask [_ShadowColorMask]
 
             HLSLPROGRAM
             #pragma vertex vert
