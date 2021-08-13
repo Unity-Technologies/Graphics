@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.Universal
 
 
         internal bool isOcclusionMeshSupported { get => enabled && xrSdkEnabled && occlusionMeshMaterial != null; }
-        internal bool isVisibilityMeshSupported { get => enabled; }
+        internal bool isVisibilityMeshSupported { get => enabled && xrSdkEnabled; }
 
         internal bool hasValidOcclusionMesh
         {
