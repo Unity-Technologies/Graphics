@@ -415,7 +415,7 @@ void EvaluateSunColorAttenuation(float3 evaluationPointWS, float3 sunDirection, 
            sunColor = 0;
         }
     }
-#endif 
+#endif
 }
 
 EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 entryEvaluationPointWS, float3 exitEvaluationPointWS)
@@ -616,9 +616,9 @@ void EvaluateCloud(CloudProperties cloudProperties, CloudRay cloudRay, float pha
 
     // Evaluate the luminance at this sample
     const float3 luminance = (EvaluateSunLuminance(currentPositionWS, cloudRay.envLighting.sunDirection,
-                                lerp(cloudRay.envLighting.sunColor0, cloudRay.envLighting.sunColor1, relativeRayDistance), 
+                                lerp(cloudRay.envLighting.sunColor0, cloudRay.envLighting.sunColor1, relativeRayDistance),
                                 cloudProperties.density, powder_effect, phaseFunction)
-                                + lerp(cloudRay.envLighting.ambientTermBottom, cloudRay.envLighting.ambientTermTop, cloudProperties.height) 
+                                + lerp(cloudRay.envLighting.ambientTermBottom, cloudRay.envLighting.ambientTermTop, cloudProperties.height)
                                 * cloudProperties.ambientOcclusion) * mediaExtinction;
 
     // Improved analytical scattering
