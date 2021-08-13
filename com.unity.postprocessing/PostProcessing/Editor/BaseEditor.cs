@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.PostProcessing
     /// </example>
     public class BaseEditor<T> : Editor
         where T : MonoBehaviour
-    {
+                    {
         /// <summary>
         /// The target component.
         /// </summary>
