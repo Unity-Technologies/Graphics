@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -91,6 +94,7 @@ namespace UnityEditor.VFX.UI
             m_CurrentPopup.rootVisualElement.AddStyleSheetPath("VFXToolbar");
             m_CurrentPopup.rootVisualElement.Add(m_PopupContent);
             m_CurrentPopup.rootVisualElement.AddToClassList("popup");
+            m_CurrentPopup.rootVisualElement.RegisterCallback<KeyUpEvent>(OnKeyUp);
 
             OnOpenPopup();
             var bounds = new Rect(GetPopupPosition(), localBound.size);
@@ -101,6 +105,78 @@ namespace UnityEditor.VFX.UI
             }
 
             m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(), new[] { PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft });
+            GetNextFocusable(null, m_PopupContent.Children(), false)?.Focus();
+        }
+
+        private void OnKeyUp(KeyUpEvent evt)
+        {
+            var focused = m_PopupContent.focusController.focusedElement;
+            switch (evt.keyCode)
+            {
+                case KeyCode.DownArrow:
+                    var next = GetNextFocusable(focused, m_PopupContent.Children(), false);
+                    next?.Focus();
+                    break;
+                case KeyCode.UpArrow:
+                    var prev = GetNextFocusable(focused, m_PopupContent.Children(), true);
+                    prev?.Focus();
+                    break;
+                case KeyCode.Escape:
+                    ClosePopup();
+                    break;
+            }
+
+            /*
+            if (evt.keyCode == KeyCode.DownArrow || evt.keyCode == KeyCode.UpArrow)
+            {
+            var modifier = evt.keyCode == KeyCode.DownArrow ? EventModifiers.None : EventModifiers.Shift;
+
+            var fakeEvt = new Event {
+                type = EventType.KeyUp,
+                keyCode = KeyCode.Tab,
+                character = '\0',
+                modifiers = modifier
+            };
+
+            using (var ev = KeyUpEvent.GetPooled(fakeEvt))
+            {
+                //m_CurrentPopup.SendEvent(fakeEvt);
+                m_PopupContent.SendEvent(ev);
+            }
+            }
+            */
+        }
+
+        private VisualElement GetNextFocusable(Focusable focused, IEnumerable<VisualElement> elements, bool reverse)
+        {
+            var found = focused == null;
+            return GetNextFocusableRecursive(focused, elements, reverse, ref found);
+        }
+
+        private VisualElement GetNextFocusableRecursive(Focusable focused, IEnumerable<VisualElement> elements, bool reverse, ref bool found)
+        {
+            var collection = reverse ? elements.Reverse() : elements;
+            foreach (var child in collection)
+            {
+                if (child == focused)
+                {
+                    found = true;
+                    continue;
+                }
+
+                if (found && child != focused && child.enabledSelf && child.focusable)
+                {
+                    return child;
+                }
+
+                var next = GetNextFocusableRecursive(focused, child.Children(), reverse, ref found);
+                if (next != null)
+                {
+                    return next;
+                }
+            }
+
+            return null;
         }
     }
 }
