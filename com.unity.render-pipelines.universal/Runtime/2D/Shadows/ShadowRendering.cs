@@ -294,7 +294,7 @@ namespace UnityEngine.Rendering.Universal
                             if (colorBit == 0)
                                  cmdBuffer.ClearRenderTarget(RTClearFlags.All, Color.clear, 1, 1); 
                             else
-                                cmdBuffer.ClearRenderTarget(RTClearFlags.ColorStencil, Color.clear, 1, 1);
+                                cmdBuffer.ClearRenderTarget(RTClearFlags.Stencil, Color.clear, 1, 1);
 
                             var shadowRadius = light.boundingSphere.radius;
 
