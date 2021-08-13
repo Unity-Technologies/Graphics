@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // When depth priming is in use the camera target should not be overridden so the Camera's MSAA depth attachment is used.
             if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
             {
-                ConfigureTarget(renderingData.cameraData.renderer.cameraDepthTarget, descriptor.depthStencilFormat, desc.width, desc.height, 1, true);
+                ConfigureTarget(renderingData.cameraData.renderer.cameraDepthTarget, desc.depthStencilFormat, desc.width, desc.height, 1, true);
                 // Only clear depth here so we don't clear any bound color target. It might be unused by this pass but that doesn't mean we can just clear it. (e.g. in case of overlay cameras + depth priming)
                 ConfigureClear(ClearFlag.Depth, Color.black);
             }
