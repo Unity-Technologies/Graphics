@@ -28,8 +28,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
             {
                 int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
-                m_IntermediateCloudsLightingBuffer = RTHandles.Alloc(skyResolution, skyResolution, TextureXR.slices, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true);
-                m_IntermediateCloudsDepthBuffer = RTHandles.Alloc(skyResolution, skyResolution, TextureXR.slices, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true);
+                m_IntermediateCloudsLightingBuffer = RTHandles.Alloc(skyResolution, skyResolution, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true);
+                m_IntermediateCloudsDepthBuffer = RTHandles.Alloc(skyResolution, skyResolution, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true);
                 m_IntermediateCloudsLightingCube0Buffer = RTHandles.Alloc(skyResolution, skyResolution, TextureXR.slices, dimension: TextureDimension.Cube, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false);
                 m_IntermediateCloudsLightingCube1Buffer = RTHandles.Alloc(skyResolution, skyResolution, TextureXR.slices, dimension: TextureDimension.Cube, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false);
             }
