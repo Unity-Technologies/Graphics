@@ -107,8 +107,9 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                depthIdentifier = deferredLights.DepthAttachmentIdentifier;
+                depthIdentifier = m_CameraDepthAttachment.Identifier();
             }
+
 
             ConfigureTarget(dBufferColorIndentifiers, depthIdentifier);
         }
