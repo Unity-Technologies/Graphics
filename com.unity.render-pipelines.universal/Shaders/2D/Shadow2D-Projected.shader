@@ -29,8 +29,7 @@ Shader "Hidden/ShadowProjected2D"
             }
 
             // Draw the shadow
-            //ColorMask[_ShadowColorMask]
-            ColorMask BA
+            ColorMask[_ShadowColorMask]
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -64,7 +63,7 @@ Shader "Hidden/ShadowProjected2D"
                 Pass        Replace
             }
 
-            ColorMask GA
+            ColorMask 0
 
             HLSLPROGRAM
             #pragma vertex vert

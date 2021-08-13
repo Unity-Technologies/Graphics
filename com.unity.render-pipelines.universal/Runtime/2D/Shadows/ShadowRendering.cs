@@ -322,9 +322,6 @@ namespace UnityEngine.Rendering.Universal
                                     // Draw the sprite shadows for the shadow caster group. Renders the sprite shadows. Unshadowed sprites will set a sprite shadow stencil bit for shadowed areas
                                     RenderSpriteShadows(cmdBuffer, layerToRender, light, shadowCasters, selfShadowMaterial, unshadowMaterial, 0);
 
-                                    // Draw the sprite shadows for the shadow caster group. Renders the sprite global shadows. 
-                                    RenderSpriteShadows(cmdBuffer, layerToRender, light, shadowCasters, null, unshadowMaterial, 1);
-
                                     // Draw the projected shadows for the shadow caster group. Renders the shadows and clears the composite stencil bit while setting the global bit
                                     RenderProjectedShadows(cmdBuffer, layerToRender, light, shadowCasters, projectedShadowsMaterial, 1);
                                 }

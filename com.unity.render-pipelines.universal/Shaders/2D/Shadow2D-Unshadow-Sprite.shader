@@ -10,26 +10,27 @@ Shader "Hidden/Shadow2DUnshadowSprite"
     {
         Tags { "RenderType" = "Transparent" }
 
-        Cull Off
-        BlendOp Add
-        Blend One Zero
-        ZWrite Off
-
         // Rendered the composite shadowed part
         Pass
         {
+
             // Bit 0: Not Composite Shadows, Bit 1: Global Shadow
             Stencil
             {
                 Ref       1
                 ReadMask  3
-                Comp      Greater
+                WriteMask 1
+                Comp      NotEqual
                 Pass      Replace
                 Fail      Keep
             }
 
-            //ColorMask [_ShadowColorMask]
-            ColorMask RA
+            Cull Off
+            Blend   One One
+            BlendOp RevSub
+            ZWrite Off
+
+            ColorMask [_ShadowColorMask]
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -63,11 +64,10 @@ Shader "Hidden/Shadow2DUnshadowSprite"
             half4 frag(Varyings i) : SV_Target
             {
                 half4 main = tex2D(_MainTex, i.uv);
-                return half4(1 - main.a, 1 - main.a, 1 - main.a, 1 - main.a);
+                return half4(main.a, main.a, main.a, main.a);
             }
             ENDHLSL
         }
-        // Rendered the global shadows
         Pass
         {
             // Bit 0: Not Composite Shadows, Bit 1: Global Shadow
@@ -79,6 +79,11 @@ Shader "Hidden/Shadow2DUnshadowSprite"
                 Pass      Replace
                 Fail      Keep
             }
+
+            Cull Off
+            Blend   One Zero
+            BlendOp Add
+            ZWrite Off
 
             //ColorMask [_ShadowColorMask]
             ColorMask GA
