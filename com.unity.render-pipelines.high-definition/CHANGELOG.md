@@ -363,7 +363,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support undo of HDRP Global Settings asset assignation (case 13429870).
 - Fixed an inconsistency between perf mode and quality mode for sky lighting (case 1350590).
 - Fixed an inconsistency between perf mode and quality mode for material simplification in RTGI (case 1350590).
-- Offer a way to the user to control the ghosting reduction for the volumetric clouds (case 1357702).
+- Added a new property to control the ghosting reduction for volumetric clouds (case 1357702).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
