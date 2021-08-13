@@ -81,6 +81,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added warning for when a light is not fitting in the cached shadow atlas and added option to set maximum resolution that would fit.
 - Added a custom post process injection point AfterPostProcessBlurs executing after depth of field and motion blur.
 - Added the support of volumetric clouds for baked and realtime reflection probes.
+- Added a property to control the fallback of the last bounce of a RTGI, RTR, RR ray to keep a previously existing side effect on user demand (case 1350590).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -360,7 +361,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Additional Velocity for Alembic not taking correctly into account vertex animation
 - Fixed wrong LUT initialization in Wireframe mode.
 - Support undo of HDRP Global Settings asset assignation (case 13429870).
-- FFixed an issue that clamped the volumetric clouds offset value (case 1357318).
+- Fixed an inconsistency between perf mode and quality mode for sky lighting (case 1350590).
+- Fixed an inconsistency between perf mode and quality mode for material simplification in RTGI (case 1350590).
+- Fixed an issue that clamped the volumetric clouds offset value (case 1357318).
 - Fixed the volumetric clouds having no control over the vertical wind (case 1354920).
 
 ### Changed

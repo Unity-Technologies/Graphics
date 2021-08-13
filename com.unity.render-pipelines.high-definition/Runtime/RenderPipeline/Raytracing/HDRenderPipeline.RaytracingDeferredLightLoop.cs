@@ -77,7 +77,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool halfResolution;
             public int rayCountType;
             public float lodBias;
-            public int fallbackHierarchy;
+            public int rayMiss;
+            public int lastBounceFallbackHierarchy;
 
             // Ray marching attributes
             public bool mixedTracing;
