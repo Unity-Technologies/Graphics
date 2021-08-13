@@ -36,13 +36,13 @@ namespace UnityEditor.Rendering.PostProcessing
     /// </example>
     public class BaseEditor<T> : Editor
         where T : MonoBehaviour
-                    {
+        {
         /// <summary>
         /// The target component.
         /// </summary>
         protected T m_Target
         {
-            get { return (T)target; }
+            get { return (T)target ; }
         }
 
         /// <summary>
