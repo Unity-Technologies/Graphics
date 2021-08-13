@@ -17,18 +17,20 @@ Shader "Hidden/ShadowProjected2D"
         // This pass draws the projected shadow and sets the composite shadow bit.
         Pass
         {
-            // Bit 0: Composite Shadow Bit, Bit 1: Global Shadow Bit
+            // Bit 0: Not Composite Shadows, Bit 1: Global Shadow
             Stencil
             {
-
-                WriteMask   1
-                Ref         1
-                Comp        NotEqual
-                Pass        Replace
+                Ref         1     
+                ReadMask    3           // If no composite shadows and no global shadows set
+                WriteMask   1           // Write to bit 0
+                Comp        GEqual
+                Pass        Zero        // Write composite shadow value
                 Fail        Keep
             }
 
-            ColorMask [_ShadowColorMask]
+            // Draw the shadow
+            //ColorMask[_ShadowColorMask]
+            ColorMask BA
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -48,19 +50,21 @@ Shader "Hidden/ShadowProjected2D"
             }
             ENDHLSL
         }
-        // Sets the global shadow bit, and clears the composite shadow bit
+        // This pass converts the composite shadow to global shadow
         Pass
         {
-            // Bit 0: Composite Shadow Bit, Bit 1: Global Shadow Bit
-            Stencil
+            // Bit 0: Composite Shadows, Bit 1: Global Shadow
+            Stencil 
             {
-                Ref         2
-                Comp        Always
+                // We know this is drawing a composite shadow. If not sprite then convert to global shadow and draw.
+                Ref         3
+                ReadMask    1
+                WriteMask   3
+                Comp        NotEqual
                 Pass        Replace
             }
 
-            // We only want to change the stencil value in this pass
-            ColorMask 0
+            ColorMask GA
 
             HLSLPROGRAM
             #pragma vertex vert

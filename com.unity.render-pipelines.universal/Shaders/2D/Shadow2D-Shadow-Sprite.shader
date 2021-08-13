@@ -3,6 +3,7 @@ Shader "Hidden/Shadow2DShadowSprite"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _Color("Tint", Color) = (1,1,1,1)
         [HideInInspector] _ShadowColorMask("__ShadowColorMask", Int) = 1
     }
     SubShader
@@ -11,21 +12,22 @@ Shader "Hidden/Shadow2DShadowSprite"
 
         Cull Off
         BlendOp Add
-        Blend One Zero
+        Blend One One
         ZWrite Off
 
+        // Process the shadow
         Pass
         {
-            //Bit 0: Composite Shadow Bit, Bit 1: Global Shadow Bit
+            // Bit 0: Sprite, Bit 1: Global Shadow, Bit 2: Composite Shadows
             Stencil
             {
-                Ref  0
-                Comp Equal
-                Pass Keep
-                Fail Keep
+                Comp      Always
+                Pass      Keep
+                Fail      Keep
             }
 
-            ColorMask [_ShadowColorMask]
+            //ColorMask[_ShadowColorMask]
+            ColorMask GA
 
             HLSLPROGRAM
             #pragma vertex vert
