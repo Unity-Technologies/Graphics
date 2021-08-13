@@ -107,7 +107,7 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
-| **Global HorizontalWind Speed**  | Sets the global horizontal wind speed in kilometers per hour.<br />This value can be relative to the **Global Wind Speed** defined in the **Visual Environment**. |
+| **Global Horizontal Wind Speed**  | Sets the global horizontal wind speed in kilometers per hour.<br />This value can be relative to the **Global Wind Speed** defined in the **Visual Environment**. |
 | - **Orientation**                | Controls the orientation of the wind relative to the world-space direction x-axis.<br />This value can be relative to the **Global Wind Orientation** defined in the **Visual Environment**. |
 | - **Cloud Map Speed Multiplier** | The multiplier to apply to the speed of the cloud map.       |
 | - **Shape Speed Multiplier**     | The multiplier to apply to the speed of larger cloud shapes. |
