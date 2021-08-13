@@ -76,3 +76,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable on  XR yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: aa9d69ba302c00f418067837b25922c9, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Readback takes too much time on metal
