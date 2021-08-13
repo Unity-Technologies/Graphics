@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Quality
         SerializedDataParameter m_TemporalAccumulationFactor;
-        SerializedDataParameter m_HighSpeedGhostingReduction;
+        SerializedDataParameter m_GhostingReduction;
         SerializedDataParameter m_NumPrimarySteps;
         SerializedDataParameter m_NumLightSteps;
 
@@ -146,7 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Quality
             m_TemporalAccumulationFactor = Unpack(o.Find(x => x.temporalAccumulationFactor));
-            m_HighSpeedGhostingReduction = Unpack(o.Find(x => x.highSpeedGhostingReduction));
+            m_GhostingReduction = Unpack(o.Find(x => x.ghostingReduction));
             m_NumPrimarySteps = Unpack(o.Find(x => x.numPrimarySteps));
             m_NumLightSteps = Unpack(o.Find(x => x.numLightSteps));
 
@@ -286,7 +286,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader("Quality");
             {
                 PropertyField(m_TemporalAccumulationFactor);
-                PropertyField(m_HighSpeedGhostingReduction);
+                PropertyField(m_GhostingReduction);
                 PropertyField(m_NumPrimarySteps);
                 PropertyField(m_NumLightSteps);
                 PropertyField(m_FadeInMode);
