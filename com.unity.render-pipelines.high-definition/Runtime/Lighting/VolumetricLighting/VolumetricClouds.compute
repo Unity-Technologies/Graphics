@@ -430,7 +430,7 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 entryEvalua
 
     // evaluate the attenuation at both points (entrance and exit of the cloud layer)
     EvaluateSunColorAttenuation(entryEvaluationPointWS, environmentLight.sunDirection, environmentLight.sunColor0);
-    EvaluateSunColorAttenuation(entryEvaluationPointWS, environmentLight.sunDirection, environmentLight.sunColor1);
+    EvaluateSunColorAttenuation(exitEvaluationPointWS, environmentLight.sunDirection, environmentLight.sunColor1);
     return environmentLight;
 }
 
