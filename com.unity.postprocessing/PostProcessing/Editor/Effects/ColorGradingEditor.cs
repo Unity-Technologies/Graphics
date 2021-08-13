@@ -579,8 +579,7 @@ namespace UnityEditor.Rendering.PostProcessing
                     {
                         switch (curveEditingId)
                         {
-                            case 0:
-                                m_RawMasterCurve.animationCurveValue = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+                            case 0: m_RawMasterCurve.animationCurveValue = AnimationCurve.Linear(0f, 0f, 1f, 1f);
                                 break;
                             case 1:
                                 m_RawRedCurve.animationCurveValue = AnimationCurve.Linear(0f, 0f, 1f, 1f);
