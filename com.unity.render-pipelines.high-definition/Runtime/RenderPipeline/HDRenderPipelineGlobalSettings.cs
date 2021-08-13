@@ -44,21 +44,29 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
+#if !UNITY_EDITOR
+                // The HDRP Global Settings could have been changed by script, undo/redo (case 1342987), or file update - file versioning, let us make sure we display the correct one
+                // In a Player, we do not need to worry about those changes as we only support loading one
                 if (cachedInstance == null)
-                    cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>() as HDRenderPipelineGlobalSettings;
+#endif
+                cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>() as HDRenderPipelineGlobalSettings;
                 return cachedInstance;
             }
         }
 
         static internal void UpdateGraphicsSettings(HDRenderPipelineGlobalSettings newSettings)
         {
-            if (newSettings == null || newSettings == cachedInstance)
+            if (newSettings == cachedInstance)
                 return;
-            GraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(newSettings as RenderPipelineGlobalSettings);
+            if (newSettings != null)
+                GraphicsSettings.RegisterRenderPipelineSettings<HDRenderPipeline>(newSettings as RenderPipelineGlobalSettings);
+            else
+                GraphicsSettings.UnregisterRenderPipelineSettings<HDRenderPipeline>();
             cachedInstance = newSettings;
         }
 
 #if UNITY_EDITOR
+
         //Making sure there is at least one HDRenderPipelineGlobalSettings instance in the project
         static internal HDRenderPipelineGlobalSettings Ensure(bool canCreateNewAsset = true)
         {
@@ -517,6 +525,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal List<string> beforePostProcessCustomPostProcesses = new List<string>();
         [SerializeField]
+        internal List<string> afterPostProcessBlursCustomPostProcesses = new List<string>();
+        [SerializeField]
         internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
         [SerializeField]
         internal List<string> beforeTAACustomPostProcesses = new List<string>();
@@ -572,6 +582,22 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [System.NonSerialized]
+        string[] m_PrefixedLightLayerNames = null;
+        /// <summary>
+        /// Names used for display of light layers with Layer's index as prefix.
+        /// For example: "0: Light Layer Default"
+        /// </summary>
+        public string[] prefixedLightLayerNames
+        {
+            get
+            {
+                if (m_PrefixedLightLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_PrefixedLightLayerNames;
+            }
+        }
+
         static readonly string[] k_DefaultDecalLayerNames = { "Decal Layer default", "Decal Layer 1", "Decal Layer 2", "Decal Layer 3", "Decal Layer 4", "Decal Layer 5", "Decal Layer 6", "Decal Layer 7" };
 
         /// <summary>Name for decal layer 0.</summary>
@@ -618,9 +644,22 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [System.NonSerialized]
+        string[] m_PrefixedDecalLayerNames = null;
+        /// <summary>
+        /// Names used for display of decal layers with Decal's index as prefix.
+        /// For example: "0: Decal Layer Default"
+        /// </summary>
+        public string[] prefixedDecalLayerNames
+        {
+            get
+            {
+                if (m_PrefixedDecalLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_PrefixedDecalLayerNames;
+            }
+        }
 
-        // HDRP use GetRenderingLayerMaskNames to create its light linking system
-        // Mean here we define our name for light linking.
         [System.NonSerialized]
         string[] m_RenderingLayerNames;
         string[] renderingLayerNames
@@ -628,20 +667,36 @@ namespace UnityEngine.Rendering.HighDefinition
             get
             {
                 if (m_RenderingLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_RenderingLayerNames;
+            }
+        }
+
+        [System.NonSerialized]
+        string[] m_PrefixedRenderingLayerNames;
+        string[] prefixedRenderingLayerNames
+        {
+            get
+            {
+                if (m_PrefixedRenderingLayerNames == null)
                 {
                     UpdateRenderingLayerNames();
                 }
-
-                return m_RenderingLayerNames;
+                return m_PrefixedRenderingLayerNames;
             }
         }
 
         /// <summary>Names used for display of rendering layer masks.</summary>
         public string[] renderingLayerMaskNames => renderingLayerNames;
 
-        void UpdateRenderingLayerNames()
+        /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
+        public string[] prefixedRenderingLayerMaskNames => prefixedRenderingLayerNames;
+
+        /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
+        internal void UpdateRenderingLayerNames()
         {
-            m_RenderingLayerNames = new string[32];
+            if (m_RenderingLayerNames == null)
+                m_RenderingLayerNames = new string[32];
 
             m_RenderingLayerNames[0] = lightLayerName0;
             m_RenderingLayerNames[1] = lightLayerName1;
@@ -665,6 +720,22 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 16; i < m_RenderingLayerNames.Length; ++i)
             {
                 m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
+            }
+
+            // Update prefixed
+            if (m_PrefixedRenderingLayerNames == null)
+                m_PrefixedRenderingLayerNames = new string[32];
+            if (m_PrefixedLightLayerNames == null)
+                m_PrefixedLightLayerNames = new string[8];
+            if (m_PrefixedDecalLayerNames == null)
+                m_PrefixedDecalLayerNames = new string[8];
+            for (int i = 0; i < m_PrefixedRenderingLayerNames.Length; ++i)
+            {
+                m_PrefixedRenderingLayerNames[i] = string.Format("{0}: {1}", i, m_RenderingLayerNames[i]);
+                if (i < 8)
+                    m_PrefixedLightLayerNames[i] = m_PrefixedRenderingLayerNames[i];
+                else if (i < 16)
+                    m_PrefixedDecalLayerNames[i - 8] = string.Format("{0}: {1}", i - 8, m_RenderingLayerNames[i]);
             }
         }
 
@@ -692,6 +763,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 decalLayerName6 = k_DefaultDecalLayerNames[6];
                 decalLayerName7 = k_DefaultDecalLayerNames[7];
             }
+            UpdateRenderingLayerNames();
         }
 
         #endregion

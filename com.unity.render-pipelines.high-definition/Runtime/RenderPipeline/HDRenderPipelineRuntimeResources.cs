@@ -313,10 +313,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
-            [Reload("Runtime/PostProcessing/Shaders/UpsampleScene.compute")]
-            public ComputeShader upsampleSceneCS;
             [Reload("Runtime/PostProcessing/Shaders/LensFlareDataDriven.shader")]
             public Shader lensFlareDataDrivenPS;
+            [Reload("Runtime/PostProcessing/Shaders/DLSSBiasColorMask.shader")]
+            public Shader DLSSBiasColorMaskPS;
 
             // Physically based DoF
             [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
@@ -330,6 +330,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
+            [Reload("Runtime/PostProcessing/Shaders/RobustContrastAdaptiveSharpen.compute")]
+            public ComputeShader robustContrastAdaptiveSharpenCS;
+            [Reload("Runtime/PostProcessing/Shaders/EdgeAdaptiveSpatialUpsampling.compute")]
+            public ComputeShader edgeAdaptiveSpatialUpsamplingCS;
             [Reload("Runtime/VirtualTexturing/Shaders/DownsampleVTFeedback.compute")]
             public ComputeShader VTFeedbackDownsample;
 
@@ -346,10 +350,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader customClearPS;
 
             // Denoising
-            [Reload("Runtime/Lighting/ScreenSpaceLighting/SSGIDenoiser.compute")]
-            public ComputeShader ssGIDenoiserCS;
             [Reload("Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.compute")]
             public ComputeShader bilateralUpsampleCS;
+            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/TemporalFilter.compute")]
+            public ComputeShader temporalFilterCS;
+            [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseDenoiser.compute")]
+            public ComputeShader diffuseDenoiserCS;
 
 #if UNITY_EDITOR
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
@@ -419,6 +425,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture3D worleyNoise128RGBA;
             [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/WorleyNoise32RGB.png")]
             public Texture3D worleyNoise32RGB;
+            [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/PerlinNoise32RGB.png")]
+            public Texture3D perlinNoise32RGB;
 
             // Post-processing
             [Reload(new[]

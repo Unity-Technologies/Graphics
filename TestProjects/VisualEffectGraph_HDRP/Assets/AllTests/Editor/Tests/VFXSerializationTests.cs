@@ -28,6 +28,38 @@ namespace UnityEditor.VFX.Test
             return VisualEffectAssetEditorUtility.CreateNewAsset(path);
         }
 
+        [Test]
+        public void Sanitize_GetSpawnCount()
+        {
+            string kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSerializationTests_GetSpawnCount.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+
+            Assert.AreEqual(5, graph.children.OfType<VFXAttributeParameter>().Count());
+            Assert.AreEqual(5, graph.children.OfType<VFXInlineOperator>().Where(o => o.type == typeof(uint)).Count());
+            Assert.AreEqual(1, graph.children.OfType<VFXInlineOperator>().Where(o => o.type == typeof(float)).Count());
+            Assert.AreEqual(1, graph.children.OfType<Operator.Add>().Count());
+            Assert.AreEqual(1, graph.children.OfType<VFXInlineOperator>().Where(o => o.type == typeof(Color)).Count());
+
+            foreach (var attribute in graph.children.OfType<VFXAttributeParameter>())
+                Assert.IsTrue(attribute.outputSlots[0].HasLink());
+
+            foreach (var inlineUInt in graph.children.OfType<VFXInlineOperator>().Where(o => o.type == typeof(uint)))
+                Assert.IsTrue(inlineUInt.inputSlots[0].HasLink());
+
+            foreach (var inlineFloat in graph.children.OfType<VFXInlineOperator>().Where(o => o.type == typeof(float)))
+                Assert.IsTrue(inlineFloat.inputSlots[0].HasLink());
+
+            foreach (var inlineColor in graph.children.OfType<VFXInlineOperator>().Where(o => o.type == typeof(Color)))
+                Assert.IsTrue(inlineColor.inputSlots[0].HasLink());
+
+            foreach (var add in graph.children.OfType<Operator.Add>())
+            {
+                Assert.AreEqual(2, add.operandCount);
+                Assert.IsTrue(add.inputSlots[0].HasLink());
+                Assert.IsTrue(add.inputSlots[1].HasLink());
+            }
+        }
+
         [OneTimeSetUpAttribute]
         public void OneTimeSetUpAttribute()
         {
@@ -529,7 +561,6 @@ namespace UnityEditor.VFX.Test
         {
             VFXTestCommon.DeleteAllTemporaryGraph();
         }
-
     }
 }
 #endif

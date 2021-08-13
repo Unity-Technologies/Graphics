@@ -123,6 +123,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 evt.menu.AppendAction(primitiveTypeName, e => ChangePrimitiveMesh(primitiveTypeName), DropdownMenuAction.AlwaysEnabled);
             }
 
+            evt.menu.AppendAction("Sprite", e => ChangeMeshSprite(), DropdownMenuAction.AlwaysEnabled);
             evt.menu.AppendAction("Custom Mesh", e => ChangeMeshCustom(), DropdownMenuAction.AlwaysEnabled);
         }
 
@@ -155,6 +156,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_PreviewScrollPosition = Vector2.zero;
             }
 
+            m_Graph.previewData.preventRotation = false;
             m_Graph.previewData.serializedMesh.mesh = changedMesh;
         }
 
@@ -170,6 +172,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             if (mesh == null)
                 mesh = m_PreviousMesh;
             ChangeMesh(mesh);
+        }
+
+        void ChangeMeshSprite()
+        {
+            ChangePrimitiveMesh(PrimitiveType.Quad.ToString());
+
+            m_Graph.previewData.rotation = Quaternion.identity;
+            m_Graph.previewData.preventRotation = true;
         }
 
         void ChangeMeshCustom()
@@ -214,6 +224,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void OnMouseDragPreviewMesh(Vector2 deltaMouse)
         {
+            if (m_Graph.previewData.preventRotation) return;
+
             Vector2 previewSize = m_PreviewTextureView.contentRect.size;
 
             m_PreviewScrollPosition -= deltaMouse * (Event.current.shift ? 3f : 1f) / Mathf.Min(previewSize.x, previewSize.y) * 140f;

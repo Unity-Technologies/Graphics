@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile_local_fragment _ ENABLE_ALPHA
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
 
-        #pragma multi_compile_local_fragment _ BILINEAR CATMULL_ROM_4 LANCZOS BYPASS
+        #pragma multi_compile_local_fragment _ CATMULL_ROM_4 BYPASS
         #define DEBUG_UPSCALE_POINT 0
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -66,12 +66,8 @@ Shader "Hidden/HDRP/FinalPass"
         #if DEBUG_UPSCALE_POINT
             return Nearest(_InputTexture, UV);
         #else
-            #if BILINEAR
-                return Bilinear(_InputTexture, UV);
-            #elif CATMULL_ROM_4
+            #if CATMULL_ROM_4
                 return CatmullRomFourSamples(_InputTexture, UV);
-            #elif LANCZOS
-                return Lanczos(_InputTexture, UV, _ViewPortSize.xy);
             #else
                 return Nearest(_InputTexture, UV);
             #endif
@@ -90,7 +86,7 @@ Shader "Hidden/HDRP/FinalPass"
             positionSS = positionSS * _UVTransform.xy + _UVTransform.zw * (_ScreenSize.xy - 1.0);
             positionNDC = positionNDC * _UVTransform.xy + _UVTransform.zw;
 
-            #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
+            #ifdef CATMULL_ROM_4
             CTYPE outColor = UpscaledResult(positionNDC.xy);
             #elif defined(BYPASS)
             CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, ((input.texcoord.xy * _UVTransform.xy) + _UVTransform.zw) * _ViewPortSize.xy).CTYPE_SWIZZLE;

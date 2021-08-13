@@ -229,9 +229,12 @@
             "m_Id": "07c67cc90490470fb9a60030a0d5d717"
         },
         {
+<<<<<<< HEAD
             "m_Id": "fffb46fc91204972998523af40633b0f"
         },
         {
+=======
+>>>>>>> master
             "m_Id": "78479c8d6abe4634abf777821e1eea54"
         },
         {
@@ -923,9 +926,12 @@
                 "m_Id": "07c67cc90490470fb9a60030a0d5d717"
             },
             {
+<<<<<<< HEAD
                 "m_Id": "fffb46fc91204972998523af40633b0f"
             },
             {
+=======
+>>>>>>> master
                 "m_Id": "78479c8d6abe4634abf777821e1eea54"
             },
             {
@@ -937,7 +943,12 @@
         "serializedMesh": {
             "m_SerializedMesh": "{\"mesh\":{\"instanceID\":0}}",
             "m_Guid": ""
+<<<<<<< HEAD
         }
+=======
+        },
+        "preventRotation": false
+>>>>>>> master
     },
     "m_Path": "HDRPSamples",
     "m_GraphPrecision": 0,
@@ -2775,6 +2786,7 @@
 
 {
     "m_SGVersion": 0,
+<<<<<<< HEAD
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "5cf0167f642345bf87669ade69eb753f",
     "m_Id": 0,
@@ -2790,6 +2802,8 @@
 
 {
     "m_SGVersion": 0,
+=======
+>>>>>>> master
     "m_Type": "UnityEditor.ShaderGraph.SampleTexture2DNode",
     "m_ObjectId": "5f38d464c32e2e82828769e0b7986031",
     "m_Group": {
@@ -5324,7 +5338,11 @@
     "m_ObjectId": "d30f1aa1a02847c89af2bab89f780e13",
     "m_MaterialType": 1,
     "m_ScatteringMode": 0,
+<<<<<<< HEAD
     "m_UseLightFacingNormal": true,
+=======
+    "m_GeometryType": 1,
+>>>>>>> master
     "m_UseRoughenedAzimuthalScattering": true
 }
 
@@ -6393,6 +6411,7 @@
     "m_DefaultType": 2
 }
 
+<<<<<<< HEAD
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.BlockNode",
@@ -6426,3 +6445,5 @@
     "m_SerializedDescriptor": "SurfaceDescription.PrimaryReflectionSmoothness"
 }
 
+=======
+>>>>>>> master

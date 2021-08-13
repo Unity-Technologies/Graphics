@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
@@ -62,7 +62,7 @@ class OverrideCamera : CustomPass
             depthState = new DepthState(true, CompareFunction.LessEqual)
         };
 
-        // Render from camera 1 
+        // Render from camera 1
         CustomPassUtils.RenderFromCamera(ctx, customCamera1, temp, ctx.customDepthBuffer.Value, ClearFlag.All, -1, overrideRenderState: overrideDepth);
         CustomPassUtils.Copy(
             ctx, temp, ctx.cameraColorBuffer,

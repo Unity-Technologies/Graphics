@@ -211,6 +211,7 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
+    [URPHelpURL("universal-additional-camera-data")]
     public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
         const string k_GizmoPath = "Packages/com.unity.render-pipelines.universal/Editor/Gizmos/";
