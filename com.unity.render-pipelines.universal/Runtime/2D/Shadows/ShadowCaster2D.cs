@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal
     [AddComponentMenu("Rendering/2D/Shadow Caster 2D")]
     [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
 
-    public class ShadowCaster2D : ShadowCasterGroup2D, ISerializationCallbackReceiver
+    public class ShadowCaster2D : ShadowCasterGroup2D
     {
         public enum ComponentVersions
         {
@@ -221,23 +221,6 @@ namespace UnityEngine.Rendering.Universal
                     ShadowCasterGroup2DManager.AddGroup(this);
                 else
                     ShadowCasterGroup2DManager.RemoveGroup(this);
-            }
-        }
-
-        public void OnBeforeSerialize()
-        {
-            m_ComponentVersion = k_CurrentComponentVersion;
-        }
-
-        public void OnAfterDeserialize()
-        {
-            // Upgrade from no serialized version
-            if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
-            {
-                // Regenerate the shadow mesh
-                m_Mesh = new Mesh();
-                m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
-                m_ComponentVersion = ComponentVersions.Version_1;
             }
         }
 
