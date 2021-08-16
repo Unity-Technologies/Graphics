@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.UI
             selectButton.clicked += OnSelectAsset;
         }
 
-        protected override Vector2 GetPopupSize() => new Vector2(150, 80);
+        protected override Vector2 GetPopupSize() => new Vector2(150, 76);
 
         protected override void OnOpenPopup()
         {
