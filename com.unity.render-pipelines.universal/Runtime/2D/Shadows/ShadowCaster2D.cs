@@ -241,15 +241,19 @@ namespace UnityEngine.Rendering.Universal
                     ShadowCasterGroup2DManager.RemoveGroup(this);
             }
 
-            if (m_ShadowShapes == null)
-            {
-                m_ShadowShapes = new ShadowShapes2D();
-                IShadowShapes2DProvider shadowShapeProvider = (IShadowShapes2DProvider)m_ShadowShapeProvider;
-                shadowShapeProvider?.SetShadowShape(m_ShadowShapes);
-            }
 
-            m_ShadowShapes.GetEdges(m_ShadowShapeContract, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
-            DrawDebugShadowShapes();
+            if (m_ShadowShapeProvider != null)
+            {
+                if (m_ShadowShapes == null)
+                {
+                    m_ShadowShapes = new ShadowShapes2D();
+                    IShadowShapes2DProvider shadowShapeProvider = (IShadowShapes2DProvider)m_ShadowShapeProvider;
+                    shadowShapeProvider?.OnShadowShapesProvided(m_ShadowShapes);
+                }
+
+                m_ShadowShapes.GetEdges(m_ShadowShapeContract, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
+                DrawDebugShadowShapes();
+            }
         }
 
         // Delete this code later...

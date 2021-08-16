@@ -8,13 +8,15 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class ShadowUtility
     {
+
+
         // I need another function to generate the mesh from the outline.
         public static BoundingSphere GenerateShadowMesh(Mesh mesh, Vector3[] shapePath)
         {
             Debug.AssertFormat(shapePath.Length > 3, "Shadow shape path must have 3 or more vertices");
 
             List<Vector3> vertices = new List<Vector3>();
-            List<int> triangles = new List<int>();
+            List<int>     triangles = new List<int>();
             List<Vector4> normals = new List<Vector4>();
 
             float minX = float.MaxValue;
