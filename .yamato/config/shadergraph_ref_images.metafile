@@ -83,6 +83,7 @@ test_platforms:
     - [OSX_Metal]: |5-
                     ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics/; python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph <UTR_FLAGS>"
                     mkdir -p TestProjects/ShaderGraph/test-results/
+                    scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:~/Library/Logs/Unity/Editor.log TestProjects/ShaderGraph/test-results/Editor.log
                     ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd Graphics; ls; git status"
                     # scp -i ~/.ssh/id_rsa_macmini .yamato/tooling/zip_to_artifact.py bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/.yamato/tooling/zip_to_artifact.py
                     ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
