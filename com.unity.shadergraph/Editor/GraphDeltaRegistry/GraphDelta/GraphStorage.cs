@@ -403,8 +403,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         protected override void AddDefaultLayers()
         {
-            m_layerList.Add(0, (new LayerID() { name = k_concrete }, new Element(this)));
-            m_layerList.Add(1, (new LayerID() { name = k_user     }, new Element(this)));
+            m_layerList.Add(0, (new LayerDescriptor() { name = k_concrete }, new Element(this)));
+            m_layerList.Add(1, (new LayerDescriptor() { name = k_user     }, new Element(this)));
         }
 
         internal INodeWriter AddNodeWriterToLayer(string layerName, string id)
@@ -444,7 +444,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private Element GetElementFromLayer(string layerName, string id)
         {
-            Element root = GetLayerRoot(new LayerID() {name = layerName });
+            Element root = GetLayerRoot(layerName);
             if (root == null)
             {
                 return null;
@@ -470,7 +470,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private Element AddElementToLayer(string layerName, string id)
         {
-            Element root = GetLayerRoot(new LayerID() {name = layerName });
+            Element root = GetLayerRoot(layerName);
             if (root == null)
             {
                 return null;

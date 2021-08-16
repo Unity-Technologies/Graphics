@@ -1,4 +1,4 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry;
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 
         public bool TryGetNodeReader(out INodeReader reader)
         {
-            reader = graphHandler.GetNode(graphDataName);
+            reader = graphHandler.GetNodeReader(graphDataName);
             return reader != null;
         }
 

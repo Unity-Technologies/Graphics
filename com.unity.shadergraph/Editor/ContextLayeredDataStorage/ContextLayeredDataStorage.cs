@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
+using UnityEngine;
 
 namespace UnityEditor.ContextLayeredDataStorage
 {
@@ -7,18 +10,16 @@ namespace UnityEditor.ContextLayeredDataStorage
         public bool TryGetData<T>(out T data);
     }
 
-    public class ContextLayeredDataStorage
+    [Serializable]
+    public class ContextLayeredDataStorage : ISerializationCallbackReceiver
     {
         protected class Element : IDataElement
         {
-
             public string id;
-
             public List<Element> children;
-
             public Element parent;
-
             public ContextLayeredDataStorage owner;
+            public string serializedData;
 
             public Element(ContextLayeredDataStorage owner)
             {
@@ -37,6 +38,21 @@ namespace UnityEditor.ContextLayeredDataStorage
             public static bool IsPath(string id)
             {
                 return id.IndexOf('.') >= 0;
+            }
+
+            public string GetFullPath()
+            {
+                string output = id;
+                Element traverser = parent;
+                while(traverser != null)
+                {
+                    if(traverser.id != null && traverser.id.Length > 0)
+                    {
+                        output = traverser.id + "." + output;
+                    }
+                    traverser = traverser.parent;
+                }
+                return output;
             }
 
             public void AddChild(Element child)
@@ -149,21 +165,50 @@ namespace UnityEditor.ContextLayeredDataStorage
                     return false;
                 }
             }
+
+            public virtual (string, string, string) ToSerializedFormat()
+            {
+                return (GetFullPath(), null, null);
+            }
+
         }
 
         protected class Element<T> : Element, IDataElement
         {
             public T data;
 
-            internal Element(string id, T data, ContextLayeredDataStorage owner) : base(id,owner)
+            [Serializable]
+            public struct DataBox
+            {
+                public T m_data;
+            }
+            
+
+            public Element(string id, T data, ContextLayeredDataStorage owner) : base(id,owner)
             {
                 this.data = data;
             }
+
+
+            public override (string, string, string) ToSerializedFormat()
+            {
+                try
+                {
+                    return (GetFullPath(), typeof(T).AssemblyQualifiedName, JsonUtility.ToJson(new DataBox() { m_data = data }, true));
+                }
+                catch
+                {
+                    Debug.LogError($"Could not serialize data associated with {GetFullPath()}: {data}");
+                    return (GetFullPath(), typeof(T).AssemblyQualifiedName, null);
+                }
+            }
+
         }
 
-        public struct LayerID
+        public struct LayerDescriptor
         {
             public string name;
+            public bool isSerialized;
         }
 
         protected class ReverseIntComparer : IComparer<int>
@@ -172,16 +217,55 @@ namespace UnityEditor.ContextLayeredDataStorage
             public int Compare(int x, int y) => x.CompareTo(y) * -1;
         }
 
-        protected readonly SortedList<int, (LayerID layerID, Element element)> m_layerList;
+        private class SerializedDataComparer : IComparer<SerializedElementdData>
+        {
+            public int Compare(SerializedElementdData x, SerializedElementdData y)
+            {
+                return x.id.CompareTo(y.id);
+            }
+        }
+
+        [Serializable]
+        public struct SerializedElementdData
+        {
+            public string id;
+            public string type;
+            public string data;
+
+            public SerializedElementdData((string id, string type, string data) input)
+            {
+                this.id = input.id;
+                this.type = input.type;
+                this.data = input.data;
+            }
+        }
+
+        [Serializable]
+        public struct SerializedLayer
+        {
+            public string layerId;
+            public List<SerializedElementdData> data;
+        }
+
+        [NonSerialized]
+        protected readonly SortedList<int, (LayerDescriptor descriptor, Element element)> m_layerList;
+        public List<SerializedLayer> m_serializedData;
+
+        [NonSerialized]
+        protected Element m_flatStructure;
+        [NonSerialized]
+        protected Dictionary<string, Element> m_flatStructureLookup;
         public ContextLayeredDataStorage()
         {
-            m_layerList = new SortedList<int, (LayerID layerID, Element element)>(new ReverseIntComparer());
+            m_layerList = new SortedList<int, (LayerDescriptor layerID, Element element)>(new ReverseIntComparer());
+            m_flatStructure = new Element(this);
+            m_flatStructureLookup = new Dictionary<string, Element>();
             AddDefaultLayers();
         }
 
         protected virtual void AddDefaultLayers()
         {
-            m_layerList.Add(-1, (new LayerID() { name = "Root" }, new Element(this)));
+            m_layerList.Add(-1, (new LayerDescriptor() { name = "Root" }, new Element<int>("", -1, this)));
         }
 
         public void AddNewTopLayer(string layerName)
@@ -190,14 +274,15 @@ namespace UnityEditor.ContextLayeredDataStorage
             {
                 throw new System.ArgumentException("Cannor use a null or empty layer name", "layerName");
             }
-            m_layerList.Add(m_layerList.Keys[0] + 1, (new LayerID() { name = layerName }, new Element(this)));
+            m_layerList.Add(m_layerList.Keys[0] + 1, (new LayerDescriptor() { name = layerName }, new Element(this)));
         }
 
-        protected Element GetLayerRoot(LayerID layerID)
+        //Grab the root element of the first layer in layer list with the name == layerID
+        protected Element GetLayerRoot(string layerID)
         {
             foreach(var (id, elem) in m_layerList.Values)
             {
-                if(layerID.name.CompareTo(id.name) == 0)
+                if(layerID.CompareTo(id.name) == 0)
                 {
                     return elem;
                 }
@@ -228,12 +313,12 @@ namespace UnityEditor.ContextLayeredDataStorage
             return elem;
         }
 
-        protected void AddData<T>(LayerID layer, string id, T data, out Element<T> elem)
+        protected void AddData<T>(LayerDescriptor layer, string id, T data, out Element<T> elem)
         {
             elem = null;
             foreach(var l in m_layerList)
             {
-                if(string.CompareOrdinal(l.Value.layerID.name, layer.name) == 0)
+                if(string.CompareOrdinal(l.Value.descriptor.name, layer.name) == 0)
                 {
                     AddData(l.Value.element, id, data, out elem);
                 }
@@ -242,23 +327,23 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         public IDataElement AddData<T>(string layer, string id, T data)
         {
-            AddData(new LayerID() { name = layer }, id, data, out Element<T> elem);
+            AddData(new LayerDescriptor() { name = layer }, id, data, out Element<T> elem);
             return elem;
         }
 
-        protected void AddData(LayerID layer, string id, out Element elem)
+        protected void AddData(LayerDescriptor layer, string id, out Element elem)
         {
             elem = null;
             foreach (var l in m_layerList)
             {
-                if (string.CompareOrdinal(l.Value.layerID.name, layer.name) == 0)
+                if (string.CompareOrdinal(l.Value.descriptor.name, layer.name) == 0)
                 {
                     AddData(l.Value.element, id, out elem);
                 }
             }
         }
 
-        public IDataElement AddData(LayerID layer, string id)
+        public IDataElement AddData(LayerDescriptor layer, string id)
         {
             AddData(layer, id, out Element elem);
             return elem;
@@ -297,6 +382,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             return SearchInternal(lookup);
         }
 
+        //Search layers in hierarchical order for the first element with the name lookup
         protected Element SearchInternal(string lookup)
         {
             foreach(var layer in m_layerList)
@@ -364,7 +450,7 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        private List<Element> GatherAll(Element root)
+        protected List<Element> GatherAll(Element root)
         {
             List<Element> accumulator = new List<Element>();
             foreach(var child in root.children)
@@ -375,14 +461,8 @@ namespace UnityEditor.ContextLayeredDataStorage
             return accumulator;
         }
 
-        private void Rebalance(Element root, List<Element> elementsWithSharedRoot)
+        protected void Rebalance(Element root, IEnumerable<Element> elementsWithSharedRoot)
         {
-            if (elementsWithSharedRoot.Count == 0)
-            {
-                return;
-            }
-
-
             List<(Element potentialRoot, List<Element> potentialShared)> recurseList = new List<(Element potentialRoot, List<Element> potentialShared)>();
 
             foreach (var element in elementsWithSharedRoot)
@@ -439,6 +519,69 @@ namespace UnityEditor.ContextLayeredDataStorage
                 Rebalance(nextRoot, nextList);
             }
 
+        }
+
+        public void OnBeforeSerialize()
+        {
+            m_serializedData = new List<SerializedLayer>();
+            foreach(var layer in m_layerList)
+            {
+                if(layer.Value.descriptor.isSerialized)
+                {
+                    var serializedLayer = new SerializedLayer(){layerId = layer.Value.descriptor.name, data = new List<SerializedElementdData>() };
+                    foreach(var elem in GatherAll(layer.Value.element))
+                    {
+                        serializedLayer.data.Add(new SerializedElementdData(elem.ToSerializedFormat()));
+                    }
+                    serializedLayer.data.Sort(new SerializedDataComparer());
+                    m_serializedData.Add(serializedLayer);
+                }
+            }
+        }
+
+        public void OnAfterDeserialize()
+        {
+            foreach(var serializedLayer in m_serializedData)
+            {
+                var root = GetLayerRoot(serializedLayer.layerId);
+                List<Element> elems = new List<Element>();
+                foreach (var data in serializedLayer.data)
+                {
+                    if (data.type != null && data.type.Length > 0)
+                    {
+                        Type generic = typeof(Element<>);
+                        Type holderGeneric = typeof(Element<>.DataBox);
+                        try
+                        {
+                            Type dataType = Type.GetType(data.type);
+                            Type constructed = generic.MakeGenericType(dataType);
+                            Type holderConstructed = holderGeneric.MakeGenericType(dataType);
+                            System.Reflection.FieldInfo saved = holderConstructed.GetField("m_data");
+                            var constructor = constructed.GetConstructor(new Type[] {typeof(string), dataType, typeof(ContextLayeredDataStorage) });
+                            object value = saved.GetValue(JsonUtility.FromJson(data.data, holderConstructed));
+                            Element elem = (Element)constructor.Invoke(new object[] {data.id, Convert.ChangeType(value, dataType), this });
+                            elems.Add(elem);
+                        }
+                        catch
+                        {
+                            Debug.LogError($"Could not deserialize the data on element {data.id} of type {data.type}");
+                        }
+                    }
+                    else
+                    {
+                        elems.Add(new Element(data.id, this));
+                    }
+                }
+                Rebalance(root, elems);
+            }
+        }
+
+        protected void UpdateFlattenedStructure(Element addedElement)
+        {
+            if(m_flatStructureLookup.TryGetValue(addedElement.GetFullPath(), out Element elem))
+            {
+
+            }
         }
     }
 }
