@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph
         public NoiseNode()
         {
             name = "Simple Noise";
+            synonyms = new string[] { "value noise" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

@@ -31,6 +31,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Displacement vector of the wind
         public Vector2 _WindVector;
 
+        // Padding
+        public Vector2 _Padding2;
+        // Displacement of the wind vertically for the shaping
+        public float _VerticalShapeWindDisplacement;
+        // Displacement of the wind vertically for the erosion
+        public float _VerticalErosionWindDisplacement;
+
         // Wind speed controllers
         public float _LargeWindSpeed;
         public float _MediumWindSpeed;
