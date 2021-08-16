@@ -15,7 +15,7 @@ pre_pack_hdrp_template_Win_2019.4:
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit
+      -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:2019.4:Win
     artifacts:
@@ -24,6 +24,9 @@ pre_pack_hdrp_template_Win_2019.4:
               -  "com.unity.template-hd/Library/Artifacts/**"
               -  "com.unity.template-hd/Library/ArtifactDB"
               -  "com.unity.template-hd/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
 pack_hdrp_template_Win_2019.4:
     name: Pack HDRP Template Win 2019.4
     agent:
@@ -33,8 +36,6 @@ pack_hdrp_template_Win_2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-hd
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_hdrp_template_Win_2019.4
     artifacts:
         packages:
             paths:
@@ -66,7 +67,7 @@ pre_pack_hdrp_template_OSX_2019.4:
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit
+      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:2019.4:OSX
     artifacts:
@@ -75,6 +76,9 @@ pre_pack_hdrp_template_OSX_2019.4:
               -  "com.unity.template-hd/Library/Artifacts/**"
               -  "com.unity.template-hd/Library/ArtifactDB"
               -  "com.unity.template-hd/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
 pack_hdrp_template_OSX_2019.4:
     name: Pack HDRP Template OSX 2019.4
     agent:
@@ -84,8 +88,6 @@ pack_hdrp_template_OSX_2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-hd
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_hdrp_template_OSX_2019.4
     artifacts:
         packages:
             paths:
@@ -155,7 +157,7 @@ pre_pack_hdrp_template_Win_fast-2019.4:
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit
+      -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:fast-2019.4:Win
     artifacts:
@@ -164,6 +166,9 @@ pre_pack_hdrp_template_Win_fast-2019.4:
               -  "com.unity.template-hd/Library/Artifacts/**"
               -  "com.unity.template-hd/Library/ArtifactDB"
               -  "com.unity.template-hd/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
 pack_hdrp_template_Win_fast-2019.4:
     name: Pack HDRP Template Win fast-2019.4
     agent:
@@ -173,8 +178,6 @@ pack_hdrp_template_Win_fast-2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-hd
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_hdrp_template_Win_fast-2019.4
     artifacts:
         packages:
             paths:
@@ -206,7 +209,7 @@ pre_pack_hdrp_template_OSX_fast-2019.4:
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit
+      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:fast-2019.4:OSX
     artifacts:
@@ -215,6 +218,9 @@ pre_pack_hdrp_template_OSX_fast-2019.4:
               -  "com.unity.template-hd/Library/Artifacts/**"
               -  "com.unity.template-hd/Library/ArtifactDB"
               -  "com.unity.template-hd/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
 pack_hdrp_template_OSX_fast-2019.4:
     name: Pack HDRP Template OSX fast-2019.4
     agent:
@@ -224,8 +230,6 @@ pack_hdrp_template_OSX_fast-2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-hd
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_hdrp_template_OSX_fast-2019.4
     artifacts:
         packages:
             paths:
@@ -295,7 +299,7 @@ pre_pack_hdrp_template_Win_CUSTOM-REVISION:
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit
+      -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
     artifacts:
@@ -304,6 +308,9 @@ pre_pack_hdrp_template_Win_CUSTOM-REVISION:
               -  "com.unity.template-hd/Library/Artifacts/**"
               -  "com.unity.template-hd/Library/ArtifactDB"
               -  "com.unity.template-hd/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
 pack_hdrp_template_Win_CUSTOM-REVISION:
     name: Pack HDRP Template Win CUSTOM-REVISION
     agent:
@@ -313,8 +320,6 @@ pack_hdrp_template_Win_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-hd
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_hdrp_template_Win_CUSTOM-REVISION
     artifacts:
         packages:
             paths:
@@ -346,7 +351,7 @@ pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit
+      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     artifacts:
@@ -355,6 +360,9 @@ pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
               -  "com.unity.template-hd/Library/Artifacts/**"
               -  "com.unity.template-hd/Library/ArtifactDB"
               -  "com.unity.template-hd/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
 pack_hdrp_template_OSX_CUSTOM-REVISION:
     name: Pack HDRP Template OSX CUSTOM-REVISION
     agent:
@@ -364,8 +372,6 @@ pack_hdrp_template_OSX_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-hd
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_hdrp_template_OSX_CUSTOM-REVISION
     artifacts:
         packages:
             paths:
@@ -435,7 +441,7 @@ pre_pack_universal_template_Win_2019.4:
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit
+      -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:2019.4:Win
     artifacts:
@@ -444,6 +450,9 @@ pre_pack_universal_template_Win_2019.4:
               -  "com.unity.template-universal/Library/Artifacts/**"
               -  "com.unity.template-universal/Library/ArtifactDB"
               -  "com.unity.template-universal/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
 pack_universal_template_Win_2019.4:
     name: Pack Universal Template Win 2019.4
     agent:
@@ -453,8 +462,6 @@ pack_universal_template_Win_2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-universal
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_universal_template_Win_2019.4
     artifacts:
         packages:
             paths:
@@ -486,7 +493,7 @@ pre_pack_universal_template_OSX_2019.4:
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit
+      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:2019.4:OSX
     artifacts:
@@ -495,6 +502,9 @@ pre_pack_universal_template_OSX_2019.4:
               -  "com.unity.template-universal/Library/Artifacts/**"
               -  "com.unity.template-universal/Library/ArtifactDB"
               -  "com.unity.template-universal/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
 pack_universal_template_OSX_2019.4:
     name: Pack Universal Template OSX 2019.4
     agent:
@@ -504,8 +514,6 @@ pack_universal_template_OSX_2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-universal
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_universal_template_OSX_2019.4
     artifacts:
         packages:
             paths:
@@ -575,7 +583,7 @@ pre_pack_universal_template_Win_fast-2019.4:
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit
+      -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:fast-2019.4:Win
     artifacts:
@@ -584,6 +592,9 @@ pre_pack_universal_template_Win_fast-2019.4:
               -  "com.unity.template-universal/Library/Artifacts/**"
               -  "com.unity.template-universal/Library/ArtifactDB"
               -  "com.unity.template-universal/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
 pack_universal_template_Win_fast-2019.4:
     name: Pack Universal Template Win fast-2019.4
     agent:
@@ -593,8 +604,6 @@ pack_universal_template_Win_fast-2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-universal
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_universal_template_Win_fast-2019.4
     artifacts:
         packages:
             paths:
@@ -626,7 +635,7 @@ pre_pack_universal_template_OSX_fast-2019.4:
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit
+      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:fast-2019.4:OSX
     artifacts:
@@ -635,6 +644,9 @@ pre_pack_universal_template_OSX_fast-2019.4:
               -  "com.unity.template-universal/Library/Artifacts/**"
               -  "com.unity.template-universal/Library/ArtifactDB"
               -  "com.unity.template-universal/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
 pack_universal_template_OSX_fast-2019.4:
     name: Pack Universal Template OSX fast-2019.4
     agent:
@@ -644,8 +656,6 @@ pack_universal_template_OSX_fast-2019.4:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-universal
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_universal_template_OSX_fast-2019.4
     artifacts:
         packages:
             paths:
@@ -715,7 +725,7 @@ pre_pack_universal_template_Win_CUSTOM-REVISION:
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit
+      -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
     artifacts:
@@ -724,6 +734,9 @@ pre_pack_universal_template_Win_CUSTOM-REVISION:
               -  "com.unity.template-universal/Library/Artifacts/**"
               -  "com.unity.template-universal/Library/ArtifactDB"
               -  "com.unity.template-universal/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
 pack_universal_template_Win_CUSTOM-REVISION:
     name: Pack Universal Template Win CUSTOM-REVISION
     agent:
@@ -733,8 +746,6 @@ pack_universal_template_Win_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-universal
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_universal_template_Win_CUSTOM-REVISION
     artifacts:
         packages:
             paths:
@@ -766,7 +777,7 @@ pre_pack_universal_template_OSX_CUSTOM-REVISION:
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit
+      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     artifacts:
@@ -775,6 +786,9 @@ pre_pack_universal_template_OSX_CUSTOM-REVISION:
               -  "com.unity.template-universal/Library/Artifacts/**"
               -  "com.unity.template-universal/Library/ArtifactDB"
               -  "com.unity.template-universal/Library/SourceAssetDB"
+        logs:
+            paths:
+              -  "Editor.log"
 pack_universal_template_OSX_CUSTOM-REVISION:
     name: Pack Universal Template OSX CUSTOM-REVISION
     agent:
@@ -784,8 +798,6 @@ pack_universal_template_OSX_CUSTOM-REVISION:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template pack --project-path com.unity.template-universal
-    dependencies:
-      -  .yamato/_templates.yml#pre_pack_universal_template_OSX_CUSTOM-REVISION
     artifacts:
         packages:
             paths:
