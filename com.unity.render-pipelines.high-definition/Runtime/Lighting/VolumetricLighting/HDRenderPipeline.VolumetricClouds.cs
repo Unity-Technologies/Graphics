@@ -406,7 +406,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._SunRight = Vector3.right;
                 cb._SunUp = Vector3.forward;
 
-                cb._SunLightColor = Vector3.one;
+                cb._SunLightColor = Vector3.zero;
                 cb._ExposureSunColor = 0;
             }
 
