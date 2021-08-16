@@ -145,6 +145,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int g_LayeredOffset = Shader.PropertyToID("g_LayeredOffset");
         public static readonly int g_vBigTileLightList = Shader.PropertyToID("g_vBigTileLightList");
         public static readonly int g_vLightListGlobal = Shader.PropertyToID("g_vLightListGlobal");
+        public static readonly int g_vLightListTile = Shader.PropertyToID("g_vLightListTile");
+        public static readonly int g_vLightListCluster = Shader.PropertyToID("g_vLightListCluster");
+
         public static readonly int g_logBaseBuffer = Shader.PropertyToID("g_logBaseBuffer");
         public static readonly int g_vBoundsBuffer = Shader.PropertyToID("g_vBoundsBuffer");
         public static readonly int _LightVolumeData = Shader.PropertyToID("_LightVolumeData");
@@ -467,6 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
 
         // Clouds
+        public static readonly int _VolumetricCloudsSourceDepth = Shader.PropertyToID("_VolumetricCloudsSourceDepth");
         public static readonly int _CloudsLightingTexture = Shader.PropertyToID("_CloudsLightingTexture");
         public static readonly int _CloudsLightingTextureRW = Shader.PropertyToID("_CloudsLightingTextureRW");
         public static readonly int _HalfResDepthBufferRW = Shader.PropertyToID("_HalfResDepthBufferRW");
@@ -983,6 +987,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Adaptive Probe Volume
         public static readonly int _APVResIndex                    = Shader.PropertyToID("_APVResIndex");
+        public static readonly int _APVResCellIndices              = Shader.PropertyToID("_APVResCellIndices");
         public static readonly int _APVResL0_L1Rx                  = Shader.PropertyToID("_APVResL0_L1Rx");
         public static readonly int _APVResL1G_L1Ry                 = Shader.PropertyToID("_APVResL1G_L1Ry");
         public static readonly int _APVResL1B_L1Rz                 = Shader.PropertyToID("_APVResL1B_L1Rz");
