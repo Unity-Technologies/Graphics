@@ -1,5 +1,7 @@
 using System;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.U2D;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -22,6 +24,13 @@ namespace UnityEngine.Rendering.Universal
         const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
 
+        public enum CastingSources
+        {
+            None,
+            ShapeEditor,
+            ShapeProvider
+        }
+
         [SerializeField] bool m_HasRenderer = false;
         [SerializeField] bool m_UseRendererSilhouette = true;
         [SerializeField] bool m_CastsShadows = true;
@@ -31,9 +40,18 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_ShapePathHash = 0;
         [SerializeField] Mesh m_Mesh;
         [SerializeField] int m_InstanceId;
+        [SerializeField] Component m_ShadowShapeProvider;
+        [SerializeField] float m_ShadowShapeContract;
+        [SerializeField] CastingSources m_ShadowCastingSource = CastingSources.ShapeEditor;
 
+
+        internal ShadowShapes2D      m_ShadowShapes;
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
+        internal NativeArray<Vector2> m_ShadowShapeVertices;
+        internal NativeArray<ShadowShapes2D.Edge> m_ShadowShapeEdges;
+
+
 
         [SerializeField]
         internal BoundingSphere m_ProjectedBoundingSphere;
@@ -128,7 +146,7 @@ namespace UnityEngine.Rendering.Universal
             return m_ApplyToSortingLayers != null ? Array.IndexOf(m_ApplyToSortingLayers, layer) >= 0 : false;
         }
 
-        private void Awake()
+       private void Awake()
         {
             if (m_ApplyToSortingLayers == null)
                 m_ApplyToSortingLayers = SetDefaultSortingLayers();
@@ -221,6 +239,29 @@ namespace UnityEngine.Rendering.Universal
                     ShadowCasterGroup2DManager.AddGroup(this);
                 else
                     ShadowCasterGroup2DManager.RemoveGroup(this);
+            }
+
+            if (m_ShadowShapes == null)
+            {
+                m_ShadowShapes = new ShadowShapes2D();
+                IShadowShapes2DProvider shadowShapeProvider = (IShadowShapes2DProvider)m_ShadowShapeProvider;
+                shadowShapeProvider?.SetShadowShape(m_ShadowShapes);
+            }
+
+            m_ShadowShapes.GetEdges(m_ShadowShapeContract, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
+            DrawDebugShadowShapes();
+        }
+
+        // Delete this code later...
+        void DrawDebugShadowShapes()
+        {
+            for(int i=0;i<m_ShadowShapeEdges.Length;i++)
+            {
+                ShadowShapes2D.Edge edge = m_ShadowShapeEdges[i];
+                Vector2 pt0 = transform.TransformPoint(m_ShadowShapeVertices[edge.v0]);
+                Vector2 pt1 = transform.TransformPoint(m_ShadowShapeVertices[edge.v1]);
+
+                Debug.DrawLine(pt0, pt1, Color.red);
             }
         }
 
