@@ -363,6 +363,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support undo of HDRP Global Settings asset assignation (case 13429870).
 - Fixed an inconsistency between perf mode and quality mode for sky lighting (case 1350590).
 - Fixed an inconsistency between perf mode and quality mode for material simplification in RTGI (case 1350590).
+- Fixed an issue that clamped the volumetric clouds offset value (case 1357318).
+- Fixed the volumetric clouds having no control over the vertical wind (case 1354920).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

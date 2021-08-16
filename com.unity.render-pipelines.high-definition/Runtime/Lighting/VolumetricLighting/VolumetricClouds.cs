@@ -379,16 +379,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter shapeScale = new MinFloatParameter(2.5f, 0.1f);
 
         /// <summary>
-        /// Controls the offset (world X-axis) applied when evaluating the larger noise passing through the cloud coverage. The values "0", "-1" and "1" will give the same result.
+        /// Controls the offset (world X-axis) applied when evaluating the larger noise passing through the cloud coverage.
         /// </summary>
-        [Tooltip("Controls the offset (world X-axis) applied when evaluating the larger noise passing through the cloud coverage. The values \"0\", \"-1\" and \"1\" will give the same result.")]
-        public ClampedFloatParameter shapeOffsetX = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
+        [Tooltip("Controls the offset (world X-axis) applied when evaluating the larger noise passing through the cloud coverage.")]
+        public FloatParameter shapeOffsetX = new FloatParameter(0.0f);
 
         /// <summary>
-        /// Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage. The values "0", "-1" and "1" will give the same result.
+        /// Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage.
         /// </summary>
-        [Tooltip("Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage. The values \"0\", \"-1\" and \"1\" will give the same result.")]
-        public ClampedFloatParameter shapeOffsetZ = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
+        [Tooltip("Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage.")]
+        public FloatParameter shapeOffsetZ = new FloatParameter(0.0f);
 
         /// <summary>
         /// Controls the smaller noise on the edge of the clouds. A higher value will erode clouds more significantly.
@@ -423,9 +423,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter erosionOcclusion = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         /// <summary>
-        /// Sets the global wind speed in kilometers per hour. This value can be relative to the Global Wind Speed defined in the Visual Environment.
+        /// Sets the global horizontal wind speed in kilometers per hour. This value can be relative to the Global Wind Speed defined in the Visual Environment.
         /// </summary>
-        [Tooltip("Sets the global wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.")]
+        [Tooltip("Sets the global horizontal wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.")]
         public WindSpeedParameter globalWindSpeed = new WindSpeedParameter();
 
         /// <summary>
@@ -461,6 +461,20 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the multiplier to the speed of the erosion cloud shapes.")]
         [AdditionalProperty]
         public ClampedFloatParameter erosionSpeedMultiplier = new ClampedFloatParameter(0.25f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Controls the vertical wind speed of the larger cloud shapes.
+        /// </summary>
+        [Tooltip("Controls the vertical wind speed of the larger cloud shapes.")]
+        [AdditionalProperty]
+        public FloatParameter verticalShapeWindSpeed = new FloatParameter(0.0f);
+
+        /// <summary>
+        /// Controls the vertical wind speed of the erosion cloud shapes.
+        /// </summary>
+        [Tooltip("Controls the vertical wind speed of the erosion cloud shapes.")]
+        [AdditionalProperty]
+        public FloatParameter verticalErosionWindSpeed = new FloatParameter(0.0f);
 
         /// <summary>
         /// Temporal accumulation increases the visual quality of clouds by decreasing the noise. A higher value will give you better quality but can create ghosting.
