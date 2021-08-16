@@ -14,7 +14,7 @@ namespace UnityEditor.Graphing
     {
         public SlotConfigurationException(string message)
             : base(message)
-        {}
+        { }
     }
 
     static class NodeUtils

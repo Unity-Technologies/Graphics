@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             static void Draw_Rendering_Advanced(SerializedHDCamera p, Editor owner)
-            {}
+            { }
 
             static void Drawer_Rendering_AllowDynamicResolution(SerializedHDCamera p, Editor owner)
             {

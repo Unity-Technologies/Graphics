@@ -5,14 +5,14 @@ using UnityEngine.Experimental.Rendering;
 
 class NestedOverrideCameraRendering : CustomPass
 {
-    public Camera       override1;
-    public Camera       override2;
+    public Camera override1;
+    public Camera override2;
 
-    public LayerMask    overrideMask1a;
-    public LayerMask    overrideMask1b;
-    public LayerMask    overrideMask2;
+    public LayerMask overrideMask1a;
+    public LayerMask overrideMask1b;
+    public LayerMask overrideMask2;
 
-    RTHandle            temp;
+    RTHandle temp;
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
