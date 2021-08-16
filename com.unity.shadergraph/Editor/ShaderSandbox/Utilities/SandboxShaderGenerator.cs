@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using UnityEditor.ShaderSandbox;
-using BlockProperty = UnityEditor.ShaderSandbox.BlockVariable;
+using UnityEditor.ShaderFoundry;
+using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
-namespace ShaderSandbox
+namespace UnityEditor.ShaderFoundry
 {
     internal class ShaderDescriptor
     {

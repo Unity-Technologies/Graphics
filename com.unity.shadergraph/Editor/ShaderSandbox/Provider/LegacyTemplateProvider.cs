@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 
-using UnityEditor.ShaderSandbox;
-using BlockInput = UnityEditor.ShaderSandbox.BlockVariable;
-using BlockOutput = UnityEditor.ShaderSandbox.BlockVariable;
-using BlockProperty = UnityEditor.ShaderSandbox.BlockVariable;
-using VariableNameLink = UnityEditor.ShaderSandbox.BlockDescriptor.VariableNameLink;
+using UnityEditor.ShaderFoundry;
+using BlockInput = UnityEditor.ShaderFoundry.BlockVariable;
+using BlockOutput = UnityEditor.ShaderFoundry.BlockVariable;
+using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
+using VariableNameLink = UnityEditor.ShaderFoundry.BlockDescriptor.VariableNameLink;
 
-namespace ShaderSandbox
+namespace UnityEditor.ShaderFoundry
 {
     internal class LegacyTemplateProvider : ITemplateProvider
     {
@@ -78,7 +78,7 @@ namespace ShaderSandbox
                 var passBuilder = new TemplatePass.Builder();
                 passBuilder.ReferenceName = legacyPassDescriptor.referenceName;
                 passBuilder.DisplayName = legacyPassDescriptor.displayName;
-                passBuilder.PassIdentifier = new UnityEditor.ShaderSandbox.PassIdentifier(subShaderIndex, subPassIndex);
+                passBuilder.PassIdentifier = new UnityEditor.ShaderFoundry.PassIdentifier(subShaderIndex, subPassIndex);
                 ++subPassIndex;
 
                 BuildLegacyTemplateEntryPoints(result, legacyPassDescriptor, passBuilder);
@@ -267,7 +267,7 @@ namespace ShaderSandbox
                 mainBlockBuilder.AddType(outType);
 
                 // Build the actual function
-                var fnBuilder = new UnityEditor.ShaderSandbox.ShaderFunction.Builder($"{blockName}Default", outType);
+                var fnBuilder = new UnityEditor.ShaderFoundry.ShaderFunction.Builder($"{blockName}Default", outType);
                 fnBuilder.AddInput(inType, "input");
 
                 fnBuilder.AddLine($"{outType.Name} output;");

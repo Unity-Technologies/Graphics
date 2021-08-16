@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using UnityEditor.ShaderSandbox;
+using UnityEditor.ShaderFoundry;
 
-namespace ShaderSandbox
+namespace UnityEditor.ShaderFoundry
 {
     /// Handles linking together the vertex and fragment stages for the legacy linker.
     /// This helps to separate out logic from the LegacyTemplateLinker and potentially make this piece unit testable.

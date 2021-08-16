@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
-using UnityEditor.ShaderSandbox;
+using UnityEditor.ShaderFoundry;
 
-namespace ShaderSandbox
+namespace UnityEditor.ShaderFoundry
 {
     /// Represents a mutable variable instance within blocks. A variable might have an owner (a variable in a sub-class instance).
     [DebuggerDisplay("{Type.Name} {ReferenceName}")]

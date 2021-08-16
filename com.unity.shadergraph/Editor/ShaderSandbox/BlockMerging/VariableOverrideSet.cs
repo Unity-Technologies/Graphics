@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace ShaderSandbox
+namespace UnityEditor.ShaderFoundry
 {
     [DebuggerDisplay("Name = {BuildDebugName()}")]
     internal class VariableNameOverride

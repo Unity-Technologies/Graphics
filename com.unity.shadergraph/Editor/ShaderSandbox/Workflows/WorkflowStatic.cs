@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderSandbox;
-using ShaderContainer = UnityEditor.ShaderSandbox.ShaderContainer;
-using ShaderType = UnityEditor.ShaderSandbox.ShaderType;
+using UnityEditor.ShaderFoundry;
+using ShaderContainer = UnityEditor.ShaderFoundry.ShaderContainer;
+using ShaderType = UnityEditor.ShaderFoundry.ShaderType;
 
-namespace ShaderSandbox
+namespace UnityEditor.ShaderFoundry
 {
-    // Temporary helper class to geerate teh default workflow registry
+    // Temporary helper class to generate the default workflow registry
     internal static class WorkflowStatic
     {
         static ShaderContainer DefaultContainer = new ShaderContainer();
@@ -28,7 +28,7 @@ namespace ShaderSandbox
                 if(target.displayName == "Universal")
                 {
                     var assetCollection = new AssetCollection();
-                    var provider = new ShaderSandbox.LegacyTemplateProvider(target, assetCollection);
+                    var provider = new LegacyTemplateProvider(target, assetCollection);
                     registry.RegisterProvider("Lit", provider, 0);
                 }
             }

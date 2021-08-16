@@ -1,5 +1,5 @@
 {
-    "name": "Unity.ShaderSandbox.Editor",
+    "name": "Unity.ShaderFoundry.Editor",
     "rootNamespace": "",
     "references": [
         "Unity.ShaderGraph.Registry",

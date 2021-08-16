@@ -5,10 +5,10 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.ShaderSandbox;
-using BlockProperty = UnityEditor.ShaderSandbox.BlockVariable;
+using UnityEditor.ShaderFoundry;
+using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
-namespace ShaderSandbox
+namespace UnityEditor.ShaderFoundry
 {
     internal class SandboxLegacyTemplateLinker : ITemplateLinker
     {
@@ -248,7 +248,7 @@ namespace ShaderSandbox
             }
         }
 
-        void WriteCommands(IEnumerable<UnityEditor.ShaderSandbox.CommandDescriptor> descriptors, ShaderStringBuilder builder)
+        void WriteCommands(IEnumerable<UnityEditor.ShaderFoundry.CommandDescriptor> descriptors, ShaderStringBuilder builder)
         {
             foreach (var commandDesc in descriptors)
             {
@@ -260,7 +260,7 @@ namespace ShaderSandbox
             }
         }
 
-        void WriteDefines(IEnumerable<UnityEditor.ShaderSandbox.DefineDescriptor> descriptors, ShaderStringBuilder builder)
+        void WriteDefines(IEnumerable<UnityEditor.ShaderFoundry.DefineDescriptor> descriptors, ShaderStringBuilder builder)
         {
             foreach (var defineDesc in descriptors)
             {
@@ -271,7 +271,7 @@ namespace ShaderSandbox
             }
         }
 
-        void WriteIncludes(IEnumerable<UnityEditor.ShaderSandbox.IncludeDescriptor> descriptors, ShaderStringBuilder builder)
+        void WriteIncludes(IEnumerable<UnityEditor.ShaderFoundry.IncludeDescriptor> descriptors, ShaderStringBuilder builder)
         {
             foreach (var includeDesc in descriptors)
             {
@@ -279,7 +279,7 @@ namespace ShaderSandbox
             }
         }
 
-        void WriteKeywords(IEnumerable<UnityEditor.ShaderSandbox.KeywordDescriptor> descriptors, ShaderStringBuilder builder)
+        void WriteKeywords(IEnumerable<UnityEditor.ShaderFoundry.KeywordDescriptor> descriptors, ShaderStringBuilder builder)
         {
             foreach (var keywordDesc in descriptors)
             {
@@ -298,7 +298,7 @@ namespace ShaderSandbox
             }
         }
 
-        void WritePragmas(IEnumerable<UnityEditor.ShaderSandbox.PragmaDescriptor> descriptors, ShaderStringBuilder builder)
+        void WritePragmas(IEnumerable<UnityEditor.ShaderFoundry.PragmaDescriptor> descriptors, ShaderStringBuilder builder)
         {
             foreach (var pragmaDesc in descriptors)
             {
@@ -333,9 +333,9 @@ namespace ShaderSandbox
             var shaderProperties = Enumerable.Empty<BlockProperty>();
             var shaderCommands = Enumerable.Empty<CommandDescriptor>();
             var shaderDefines = Enumerable.Empty<DefineDescriptor>();
-            var shaderIncludes = Enumerable.Empty<UnityEditor.ShaderSandbox.IncludeDescriptor>();
-            var shaderKeywords = Enumerable.Empty<UnityEditor.ShaderSandbox.KeywordDescriptor>();
-            var shaderPragmas = Enumerable.Empty<UnityEditor.ShaderSandbox.PragmaDescriptor>();
+            var shaderIncludes = Enumerable.Empty<UnityEditor.ShaderFoundry.IncludeDescriptor>();
+            var shaderKeywords = Enumerable.Empty<UnityEditor.ShaderFoundry.KeywordDescriptor>();
+            var shaderPragmas = Enumerable.Empty<UnityEditor.ShaderFoundry.PragmaDescriptor>();
             
             void ProcessBlockDescriptor(BlockDescriptor blockDescriptor, VisitedRegistry visitedRegistry, string entryPointOutputName, ref string code)
             {
