@@ -385,6 +385,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public FloatParameter shapeOffsetX = new FloatParameter(0.0f);
 
         /// <summary>
+        /// Controls the offset (world Y-axis) applied when evaluating the larger noise passing through the cloud coverage.
+        /// </summary>
+        [Tooltip("Controls the offset (world Y-axis) applied when evaluating the larger noise passing through the cloud coverage.")]
+        public FloatParameter shapeOffsetY = new FloatParameter(0.0f);
+
+        /// <summary>
         /// Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage.
         /// </summary>
         [Tooltip("Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage.")]
