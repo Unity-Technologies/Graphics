@@ -642,7 +642,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 while ((mipSize.x > 1) || (mipSize.y > 1));
 
-                textureSize = new Vector2Int((int)((float)hardwareTextureSize.x * textureScale.x), (int)((float)hardwareTextureSize.y * textureScale.y));
+                textureSize = new Vector2Int(
+                    (int)Mathf.Ceil((float)hardwareTextureSize.x * textureScale.x), (int)Mathf.Ceil((float)hardwareTextureSize.y * textureScale.y));
 
                 mipLevelCount = mipLevel + 1;
                 m_OffsetBufferWillNeedUpdate = true;

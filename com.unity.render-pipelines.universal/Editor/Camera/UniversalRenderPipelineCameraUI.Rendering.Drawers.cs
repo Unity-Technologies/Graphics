@@ -99,7 +99,8 @@ namespace UnityEditor.Rendering.Universal
                     ),
                 PostProcessingWarningDrawer,
                 CED.Group(
-                    DrawerRenderingClearDepth
+                    DrawerRenderingClearDepth,
+                    DrawerRenderingRenderShadows
                 )
             );
 
@@ -115,7 +116,6 @@ namespace UnityEditor.Rendering.Universal
                 BaseCameraRenderTypeDrawer,
                 OverlayCameraRenderTypeDrawer,
                 CED.Group(
-                    DrawerRenderingRenderShadows,
                     CameraUI.Rendering.Drawer_Rendering_CullingMask,
                     CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
                 )

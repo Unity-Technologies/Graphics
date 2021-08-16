@@ -276,7 +276,11 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
     DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
 
 #if defined(DECAL_SURFACE_GRADIENT) && !defined(SURFACE_GRADIENT)
-    decalSurfaceData.normalWS.xyz = SurfaceGradientResolveNormal(vtxNormal, decalSurfaceData.normalWS.xyz);
+    // The caller doesn't expect a surface gradient but our dbuffer has volume gradients accumulated in it.
+    // Make sure we return some sensible normal by first removing any colinear component (to the vertex normal)
+    // of the volume gradient before resolving it: ie convert the volume gradient to a proper surface gradient wrt vtxNormal:
+    float3 surfGrad = SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
+    decalSurfaceData.normalWS.xyz = SurfaceGradientResolveNormal(vtxNormal, surfGrad);
 #endif
 
     return decalSurfaceData;

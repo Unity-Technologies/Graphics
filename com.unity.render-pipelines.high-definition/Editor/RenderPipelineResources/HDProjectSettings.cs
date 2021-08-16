@@ -130,15 +130,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        HDProjectSettings()
-        {
-            // s_Instance.FillPresentPluginMaterialVersions(); <
-            // We can't call this here as the scriptable object will not be deserialized in yet
-        }
-
         //// We force the instance to be loaded/created and ready with valid values on assembly reload.
         [InitializeOnLoadMethod]
-        static void Reset()
+        static void InitializeFillPresentPluginMaterialVersionsOnLoad()
         {
             // Make sure the cached last seen plugin versions (capped to codebase versions) and their sum is valid
             // on assembly reload.

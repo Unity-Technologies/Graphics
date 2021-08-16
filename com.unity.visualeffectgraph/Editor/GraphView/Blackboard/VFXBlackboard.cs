@@ -147,6 +147,18 @@ namespace  UnityEditor.VFX.UI
             m_AddButton.SetEnabled(m_Controller != null);
         }
 
+        public VFXBlackboardCategory AddCategory(string initialName)
+        {
+            var newCategoryName = VFXParameterController.MakeNameUnique(initialName, new HashSet<string>(m_Categories.Keys));
+            var newCategory = new VFXBlackboardCategory { title = newCategoryName };
+            newCategory.SetSelectable();
+            this.m_Categories.Add(newCategoryName, newCategory);
+
+            this.Add(newCategory);
+
+            return newCategory;
+        }
+
         DropdownMenuAction.Status GetContextualMenuStatus()
         {
             //Use m_AddButton state which relies on locked & controller status

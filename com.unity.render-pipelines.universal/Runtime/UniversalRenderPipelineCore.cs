@@ -111,6 +111,12 @@ namespace UnityEngine.Rendering.Universal
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+
+        /// <summary>
+        /// Returns true if post processing passes require depth texture.
+        /// </summary>
+        public bool postProcessingRequiresDepthTexture;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
         public bool xrRendering;
 #endif
@@ -136,6 +142,8 @@ namespace UnityEngine.Rendering.Universal
         /// True if the camera rendering is for the preview window in the editor
         /// </summary>
         public bool isPreviewCamera => cameraType == CameraType.Preview;
+
+        internal bool isRenderPassSupportedCamera => (cameraType == CameraType.Game || cameraType == CameraType.Reflection);
 
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering

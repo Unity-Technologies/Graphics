@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderGraph
         public bool isHidden { get; set; }
         internal virtual bool ignoreCustomInterpolators => true;
         internal virtual int padCustomInterpolatorLimit => 4;
+        internal virtual bool prefersSpritePreview => false;
         public abstract bool IsActive();
         public abstract void Setup(ref TargetSetupContext context);
         public abstract void GetFields(ref TargetFieldContext context);
