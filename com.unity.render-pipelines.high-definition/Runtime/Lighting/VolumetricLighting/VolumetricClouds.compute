@@ -352,12 +352,12 @@ float3 AnimateCloudMapPosition(float3 positionPS)
 
 float3 AnimateBaseNoisePosition(float3 positionPS)
 {
-    return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _MediumWindSpeed;
+    return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _MediumWindSpeed + float3(0.0, _VerticalShapeWindDisplacement, 0.0);
 }
 
 float3 AnimateFineNoisePosition(float3 positionPS)
 {
-    return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _SmallWindSpeed;
+    return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _SmallWindSpeed + float3(0.0, _VerticalErosionWindDisplacement, 0.0);
 }
 
 void GetCloudCoverageData(float3 positionPS, out CloudCoverageData data)

@@ -408,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._SunRight = Vector3.right;
                 cb._SunUp = Vector3.forward;
 
-                cb._SunLightColor = Vector3.one;
+                cb._SunLightColor = Vector3.zero;
                 cb._ExposureSunColor = 0;
             }
 
@@ -417,6 +417,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // We apply a minus to see something moving in the right direction
             cb._WindDirection = new Vector2(-Mathf.Cos(theta), -Mathf.Sin(theta));
             cb._WindVector = hdCamera.volumetricCloudsAnimationData.cloudOffset;
+
+            cb._VerticalShapeWindDisplacement = hdCamera.volumetricCloudsAnimationData.verticalShapeOffset;
+            cb._VerticalErosionWindDisplacement = hdCamera.volumetricCloudsAnimationData.verticalErosionOffset;
 
             cb._LargeWindSpeed = settings.cloudMapSpeedMultiplier.value;
             cb._MediumWindSpeed = settings.shapeSpeedMultiplier.value;
@@ -616,8 +619,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // We apply a minus to see something moving in the right direction
                 Vector2 windVector = -windDirection * settings.globalWindSpeed.GetValue(hdCamera) * delaTime * 0.277778f;
 
-                // Animate the offset
+                // Animate the offsets
                 hdCamera.volumetricCloudsAnimationData.cloudOffset += windVector;
+                hdCamera.volumetricCloudsAnimationData.verticalShapeOffset += -settings.verticalShapeWindSpeed.value * delaTime * 0.277778f;
+                hdCamera.volumetricCloudsAnimationData.verticalErosionOffset += -settings.verticalErosionWindSpeed.value * delaTime * 0.277778f;
 
                 // Update the time
                 hdCamera.volumetricCloudsAnimationData.lastTime = hdCamera.time;

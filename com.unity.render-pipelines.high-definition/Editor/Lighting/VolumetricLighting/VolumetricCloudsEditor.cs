@@ -65,6 +65,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_CloudMapSpeedMultiplier;
         SerializedDataParameter m_ShapeSpeedMultiplier;
         SerializedDataParameter m_ErosionSpeedMultiplier;
+        SerializedDataParameter m_VerticalShapeWindSpeed;
+        SerializedDataParameter m_VerticalErosionWindSpeed;
         SerializedDataParameter m_AltitudeDistortion;
 
         // Quality
@@ -142,6 +144,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CloudMapSpeedMultiplier = Unpack(o.Find(x => x.cloudMapSpeedMultiplier));
             m_ShapeSpeedMultiplier = Unpack(o.Find(x => x.shapeSpeedMultiplier));
             m_ErosionSpeedMultiplier = Unpack(o.Find(x => x.erosionSpeedMultiplier));
+            m_VerticalShapeWindSpeed = Unpack(o.Find(x => x.verticalShapeWindSpeed));
+            m_VerticalErosionWindSpeed = Unpack(o.Find(x => x.verticalErosionWindSpeed));
             m_AltitudeDistortion = Unpack(o.Find(x => x.altitudeDistortion));
 
             // Quality
@@ -158,6 +162,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShadowOpacity = Unpack(o.Find(x => x.shadowOpacity));
             m_ShadowOpacityFallback = Unpack(o.Find(x => x.shadowOpacityFallback));
         }
+
+        static public readonly GUIContent k_GlobalHorizontalWindSpeedText = EditorGUIUtility.TrTextContent("Global Horizontal Wind Speed", "Sets the global horizontal wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
 
         public override void OnInspectorGUI()
         {
@@ -248,19 +254,26 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_CloudThickness);
 
             DrawHeader("Wind");
-            PropertyField(m_GlobalWindSpeed);
-            using (new IndentLevelScope())
+            PropertyField(m_GlobalWindSpeed, k_GlobalHorizontalWindSpeedText);
+            if (showAdditionalProperties)
             {
-                if (hasCloudMap)
-                    PropertyField(m_CloudMapSpeedMultiplier);
-                PropertyField(m_ShapeSpeedMultiplier);
-                PropertyField(m_ErosionSpeedMultiplier);
+                using (new IndentLevelScope())
+                {
+                    if (hasCloudMap)
+                        PropertyField(m_CloudMapSpeedMultiplier);
+                    PropertyField(m_ShapeSpeedMultiplier);
+                    PropertyField(m_ErosionSpeedMultiplier);
+                }
             }
             PropertyField(m_Orientation);
             using (new IndentLevelScope())
             {
                 PropertyField(m_AltitudeDistortion);
             }
+
+            PropertyField(m_VerticalShapeWindSpeed);
+            PropertyField(m_VerticalErosionWindSpeed);
+
             DrawHeader("Lighting");
             {
                 PropertyField(m_AmbientLightProbeDimmer);
