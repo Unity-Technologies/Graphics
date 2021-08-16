@@ -1,4 +1,4 @@
-# Contains patterns to match errors in the hoarder json suites.failureReasons in case of non-test related errors
+# Contains patterns to match in the execution log
 #
 # Conclusion can be either: success, failure, cancelled, inconclusive.
 # Conclusions of utr_log_patterns overwrite conclusions of execution_log_patterns.
@@ -6,6 +6,7 @@
 
 execution_log_patterns = [
     # Order: retry blocks must be matched first
+    # If either retry pattern is matched, the failures are further parsed to match any specific failure patterns written below
     {
         # This is matched if all retries fail.
         'pattern': r'(Failed after)(.+)(retries)',
@@ -21,7 +22,7 @@ execution_log_patterns = [
         'tags': ['retry'],
         'conclusion': 'success',
     },
-    # Order: patterns below can be in any order
+    # Order: patterns below can be in any order, and the script can match multiple patterns
     {
         'pattern': r'(command not found)',
         'tags': ['failure'],
@@ -60,6 +61,7 @@ execution_log_patterns = [
         'conclusion': 'failure',
     },
     # Order: this matches everything and must therefore be the last item in the list
+    # If any previous pattern has been matched, this one is skipped
     {
         'pattern': r'.+',
         'tags': ['unknown'],
