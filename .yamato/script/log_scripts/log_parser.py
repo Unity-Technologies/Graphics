@@ -24,13 +24,19 @@ def find_matching_patterns(patterns, failure_string):
     for pattern in patterns:
             match = re.search(pattern['pattern'], failure_string)
             if match:
+
+                # if a matching patterns was found, skip the general unknown pattern
                 if len(matches) > 0 and pattern['pattern'] == '.+':
                     continue
-                print('\nFound match for pattern: ',  pattern['pattern'])
+
+                print('Found match for pattern: ',  pattern['pattern'])
                 matches.append((pattern, match))
+
     tags = [pattern['tags'] for (pattern,_) in matches]
     flattened_tags = [tag for tag_list in tags for tag in tag_list]
+
     conclusion = get_ruling_conclusion([pattern['conclusion'] for (pattern,_) in matches])
+
     return matches, flattened_tags, conclusion
 
 def get_ruling_conclusion(conclusions):
@@ -49,10 +55,15 @@ def get_ruling_conclusion(conclusions):
 def read_test_results_json(log_file_path):
     '''Reads error messages from TestResults.json.'''
     logs = load_json(log_file_path)
-    failure_reasons = ' '.join(logs[-1].get('errors',['']))
+    error_logs = [log for log in logs if log.get('rootCause')]
+    if len(error_logs) > 0:
+        failure_reasons = ' '.join(error_logs[0].get('errors',['']))
 
-    _, tags, conclusion = find_matching_patterns(utr_log_patterns, failure_reasons)
-    return failure_reasons, tags, conclusion
+        _, tags, conclusion = find_matching_patterns(utr_log_patterns, failure_reasons)
+        return failure_reasons, tags, conclusion
+    else:
+        return [], [], ''
+
 
 def read_execution_log(log_file_path):
     '''Reads execution logs and returns:
@@ -60,7 +71,7 @@ def read_execution_log(log_file_path):
     job_succeeded: boolean indicating if the job succeeded
     '''
 
-    with open(log_file_path) as f:
+    with open(log_file_path, encoding='utf-8') as f:
         lines = [l.replace('\n','') for l in f.readlines() if l != '\n'] # remove empty lines and all newline indicators
 
     # all log line idx starting/ending a new command
@@ -90,12 +101,12 @@ def post_additional_results(cmd, local):
 
     data = {
         'title': cmd['title'],
-        'summary': cmd['summary'],
+        'summary': cmd['summary'][:500] + '...',
         'conclusion': cmd['conclusion'],
-        'tags' : cmd['tags']
+        'tags' : list(set(cmd['tags']))
     }
 
-    print('\nPosting: ', json.dumps(data,indent=2))
+    print('Posting: ', json.dumps(data,indent=2), '\n')
     if not local:
         server_url = os.environ['YAMATO_REPORTING_SERVER'] + '/result'
         headers = {'Content-Type':'application/json'}
@@ -116,6 +127,8 @@ def parse_failures(logs, local):
             print('Skipping: ', cmd)
             continue
 
+        print('\nReading: ', cmd)
+
         # check if the error matches any known pattern marked in log_patterns.py
         output = '\n'.join(logs[cmd]['output'])
         matching_patterns, tags, conclusion = find_matching_patterns(execution_log_patterns, output)
@@ -125,7 +138,7 @@ def parse_failures(logs, local):
         logs[cmd]['tags'] = tags
         logs[cmd]['summary'] = ''
         for pattern,match in matching_patterns: # update the command log with input from the matched pattern
-            logs[cmd]['summary'] +=  match.group(0)  if pattern['tags'][0] != 'unknown' else 'Unknown failure: check logs for more details.'
+            logs[cmd]['summary'] +=  match.group(0) + ' | ' if pattern['tags'][0] != 'unknown' else 'Unknown failure: check logs for more details. '
 
 
 
@@ -135,13 +148,13 @@ def parse_failures(logs, local):
             test_results_path = test_results_match[1] + test_results_match[2]
             # utr_failures, utr_tags, utr_conclusion = read_hoarder_log(os.path.join(test_results_path,'HoarderData.json'))
             utr_failures, utr_tags, utr_conclusion = read_test_results_json(os.path.join(test_results_path,'TestResults.json'))
-            logs[cmd]['summary'] += utr_failures
+            logs[cmd]['summary'] += utr_failures + ' | '
             logs[cmd]['tags'].extend(utr_tags)
             logs[cmd]['conclusion'] = utr_conclusion
 
         # post additional results to Yamato
         post_additional_results(logs[cmd], local)
-        return
+    return
 
 
 
@@ -164,14 +177,20 @@ def parse_args(argv):
 
 
 def main(argv):
-    args = parse_args(argv)
 
-    # read execution logs
-    execution_log_file = get_execution_log() if not args.execution_log else args.execution_log
-    logs, job_succeeded = read_execution_log(execution_log_file)
+    try:
+        args = parse_args(argv)
 
-    if not job_succeeded:
-        parse_failures(logs, args.local)
+        # read execution logs
+        execution_log_file = get_execution_log() if not args.execution_log else args.execution_log
+        logs, job_succeeded = read_execution_log(execution_log_file)
+
+        if not job_succeeded:
+            parse_failures(logs, args.local)
+
+    except Exception as e:
+        print('Failed to parse logs: ', str(e))
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))

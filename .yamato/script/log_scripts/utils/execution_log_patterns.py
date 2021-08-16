@@ -4,25 +4,28 @@
 # Conclusions of utr_log_patterns overwrite conclusions of execution_log_patterns.
 # Tags of utr_log_patterns get appended to tags of execution_log_patterns.
 
-# TODO: patterns for indvidual test cases, warnings
-# TODO: proper tags
 execution_log_patterns = [
+    # Order: retry blocks must be matched first
     {
-        # ?
-        # TODO:continue searching for pattern even if a failure pattern find before
+        # This is matched if all retries fail.
         'pattern': r'(Failed after)(.+)(retries)',
         'tags': ['retry'],
         'conclusion': 'failure',
     },
     {
-        'pattern': r'(Succeeded after)(.+)(retries)',
+        # This matches both successful/failed retries.
+        # Successful retries have no concrete pattern to match: the only difference with failed retry is that it does not contain 'Failed after n retries',
+        # but no working regex for matching multiline against a negative lookahead was found yet.
+        # Therefore, this pattern must come after failed retry pattern (python logic will handle recognizing this block as a successful retry)
+        'pattern': r'(Retrying)',
         'tags': ['retry'],
         'conclusion': 'success',
     },
+    # Order: patterns below can be in any order
     {
         'pattern': r'(command not found)',
         'tags': ['failure'],
-        'conclusion': 'failure', # TODO check if conclusion alters final status
+        'conclusion': 'failure',
     },
     {
         #  Or with newlines: r'(packet_write_poll: Connection to)((.|\n)+)(Operation not permitted)((.|\n)+)(lost connection)',
@@ -34,17 +37,17 @@ execution_log_patterns = [
         # Or: r'(LTO : error: L0496: error during communication with the LTO process: The pipe has been ended)'
         'pattern': r'(orbis-ld stderr :LLVM ERROR: out of memory)((.|\n)+)(LLVM ERROR: out of memory)',
         'tags': ['oom','instability'],
-        'conclusion': 'inconclusive',
+        'conclusion': 'failure',
     },
     {
         'pattern': r'(fatal: not a git repository (or any of the parent directories): .git)',
-        'tags': ['instability'],
-        'conclusion': 'inconclusive',
+        'tags': ['git'],
+        'conclusion': 'failure',
     },
     {
         'pattern': r'(LTO : error: L0492: LTOP internal error: bad allocation)',
-        'tags': ['instability'],
-        'conclusion': 'inconclusive',
+        'tags': ['instability', 'bad-allocation'],
+        'conclusion': 'failure',
     },
     {
         'pattern': r'Reason\(s\): One or more tests have failed.', # this one is unused right now since yamato does it automatically
@@ -56,8 +59,8 @@ execution_log_patterns = [
         'tags': ['non-test'],
         'conclusion': 'failure',
     },
+    # Order: this matches everything and must therefore be the last item in the list
     {
-        # this matches everything and must therefore be the last item in the list
         'pattern': r'.+',
         'tags': ['unknown'],
         'conclusion': 'failure',
