@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_CopyDepthMaterial;
 
         // TODO: remove CoyDepthPass RenderPass checks when depth resolve support is added to RenderPass (URP-1009)
-        internal bool m_UseRenderPassEnabled;
+        internal bool m_GlobalUseRenderPassEnabled;
 
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             AllocateRT = true;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
-            m_UseRenderPassEnabled = false;
+            m_GlobalUseRenderPassEnabled = false;
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cameraSamples = MssaSamples;
 
                 // When auto resolve is supported or multisampled texture is not supported, set camera samples to 1
-                if (SystemInfo.supportsMultisampleAutoResolve || SystemInfo.supportsMultisampledTextures == 0 || RenderingUtils.MultisampleDepthResolveSupported(m_UseRenderPassEnabled))
+                if (SystemInfo.supportsMultisampleAutoResolve || SystemInfo.supportsMultisampledTextures == 0 || RenderingUtils.MultisampleDepthResolveSupported(m_GlobalUseRenderPassEnabled))
                     cameraSamples = 1;
 
                 CameraData cameraData = renderingData.cameraData;
