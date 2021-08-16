@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         FilteringSettings m_FilteringSettings;
 
         // Constants
-        private const int k_DepthBufferBits = 0;
+        private const int k_DepthBufferBits = 32;
 
         /// <summary>
         /// Create the DepthOnlyPass
@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             this.depthAttachmentHandle = depthAttachmentHandle;
             baseDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
+            // Even though this texture is going to be a color texture, we need depth buffer to correctly render it (ZTest and all)
             baseDescriptor.depthBufferBits = k_DepthBufferBits;
 
             // Depth-Only pass don't use MSAA
@@ -70,8 +71,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
             {
                 useNativeRenderPass = true;
-                ConfigureTarget(new RenderTargetIdentifier(depthAttachmentHandle.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.R32_SFloat, desc.width, desc.height, 1, false);
-                ConfigureClear(ClearFlag.Color, Color.black);
+                var target = new RenderTargetIdentifier(depthAttachmentHandle.Identifier(), 0, CubemapFace.Unknown, -1);
+                ConfigureTarget(target, target, GraphicsFormat.R32_SFloat, desc.width, desc.height, 1);
+                ConfigureClear(ClearFlag.All, Color.black);
             }
         }
 
