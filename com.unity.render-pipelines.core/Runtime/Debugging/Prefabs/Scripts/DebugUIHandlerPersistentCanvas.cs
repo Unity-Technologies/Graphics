@@ -8,45 +8,68 @@ namespace UnityEngine.Rendering.UI
     {
         public RectTransform panel;
         public RectTransform valuePrefab;
-        public RectTransform valueTuplePrefab;
 
-        List<DebugUIHandlerWidget> m_Items = new List<DebugUIHandlerWidget>();
+        List<DebugUIHandlerValue> m_Items = new List<DebugUIHandlerValue>();
 
-        internal void Toggle(DebugUI.Widget widget)
+        internal void Toggle(DebugUI.Value widget, string displayName = null)
         {
-            int index = m_Items.FindIndex(x => x.GetWidget() == widget);
+            int existingItemIndex = m_Items.FindIndex(x => x.GetWidget() == widget);
 
             // Remove
-            if (index > -1)
+            if (existingItemIndex > -1)
             {
-                var item = m_Items[index];
+                var item = m_Items[existingItemIndex];
                 CoreUtils.Destroy(item.gameObject);
-                m_Items.RemoveAt(index);
+                m_Items.RemoveAt(existingItemIndex);
                 return;
             }
 
             // Add
-            GameObject go;
-            DebugUIHandlerWidget uiHandler;
+            var go = Instantiate(valuePrefab, panel, false).gameObject;
+            var uiHandler = go.GetComponent<DebugUIHandlerValue>();
+            uiHandler.SetWidget(widget);
+            uiHandler.nameLabel.text = string.IsNullOrEmpty(displayName) ? widget.displayName : displayName;
+            m_Items.Add(uiHandler);
+        }
 
-            if (widget is DebugUI.Value)
+        List<DebugUI.ValueTuple> m_ValueTupleWidgets = new();
+        internal void Toggle(DebugUI.ValueTuple widget, int? forceTupleIndex = null)
+        {
+            var val = m_ValueTupleWidgets.Find(x => x == widget);
+            int tupleIndex = val?.pinnedElementIndex ?? -1;
+
+            // Clear old widget
+            if (val != null)
             {
-                go = Instantiate(valuePrefab, panel, false).gameObject;
-                uiHandler = go.GetComponent<DebugUIHandlerValue>();
+                m_ValueTupleWidgets.Remove(val);
+                Toggle(widget.values[tupleIndex]);
             }
-            else if (widget is DebugUI.ValueTuple)
+
+            if (forceTupleIndex != null)
+                tupleIndex = forceTupleIndex.Value;
+
+            // Enable next widget (unless at the last index)
+            if (tupleIndex + 1 < widget.numElements)
             {
-                go = Instantiate(valueTuplePrefab, panel, false).gameObject;
-                uiHandler = go.GetComponent<DebugUIHandlerValueTuplePersistent>();
+                widget.pinnedElementIndex = tupleIndex + 1;
+                // Add column to name
+                string displayName = widget.displayName;
+                if (widget.parent is DebugUI.Foldout)
+                {
+                    var columnLabels = (widget.parent as DebugUI.Foldout).columnLabels;
+                    if (columnLabels != null && widget.pinnedElementIndex < columnLabels.Length)
+                    {
+                        displayName += $" ({columnLabels[widget.pinnedElementIndex]})";
+                    }
+                }
+
+                Toggle(widget.values[widget.pinnedElementIndex], displayName);
+                m_ValueTupleWidgets.Add(widget);
             }
             else
             {
-                throw new NotSupportedException("Unsupported widget type");
+                widget.pinnedElementIndex = -1;
             }
-
-            go.name = widget.displayName;
-            uiHandler.SetWidget(widget);
-            m_Items.Add(uiHandler);
         }
 
         internal bool IsEmpty()

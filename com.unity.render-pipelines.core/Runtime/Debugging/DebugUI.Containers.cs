@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace UnityEngine.Rendering
 {
@@ -54,6 +55,10 @@ namespace UnityEngine.Rendering
                 this.children = children;
                 children.ItemAdded += OnItemAdded;
                 children.ItemRemoved += OnItemRemoved;
+
+                // Call OnAdded callback for already existing items to ensure their panel & parent are set
+                for (int i = 0; i < this.children.Count; i++)
+                    OnItemAdded(this.children, new ListChangedEventArgs<Widget>(i, this.children[i]));
             }
 
             internal override void GenerateQueryPath()

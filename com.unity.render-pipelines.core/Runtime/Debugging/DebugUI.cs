@@ -296,6 +296,11 @@ namespace UnityEngine.Rendering
             /// Refresh rate for the read-only values (runtime only)
             /// </summary>
             public float refreshRate = 0.1f;
+
+            /// <summary>
+            /// The currently pinned element index, or -1 if none are pinned.
+            /// </summary>
+            public int pinnedElementIndex = -1;
         }
     }
 }

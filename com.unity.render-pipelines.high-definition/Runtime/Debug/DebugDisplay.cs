@@ -963,68 +963,68 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     new DebugUI.ValueTuple
                     {
-                        displayName = "Frame Rate (fps)",
+                        displayName = "Frame Rate, fps",
                         refreshRate = 1f / 5f,
                         values = new[]
                         {
-                            new DebugUI.Value { displayName = "FPS (Avg)", formatString = "F2", getter = () => frameTimingData.SampleAverage.FramesPerSecond },
-                            new DebugUI.Value { displayName = "FPS (Min)", formatString = "F2", getter = () => frameTimingData.SampleMin.FramesPerSecond },
-                            new DebugUI.Value { displayName = "FPS (Max)", formatString = "F2", getter = () => frameTimingData.SampleMax.FramesPerSecond },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleAverage.FramesPerSecond },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleMin.FramesPerSecond },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleMax.FramesPerSecond },
                         }
                     },
                     new DebugUI.ValueTuple
                     {
-                        displayName = "Frame Time (ms)",
+                        displayName = "Frame Time, ms",
                         refreshRate = 1f / 5f,
                         values = new[]
                         {
-                            new DebugUI.Value { displayName = "Frame Time (Avg)", formatString = "F2", getter = () => frameTimingData.SampleAverage.FullFrameTime },
-                            new DebugUI.Value { displayName = "Frame Time (Min)", formatString = "F2", getter = () => frameTimingData.SampleMin.FullFrameTime },
-                            new DebugUI.Value { displayName = "Frame Time (Max)", formatString = "F2", getter = () => frameTimingData.SampleMax.FullFrameTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleAverage.FullFrameTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleMin.FullFrameTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleMax.FullFrameTime },
                         }
                     },
                     new DebugUI.ValueTuple
                     {
-                        displayName = "CPU Main Thread Frame (ms)",
+                        displayName = "CPU Main Thread Frame, ms",
                         refreshRate = 1f / 5f,
                         values = new[]
                         {
-                            new DebugUI.Value { displayName = "Main Thread (Avg)", formatString = "F2", getter = () => frameTimingData.SampleAverage.MainThreadCPUFrameTime },
-                            new DebugUI.Value { displayName = "Main Thread (Min)", formatString = "F2", getter = () => frameTimingData.SampleMin.MainThreadCPUFrameTime },
-                            new DebugUI.Value { displayName = "Main Thread (Max)", formatString = "F2", getter = () => frameTimingData.SampleMax.MainThreadCPUFrameTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleAverage.MainThreadCPUFrameTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleMin.MainThreadCPUFrameTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleMax.MainThreadCPUFrameTime },
                         }
                     },
                     new DebugUI.ValueTuple
                     {
-                        displayName = "CPU Render Thread Frame (ms)",
+                        displayName = "CPU Render Thread Frame, ms",
                         refreshRate = 1f / 5f,
                         values = new[]
                         {
-                            new DebugUI.Value { displayName = "Render Thread (Avg)", formatString = "F2", getter = () => frameTimingData.SampleAverage.RenderThreadCPUFrameTime },
-                            new DebugUI.Value { displayName = "Render Thread (Min)", formatString = "F2", getter = () => frameTimingData.SampleMin.RenderThreadCPUFrameTime },
-                            new DebugUI.Value { displayName = "Render Thread (Max)", formatString = "F2", getter = () => frameTimingData.SampleMax.RenderThreadCPUFrameTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleAverage.RenderThreadCPUFrameTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleMin.RenderThreadCPUFrameTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleMax.RenderThreadCPUFrameTime },
                         }
                     },
                     new DebugUI.ValueTuple
                     {
-                        displayName = "CPU Main Thread Present Wait (ms)",
+                        displayName = "CPU Present Wait, ms",
                         refreshRate = 1f / 5f,
                         values = new[]
                         {
-                            new DebugUI.Value { displayName = "Present Wait (Avg)", formatString = "F2", getter = () => frameTimingData.SampleAverage.MainThreadCPUPresentWaitTime },
-                            new DebugUI.Value { displayName = "Present Wait (Min)", formatString = "F2", getter = () => frameTimingData.SampleMin.MainThreadCPUPresentWaitTime },
-                            new DebugUI.Value { displayName = "Present Wait (Max)", formatString = "F2", getter = () => frameTimingData.SampleMax.MainThreadCPUPresentWaitTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleAverage.MainThreadCPUPresentWaitTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleMin.MainThreadCPUPresentWaitTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleMax.MainThreadCPUPresentWaitTime },
                         }
                     },
                     new DebugUI.ValueTuple
                     {
-                        displayName = "GPU Frame (ms)",
+                        displayName = "GPU Frame, ms",
                         refreshRate = 1f / 5f,
                         values = new[]
                         {
-                            new DebugUI.Value { displayName = "GPU Frame (Avg)", formatString = "F2", getter = () => frameTimingData.SampleAverage.GPUFrameTime },
-                            new DebugUI.Value { displayName = "GPU Frame (Min)", formatString = "F2", getter = () => frameTimingData.SampleMin.GPUFrameTime },
-                            new DebugUI.Value { displayName = "GPU Frame (Max)", formatString = "F2", getter = () => frameTimingData.SampleMax.GPUFrameTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleAverage.GPUFrameTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleMin.GPUFrameTime },
+                            new DebugUI.Value { formatString = "F2", getter = () => frameTimingData.SampleMax.GPUFrameTime },
                         }
                     }
                 }

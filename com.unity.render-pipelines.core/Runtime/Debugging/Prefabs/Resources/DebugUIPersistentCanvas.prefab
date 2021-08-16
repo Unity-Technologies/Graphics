@@ -234,5 +234,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   panel: {fileID: 224499400523491650}
-  valuePrefab: {fileID: 224720214277421396, guid: dc0f88987826e6e48b1fe9c7c2b53a53, type: 3}
-  valueTuplePrefab: {fileID: 224720214277421396, guid: 9af68442dea3e3d438220933fab5a336, type: 3}
+  valuePrefab: {fileID: 224720214277421396, guid: 8778e6b26b51c6a4999b94d7cacd8b5d, type: 3}
