@@ -75,6 +75,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix Soft Particle depth computation when using an orthographic camera [Case 1309961](https://issuetracker.unity3d.com/product/unity/issues/guid/1309961)
 - When adding a new node/operator in the graph editor and using the search field, the search results are sorted in a smarter way
 - Unexpected operator and block removal during migration [Case 1344645](https://issuetracker.unity3d.com/product/unity/issues/guid/1344645/)
+- Inspector group headers now have a better indentation and alignment
+- Zoom and warning icons were blurry in the "Play Controls" and "Visual Effect Model" scene overlays
+- Random crash using subgraph [Case 1345426](https://issuetracker.unity3d.com/product/unity/issues/guid/1345426/)
 - Fixed Collision with Depth Buffer when using Orthographic camera [Case 1309958](https://issuetracker.unity3d.com/product/unity/issues/guid/1309958/)
 - Fix culling of point output [Case 1225764](https://issuetracker.unity3d.com/product/unity/issues/guid/1225764/)
 - Compilation issue when normal is used in shadergraph for opacity with unlit output

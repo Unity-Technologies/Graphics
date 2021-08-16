@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering
 {
@@ -8,13 +9,20 @@ namespace UnityEngine.Rendering
     [CoreRPHelpURL("Volumes", "com.unity.render-pipelines.high-definition")]
     [ExecuteAlways]
     [AddComponentMenu("Miscellaneous/Volume")]
-    public class Volume : MonoBehaviour
+    public class Volume : MonoBehaviour, IVolume
     {
+        [SerializeField, FormerlySerializedAs("isGlobal")]
+        private bool m_IsGlobal = true;
+
         /// <summary>
         /// Specifies whether to apply the Volume to the entire Scene or not.
         /// </summary>
-        [Tooltip("When enabled, HDRP applies this Volume to the entire Scene.")]
-        public bool isGlobal = true;
+        [Tooltip("When enabled, the Volume is applied to the entire Scene.")]
+        public bool isGlobal
+        {
+            get => m_IsGlobal;
+            set => m_IsGlobal = value;
+        }
 
         /// <summary>
         /// The Volume priority in the stack. A higher value means higher priority. This supports negative values.
@@ -82,6 +90,13 @@ namespace UnityEngine.Rendering
             set => m_InternalProfile = value;
         }
 
+        internal List<Collider> m_Colliders = new List<Collider>();
+
+        /// <summary>
+        /// The colliders of the volume if <see cref="isGlobal"/> is false
+        /// </summary>
+        public List<Collider> colliders => m_Colliders;
+
         internal VolumeProfile profileRef => m_InternalProfile == null ? sharedProfile : m_InternalProfile;
 
         /// <summary>
@@ -101,6 +116,8 @@ namespace UnityEngine.Rendering
         {
             m_PreviousLayer = gameObject.layer;
             VolumeManager.instance.Register(this, m_PreviousLayer);
+
+            GetComponents(m_Colliders);
         }
 
         void OnDisable()
@@ -125,6 +142,11 @@ namespace UnityEngine.Rendering
                 VolumeManager.instance.SetLayerDirty(gameObject.layer);
                 m_PreviousPriority = priority;
             }
+
+#if UNITY_EDITOR
+            // In the editor, we refresh the list of colliders at every frame because it's frequent to add/remove them
+            GetComponents(m_Colliders);
+#endif
         }
 
         internal void UpdateLayer()
@@ -136,68 +158,5 @@ namespace UnityEngine.Rendering
                 m_PreviousLayer = layer;
             }
         }
-
-#if UNITY_EDITOR
-        // TODO: Look into a better volume previsualization system
-        List<Collider> m_TempColliders;
-
-        void OnDrawGizmos()
-        {
-            if (m_TempColliders == null)
-                m_TempColliders = new List<Collider>();
-
-            var colliders = m_TempColliders;
-            GetComponents(colliders);
-
-            if (isGlobal || colliders == null)
-                return;
-
-            var scale = transform.lossyScale;
-            var invScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
-            Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, scale);
-            Gizmos.color = CoreRenderPipelinePreferences.volumeGizmoColor;
-
-            // Draw a separate gizmo for each collider
-            foreach (var collider in colliders)
-            {
-                if (!collider.enabled)
-                    continue;
-
-                // We'll just use scaling as an approximation for volume skin. It's far from being
-                // correct (and is completely wrong in some cases). Ultimately we'd use a distance
-                // field or at least a tesselate + push modifier on the collider's mesh to get a
-                // better approximation, but the current Gizmo system is a bit limited and because
-                // everything is dynamic in Unity and can be changed at anytime, it's hard to keep
-                // track of changes in an elegant way (which we'd need to implement a nice cache
-                // system for generated volume meshes).
-                switch (collider)
-                {
-                    case BoxCollider c:
-                        Gizmos.DrawCube(c.center, c.size);
-                        break;
-                    case SphereCollider c:
-                        // For sphere the only scale that is used is the transform.x
-                        Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one * scale.x);
-                        Gizmos.DrawSphere(c.center, c.radius);
-                        break;
-                    case MeshCollider c:
-                        // Only convex mesh m_Colliders are allowed
-                        if (!c.convex)
-                            c.convex = true;
-
-                        // Mesh pivot should be centered or this won't work
-                        Gizmos.DrawMesh(c.sharedMesh);
-                        break;
-                    default:
-                        // Nothing for capsule (DrawCapsule isn't exposed in Gizmo), terrain, wheel and
-                        // other m_Colliders...
-                        break;
-                }
-            }
-
-            colliders.Clear();
-        }
-
-#endif
     }
 }

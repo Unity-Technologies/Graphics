@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph
         public IsFrontFaceNode()
         {
             name = "Is Front Face";
+            synonyms = new string[] { "face", "side" };
             UpdateNodeAfterDeserialization();
         }
 
