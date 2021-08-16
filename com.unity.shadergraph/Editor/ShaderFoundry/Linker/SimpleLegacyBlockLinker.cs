@@ -203,10 +203,10 @@ namespace UnityEditor.ShaderFoundry
             foreach (var output in buildingContext.Outputs)
                 allowedOutputs.Add(output.ReferenceName);
 
-            var inputOverrides = new Dictionary<string, BlockDescriptor.VariableNameLink>();
+            var inputOverrides = new Dictionary<string, BlockVariableNameOverride>();
             foreach (var varOverride in blockDescriptor.InputOverrides)
                 inputOverrides[varOverride.DestinationName] = varOverride;
-            var outputOverrides = new Dictionary<string, BlockDescriptor.VariableNameLink>();
+            var outputOverrides = new Dictionary<string, BlockVariableNameOverride>();
             foreach (var varOverride in blockDescriptor.OutputOverrides)
                 outputOverrides[varOverride.SourceName] = varOverride;
 

@@ -240,25 +240,23 @@ namespace UnityEditor.ShaderFoundry
             // Create the input/output name overrides. These are used later to know how the sub-items were mapped originally
             foreach(var varOverride in mergedInputType.NameOverrides.Overrides)
             {
-                var link = new BlockDescriptor.VariableNameLink
-                {
-                    SourceNamespace = varOverride.Override.Namespace,
-                    SourceName = varOverride.Override.Name,
-                    SourceSwizzle = varOverride.Override.Swizzle,
-                    DestinationName = varOverride.Name,
-                };
-                blockDescBuilder.AddInputOverride(link);
+                var overrideBuilder = new BlockVariableNameOverride.Builder();
+                overrideBuilder.SourceNamespace = varOverride.Override.Namespace;
+                overrideBuilder.SourceName = varOverride.Override.Name;
+                overrideBuilder.SourceSwizzle = varOverride.Override.Swizzle;
+                overrideBuilder.DestinationName = varOverride.Name;
+                blockDescBuilder.AddInputOverride(overrideBuilder.Build(Container));
             }
             foreach (var varOverride in mergedOutputType.NameOverrides.Overrides)
             {
-                var link = new BlockDescriptor.VariableNameLink
-                {
-                    DestinationNamespace = varOverride.Override.Namespace,
-                    DestinationName = varOverride.Override.Name,
-                    DestinationSwizzle = varOverride.Override.Swizzle,
-                    SourceName = varOverride.Name,
-                };
-                blockDescBuilder.AddOutputOverride(link);
+                var overrideBuilder = new BlockVariableNameOverride.Builder();
+
+                overrideBuilder.DestinationNamespace = varOverride.Override.Namespace;
+                overrideBuilder.DestinationName = varOverride.Override.Name;
+                overrideBuilder.DestinationSwizzle = varOverride.Override.Swizzle;
+                overrideBuilder.SourceName = varOverride.Name;
+                
+                blockDescBuilder.AddOutputOverride(overrideBuilder.Build(Container));
             }
 
             return blockDescBuilder.Build(Container);
