@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Position";
             precision = Precision.Single;
+            synonyms = new string[] { "location" };
             UpdateNodeAfterDeserialization();
         }
 

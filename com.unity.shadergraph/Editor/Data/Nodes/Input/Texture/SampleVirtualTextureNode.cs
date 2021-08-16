@@ -185,6 +185,7 @@ namespace UnityEditor.ShaderGraph
         public SampleVirtualTextureNode(bool isLod = false, bool noResolve = false)
         {
             name = "Sample Virtual Texture";
+            synonyms = new string[] { "buffer" };
             UpdateNodeAfterDeserialization();
         }
 
