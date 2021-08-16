@@ -239,6 +239,9 @@ namespace ShaderSandbox
 
         internal static string ToString(int value)
         {
+            if (value == 0)
+                return null;
+
             string result = "";
             for(var i = 0; i < 4; ++i)
             {
