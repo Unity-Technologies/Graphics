@@ -465,6 +465,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed upscaling issue that is exagerated by DLSS (case 1347250).
 - Improvements to the RTGI denoising.
 - Remove Bilinear and Lanczos upscale filter.
+- Make some volumetric clouds properties additional to reduce the number default parameters (case 1357926).
 
 ## [11.0.0] - 2020-10-21
 

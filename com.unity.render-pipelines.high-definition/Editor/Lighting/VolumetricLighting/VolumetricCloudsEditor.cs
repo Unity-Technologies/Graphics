@@ -247,18 +247,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
             DrawHeader("Wind");
             PropertyField(m_GlobalWindSpeed);
-            using (new IndentLevelScope())
+            if (showAdditionalProperties)
             {
-                if (hasCloudMap)
-                    PropertyField(m_CloudMapSpeedMultiplier);
-                PropertyField(m_ShapeSpeedMultiplier);
-                PropertyField(m_ErosionSpeedMultiplier);
+                using (new IndentLevelScope())
+                {
+                    if (hasCloudMap)
+                        PropertyField(m_CloudMapSpeedMultiplier);
+                    PropertyField(m_ShapeSpeedMultiplier);
+                    PropertyField(m_ErosionSpeedMultiplier);
+                }
             }
             PropertyField(m_Orientation);
             using (new IndentLevelScope())
             {
                 PropertyField(m_AltitudeDistortion);
             }
+
             DrawHeader("Lighting");
             {
                 PropertyField(m_AmbientLightProbeDimmer);
