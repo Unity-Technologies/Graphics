@@ -22,7 +22,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ConvertObliqueDepthKernel;
         int m_CloudDownscaleDepthKernel;
         int m_CloudRenderKernel;
-        int m_CloudReprojectKernel;
+        int m_ReprojectCloudsKernel;
+        int m_ReprojectCloudsRejectionKernel;
         int m_PreUpscaleCloudsKernel;
         int m_UpscaleAndCombineCloudsKernelColorCopy;
         int m_UpscaleAndCombineCloudsKernelColorRW;
@@ -93,7 +94,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ConvertObliqueDepthKernel = volumetricCloudsCS.FindKernel("ConvertObliqueDepth");
             m_CloudDownscaleDepthKernel = volumetricCloudsCS.FindKernel("DownscaleDepth");
             m_CloudRenderKernel = volumetricCloudsCS.FindKernel("RenderClouds");
-            m_CloudReprojectKernel = volumetricCloudsCS.FindKernel("ReprojectClouds");
+            m_ReprojectCloudsKernel = volumetricCloudsCS.FindKernel("ReprojectClouds");
+            m_ReprojectCloudsRejectionKernel = volumetricCloudsCS.FindKernel("ReprojectCloudsRejection");
             m_PreUpscaleCloudsKernel = volumetricCloudsCS.FindKernel("PreUpscaleClouds");
             m_UpscaleAndCombineCloudsKernelColorCopy = volumetricCloudsCS.FindKernel("UpscaleAndCombineClouds_ColorCopy");
             m_UpscaleAndCombineCloudsKernelColorRW = volumetricCloudsCS.FindKernel("UpscaleAndCombineClouds_ColorRW");

@@ -120,6 +120,7 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
 | **Temporal Accumulation Factor** | The amount of temporal accumulation to apply to the clouds. Temporal accumulation increases the visual quality of clouds by decreasing the noise. A higher value produces better quality clouds, but can create [ghosting](Glossary.md#ghosting). |
+| **Ghosting Reduction**           | When you enable this property, HDRP removes the ghosting caused by temporal accumulation. This effect may cause a flickering effect when the **Temporal Accumulation Factor** value is low. |
 | **Num Primary Steps**            | The number of steps to use to evaluate the clouds' transmittance. Higher values linearly increase the resource intensity of the effect. |
 | **Num Light Steps**              | The number of steps to use to evaluate the clouds' lighting. Higher values exponent increase the resource intensity of the effect. |
 
