@@ -310,6 +310,7 @@ namespace UnityEngine.Rendering
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, LensFlareCommonSRP lensFlares, Camera cam, float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
             bool isCameraRelative,
+            Vector3 cameraPositionWS,
             Matrix4x4 viewProjMatrix,
             Rendering.CommandBuffer cmd,
             Rendering.RenderTargetIdentifier colorBuffer,
@@ -379,7 +380,7 @@ namespace UnityEngine.Rendering
                     positionWS = comp.transform.position;
                 }
 
-                viewportPos = WorldToViewport(isCameraRelative, viewProjMatrix, cam.transform.position, positionWS);
+                viewportPos = WorldToViewport(isCameraRelative, viewProjMatrix, cameraPositionWS, positionWS);
 
                 if (usePanini && cam == Camera.main)
                 {
@@ -398,7 +399,7 @@ namespace UnityEngine.Rendering
 
                 Vector4 modulationByColor = Vector4.one;
                 Vector4 modulationAttenuation = Vector4.one;
-                Vector3 diffToObject = positionWS - cam.transform.position;
+                Vector3 diffToObject = positionWS - cameraPositionWS;
                 float distToObject = diffToObject.magnitude;
                 float coefDistSample = distToObject / comp.maxAttenuationDistance;
                 float coefScaleSample = distToObject / comp.maxAttenuationScale;
@@ -415,10 +416,10 @@ namespace UnityEngine.Rendering
 
                 globalColorModulation *= distanceAttenuation;
 
-                Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
-                Vector3 screenPosZ = WorldToViewport(isCameraRelative, viewProjMatrix, cam.transform.position, positionWS + dir * comp.occlusionOffset);
+                Vector3 dir = (cameraPositionWS - comp.transform.position).normalized;
+                Vector3 screenPosZ = WorldToViewport(isCameraRelative, viewProjMatrix, cameraPositionWS, positionWS + dir * comp.occlusionOffset);
                 Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)viewportPos;
-                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)WorldToViewport(isCameraRelative, viewProjMatrix, cam.transform.position, positionWS + cam.transform.up * comp.occlusionRadius);
+                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)WorldToViewport(isCameraRelative, viewProjMatrix, cameraPositionWS, positionWS + cam.transform.up * comp.occlusionRadius);
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
                 cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, actualHeight / actualWidth));
 

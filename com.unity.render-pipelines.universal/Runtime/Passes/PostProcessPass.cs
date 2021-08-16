@@ -924,6 +924,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)Screen.width, (float)Screen.height,
                 usePanini, paniniDistance, paniniCropToFit,
                 true,
+                camera.transform.position,
                 gpuVP,
                 cmd, source,
                 GetLensFlareLightAttenuation,
