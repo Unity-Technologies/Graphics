@@ -9,6 +9,27 @@ import re
 from utils.execution_log_patterns import execution_log_patterns
 from utils.utr_log_patterns import utr_log_patterns
 
+'''
+This script runs for extended Yamato reporting. It
+1. Parses the execution log and for each command and its output (except successful non-retries and failed tests)
+    - finds matching patterns from execution_log_patterns
+    - sends to Yamato extended reporting server
+        title: command itself
+        summary: substring(s) of the command output matching the specified pattern(s)
+        tags: all (distinct) tags beloging to the matched pattern(s)
+        conclusion: failure/inconclusive/cancelled/success, which applies to the parsed command (not the whole job status)
+2. In case non-test related failure from UTR is matched, the script also reads TestResults.json and
+    - finds matching patterns from utr_log_patterns
+    - extends the data sent to Yamato extended reporting server in the previous point, by
+        extending the summary with matched substrings from the utr pattern and by
+        appending the utr pattern tags to the list of previous tags
+
+By default, the script requires no parameters and uses default execution log location in Yamato.
+To run it locally, specify
+    --local
+    --execution-log "<path to execution log file>"
+'''
+
 def load_json(file_path):
     with open(file_path) as f:
         json_data = f.readlines()
@@ -17,52 +38,14 @@ def load_json(file_path):
         return json.loads(' '.join(json_data))
         #return json.load(f)
 
-def find_matching_patterns(patterns, failure_string):
-    '''Finds a matching pattern from a specified list of pattern objects for a specified failure string (e.g. command output).
-    Returns the matching pattern object, and the matched substring.'''
-    matches = []
-    for pattern in patterns:
-            match = re.search(pattern['pattern'], failure_string)
-            if match:
+def get_execution_log():
+    '''Returns the path to execution log file.'''
+    path_to_execution_log = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())),'Execution-*.log')
+    print('Searching for logs in: ', path_to_execution_log)
 
-                # if a matching patterns was found, skip the general unknown pattern
-                if len(matches) > 0 and pattern['pattern'] == '.+':
-                    continue
-
-                print('Found match for pattern: ',  pattern['pattern'])
-                matches.append((pattern, match))
-
-    tags = [pattern['tags'] for (pattern,_) in matches]
-    flattened_tags = [tag for tag_list in tags for tag in tag_list]
-
-    conclusion = get_ruling_conclusion([pattern['conclusion'] for (pattern,_) in matches])
-
-    return matches, flattened_tags, conclusion
-
-def get_ruling_conclusion(conclusions):
-    '''Pick a single conclusion out of several matches in the order of severity'''
-    if 'failure' in conclusions:
-        return 'failure'
-    elif 'inconclusive' in conclusions:
-        return 'inconclusive'
-    elif 'cancelled' in conclusions:
-        return 'cancelled'
-    elif 'success' in conclusions:
-        return 'success'
-    else:
-        return 'failure'
-
-def read_test_results_json(log_file_path):
-    '''Reads error messages from TestResults.json.'''
-    logs = load_json(log_file_path)
-    error_logs = [log for log in logs if log.get('rootCause')]
-    if len(error_logs) > 0:
-        failure_reasons = ' '.join(error_logs[0].get('errors',['']))
-
-        _, tags, conclusion = find_matching_patterns(utr_log_patterns, failure_reasons)
-        return failure_reasons, tags, conclusion
-    else:
-        return [], [], ''
+    execution_log_file = glob.glob(path_to_execution_log)[0]
+    print('Reading log: ', execution_log_file)
+    return execution_log_file
 
 
 def read_execution_log(log_file_path):
@@ -94,26 +77,6 @@ def read_execution_log(log_file_path):
     overall_status = [line for line in lines if 'Commands finished with result:' in line][0].split(']')[1].split(': ')[1]
     job_succeeded = False if 'Failed' in overall_status else True
     return logs, job_succeeded
-
-
-def post_additional_results(cmd, local):
-    '''Posts additional results to Yamato reporting server'''
-
-    data = {
-        'title': cmd['title'],
-        'summary': cmd['summary'][:500] + '...',
-        'conclusion': cmd['conclusion'],
-        'tags' : list(set(cmd['tags']))
-    }
-
-    print('Posting: ', json.dumps(data,indent=2), '\n')
-    if not local:
-        server_url = os.environ['YAMATO_REPORTING_SERVER'] + '/result'
-        headers = {'Content-Type':'application/json'}
-        res = requests.post(server_url, json=data, headers=headers)
-        if res.status_code != 200:
-                raise Exception(f'!! Error: Got {res.status_code}')
-
 
 def parse_failures(logs, local):
     '''Parses each command in the execution log (and possibly UTR logs),
@@ -157,15 +120,73 @@ def parse_failures(logs, local):
     return
 
 
+def find_matching_patterns(patterns, failure_string):
+    '''Finds a matching pattern from a specified list of pattern objects for a specified failure string (e.g. command output).
+    Returns the matching pattern object, and the matched substring.'''
+    matches = []
+    for pattern in patterns:
+            match = re.search(pattern['pattern'], failure_string)
+            if match:
 
-def get_execution_log():
-    '''Returns the path to execution log file.'''
-    path_to_execution_log = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())),'Execution-*.log')
-    print('Searching for logs in: ', path_to_execution_log)
+                # if a matching patterns was found, skip the general unknown pattern
+                if len(matches) > 0 and pattern['pattern'] == '.+':
+                    continue
 
-    execution_log_file = glob.glob(path_to_execution_log)[0]
-    print('Reading log: ', execution_log_file)
-    return execution_log_file
+                print('Found match for pattern: ',  pattern['pattern'])
+                matches.append((pattern, match))
+
+    tags = [pattern['tags'] for (pattern,_) in matches]
+    flattened_tags = [tag for tag_list in tags for tag in tag_list]
+
+    conclusion = get_ruling_conclusion([pattern['conclusion'] for (pattern,_) in matches])
+
+    return matches, flattened_tags, conclusion
+
+
+def get_ruling_conclusion(conclusions):
+    '''Pick a single conclusion out of several matches in the order of severity'''
+    if 'failure' in conclusions:
+        return 'failure'
+    elif 'inconclusive' in conclusions:
+        return 'inconclusive'
+    elif 'cancelled' in conclusions:
+        return 'cancelled'
+    elif 'success' in conclusions:
+        return 'success'
+    else:
+        return 'failure'
+
+
+def read_test_results_json(log_file_path):
+    '''Reads error messages from TestResults.json.'''
+    logs = load_json(log_file_path)
+    error_logs = [log for log in logs if log.get('rootCause')]
+    if len(error_logs) > 0:
+        failure_reasons = ' '.join(error_logs[0].get('errors',['']))
+
+        _, tags, conclusion = find_matching_patterns(utr_log_patterns, failure_reasons)
+        return failure_reasons, tags, conclusion
+    else:
+        return [], [], ''
+
+
+def post_additional_results(cmd, local):
+    '''Posts additional results to Yamato reporting server'''
+
+    data = {
+        'title': cmd['title'],
+        'summary': cmd['summary'][:500] + '...',
+        'conclusion': cmd['conclusion'],
+        'tags' : list(set(cmd['tags']))
+    }
+
+    print('Posting: ', json.dumps(data,indent=2), '\n')
+    if not local:
+        server_url = os.environ['YAMATO_REPORTING_SERVER'] + '/result'
+        headers = {'Content-Type':'application/json'}
+        res = requests.post(server_url, json=data, headers=headers)
+        if res.status_code != 200:
+                raise Exception(f'!! Error: Got {res.status_code}')
 
 
 def parse_args(argv):
