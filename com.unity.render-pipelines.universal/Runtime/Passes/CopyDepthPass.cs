@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal int MssaSamples { get; set; }
         Material m_CopyDepthMaterial;
 
-        // TODO: remove CoyDepthPass RenderPass checks when depth resolve support is added to RenderPass (URP-1009)
+        // TODO: remove CopyDepthPass RenderPass checks when depth resolve support is added to RenderPass (URP-1009)
         internal bool m_UseRenderPassEnabled;
 
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
