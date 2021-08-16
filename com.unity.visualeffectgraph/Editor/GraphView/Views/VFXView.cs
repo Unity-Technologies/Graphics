@@ -1394,8 +1394,12 @@ namespace UnityEditor.VFX.UI
             m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
 
             var resource = controller.graph.visualEffectResource;
-            resource.SetAssetPath(newPath);
-            resource.WriteAsset();
+
+            var oldFilePath = AssetDatabase.GetAssetPath(resource);
+            if (!AssetDatabase.CopyAsset(oldFilePath, newPath))
+            {
+                Debug.Log($"Could not save VFX Graph at {newPath}");
+            }
         }
 
         void GetGraphsRecursively(VFXGraph start, HashSet<VFXGraph> graphs)
