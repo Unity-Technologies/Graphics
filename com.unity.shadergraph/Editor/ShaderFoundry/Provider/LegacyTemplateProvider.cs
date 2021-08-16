@@ -5,7 +5,6 @@ using UnityEditor.ShaderFoundry;
 using BlockInput = UnityEditor.ShaderFoundry.BlockVariable;
 using BlockOutput = UnityEditor.ShaderFoundry.BlockVariable;
 using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
-using VariableNameLink = UnityEditor.ShaderFoundry.BlockDescriptor.VariableNameLink;
 
 namespace UnityEditor.ShaderFoundry
 {
@@ -207,7 +206,7 @@ namespace UnityEditor.ShaderFoundry
             return builder.Build(Container);
         }
 
-        Block BuildMainBlock(string blockName, Block preBlock, Block postBlock, List<VariableNameLink> nameMappings, Dictionary<string, string> defaultVariableValues)
+        Block BuildMainBlock(string blockName, Block preBlock, Block postBlock, List<BlockVariableNameOverride> nameMappings, Dictionary<string, string> defaultVariableValues)
         {
             var mainBlockBuilder = new Block.Builder(blockName);
 
@@ -302,13 +301,20 @@ namespace UnityEditor.ShaderFoundry
 
         void ExtractVertex(Template template, TemplatePass.Builder passBuilder, List<FieldDescriptor> vertexFields)
         {
+            BlockVariableNameOverride BuildSimpleNameOverride(string sourceName, string destinationName, ShaderContainer container)
+            {
+                var builder = new BlockVariableNameOverride.Builder();
+                builder.SourceName = sourceName;
+                builder.DestinationName = destinationName;
+                return builder.Build(container);
+            }
             var vertexPreBlock = BuildVertexPreBlock();
             var vertexPostBlock = BuildVertexPostBlock(vertexFields);
 
-            var nameMappings = new List<VariableNameLink>();
-            nameMappings.Add(new VariableNameLink { SourceName = "ObjectSpacePosition", DestinationName = "Position" });
-            nameMappings.Add(new VariableNameLink { SourceName = "ObjectSpaceNormal", DestinationName = "Normal" });
-            nameMappings.Add(new VariableNameLink { SourceName = "ObjectSpaceTangent", DestinationName = "Tangent" });
+            var nameMappings = new List<BlockVariableNameOverride>();
+            nameMappings.Add(BuildSimpleNameOverride("ObjectSpacePosition", "Position", Container));
+            nameMappings.Add(BuildSimpleNameOverride("ObjectSpaceNormal", "Normal", Container));
+            nameMappings.Add(BuildSimpleNameOverride("ObjectSpaceTangent", "Tangent", Container));
             var defaultVariableValues = new Dictionary<string, string>();
             var vertexMainBlock = BuildMainBlock(LegacyCustomizationPoints.VertexDescriptionFunctionName, vertexPreBlock, vertexPostBlock, nameMappings, defaultVariableValues);
         
@@ -323,7 +329,7 @@ namespace UnityEditor.ShaderFoundry
             var fragmentPreBlock = BuildFragmentPreBlock();
             var fragmentPostBlock = BuildFragmentPostBlock(fragmentFields);
 
-            var nameMappings = new List<VariableNameLink>();
+            var nameMappings = new List<BlockVariableNameOverride>();
             // Need to create the default outputs for the fragment output. This isn't currently part of the field descriptors.
             var defaultVariableValues = new Dictionary<string, string>
             {
