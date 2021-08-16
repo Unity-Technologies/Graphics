@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int raySteps;
             public int frameIndex;
             public Vector4 colorPyramidUvScaleAndLimitPrevFrame;
-            public int fallbackHierarchy;
+            public int rayMiss;
 
             // Compute Shader
             public ComputeShader ssGICS;
@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.raySteps = giSettings.maxRaySteps;
                 passData.frameIndex = RayTracingFrameIndex(hdCamera, 16);
                 passData.colorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
-                passData.fallbackHierarchy = (int)giSettings.fallbackHierarchy.value;
+                passData.rayMiss = (int)giSettings.rayMiss.value;
 
                 // Grab the right kernel
                 passData.ssGICS = asset.renderPipelineResources.shaders.screenSpaceGlobalIlluminationCS;
@@ -228,8 +228,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (TraceSSGIPassData data, RenderGraphContext ctx) =>
                     {
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, data.lightList);
-
                         int ssgiTileSize = 8;
                         int numTilesXHR = (data.texWidth + (ssgiTileSize - 1)) / ssgiTileSize;
                         int numTilesYHR = (data.texHeight + (ssgiTileSize - 1)) / ssgiTileSize;
@@ -256,6 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.traceKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.traceKernel, HDShaderIDs._IndirectDiffuseHitPointTextureRW, data.hitPointBuffer);
                         ctx.cmd.SetComputeBufferParam(data.ssGICS, data.traceKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.offsetBuffer);
+                        ctx.cmd.SetComputeBufferParam(data.ssGICS, data.traceKernel, HDShaderIDs.g_vLightListTile, data.lightList);
 
                         // Do the ray marching
                         ctx.cmd.DispatchCompute(data.ssGICS, data.traceKernel, numTilesXHR, numTilesYHR, data.viewCount);
@@ -267,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Inject all the input scalars
                         ctx.cmd.SetComputeVectorParam(data.ssGICS, HDShaderIDs._ColorPyramidUvScaleAndLimitPrevFrame, data.colorPyramidUvScaleAndLimitPrevFrame);
                         ctx.cmd.SetComputeIntParam(data.ssGICS, HDShaderIDs._ObjectMotionStencilBit, (int)StencilUsage.ObjectMotionVector);
-                        ctx.cmd.SetComputeIntParam(data.ssGICS, HDShaderIDs._RayMarchingFallbackHierarchy, data.fallbackHierarchy);
+                        ctx.cmd.SetComputeIntParam(data.ssGICS, HDShaderIDs._RayMarchingFallbackHierarchy, data.rayMiss);
 
                         // Bind all the input buffers
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.projectKernel, HDShaderIDs._DepthTexture, data.depthTexture);
@@ -278,11 +277,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.projectKernel, HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.projectKernel, HDShaderIDs._HistoryDepthTexture, data.historyDepth);
                         ctx.cmd.SetComputeBufferParam(data.ssGICS, data.projectKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.offsetBuffer);
+                        ctx.cmd.SetComputeBufferParam(data.ssGICS, data.projectKernel, HDShaderIDs.g_vLightListTile, data.lightList);
 
                         // Bind the output texture
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.projectKernel, HDShaderIDs._IndirectDiffuseTextureRW, data.outputBuffer);
 
-                        // Do the reprojection
+                        // Do the re-projection
                         ctx.cmd.DispatchCompute(data.ssGICS, data.projectKernel, numTilesXHR, numTilesYHR, data.viewCount);
                     });
 

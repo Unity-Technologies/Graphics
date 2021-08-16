@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph
         public CombineNode()
         {
             name = "Combine";
+            synonyms = new string[] { "append" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

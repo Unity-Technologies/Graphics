@@ -535,7 +535,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // (uint)FrameSettingsField.EnableSkyReflection,
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.DirectSpecularLighting,
-                (uint)FrameSettingsField.VolumetricClouds,
+                // (uint)FrameSettingsField.VolumetricClouds,
             }),
             lodBias = 1,
             sssQualityMode        = SssQualityMode.FromQualitySettings,
@@ -592,7 +592,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ReplaceDiffuseForIndirect,
                 // (uint)FrameSettingsField.EnableSkyReflection,
                 // (uint)FrameSettingsField.DirectSpecularLighting,
-                // (uint)FrameSettingsField.VolumetricClouds,
+                (uint)FrameSettingsField.VolumetricClouds,
             }),
             lodBias = 1,
             sssQualityMode        = SssQualityMode.FromQualitySettings,
@@ -816,7 +816,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //MSAA only supported in forward and when not using ray tracing.
             if (sanitizedFrameSettings.litShaderMode != LitShaderMode.Forward || pipelineSupportsRayTracing)
                 sanitizedFrameSettings.msaaMode = MSAAMode.None;
-            bool msaa = (sanitizedFrameSettings.msaaMode == MSAAMode.FromHDRPAsset && renderPipelineSettings.msaaSampleCount != MSAASamples.None) || sanitizedFrameSettings.msaaMode != MSAAMode.None;
+            bool msaa = sanitizedFrameSettings.msaaMode == MSAAMode.FromHDRPAsset ? renderPipelineSettings.msaaSampleCount != MSAASamples.None : sanitizedFrameSettings.msaaMode != MSAAMode.None;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AlphaToMask] &= msaa;
 
             // Screen space shadows are not compatible with MSAA
@@ -830,7 +830,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] && temporalAccumulationAllowed;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSGI] &= renderPipelineSettings.supportSSGI && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] && temporalAccumulationAllowed;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= renderPipelineSettings.supportSubsurfaceScattering;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds] &= renderPipelineSettings.supportVolumetricClouds && (!reflection || (reflectionPlanar && reflection)) && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds] &= renderPipelineSettings.supportVolumetricClouds && !preview;
 
             // We must take care of the scene view fog flags in the editor
             bool atmosphericScattering = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;
