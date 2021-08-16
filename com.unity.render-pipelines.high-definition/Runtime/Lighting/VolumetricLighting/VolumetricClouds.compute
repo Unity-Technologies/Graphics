@@ -1,7 +1,8 @@
 #pragma kernel ConvertObliqueDepth
 #pragma kernel DownscaleDepth
 #pragma kernel RenderClouds
-#pragma kernel ReprojectClouds
+#pragma kernel ReprojectClouds                      REPROJECT_CLOUDS=ReprojectClouds
+#pragma kernel ReprojectCloudsRejection             REPROJECT_CLOUDS=ReprojectCloudsRejection WITH_REJECTION
 #pragma kernel PreUpscaleClouds
 #pragma kernel UpscaleAndCombineClouds_ColorRW      UPSAMPLE_KERNEL=UpscaleAndCombineClouds_ColorRW CAN_RW_ON_COLOR_BUFFER
 #pragma kernel UpscaleAndCombineClouds_ColorCopy    UPSAMPLE_KERNEL=UpscaleAndCombineClouds_ColorCopy
@@ -351,12 +352,12 @@ float3 AnimateCloudMapPosition(float3 positionPS)
 
 float3 AnimateBaseNoisePosition(float3 positionPS)
 {
-    return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _MediumWindSpeed;
+    return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _MediumWindSpeed + float3(0.0, _VerticalShapeWindDisplacement, 0.0);
 }
 
 float3 AnimateFineNoisePosition(float3 positionPS)
 {
-    return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _SmallWindSpeed;
+    return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _SmallWindSpeed + float3(0.0, _VerticalErosionWindDisplacement, 0.0);
 }
 
 void GetCloudCoverageData(float3 positionPS, out CloudCoverageData data)
@@ -857,8 +858,32 @@ void FillCloudReprojectionLDS(uint groupIndex, uint2 groupOrigin)
     gs_cacheDC[groupIndex] = sampleDC;
 }
 
+float4 ClipCloudsToRegion(float4 history, float4 minimum, float4 maximum, inout float validityFactor)
+{
+    // The transmittance is overriden using a clamp
+    float clampedTransmittance = clamp(history.w, minimum.w, maximum.w);
+
+    // The lighting is overriden using a clip
+    float3 center  = 0.5 * (maximum.xyz + minimum.xyz);
+    float3 extents = 0.5 * (maximum.xyz - minimum.xyz);
+
+    // This is actually `distance`, however the keyword is reserved
+    float3 offset = history.xyz - center;
+    float3 v_unit = offset.xyz / extents.xyz;
+    float3 absUnit = abs(v_unit);
+    float maxUnit = Max3(absUnit.x, absUnit.y, absUnit.z);
+
+    // We make the history less valid if we had to clip it
+    validityFactor *= maxUnit > 1.0 ? 0.5 : 1.0;
+
+    if (maxUnit > 1.0)
+        return float4(center + (offset / maxUnit), clampedTransmittance);
+    else
+        return float4(history.xyz, clampedTransmittance);
+}
+
 [numthreads(8, 8, 1)]
-void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
+void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
                     int groupIndex : SV_GroupIndex,
                     uint2 groupThreadId : SV_GroupThreadID,
                     uint2 groupId : SV_GroupID)
@@ -936,6 +961,29 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     if (abs(linearPrevDepth - linearCurrentDepth) > linearCurrentDepth * 0.2)
         validHistory = false;
 
+    float validityFactor = 1.0;
+#ifdef WITH_REJECTION
+    // We need to validate that within the 3x3 trace region, at least one of the pixels is not a background pixel (incluing the clouds)
+    float4 lightingMin = float4(FLT_MAX, FLT_MAX, FLT_MAX, 1.0);
+    float4 lightingMax = float4(0, 0, 0, 0.0);
+    for (int y = -1; y <= 1; ++y)
+    {
+        for (int x = -1; x <= 1; ++x)
+        {
+            #ifdef WITHOUT_LDS
+            float4 cloudLigting = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord + int2(x, y));
+            #else
+            float4 cloudLigting = GetCloudLighting_LDS(groupThreadId, int2(x, y));
+            #endif
+            lightingMin = min(lightingMin, cloudLigting);
+            lightingMax = max(lightingMax, cloudLigting);
+        }
+    }
+
+    if (currentDepth == UNITY_RAW_FAR_CLIP_VALUE)
+        previousResult = ClipCloudsToRegion(previousResult, lightingMin, lightingMax, validityFactor);
+#endif
+
     // Compute the local index that tells us the index of this pixel, the strategy for reprojection is a bit different in both cases
     int localIndex = (intermediateCoord.x & 1) + (intermediateCoord.y & 1) * 2;
     int currentIndex = ComputeCheckerBoardIndex(intermediateCoord / 2, _SubPixelIndex);
@@ -964,7 +1012,7 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
         {
             // Define our accumation value
             accumulationFactor = previousSampleCount >= 16.0 ? 0.94117647058 : (previousSampleCount / (previousSampleCount + 1.0));
-            accumulationFactor *= _TemporalAccumulationFactor;
+            accumulationFactor *= _TemporalAccumulationFactor * validityFactor;
             sampleCount = min(previousSampleCount + 1.0, 16.0);
         }
 
@@ -981,7 +1029,7 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     else
     {
         // Reduce the history validity a bit
-        previousSampleCount *= _TemporalAccumulationFactor;
+        previousSampleCount *= _TemporalAccumulationFactor * validityFactor;
 
         // If the target coordinate is out of the screen or the depth that was used to generate it
         // is too different from the one of the current pixel, we cannot use the history

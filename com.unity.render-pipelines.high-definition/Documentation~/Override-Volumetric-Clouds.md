@@ -107,17 +107,20 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
-| **Global Wind Speed**            | Sets the global wind speed in kilometers per hour.<br />This value can be relative to the **Global Wind Speed** defined in the **Visual Environment**. |
+| **Global Horizontal Wind Speed**  | Sets the global horizontal wind speed in kilometers per hour.<br />This value can be relative to the **Global Wind Speed** defined in the **Visual Environment**. |
 | - **Orientation**                | Controls the orientation of the wind relative to the world-space direction x-axis.<br />This value can be relative to the **Global Wind Orientation** defined in the **Visual Environment**. |
 | - **Cloud Map Speed Multiplier** | The multiplier to apply to the speed of the cloud map.       |
 | - **Shape Speed Multiplier**     | The multiplier to apply to the speed of larger cloud shapes. |
 | - **Erosion Speed Multiplier**   | The multiplier to apply to the speed of erosion cloud shapes. |
+| **Vertical Shape Wind Speed**    | Controls the vertical wind speed of the larger cloud shapes. |
+| **Vertical Erosion Wind Speed**  | Controls the vertical wind speed of the erosion cloud shapes. |
 
 ### Quality
 
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
 | **Temporal Accumulation Factor** | The amount of temporal accumulation to apply to the clouds. Temporal accumulation increases the visual quality of clouds by decreasing the noise. A higher value produces better quality clouds, but can create [ghosting](Glossary.md#ghosting). |
+| **Ghosting Reduction**           | When you enable this property, HDRP removes the ghosting caused by temporal accumulation. This effect may cause a flickering effect when the **Temporal Accumulation Factor** value is low. |
 | **Num Primary Steps**            | The number of steps to use to evaluate the clouds' transmittance. Higher values linearly increase the resource intensity of the effect. |
 | **Num Light Steps**              | The number of steps to use to evaluate the clouds' lighting. Higher values exponent increase the resource intensity of the effect. |
 

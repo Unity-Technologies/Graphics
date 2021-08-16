@@ -17,6 +17,9 @@ CBUFFER_START(ShaderVariablesClouds)
     float4 _CloudMapTiling;
     float2 _WindDirection;
     float2 _WindVector;
+    float2 _Padding2;
+    float _VerticalShapeWindDisplacement;
+    float _VerticalErosionWindDisplacement;
     float _LargeWindSpeed;
     float _MediumWindSpeed;
     float _SmallWindSpeed;
