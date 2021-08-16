@@ -86,13 +86,14 @@ namespace UnityEditor.VFX.UI
 
         protected virtual void OnOpenPopup() {}
         protected virtual void OnMainButton() {}
-        protected abstract Vector2 GetPopupPosition();
         protected abstract Vector2 GetPopupSize();
 
         protected void ClosePopup()
         {
             m_CurrentPopup?.Close();
         }
+
+        private Vector2 GetPopupPosition() => VFXViewWindow.currentWindow.graphView.ViewToScreenPosition(worldBound.position) + new Vector2(0, worldBound.height);
 
         private void OnTogglePopup()
         {
@@ -123,8 +124,8 @@ namespace UnityEditor.VFX.UI
                     bounds.xMin += 6;
                 }
 
-                m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(),
-                    new[] {PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft});
+                m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(), new[] {PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft});
+                m_CurrentPopup.position = bounds;
                 GetNextFocusable(null, m_PopupContent.Children(), false)?.Focus();
             }
             else if (m_CurrentPopup != null)

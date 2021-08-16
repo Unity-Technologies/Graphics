@@ -53,7 +53,6 @@ namespace UnityEditor.VFX.UI
             gotoSamples.clicked += () => GotoUrl(k_SamplesUrl);
         }
 
-        protected override Vector2 GetPopupPosition() => this.m_VFXView.ViewToScreenPosition(worldBound.position);
         protected override Vector2 GetPopupSize() => new Vector2(200, 224);
 
         protected override void OnOpenPopup()

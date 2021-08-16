@@ -35,7 +35,6 @@ namespace UnityEditor.VFX.UI
             m_ResyncMaterial.clicked += OnResyncMaterial;
         }
 
-        protected override Vector2 GetPopupPosition() => this.m_VFXView.ViewToScreenPosition(worldBound.position);
         protected override Vector2 GetPopupSize() => new Vector2(150, 88);
 
         protected override void OnOpenPopup()
