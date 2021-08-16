@@ -163,6 +163,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShadowOpacityFallback = Unpack(o.Find(x => x.shadowOpacityFallback));
         }
 
+        static public readonly GUIContent k_CloudMapTilingText = EditorGUIUtility.TrTextContent("Cloud Map Tiling", "Tiling (x,y) of the cloud map.");
         static public readonly GUIContent k_CloudMapOffsetText = EditorGUIUtility.TrTextContent("Cloud Map Offset", "Offset (x,y) of the cloud map.");
         static public readonly GUIContent k_GlobalHorizontalWindSpeedText = EditorGUIUtility.TrTextContent("Global Horizontal Wind Speed", "Sets the global horizontal wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
 
@@ -202,14 +203,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_CumulonimbusMapMultiplier);
                     PropertyField(m_RainMap);
                     PropertyField(m_CloudMapResolution);
-                    PropertyField(m_CloudTiling);
+                    PropertyField(m_CloudTiling, k_CloudMapTilingText);
                     PropertyField(m_CloudOffset, k_CloudMapOffsetText);
                 }
                 else if (controlMode == VolumetricClouds.CloudControl.Manual)
                 {
                     PropertyField(m_CloudMap);
                     PropertyField(m_CloudLut);
-                    PropertyField(m_CloudTiling);
+                    PropertyField(m_CloudTiling, k_CloudMapTilingText);
                     PropertyField(m_CloudOffset, k_CloudMapOffsetText);
                 }
                 else
