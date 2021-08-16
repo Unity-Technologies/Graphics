@@ -366,6 +366,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that clamped the volumetric clouds offset value (case 1357318).
 - Fixed the volumetric clouds having no control over the vertical wind (case 1354920).
 - Fixed the fallback sun for volumetric clouds having a non null intensity (case 1353955).
+- Fixed the LensFlare flicker with TAA on SceneView (case 1356734).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
