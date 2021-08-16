@@ -10,11 +10,7 @@ namespace ShaderSandbox
         internal const string StageScopeName = "Stage";
         internal class Scope
         {
-            internal Scope ParentScope;
-            internal string name;
-            internal Dictionary<string, VariableLinkInstanceTypeOverloads> variablesByName = new Dictionary<string, VariableLinkInstanceTypeOverloads>();
-
-            internal class VariableLinkInstanceTypeOverloads
+            internal class NamedVariableSet
             {
                 List<BlockVariableLinkInstance> variables = new List<BlockVariableLinkInstance>();
 
@@ -27,24 +23,22 @@ namespace ShaderSandbox
                     variables.Add(variable);
                 }
 
-                internal BlockVariableLinkInstance Find(ShaderType type, int swizzle = 0)
+                internal BlockVariableLinkInstance FindExact(ShaderType type)
                 {
-                    if (swizzle == 0)
-                        return variables.Find((v) => (v.Type.Equals(type)));
+                    return variables.Find((v) => (v.Type.Equals(type)));
+                }
 
-                    int requiredSize = SwizzleUtils.GetRequiredSize(swizzle);
-                    for(var i = variables.Count - 1; i >= 0; --i)
-                    {
-                        var variable = variables[i];
-                        if (!variable.Type.IsVectorOrScalar)
-                            continue;
-                        if (variable.Type.VectorDimension < requiredSize)
-                            continue;
-                        return variable;
-                    }
-                    return null;
+                internal BlockVariableLinkInstance FindMostRecent()
+                {
+                    if (variables.Count == 0)
+                        return null;
+                    return variables[variables.Count - 1];
                 }
             }
+
+            internal Scope ParentScope;
+            internal string name;
+            internal Dictionary<string, NamedVariableSet> variablesByName = new Dictionary<string, NamedVariableSet>();
 
             internal string GetFullName()
             {
@@ -56,20 +50,27 @@ namespace ShaderSandbox
                 if (variableName == null)
                     variableName = instance.ReferenceName;
 
-                VariableLinkInstanceTypeOverloads variables;
-                if (!variablesByName.TryGetValue(variableName, out variables))
+                NamedVariableSet variableSet;
+                if (!variablesByName.TryGetValue(variableName, out variableSet))
                 {
-                    variables = new VariableLinkInstanceTypeOverloads();
-                    variablesByName.Add(variableName, variables);
+                    variableSet = new NamedVariableSet();
+                    variablesByName.Add(variableName, variableSet);
                 }
 
-                variables.Set(instance);
+                variableSet.Set(instance);
             }
 
-            internal BlockVariableLinkInstance Find(ShaderType type, string variableName, int swizzle = 0)
+            internal BlockVariableLinkInstance FindExact(ShaderType type, string variableName)
             {
                 if (variablesByName.TryGetValue(variableName, out var variables))
-                    return variables.Find(type, swizzle);
+                    return variables.FindExact(type);
+                return null;
+            }
+
+            internal BlockVariableLinkInstance FindMostRecent(string variableName)
+            {
+                if (variablesByName.TryGetValue(variableName, out var variables))
+                    return variables.FindMostRecent();
                 return null;
             }
 
@@ -114,57 +115,85 @@ namespace ShaderSandbox
 
         internal string CurrentScopeName()
         {
-            return CurrentScope().name;
+            var currentScope = CurrentScope();
+            if (currentScope != null)
+                return currentScope.name;
+            return null;
         }
 
-        internal BlockVariableLinkInstance Find(ShaderType type, string variableName, int swizzle = 0)
+        internal BlockVariableLinkInstance FindExact(ShaderType type, string variableName)
         {
             foreach (var scope in Scopes)
             {
-                var instance = scope.Find(type, variableName, swizzle);
+                var instance = scope.FindExact(type, variableName);
                 if (instance != null)
                     return instance;
             }
             return null;
         }
 
-        internal BlockVariableLinkInstance Find(string scopeName, ShaderType type, string variableName, int swizzle = 0)
-        {
-            if (string.IsNullOrEmpty(scopeName))
-                return Find(type, variableName, swizzle);
-
-            var scope = FindScope(scopeName);
-            BlockVariableLinkInstance instance = scope?.Find(type, variableName, swizzle);
-            return instance;
-        }
-
-        internal void Set(BlockVariableLinkInstance instance, string variableName = null)
-        {
-            SetInstanceInScope(CurrentScope(), instance, variableName);
-        }
-
-        internal void SetAllInStack(BlockVariableLinkInstance instance, string variableName = null)
+        internal BlockVariableLinkInstance FindMostRecent(string variableName)
         {
             foreach (var scope in Scopes)
-                SetInstanceInScope(scope, instance, variableName);
-        }
-
-        internal string FindParentFullName(string name)
-        {
-            var scope = CurrentScope();
-            while (scope != null)
             {
-                if (scope.name == name)
-                    return scope.GetFullName();
-                scope = scope.ParentScope;
+                var instance = scope.FindMostRecent(variableName);
+                if (instance != null)
+                    return instance;
             }
             return null;
         }
 
-        internal void Set(string scopeName, BlockVariableLinkInstance instance, string variableName = null)
+        internal BlockVariableLinkInstance FindExact(string scopeName, ShaderType type, string variableName)
+        {
+            if (string.IsNullOrEmpty(scopeName))
+                return FindExact(type, variableName);
+
+            var scope = FindScope(scopeName);
+            BlockVariableLinkInstance instance = scope?.FindExact(type, variableName);
+            return instance;
+        }
+
+        internal BlockVariableLinkInstance FindMostRecent(string scopeName, string variableName)
+        {
+            if (string.IsNullOrEmpty(scopeName))
+                return FindMostRecent(variableName);
+
+            var scope = FindScope(scopeName);
+            BlockVariableLinkInstance instance = scope?.FindMostRecent(variableName);
+            return instance;
+        }
+
+        internal BlockVariableLinkInstance Find(ShaderType type, string variableName, bool allowNonExactMatch)
+        {
+            var result = FindExact(type, variableName);
+            if (result == null && allowNonExactMatch)
+                result = FindMostRecent(variableName);
+            return result;
+        }
+
+        internal BlockVariableLinkInstance Find(string scopeName, ShaderType type, string variableName, bool allowNonExactMatch)
+        {
+            var result = FindExact(scopeName, type, variableName);
+            if (result == null && allowNonExactMatch)
+                result = FindMostRecent(scopeName, variableName);
+            return result;
+        }
+
+        internal void SetInCurrentScope(BlockVariableLinkInstance instance, string variableName = null)
+        {
+            SetInstanceInScope(CurrentScope(), instance, variableName);
+        }
+
+        internal void SetScope(string scopeName, BlockVariableLinkInstance instance, string variableName = null)
         {
             variableName = variableName ?? instance.ReferenceName;
             SetInstanceInScope(FindScope(scopeName), instance, variableName);
+        }
+
+        internal void SetInCurrentScopeStack(BlockVariableLinkInstance instance, string variableName = null)
+        {
+            foreach (var scope in Scopes)
+                SetInstanceInScope(scope, instance, variableName);
         }
 
         Scope CurrentScope()

@@ -42,7 +42,8 @@ namespace ShaderSandbox
             {
                 // Find if there's a match for this input
                 var inputNameData = blockInputType.FindVariableOverride(input.ReferenceName);
-                var matchingField = scopes.Find(inputNameData.Namespace, input.Type, inputNameData.Name, inputNameData.Swizzle);
+                bool allowNonExactMatch = inputNameData.Swizzle != 0;
+                var matchingField = scopes.Find(inputNameData.Namespace, input.Type, inputNameData.Name, allowNonExactMatch);
                 // If not, create a new input on the merged block to link to
                 if (matchingField == null)
                 {
@@ -92,8 +93,8 @@ namespace ShaderSandbox
                 mergedOutputType.AddOverride(availableOutput.ReferenceName, outputNameData);
 
                 // Set both of these outputs as available in all of the current scopes
-                scopes.SetAllInStack(output, outputNameData.Name);
-                scopes.SetAllInStack(availableOutput, availableOutput.ReferenceName);
+                scopes.SetInCurrentScopeStack(output, outputNameData.Name);
+                scopes.SetInCurrentScopeStack(availableOutput, availableOutput.ReferenceName);
             }
 
             scopes.PopScope();
@@ -122,7 +123,7 @@ namespace ShaderSandbox
             {
                 var inputInstance = BlockVariableLinkInstance.Construct(input, mergedInputType.Instance, mergedInputType);
                 mergedInputType.AddField(inputInstance);
-                scopes.SetAllInStack(inputInstance);
+                scopes.SetInCurrentScopeStack(inputInstance);
             }
 
             scopes.PopScope();
@@ -141,7 +142,7 @@ namespace ShaderSandbox
                 var instance = BlockVariableLinkInstance.Construct(output, mergedOutputType.Instance, mergedOutputType);
                 mergedOutputType.AddField(instance);
                 // Check if someone wrote out to this variable
-                var matchingField = scopes.Find(output.Type, output.ReferenceName);
+                var matchingField = scopes.Find(output.Type, output.ReferenceName, false);
                 if(matchingField != null)
                 {
                     var match = new ResolvedFieldMatch
