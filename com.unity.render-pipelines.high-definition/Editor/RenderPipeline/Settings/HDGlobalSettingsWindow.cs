@@ -7,6 +7,8 @@ using UnityEngine.UIElements;
 using UnityEditorInternal;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.VFX.HDRP;
+using UnityEditor.VFX.UI;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -73,6 +75,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Help.BrowseURL(Documentation.GetPageLink("Default-Settings-Window"));
         }
 
+        internal static bool needRefreshVfxErrors = false;
+
         public void DoGUI(string searchContext)
         {
             // When the asset being serialized has been deleted before its reconstruction
@@ -108,6 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
                 Inspector.Draw(serializedSettings, null);
                 serializedSettings.serializedObject?.ApplyModifiedProperties();
+                VFXHDRPSettingsUtility.RefreshVfxErrorsIfNeeded(ref needRefreshVfxErrors);
             }
         }
 
@@ -329,6 +334,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 GUILayout.Space(5);
                 serialized.uiBeforePostProcessCustomPostProcesses.DoLayoutList();
+            }
+            GUILayout.Space(2);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(5);
+                serialized.uiAfterPostProcessBlursCustomPostProcesses.DoLayoutList();
             }
             GUILayout.Space(2);
             using (new EditorGUILayout.HorizontalScope())

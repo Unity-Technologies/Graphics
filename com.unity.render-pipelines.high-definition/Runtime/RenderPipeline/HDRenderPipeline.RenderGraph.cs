@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Stop Single Pass is after post process.
                     StartXRSinglePass(m_RenderGraph, hdCamera);
 
-                    colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer);
+                    colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer, prepassOutput.depthBuffer);
                     colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
                 }
                 else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -590,7 +590,9 @@ namespace UnityEngine.Rendering.HighDefinition
         class ForwardPassData
         {
             public RendererListHandle   rendererList;
-            public ComputeBufferHandle  lightListBuffer;
+            public ComputeBufferHandle  lightListTile;
+            public ComputeBufferHandle  lightListCluster;
+
             public ComputeBufferHandle  perVoxelOffset;
             public ComputeBufferHandle  perTileLogBaseTweak;
             public FrameSettings        frameSettings;
@@ -626,7 +628,9 @@ namespace UnityEngine.Rendering.HighDefinition
             bool useFptl = frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque) && opaque;
 
             data.frameSettings = frameSettings;
-            data.lightListBuffer = builder.ReadComputeBuffer(useFptl ? lightLists.lightList : lightLists.perVoxelLightLists);
+            data.lightListTile = builder.ReadComputeBuffer(lightLists.lightList);
+            data.lightListCluster = builder.ReadComputeBuffer(lightLists.perVoxelLightLists);
+
             if (!useFptl)
             {
                 data.perVoxelOffset = builder.ReadComputeBuffer(lightLists.perVoxelOffset);
@@ -640,7 +644,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void BindGlobalLightListBuffers(ForwardPassData data, RenderGraphContext ctx)
         {
-            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, data.lightListBuffer);
+            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListTile, data.lightListTile);
+            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListCluster, data.lightListCluster);
+
             // Next two are only for cluster rendering. PerTileLogBaseTweak is only when using depth buffer so can be invalid as well.
             if (data.perVoxelOffset.IsValid())
                 ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
@@ -1383,7 +1389,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<PreRenderSkyPassData>("Pre Render Sky", out var passData))
             {
-                passData.sunLight = GetCurrentSunLight();
+                passData.sunLight = GetMainLight();
                 passData.hdCamera = hdCamera;
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
                 passData.depthStencilBuffer = builder.WriteTexture(depthStencilBuffer);
@@ -1421,7 +1427,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky And Fog", out var passData))
             {
                 passData.visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-                passData.sunLight = GetCurrentSunLight();
+                passData.sunLight = GetMainLight();
                 passData.hdCamera = hdCamera;
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);

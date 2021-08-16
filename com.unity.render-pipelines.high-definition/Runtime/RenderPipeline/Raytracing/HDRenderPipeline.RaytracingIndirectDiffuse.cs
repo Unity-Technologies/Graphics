@@ -56,7 +56,8 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.halfResolution = !fullResolution;
             deferredParameters.rayCountType = (int)RayCountValues.DiffuseGI_Deferred;
             deferredParameters.lodBias = settings.textureLodBias.value;
-            deferredParameters.fallbackHierarchy = (int)RayTracingFallbackHierachy.Sky;
+            deferredParameters.rayMiss = (int)settings.rayMiss.value;
+            deferredParameters.lastBounceFallbackHierarchy = (int)settings.lastBounceFallbackHierarchy.value;
 
             // Ray marching
             deferredParameters.mixedTracing = settings.tracing.value == RayCastingMode.Mixed && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred;
@@ -87,9 +88,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Override the ones we need to
             deferredParameters.raytracingCB._RaytracingRayMaxLength = settings.rayLength;
             deferredParameters.raytracingCB._RaytracingIntensityClamp = settings.clampValue;
-            deferredParameters.raytracingCB._RayTracingFallbackHierarchy = deferredParameters.fallbackHierarchy;
             deferredParameters.raytracingCB._RaytracingPreExposition = 1;
             deferredParameters.raytracingCB._RayTracingDiffuseLightingOnly = 1;
+            deferredParameters.raytracingCB._RayTracingRayMissFallbackHierarchy = deferredParameters.rayMiss;
+            deferredParameters.raytracingCB._RayTracingLastBounceFallbackHierarchy = deferredParameters.lastBounceFallbackHierarchy;
 
             return deferredParameters;
         }
@@ -184,9 +186,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int texHeight;
             public int viewCount;
 
-            // Generation parameters
-            public int upscaleRadius;
-
             // Additional resources
             public Texture2DArray blueNoiseTexture;
             public Texture2D scramblingTexture;
@@ -211,9 +210,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.texWidth = hdCamera.actualWidth;
                 passData.texHeight = hdCamera.actualHeight;
                 passData.viewCount = hdCamera.viewCount;
-
-                // Set the generation parameters
-                passData.upscaleRadius = settings.upscaleRadius;
 
                 // Grab the right kernel
                 passData.upscaleCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
@@ -240,7 +236,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.upscaleCS, data.upscaleKernel, HDShaderIDs._RaytracingDirectionBuffer, data.directionBuffer);
                         ctx.cmd.SetComputeTextureParam(data.upscaleCS, data.upscaleKernel, HDShaderIDs._BlueNoiseTexture, data.blueNoiseTexture);
                         ctx.cmd.SetComputeTextureParam(data.upscaleCS, data.upscaleKernel, HDShaderIDs._ScramblingTexture, data.scramblingTexture);
-                        ctx.cmd.SetComputeIntParam(data.upscaleCS, HDShaderIDs._SpatialFilterRadius, data.upscaleRadius);
 
                         // Output buffer
                         ctx.cmd.SetComputeTextureParam(data.upscaleCS, data.upscaleKernel, HDShaderIDs._UpscaledIndirectDiffuseTextureRW, data.outputBuffer);
@@ -377,6 +372,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float clampValue;
             public int bounceCount;
             public int lodBias;
+            public int rayMiss;
+            public int lastBounceFallbackHierarchy;
 
             // Other parameters
             public RayTracingShader indirectDiffuseRT;
@@ -411,15 +408,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.clampValue = settings.clampValue;
                 passData.bounceCount = settings.bounceCount.value;
                 passData.lodBias = settings.textureLodBias.value;
+                passData.rayMiss = (int)settings.rayMiss.value;
+                passData.lastBounceFallbackHierarchy = (int)settings.lastBounceFallbackHierarchy.value;
 
                 // Grab the additional parameters
                 passData.indirectDiffuseRT = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingRT;
                 passData.accelerationStructure = RequestAccelerationStructure();
                 passData.lightCluster = RequestLightCluster();
                 passData.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);
-                passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
 
+                // Copy the constant buffer
+                passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
+
+                // Set the input and output textures
                 passData.depthBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
@@ -459,8 +461,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = data.bounceCount;
                         data.shaderVariablesRayTracingCB._RayTracingDiffuseLightingOnly = 1;
                         data.shaderVariablesRayTracingCB._RayTracingLodBias = data.lodBias;
-                        data.shaderVariablesRayTracingCB._RayTracingFallbackHierarchy = (int)RayTracingFallbackHierachy.Sky;
-
+                        data.shaderVariablesRayTracingCB._RayTracingRayMissFallbackHierarchy = data.rayMiss;
+                        data.shaderVariablesRayTracingCB._RayTracingLastBounceFallbackHierarchy = data.lastBounceFallbackHierarchy;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Only use the shader variant that has multi bounce if the bounce count > 1
@@ -526,7 +528,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 filterParams.historyValidity = historyValidity0;
                 filterParams.occluderMotionRejection = false;
                 filterParams.receiverMotionRejection = giSettings.receiverMotionRejection.value;
-                filterParams.exposureControl = 0.0f;
+                filterParams.exposureControl = true;
                 TextureHandle denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, filterParams,
                     rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferHF,
                     depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
@@ -545,7 +547,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     filterParams.historyValidity = historyValidity1;
                     filterParams.occluderMotionRejection = false;
                     filterParams.receiverMotionRejection = giSettings.receiverMotionRejection.value;
-                    filterParams.exposureControl = 0.0f;
+                    filterParams.exposureControl = true;
                     denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, filterParams,
                         rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferLF,
                         depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);

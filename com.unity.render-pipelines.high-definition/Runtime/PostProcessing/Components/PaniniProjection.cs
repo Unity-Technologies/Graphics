@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls how much cropping HDRP applies to the screen with the panini projection effect. A value of 1 crops the distortion to the edge of the screen.
         /// </summary>
         [Tooltip("Controls how much cropping HDRP applies to the screen with the panini projection effect. A value of 1 crops the distortion to the edge of the screen.")]
+        [Indent]
         public ClampedFloatParameter cropToFit = new ClampedFloatParameter(1f, 0f, 1f);
 
         /// <summary>
