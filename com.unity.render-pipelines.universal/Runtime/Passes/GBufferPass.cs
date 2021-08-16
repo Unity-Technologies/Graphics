@@ -128,7 +128,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Input attachments will only be used when this is not needed so safe to skip in that case
                 if (!m_DeferredLights.UseRenderPass)
                     gbufferCommands.SetGlobalTexture(s_CameraNormalsTextureID, m_DeferredLights.GbufferAttachmentIdentifiers[m_DeferredLights.GBufferNormalSmoothnessIndex]);
-               // gbufferCommands.SetGlobalTexture("_GBuffer4", m_DeferredLights.GbufferAttachmentIdentifiers[4]);
             }
 
             context.ExecuteCommandBuffer(gbufferCommands);

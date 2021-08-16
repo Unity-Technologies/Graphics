@@ -547,15 +547,15 @@ namespace UnityEngine.Rendering.Universal
         internal void SetupTransientInputAttachments(int attachmentCount)
         {
             for (int i = 0; i < attachmentCount; ++i)
-                {
-                    if (!m_IsActiveColorAttachmentTransient[i])
-                        continue;
+            {
+                if (!m_IsActiveColorAttachmentTransient[i])
+                    continue;
 
-                    m_ActiveColorAttachmentDescriptors[i].loadAction = RenderBufferLoadAction.DontCare;
-                    m_ActiveColorAttachmentDescriptors[i].storeAction = RenderBufferStoreAction.DontCare;
-                    // We change the target of the descriptor for it to be initialized engine-side as a transient resource.
-                    m_ActiveColorAttachmentDescriptors[i].loadStoreTarget = BuiltinRenderTextureType.None;
-                }
+                m_ActiveColorAttachmentDescriptors[i].loadAction = RenderBufferLoadAction.DontCare;
+                m_ActiveColorAttachmentDescriptors[i].storeAction = RenderBufferStoreAction.DontCare;
+                // We change the target of the descriptor for it to be initialized engine-side as a transient resource.
+                m_ActiveColorAttachmentDescriptors[i].loadStoreTarget = BuiltinRenderTextureType.None;
+            }
         }
 
         internal static uint GetSubPassAttachmentIndicesCount(ScriptableRenderPass pass)
