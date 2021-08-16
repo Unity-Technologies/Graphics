@@ -20,7 +20,7 @@ To open the Render Pipeline Debugger window in the Editor, go to  **Window > Ana
 
 You can display read-only items such as the FPS counter independently of the **Render Pipeline Debugger** window. This means that when you disable the **Render Pipeline Debugger** window, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
 
-You can disable the runtime UI entirely by using the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@12.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
+You can disable the runtime UI entirely by using the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
 
 ### Navigation at runtime
 
