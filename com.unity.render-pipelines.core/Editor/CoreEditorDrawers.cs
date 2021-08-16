@@ -820,8 +820,10 @@ namespace UnityEditor.Rendering
         /// <param name="owner">The editor drawing</param>
         public static void Draw<TData>(this IEnumerable<CoreEditorDrawer<TData>.IDrawer> drawers, TData data, Editor owner)
         {
+            EditorGUILayout.BeginVertical();
             foreach (var drawer in drawers)
                 drawer.Draw(data, owner);
+            EditorGUILayout.EndVertical();
         }
     }
 }

@@ -188,7 +188,7 @@ namespace UnityEditor.Rendering.Universal.Converters
                 var converterState = new ConverterState
                 {
                     isEnabled = m_CoreConvertersList[i].isEnabled,
-                    isActive = true,
+                    isActive = false,
                     isInitialized = false,
                     items = new List<ConverterItemState>(),
                     index = i,
