@@ -10,6 +10,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     {
         public bool isInput;
         public bool isHorizontal;
+        // MOCK-PREVIEW
+        public bool IsPreview;
 
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
@@ -21,6 +23,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             isInput = info.GetBoolean("isInput");
             isHorizontal = info.GetBoolean("isHorizontal");
+            // MOCK-PREVIEW
+            IsPreview = true;
         }
     }
 

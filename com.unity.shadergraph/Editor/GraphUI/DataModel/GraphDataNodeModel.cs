@@ -34,6 +34,23 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 
         public RegistryKey registryKey => TryGetNodeReader(out var reader) ? reader.GetRegistryKey() : default;
 
+        public bool HasPreview { get; private set; }
+
+        // By default every node's preview is visible
+        // TODO: Handle preview state serialization
+        [SerializeField]
+        bool m_IsPreviewExpanded = true;
+
+        public bool IsPreviewVisible
+        {
+            get => m_IsPreviewExpanded;
+            set
+            {
+                m_IsPreviewExpanded = value;
+            }
+        }
+
+
         protected override void OnDefineNode()
         {
             if (!TryGetNodeReader(out var reader))
@@ -42,6 +59,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
                 return;
             }
 
+            bool nodeHasPreview = false;
+
+            // TODO: Convert this to a NodePortsPart maybe?
             foreach (var portReader in reader.GetPorts())
             {
                 var isInput = portReader.GetFlags().isInput;
@@ -55,7 +75,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
                     this.AddDataInputPort(portReader.GetName(), type, orientation: orientation);
                 else
                     this.AddDataOutputPort(portReader.GetName(), type, orientation: orientation);
+
+                // Mark node as containing a preview if any of the ports on it are flagged as a preview port
+                if(portReader.GetFlags().IsPreview)
+                    nodeHasPreview = true;
             }
+
+            HasPreview = nodeHasPreview;
         }
 
         public override IPortModel CreatePort(PortDirection direction, PortOrientation orientation, string portName,
