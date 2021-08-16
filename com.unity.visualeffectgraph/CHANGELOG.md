@@ -66,6 +66,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix unexpected Spawn context execution ordering
 - Fix incorrect buffer type for strips
 - Enabled an optimization for motion vectors, storing projected positions for vertices instead of the transform matrix
+- In the Gradient editor undo will now properly refresh the gradient preview (color swatches)
+- Eye dropper in the color fields kept updating after pressing the Esc key
 - Sticky notes can now be deleted through contextual manual menu
 - Blackboard fields can now be duplicated either with a shortcut (Ctrl+D) or with a contextual menu option
 - Properties labels do not overlap anymore
