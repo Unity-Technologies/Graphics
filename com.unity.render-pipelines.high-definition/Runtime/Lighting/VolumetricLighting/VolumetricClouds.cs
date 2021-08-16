@@ -350,12 +350,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the amount of local scattering in the clouds. A value of 1 may provide a more powdery aspect.
         /// </summary>
         [Tooltip("Controls the amount of local scattering in the clouds. A value of 1 may provide a more powdery aspect.")]
+        [AdditionalProperty]
         public ClampedFloatParameter powderEffectIntensity = new ClampedFloatParameter(0.7f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the amount of multi-scattering inside the cloud.
         /// </summary>
         [Tooltip("Controls the amount of multi-scattering inside the cloud.")]
+        [AdditionalProperty]
         public ClampedFloatParameter multiScattering = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
@@ -417,6 +419,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes.
         /// </summary>
         [Tooltip("Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes.")]
+        [AdditionalProperty]
         public ClampedFloatParameter erosionOcclusion = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         /// <summary>
