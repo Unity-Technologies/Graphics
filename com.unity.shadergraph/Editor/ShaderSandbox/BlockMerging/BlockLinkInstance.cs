@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using UnityEditor.ShaderSandbox;
+using UnityEditor.ShaderFoundry;
 
-namespace ShaderSandbox
+namespace UnityEditor.ShaderFoundry
 {
     /// An instance of a block for linking. Keeps track of the link connections for the input and output types.
     internal class BlockLinkInstance

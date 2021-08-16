@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using UnityEditor.ShaderSandbox;
+using UnityEditor.ShaderFoundry;
 
-namespace ShaderSandbox
+namespace UnityEditor.ShaderFoundry
 {
     internal class NamespaceScopes
     {

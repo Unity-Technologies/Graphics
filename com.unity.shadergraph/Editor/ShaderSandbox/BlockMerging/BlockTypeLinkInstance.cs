@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ShaderSandbox
+namespace UnityEditor.ShaderFoundry
 {
     internal class ResolvedFieldMatch
     {

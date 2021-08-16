@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.ShaderSandbox;
+using UnityEditor.ShaderFoundry;
 
-namespace ShaderSandbox
+namespace UnityEditor.ShaderFoundry
 {
     internal class BlockMerger
     {
