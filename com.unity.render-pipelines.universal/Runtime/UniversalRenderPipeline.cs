@@ -508,89 +508,88 @@ namespace UnityEngine.Rendering.Universal
                 }
 
 
-            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
-            {
-                BeginCameraRendering(context, baseCamera);
-            }
-            // Update volumeframework before initializing additional camera data
-            UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
-            InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
-            RenderTextureDescriptor originalTargetDesc = baseCameraData.cameraTargetDescriptor;
+                using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+                {
+                    BeginCameraRendering(context, baseCamera);
+                }
+                // Update volumeframework before initializing additional camera data
+                UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
+                InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
+                RenderTextureDescriptor originalTargetDesc = baseCameraData.cameraTargetDescriptor;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (xrPass.enabled)
-            {
-                baseCameraData.xr = xrPass;
+                if (xrPass.enabled)
+                {
+                    baseCameraData.xr = xrPass;
 
-                // Helper function for updating cameraData with xrPass Data
-                UpdateCameraData(ref baseCameraData, baseCameraData.xr);
+                    // Helper function for updating cameraData with xrPass Data
+                    UpdateCameraData(ref baseCameraData, baseCameraData.xr);
 
-                // Initialize late latching
-                XRSystem.BeginLateLatching(baseCamera, xrPass);
-            }
+                    // Initialize late latching
+                    XRSystem.BeginLateLatching(baseCamera, xrPass);
+                }
 #endif
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-            //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-            VFX.VFXManager.PrepareCamera(baseCamera);
+                //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                VFX.VFXManager.PrepareCamera(baseCamera);
 #endif
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-            if (asset.useAdaptivePerformance)
-                ApplyAdaptivePerformance(ref baseCameraData);
+                if (asset.useAdaptivePerformance)
+                    ApplyAdaptivePerformance(ref baseCameraData);
 #endif
-            RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
-            using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
-            {
-                EndCameraRendering(context, baseCamera);
-            }
-
-            // Late latching is not supported after this point
-            XRSystem.EndLateLatching(baseCamera, xrPass);
-
-            if (isStackedRendering)
-            {
-                for (int i = 0; i < cameraStack.Count; ++i)
+                RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
+                using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
                 {
-                    var currCamera = cameraStack[i];
-                    if (!currCamera.isActiveAndEnabled)
-                        continue;
+                    EndCameraRendering(context, baseCamera);
+                }
 
-                    currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var currCameraData);
-                    // Camera is overlay and enabled
-                    if (currCameraData != null)
+                // Late latching is not supported after this point
+                XRSystem.EndLateLatching(baseCamera, xrPass);
+
+                if (isStackedRendering)
+                {
+                    for (int i = 0; i < cameraStack.Count; ++i)
                     {
-                        // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
-                        CameraData overlayCameraData = baseCameraData;
-                        bool lastCamera = i == lastActiveOverlayCameraIndex;
+                        var currCamera = cameraStack[i];
+                        if (!currCamera.isActiveAndEnabled)
+                            continue;
 
-                        UpdateCameraStereoMatrices(currCameraData.camera, xrPass);
-
-                        using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+                        currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var currCameraData);
+                        // Camera is overlay and enabled
+                        if (currCameraData != null)
                         {
-                            BeginCameraRendering(context, currCamera);
-                        }
+                            // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
+                            CameraData overlayCameraData = baseCameraData;
+                            bool lastCamera = i == lastActiveOverlayCameraIndex;
+
+                            UpdateCameraStereoMatrices(currCameraData.camera, xrPass);
+
+                            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+                            {
+                                BeginCameraRendering(context, currCamera);
+                            }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-                        //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-                        VFX.VFXManager.PrepareCamera(currCamera);
+                            //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                            VFX.VFXManager.PrepareCamera(currCamera);
 #endif
-                        UpdateVolumeFramework(currCamera, currCameraData);
-                        InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
+                            UpdateVolumeFramework(currCamera, currCameraData);
+                            InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
 
-                        xrLayout.ReconfigurePass(overlayCameraData.xr, currCamera);
+                            xrLayout.ReconfigurePass(overlayCameraData.xr, currCamera);
 
-                        RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
+                            RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
 
-                        using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
-                        {
-                            EndCameraRendering(context, currCamera);
+                            using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+                            {
+                                EndCameraRendering(context, currCamera);
+                            }
                         }
                     }
                 }
-            }
 
-            if (baseCameraData.xr.enabled)
-                baseCameraData.cameraTargetDescriptor = originalTargetDesc;
-
+                if (baseCameraData.xr.enabled)
+                    baseCameraData.cameraTargetDescriptor = originalTargetDesc;
             }
 
             if (xrActive)
