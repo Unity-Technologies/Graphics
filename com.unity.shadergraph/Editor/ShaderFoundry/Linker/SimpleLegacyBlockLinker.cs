@@ -55,17 +55,17 @@ namespace UnityEditor.ShaderFoundry
             foreach (var templateBlockDesc in passBlocksDescriptors)
             {
                 // Add the template block's data to the correct group based on the customization point
-                var cpName = templatePass.GetDefaultBlockCustomizationPointName(templateBlockDesc);
+                var customizationPoint = templatePass.GetCustomizationPointForBlock(templateBlockDesc);
                 // If the customization point has changed then the group changes (or if we didn't already have a group)
-                if (currentGroup == null || currentGroup.CustomizationPointName != cpName)
+                if (currentGroup == null || currentGroup.CustomizationPointName != customizationPoint.Name)
                 {
-                    currentGroup = new BlockGroup { CustomizationPointName = cpName };
+                    currentGroup = new BlockGroup { CustomizationPointName = customizationPoint.Name };
                     results.Add(currentGroup);
                 }
 
                 // Add all blocks that correspond to this customization point
                 currentGroup.BlockDescriptors.Add(templateBlockDesc);
-                var cpDesc = customizationPointDescriptors.Find((cpd) => (cpd.CustomizationPoint.Name == cpName));
+                var cpDesc = customizationPointDescriptors.Find((cpd) => (cpd.CustomizationPoint.Name == customizationPoint.Name));
                 if (cpDesc.IsValid)
                 {
                     foreach (var blockDesc in cpDesc.BlockDescriptors)
