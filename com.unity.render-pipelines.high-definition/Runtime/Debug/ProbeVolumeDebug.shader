@@ -14,6 +14,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+        #pragma multi_compile _ USE_CONSTANT_BUFFERS
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
@@ -28,7 +29,6 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         uniform float _ExposureCompensation;
         uniform float _ProbeSize;
         uniform float4 _Color;
-        uniform int _SubdivLevel;
         uniform float _CullDistance;
         uniform int _MaxAllowedSubdiv;
         uniform float _ValidityThreshold;
@@ -37,33 +37,53 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         {
             float4 vertex : POSITION;
             float3 normal : NORMAL;
+#ifdef USE_CONSTANT_BUFFERS
             UNITY_VERTEX_INPUT_INSTANCE_ID
+#endif
         };
 
         struct v2f
         {
             float4 vertex : SV_POSITION;
             float3 normal : TEXCOORD1;
+#ifdef USE_CONSTANT_BUFFERS
             UNITY_VERTEX_INPUT_INSTANCE_ID
+#endif
         };
 
+#ifdef USE_CONSTANT_BUFFERS
         UNITY_INSTANCING_BUFFER_START(Props)
             UNITY_DEFINE_INSTANCED_PROP(float4, _IndexInAtlas)
             UNITY_DEFINE_INSTANCED_PROP(float, _Validity)
         UNITY_INSTANCING_BUFFER_END(Props)
+#else
+        StructuredBuffer<float4x4> _MatrixArray;
+        StructuredBuffer<float4> _IndexInAtlasArray;
+        StructuredBuffer<float> _ValidityArray;
+#endif
 
-        v2f vert(appdata v)
+        v2f vert(appdata v
+#ifndef USE_CONSTANT_BUFFERS
+            , uint instanceID : SV_InstanceID
+#endif
+        )
         {
             v2f o;
 
+#ifdef USE_CONSTANT_BUFFERS
             UNITY_SETUP_INSTANCE_ID(v);
             UNITY_TRANSFER_INSTANCE_ID(v, o);
 
+            float4x4 worldMatrix = UNITY_MATRIX_M;
+            int brickSize = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).w;
+#else
+            float4x4 worldMatrix = ApplyCameraTranslationToMatrix(_MatrixArray[instanceID]);
+            int brickSize = _IndexInAtlasArray[instanceID].w;
+#endif
 
             // Finer culling, degenerate the vertices of the sphere if it lies over the max distance.
             // Coarser culling has already happened on CPU.
-            float4 position = float4(UNITY_MATRIX_M._m03_m13_m23, 1);
-            int brickSize = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).w;
+            float4 position = float4(worldMatrix._m03_m13_m23, 1);
 
             if (distance(position.xyz, _WorldSpaceCameraPos.xyz) > _CullDistance ||
                 brickSize > _MaxAllowedSubdiv)
@@ -73,10 +93,10 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             }
             else
             {
-                float4 wsPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz * _ProbeSize, 1.0));
-                o.vertex = mul(UNITY_MATRIX_VP, wsPos);
+                float4 wsPos = mul(worldMatrix, float4(v.vertex.xyz * _ProbeSize, 1.0));
+                o.vertex = TransformWorldToHClip(wsPos); //mul(UNITY_MATRIX_VP, wsPos);
 
-                o.normal = normalize(mul(v.normal, (float3x3)UNITY_MATRIX_M));
+                o.normal = normalize(mul(v.normal, (float3x3)worldMatrix));
             }
 
             return o;
@@ -100,14 +120,25 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             return SHEvalLinearL2(N, L2_R, L2_G, L2_B, L2_C);
         }
 
-        float4 frag(v2f i) : SV_Target
+        float4 frag(v2f i
+#ifndef USE_CONSTANT_BUFFERS
+            , uint instanceID : SV_InstanceID
+#endif
+            ) : SV_Target
         {
+#ifdef USE_CONSTANT_BUFFERS
             UNITY_SETUP_INSTANCE_ID(i);
+            int3 texLoc = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).xyz;
+            float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
+#else
+            int3 texLoc = _IndexInAtlasArray[instanceID].xyz;
+            float validity = _ValidityArray[instanceID];
+#endif
 
             if (_ShadingMode == DEBUGPROBESHADINGMODE_SH)
             {
                 APVResources apvRes = FillAPVResources();
-                int3 texLoc = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).xyz;
+
                 float3 normal = normalize(i.normal);
 
                 float3 bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
@@ -132,12 +163,10 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             }
             else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY)
             {
-                float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
                 return lerp(float4(0, 1, 0, 1), float4(1, 0, 0, 1), validity);
             }
             else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY_OVER_DILATION_THRESHOLD)
             {
-                float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
                 if (validity > _ValidityThreshold)
                 {
                     return float4(1, 0, 0, 1);
