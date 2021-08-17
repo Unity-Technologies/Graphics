@@ -29,6 +29,21 @@ o.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy * uvScale + uvBias;
 #endif
 #endif
 
+#ifdef VFX_VARYING_ANGLEFADE
+${VFXLoadParameter:{angleFade}}
+o.VFX_VARYING_ANGLEFADE = angleFade;
+#endif
+
+#ifdef VFX_VARYING_FADEFACTOR
+${VFXLoadParameter:{fadeFactor}}
+o.VFX_VARYING_FADEFACTOR = fadeFactor;
+#endif
+
+#ifdef VFX_VARYING_DECALLAYER
+${VFXLoadParameter:{decalLayerMask}}
+o.VFX_VARYING_DECALLAYER = decalLayerMask;
+#endif
+
 #if defined(VFX_VARYING_POSWS)
 o.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);
 #endif

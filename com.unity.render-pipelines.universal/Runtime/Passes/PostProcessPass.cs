@@ -422,6 +422,27 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
+            // Motion blur
+            if (m_MotionBlur.IsActive() && !isSceneViewCamera)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
+                {
+                    DoMotionBlur(cameraData, cmd, GetSource(), GetDestination());
+                    Swap(ref renderer);
+                }
+            }
+
+            // Panini projection is done as a fullscreen pass after all depth-based effects are done
+            // and before bloom kicks in
+            if (m_PaniniProjection.IsActive() && !isSceneViewCamera)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
+                {
+                    DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination());
+                    Swap(ref renderer);
+                }
+            }
+
             // Lens Flare
             if (!LensFlareCommonSRP.Instance.IsEmpty())
             {
@@ -444,27 +465,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
                 {
                     DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
-                }
-            }
-
-            // Motion blur
-            if (m_MotionBlur.IsActive() && !isSceneViewCamera)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
-                {
-                    DoMotionBlur(cameraData, cmd, GetSource(), GetDestination());
-                    Swap(ref renderer);
-                }
-            }
-
-            // Panini projection is done as a fullscreen pass after all depth-based effects are done
-            // and before bloom kicks in
-            if (m_PaniniProjection.IsActive() && !isSceneViewCamera)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
-                {
-                    DoPaniniProjection(cameraData.camera, cmd, GetSource(), GetDestination());
-                    Swap(ref renderer);
                 }
             }
 
@@ -523,8 +523,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                 {
                     cameraTarget = (m_Destination == RenderTargetHandle.CameraTarget) ? cameraTarget : m_Destination.Identifier();
+                    m_ResolveToScreen = cameraData.resolveFinalTarget || (m_Destination == cameraTargetHandle || m_HasFinalPass == true);
                 }
-
 
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
                 bool finishPostProcessOnScreen = m_ResolveToScreen;
@@ -915,12 +915,21 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
         {
+            var gpuView = camera.worldToCameraMatrix;
+            var gpuNonJitteredProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true);
+            // Zero out the translation component.
+            gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
+            var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
+
             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)Screen.width, (float)Screen.height,
                 usePanini, paniniDistance, paniniCropToFit,
+                true,
+                gpuVP,
                 cmd, source,
                 GetLensFlareLightAttenuation,
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
-                ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4, ShaderConstants._FlareData5, false);
+                ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
+                false);
         }
 
         #endregion

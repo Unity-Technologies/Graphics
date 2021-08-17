@@ -31,6 +31,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Displacement vector of the wind
         public Vector2 _WindVector;
 
+        // Padding
+        public Vector2 _Padding2;
+        // Displacement of the wind vertically for the shaping
+        public float _VerticalShapeWindDisplacement;
+        // Displacement of the wind vertically for the erosion
+        public float _VerticalErosionWindDisplacement;
+
         // Wind speed controllers
         public float _LargeWindSpeed;
         public float _MediumWindSpeed;
@@ -71,6 +78,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Maximal temporal accumulation
         public float _TemporalAccumulationFactor;
 
+        // Direction to the sun
+        public Vector2 _Padding0;
+        public float _FadeInStart;
+        public float _FadeInDistance;
+
         // Scattering Tint
         public Vector4 _ScatteringTint;
 
@@ -92,8 +104,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Index for which of the 4 local pixels should be evaluated
         public int _SubPixelIndex;
 
-        [HLSLArray(7, typeof(Vector4))]
-        public fixed float _AmbientProbeCoeffs[7 * 4];  // 3 bands of SH, packed, rescaled and convolved with the phase function
+        // Current ambient probe evaluated for both directions of the vertical axis
+        public Vector4 _AmbientProbeTop;
+        public Vector4 _AmbientProbeBottom;
 
         // Right direction of the sun
         public Vector4 _SunRight;
@@ -121,8 +134,23 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _CameraInverseViewProjection_NO;
         public Matrix4x4 _CameraPrevViewProjection_NO;
 
+        // Controls the intensity of the wind distortion at high altitudes
+        public float _AltitudeDistortion;
+        // Internal parameters that compensates the erosion factor to match between the different erosion noises
+        public float _ErosionFactorCompensation;
         // Fast tonemapping settings
-        public Vector3 _Padding2;
-        public int     _EnableFastToneMapping;
+        public int _EnableFastToneMapping;
+        // Flag that defines if the current camera is a planar reflection
+        public int _IsPlanarReflection;
+
+        // Padding
+        public Vector2 _Padding1;
+        // Flag that defines if the clouds should be evaluated at full resolution
+        public int _LowResolutionEvaluation;
+        // Flag that defines if the we should enable integration, checkerboard rendering, etc.
+        public int _EnableIntegration;
+
+        [HLSLArray(3 * 4, typeof(Vector4))]
+        public fixed float _DistanceBasedWeights[12 * 4];
     }
 }

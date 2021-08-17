@@ -347,6 +347,9 @@ namespace UnityEngine.Rendering
             // Traverse all volumes
             foreach (var volume in volumes)
             {
+                if (volume == null)
+                    continue;
+
 #if UNITY_EDITOR
                 // Skip volumes that aren't in the scene currently displayed in the scene view
                 if (!IsVolumeRenderedByCamera(volume, camera))
@@ -417,6 +420,7 @@ namespace UnityEngine.Rendering
         public Volume[] GetVolumes(LayerMask layerMask)
         {
             var volumes = GrabVolumes(layerMask);
+            volumes.RemoveAll(v => v == null);
             return volumes.ToArray();
         }
 

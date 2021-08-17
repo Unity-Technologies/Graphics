@@ -50,6 +50,7 @@ namespace UnityEditor.ShaderGraph
         public TransformNode()
         {
             name = "Transform";
+            synonyms = new string[] { "world", "tangent", "object", "view" };
             UpdateNodeAfterDeserialization();
         }
 

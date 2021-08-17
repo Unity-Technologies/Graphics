@@ -491,6 +491,23 @@ namespace UnityEngine.Rendering.Universal
             anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
+
+            // Prepare XR rendering
+            var xrActive = false;
+            var xrRendering = baseCameraAdditionalData?.allowXRRendering ?? true;
+            var xrLayout = XRSystem.NewLayout();
+            xrLayout.AddCamera(baseCamera, xrRendering);
+
+            // With XR multi-pass enabled, each camera can be rendered multiple times with different parameters
+            foreach ((Camera _, XRPass xrPass) in xrLayout.GetActivePasses())
+            {
+                if (xrPass.enabled)
+                {
+                    xrActive = true;
+                    UpdateCameraStereoMatrices(baseCamera, xrPass);
+                }
+
+
             using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
             {
                 BeginCameraRendering(context, baseCamera);
@@ -498,89 +515,82 @@ namespace UnityEngine.Rendering.Universal
             // Update volumeframework before initializing additional camera data
             UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
+            RenderTextureDescriptor originalTargetDesc = baseCameraData.cameraTargetDescriptor;
 
-            // Prepare XR rendering
-            var initialCameraTargetDesc = baseCameraData.cameraTargetDescriptor;
-            var xrActive = false;
-            var xrLayout = XRSystem.NewLayout();
-            xrLayout.AddCamera(baseCameraData.camera, baseCameraData.xrRendering);
-
-            // With XR multi-pass enabled, each camera can be rendered multiple times with different parameters
-            foreach ((Camera _, XRPass xrPass) in xrLayout.GetActivePasses())
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xrPass.enabled)
             {
                 baseCameraData.xr = xrPass;
-                if (baseCameraData.xr.enabled)
-                {
-                    xrActive = true;
-                    UpdateCameraData(ref baseCameraData, baseCameraData.xr);
 
-                    UpdateCameraStereoMatrices(baseCameraData);
+                // Helper function for updating cameraData with xrPass Data
+                UpdateCameraData(ref baseCameraData, baseCameraData.xr);
 
-                    // Update volume manager to use baseCamera's settings for XR multipass rendering.
-                    if (baseCameraData.xr.multipassId > 0)
-                    {
-                        UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
-                    }
-                }
+                // Initialize late latching
+                XRSystem.BeginLateLatching(baseCamera, xrPass);
+            }
+#endif
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-                //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-                VFX.VFXManager.PrepareCamera(baseCamera);
+            //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+            VFX.VFXManager.PrepareCamera(baseCamera);
 #endif
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-                if (asset.useAdaptivePerformance)
-                    ApplyAdaptivePerformance(ref baseCameraData);
+            if (asset.useAdaptivePerformance)
+                ApplyAdaptivePerformance(ref baseCameraData);
 #endif
-                RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
-                using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
-                {
-                    EndCameraRendering(context, baseCamera);
-                }
+            RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
+            using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+            {
+                EndCameraRendering(context, baseCamera);
+            }
 
-                if (isStackedRendering)
+            // Late latching is not supported after this point
+            XRSystem.EndLateLatching(baseCamera, xrPass);
+
+            if (isStackedRendering)
+            {
+                for (int i = 0; i < cameraStack.Count; ++i)
                 {
-                    for (int i = 0; i < cameraStack.Count; ++i)
+                    var currCamera = cameraStack[i];
+                    if (!currCamera.isActiveAndEnabled)
+                        continue;
+
+                    currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var currCameraData);
+                    // Camera is overlay and enabled
+                    if (currCameraData != null)
                     {
-                        var currCamera = cameraStack[i];
-                        if (!currCamera.isActiveAndEnabled)
-                            continue;
+                        // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
+                        CameraData overlayCameraData = baseCameraData;
+                        bool lastCamera = i == lastActiveOverlayCameraIndex;
 
-                        currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var currCameraData);
-                        // Camera is overlay and enabled
-                        if (currCameraData != null)
+                        UpdateCameraStereoMatrices(currCameraData.camera, xrPass);
+
+                        using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
                         {
-                            // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
-                            CameraData overlayCameraData = baseCameraData;
-                            bool lastCamera = i == lastActiveOverlayCameraIndex;
-
-                            UpdateCameraStereoMatrices(overlayCameraData);
-
-                            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
-                            {
-                                BeginCameraRendering(context, currCamera);
-                            }
+                            BeginCameraRendering(context, currCamera);
+                        }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-                            //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-                            VFX.VFXManager.PrepareCamera(currCamera);
+                        //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                        VFX.VFXManager.PrepareCamera(currCamera);
 #endif
-                            UpdateVolumeFramework(currCamera, currCameraData);
-                            InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
+                        UpdateVolumeFramework(currCamera, currCameraData);
+                        InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
 
-                            xrLayout.ReconfigurePass(overlayCameraData.xr, currCamera);
+                        xrLayout.ReconfigurePass(overlayCameraData.xr, currCamera);
 
-                            RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
+                        RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
 
-                            using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
-                            {
-                                EndCameraRendering(context, currCamera);
-                            }
+                        using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+                        {
+                            EndCameraRendering(context, currCamera);
                         }
                     }
                 }
+            }
 
-                // Restore camera target
-                if (baseCameraData.xr.enabled)
-                    baseCameraData.cameraTargetDescriptor = initialCameraTargetDesc;
+            if (baseCameraData.xr.enabled)
+                baseCameraData.cameraTargetDescriptor = originalTargetDesc;
+
             }
 
             if (xrActive)
@@ -875,7 +885,8 @@ namespace UnityEngine.Rendering.Universal
             // Disables post if GLes2
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
-            cameraData.requiresDepthTexture |= isSceneViewCamera || CheckPostProcessForDepth(cameraData);
+            cameraData.requiresDepthTexture |= isSceneViewCamera;
+            cameraData.postProcessingRequiresDepthTexture |= CheckPostProcessForDepth(cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
@@ -885,6 +896,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraData.requiresDepthTexture = false;
                 cameraData.requiresOpaqueTexture = false;
+                cameraData.postProcessingRequiresDepthTexture = false;
             }
 
             Matrix4x4 projectionMatrix = camera.projectionMatrix;
@@ -1086,15 +1098,23 @@ namespace UnityEngine.Rendering.Universal
             lightData.originalIndices.Dispose();
         }
 
-        static void UpdateCameraStereoMatrices(CameraData cameraData)
+        static void UpdateCameraStereoMatrices(Camera camera, XRPass xr)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
+            if (xr.enabled)
             {
-                for (int i = 0; i < Mathf.Min(2, cameraData.xr.viewCount); i++)
+                if (xr.singlePassEnabled)
                 {
-                    cameraData.camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)i, cameraData.GetProjectionMatrix(i));
-                    cameraData.camera.SetStereoViewMatrix((Camera.StereoscopicEye)i, cameraData.GetViewMatrix(i));
+                    for (int i = 0; i < Mathf.Min(2, xr.viewCount); i++)
+                    {
+                        camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)i, xr.GetProjMatrix(i));
+                        camera.SetStereoViewMatrix((Camera.StereoscopicEye)i, xr.GetViewMatrix(i));
+                    }
+                }
+                else
+                {
+                    camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)xr.multipassId, xr.GetProjMatrix(0));
+                    camera.SetStereoViewMatrix((Camera.StereoscopicEye)xr.multipassId, xr.GetViewMatrix(0));
                 }
             }
 #endif

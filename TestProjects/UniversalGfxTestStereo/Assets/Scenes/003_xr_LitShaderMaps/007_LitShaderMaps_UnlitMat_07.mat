@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 5
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -85,6 +85,7 @@ Material:
     m_Floats:
     - _AlphaClip: 0
     - _Blend: 0
+    - _BlendOp: 0
     - _BumpScale: 1
     - _Cull: 2
     - _Cutoff: 0.5
@@ -111,7 +112,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0, g: 0.5897915, b: 1, a: 1}
-    - _Color: {r: 0, g: 0.58979154, b: 1, a: 1}
+    - _Color: {r: 0, g: 0.5897915, b: 1, a: 1}
     - _EmissionColor: {r: 0.20663926, g: 0.24034719, b: 0.28676468, a: 1}
     - _MainColor: {r: 1, g: 0, b: 0, a: 1}
     - _ReflectColor: {r: 1, g: 1, b: 1, a: 1}

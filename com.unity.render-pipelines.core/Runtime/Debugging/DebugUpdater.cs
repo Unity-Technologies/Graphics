@@ -80,7 +80,8 @@ namespace UnityEngine.Rendering
             if (debugManager.GetAction(DebugAction.EnableDebugMenu) != 0.0f ||
                 debugManager.GetActionToggleDebugMenuWithTouch())
             {
-                debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
+                if (debugManager.enableWindowHotkey)
+                    debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
             }
 
             if (debugManager.displayRuntimeUI)

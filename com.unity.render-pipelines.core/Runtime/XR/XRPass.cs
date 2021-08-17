@@ -203,6 +203,21 @@ namespace UnityEngine.Rendering
             m_OcclusionMesh.RenderOcclusionMesh(cmd);
         }
 
+        /// <summary>
+        /// If true, late latching mechanism is available for the frame.
+        /// </summary>
+        public bool isLateLatchEnabled { get; internal set; }
+
+        /// <summary>
+        /// Used by the render pipeline to control the granularity of late latching.
+        /// </summary>
+        public bool canMarkLateLatch { get; set; }
+
+        /// <summary>
+        /// Track the state of the late latching system.
+        /// </summary>
+        internal bool hasMarkedLateLatch { get; set; }
+
         internal void AssignView(int viewId, XRView xrView)
         {
             if (viewId < 0 || viewId >= m_Views.Count)

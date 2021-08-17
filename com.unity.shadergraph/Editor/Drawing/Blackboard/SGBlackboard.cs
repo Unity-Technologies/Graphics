@@ -149,6 +149,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
             RegisterCallback<DragExitedEvent>(OnDragExitedEvent);
 
+            // This callback makes sure the drag indicator is shown again if user exits and then re-enters blackboard while dragging
+            RegisterCallback<MouseEnterEvent>(OnMouseEnterEvent);
+
             m_ScrollBoundaryTop = m_MainContainer.Q(name: "scrollBoundaryTop");
             m_ScrollBoundaryTop.RegisterCallback<MouseEnterEvent>(ScrollRegionTopEnter);
             m_ScrollBoundaryTop.RegisterCallback<DragUpdatedEvent>(OnFieldDragUpdate);
@@ -218,6 +221,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             SetCategoryDragIndicatorVisible(false);
             HideScrollBoundaryRegions();
+        }
+
+        void OnMouseEnterEvent(MouseEnterEvent evt)
+        {
+            if (m_IsUserDraggingItems && selection.OfType<SGBlackboardCategory>().Any())
+                SetCategoryDragIndicatorVisible(true);
         }
 
         void HideScrollBoundaryRegions()
@@ -308,7 +317,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             evt.StopPropagation();
 
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
-            if (selection == null)
+            if (selection == null || selection.Count == 0)
             {
                 SetCategoryDragIndicatorVisible(false);
                 return;

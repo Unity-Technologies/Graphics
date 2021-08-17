@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering
         /// <param name="renderIntoTexture"></param>
         public static void Update(XRPass xrPass, CommandBuffer cmd, bool renderIntoTexture)
         {
+        #if ENABLE_VR && ENABLE_XR_MODULE
             if (xrPass.enabled)
             {
                 cmd.SetViewProjectionMatrices(xrPass.GetViewMatrix(), xrPass.GetProjMatrix());
@@ -66,7 +67,49 @@ namespace UnityEngine.Rendering
                     cmd.SetGlobalMatrixArray(k_StereoMatrixInvVP, s_invViewProjMatrix);
                     cmd.SetGlobalVectorArray(k_StereoWorldSpaceCameraPos, s_worldSpaceCameraPos);
                 }
+
+                MarkLateLatchShaderProperties(xrPass, cmd);
             }
+        #endif
         }
-    };
+
+        /// <summary>
+        /// Used by the render pipeline to mark shader properties for late latching.
+        /// </summary>
+        /// <param name="xrPass"></param>
+        /// <param name="cmd"></param>
+        public static void MarkLateLatchShaderProperties(XRPass xrPass, CommandBuffer cmd)
+        {
+        #if ENABLE_VR && ENABLE_XR_MODULE
+            if (xrPass.enabled && xrPass.canMarkLateLatch)
+            {
+                cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.View, k_StereoMatrixV);
+                cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.InverseView, k_StereoMatrixInvV);
+                cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.ViewProjection, k_StereoMatrixVP);
+                cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.InverseViewProjection, k_StereoMatrixInvVP);
+                cmd.SetLateLatchProjectionMatrices(s_projMatrix);
+                xrPass.hasMarkedLateLatch = true;
+            }
+        #endif
+        }
+
+        /// <summary>
+        /// Used by the render pipeline to unmark shader properties for late latching.
+        /// </summary>
+        /// <param name="xrPass"></param>
+        /// <param name="cmd"></param>
+        public static void UnmarkLateLatchShaderProperties(XRPass xrPass, CommandBuffer cmd)
+        {
+        #if ENABLE_VR && ENABLE_XR_MODULE
+            if (xrPass.enabled && xrPass.hasMarkedLateLatch)
+            {
+                cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.View);
+                cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.InverseView);
+                cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.ViewProjection);
+                cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.InverseViewProjection);
+                xrPass.hasMarkedLateLatch = false;
+            }
+        #endif
+        }
+    }
 }

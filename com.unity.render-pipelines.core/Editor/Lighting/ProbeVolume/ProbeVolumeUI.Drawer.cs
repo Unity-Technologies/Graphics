@@ -9,18 +9,6 @@ namespace UnityEditor.Experimental.Rendering
 
     static partial class ProbeVolumeUI
     {
-        [System.Flags]
-        enum Expandable
-        {
-            Volume = 1 << 0,
-            Probes = 1 << 1,
-            Baking = 1 << 2
-        }
-
-        readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateVolume = new ExpandedState<Expandable, ProbeVolume>(Expandable.Volume, "HDRP");
-        readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateProbes = new ExpandedState<Expandable, ProbeVolume>(Expandable.Probes, "HDRP");
-        readonly static ExpandedState<Expandable, ProbeVolume> k_ExpandedStateBaking = new ExpandedState<Expandable, ProbeVolume>(Expandable.Baking, "HDRP");
-
         internal static readonly CED.IDrawer Inspector = CED.Group(
             CED.Group(
                 Drawer_VolumeContent,
@@ -139,7 +127,8 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.BeginChangeCheck();
             if ((serialized.serializedObject.targetObject as ProbeVolume).mightNeedRebaking)
             {
-                EditorGUILayout.HelpBox("The probe volume has changed since last baking or the data was never baked.\nPlease bake lighting in the lighting panel to update the lighting data.", MessageType.Warning, wide: true);
+                var helpBoxRect = GUILayoutUtility.GetRect(new GUIContent(Styles.s_ProbeVolumeChangedMessage, EditorGUIUtility.IconContent("Warning@2x").image), EditorStyles.helpBox);
+                EditorGUI.HelpBox(helpBoxRect, Styles.s_ProbeVolumeChangedMessage, MessageType.Warning);
             }
 
             EditorGUILayout.PropertyField(serialized.globalVolume, Styles.s_GlobalVolume);

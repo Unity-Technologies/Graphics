@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
             VirtualTexturing,
             AddedHDRenderPipelineGlobalSettings,
             DecalSurfaceGradient,
+            RemovalOfUpscaleFilter,
             // If you add more steps here, do not clear settings that are used for the migration to the HDRP Global Settings asset
         }
 
@@ -208,8 +209,17 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.DecalSurfaceGradient, (HDRenderPipelineAsset data) =>
             {
                 data.m_RenderPipelineSettings.supportSurfaceGradient = false;
+            }),
+#pragma warning disable 618 // Type or member is obsolete
+            MigrationStep.New(Version.RemovalOfUpscaleFilter, (HDRenderPipelineAsset data) =>
+            {
+                if (data.m_RenderPipelineSettings.dynamicResolutionSettings.upsampleFilter == DynamicResUpscaleFilter.Bilinear)
+                    data.m_RenderPipelineSettings.dynamicResolutionSettings.upsampleFilter = DynamicResUpscaleFilter.CatmullRom;
+                if (data.m_RenderPipelineSettings.dynamicResolutionSettings.upsampleFilter == DynamicResUpscaleFilter.Lanczos)
+                    data.m_RenderPipelineSettings.dynamicResolutionSettings.upsampleFilter = DynamicResUpscaleFilter.ContrastAdaptiveSharpen;
             })
-        );
+#pragma warning restore 618
+            );
         #endregion
 
         [SerializeField]
