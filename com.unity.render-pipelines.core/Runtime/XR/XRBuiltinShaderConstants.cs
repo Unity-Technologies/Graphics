@@ -1,4 +1,6 @@
-namespace UnityEngine.Rendering
+using UnityEngine.Rendering;
+
+namespace UnityEngine.Experimental.Rendering
 {
     /// <summary>
     /// Helper static class used by render pipelines to setup stereo constants accessed by builtin shaders.

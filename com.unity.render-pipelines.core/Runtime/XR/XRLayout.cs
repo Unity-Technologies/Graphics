@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine.Rendering;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     /// <summary>
     /// Used by render pipelines to store information about the XR device layout.

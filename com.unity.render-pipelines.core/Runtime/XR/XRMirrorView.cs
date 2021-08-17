@@ -1,4 +1,6 @@
-namespace UnityEngine.Rendering
+using UnityEngine.Rendering;
+
+namespace UnityEngine.Experimental.Rendering
 {
     internal static class XRMirrorView
     {
@@ -13,7 +15,7 @@ namespace UnityEngine.Rendering
         static readonly int k_SRGBWrite             = Shader.PropertyToID("_SRGBWrite");
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-        internal static void RenderMirrorView(CommandBuffer cmd, Camera camera, Material mat, XR.XRDisplaySubsystem display)
+        internal static void RenderMirrorView(CommandBuffer cmd, Camera camera, Material mat, UnityEngine.XR.XRDisplaySubsystem display)
         {
             // XRTODO : remove this check when the Quest plugin is fixed
             if (Application.platform == RuntimePlatform.Android && !XRGraphicsAutomatedTests.running)

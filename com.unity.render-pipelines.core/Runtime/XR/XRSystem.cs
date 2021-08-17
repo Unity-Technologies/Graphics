@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
 using UnityEngine.XR;
 #endif
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     /// <summary>
     /// Used by render pipelines to communicate with XR SDK.

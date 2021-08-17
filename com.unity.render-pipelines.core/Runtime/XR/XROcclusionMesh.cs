@@ -1,4 +1,6 @@
-namespace UnityEngine.Rendering
+using UnityEngine.Rendering;
+
+namespace UnityEngine.Experimental.Rendering
 {
     // Helper class to render occlusion meshes.
     // If possible, the mesh for each view will be combined into one mesh to reduce draw calls.
