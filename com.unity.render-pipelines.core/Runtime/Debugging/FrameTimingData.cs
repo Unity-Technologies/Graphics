@@ -5,19 +5,208 @@ using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+//#define RTPROFILER_DEBUG
+
 public class FrameTimingData
 {
     /// <summary>
+    /// Size of the Bottleneck History Window in number of samples.
+    /// </summary>
+    public int BottleneckHistorySize { get; set; } = 60;
+
+    /// <summary>
+    /// Size of the Sample History Window in number of samples.
+    /// </summary>
+    public int SampleHistorySize { get; set; } = 30;
+
+    /// <summary>
+    /// Update timing data from profiling counters.
+    /// </summary>
+    public void UpdateFrameTiming()
+    {
+        FrameTiming[] timing = new FrameTiming[1];
+        FrameTimingManager.CaptureFrameTimings();
+        FrameTimingManager.GetLatestTimings(1, timing);
+
+        m_History.DiscardOldSamples(SampleHistorySize);
+
+        FrameTimeSample sample = new FrameTimeSample();
+
+        if (timing.Length > 0)
+        {
+            sample.FullFrameTime = (float)timing.First().cpuFrameTime;
+            sample.FramesPerSecond = 1000f / sample.FullFrameTime;
+            sample.MainThreadCPUFrameTime = (float)timing.First().cpuMainThreadFrameTime;
+            sample.MainThreadCPUPresentWaitTime = (float)timing.First().cpuMainThreadPresentWaitTime;
+            sample.RenderThreadCPUFrameTime = (float)timing.First().cpuRenderThreadFrameTime;
+            sample.GPUFrameTime = (float)timing.First().gpuFrameTime;
+        }
+
+        m_History.Add(sample);
+        m_History.ComputeAggregateValues();
+
+        var bottleneck = DetermineBottleneck(m_History.SampleAverage);
+
+        while (m_BottleneckHistory.Count > BottleneckHistorySize)
+        {
+            m_BottleneckHistory.RemoveAt(0);
+        }
+
+        m_BottleneckHistory.Add(bottleneck);
+        m_BottleneckData = ComputeBottleneckStats();
+    }
+
+    /// <summary>
+    /// Add frame timing data widgets to debug UI.
+    /// </summary>
+    /// <param name="list">List of widgets to add the stats.</param>
+    public void RegisterDebugUI(List<DebugUI.Widget> list)
+    {
+        list.Add(new DebugUI.Foldout()
+        {
+            displayName = "Frame Stats",
+            opened = true,
+            columnLabels = new string[] { "Avg", "Min", "Max" },
+            children =
+            {
+                new DebugUI.ValueTuple
+                {
+                    displayName = "Frame Rate, fps",
+                    refreshRate = 1f / 5f,
+                    values = new[]
+                    {
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleAverage.FramesPerSecond },
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleMin.FramesPerSecond },
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleMax.FramesPerSecond },
+                    }
+                },
+                new DebugUI.ValueTuple
+                {
+                    displayName = "Frame Time, ms",
+                    refreshRate = 1f / 5f,
+                    values = new[]
+                    {
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleAverage.FullFrameTime },
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleMin.FullFrameTime },
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleMax.FullFrameTime },
+                    }
+                },
+                new DebugUI.ValueTuple
+                {
+                    displayName = "CPU Main Thread Frame, ms",
+                    refreshRate = 1f / 5f,
+                    values = new[]
+                    {
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleAverage.MainThreadCPUFrameTime },
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleMin.MainThreadCPUFrameTime },
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleMax.MainThreadCPUFrameTime },
+                    }
+                },
+                new DebugUI.ValueTuple
+                {
+                    displayName = "CPU Render Thread Frame, ms",
+                    refreshRate = 1f / 5f,
+                    values = new[]
+                    {
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleAverage.RenderThreadCPUFrameTime },
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleMin.RenderThreadCPUFrameTime },
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleMax.RenderThreadCPUFrameTime },
+                    }
+                },
+                new DebugUI.ValueTuple
+                {
+                    displayName = "CPU Present Wait, ms",
+                    refreshRate = 1f / 5f,
+                    values = new[]
+                    {
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleAverage.MainThreadCPUPresentWaitTime },
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleMin.MainThreadCPUPresentWaitTime },
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleMax.MainThreadCPUPresentWaitTime },
+                    }
+                },
+                new DebugUI.ValueTuple
+                {
+                    displayName = "GPU Frame, ms",
+                    refreshRate = 1f / 5f,
+                    values = new[]
+                    {
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleAverage.GPUFrameTime },
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleMin.GPUFrameTime },
+                        new DebugUI.Value { formatString = "F2", getter = () => m_History.SampleMax.GPUFrameTime },
+                    }
+                }
+            }
+        });
+
+        list.Add(new DebugUI.Foldout
+        {
+            displayName = "Bottlenecks",
+            children =
+            {
+#if false//UNITY_EDITOR
+                new DebugUI.Container { displayName = "Not supported in Editor" }
+#else
+                new DebugUI.ProgressBarValue { displayName = "CPU", getter = () => m_BottleneckData.CPU },
+                new DebugUI.ProgressBarValue { displayName = "GPU", getter = () => m_BottleneckData.GPU },
+                new DebugUI.ProgressBarValue { displayName = "Present limited", getter = () => m_BottleneckData.PresentLimited },
+                new DebugUI.ProgressBarValue { displayName = "Balanced", getter = () => m_BottleneckData.Balanced },
+#endif
+            }
+        });
+#if RTPROFILER_DEBUG
+        list.Add(new DebugUI.Foldout
+        {
+            displayName = "Realtime Profiler Debug",
+            children =
+            {
+                new DebugUI.IntField
+                {
+                    displayName = "Frame Time Sample History Size",
+                    getter = () => SampleHistorySize,
+                    setter = (value) => { SampleHistorySize = value; },
+                    min = () => 1,
+                    max = () => 100
+                },
+                new DebugUI.IntField
+                {
+                    displayName = "Bottleneck History Size",
+                    getter = () => BottleneckHistorySize,
+                    setter = (value) => { BottleneckHistorySize = value; },
+                    min = () => 1,
+                    max = () => 100
+                },
+                new DebugUI.IntField
+                {
+                    displayName = "Force VSyncCount",
+                    min = () => - 1,
+                    max = () => 4,
+                    getter = () => QualitySettings.vSyncCount,
+                    setter = (value) => { QualitySettings.vSyncCount = value; }
+                },
+                new DebugUI.IntField
+                {
+                    displayName = "Force TargetFrameRate",
+                    min = () => - 1,
+                    max = () => 1000,
+                    getter = () => Application.targetFrameRate,
+                    setter = (value) => { Application.targetFrameRate = value; }
+                },
+            }
+        });
+#endif
+    }
+
+    /// <summary>
     /// Represents timing data captured from a single frame.
     /// </summary>
-    public struct FrameTimeSample
+    struct FrameTimeSample
     {
-        public float FramesPerSecond;
-        public float FullFrameTime;
-        public float MainThreadCPUFrameTime;
-        public float MainThreadCPUPresentWaitTime;
-        public float RenderThreadCPUFrameTime;
-        public float GPUFrameTime;
+        internal float FramesPerSecond;
+        internal float FullFrameTime;
+        internal float MainThreadCPUFrameTime;
+        internal float MainThreadCPUPresentWaitTime;
+        internal float RenderThreadCPUFrameTime;
+        internal float GPUFrameTime;
 
         internal FrameTimeSample(float initValue)
         {
@@ -71,25 +260,10 @@ public class FrameTimingData
     };
 
     /// <summary>
-    /// Frame timing data representing averaged values over the Frame Time History Window.
-    /// </summary>
-    public FrameTimeSample SampleAverage => m_History.SampleAverage;
-
-    /// <summary>
-    /// Frame timing data representing minimum values over the Frame Time History Window.
-    /// </summary>
-    public FrameTimeSample SampleMin => m_History.SampleMin;
-
-    /// <summary>
-    /// Frame timing data representing maximum values over the Frame Time History Window.
-    /// </summary>
-    public FrameTimeSample SampleMax => m_History.SampleMax;
-
-    /// <summary>
     /// Proportional percentages between different bottleneck categories, representing the portion of
     /// samples classified into each bottleneck category over the Bottleneck History Window.
     /// </summary>
-    public struct Bottlenecks
+    struct BottleneckData
     {
         public float PresentLimited;
         public float CPU;
@@ -97,20 +271,14 @@ public class FrameTimingData
         public float Balanced;
     };
 
-    /// <summary>
-    /// See <see cref="Bottlenecks"/>
-    /// </summary>
-    public Bottlenecks BottleneckStats;
+    BottleneckData m_BottleneckData;
 
     /// <summary>
-    /// Size of the Bottleneck History Window in number of samples.
+    /// Container class for sample history with helpers to calculate min, max and average in one pass.
     /// </summary>
-    public int BottleneckHistorySize { get; set; } = 60;
-
     class FrameTimeSampleHistory
     {
-        int numFrames = 30;
-        List<FrameTimeSample> samples = new List<FrameTimeSample>();
+        List<FrameTimeSample> m_Samples = new();
 
         internal FrameTimeSample SampleAverage;
         internal FrameTimeSample SampleMin;
@@ -118,7 +286,7 @@ public class FrameTimingData
 
         internal void Add(FrameTimeSample sample)
         {
-            samples.Add(sample);
+            m_Samples.Add(sample);
         }
 
         internal void ComputeAggregateValues()
@@ -126,30 +294,30 @@ public class FrameTimingData
             FrameTimeSample average = new();
             FrameTimeSample min = new(float.MaxValue);
             FrameTimeSample max = new(float.MinValue);
-            for (int i = 0; i < samples.Count; i++)
+            for (int i = 0; i < m_Samples.Count; i++)
             {
-                var s = samples[i];
+                var s = m_Samples[i];
                 average.Add(s);
                 min.Min(s);
                 max.Max(s);
             }
 
-            average.Divide(samples.Count);
+            average.Divide(m_Samples.Count);
 
             SampleAverage = average;
             SampleMin = min;
             SampleMax = max;
         }
 
-        internal void DiscardOldSamples()
+        internal void DiscardOldSamples(int sampleHistorySize)
         {
-            while (samples.Count >= numFrames)
-                samples.RemoveAt(0);
+            while (m_Samples.Count >= sampleHistorySize)
+                m_Samples.RemoveAt(0);
         }
 
         internal void Clear()
         {
-            samples.Clear();
+            m_Samples.Clear();
         }
     }
 
@@ -164,58 +332,11 @@ public class FrameTimingData
         Balanced,           // Limited by both CPU and GPU, i.e. well balanced
     }
 
-    List<PerformanceBottleneck> m_BottleneckHistory = new List<PerformanceBottleneck>();
+    List<PerformanceBottleneck> m_BottleneckHistory = new();
 
-    /// <summary>
-    /// Reset gathered data.
-    /// </summary>
-    public void Reset()
+    BottleneckData ComputeBottleneckStats()
     {
-        m_History.Clear();
-        m_BottleneckHistory.Clear();
-        BottleneckStats = new Bottlenecks();
-    }
-
-    /// <summary>
-    /// Update timing data from profiling counters.
-    /// </summary>
-    public void UpdateFrameTiming()
-    {
-        FrameTiming[] timing = new FrameTiming[1];
-        FrameTimingManager.CaptureFrameTimings();
-        FrameTimingManager.GetLatestTimings(1, timing);
-
-        m_History.DiscardOldSamples();
-
-        FrameTimeSample sample = new FrameTimeSample();
-
-        if (timing.Length > 0)
-        {
-            sample.FullFrameTime = (float)timing.First().cpuFrameTime;
-            sample.FramesPerSecond = 1000f / sample.FullFrameTime;
-            sample.MainThreadCPUFrameTime = (float)timing.First().cpuMainThreadFrameTime;
-            sample.MainThreadCPUPresentWaitTime = (float)timing.First().cpuMainThreadPresentWaitTime;
-            sample.RenderThreadCPUFrameTime = (float)timing.First().cpuRenderThreadFrameTime;
-            sample.GPUFrameTime = (float)timing.First().gpuFrameTime;
-        }
-
-        m_History.Add(sample);
-        m_History.ComputeAggregateValues();
-
-        var bottleneck = DetermineBottleneck(SampleAverage);
-
-        while (m_BottleneckHistory.Count > BottleneckHistorySize)
-        {
-            m_BottleneckHistory.RemoveAt(0);
-        }
-
-        m_BottleneckHistory.Add(bottleneck);
-        BottleneckStats = ComputeBottleneckStats();
-    }
-
-    Bottlenecks ComputeBottleneckStats()
-    {
-        var stats = new Bottlenecks();
+        var stats = new BottleneckData();
         for (int i = 0; i < m_BottleneckHistory.Count; i++)
         {
             switch (m_BottleneckHistory[i])
