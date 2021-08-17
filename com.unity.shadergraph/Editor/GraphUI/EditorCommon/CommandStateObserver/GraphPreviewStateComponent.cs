@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
-using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
@@ -108,11 +107,25 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 var portFields = inputPort.GetFields();
                 foreach (var portField in portFields)
                 {
-                    // TODO: How to get the actual value of a port?
-                    // Also, what are the relevance of sub-fields?s
-
+                    var portValue = InstantiatePreviewProperty(portField);
                 }
             }
+        }
+
+        object InstantiatePreviewProperty(IFieldReader fieldReader)
+        {
+            // TODO: How to get the actual value of a port/field?
+            // How to get the actual type of a field, is type a sub-field maybe? Speak to Esme
+            // Also, what are the relevance of sub-fields?s
+
+            // Are we meant to be communicating with GTF type handles or direct types at this level?
+            // (maybe using GTF type handles which would be retrieved through some sort of registry typing abstraction)
+
+            // Think about how we will store data regarding node preview state etc. as part of GraphStorage
+            // Creating own stuct to match the PreviewRenderData, can mark structs/classes Serializable
+
+
+            return null;
         }
 
         public void OnElementWithPreviewRemoved(string elementGuid)
