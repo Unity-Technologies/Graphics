@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.UI
 
         DebugUI.Value m_Field;
         protected internal float m_Timer;
+        static readonly Color k_ZeroColor = new Color(0.5f, 0.5f, 0.5f, 1f);
 
         /// <summary>
         /// OnEnable implementation.
@@ -56,7 +57,11 @@ namespace UnityEngine.Rendering.UI
         {
             if (m_Timer >= m_Field.refreshRate)
             {
-                valueLabel.text = m_Field.GetValueString();
+                var value = m_Field.GetValue();
+                valueLabel.text = m_Field.FormatString(value);
+                // De-emphasize zero values by switching to dark gray color
+                if (value is float)
+                    valueLabel.color = (float)value == 0f ? k_ZeroColor : colorDefault;
                 m_Timer -= m_Field.refreshRate;
             }
 

@@ -874,7 +874,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 return new()
                 {
-                    formatString = "F2",
+                    formatString = "{0:F2}ms",
+                    refreshRate = 1.0f / 5.0f,
                     getter = () => GetSamplerTiming(samplerId, sampler, type),
                 };
             }
@@ -888,7 +889,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 result.Add(new DebugUI.ValueTuple
                 {
                     displayName = sampler.name,
-                    refreshRate = 1.0f / 5.0f,
                     values = new[]
                     {
                         CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.CPU),

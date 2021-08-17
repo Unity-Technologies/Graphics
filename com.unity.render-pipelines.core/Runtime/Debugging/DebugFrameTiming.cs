@@ -9,8 +9,9 @@ namespace UnityEngine.Rendering
 {
     public class DebugFrameTiming
     {
-        const string k_FpsFormatString = "F1";
-        const string k_MsFormatString = "F2"; // TODO: make this format 1.23001 -> "1.23 ms"
+        const string k_FpsFormatString = "{0:F1}";
+        const string k_MsFormatString = "{0:F2}ms";
+        const float k_RefreshRate = 1f / 5f;
 
         FrameTimeSampleHistory m_FrameHistory = new();
         BottleneckHistory m_BottleneckHistory = new();
@@ -71,68 +72,62 @@ namespace UnityEngine.Rendering
                 {
                     new DebugUI.ValueTuple
                     {
-                        displayName = "Frame Rate, fps",
-                        refreshRate = 1f / 5f,
+                        displayName = "Frame Rate (FPS)",
                         values = new[]
                         {
-                            new DebugUI.Value { formatString = k_FpsFormatString, getter = () => m_FrameHistory.SampleAverage.FramesPerSecond },
-                            new DebugUI.Value { formatString = k_FpsFormatString, getter = () => m_FrameHistory.SampleMin.FramesPerSecond },
-                            new DebugUI.Value { formatString = k_FpsFormatString, getter = () => m_FrameHistory.SampleMax.FramesPerSecond },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_FpsFormatString, getter = () => m_FrameHistory.SampleAverage.FramesPerSecond },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_FpsFormatString, getter = () => m_FrameHistory.SampleMin.FramesPerSecond },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_FpsFormatString, getter = () => m_FrameHistory.SampleMax.FramesPerSecond },
                         }
                     },
                     new DebugUI.ValueTuple
                     {
-                        displayName = "Frame Time, ms",
-                        refreshRate = 1f / 5f,
+                        displayName = "Frame Time",
                         values = new[]
                         {
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleAverage.FullFrameTime },
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMin.FullFrameTime },
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMax.FullFrameTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleAverage.FullFrameTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMin.FullFrameTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMax.FullFrameTime },
                         }
                     },
                     new DebugUI.ValueTuple
                     {
-                        displayName = "CPU Main Thread Frame, ms",
-                        refreshRate = 1f / 5f,
+                        displayName = "CPU Main Thread Frame",
                         values = new[]
                         {
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleAverage.MainThreadCPUFrameTime },
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMin.MainThreadCPUFrameTime },
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMax.MainThreadCPUFrameTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleAverage.MainThreadCPUFrameTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMin.MainThreadCPUFrameTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMax.MainThreadCPUFrameTime },
                         }
                     },
                     new DebugUI.ValueTuple
                     {
-                        displayName = "CPU Render Thread Frame, ms",
-                        refreshRate = 1f / 5f,
+                        displayName = "CPU Render Thread Frame",
                         values = new[]
                         {
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleAverage.RenderThreadCPUFrameTime },
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMin.RenderThreadCPUFrameTime },
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMax.RenderThreadCPUFrameTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleAverage.RenderThreadCPUFrameTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMin.RenderThreadCPUFrameTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMax.RenderThreadCPUFrameTime },
                         }
                     },
                     new DebugUI.ValueTuple
                     {
-                        displayName = "CPU Present Wait, ms",
-                        refreshRate = 1f / 5f,
+                        displayName = "CPU Present Wait",
                         values = new[]
                         {
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleAverage.MainThreadCPUPresentWaitTime },
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMin.MainThreadCPUPresentWaitTime },
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMax.MainThreadCPUPresentWaitTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleAverage.MainThreadCPUPresentWaitTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMin.MainThreadCPUPresentWaitTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMax.MainThreadCPUPresentWaitTime },
                         }
                     },
                     new DebugUI.ValueTuple
                     {
-                        displayName = "GPU Frame, ms",
-                        refreshRate = 1f / 5f,
+                        displayName = "GPU Frame",
                         values = new[]
                         {
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleAverage.GPUFrameTime },
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMin.GPUFrameTime },
-                            new DebugUI.Value { formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMax.GPUFrameTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleAverage.GPUFrameTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMin.GPUFrameTime },
+                            new DebugUI.Value { refreshRate = k_RefreshRate, formatString = k_MsFormatString, getter = () => m_FrameHistory.SampleMax.GPUFrameTime },
                         }
                     }
                 }
@@ -143,7 +138,7 @@ namespace UnityEngine.Rendering
                 displayName = "Bottlenecks",
                 children =
                 {
-#if false //UNITY_EDITOR
+#if UNITY_EDITOR
                     new DebugUI.Container { displayName = "Not supported in Editor" }
 #else
                     new DebugUI.ProgressBarValue { displayName = "CPU", getter = () => m_BottleneckHistory.Histogram.CPU },
@@ -153,7 +148,7 @@ namespace UnityEngine.Rendering
 #endif
                 }
             });
-#if true//RTPROFILER_DEBUG
+#if RTPROFILER_DEBUG
             list.Add(new DebugUI.Foldout
             {
                 displayName = "Realtime Profiler Debug",

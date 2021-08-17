@@ -68,10 +68,11 @@ namespace UnityEngine.Rendering.UI
 
         void UpdateValue()
         {
-            valueLabel.text = m_Value.GetValueString();
+            float value = (float)m_Value.GetValue();
+            valueLabel.text = m_Value.FormatString(value);
 
             Vector3 scale = progressBarRect.localScale;
-            scale.x = (float)m_Value.GetValue();
+            scale.x = value;
             progressBarRect.localScale = scale;
         }
     }

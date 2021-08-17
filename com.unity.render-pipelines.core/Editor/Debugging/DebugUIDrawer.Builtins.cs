@@ -20,7 +20,8 @@ namespace UnityEditor.Rendering
         {
             var w = Cast<DebugUI.Value>(widget);
             var rect = PrepareControlRect();
-            EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent(w.displayName), EditorGUIUtility.TrTextContent(w.GetValueString()));
+            var value = w.GetValue();
+            EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent(w.displayName), EditorGUIUtility.TrTextContent(w.FormatString(value)));
             return true;
         }
     }
@@ -54,7 +55,8 @@ namespace UnityEditor.Rendering
                 var columnRect = drawRect;
                 columnRect.x += EditorGUIUtility.labelWidth + i * oneColumnWidth;
                 columnRect.width = oneColumnWidth;
-                EditorGUI.LabelField(columnRect, w.values[i].GetValueString());
+                var value = w.values[i].GetValue();
+                EditorGUI.LabelField(columnRect, w.values[i].FormatString(value));
             }
             EditorGUI.indentLevel = indent;
 
@@ -80,7 +82,8 @@ namespace UnityEditor.Rendering
 
             var labelRect = PrepareControlRect();
             var progressBarRect = EditorGUI.PrefixLabel(labelRect, EditorGUIUtility.TrTextContent(w.displayName));
-            EditorGUI.ProgressBar(progressBarRect, (float)w.GetValue(), w.GetValueString());
+            float value = (float)w.GetValue();
+            EditorGUI.ProgressBar(progressBarRect, value, w.FormatString(value));
 
             return true;
         }

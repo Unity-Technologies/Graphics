@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine.Assertions;
 using UnityEngine.UI;
@@ -17,8 +18,10 @@ namespace UnityEngine.Rendering.UI
         protected internal DebugUI.ValueTuple m_Field;
         protected internal Text[] valueElements;
 
-        const float xDecal = 60f;
+        const float k_XOffset = 230f;
         float m_Timer;
+        static readonly Color k_ZeroColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+
 
         /// <summary>
         /// OnEnable implementation.
@@ -37,8 +40,6 @@ namespace UnityEngine.Rendering.UI
         public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
             nameLabel.color = colorSelected;
-            foreach (var elem in valueElements)
-                elem.color = colorSelected;
             return true;
         }
 
@@ -48,8 +49,6 @@ namespace UnityEngine.Rendering.UI
         public override void OnDeselection()
         {
             nameLabel.color = colorDefault;
-            foreach (var elem in valueElements)
-                elem.color = colorDefault;
         }
 
         internal override void SetWidget(DebugUI.Widget widget)
@@ -58,14 +57,16 @@ namespace UnityEngine.Rendering.UI
             m_Field = CastWidget<DebugUI.ValueTuple>();
             nameLabel.text = m_Field.displayName;
 
+            Debug.Assert(m_Field.numElements > 0);
             int numElements = m_Field.numElements;
             valueElements = new Text[numElements];
             valueElements[0] = valueLabel;
+            float columnOffset = k_XOffset / (float)numElements;
             for (int index = 1; index < numElements; ++index)
             {
                 var valueElement = Instantiate(valueLabel, transform);
                 Vector3 pos = valueElement.transform.position;
-                pos.x += index * xDecal;
+                pos.x += index * columnOffset;
                 valueElement.transform.position = pos;
                 valueElements[index] = valueElement.GetComponent<Text>();
             }
@@ -76,7 +77,13 @@ namespace UnityEngine.Rendering.UI
             for (int index = 0; index < m_Field.numElements; ++index)
             {
                 if (index < valueElements.Length && valueElements[index] != null)
-                    valueElements[index].text = m_Field.values[index].GetValueString();
+                {
+                    var value = m_Field.values[index].GetValue();
+                    valueElements[index].text = m_Field.values[index].FormatString(value);
+                    // De-emphasize zero values by switching to dark gray color
+                    if (value is float)
+                        valueElements[index].color = (float)value == 0f ? k_ZeroColor : colorDefault;
+                }
             }
         }
 

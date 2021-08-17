@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
@@ -207,8 +208,10 @@ namespace UnityEngine.Rendering
             public float refreshRate = 0.1f;
 
             /// <summary>
-            /// Optional C# numeric format string.
+            /// Optional C# numeric format string, using following syntax: "{0[:numericFormatString]}"
             /// See https://docs.microsoft.com/en-us/dotnet/standard/base-types/standard-numeric-format-strings
+            /// and https://docs.microsoft.com/en-us/dotnet/standard/base-types/composite-formatting
+            /// Example: 123.45678 with formatString "{0:F2} ms" --> "123.45 ms".
             /// </summary>
             public string formatString = null;
 
@@ -233,12 +236,13 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Returns the formatted value string for display purposes.
             /// </summary>
+            /// <param name="value">Value to be formatted.</param>
             /// <returns>The formatted value string.</returns>
-            public virtual string GetValueString()
+            public virtual string FormatString(object value)
             {
                 if (formatString != null)
-                    return String.Format(String.Format("{{0:{0}}}", formatString), GetValue());
-                return $"{GetValue()}";
+                    return String.Format(formatString, value);
+                return $"{value}";
             }
         }
 
@@ -259,13 +263,14 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Get the current progress string, remapped to [0, 1] range, representing the progress between min and max.
             /// </summary>
+            /// <param name="value">Value to be formatted.</param>
             /// <returns>Formatted progress percentage string between 0% and 100%.</returns>
-            public override string GetValueString()
+            public override string FormatString(object value)
             {
                 static float Remap01(float v, float x0, float y0) => (v - x0) / (y0 - x0);
 
-                float value = Mathf.Clamp(Convert.ToSingle(GetValue()), min, max);
-                float percentage = Remap01(value, min, max);
+                float clamped = Mathf.Clamp((float)value, min, max);
+                float percentage = Remap01(clamped, min, max);
                 return $"{percentage:P1}";
             }
         }
@@ -295,7 +300,7 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Refresh rate for the read-only values (runtime only)
             /// </summary>
-            public float refreshRate = 0.1f;
+            public float refreshRate => values.FirstOrDefault()?.refreshRate ?? 0.1f;
 
             /// <summary>
             /// The currently pinned element index, or -1 if none are pinned.
