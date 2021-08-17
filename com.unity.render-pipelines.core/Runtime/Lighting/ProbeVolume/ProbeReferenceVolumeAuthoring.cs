@@ -206,20 +206,7 @@ namespace UnityEngine.Experimental.Rendering
             if (m_Profile == null)
                 return true;
 
-            var cameraTransform = SceneView.lastActiveSceneView.camera.transform;
-
-            Vector3 cellCenterWS = cellPosition * m_Profile.cellSizeInMeters + originWS + Vector3.one * (m_Profile.cellSizeInMeters / 2.0f);
-
-            // Round down to cell size distance
-            float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / m_Profile.cellSizeInMeters) * m_Profile.cellSizeInMeters;
-
-            if (roundedDownDist > ProbeReferenceVolume.instance.debugDisplay.subdivisionViewCullingDistance)
-                return true;
-
-            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
-            var volumeAABB = new Bounds(cellCenterWS, m_Profile.cellSizeInMeters * Vector3.one);
-
-            return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
+            return ProbeReferenceVolume.instance.ShouldCullCell(cellPosition, SceneView.lastActiveSceneView.camera.transform, GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera));
         }
 
         // TODO: We need to get rid of Handles.DrawWireCube to be able to have those at runtime as well.
