@@ -385,6 +385,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public FloatParameter shapeOffsetX = new FloatParameter(0.0f);
 
         /// <summary>
+        /// Controls the offset (world Y-axis) applied when evaluating the larger noise passing through the cloud coverage.
+        /// </summary>
+        [Tooltip("Controls the offset (world Y-axis) applied when evaluating the larger noise passing through the cloud coverage.")]
+        public FloatParameter shapeOffsetY = new FloatParameter(0.0f);
+
+        /// <summary>
         /// Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage.
         /// </summary>
         [Tooltip("Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage.")]
@@ -481,6 +487,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Temporal accumulation increases the visual quality of clouds by decreasing the noise. A higher value will give you better quality but can create ghosting.")]
         public ClampedFloatParameter temporalAccumulationFactor = new ClampedFloatParameter(0.95f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Enable/Disable the volumetric clouds ghosting reduction. When enabled, reduces significantly the ghosting of the volumetric clouds, but may introduce some flickering at lower temporal accumulation factors.
+        /// </summary>
+        [Tooltip("Enable/Disable the volumetric clouds ghosting reduction. When enabled, reduces significantly the ghosting of the volumetric clouds, but may introduce some flickering at lower temporal accumulation factors.")]
+        public BoolParameter ghostingReduction = new BoolParameter(false);
 
         /// <summary>
         /// Enable/Disable the volumetric clouds shadow. This will override the cookie of your directional light and the cloud layer shadow (if active).
