@@ -86,7 +86,7 @@ The tables that follow provide an overview of the Features that the High Definit
 
 | **Feature**            | **Built-in Render Pipeline** | **High Definition Render Pipeline (HDRP)** |
 | ------------------ | ------------------------ | ------------------------------- |
-| **Enlighten Baked Global Illumination**      | Yes                      | Deprecated <br/><br/>   (Use the CPU or GPU Progressive Lightmapper instead) |
+| **Enlighten Baked Global Illumination**      | Yes                      | Deprecated <br/><br/>   (Use the [CPU or GPU Progressive Lightmapper](https://docs.unity3d.com/Manual/progressive-lightmapper.html) instead) |
 | **Enlighten Realtime Global Illumination** | Yes                      | Yes                   |
 | **Progressive CPU** | Yes                      | Yes                             |
 | **Progressive GPU** | Yes                      | Yes                             |
