@@ -180,13 +180,14 @@ def post_additional_results(cmd, local):
         'tags' : list(set(cmd['tags']))
     }
 
-    print('Posting: ', json.dumps(data,indent=2), '\n')
-    if not local:
+    if local:
+        print('Posting: ', json.dumps(data,indent=2), '\n')
+    else:
         server_url = os.environ['YAMATO_REPORTING_SERVER'] + '/result'
         headers = {'Content-Type':'application/json'}
         res = requests.post(server_url, json=data, headers=headers)
         if res.status_code != 200:
-                raise Exception(f'!! Error: Got {res.status_code}')
+            raise Exception(f'!! Error: Got {res.status_code}')
 
 
 def parse_args(argv):
