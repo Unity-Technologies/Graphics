@@ -48,6 +48,8 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             float3 normal : TEXCOORD1;
 #ifdef USE_CONSTANT_BUFFERS
             UNITY_VERTEX_INPUT_INSTANCE_ID
+#else
+            int instanceID : TEXCOORD2;
 #endif
         };
 
@@ -79,6 +81,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
 #else
             float4x4 worldMatrix = ApplyCameraTranslationToMatrix(_MatrixArray[instanceID]);
             int brickSize = _IndexInAtlasArray[instanceID].w;
+            o.instanceID = instanceID;
 #endif
 
             // Finer culling, degenerate the vertices of the sphere if it lies over the max distance.
@@ -120,19 +123,15 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             return SHEvalLinearL2(N, L2_R, L2_G, L2_B, L2_C);
         }
 
-        float4 frag(v2f i
-#ifndef USE_CONSTANT_BUFFERS
-            , uint instanceID : SV_InstanceID
-#endif
-            ) : SV_Target
+        float4 frag(v2f i) : SV_Target
         {
 #ifdef USE_CONSTANT_BUFFERS
             UNITY_SETUP_INSTANCE_ID(i);
             int3 texLoc = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).xyz;
             float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
 #else
-            int3 texLoc = _IndexInAtlasArray[instanceID].xyz;
-            float validity = _ValidityArray[instanceID];
+            int3 texLoc = _IndexInAtlasArray[i.instanceID].xyz;
+            float validity = _ValidityArray[i.instanceID];
 #endif
 
             if (_ShadingMode == DEBUGPROBESHADINGMODE_SH)
