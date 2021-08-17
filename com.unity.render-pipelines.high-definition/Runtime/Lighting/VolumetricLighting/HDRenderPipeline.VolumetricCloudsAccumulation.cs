@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.convertObliqueDepthKernel = m_ConvertObliqueDepthKernel;
             parameters.depthDownscaleKernel = m_CloudDownscaleDepthKernel;
             parameters.renderKernel = m_CloudRenderKernel;
-            parameters.reprojectKernel = m_CloudReprojectKernel;
+            parameters.reprojectKernel = settings.ghostingReduction.value ? m_ReprojectCloudsRejectionKernel : m_ReprojectCloudsKernel;
             parameters.upscaleAndCombineKernel = parameters.needExtraColorBufferCopy ? m_UpscaleAndCombineCloudsKernelColorCopy : m_UpscaleAndCombineCloudsKernelColorRW;
 
             // Update the constant buffer
