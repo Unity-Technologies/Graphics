@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.7.0] - 2021-07-02
 ### Fixed
 - Removed shader warnings due to SAMPLE_DEPTH_TEXTURE redefinition [Case 1331262](https://issuetracker.unity3d.com/product/unity/issues/guid/1331262/)
-
+- Fix potential infinite compilation when using subgraphs [Case 1346576](https://issuetracker.unity3d.com/product/unity/issues/guid/1346576/)
 
 ## [10.6.0] - 2021-04-29
 ### Fixed
@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Deleting a context node and a block while both are selected throws a null ref exception. [Case 315578](https://issuetracker.unity3d.com/product/unity/issues/guid/1315578/)
 - Fixed shader compilation errors with textures in shader graph [Case 1309219](https://issuetracker.unity3d.com/product/unity/issues/guid/1309219/)
 - Fixed issue with VFX using incorrect buffer type for strip data
- 
+
 ## [10.3.1] - 2021-01-26
 
 Version Updated
