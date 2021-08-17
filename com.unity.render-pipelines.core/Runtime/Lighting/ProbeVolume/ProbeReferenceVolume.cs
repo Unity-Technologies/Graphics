@@ -572,6 +572,8 @@ namespace UnityEngine.Experimental.Rendering
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         ProbeVolumeSHBands m_SHBands;
 
+        public ProbeVolumeSHBands shBands { get { return m_SHBands; } }
+
         internal bool clearAssetsOnVolumeClear = false;
 
         /// <summary>
