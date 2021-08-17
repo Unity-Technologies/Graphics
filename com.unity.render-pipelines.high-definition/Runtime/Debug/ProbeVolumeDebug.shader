@@ -88,7 +88,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             // Coarser culling has already happened on CPU.
             float4 position = float4(worldMatrix._m03_m13_m23, 1);
 
-            if (distance(position.xyz, _WorldSpaceCameraPos.xyz) > _CullDistance ||
+            if (distance(position.xyz, GetCurrentViewPosition()) > _CullDistance ||
                 brickSize > _MaxAllowedSubdiv)
             {
                 o.vertex = 0;
