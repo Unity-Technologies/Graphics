@@ -1561,6 +1561,16 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 #endif
 
+        // Only for internal use, outside of SRP people can call Camera.Render()
+#if UNITY_2021_1_OR_NEWER   
+        internal void InternalRender(ScriptableRenderContext renderContext, List<Camera> cameras)
+#else
+        internal void InternalRender(ScriptableRenderContext renderContext, Camera[] cameras)
+#endif
+        {
+            Render(renderContext, cameras);
+        }
+
         /// <summary>
         /// RenderPipeline Render implementation.
         /// </summary>

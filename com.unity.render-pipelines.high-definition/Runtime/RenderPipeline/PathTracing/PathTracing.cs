@@ -143,14 +143,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void CheckDirtiness(HDCamera hdCamera)
         {
-            if (m_SubFrameManager.isRecording)
-            {
-                return;
-            }
-
             // Grab the cached data for the current camera
             int camID = hdCamera.camera.GetInstanceID();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
+
+            if (m_SubFrameManager.isRecording)
+            {
+                // If we are recording, we still want to know whether sky rendering is enabled or not
+                camData.skyEnabled = (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky);
+                m_SubFrameManager.SetCameraData(camID, camData);
+                return;
+            }
 
             // Check camera resolution dirtiness
             if (hdCamera.actualWidth != camData.width || hdCamera.actualHeight != camData.height)

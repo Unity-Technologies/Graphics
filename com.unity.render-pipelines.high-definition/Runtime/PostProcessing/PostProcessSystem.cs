@@ -794,7 +794,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.Bloom)))
                             {
-                                ComputeBloomMipSizesAndScales(camera);
                                 AllocateBloomMipTextures();
                                 DoBloom(PrepareBloomParameters(camera), cmd, source, m_BloomMipsDown, m_BloomMipsUp);
                                 RecycleUnusedBloomMips();
@@ -934,6 +933,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
 
             // Setup the rest of the effects
+            ComputeBloomMipSizesAndScales(hdCamera);
             PrepareLensDistortionParameters(ref parameters, featureFlags);
             PrepareChromaticAberrationParameters(ref parameters, featureFlags);
             PrepareVignetteParameters(ref parameters, featureFlags);
