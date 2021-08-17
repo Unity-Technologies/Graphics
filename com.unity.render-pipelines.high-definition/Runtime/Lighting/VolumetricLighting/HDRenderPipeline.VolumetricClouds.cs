@@ -435,6 +435,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ErosionFactor = cloudModelData.erosionFactor;
             cb._ErosionScale = cloudModelData.erosionScale;
             cb._ShapeNoiseOffset = new Vector2(settings.shapeOffsetX.value, settings.shapeOffsetZ.value);
+            cb._VerticalShapeNoiseOffset = settings.shapeOffsetY.value;
 
             // If the sun has moved more than 2.0°, reduce significantly the history accumulation
             float sunAngleDifference = 0.0f;
