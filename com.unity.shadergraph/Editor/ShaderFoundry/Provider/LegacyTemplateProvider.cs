@@ -319,10 +319,10 @@ namespace UnityEditor.ShaderFoundry
             var defaultVariableValues = new Dictionary<string, string>();
             var vertexMainBlock = BuildMainBlock(LegacyCustomizationPoints.VertexDescriptionFunctionName, vertexPreBlock, vertexPostBlock, nameMappings, defaultVariableValues);
         
-            var id0 = passBuilder.AddVertexBlock(BuildSimpleBlockDesc(vertexPreBlock));
-            var id1 = passBuilder.AddVertexBlock(BuildSimpleBlockDesc(vertexMainBlock));
-            var id2 = passBuilder.AddVertexBlock(BuildSimpleBlockDesc(vertexPostBlock));
-            passBuilder.SetCustomizationPointBlocks(vertexCustomizationPoint, UnityEditor.ShaderFoundry.ShaderStage.Vertex, id1, id1);
+            var id0 = passBuilder.AddBlock(BuildSimpleBlockDesc(vertexPreBlock), UnityEditor.Rendering.ShaderType.Vertex);
+            var id1 = passBuilder.AddBlock(BuildSimpleBlockDesc(vertexMainBlock), UnityEditor.Rendering.ShaderType.Vertex);
+            var id2 = passBuilder.AddBlock(BuildSimpleBlockDesc(vertexPostBlock), UnityEditor.Rendering.ShaderType.Vertex);
+            passBuilder.SetCustomizationPointBlocks(vertexCustomizationPoint, UnityEditor.Rendering.ShaderType.Vertex, id1, id1);
         }
 
         void ExtractFragment(Template template, TemplatePass.Builder passBuilder, CustomizationPoint surfaceCustomizationPoint, List<FieldDescriptor> fragmentFields)
@@ -345,10 +345,10 @@ namespace UnityEditor.ShaderFoundry
             };
             var fragmentMainBlock = BuildMainBlock(LegacyCustomizationPoints.SurfaceDescriptionFunctionName, fragmentPreBlock, fragmentPostBlock, nameMappings, defaultVariableValues);
 
-            var id0 = passBuilder.AddFragmentBlock(BuildSimpleBlockDesc(fragmentPreBlock));
-            var id1 = passBuilder.AddFragmentBlock(BuildSimpleBlockDesc(fragmentMainBlock));
-            var id2 = passBuilder.AddFragmentBlock(BuildSimpleBlockDesc(fragmentPostBlock));
-            passBuilder.SetCustomizationPointBlocks(surfaceCustomizationPoint, UnityEditor.ShaderFoundry.ShaderStage.Fragment, id1, id1);
+            var id0 = passBuilder.AddBlock(BuildSimpleBlockDesc(fragmentPreBlock), UnityEditor.Rendering.ShaderType.Fragment);
+            var id1 = passBuilder.AddBlock(BuildSimpleBlockDesc(fragmentMainBlock), UnityEditor.Rendering.ShaderType.Fragment);
+            var id2 = passBuilder.AddBlock(BuildSimpleBlockDesc(fragmentPostBlock), UnityEditor.Rendering.ShaderType.Fragment);
+            passBuilder.SetCustomizationPointBlocks(surfaceCustomizationPoint, UnityEditor.Rendering.ShaderType.Fragment, id1, id1);
         }
 
         // BlockFields don't have types set. We need this temporarily to resolve them
