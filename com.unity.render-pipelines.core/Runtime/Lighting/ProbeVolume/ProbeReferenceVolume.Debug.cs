@@ -185,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering
                 DebugManager.instance.GetPanel("Probe Volume", false).children.Remove(m_DebugItems);
         }
 
-        internal bool ShouldCullCell(Vector3 cellPosition, Transform cameraTransform, Plane[] frustumPlanes)
+        bool ShouldCullCell(Vector3 cellPosition, Transform cameraTransform, Plane[] frustumPlanes)
         {
             var cellSize = MaxBrickSize();
             var originWS = GetTransform().posWS;
