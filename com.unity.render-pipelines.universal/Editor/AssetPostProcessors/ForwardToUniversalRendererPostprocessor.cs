@@ -40,6 +40,7 @@
 
                  editedAssetsCount++;
              }
+             Debug.LogWarning($"upgraded renderer {rendererData.name} at {rendererDataPath}");
          }
 
          static void IterateSubAssets(string assetPath)
@@ -61,58 +62,65 @@
          static void RegisterUpgraderReimport()
          {
              //Putting in delayCall will make sure AssetDatabase is ready for the FindAssets search below
-             EditorApplication.delayCall += () =>
-             {
-                 //This helps to scan the RendererData Assets which are subAssets caused by case 1214779
-                 if (firstTimeUpgrade)
-                 {
-                     string[] allRenderers = AssetDatabase.FindAssets("t:UniversalRendererData glob:\"**/*.asset\"", null);
-                     for (int i = 0; i < allRenderers.Length; i++)
-                     {
-                         string rendererDataPath = AssetDatabase.GUIDToAssetPath(allRenderers[i]);
-                         IterateSubAssets(rendererDataPath);
-                     }
-                              firstTimeUpgrade = false;
-                 }
-                          //If there is no asset upgraded then we don't need to do the following
-                 if (editedAssetsCount == 0) return;
-                          //Gets all the UniversalRenderPipeline Assets in project
-                 string[] allURPassets = AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset glob:\"**/*.asset\"", null);
-                 for (int i = 0; i < allURPassets.Length; i++)
-                 {
-                     string pipelineAssetPath = AssetDatabase.GUIDToAssetPath(allURPassets[i]);
-                     Object pipelineAsset = AssetDatabase.LoadAssetAtPath(pipelineAssetPath, typeof(Object));
-                     SerializedObject soAsset = new SerializedObject(pipelineAsset);
-                              //Make some changes on the Pipeline assets
-                     //If we don't do this, the pipeline assets won't recognise the changed renderer "type", so will give "no Default Renderer asset" error and nothing will render
-                     SerializedProperty scriptPropertyAsset = soAsset.FindProperty("m_RequireDepthTexture");
-                     soAsset.Update();
-                     if (scriptPropertyAsset != null)
-                     {
-                         bool tmp = scriptPropertyAsset.boolValue;
-                         scriptPropertyAsset.boolValue = !scriptPropertyAsset.boolValue; //make the changes
-                         soAsset.ApplyModifiedProperties();
-                         scriptPropertyAsset.boolValue = tmp; //revert the changes
-                         soAsset.ApplyModifiedProperties();
-                     }
-                 }
-                          //Reset counter and register state
-                 editedAssetsCount = 0;
-                 registeredRendererUpdate = false;
-             };
-         }
+             //
+             // {
+             //     //This helps to scan the RendererData Assets which are subAssets caused by case 1214779
+             //     if (firstTimeUpgrade)
+             //     {
+             //         string[] allRenderers = AssetDatabase.FindAssets("t:UniversalRendererData glob:\"**/*.asset\"", null);
+             //         for (int i = 0; i < allRenderers.Length; i++)
+             //         {
+             //             string rendererDataPath = AssetDatabase.GUIDToAssetPath(allRenderers[i]);
+             //             IterateSubAssets(rendererDataPath);
+             //         }
+             //                  firstTimeUpgrade = false;
+             //     }
+             //              //If there is no asset upgraded then we don't need to do the following
+             //     if (editedAssetsCount == 0) return;
+             //              //Gets all the UniversalRenderPipeline Assets in project
+             //     string[] allURPassets = AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset glob:\"**/*.asset\"", null);
+             //     for (int i = 0; i < allURPassets.Length; i++)
+             //     {
+             //         string pipelineAssetPath = AssetDatabase.GUIDToAssetPath(allURPassets[i]);
+             //         Object pipelineAsset = AssetDatabase.LoadAssetAtPath(pipelineAssetPath, typeof(Object));
+             //         SerializedObject soAsset = new SerializedObject(pipelineAsset);
+             //                  //Make some changes on the Pipeline assets
+             //         //If we don't do this, the pipeline assets won't recognise the changed renderer "type", so will give "no Default Renderer asset" error and nothing will render
+             //         SerializedProperty scriptPropertyAsset = soAsset.FindProperty("m_RequireDepthTexture");
+             //         soAsset.Update();
+             //         if (scriptPropertyAsset != null)
+             //         {
+             //             bool tmp = scriptPropertyAsset.boolValue;
+             //             scriptPropertyAsset.boolValue = !scriptPropertyAsset.boolValue; //make the changes
+             //             soAsset.ApplyModifiedProperties();
+             //             scriptPropertyAsset.boolValue = tmp; //revert the changes
+             //             soAsset.ApplyModifiedProperties();
+             //         }
+             //     }
+             //              //Reset counter and register state
+             //     editedAssetsCount = 0;
+             //     registeredRendererUpdate = false;
+             // };
+        }
 
-         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+         //static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+         [InitializeOnLoadMethod]
+         void UpgradeUniDatas()
          {
+             Debug.LogWarning($"kicked off method");
+
+             string[] assetGUIDS = AssetDatabase.FindAssets("t:ForwardRendererData glob:\"**/*.asset\"");
+
              //Opening some projects e.g. URP Template relies on this interation for doing the asset upgrade.
              //This also makes sure the RendererData will be re-upgraded again if the uppgraded changes are discarded using source control.
-             for (int i = 0; i < importedAssets.Length; i++)
+             for (int i = 0; i < assetGUIDS.Length; i++)
              {
-                 var assetType = AssetDatabase.GetMainAssetTypeAtPath(importedAssets[i]);
+                 var path = AssetDatabase.GUIDToAssetPath(assetGUIDS[i]);
+                 var assetType = AssetDatabase.GetMainAssetTypeAtPath(AssetDatabase.GUIDToAssetPath(assetGUIDS[i]));
                  if (assetType == null) continue;
                  if (assetType.ToString() == "UnityEngine.Rendering.Universal.ForwardRendererData")
                  {
-                     IterateSubAssets(importedAssets[i]);
+                     IterateSubAssets(path);
                  }
              }
 
