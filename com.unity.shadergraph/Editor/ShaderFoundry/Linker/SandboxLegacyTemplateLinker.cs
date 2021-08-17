@@ -180,9 +180,9 @@ namespace UnityEditor.ShaderFoundry
             m_LegacyTarget.GetActiveBlocks(ref targetActiveBlockContext);
             foreach (var field in targetActiveBlockContext.activeBlocks)
             {
-                if (field.shaderStage == ShaderStage.Vertex)
+                if (field.shaderStage == UnityEditor.ShaderGraph.ShaderStage.Vertex)
                     vertexOutFields.Add(field);
-                else if (field.shaderStage == ShaderStage.Fragment)
+                else if (field.shaderStage == UnityEditor.ShaderGraph.ShaderStage.Fragment)
                     fragmentOutFields.Add(field);
             }
 
