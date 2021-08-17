@@ -157,6 +157,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Reset the volumetric cloud offset animation data
             volumetricCloudsAnimationData.lastTime = -1.0f;
             volumetricCloudsAnimationData.cloudOffset = new Vector2(0.0f, 0.0f);
+            volumetricCloudsAnimationData.verticalShapeOffset = 0.0f;
+            volumetricCloudsAnimationData.verticalErosionOffset = 0.0f;
         }
 
         /// <summary>
@@ -244,6 +246,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public float lastTime;
             public Vector2 cloudOffset;
+            public float verticalShapeOffset;
+            public float verticalErosionOffset;
         }
 
         internal Vector4[]              frustumPlaneEquations;
@@ -1689,7 +1693,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
+        internal Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
         {
             // Do not add extra jitter in VR unless requested (micro-variations from head tracking are usually enough)
             if (xr.enabled && !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.xrSettings.cameraJitter)
