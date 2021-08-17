@@ -207,10 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InlineCPU
         }
 
-        /// <summary>
-        /// Frame timing data.
-        /// </summary>
-        internal FrameTimingData frameTimingData = new FrameTimingData();
+        internal DebugFrameTiming debugFrameTiming = new DebugFrameTiming();
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
         internal UnityEngine.NVIDIA.DebugView nvidiaDebugView { get; } = new UnityEngine.NVIDIA.DebugView();
@@ -955,7 +952,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var list = new List<DebugUI.Widget>();
 
-            frameTimingData.RegisterDebugUI(list);
+            debugFrameTiming.RegisterDebugUI(list);
 
             EnableProfilingRecorders();
             list.Add(new DebugUI.BoolField { displayName = "Update every second with average", getter = () => data.averageProfilerTimingsOverASecond, setter = value => data.averageProfilerTimingsOverASecond = value });

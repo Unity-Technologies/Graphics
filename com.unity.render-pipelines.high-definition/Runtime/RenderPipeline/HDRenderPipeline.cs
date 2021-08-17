@@ -1091,7 +1091,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugDisplaySettings.nvidiaDebugView.Update();
 #endif
             if (Debug.isDebugBuild && DebugManager.instance.isAnyDebugUIActive)
-                m_DebugDisplaySettings.frameTimingData.UpdateFrameTiming();
+                m_DebugDisplaySettings.debugFrameTiming.UpdateFrameTiming();
 
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 
