@@ -30,7 +30,7 @@ VaryingsDepthOnlyParticle DepthOnlyVertex(AttributesDepthOnlyParticle input)
     return output;
 }
 
-float DepthOnlyFragment(VaryingsDepthOnlyParticle input) : SV_TARGET
+half DepthOnlyFragment(VaryingsDepthOnlyParticle input) : SV_TARGET
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);

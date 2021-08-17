@@ -29,7 +29,7 @@ Varyings DepthOnlyVertex(Attributes input)
     return output;
 }
 
-float DepthOnlyFragment(Varyings input) : SV_TARGET
+half DepthOnlyFragment(Varyings input) : SV_TARGET
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 

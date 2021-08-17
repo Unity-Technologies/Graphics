@@ -815,7 +815,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].Identifier();
                 this.GbufferFormats[i] = this.GetGBufferFormat(i);
             }
-            if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 4)
+            if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 3)
             {
                 this.DeferredInputAttachments = new RenderTargetIdentifier[4]
                 {
