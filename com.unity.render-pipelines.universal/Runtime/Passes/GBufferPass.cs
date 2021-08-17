@@ -57,6 +57,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (cmd != null)
             {
+                if (m_DeferredLights.UseRenderPass)
+                {
+                    m_DeferredLights.GbufferAttachments[m_DeferredLights.GbufferDepthIndex] = m_DeferredLights.DepthCopyTexture;
+                    m_DeferredLights.GbufferAttachmentIdentifiers[m_DeferredLights.GbufferDepthIndex] = m_DeferredLights.DepthCopyTextureIdentifier;
+                }
                 // Create and declare the render targets used in the pass
                 for (int i = 0; i < gbufferAttachments.Length; ++i)
                 {

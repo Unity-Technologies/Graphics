@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             "_GBuffer1",
             "_GBuffer2",
             "_GBuffer3",
-            "_CameraDepthTexture",
+            "_GBuffer4",
             "_GBuffer5",
             "_GBuffer6"
         };
@@ -815,12 +815,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].Identifier();
                 this.GbufferFormats[i] = this.GetGBufferFormat(i);
             }
-            if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 5)
+            if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 4)
             {
                 this.DeferredInputAttachments = new RenderTargetIdentifier[4]
                 {
                     this.GbufferAttachmentIdentifiers[0], this.GbufferAttachmentIdentifiers[1],
-                    this.GbufferAttachmentIdentifiers[2], this.GbufferAttachmentIdentifiers[4]
+                    this.GbufferAttachmentIdentifiers[2], this.DepthCopyTextureIdentifier
                 };
 
                 this.DeferredInputIsTransient = new bool[4]
