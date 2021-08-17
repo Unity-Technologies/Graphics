@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.Utilities;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
@@ -49,13 +51,26 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             }
         }
 
+        public static void HandleBypassNodes(GraphToolState state, BypassNodesCommand command)
+        {
+            BypassNodesCommand.DefaultCommandHandler(state, command);
+
+            var graphModel = (ShaderGraphModel)state.GraphViewState.GraphModel;
+
+            // Delete backing data for graph data nodes.
+            foreach (var graphData in command.Models.OfType<GraphDataNodeModel>())
+            {
+                graphModel.GraphHandler.RemoveNode(graphData.graphDataName);
+            }
+        }
+
         public static void HandleDeleteElements(GraphToolState state, DeleteElementsCommand command)
         {
             if (!command.Models.Any())
                 return;
 
             state.PushUndo(command);
-            var graphModel = state.GraphViewState.GraphModel;
+            var graphModel = (ShaderGraphModel)state.GraphViewState.GraphModel;
 
             // Partition out redirect nodes because they get special delete behavior.
             var redirects = new List<RedirectNodeModel>();
@@ -70,13 +85,26 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             using var selectionUpdater = state.SelectionState.UpdateScope;
             using var graphUpdater = state.GraphViewState.UpdateScope;
 
-            // Reset types on disconnected redirect nodes.
-            foreach (var edge in nonRedirects.OfType<IEdgeModel>())
+            foreach (var model in nonRedirects)
             {
-                if (edge.ToPort.NodeModel is not RedirectNodeModel redirect) continue;
+                switch (model)
+                {
+                    // Reset types on disconnected redirect nodes.
+                    case IEdgeModel edge:
+                    {
+                        if (edge.ToPort.NodeModel is not RedirectNodeModel redirect) continue;
 
-                redirect.ClearType();
-                graphUpdater.MarkChanged(redirect);
+                        redirect.ClearType();
+                        graphUpdater.MarkChanged(redirect);
+                        break;
+                    }
+                    // Delete backing data for graph data nodes.
+                    case GraphDataNodeModel graphData:
+                    {
+                        graphModel.GraphHandler.RemoveNode(graphData.graphDataName);
+                        break;
+                    }
+                }
             }
 
             // Bypass redirects in a similar manner to GTF's BypassNodesCommand.
