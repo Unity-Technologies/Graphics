@@ -321,6 +321,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int AfterRendering = 3;
         }
 
+        private StoreActionsOptimization m_StoreActionsOptimizationSetting = StoreActionsOptimization.Auto;
         private static bool m_UseOptimizedStoreActions = false;
 
         const int k_RenderPassBlockCount = 4;
@@ -392,7 +393,10 @@ namespace UnityEngine.Rendering.Universal
             Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
 
-            m_UseOptimizedStoreActions = true;
+            if (UniversalRenderPipeline.asset)
+                m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
+
+            m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
         }
 
         public void Dispose()
@@ -675,8 +679,8 @@ namespace UnityEngine.Rendering.Universal
                     activeRenderPassQueue.RemoveAt(i);
             }
 
-            // if any pass was injected, disable the optimized load actions
-            if (count > 0 )
+            // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
+            if (count > 0 && m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
                 m_UseOptimizedStoreActions = false;
         }
 
