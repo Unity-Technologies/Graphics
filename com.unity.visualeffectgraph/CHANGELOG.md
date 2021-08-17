@@ -79,6 +79,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Zoom and warning icons were blurry in the "Play Controls" and "Visual Effect Model" scene overlays
 - Random crash using subgraph [Case 1345426](https://issuetracker.unity3d.com/product/unity/issues/guid/1345426/)
 - Fix potential infinite compilation when using subgraphs [Case 1346576](https://issuetracker.unity3d.com/product/unity/issues/guid/1346576/)
+- Prevent out of sync serialization of VFX assets that could cause the asset to be dirtied without reason [Case 1327805](https://issuetracker.unity3d.com/product/unity/issues/guid/1327805/)
 
 ## [11.0.0] - 2020-10-21
 ### Added
