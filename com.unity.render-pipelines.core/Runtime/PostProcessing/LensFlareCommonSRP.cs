@@ -327,6 +327,7 @@ namespace UnityEngine.Rendering
             vScreenRatio = new Vector2(screenRatio, 1.0f);
 
             Rendering.CoreUtils.SetRenderTarget(cmd, colorBuffer);
+            cmd.SetViewport(new Rect() { width = screenSize.x, height = screenSize.y });
             if (debugView)
             {
                 // Background pitch black to see only the Flares

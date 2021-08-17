@@ -99,6 +99,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - LensFlare Element editor now have Thumbnail preview
 - Improved IntegrateLDCharlie() to use uniform stratified sampling for faster convergence towards the ground truth
 - DynamicResolutionHandler.GetScaledSize function now clamps, and never allows to return a size greater than its input.
+- Removed DYNAMIC_RESOLUTION snippet on lens flare common shader. Its not necessary any more on HDRP, which simplifies the shader.
 
 ## [11.0.0] - 2020-10-21
 
