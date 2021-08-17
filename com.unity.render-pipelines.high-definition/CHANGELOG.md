@@ -369,6 +369,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed unsupported fields from Presets of Light, Camera, and Reflection Probes (case 1335979).
 - Added a new property to control the ghosting reduction for volumetric clouds (case 1357702).
 - Fixed the earth curvature not being properly taken into account when evaluating the sun attenuation (case 1357927).
+- Reduced the volumetric clouds pattern repetition frequency (case 1358717).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
