@@ -35,6 +35,7 @@ public class ShaderGraphIndividualTests
     [UseTestAssetTestCase]
     public IEnumerator RunIndividualTests(TestAssetTestData data) //reference image, test hash, reference hash
     {
+        Debug.Log($"starting test with {data.referenceImage}");
         
         //File.AppendAllLines("Logs/Test.log", new string[] { "Test Started....." });
         // Always wait one frame for scene load
@@ -71,6 +72,7 @@ public class ShaderGraphIndividualTests
                 UpdatedTestAssetMessage updatedMessage = new UpdatedTestAssetMessage();
                 updatedMessage.testData = data;
                 updatedMessage.expectsResultImage = false;
+                Debug.Log($"Sending player connection for data: {updatedMessage.Serialize}")
                 PlayerConnection.instance.Send(UpdatedTestAssetMessage.MessageId, updatedMessage.Serialize());
 #endif
             }
@@ -78,6 +80,7 @@ public class ShaderGraphIndividualTests
         }
         catch (Exception e)
         {
+            Debug.Log($"Caught exception, data up to date? {data.SavedResultUpToDate()}");
 
             if (!data.SavedResultUpToDate())
             {
@@ -90,6 +93,7 @@ public class ShaderGraphIndividualTests
                 UpdatedTestAssetMessage updatedMessage = new UpdatedTestAssetMessage();
                 updatedMessage.testData = data;
                 updatedMessage.expectsResultImage = true;
+                Debug.Log($"Sending player connection for data: {updatedMessage.Serialize}")
                 PlayerConnection.instance.Send(UpdatedTestAssetMessage.MessageId, updatedMessage.Serialize());
 #endif
             }
