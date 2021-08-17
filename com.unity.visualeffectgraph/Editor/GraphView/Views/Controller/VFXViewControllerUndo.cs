@@ -202,6 +202,7 @@ namespace UnityEditor.VFX.UI
                     ExpressionGraphDirty = true;
                     model.GetOrCreateGraph().UpdateSubAssets();
                     NotifyUpdate();
+                    EditorUtility.SetDirty(graph);
                     m_reentrant = false;
                     m_graphUndoStack.CleanDirtyState();
                 }
