@@ -34,6 +34,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return m_data.GetNodes();
         }
 
+        public IEnumerable<IPortReader> GetInputPorts(INodeReader nodeRef)
+        {
+            return null;
+        }
 
         public void RemoveNode(string id)
         {

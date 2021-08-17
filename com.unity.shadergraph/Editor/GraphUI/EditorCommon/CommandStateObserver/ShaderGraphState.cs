@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
@@ -11,6 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
         public ShaderGraphState(Hash128 graphViewEditorWindowGUID, Preferences preferences)
             : base(graphViewEditorWindowGUID, preferences)
         {
+
         }
 
         /// <summary>
@@ -46,9 +48,17 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 return;
 
             // TODO: Instead of having this be a monolithic list of commands all gathered here, can we can break them up into being registered by individual controllers?
+            // Demo commands (TODO: Remove)
             commandDispatcher.RegisterCommandHandler<AddPortCommand>(AddPortCommand.DefaultCommandHandler);
             commandDispatcher.RegisterCommandHandler<RemovePortCommand>(RemovePortCommand.DefaultCommandHandler);
-            commandDispatcher.RegisterCommandHandler<ChangePreviewExpandedCommand>(ChangePreviewExpandedCommand.DefaultCommandHandler);
+
+            // Shader Graph commands
+            commandDispatcher.RegisterCommandHandler<AddRedirectNodeCommand>(AddRedirectNodeCommand.DefaultHandler);
+          	commandDispatcher.RegisterCommandHandler<ChangePreviewExpandedCommand>(ChangePreviewExpandedCommand.DefaultCommandHandler);
+
+            // Overrides for default GTF commands
+            commandDispatcher.RegisterCommandHandler<CreateEdgeCommand>(ShaderGraphCommandOverrides.HandleCreateEdge);
+            commandDispatcher.RegisterCommandHandler<DeleteElementsCommand>(ShaderGraphCommandOverrides.HandleDeleteElements);
         }
     }
 }
