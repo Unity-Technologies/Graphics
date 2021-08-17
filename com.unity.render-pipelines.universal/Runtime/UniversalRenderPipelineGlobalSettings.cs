@@ -1,4 +1,6 @@
+using System;
 using UnityEditor;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -8,19 +10,22 @@ namespace UnityEngine.Rendering.Universal
     /// - light layer names
     /// </summary>
     [URPHelpURL("URP-Global-Settings")]
-    partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
+    partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings, ISerializationCallbackReceiver
     {
         #region Version system
 
         #pragma warning disable CS0414
-        [SerializeField] int k_AssetVersion = 1;
-        [SerializeField] int k_AssetPreviousVersion = 1;
+        [SerializeField] int k_AssetVersion = 2;
         #pragma warning restore CS0414
+
+        public void OnBeforeSerialize()
+        {
+        }
 
         public void OnAfterDeserialize()
         {
 #if UNITY_EDITOR
-            if (k_AssetPreviousVersion != k_AssetVersion)
+            if (k_AssetVersion != 2)
             {
                 EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
             }
@@ -30,7 +35,14 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         static void UpgradeAsset(int assetInstanceID)
         {
-            UniversalRenderPipelineAsset asset = EditorUtility.InstanceIDToObject(assetInstanceID) as UniversalRenderPipelineAsset;
+            UniversalRenderPipelineGlobalSettings asset = EditorUtility.InstanceIDToObject(assetInstanceID) as UniversalRenderPipelineGlobalSettings;
+
+            if (asset.k_AssetVersion < 2)
+            {
+                // Renamed supportRuntimeDebugDisplay => stripDebugVariants, which results in inverted logic
+                asset.m_StripDebugVariants = !asset.m_StripDebugVariants;
+                asset.k_AssetVersion = 2;
+            }
 
             EditorUtility.SetDirty(asset);
         }
@@ -292,26 +304,36 @@ namespace UnityEngine.Rendering.Universal
 
         #region Misc Settings
 
+        [FormerlySerializedAs("supportRuntimeDebugDisplay")]
+        [SerializeField] bool m_StripDebugVariants = true;
+
+        [FormerlySerializedAs("stripUnusedPostProcessingVariants")]
+        [SerializeField] bool m_StripUnusedPostProcessingVariants = false;
+
+        [FormerlySerializedAs("stripUnusedVariants")]
+        [SerializeField] bool m_StripUnusedVariants = true;
+
         /// <summary>
         /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
         /// </summary>
-        public bool supportRuntimeDebugDisplay = false;
+        [Obsolete("Please use stripRuntimeDebugShaders instead.", false)]
+        public bool supportRuntimeDebugDisplay { get => !m_StripDebugVariants; set { m_StripDebugVariants = !value; } }
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        public bool stripDebugVariants { get => m_StripDebugVariants; set { m_StripDebugVariants = value; } }
 
         /// <summary>
         /// Controls whether strips automatically post processing shader variants based on <see cref="VolumeProfile"/> components.
         /// It strips based on VolumeProfiles in project and not scenes that actually uses it.
         /// </summary>
-        public bool staticVolumeProfile = true; // TODO: false after QA pass
+        public bool stripUnusedPostProcessingVariants { get => m_StripUnusedPostProcessingVariants; set { m_StripUnusedPostProcessingVariants = value; } }
 
         /// <summary>
         /// Controls whether strip off variants if the feature is enabled.
         /// </summary>
-        public bool stripOffVariants = true;
-
-        /// <summary>
-        /// Controls whether strip builtin render pipeline specific shaders.
-        /// </summary>
-        public bool stripBuiltinShaders = true; // TODO: false after QA pass
+        public bool stripUnusedVariants { get => m_StripUnusedVariants; set { m_StripUnusedVariants = value; } }
 
         #endregion
     }

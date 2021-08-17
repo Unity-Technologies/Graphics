@@ -134,13 +134,6 @@ namespace UnityEditor.Rendering.Universal
         Shader m_PaniniProjection = Shader.Find("Hidden/Universal Render Pipeline/PaniniProjection");
         Shader m_Bloom = Shader.Find("Hidden/Universal Render Pipeline/Bloom");
 
-        Shader m_InternalDeferredShading = Shader.Find("Hidden/Internal-DeferredShading");
-        Shader m_InternalDeferredReflections = Shader.Find("Hidden/Internal-DeferredReflections");
-        Shader m_InternalPrePassLighting = Shader.Find("Hidden/Internal-PrePassLighting");
-        Shader m_InternalScreenSpaceShadows = Shader.Find("Hidden/Internal-ScreenSpaceShadows");
-        Shader m_InternalFlare = Shader.Find("Hidden/Internal-Flare");
-        Shader m_InternalHalo = Shader.Find("Hidden/Internal-Halo");
-        Shader m_InternalMotionVectors = Shader.Find("Hidden/Internal-MotionVectors");
         Shader StencilDeferred = Shader.Find("Hidden/Universal Render Pipeline/StencilDeferred");
 
         int m_TotalVariantsInputCount;
@@ -258,15 +251,15 @@ namespace UnityEditor.Rendering.Universal
             Shader m_Shader;
             ShaderKeywordSet m_KeywordSet;
             ShaderSnippetData m_SnippetData;
-            bool m_StripOffVariants;
+            bool m_stripUnusedVariants;
 
-            public StripTool(T features, Shader shader, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet, bool stripOffVariants)
+            public StripTool(T features, Shader shader, ShaderSnippetData snippetData, in ShaderKeywordSet keywordSet, bool stripUnusedVariants)
             {
                 m_Features = features;
                 m_Shader = shader;
                 m_SnippetData = snippetData;
                 m_KeywordSet = keywordSet;
-                m_StripOffVariants = stripOffVariants;
+                m_stripUnusedVariants = stripUnusedVariants;
             }
 
             bool ContainsKeyword(in LocalKeyword kw)
@@ -293,7 +286,7 @@ namespace UnityEditor.Rendering.Universal
                 bool containsKeywords = ContainsKeyword(kw) && ContainsKeyword(kw2) && ContainsKeyword(kw3);
                 bool keywordsDisabled = !m_KeywordSet.IsEnabled(kw) && !m_KeywordSet.IsEnabled(kw2) && !m_KeywordSet.IsEnabled(kw3);
                 bool hasAnyFeatureEnabled = m_Features.HasFlag(feature) || m_Features.HasFlag(feature2) || m_Features.HasFlag(feature3);
-                if (m_StripOffVariants && containsKeywords && keywordsDisabled && hasAnyFeatureEnabled)
+                if (m_stripUnusedVariants && containsKeywords && keywordsDisabled && hasAnyFeatureEnabled)
                     return true;
 
                 return false;
@@ -316,7 +309,7 @@ namespace UnityEditor.Rendering.Universal
                 bool containsKeywords = ContainsKeyword(kw) && ContainsKeyword(kw2);
                 bool keywordsDisabled = !m_KeywordSet.IsEnabled(kw) && !m_KeywordSet.IsEnabled(kw2);
                 bool hasAnyFeatureEnabled = m_Features.HasFlag(feature) || m_Features.HasFlag(feature2);
-                if (m_StripOffVariants && containsKeywords && keywordsDisabled && hasAnyFeatureEnabled)
+                if (m_stripUnusedVariants && containsKeywords && keywordsDisabled && hasAnyFeatureEnabled)
                     return true;
 
                 return false;
@@ -335,7 +328,7 @@ namespace UnityEditor.Rendering.Universal
                     if (m_KeywordSet.IsEnabled(kw))
                         return true;
                 }
-                else if (m_StripOffVariants)
+                else if (m_stripUnusedVariants)
                 {
                     if (!m_KeywordSet.IsEnabled(kw) && ContainsKeyword(kw))
                         return true;
@@ -347,7 +340,7 @@ namespace UnityEditor.Rendering.Universal
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
-            bool stripDebugDisplayShaders = !Debug.isDebugBuild || (globalSettings == null || !globalSettings.supportRuntimeDebugDisplay);
+            bool stripDebugDisplayShaders = !Debug.isDebugBuild || (globalSettings == null || globalSettings.stripDebugVariants);
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
             var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
@@ -362,8 +355,8 @@ namespace UnityEditor.Rendering.Universal
                 return true;
             }
 
-            var stripOffVariants = UniversalRenderPipelineGlobalSettings.instance?.stripOffVariants == true;
-            var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripOffVariants);
+            var stripUnusedVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true;
+            var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants);
 
             // strip main light shadows, cascade and screen variants
             // TODO: Strip disabled keyword once no light will re-use same variant
@@ -481,8 +474,8 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripVolumeFeatures(VolumeFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            var stripOffVariants = UniversalRenderPipelineGlobalSettings.instance?.stripOffVariants == true;
-            var stripTool = new StripTool<VolumeFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripOffVariants);
+            var stripUnusedVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true;
+            var stripTool = new StripTool<VolumeFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants);
 
             if (stripTool.StripMultiCompileKeepOffVariant(m_LensDistortion, VolumeFeatures.LensDistortion))
                 return true;
@@ -582,22 +575,6 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedShaders(ShaderFeatures features, Shader shader)
         {
-            // Strip builtin pipeline shaders
-            if (shader == m_InternalDeferredShading)
-                return true;
-            if (shader == m_InternalDeferredReflections)
-                return true;
-            if (shader == m_InternalPrePassLighting)
-                return true;
-            if (shader == m_InternalScreenSpaceShadows)
-                return true;
-            if (shader == m_InternalFlare)
-                return true;
-            if (shader == m_InternalHalo)
-                return true;
-            if (shader == m_InternalMotionVectors)
-                return true;
-
             if (!IsFeatureEnabled(features, ShaderFeatures.DeferredShading))
             {
                 if (shader == StencilDeferred)
@@ -621,7 +598,7 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnusedPass(features, snippetData))
                 return true;
 
-            if (UniversalRenderPipelineGlobalSettings.instance?.stripBuiltinShaders == true)
+            if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true)
             {
                 if (StripUnusedShaders(features, shader))
                     return true;
@@ -683,7 +660,7 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
 
-                if (UniversalRenderPipelineGlobalSettings.instance?.staticVolumeProfile == true)
+                if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedPostProcessingVariants == true)
                 {
                     if (!removeInput && StripVolumeFeatures(ShaderBuildPreprocessor.volumeFeatures, shader, snippetData, compilerDataList[i]))
                     {
@@ -842,7 +819,7 @@ namespace UnityEditor.Rendering.Universal
 
         private static void FetchAllSupportedFeaturesFromVolumes()
         {
-            if (UniversalRenderPipelineGlobalSettings.instance?.staticVolumeProfile == false)
+            if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedPostProcessingVariants == false)
                 return;
 
             s_VolumeFeatures = VolumeFeatures.Calculated;
