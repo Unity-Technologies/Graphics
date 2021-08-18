@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
 {
     class VFXGlobalSort : VFXContext
     {
-        public VFXGlobalSort() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) {}
+        public VFXGlobalSort() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) { }
         public override string name { get { return "GlobalSortKeys"; } }
         public override string codeGeneratorTemplate { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/Shaders/VFXGlobalSortKeys"; } }
         public override bool codeGeneratorCompute { get { return true; } }

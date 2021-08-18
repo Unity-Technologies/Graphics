@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.MapOverlays,
                 autoEnum = typeof(DebugFullScreenMode),
                 getter = () => (int)data.debugFullScreenMode,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.debugFullScreenMode,
                 setIndex = (value) => data.debugFullScreenMode = (DebugFullScreenMode)value
             };
@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.AdditionalWireframeModes,
                 autoEnum = typeof(WireframeMode),
                 getter = () => (int)data.wireframeMode,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.wireframeMode,
                 setIndex = (value) => data.wireframeMode = (WireframeMode)value
             };
@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.PixelValidationMode,
                 autoEnum = typeof(DebugValidationMode),
                 getter = () => (int)data.validationMode,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.validationMode,
                 setIndex = (value) => data.validationMode = (DebugValidationMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
                 nameAndTooltip = Strings.Channels,
                 autoEnum = typeof(PixelValidationChannels),
                 getter = () => (int)data.validationChannels,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.validationChannels,
                 setIndex = (value) => data.validationChannels = (PixelValidationChannels)value
             };

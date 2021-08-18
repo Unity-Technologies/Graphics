@@ -696,7 +696,7 @@ namespace UnityEditor.VFX
                 new EventDesc() { name = VisualEffectAsset.StopEventName, startSystems = new List<VFXContext>(), stopSystems = allStopNotLinked, initSystems = new List<VFXContext>() },
             }.ToList();
 
-            var specialNames = new HashSet<string>(new string[] {VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName});
+            var specialNames = new HashSet<string>(new string[] { VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName });
 
             var events = contexts.Where(o => o.contextType == VFXContextType.Event);
             foreach (var evt in events)
@@ -897,7 +897,7 @@ namespace UnityEditor.VFX
                 if (data.NeedsComputeBounds())
                 {
                     boundsBufferIndex = bufferDescs.Count;
-                    bufferDescs.Add(new VFXGPUBufferDesc(){type = ComputeBufferType.Default, size = 6, stride = 4});
+                    bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = 6, stride = 4 });
                 }
                 buffers.boundsBuffers.Add(data, boundsBufferIndex);
             }
@@ -928,7 +928,7 @@ namespace UnityEditor.VFX
         {
             private VFXExpressionMapper mapper;
 
-            public VFXImplicitContextOfExposedExpression() : base(VFXContextType.None, VFXDataType.None, VFXDataType.None) {}
+            public VFXImplicitContextOfExposedExpression() : base(VFXContextType.None, VFXDataType.None, VFXDataType.None) { }
 
             private static void CollectExposedExpression(List<VFXExpression> expressions, VFXSlot slot)
             {
@@ -991,7 +991,7 @@ namespace UnityEditor.VFX
                 m_Graph.visualEffectResource.ClearRuntimeData();
 
             m_ExpressionGraph = new VFXExpressionGraph();
-            m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
+            m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
         }
 
         public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation)

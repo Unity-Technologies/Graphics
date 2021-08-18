@@ -218,7 +218,7 @@ namespace UnityEditor.VFX
                 dependencies.Add(shaderGraph.GetInstanceID());
         }
 
-        protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) {}
+        protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) { }
         static Type GetSGPropertyType(AbstractShaderProperty property)
         {
             switch (property.propertyType)
