@@ -40,8 +40,13 @@ namespace UnityEngine.Rendering.Universal
             if (asset.k_AssetVersion < 2)
             {
                 // Renamed supportRuntimeDebugDisplay => stripDebugVariants, which results in inverted logic
-                asset.m_StripDebugVariants = !asset.m_StripDebugVariants;
+                asset.m_StripDebugVariants = !asset.supportRuntimeDebugDisplay;
                 asset.k_AssetVersion = 2;
+
+                // For old test projects lets keep post processing stripping enabled, as huge chance they did not used runtime profile creating
+#if UNITY_INCLUDE_TESTS
+                asset.m_StripUnusedPostProcessingVariants = true;
+#endif
             }
 
             EditorUtility.SetDirty(asset);
@@ -304,20 +309,17 @@ namespace UnityEngine.Rendering.Universal
 
         #region Misc Settings
 
-        [FormerlySerializedAs("supportRuntimeDebugDisplay")]
         [SerializeField] bool m_StripDebugVariants = true;
 
-        [FormerlySerializedAs("stripUnusedPostProcessingVariants")]
         [SerializeField] bool m_StripUnusedPostProcessingVariants = false;
 
-        [FormerlySerializedAs("stripUnusedVariants")]
         [SerializeField] bool m_StripUnusedVariants = true;
 
         /// <summary>
         /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
         /// </summary>
         [Obsolete("Please use stripRuntimeDebugShaders instead.", false)]
-        public bool supportRuntimeDebugDisplay { get => !m_StripDebugVariants; set { m_StripDebugVariants = !value; } }
+        public bool supportRuntimeDebugDisplay = false;
 
         /// <summary>
         /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
