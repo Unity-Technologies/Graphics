@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.Block
                 {
                     var customProperties = PropertiesFromType(nameof(CustomProperties));
                     if (heightMode == HeightMode.Base)
-                        customProperties = customProperties.Where(o => o.property.name !=  nameof(CustomProperties.heightSequencer));
+                        customProperties = customProperties.Where(o => o.property.name != nameof(CustomProperties.heightSequencer));
 
                     properties = properties.Concat(customProperties);
                 }

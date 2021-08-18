@@ -175,7 +175,7 @@ namespace UnityEditor.VFX
                 ArcGizmo(Vector3.zero, arcTorus.torus.majorRadius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f));
             }
 
-            VFXTorusGizmo.DrawTorus(this, arcTorus.torus, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_ThicknessProperty, m_RadiusProperty, VFXTorusGizmo.s_Angles.Concat(new float[] { arc }), arc);;
+            VFXTorusGizmo.DrawTorus(this, arcTorus.torus, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_ThicknessProperty, m_RadiusProperty, VFXTorusGizmo.s_Angles.Concat(new float[] { arc }), arc); ;
         }
 
         public override Bounds OnGetSpacedGizmoBounds(TArcTorus value)
