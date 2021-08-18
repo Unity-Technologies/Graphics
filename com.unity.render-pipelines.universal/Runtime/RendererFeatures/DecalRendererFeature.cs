@@ -394,9 +394,6 @@ namespace UnityEngine.Rendering.Universal
                     m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);
 
                     if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
-                        m_DBufferRenderPass.deferredLights = universalRenderer.deferredLights;
-
-                    if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
                     {
                         m_DBufferRenderPass.deferredLights = universalRenderer.deferredLights;
                         m_DBufferRenderPass.deferredLights.DisableFramebufferFetchInput();
@@ -478,11 +475,6 @@ namespace UnityEngine.Rendering.Universal
                         );
 
                         m_CopyDepthPass.AllocateRT = false;
-
-
-                        // With native render pass camera depth attachment is not created
-                        //if (!m_UseRenderPassEnabled)
-                        //    m_CopyDepthPass.AllocateRT = false;
                     }
                     else
                     {
@@ -492,7 +484,6 @@ namespace UnityEngine.Rendering.Universal
                         );
                     }
                     m_CopyDepthPass.MssaSamples = 1;
-
 
                     renderer.EnqueuePass(m_CopyDepthPass);
                     renderer.EnqueuePass(m_DBufferRenderPass);

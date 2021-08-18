@@ -110,7 +110,6 @@ namespace UnityEngine.Rendering.Universal
                 depthIdentifier = m_CameraDepthAttachment.Identifier();
             }
 
-
             ConfigureTarget(dBufferColorIndentifiers, depthIdentifier);
         }
 
