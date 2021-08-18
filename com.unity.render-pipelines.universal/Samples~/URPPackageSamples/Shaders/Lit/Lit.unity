@@ -859,11 +859,11 @@ PrefabInstance:
     - target: {fileID: 3188382879417959504, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382879417959504, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382879417959504, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleWalkBackwards
@@ -871,6 +871,14 @@ PrefabInstance:
     - target: {fileID: 3188382879417959504, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleWalkBackwards
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382879417959504, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382879417959504, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 3188382879499221432, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_SizeDelta.y
@@ -883,11 +891,11 @@ PrefabInstance:
     - target: {fileID: 3188382879811109004, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382879811109004, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382879811109004, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleAimDown
@@ -896,14 +904,22 @@ PrefabInstance:
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleAimDown
       objectReference: {fileID: 0}
+    - target: {fileID: 3188382879811109004, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382879811109004, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 3188382879849612442, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382879849612442, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382879849612442, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleAimRight
@@ -912,14 +928,22 @@ PrefabInstance:
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleAimRight
       objectReference: {fileID: 0}
+    - target: {fileID: 3188382879849612442, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382879849612442, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 3188382880051235513, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382880051235513, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382880051235513, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleWalkForward
@@ -927,6 +951,14 @@ PrefabInstance:
     - target: {fileID: 3188382880051235513, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleWalkForward
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382880051235513, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382880051235513, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 3188382880073302294, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_SizeDelta.y
@@ -939,11 +971,11 @@ PrefabInstance:
     - target: {fileID: 3188382880082978487, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382880082978487, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382880082978487, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleAimUp
@@ -951,15 +983,23 @@ PrefabInstance:
     - target: {fileID: 3188382880082978487, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleAimUp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382880082978487, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382880082978487, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 3188382880553789636, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382880553789636, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382880553789636, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleWalkRight
@@ -967,6 +1007,14 @@ PrefabInstance:
     - target: {fileID: 3188382880553789636, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleWalkRight
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382880553789636, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382880553789636, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 3188382880907372040, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Name
@@ -1063,11 +1111,11 @@ PrefabInstance:
     - target: {fileID: 3188382881249241740, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382881249241740, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382881249241740, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleWalkLeft
@@ -1075,15 +1123,23 @@ PrefabInstance:
     - target: {fileID: 3188382881249241740, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleWalkLeft
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382881249241740, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382881249241740, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 3188382881359031599, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382881359031599, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1925206220}
     - target: {fileID: 3188382881359031599, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleAimLeft
@@ -1091,6 +1147,14 @@ PrefabInstance:
     - target: {fileID: 3188382881359031599, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
       propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: ToggleAimLeft
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382881359031599, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3188382881359031599, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
+      propertyPath: m_Delegates.Array.data[1].callback.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: FirstPersonController, Assembly-CSharp
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e103b775b7b374b03b593247313f8d3b, type: 3}
@@ -1870,12 +1934,31 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6350239021526260069, guid: 8089b5fe6d8304423814ff197221f77d, type: 3}
+      propertyPath: m_Antialiasing
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6350239021526260069, guid: 8089b5fe6d8304423814ff197221f77d, type: 3}
+      propertyPath: m_RenderPostProcessing
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8509898242313118626, guid: 8089b5fe6d8304423814ff197221f77d, type: 3}
       propertyPath: m_MovementSpeed
       value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8089b5fe6d8304423814ff197221f77d, type: 3}
+--- !u!114 &1925206220 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8509898242313118626, guid: 8089b5fe6d8304423814ff197221f77d, type: 3}
+  m_PrefabInstance: {fileID: 1925206219}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94f9f55b5897449c29f5189f47cad4bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1951643861
 PrefabInstance:
   m_ObjectHideFlags: 0

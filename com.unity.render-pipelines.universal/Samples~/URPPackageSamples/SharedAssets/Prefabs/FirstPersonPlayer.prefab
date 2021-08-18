@@ -65,8 +65,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_MouseSensitivity: 100
+  m_ButtonSensitivity: 100
   m_MovementSpeed: 3
   m_PlayerCamera: {fileID: 3363522893988168260}
+  m_MoveWithMouse: 1
+  m_ButtonMovementFlags: 0
 --- !u!1 &8157311212398424292
 GameObject:
   m_ObjectHideFlags: 0
