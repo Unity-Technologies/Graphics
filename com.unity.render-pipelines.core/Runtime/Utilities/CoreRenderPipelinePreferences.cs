@@ -21,19 +21,19 @@ namespace UnityEngine.Rendering
         // We do not want that GC frees the preferences that have been added, used to store their references
         static readonly ConcurrentStack<object> s_ColorPref = new ConcurrentStack<object>();
 
-        #region Volumes Gizmo Color
+    #region Volumes Gizmo Color
 
         [Obsolete("Use VolumePreferences", false)]
         public static Color volumeGizmoColor { get; } = new Color(0.2f, 0.8f, 0.1f, 0.125f);
 
-        #endregion
+    #endregion
 
-        #region Preview Camera Background Color
+    #region Preview Camera Background Color
 
         static readonly Color kPreviewCameraBackgroundColorDefault = new Color(82f / 255.0f, 82f / 255.0f, 82.0f / 255.0f, 0.0f);
         public static Color previewBackgroundColor => kPreviewCameraBackgroundColorDefault;
 
-        #endregion
+    #endregion
 
         /// <summary>
         /// Adds a <see cref="PrefColor"/> into the **Preferences > Colors** panel./>

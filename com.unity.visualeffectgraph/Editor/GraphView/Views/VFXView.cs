@@ -497,7 +497,7 @@ namespace UnityEditor.VFX.UI
 
             // End Toolbar
 
-            m_NoAssetLabel = new Label("\n\n\nTo begin creating Visual Effects, create a new Visual Effect Graph Asset.\n(or double-click an existing Visual Effect Graph in the project view)") { name = "no-asset"};
+            m_NoAssetLabel = new Label("\n\n\nTo begin creating Visual Effects, create a new Visual Effect Graph Asset.\n(or double-click an existing Visual Effect Graph in the project view)") { name = "no-asset" };
             m_NoAssetLabel.style.position = PositionType.Absolute;
             m_NoAssetLabel.style.left = new StyleLength(40f);
             m_NoAssetLabel.style.right = new StyleLength(40f);
@@ -740,6 +740,8 @@ namespace UnityEditor.VFX.UI
             {
                 anchor.ForceUpdate();
             }
+
+            this.m_Blackboard.ForceUpdate();
         }
 
         void ToggleBlackboard(ChangeEvent<bool> e)
@@ -1614,7 +1616,7 @@ namespace UnityEditor.VFX.UI
 
             if (startAnchor is VFXDataAnchor)
             {
-                var controllers = controller.GetCompatiblePorts((startAnchor as  VFXDataAnchor).controller, nodeAdapter);
+                var controllers = controller.GetCompatiblePorts((startAnchor as VFXDataAnchor).controller, nodeAdapter);
                 return controllers.Select(t => (Port)GetDataAnchorByController(t as VFXDataAnchorController)).ToList();
             }
             else
@@ -1986,7 +1988,7 @@ namespace UnityEditor.VFX.UI
 
         void CopyInputLinks(VFXNodeController sourceController, VFXNodeController targetController)
         {
-            foreach (var st in sourceController.inputPorts.Zip(targetController.inputPorts, (s, t) => new { source = s, target = t}))
+            foreach (var st in sourceController.inputPorts.Zip(targetController.inputPorts, (s, t) => new { source = s, target = t }))
             {
                 CopyInputLinks(st.source, st.target);
             }
@@ -2046,7 +2048,7 @@ namespace UnityEditor.VFX.UI
                 {
                     VFXContextUI topContext = flowEdge.output.GetFirstAncestorOfType<VFXContextUI>();
                     VFXContextUI bottomContext = flowEdge.input.GetFirstAncestorOfType<VFXContextUI>();
-                    if (contexts.Contains(topContext)  && !contexts.Contains(bottomContext))
+                    if (contexts.Contains(topContext) && !contexts.Contains(bottomContext))
                     {
                         float topContextBottom = topContext.layout.yMax;
                         float newTopContextBottom = topContext.layout.yMax + size;
@@ -2162,7 +2164,7 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNodeOnEdge(DropdownMenuAction e)
         {
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, e.userData as VFXDataEdgeController), null, new Type[] { typeof(VFXOperator)}));
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, e.userData as VFXDataEdgeController), null, new Type[] { typeof(VFXOperator) }));
         }
 
         void AddNodeOnEdge(VFXNodeProvider.Descriptor desc, Vector2 position, VFXDataEdgeController edge)
@@ -2265,7 +2267,7 @@ namespace UnityEditor.VFX.UI
             }
             if (evt.target is GraphView || evt.target is Node || evt.target is Group)
             {
-                evt.menu.AppendAction("Duplicate with edges" , (a) => { DuplicateSelectionWithEdges(); },
+                evt.menu.AppendAction("Duplicate with edges", (a) => { DuplicateSelectionWithEdges(); },
                     (a) => { return canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
                 evt.menu.AppendSeparator();
             }
@@ -2606,7 +2608,7 @@ namespace UnityEditor.VFX.UI
 
         private VFXParameterController DuplicateBlackboardField(VFXBlackboardField blackboardField)
         {
-            var copyName  = blackboardField.controller.MakeNameUnique(blackboardField.controller.exposedName);
+            var copyName = blackboardField.controller.MakeNameUnique(blackboardField.controller.exposedName);
             var newVfxParameter = VFXParameter.Duplicate(copyName, blackboardField.controller.model);
             this.controller.AddVFXModel(Vector2.zero, newVfxParameter);
 

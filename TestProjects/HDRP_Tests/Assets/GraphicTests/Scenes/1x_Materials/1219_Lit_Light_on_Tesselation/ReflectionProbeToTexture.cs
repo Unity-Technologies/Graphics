@@ -37,7 +37,7 @@ public class ReflectionProbeToTexture : MonoBehaviour
 
             RenderTexture dest = new RenderTexture(texture.width, texture.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
 
-            while (!targetProbe.IsFinishedRendering(renderID)) {};
+            while (!targetProbe.IsFinishedRendering(renderID)) { };
 
             probeTexture = targetProbe.texture;
 
@@ -59,7 +59,7 @@ public class ReflectionProbeToTexture : MonoBehaviour
     {
         if (targetProbe != null)
         {
-            renderID =  targetProbe.RenderProbe();
+            renderID = targetProbe.RenderProbe();
             StartCoroutine(WaitForRenderRoutine());
         }
     }

@@ -387,8 +387,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             switch (type)
             {
-                case HDLightType.Directional:   return HDLightTypeAndShape.Directional;
-                case HDLightType.Point:         return HDLightTypeAndShape.Point;
+                case HDLightType.Directional: return HDLightTypeAndShape.Directional;
+                case HDLightType.Point: return HDLightTypeAndShape.Point;
                 case HDLightType.Spot:
                     switch (spotLightShape)
                     {
