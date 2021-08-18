@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent colorText = new GUIContent("Color", " Albedo (RGB) and Transparency (A).");
         }
 
-        ExpandableBit  m_ExpandableBit;
+        ExpandableBit m_ExpandableBit;
 
         MaterialProperty color = null;
         const string kColor = "_UnlitColor";

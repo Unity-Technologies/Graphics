@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
         public virtual bool supportsExcludeFromTAA { get { return false; } }
 
         // Sealed override as SRP suboutputs cannot have dependencies
-        public sealed override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true) {}
+        public sealed override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true) { }
 
         public virtual string GetBlendModeStr()
         {

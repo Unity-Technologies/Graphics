@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent s_AdvancedModeContent = new GUIContent("Advanced", "Exposes advanced parameters.");
 
             internal static readonly GUIContent s_DistanceFadeStartLabel = new GUIContent("Distance Fade Start");
-            internal static readonly GUIContent s_DistanceFadeEndLabel   = new GUIContent("Distance Fade End");
+            internal static readonly GUIContent s_DistanceFadeEndLabel = new GUIContent("Distance Fade End");
             internal static readonly GUIContent s_ProbeSpacingModeLabel = new GUIContent("Probe Spacing Mode");
             internal static readonly GUIContent s_ResolutionXLabel = new GUIContent("Resolution X", "Modify the resolution (number of probes in X)");
             internal static readonly GUIContent s_ResolutionYLabel = new GUIContent("Resolution Y", "Modify the resolution (number of probes in Y)");

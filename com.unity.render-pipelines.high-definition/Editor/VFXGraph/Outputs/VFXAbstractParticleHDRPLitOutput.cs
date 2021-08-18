@@ -92,9 +92,9 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles can be affected by environment light set in the global volume profile.")]
         protected bool enableEnvLight = true;
 
-        protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) {}
+        protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) { }
 
-        protected virtual bool allowTextures { get { return GetOrRefreshShaderGraphObject() == null; }}
+        protected virtual bool allowTextures { get { return GetOrRefreshShaderGraphObject() == null; } }
 
         public class HDRPLitInputProperties
         {

@@ -117,9 +117,12 @@ namespace UnityEditor.ShaderGraph
 
         internal static void GeneratePackedStruct(StructDescriptor shaderStruct, ActiveFields activeFields, out StructDescriptor packStruct)
         {
-            packStruct = new StructDescriptor() {
-                name = "Packed" + shaderStruct.name, packFields = true,
-                fields = new FieldDescriptor[] {} };
+            packStruct = new StructDescriptor()
+            {
+                name = "Packed" + shaderStruct.name,
+                packFields = true,
+                fields = new FieldDescriptor[] { }
+            };
             List<FieldDescriptor> packedSubscripts = new List<FieldDescriptor>();
             List<int> packedCounts = new List<int>();
 
@@ -266,7 +269,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         internal static void GetActiveFieldsAndPermutationsForNodes(PassDescriptor pass,
-            KeywordCollector keywordCollector,  List<AbstractMaterialNode> vertexNodes, List<AbstractMaterialNode> pixelNodes,
+            KeywordCollector keywordCollector, List<AbstractMaterialNode> vertexNodes, List<AbstractMaterialNode> pixelNodes,
             List<int>[] vertexNodePermutations, List<int>[] pixelNodePermutations,
             ActiveFields activeFields, out ShaderGraphRequirementsPerKeyword graphRequirements)
         {

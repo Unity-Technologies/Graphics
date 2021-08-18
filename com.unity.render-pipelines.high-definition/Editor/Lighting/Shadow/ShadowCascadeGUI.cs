@@ -280,7 +280,7 @@ namespace UnityEditor
                     if (hotPartitionHandleIndex >= 0)
                     {
                         if (hotPartitionHandleIndex < 100)
-                            s_DragCache = new DragCache(hotPartitionHandleIndex, normalizedCascadePartitions[hotPartitionHandleIndex], hotPartitionHandleIndex >= endPartitionBordersPercent.Length  ? 0f : endPartitionBordersPercent[hotPartitionHandleIndex], currentEvent.mousePosition, isEndBlendArea: false);
+                            s_DragCache = new DragCache(hotPartitionHandleIndex, normalizedCascadePartitions[hotPartitionHandleIndex], hotPartitionHandleIndex >= endPartitionBordersPercent.Length ? 0f : endPartitionBordersPercent[hotPartitionHandleIndex], currentEvent.mousePosition, isEndBlendArea: false);
                         else
                         {
                             int endIndex = hotPartitionHandleIndex - 100;

@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Uninitialized"),
             };
 
-            public static int[] cameraBackgroundValues = { 0, 1, 2};
+            public static int[] cameraBackgroundValues = { 0, 1, 2 };
 
             // Using the pipeline Settings
             public static GUIContent[] displayedCameraOptions =
@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Fast Approximate Anti-aliasing (FXAA)"),
                 new GUIContent("Subpixel Morphological Anti-aliasing (SMAA)"),
             };
-            public static int[] antialiasingValues = { 0, 1, 2};
+            public static int[] antialiasingValues = { 0, 1, 2 };
         }
 
         ReorderableList m_LayerList;
@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.Universal
 
         List<Camera> validCameras = new List<Camera>();
         // This is the valid list of types, so if we need to add more types we just add it here.
-        List<CameraRenderType> validCameraTypes = new List<CameraRenderType> {CameraRenderType.Overlay};
+        List<CameraRenderType> validCameraTypes = new List<CameraRenderType> { CameraRenderType.Overlay };
         List<Camera> errorCameras = new List<Camera>();
         Texture2D m_ErrorIcon;
 

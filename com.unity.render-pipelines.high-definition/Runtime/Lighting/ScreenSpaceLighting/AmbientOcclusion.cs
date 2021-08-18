@@ -257,27 +257,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct RenderAOParameters
         {
-            public ComputeShader    gtaoCS;
-            public int              gtaoKernel;
-            public ComputeShader    spatialDenoiseAOCS;
-            public int              denoiseKernelSpatial;
-            public ComputeShader    temporalDenoiseAOCS;
-            public int              denoiseKernelTemporal;
-            public ComputeShader    copyHistoryAOCS;
-            public int              denoiseKernelCopyHistory;
-            public ComputeShader    upsampleAndBlurAOCS;
-            public int              upsampleAndBlurKernel;
-            public int              upsampleAOKernel;
+            public ComputeShader gtaoCS;
+            public int gtaoKernel;
+            public ComputeShader spatialDenoiseAOCS;
+            public int denoiseKernelSpatial;
+            public ComputeShader temporalDenoiseAOCS;
+            public int denoiseKernelTemporal;
+            public ComputeShader copyHistoryAOCS;
+            public int denoiseKernelCopyHistory;
+            public ComputeShader upsampleAndBlurAOCS;
+            public int upsampleAndBlurKernel;
+            public int upsampleAOKernel;
 
-            public Vector2          runningRes;
-            public int              viewCount;
-            public bool             historyReady;
-            public int              outputWidth;
-            public int              outputHeight;
-            public bool             fullResolution;
-            public bool             runAsync;
-            public bool             temporalAccumulation;
-            public bool             bilateralUpsample;
+            public Vector2 runningRes;
+            public int viewCount;
+            public bool historyReady;
+            public int outputWidth;
+            public int outputHeight;
+            public bool fullResolution;
+            public bool runAsync;
+            public bool temporalAccumulation;
+            public bool bilateralUpsample;
 
             public ShaderVariablesAmbientOcclusion cb;
         }
@@ -428,11 +428,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void RenderAO(in RenderAOParameters      parameters,
-            RTHandle                packedDataTexture,
-            RTHandle                depthTexture,
-            RTHandle                normalBuffer,
-            CommandBuffer           cmd)
+        static void RenderAO(in RenderAOParameters parameters,
+            RTHandle packedDataTexture,
+            RTHandle depthTexture,
+            RTHandle normalBuffer,
+            CommandBuffer cmd)
         {
             ConstantBuffer.Push(cmd, parameters.cb, parameters.gtaoCS, HDShaderIDs._ShaderVariablesAmbientOcclusion);
             cmd.SetComputeTextureParam(parameters.gtaoCS, parameters.gtaoKernel, HDShaderIDs._AOPackedData, packedDataTexture);
@@ -447,14 +447,14 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.gtaoCS, parameters.gtaoKernel, threadGroupX, threadGroupY, parameters.viewCount);
         }
 
-        static void DenoiseAO(in RenderAOParameters   parameters,
-            RTHandle                packedDataTex,
-            RTHandle                packedDataBlurredTex,
-            RTHandle                packedHistoryTex,
-            RTHandle                packedHistoryOutputTex,
-            RTHandle                motionVectors,
-            RTHandle                aoOutputTex,
-            CommandBuffer           cmd)
+        static void DenoiseAO(in RenderAOParameters parameters,
+            RTHandle packedDataTex,
+            RTHandle packedDataBlurredTex,
+            RTHandle packedHistoryTex,
+            RTHandle packedHistoryOutputTex,
+            RTHandle motionVectors,
+            RTHandle aoOutputTex,
+            CommandBuffer cmd)
         {
             const int groupSizeX = 8;
             const int groupSizeY = 8;
@@ -503,11 +503,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void UpsampleAO(in RenderAOParameters   parameters,
-            RTHandle                depthTexture,
-            RTHandle                input,
-            RTHandle                output,
-            CommandBuffer           cmd)
+        static void UpsampleAO(in RenderAOParameters parameters,
+            RTHandle depthTexture,
+            RTHandle input,
+            RTHandle output,
+            CommandBuffer cmd)
         {
             bool blurAndUpsample = !parameters.temporalAccumulation;
 

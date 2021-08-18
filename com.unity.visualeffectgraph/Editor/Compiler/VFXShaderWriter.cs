@@ -28,7 +28,7 @@ namespace UnityEditor.VFX
     class VFXShaderWriter
     {
         public VFXShaderWriter()
-        {}
+        { }
 
         public VFXShaderWriter(string initialValue)
         {
@@ -107,13 +107,13 @@ namespace UnityEditor.VFX
             return dst.ToString(0, dst.Length - 1); // Remove the last line terminator
         }
 
-        public void WriteFormat(string str, object arg0)                                { m_Builder.AppendFormat(str, arg0); }
-        public void WriteFormat(string str, object arg0, object arg1)                   { m_Builder.AppendFormat(str, arg0, arg1); }
-        public void WriteFormat(string str, object arg0, object arg1, object arg2)      { m_Builder.AppendFormat(str, arg0, arg1, arg2); }
+        public void WriteFormat(string str, object arg0) { m_Builder.AppendFormat(str, arg0); }
+        public void WriteFormat(string str, object arg0, object arg1) { m_Builder.AppendFormat(str, arg0, arg1); }
+        public void WriteFormat(string str, object arg0, object arg1, object arg2) { m_Builder.AppendFormat(str, arg0, arg1, arg2); }
 
-        public void WriteLineFormat(string str, object arg0)                            { WriteFormat(str, arg0); WriteLine(); }
-        public void WriteLineFormat(string str, object arg0, object arg1)               { WriteFormat(str, arg0, arg1); WriteLine(); }
-        public void WriteLineFormat(string str, object arg0, object arg1, object arg2)  { WriteFormat(str, arg0, arg1, arg2); WriteLine(); }
+        public void WriteLineFormat(string str, object arg0) { WriteFormat(str, arg0); WriteLine(); }
+        public void WriteLineFormat(string str, object arg0, object arg1) { WriteFormat(str, arg0, arg1); WriteLine(); }
+        public void WriteLineFormat(string str, object arg0, object arg1, object arg2) { WriteFormat(str, arg0, arg1, arg2); WriteLine(); }
 
         // Generic builder method
         public void Write<T>(T t)

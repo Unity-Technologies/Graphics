@@ -106,13 +106,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }),
             MigrationStep.New(Version.AddedAdaptiveSSS, (HDRenderPipelineAsset data) =>
             {
-            #pragma warning disable 618 // Type or member is obsolete
+#pragma warning disable 618 // Type or member is obsolete
                 bool previouslyHighQuality = data.m_RenderPipelineSettings.m_ObsoleteincreaseSssSampleCount;
-            #pragma warning restore 618
+#pragma warning restore 618
 
-                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultCameraFrameSettings,                  previouslyHighQuality);
+                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultCameraFrameSettings, previouslyHighQuality);
                 FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings, previouslyHighQuality);
-                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings,      previouslyHighQuality);
+                FrameSettings.MigrateSubsurfaceParams(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings, previouslyHighQuality);
             }),
             MigrationStep.New(Version.RemoveCookieCubeAtlasToOctahedral2D, (HDRenderPipelineAsset data) =>
             {

@@ -164,9 +164,9 @@ namespace UnityEngine.Rendering.Universal
                         throw new ArgumentOutOfRangeException();
                 }
                 return material != null
-                    &&  m_CurrentSettings.Intensity > 0.0f
-                    &&  m_CurrentSettings.Radius > 0.0f
-                    &&  m_CurrentSettings.SampleCount > 0;
+                    && m_CurrentSettings.Intensity > 0.0f
+                    && m_CurrentSettings.Radius > 0.0f
+                    && m_CurrentSettings.SampleCount > 0;
             }
 
             /// <inheritdoc/>

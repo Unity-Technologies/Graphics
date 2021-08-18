@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent s_ManipulatonTypeContent = EditorGUIUtility.TrTextContent("Per Axis Control", "When checked, each face can be manipulated separatly. This also include fading options.");
 
             public static readonly GUIContent s_DistanceFadeStartLabel = new GUIContent("Distance Fade Start");
-            public static readonly GUIContent s_DistanceFadeEndLabel   = new GUIContent("Distance Fade End");
+            public static readonly GUIContent s_DistanceFadeEndLabel = new GUIContent("Distance Fade End");
 
             public static readonly Color k_GizmoColorBase = new Color(180 / 255f, 180 / 255f, 180 / 255f, 8 / 255f).gamma;
 

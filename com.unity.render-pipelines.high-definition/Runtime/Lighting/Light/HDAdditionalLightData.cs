@@ -1112,7 +1112,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Shadow Settings
         [SerializeField, FormerlySerializedAs("shadowNearPlane")]
-        float    m_ShadowNearPlane = 0.1f;
+        float m_ShadowNearPlane = 0.1f;
         /// <summary>
         /// Controls the near plane distance of the shadows.
         /// </summary>
@@ -1131,7 +1131,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // PCSS settings
         [Range(1, 64)]
         [SerializeField, FormerlySerializedAs("blockerSampleCount")]
-        int      m_BlockerSampleCount = 24;
+        int m_BlockerSampleCount = 24;
         /// <summary>
         /// Controls the number of samples used to detect blockers for PCSS shadows.
         /// </summary>
@@ -1149,7 +1149,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Range(1, 64)]
         [SerializeField, FormerlySerializedAs("filterSampleCount")]
-        int      m_FilterSampleCount = 16;
+        int m_FilterSampleCount = 16;
         /// <summary>
         /// Controls the number of samples used to filter for PCSS shadows.
         /// </summary>
@@ -1266,7 +1266,8 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region HDShadow Properties API (from AdditionalShadowData)
-        [SerializeField] private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
+        [SerializeField]
+        private IntScalableSettingValue m_ShadowResolution = new IntScalableSettingValue
         {
             @override = k_DefaultShadowResolution,
             useOverride = true,
@@ -1674,11 +1675,11 @@ namespace UnityEngine.Rendering.HighDefinition
         byte showAdditionalSettings = 0;
 #pragma warning restore 0414
 
-        HDShadowRequest[]   shadowRequests;
-        bool                m_WillRenderShadowMap;
-        bool                m_WillRenderScreenSpaceShadow;
-        bool                m_WillRenderRayTracedShadow;
-        int[]               m_ShadowRequestIndices;
+        HDShadowRequest[] shadowRequests;
+        bool m_WillRenderShadowMap;
+        bool m_WillRenderScreenSpaceShadow;
+        bool m_WillRenderRayTracedShadow;
+        int[] m_ShadowRequestIndices;
 
 
         // Data for cached shadow maps
@@ -1689,7 +1690,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         [System.NonSerialized]
-        Plane[]             m_ShadowFrustumPlanes = new Plane[6];
+        Plane[] m_ShadowFrustumPlanes = new Plane[6];
 
         // temporary matrix that stores the previous light data (mainly used to discard history for ray traced screen space shadows)
         [System.NonSerialized] internal Matrix4x4 previousTransform = Matrix4x4.identity;
@@ -2360,7 +2361,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float halfAngleTan = Mathf.Tan(0.5f * Mathf.Deg2Rad * (softnessScale * m_AngularDiameter) / 2);
                 softness = Mathf.Abs(halfAngleTan * frustumExtentZ / (2.0f * shadowRequest.splitData.cullingSphere.w));
                 float range = 2.0f * (1.0f / devProj.m22);
-                float rangeScale = Mathf.Abs(range)  / 100.0f;
+                float rangeScale = Mathf.Abs(range) / 100.0f;
                 shadowRequest.zBufferParam.x = rangeScale;
             }
             else
@@ -2694,8 +2695,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // We don't use the global settings of shadow mask by default
             light.lightShadowCasterMode = LightShadowCasterMode.Everything;
 
-            lightData.normalBias           = 0.75f;
-            lightData.slopeBias            = 0.5f;
+            lightData.normalBias = 0.75f;
+            lightData.slopeBias = 0.5f;
 
             // Enable filter/temperature mode by default for all light types
             lightData.useColorTemperature = true;
@@ -2917,7 +2918,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // m_Light.intensity is in luminance which is the value we need for emissive color
             Color value = legacyLight.color.linear * legacyLight.intensity;
 
-// We don't have access to the color temperature in the player because it's a private member of the Light component
+            // We don't have access to the color temperature in the player because it's a private member of the Light component
 #if UNITY_EDITOR
             if (useColorTemperature)
                 value *= Mathf.CorrelatedColorTemperatureToRGB(legacyLight.colorTemperature);
@@ -3431,7 +3432,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Deserialization callback
         /// </summary>
-        void ISerializationCallbackReceiver.OnAfterDeserialize() {}
+        void ISerializationCallbackReceiver.OnAfterDeserialize() { }
 
         /// <summary>
         /// Serialization callback
