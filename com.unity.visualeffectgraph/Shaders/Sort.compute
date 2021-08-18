@@ -310,14 +310,12 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
     } while (!done);
 
     // Select left or right: Must handle special case for equality
-    bool select0 = (kvp0.key == kvp1.key && kvp0.value == kvp1.value && (id & 1)) || (CompareKVP(kvp0, kvp1) != reverse);
+    bool select0 = CompareKVP(kvp0, kvp1) != reverse;
 
 #if FINAL_PASS
     sortedSequence[id] = select0 ? kvp0.value : kvp1.value;
 #else
-    if (select0)
-        kvp1 = kvp0;
-    sortedSequence[id] = kvp1;
+    sortedSequence[id] = select0 ? kvp0 : kvp1;
 #endif
 
 }
