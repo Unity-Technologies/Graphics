@@ -191,6 +191,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     #else
     float2 historyTapCoord = (float2)((posInputs.positionNDC - velocity) * _ScreenSize.xy * 0.5);
     #endif
+    
     // Fetch the current value, history value and current sample count
 #if HISTORY_IS_ARRAY
     #if SINGLE_CHANNEL
@@ -278,7 +279,11 @@ void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
+    #ifdef FULL_RESOLUTION_FILTER
     if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
+    #else
+    if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy / 2)))
+    #endif
         return;  // Out of bounds, discard
 
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy);

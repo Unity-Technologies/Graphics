@@ -143,7 +143,15 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     #endif
 
         // Tap the data for this pixel
+    #if FULL_RESOLUTION_INPUT
         uint2 tapCoord = nDC * _ScreenSize.xy;
+    #else
+        // Not all pixels can be fetched (only the 2x2 representative)
+        uint2 halfResTapCoord = (nDC * _ScreenSize.xy) / 2;
+        uint2 tapCoord = halfResTapCoord * 2;
+    #endif
+
+        // Fetch the corresponding data
         const BilateralData tapData = TapBilateralData(tapCoord);
 
         // If the tapped pixel is a background pixel or too far from the center pixel
@@ -157,7 +165,6 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         const float w = r > 0.001f ? gaussian(r, sigma) * ComputeBilateralWeight(center, tapData) : 1.0;
 
         // Accumulate the new sample
-
     #if FULL_RESOLUTION_INPUT
         #if SINGLE_CHANNEL
             colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).x * w;
@@ -166,9 +173,9 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         #endif
     #else
         #if SINGLE_CHANNEL
-            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord / 2).x * w;
+            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, halfResTapCoord).x * w;
         #else
-            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord / 2).xyz * w;
+            colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, halfResTapCoord).xyz * w;
         #endif
     #endif
         wSum += w;
