@@ -39,7 +39,6 @@
     * [Artistic](Artistic-Nodes)
         * Adjustment
             * [Channel Mixer](Channel-Mixer-Node)
-            * [Split Texture Transform](Split-Texture-Transform-Node)
             * [Contrast](Contrast-Node)
             * [Hue](Hue-Node)
             * [Invert Colors](Invert-Colors-Node)
@@ -63,8 +62,6 @@
         * Utility
             * [Colorspace Conversion](Colorspace-Conversion-Node)
             * [Sub Graph Dropdown](Sub-Graph-Dropdown-Node)
-            * [Calculate Level Of Detail Texture 2D Node](Calculate-Level-Of-Detail-Texture-2D-Node)
-            * [Gather Texture 2D Node](Gather-Texture-2D-Node)
     * [Channel](Channel-Nodes)
         * [Combine](Combine-Node)
         * [Flip](Flip-Node)
@@ -117,6 +114,7 @@
         * Scene
             * [Ambient](Ambient-Node)
             * [Camera](Camera-Node)
+            * [Eye Index](Eye-Index-Node)
             * [Fog](Fog-Node)
             * [Object](Object-Node)
             * [Reflection Probe](Reflection-Probe-Node)
@@ -124,8 +122,9 @@
             * [Scene Depth](Scene-Depth-Node)
             * [Screen](Screen-Node)
         * Texture
+            * [Calculate Level Of Detail Texture 2D Node](Calculate-Level-Of-Detail-Texture-2D-Node)
             * [Cubemap Asset](Cubemap-Asset-Node)
-            * [Eye Index](Eye-Index-Node)
+            * [Gather Texture 2D Node](Gather-Texture-2D-Node)
             * [Sample Cubemap](Sample-Cubemap-Node)
             * [Sample Reflected Cubemap](Sample-Reflected-Cubemap-Node)
             * [Sample Texture 2D](Sample-Texture-2D-Node)
@@ -134,6 +133,7 @@
             * [Sample Texture 3D](Sample-Texture-3D-Node)
             * [Sample Virtual Texture](Sample-Virtual-Texture-Node)
             * [Sampler State](Sampler-State-Node)
+            * [Split Texture Transform](Split-Texture-Transform-Node)
             * [Texel Size](Texel-Size-Node)
             * [Texture 2D Array Asset](Texture-2D-Array-Asset-Node)
             * [Texture 2D Asset](Texture-2D-Asset-Node)
