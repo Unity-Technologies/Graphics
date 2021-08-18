@@ -56,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering
 
         internal float dilationValidtyThreshold = 0.25f; // We ned to store this here to access it
 
-        bool debugUsesComputeBuffers => SystemInfo.supportsComputeShaders;
+        bool debugUsesComputeBuffers => !SystemInfo.supportsComputeShaders;
 
 
         /// <summary>
