@@ -9,37 +9,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.Utilities
 {
     public static class GraphModelExtensions
     {
-        public static SearcherPreviewNodeModel CreateSearcherPreview(
-            this IGraphModel graphModel,
-            RegistryKey registryKey,
-            string displayName = "",
-            Vector2 position = default,
-            SerializableGUID guid = default
-        )
-        {
-            return graphModel.CreateNode<SearcherPreviewNodeModel>(
-                displayName,
-                position,
-                guid,
-                nodeModel => nodeModel.registryKey = registryKey,
-                SpawnFlags.Orphan
-            );
-        }
-
-        public static SearcherPreviewNodeModel CreateSearcherPreview(
-            this GraphNodeCreationData graphNodeCreationData,
-            RegistryKey registryKey,
-            string displayName = ""
-        )
-        {
-            return graphNodeCreationData.GraphModel.CreateSearcherPreview(
-                registryKey,
-                displayName,
-                graphNodeCreationData.Position,
-                graphNodeCreationData.Guid
-            );
-        }
-
         public static GraphDataNodeModel CreateGraphDataNode(
             this IGraphModel graphModel,
             RegistryKey registryKey,
@@ -49,20 +18,28 @@ namespace UnityEditor.ShaderGraph.GraphUI.Utilities
             SpawnFlags spawnFlags = SpawnFlags.Default
         )
         {
-            if (spawnFlags.IsOrphan())
-            {
-                AssertHelpers.Fail("GraphDataNodeModel should not be orphan");
-                return null;
-            }
-
             return graphModel.CreateNode<GraphDataNodeModel>(
                 displayName,
                 position,
                 guid,
                 nodeModel =>
                 {
-                    var registry = ((ShaderGraphStencil) graphModel.Stencil).GetRegistry();
-                    ((ShaderGraphModel) graphModel).GraphHandler.AddNode(registryKey, nodeModel.Guid.ToString(), registry);
+                    if (spawnFlags.IsOrphan())
+                    {
+                        // Orphan nodes aren't a part of the graph, so we don't use an actual name in the graph data
+                        // to represent them.
+                        nodeModel.SetPreviewRegistryKey(registryKey);
+                    }
+                    else
+                    {
+                        Debug.Log("Added to graphhandler");
+                        var registry = ((ShaderGraphStencil)graphModel.Stencil).GetRegistry();
+
+                        // Use this node's generated guid to bind it to an underlying element in the graph data.
+                        var graphDataName = nodeModel.Guid.ToString();
+                        ((ShaderGraphModel)graphModel).GraphHandler.AddNode(registryKey, graphDataName, registry);
+                        nodeModel.graphDataName = graphDataName;
+                    }
                 },
                 spawnFlags
             );
@@ -79,6 +56,5 @@ namespace UnityEditor.ShaderGraph.GraphUI.Utilities
                 graphNodeCreationData.SpawnFlags
             );
         }
-
     }
 }

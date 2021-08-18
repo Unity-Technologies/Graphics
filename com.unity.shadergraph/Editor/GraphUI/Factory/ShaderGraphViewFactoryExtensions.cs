@@ -2,11 +2,10 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements;
-using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 
 namespace UnityEditor.ShaderGraph.GraphUI.Factory
 {
-    [GraphElementsExtensionMethodsCache(typeof(ShaderGraphView))]
+    [GraphElementsExtensionMethodsCache(typeof(GraphView))]
     public static class ShaderGraphViewFactoryExtensions
     {
         public static IModelUI CreateGraphDataNode(this ElementBuilder elementBuilder, CommandDispatcher store,

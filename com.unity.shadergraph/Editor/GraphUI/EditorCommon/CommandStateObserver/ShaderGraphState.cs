@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;

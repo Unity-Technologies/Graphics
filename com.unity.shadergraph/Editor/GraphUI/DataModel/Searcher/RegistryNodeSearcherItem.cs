@@ -23,15 +23,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             List<SearcherItem> children = null,
             Func<string> getName = null,
             string help = null
-        ) : base(graphModel, data, delegate(GraphNodeCreationData creationData)
-        {
-            // SpawnFlags.IsOrphan means we're creating a node that isn't actually a part of the graph. We use a
-            // different node type here because it will have no backing data associated with it -- just a registry key
-            // and its default topology.
-            return creationData.SpawnFlags.IsOrphan()
-                ? creationData.CreateSearcherPreview(registryKey, name)
-                : creationData.CreateGraphDataNode(registryKey, name);
-        }, name, children, getName, help)
+        ) : base(graphModel, data, creationData => creationData.CreateGraphDataNode(registryKey, name), name, children, getName, help)
         {
             this.registryKey = registryKey;
         }
