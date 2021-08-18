@@ -34,11 +34,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             public List<Matrix4x4[]> probeBuffers;
             public List<MaterialPropertyBlock> props;
-            public ComputeBuffer matrixArray;
-            public ComputeBuffer validityArray;
-            public ComputeBuffer indicesArray;
+            public Hash128 cellHash;
             public Vector3 cellPosition;
-            public int totalProbeCount;
         }
 
         const int kProbesPerBatch = 1023;
@@ -55,8 +52,6 @@ namespace UnityEngine.Experimental.Rendering
         Plane[] m_DebugFrustumPlanes = new Plane[6];
 
         internal float dilationValidtyThreshold = 0.25f; // We ned to store this here to access it
-
-        bool debugUsesComputeBuffers => !SystemInfo.supportsComputeShaders;
 
 
         /// <summary>
@@ -212,44 +207,23 @@ namespace UnityEngine.Experimental.Rendering
 
                 GeometryUtility.CalculateFrustumPlanes(camera, m_DebugFrustumPlanes);
 
-                CoreUtils.SetKeyword(m_DebugMaterial, "USE_CONSTANT_BUFFERS", !debugUsesComputeBuffers);
-
                 foreach (var debug in m_CellDebugData)
                 {
                     if (ShouldCullCell(debug.cellPosition, camera.transform, m_DebugFrustumPlanes))
                         continue;
 
-                    if (debugUsesComputeBuffers)
+                    for (int i = 0; i < debug.probeBuffers.Count; ++i)
                     {
-                        var props = debug.props[0];
+                        var probeBuffer = debug.probeBuffers[i];
+                        var props = debug.props[i];
                         props.SetInt("_ShadingMode", (int)debugDisplay.probeShading);
                         props.SetFloat("_ExposureCompensation", -debugDisplay.exposureCompensation);
                         props.SetFloat("_ProbeSize", debugDisplay.probeSize);
                         props.SetFloat("_CullDistance", debugDisplay.probeCullingDistance);
                         props.SetInt("_MaxAllowedSubdiv", debugDisplay.maxSubdivToVisualize);
                         props.SetFloat("_ValidityThreshold", dilationValidtyThreshold);
-                        props.SetBuffer("_MatrixArray", debug.matrixArray);
-                        props.SetBuffer("_ValidityArray", debug.validityArray);
-                        props.SetBuffer("_IndexInAtlasArray", debug.indicesArray);
 
-                        var bounds = new Bounds(Vector3.zero, new Vector3(100000000.0f, 100000000.0f, 100000000.0f));
-                        Graphics.DrawMeshInstancedProcedural(m_DebugMesh, 0, m_DebugMaterial, bounds, debug.totalProbeCount, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
-                    }
-                    else
-                    {
-                        for (int i = 0; i < debug.probeBuffers.Count; ++i)
-                        {
-                            var probeBuffer = debug.probeBuffers[i];
-                            var props = debug.props[i];
-                            props.SetInt("_ShadingMode", (int)debugDisplay.probeShading);
-                            props.SetFloat("_ExposureCompensation", -debugDisplay.exposureCompensation);
-                            props.SetFloat("_ProbeSize", debugDisplay.probeSize);
-                            props.SetFloat("_CullDistance", debugDisplay.probeCullingDistance);
-                            props.SetInt("_MaxAllowedSubdiv", debugDisplay.maxSubdivToVisualize);
-                            props.SetFloat("_ValidityThreshold", dilationValidtyThreshold);
-
-                            Graphics.DrawMeshInstanced(m_DebugMesh, 0, m_DebugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
-                        }
+                        Graphics.DrawMeshInstanced(m_DebugMesh, 0, m_DebugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
                     }
                 }
             }
@@ -257,15 +231,6 @@ namespace UnityEngine.Experimental.Rendering
 
         void ClearDebugData()
         {
-            foreach (var debugData in m_CellDebugData)
-            {
-                if (debugData.indicesArray != null)
-                {
-                    debugData.matrixArray.Release();
-                    debugData.indicesArray.Release();
-                    debugData.validityArray.Release();
-                }
-            }
             m_CellDebugData.Clear();
         }
 
@@ -282,23 +247,14 @@ namespace UnityEngine.Experimental.Rendering
                 CellChunkInfo chunks;
                 m_ChunkInfo.TryGetValue(cell.index, out chunks);
 
-                int batchSize = debugUsesComputeBuffers ? cell.probePositions.Length : kProbesPerBatch;
-
-                Vector4[] texels = new Vector4[batchSize];
-                float[] validity = new float[batchSize];
+                Vector4[] texels = new Vector4[kProbesPerBatch];
+                float[] validity = new float[kProbesPerBatch];
                 List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
 
                 var debugData = new CellInstancedDebugProbes();
                 debugData.probeBuffers = probeBuffers;
                 debugData.props = props;
                 debugData.cellPosition = cell.position;
-                debugData.totalProbeCount = cell.probePositions.Length;
-                if (debugUsesComputeBuffers)
-                {
-                    debugData.matrixArray = new ComputeBuffer(batchSize, sizeof(float) * 16);
-                    debugData.validityArray = new ComputeBuffer(batchSize, sizeof(float));
-                    debugData.indicesArray = new ComputeBuffer(batchSize, sizeof(float) * 4);
-                }
 
                 int idxInBatch = 0;
                 for (int i = 0; i < cell.probePositions.Length; i++)
@@ -316,36 +272,23 @@ namespace UnityEngine.Experimental.Rendering
                     Vector3Int texelLoc = new Vector3Int(brickStart.x + (indexInSlice % 4), brickStart.y + (indexInSlice / 4), indexInBrick / 16);
 
                     probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
-
                     validity[idxInBatch] = cell.validity[i];
                     texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
                     idxInBatch++;
 
-                    if (!debugUsesComputeBuffers)
+                    if (probeBuffer.Count >= kProbesPerBatch || i == cell.probePositions.Length - 1)
                     {
-                        if (probeBuffer.Count >= kProbesPerBatch || i == cell.probePositions.Length - 1)
-                        {
-                            idxInBatch = 0;
-                            MaterialPropertyBlock prop = new MaterialPropertyBlock();
+                        idxInBatch = 0;
+                        MaterialPropertyBlock prop = new MaterialPropertyBlock();
 
-                            prop.SetFloatArray("_Validity", validity);
-                            prop.SetVectorArray("_IndexInAtlas", texels);
+                        prop.SetFloatArray("_Validity", validity);
+                        prop.SetVectorArray("_IndexInAtlas", texels);
 
-                            props.Add(prop);
+                        props.Add(prop);
 
-                            probeBuffers.Add(probeBuffer.ToArray());
-                            probeBuffer = new List<Matrix4x4>();
-                        }
+                        probeBuffers.Add(probeBuffer.ToArray());
+                        probeBuffer = new List<Matrix4x4>();
                     }
-                }
-
-                if (debugUsesComputeBuffers)
-                {
-                    debugData.matrixArray.SetData(probeBuffer.ToArray());
-                    debugData.validityArray.SetData(validity);
-                    debugData.indicesArray.SetData(texels);
-
-                    props.Add(new MaterialPropertyBlock());
                 }
 
                 m_CellDebugData.Add(debugData);
