@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.HDRP
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the axisZ attribute is used to orient the strip instead of facing the Camera.")]
         private bool UseCustomZAxis = false;
 
-        VFXDistortionQuadStripOutput() : base(true) {}
+        VFXDistortionQuadStripOutput() : base(true) { }
 
         public override string name { get { return "Output Strip HDRP Distortion Quad"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDistortionPlanarPrimitive"); } }

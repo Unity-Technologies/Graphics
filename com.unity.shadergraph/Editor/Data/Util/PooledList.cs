@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
         static Stack<PooledList<T>> s_Pool = new Stack<PooledList<T>>();
         bool m_Active;
 
-        PooledList() {}
+        PooledList() { }
 
         public static PooledList<T> Get()
         {
@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph
 #endif
         }
 
-// Destructor causes some GC alloc so only do this sanity check in debug build
+        // Destructor causes some GC alloc so only do this sanity check in debug build
 #if DEBUG
         ~PooledList()
         {

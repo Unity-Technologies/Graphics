@@ -51,10 +51,10 @@ namespace UnityEditor.VFX
     class VFXExpressionInverseMatrix : VFXExpression
     {
         public VFXExpressionInverseMatrix() : this(VFXValue<Matrix4x4>.Default)
-        {}
+        { }
 
         public VFXExpressionInverseMatrix(VFXExpression parent) : base(VFXExpression.Flags.InvalidOnGPU, parent)
-        {}
+        { }
 
         sealed public override VFXExpressionOperation operation
         {
@@ -74,10 +74,10 @@ namespace UnityEditor.VFX
     class VFXExpressionTransposeMatrix : VFXExpression
     {
         public VFXExpressionTransposeMatrix() : this(VFXValue<Matrix4x4>.Default)
-        {}
+        { }
 
         public VFXExpressionTransposeMatrix(VFXExpression parent) : base(Flags.None, parent)
-        {}
+        { }
 
         public sealed override VFXExpressionOperation operation
         {
@@ -102,10 +102,10 @@ namespace UnityEditor.VFX
     class VFXExpressionInverseTRSMatrix : VFXExpression
     {
         public VFXExpressionInverseTRSMatrix() : this(VFXValue<Matrix4x4>.Default)
-        {}
+        { }
 
         public VFXExpressionInverseTRSMatrix(VFXExpression parent) : base(VFXExpression.Flags.None, parent)
-        {}
+        { }
 
         sealed public override VFXExpressionOperation operation
         {

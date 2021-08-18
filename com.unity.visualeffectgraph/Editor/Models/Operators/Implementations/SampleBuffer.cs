@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.Operator
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             if (GetNbOutputSlots() == 0)
-                return new VFXExpression[] {};
+                return new VFXExpression[] { };
 
             var outputSlot = GetOutputSlot(0);
             var slots = outputSlot.GetVFXValueTypeSlots();

@@ -164,7 +164,7 @@ namespace UnityEditor.VFX
         abstract public string SRPAssetTypeStr { get; }
         abstract public Type SRPOutputDataType { get; }
 
-        public virtual void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null) {}
+        public virtual void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null) { }
 
         public virtual VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(VFXMaterialSerializedSettings materialSettings)
         {
@@ -417,7 +417,7 @@ namespace UnityEditor.VFX
 
             foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
                 if (VFXExpression.GetVFXValueTypeFromType(field.FieldType) == VFXValueType.None
-                    &&  !CheckBlittablePublic(field.FieldType))
+                    && !CheckBlittablePublic(field.FieldType))
                     return false;
 
             return true;

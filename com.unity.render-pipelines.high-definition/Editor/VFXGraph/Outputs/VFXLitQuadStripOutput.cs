@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.HDRP
     [VFXInfo(experimental = true)]
     class VFXLitQuadStripOutput : VFXAbstractParticleHDRPLitOutput
     {
-        protected VFXLitQuadStripOutput() : base(true) {}  // strips
+        protected VFXLitQuadStripOutput() : base(true) { }  // strips
 
         public override string name { get { return "Output ParticleStrip HDRP Lit Quad"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }

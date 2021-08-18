@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
 
         float topRadiusScreen;
         float baseRadiusScreen;
-        bool  m_Dragging;
+        bool m_Dragging;
 
         public struct Extremities
         {
@@ -142,7 +142,7 @@ namespace UnityEditor.VFX
                     {
                         EditorGUI.BeginChangeCheck();
                         var pos = extremities.extremities[i];
-                        var result = Handles.Slider(s_ExtremitiesNames[i], pos, pos - extremities.bottomCap,  handleSize * HandleUtility.GetHandleSize(pos), CustomCubeHandleCap, 0);
+                        var result = Handles.Slider(s_ExtremitiesNames[i], pos, pos - extremities.bottomCap, handleSize * HandleUtility.GetHandleSize(pos), CustomCubeHandleCap, 0);
                         if (EditorGUI.EndChangeCheck())
                         {
                             baseRadiusProperty.SetValue(result.magnitude);

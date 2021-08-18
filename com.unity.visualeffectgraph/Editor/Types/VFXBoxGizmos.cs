@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
             Matrix4x4 rotate = Matrix4x4.Rotate(Quaternion.Euler(box.angles));
             Matrix4x4 fullTranform = Matrix4x4.Translate(box.center) * rotate * Matrix4x4.Translate(-box.center);
 
-            VFXAABoxGizmo.DrawBoxSizeDataAnchorGizmo(new AABox() {center = box.center, size = box.size}, component, this, m_CenterProperty, m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, fullTranform);
+            VFXAABoxGizmo.DrawBoxSizeDataAnchorGizmo(new AABox() { center = box.center, size = box.size }, component, this, m_CenterProperty, m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, fullTranform);
 
             RotationGizmo(box.center, box.angles, m_AnglesProperty, true);
         }

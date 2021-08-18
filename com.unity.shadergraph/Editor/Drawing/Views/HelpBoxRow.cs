@@ -19,9 +19,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         public HelpBoxRow(MessageType type)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/HelpBoxRow"));
-            VisualElement container = new VisualElement {name = "container"};
-            m_ContentContainer = new VisualElement { name = "content"  };
-            m_LabelContainer = new VisualElement {name = "label" };
+            VisualElement container = new VisualElement { name = "container" };
+            m_ContentContainer = new VisualElement { name = "content" };
+            m_LabelContainer = new VisualElement { name = "label" };
 
             switch (type)
             {
@@ -64,13 +64,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 labelText = "DEPRECATED: Hover for info";
             }
 
-            Button upgradeButton = new Button(upgradeAction) { text = buttonText , tooltip = deprecationText};
+            Button upgradeButton = new Button(upgradeAction) { text = buttonText, tooltip = deprecationText };
             if (!ShaderGraphPreferences.allowDeprecatedBehaviors || messageType == MessageType.Info)
             {
                 HelpBoxRow help = new HelpBoxRow(messageType);
                 var label = new Label(labelText)
                 {
-                    tooltip = deprecationText, name = "message-" + (messageType == MessageType.Warning ? "warn" : "info")
+                    tooltip = deprecationText,
+                    name = "message-" + (messageType == MessageType.Warning ? "warn" : "info")
                 };
                 help.Add(label);
                 help.contentContainer.Add(upgradeButton);

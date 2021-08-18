@@ -122,7 +122,7 @@ namespace UnityEditor.VFX.SDF
 
 
             GUI.enabled = EditorUtility.IsDirty(m_Settings);
-            if (GUILayout.Button(Contents.saveSettings, GUILayout.MinWidth(20) , GUILayout.ExpandWidth(true)))
+            if (GUILayout.Button(Contents.saveSettings, GUILayout.MinWidth(20), GUILayout.ExpandWidth(true)))
             {
                 SaveSettings();
             }
@@ -339,7 +339,7 @@ namespace UnityEditor.VFX.SDF
                 if (m_TexturePreview == null) m_TexturePreview = CreateInstance<Texture3DPreview>();
                 m_TexturePreview.Texture = m_BakedSDF;
                 GUILayout.BeginHorizontal();
-                m_TexturePreview.OnPreviewSettings(new Object[] {m_BakedSDF});
+                m_TexturePreview.OnPreviewSettings(new Object[] { m_BakedSDF });
                 GUILayout.EndHorizontal();
                 Rect rect = GUILayoutUtility.GetRect(100, 2000, 100, 2000, GUIStyle.none);
                 m_TexturePreview.OnPreviewGUI(rect, GUIStyle.none);
