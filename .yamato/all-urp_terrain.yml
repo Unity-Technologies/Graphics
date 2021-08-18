@@ -19,11 +19,15 @@ PR_URP_Terrain_trunk:
     dependencies:
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_XR_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_XR_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_Standalone_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_Standalone_XR_mono_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-vulkan.yml#URP_Terrain_Win_Vulkan_Standalone_mono_Linear_trunk
          rerun: on_new_revision
@@ -83,11 +87,15 @@ PR_URP_Terrain_2021.2:
     dependencies:
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_mono_Linear_2021.2
          rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_XR_mono_Linear_2021.2
+         rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_XR_mono_Linear_2021.2
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_2021.2
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_Standalone_mono_Linear_2021.2
+         rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_Standalone_XR_mono_Linear_2021.2
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-vulkan.yml#URP_Terrain_Win_Vulkan_Standalone_mono_Linear_2021.2
          rerun: on_new_revision
@@ -147,11 +155,15 @@ PR_URP_Terrain_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_Standalone_XR_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_terrain-win-dx12.yml#URP_Terrain_Win_DX12_Standalone_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_terrain-win-vulkan.yml#URP_Terrain_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision

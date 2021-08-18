@@ -1,13 +1,15 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DepthOfFieldCommon.hlsl"
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#pragma multi_compile _ USE_MIN_DEPTH   // Active when using MSAA
 
 #pragma kernel KMainPhysical
 #pragma kernel KMainManual
 
-TEXTURE2D_X(_InputCoCTexture);
-TEXTURE2D_X(_InputHistoryCoCTexture);
+TEXTURE2D_X(_DepthMinMaxAvg);
 
 RW_TEXTURE2D_X(float, _OutputCoCTexture);
 
@@ -45,7 +47,7 @@ void KMainPhysical(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    float depth = LoadCameraDepth(dispatchThreadId.xy);
+    float depth = CameraDepth(_DepthMinMaxAvg, dispatchThreadId.xy);
     float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
     float coc = (1.0 - FocusDist / max(linearEyeDepth, 1e-6f)) * MaxCoC;
 
@@ -63,7 +65,7 @@ void KMainPhysical(uint3 dispatchThreadId : SV_DispatchThreadID)
 void KMainManual(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-    float depth = LoadCameraDepth(dispatchThreadId.xy);
+    float depth = CameraDepth(_DepthMinMaxAvg, dispatchThreadId.xy);
     float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 
     float nearBlend = GetFixedNearBlend(linearEyeDepth);

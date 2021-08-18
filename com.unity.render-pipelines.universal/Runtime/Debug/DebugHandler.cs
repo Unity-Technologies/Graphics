@@ -96,6 +96,14 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal bool IsRenderPassSupported
+        {
+            get
+            {
+                return RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.None || RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.Overdraw;
+            }
+        }
+
         internal DebugHandler(ScriptableRendererData scriptableRendererData)
         {
             Shader debugReplacementShader = scriptableRendererData.debugShaders.debugReplacementPS;

@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.Universal.Converters
         {
             var context = Search.SearchService.CreateContext("asset", "urp:convert-readonly");
 
-            Search.SearchService.Request(context,  (c, items) =>
+            Search.SearchService.Request(context, (c, items) =>
             {
                 // we're going to do this step twice in order to get them ordered, but it should be fast
                 var orderedRequest = items.OrderBy(req =>
