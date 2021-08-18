@@ -20,6 +20,8 @@ The image below visualises the outer bounds of the fade radius as a wireframe bo
 
 ![A Custom Pass Volume visualised using a Box Collider, with its fade radius visualised as a wireframe box.](images/CustomPassVolumeBox_Collider.png)
 
+When a Custom Pass Volume's **Mode** is set to **Camera**, HDRP only executes the custom pass volume in its **Target Camera**. To make sure HDRP always executes the custom pass volume, it ignores the Camera's volume layer mask when a **Target Camera** is set.
+
 ## Using C# to change the fade radius
 
 To change the fade radius in code, you can use the built in `_FadeValue` variable in the shader, and `CustomPass.fadeValue` in your C# script. These variables operate on a 0 - 1 scale that represents how far the Camera is from the collider bounding Volume. To learn more, see [Scripting your own Custom Pass in C#](Custom-Pass-Scripting.md).

@@ -95,6 +95,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 material.SetFloat(Property.ZTest, (float)target.zTestMode);
             }
 
+            // We always need these properties regardless of whether the material is allowed to override
+            // Queue control & offset enable correct automatic render queue behavior
+            // Control == 0 is automatic, 1 is user-specified render queue
+            material.SetFloat(Property.QueueOffset, 0.0f);
+            material.SetFloat(Property.QueueControl, (float)BaseShaderGUI.QueueControl.Auto);
+
             // call the full unlit material setup function
             ShaderGraphLitGUI.UpdateMaterial(material, MaterialUpdateType.CreatedNewMaterial);
         }
@@ -157,6 +163,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
                 collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
             }
+
+            // We always need these properties regardless of whether the material is allowed to override other shader properties.
+            // Queue control & offset enable correct automatic render queue behavior.  Control == 0 is automatic, 1 is user-specified.
+            // We initialize queue control to -1 to indicate to UpdateMaterial that it needs to initialize it properly on the material.
+            collector.AddFloatProperty(Property.QueueOffset, 0.0f);
+            collector.AddFloatProperty(Property.QueueControl, -1.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -515,7 +527,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.Meta,
                     pragmas = CorePragmas.Default,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection(),
+                    keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
                     includes = LitIncludes.Meta,
 
                     // Custom Interpolator Support
@@ -723,8 +735,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly FieldCollection Meta = new FieldCollection()
             {
+                StructFields.Attributes.positionOS,
+                StructFields.Attributes.normalOS,
+                StructFields.Attributes.uv0,                            //
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
-                StructFields.Attributes.uv2,                            //needed for meta vertex position
+                StructFields.Attributes.uv2,                            // needed for meta UVs
+                StructFields.Attributes.instanceID,                     // needed for rendering instanced terrain
+                StructFields.Varyings.positionCS,
+                StructFields.Varyings.texCoord0,                        // needed for meta UVs
+                StructFields.Varyings.texCoord1,                        // VizUV
+                StructFields.Varyings.texCoord2,                        // LightCoord
             };
         }
         #endregion

@@ -113,7 +113,7 @@ namespace UnityEditor.ShaderGraph
 
             if (!generationMode.IsPreview())
             {
-                sb.AppendIndentation();
+                sb.TryAppendIndentation();
                 sb.Append("{0} _{1}_Flip = {0} ({2}",
                     FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToShaderString(),
                     GetVariableNameForNode(),

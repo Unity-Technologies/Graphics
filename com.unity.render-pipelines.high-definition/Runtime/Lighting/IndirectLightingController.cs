@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Component that allow you to control the indirect specular and diffuse intensity
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Indirect Lighting Controller")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Indirect Lighting Controller", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Override-Indirect-Lighting-Controller")]
     public class IndirectLightingController : VolumeComponent
     {

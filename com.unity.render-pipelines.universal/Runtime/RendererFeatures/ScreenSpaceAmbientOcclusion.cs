@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [DisallowMultipleRendererFeature]
+    [Tooltip("The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other.")]
     internal class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
     {
         // Serialized Fields

@@ -35,6 +35,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             float _VertexDensityMaxPixelCost;
             uint _DebugContactShadowLightIndex;
             int _DebugDepthPyramidMip;
+            float _MinMotionVector;
             CBUFFER_END
 
             TEXTURE2D_X(_DebugFullScreenTexture);
@@ -219,7 +220,10 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_MOTION_VECTORS)
                 {
                     float2 mv = SampleMotionVectors(input.texcoord);
-
+                    if (length(mv * _ScreenSize.xy) < _MinMotionVector)
+                    {
+                        return float4(0, 0, 0, 1);
+                    }
                     // Background color intensity - keep this low unless you want to make your eyes bleed
                     const float kMinIntensity = 0.03f;
                     const float kMaxIntensity = 0.50f;
@@ -338,7 +342,10 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, pixCoord + mipOffset).r;
                     PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
-                    float linearDepth = lerp(_FullScreenDebugDepthRemap.x, _FullScreenDebugDepthRemap.y, (posInput.linearDepth - _FullScreenDebugDepthRemap.z) / (_FullScreenDebugDepthRemap.w - _FullScreenDebugDepthRemap.z));
+                    // We square the factors to have more precision near zero which is where people usually want to visualize depth.
+                    float remappedFar = min(_FullScreenDebugDepthRemap.w, _FullScreenDebugDepthRemap.y * _FullScreenDebugDepthRemap.y * _FullScreenDebugDepthRemap.w);
+                    float remappedNear = max(_FullScreenDebugDepthRemap.z, _FullScreenDebugDepthRemap.x * _FullScreenDebugDepthRemap.x * _FullScreenDebugDepthRemap.w);
+                    float linearDepth = lerp(0.0, 1.0, (posInput.linearDepth - remappedNear) / (remappedFar - remappedNear));
                     return float4(linearDepth.xxx, 1.0);
                 }
 

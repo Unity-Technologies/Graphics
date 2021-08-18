@@ -91,8 +91,8 @@ jobs:
         test_platforms:
           - Standalone
           - playmode
-    triggers:
-      expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.postprocessing/**/*",  "TestProjects/PostProcessing_Tests/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+    # triggers:
+    #   expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.postprocessing/**/*",  "TestProjects/PostProcessing_Tests/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
   - name: Extra <PROJECT_NAME>
     dependencies:
       - platform: Win

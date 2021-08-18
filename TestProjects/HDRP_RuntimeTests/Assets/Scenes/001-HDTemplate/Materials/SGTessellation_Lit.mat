@@ -10,7 +10,7 @@ Material:
   m_Name: SGTessellation_Lit
   m_Shader: {fileID: -6465566751694194690, guid: ce563b92ad5ec2a44b59623cf39c8854,
     type: 3}
-  m_ShaderKeywords: ENABLEVERTEXMODIFICATION _DISABLE_SSR_TRANSPARENT
+  m_ShaderKeywords: ENABLEVERTEXMODIFICATION _DISABLE_SSR_TRANSPARENT _TESSELLATION_PHONG
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -140,3 +140,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   version: 12
+  hdPluginSubTargetMaterialVersions:
+    m_Keys: []
+    m_Values: 
