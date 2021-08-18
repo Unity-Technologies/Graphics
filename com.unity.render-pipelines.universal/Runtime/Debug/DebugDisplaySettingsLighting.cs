@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
-    class DebugDisplaySettingsLighting : IDebugDisplaySettingsData
+    class DebugDisplaySettingsLighting : IDebugDisplaySettingsData, IDebugDisplaySettingsQuery
     {
         internal DebugLightingMode DebugLightingMode { get; private set; }
         internal DebugLightingFeatureFlags DebugLightingFeatureFlagsMask { get; private set; }
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        #region IDebugDisplaySettingsData
+        #region IDebugDisplaySettingsQuery
         public bool AreAnySettingsActive => (DebugLightingMode != DebugLightingMode.None) || (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
 
         public bool IsPostProcessingAllowed => (DebugLightingMode != DebugLightingMode.Reflections && DebugLightingMode != DebugLightingMode.ReflectionsWithSmoothness);
@@ -60,6 +60,9 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        #endregion
+
+        #region IDebugDisplaySettingsData
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
             return new SettingsPanel(this);

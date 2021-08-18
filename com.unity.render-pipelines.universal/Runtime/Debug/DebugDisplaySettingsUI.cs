@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering.Universal
                 DebugUI.Panel panel = debugManager.GetPanel(panelId, true);
                 ObservableList<DebugUI.Widget> panelChildren = panel.children;
 
+                panel.flags = disposableSettingsPanel.Flags;
                 panels.Add(disposableSettingsPanel);
                 panelChildren.Add(panelWidgets);
             };
@@ -73,5 +74,10 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #endregion
+
+        public void UpdateFrameTiming()
+        {
+            m_Settings.DisplayStats.UpdateFrameTiming();
+        }
     }
 }

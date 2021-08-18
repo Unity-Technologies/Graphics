@@ -32,6 +32,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal DebugDisplaySettingsLighting LightingSettings { get; private set; }
 
+        /// <summary>
+        /// Display stats.
+        /// </summary>
+        internal DebugDisplayStats DisplayStats { get; private set; }
+
         #region IDebugDisplaySettingsQuery
 
         /// <summary>
@@ -108,6 +113,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_Settings.Clear();
 
+            DisplayStats = Add(new DebugDisplayStats());
             CommonSettings = Add(new DebugDisplaySettingsCommon());
             MaterialSettings = Add(new DebugDisplaySettingsMaterial());
             LightingSettings = Add(new DebugDisplaySettingsLighting());

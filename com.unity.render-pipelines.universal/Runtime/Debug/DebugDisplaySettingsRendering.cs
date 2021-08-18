@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
-    class DebugDisplaySettingsRendering : IDebugDisplaySettingsData
+    class DebugDisplaySettingsRendering : IDebugDisplaySettingsData, IDebugDisplaySettingsQuery
     {
         // Under the hood, the implementation uses a single enum (DebugSceneOverrideMode). For UI, we have split
         // this enum into WireframeMode and a separate Overdraw boolean.
@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        #region IDebugDisplaySettingsData
+        #region IDebugDisplaySettingsQuery
         public bool AreAnySettingsActive => (debugPostProcessingMode != DebugPostProcessingMode.Auto) ||
         (debugFullScreenMode != DebugFullScreenMode.None) ||
         (debugSceneOverrideMode != DebugSceneOverrideMode.None) ||
@@ -306,6 +306,9 @@ namespace UnityEngine.Rendering.Universal
             }       // End of switch.
         }
 
+        #endregion
+
+        #region IDebugDisplaySettingsData
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
             return new SettingsPanel(this);

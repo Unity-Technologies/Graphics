@@ -13,6 +13,11 @@ namespace UnityEngine.Rendering.Universal
         /// Widgets used by this panel.
         /// </summary>
         DebugUI.Widget[] Widgets { get; }
+
+        /// <summary>
+        /// Flags to be applied to the top-level panel.
+        /// </summary>
+        DebugUI.Flags Flags { get; }
     }
 
     public interface IDebugDisplaySettingsPanelDisposable : IDebugDisplaySettingsPanel, IDisposable

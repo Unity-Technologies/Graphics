@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering.Universal
 {
-    class DebugDisplaySettingsMaterial : IDebugDisplaySettingsData
+    class DebugDisplaySettingsMaterial : IDebugDisplaySettingsData, IDebugDisplaySettingsQuery
     {
         #region Material validation
         internal enum AlbedoDebugValidationPreset
@@ -356,7 +356,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        #region IDebugDisplaySettingsData
+        #region IDebugDisplaySettingsQuery
         public bool AreAnySettingsActive =>
             (DebugMaterialModeData != DebugMaterialMode.None) ||
             (DebugVertexAttributeIndexData != DebugVertexAttributeMode.None) ||
@@ -369,6 +369,9 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        #endregion
+
+        #region IDebugDisplaySettingsData
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {
             return new SettingsPanel(this);

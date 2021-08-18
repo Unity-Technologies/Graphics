@@ -1,6 +1,6 @@
 namespace UnityEngine.Rendering.Universal
 {
-    public interface IDebugDisplaySettingsData : IDebugDisplaySettingsQuery
+    public interface IDebugDisplaySettingsData
     {
         /// <summary>
         /// Creates the debug UI panel needed for these debug settings.
