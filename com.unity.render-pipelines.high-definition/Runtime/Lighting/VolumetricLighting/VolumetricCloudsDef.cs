@@ -35,8 +35,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _LargeWindSpeed;
         public float _MediumWindSpeed;
         public float _SmallWindSpeed;
-        // Flag that tells us if we should apply the exposure to the sun light color (in case no directional is specified)
-        public int _ExposureSunColor;
+        // Padding
+        public int Padding0;
 
         // Color * intensity of the directional light
         public Vector4 _SunLightColor;
@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _TemporalAccumulationFactor;
 
         // Padding
-        public Vector2 Padding0;
+        public Vector2 Padding1;
         // Parameters for the fade in
         public float _FadeInStart;
         public float _FadeInDistance;
@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Render the clouds for the sky
         public int _RenderForSky;
         // Padding
-        public int Padding1;
+        public int Padding2;
 
         [HLSLArray(3 * 4, typeof(Vector4))]
         public fixed float _DistanceBasedWeights[12 * 4];

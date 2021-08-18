@@ -406,8 +406,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     cb._SunLightColor = m_lightList.directionalLights[0].color;
                 }
-
-                cb._ExposureSunColor = 1;
             }
             else
             {
@@ -416,7 +414,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._SunUp = Vector3.forward;
 
                 cb._SunLightColor = Vector3.one;
-                cb._ExposureSunColor = 0;
             }
 
             // Compute the theta angle for the wind direction

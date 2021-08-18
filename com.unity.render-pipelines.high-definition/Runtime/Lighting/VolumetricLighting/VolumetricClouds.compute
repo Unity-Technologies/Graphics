@@ -129,7 +129,7 @@ void ConvertObliqueDepth(uint3 currentCoord : SV_DispatchThreadID, uint2 groupTh
     UNITY_XR_ASSIGN_VIEW_INDEX(currentCoord.z);
 
     // If this is bigger than the trace size, we are done
-    if (any(currentCoord.xy > uint2(_FinalScreenSize.xy)))
+    if (any(currentCoord.xy >= uint2(_FinalScreenSize.xy)))
         return;
 
     // Combine it with the current shift to define which half res depth should be used
@@ -142,7 +142,7 @@ void DownscaleDepth(uint3 intermediateCoord : SV_DispatchThreadID, uint2 groupTh
     UNITY_XR_ASSIGN_VIEW_INDEX(intermediateCoord.z);
 
     // If this is bigger than the trace size, we are done
-    if (any(intermediateCoord.xy > uint2(_IntermediateScreenSize.xy)))
+    if (any(intermediateCoord.xy >= uint2(_IntermediateScreenSize.xy)))
         return;
 
     // TODO USE LDS for this
@@ -423,7 +423,7 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 evaluationP
     // Sun parameters
     EnvironmentLighting environmentLight;
     environmentLight.sunDirection = _SunDirection.xyz;
-    environmentLight.sunColor = _SunLightColor.xyz * (_ExposureSunColor ? GetCurrentExposureMultiplier() : 1.0);
+    environmentLight.sunColor = _SunLightColor.xyz * GetCurrentExposureMultiplier();
     environmentLight.ambientTermTop = _AmbientProbeTop.xyz * GetCurrentExposureMultiplier();
     environmentLight.ambientTermBottom = _AmbientProbeBottom.xyz * GetCurrentExposureMultiplier();
 
@@ -817,7 +817,7 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
     UNITY_XR_ASSIGN_VIEW_INDEX(traceCoord.z);
 
     // If this is bigger than the trace size, we are done
-    if (any(traceCoord.xy > uint2(_TraceScreenSize.xy)))
+    if (any(traceCoord.xy >= uint2(_TraceScreenSize.xy)))
         return;
 
     // Depending on if we are in full res or not, use a different intermediate coord
@@ -1173,6 +1173,10 @@ void PreUpscaleCloudsSky(uint3 dispatchThreadId : SV_DispatchThreadID,
     GroupMemoryBarrierWithGroupSync();
 #endif
 
+    // If out of bounds, leave right away
+    if (any(intermediateCoord.xy >= uint2(_IntermediateScreenSize.xy)))
+        return;
+
     // Grab the cloud data
 #ifdef WITHOUT_LDS
     float4 cloudLighting = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord);
@@ -1247,7 +1251,7 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     GroupMemoryBarrierWithGroupSync();
 
     // If out of bounds, leave right away
-    if (any(finalCoord.xy > uint2(_FinalScreenSize.xy)))
+    if (any(finalCoord.xy >= uint2(_FinalScreenSize.xy)))
         return;
 
     // Grab the depth value of the pixel
@@ -1336,7 +1340,7 @@ void UPSAMPLE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID,
     GroupMemoryBarrierWithGroupSync();
 
     // If out of bounds, leave right away
-    if (any(finalCoord.xy > uint2(_FinalScreenSize.xy)))
+    if (any(finalCoord.xy >= uint2(_FinalScreenSize.xy)))
         return;
 
     float4 currentClouds = GetCloudLighting_LDS(groupThreadId, int2(0, 0));
@@ -1358,7 +1362,7 @@ void COMBINE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     UNITY_XR_ASSIGN_VIEW_INDEX(finalCoord.z);
 
     // If out of bounds, leave right away
-    if (any(finalCoord.xy > uint2(_FinalScreenSize.xy)))
+    if (any(finalCoord.xy >= uint2(_FinalScreenSize.xy)))
         return;
 
     // Grab the depth value of the pixel
@@ -1415,7 +1419,7 @@ void COMBINE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID)
     UNITY_XR_ASSIGN_VIEW_INDEX(finalCoord.z);
 
     // If out of bounds, leave right away
-    if (any(finalCoord.xy > uint2(_FinalScreenSize.xy)))
+    if (any(finalCoord.xy >= uint2(_FinalScreenSize.xy)))
         return;
 
     // Grab the depth value of the pixel

@@ -6,7 +6,8 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         // Intermediate textures required for baking the clouds into the cubemap
-        RTHandle m_IntermediateCloudsLightingBuffer = null;
+        RTHandle m_IntermediateCloudsLighting0Buffer = null;
+        RTHandle m_IntermediateCloudsLighting1Buffer = null;
         RTHandle m_IntermediateCloudsDepthBuffer = null;
         RTHandle m_IntermediateCloudsLightingCube0Buffer = null;
         RTHandle m_IntermediateCloudsLightingCube1Buffer = null;
@@ -16,7 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
             {
-                RTHandles.Release(m_IntermediateCloudsLightingBuffer);
+                RTHandles.Release(m_IntermediateCloudsLighting0Buffer);
+                RTHandles.Release(m_IntermediateCloudsLighting1Buffer);
                 RTHandles.Release(m_IntermediateCloudsDepthBuffer);
                 RTHandles.Release(m_IntermediateCloudsLightingCube0Buffer);
                 RTHandles.Release(m_IntermediateCloudsLightingCube1Buffer);
@@ -28,7 +30,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
             {
                 int skyResolution = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize;
-                m_IntermediateCloudsLightingBuffer = RTHandles.Alloc(skyResolution, skyResolution, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true);
+                m_IntermediateCloudsLighting0Buffer = RTHandles.Alloc(skyResolution, skyResolution, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true);
+                m_IntermediateCloudsLighting1Buffer = RTHandles.Alloc(skyResolution, skyResolution, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true);
                 m_IntermediateCloudsDepthBuffer = RTHandles.Alloc(skyResolution, skyResolution, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true);
                 m_IntermediateCloudsLightingCube0Buffer = RTHandles.Alloc(skyResolution, skyResolution, TextureXR.slices, dimension: TextureDimension.Cube, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false);
                 m_IntermediateCloudsLightingCube1Buffer = RTHandles.Alloc(skyResolution, skyResolution, TextureXR.slices, dimension: TextureDimension.Cube, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false);
@@ -134,69 +137,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, traceTX, traceTY, 1);
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", false);
 
+            mpb.Clear();
             mpb.SetTexture(HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateLightingBuffer0);
             CoreUtils.SetRenderTarget(cmd, intermediateCubeMap, ClearFlag.None, miplevel: 2, cubemapFace: parameters.cubemapFace);
             CoreUtils.DrawFullScreen(cmd, parameters.cloudCombinePass, mpb, 2);
-        }
-
-        static void TraceVolumetricClouds_Sky_Low(CommandBuffer cmd, VolumetricCloudsParameters_Sky_Low parameters,
-            RTHandle colorBuffer, RTHandle intermediateLightingBuffer0, RTHandle intermediateLightingBuffer1, RTHandle intermediateDepthBuffer0, RTHandle intermediateUpscaleBuffer)
-        {
-            // Compute the number of tiles to evaluate
-            int traceTX = (parameters.traceWidth + (8 - 1)) / 8;
-            int traceTY = (parameters.traceHeight + (8 - 1)) / 8;
-
-            // Compute the number of tiles to evaluate
-            int intermediateTX = (parameters.intermediateWidth + (8 - 1)) / 8;
-            int intermediateTY = (parameters.intermediateHeight + (8 - 1)) / 8;
-
-            // Compute the number of tiles to evaluate
-            int finalTX = (parameters.finalWidth + (8 - 1)) / 8;
-            int finalTY = (parameters.finalHeight + (8 - 1)) / 8;
-
-            // Bind the sampling textures
-            BlueNoise.BindDitheredTextureSet(cmd, parameters.commonData.ditheredTextureSet);
-
-            // Set the multi compiles
-            CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
-
-            // Bind the constant buffer
-            ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsTrace)))
-            {
-                // Ray-march the clouds for this frame
-                CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", parameters.commonData.cloudsCB._PhysicallyBasedSun == 1);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._Worley128RGBA, parameters.commonData.worley128RGBA);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._ErosionNoise, parameters.commonData.erosionNoise);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudMapTexture, parameters.commonData.cloudMapTexture);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudLutTexture, parameters.commonData.cloudLutTexture);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudsLightingTextureRW, intermediateLightingBuffer0);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudsDepthTextureRW, intermediateDepthBuffer0);
-                cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, traceTX, traceTY, 1);
-                CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", false);
-            }
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsPreUpscale)))
-            {
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.preUpscaleKernel, HDShaderIDs._CloudsLightingTexture, intermediateLightingBuffer0);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.preUpscaleKernel, HDShaderIDs._CloudsLightingTextureRW, intermediateLightingBuffer1);
-                cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.preUpscaleKernel, intermediateTX, intermediateTY, 1);
-            }
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsUpscaleAndCombine)))
-            {
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.finalUpscaleKernel, HDShaderIDs._VolumetricCloudsTexture, intermediateLightingBuffer1);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.finalUpscaleKernel, HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateUpscaleBuffer);
-                cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.finalUpscaleKernel, finalTX, finalTY, 1);
-
-                parameters.cloudCombinePass.SetTexture(HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateUpscaleBuffer);
-                CoreUtils.SetRenderTarget(cmd, colorBuffer, ClearFlag.None, 0, parameters.cubemapFace);
-                CoreUtils.DrawFullScreen(cmd, parameters.cloudCombinePass, null, 1);
-            }
-
-            // Reset all the multi-compiles
-            CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
         }
 
         struct VolumetricCloudsParameters_Sky_High
@@ -258,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void RenderVolumetricClouds_Sky_High(CommandBuffer cmd, in VolumetricCloudsParameters_Sky_High parameters, MaterialPropertyBlock mpb, RTHandle intermediateLightingBuffer0, RTHandle intermediateDepthBuffer0, RTHandle colorBuffer)
+        static void RenderVolumetricClouds_Sky_High(CommandBuffer cmd, in VolumetricCloudsParameters_Sky_High parameters, MaterialPropertyBlock mpb, RTHandle intermediateLightingBuffer0, RTHandle intermediateLightingBuffer1, RTHandle intermediateDepthBuffer0, RTHandle colorBuffer)
         {
             // Compute the number of tiles to evaluate
             int finalTX = (parameters.finalWidth + (8 - 1)) / 8;
@@ -284,7 +228,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, finalTX, finalTY, 1);
             CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", false);
 
+            // Copy the target face of the cubemap into a temporary texture
+            cmd.CopyTexture(colorBuffer, (int)parameters.cubemapFace, 0, intermediateLightingBuffer1, 0, 0);
+
             // Output the result into the output buffer
+            mpb.Clear();
+            mpb.SetTexture(HDShaderIDs._CameraColorTexture, intermediateLightingBuffer1);
             mpb.SetTexture(HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateLightingBuffer0);
             CoreUtils.SetRenderTarget(cmd, colorBuffer, ClearFlag.None, 0, parameters.cubemapFace);
             CoreUtils.DrawFullScreen(cmd, parameters.cloudCombinePass, mpb, 1);
@@ -310,7 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         parameters.commonData.cloudsCB._CloudsPixelCoordToViewDirWS = pixelCoordToViewDir[faceIdx];
 
                         // Render the face straight to the output cubemap
-                        RenderVolumetricClouds_Sky_High(cmd, parameters, m_MpbClouds, m_IntermediateCloudsLightingBuffer, m_IntermediateCloudsDepthBuffer, skyboxCubemap);
+                        RenderVolumetricClouds_Sky_High(cmd, parameters, m_MpbClouds, m_IntermediateCloudsLighting0Buffer, m_IntermediateCloudsLighting1Buffer, m_IntermediateCloudsDepthBuffer, skyboxCubemap);
                     }
                 }
             }
@@ -327,7 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         parameters.commonData.cloudsCB._CloudsPixelCoordToViewDirWS = pixelCoordToViewDir[faceIdx];
 
                         // Render the face straight to the output cubemap
-                        TraceVolumetricClouds_Sky_Low(cmd, parameters, m_MpbClouds, m_IntermediateCloudsLightingBuffer, m_IntermediateCloudsDepthBuffer, m_IntermediateCloudsLightingCube0Buffer);
+                        TraceVolumetricClouds_Sky_Low(cmd, parameters, m_MpbClouds, m_IntermediateCloudsLighting0Buffer, m_IntermediateCloudsDepthBuffer, m_IntermediateCloudsLightingCube0Buffer);
                     }
                 }
 
@@ -335,6 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
                     {
+                        m_MpbClouds.Clear();
                         m_MpbClouds.SetTexture(HDShaderIDs._VolumetricCloudsTexture, m_IntermediateCloudsLightingCube0Buffer);
                         m_MpbClouds.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, pixelCoordToViewDir[faceIdx]);
                         m_MpbClouds.SetInt(HDShaderIDs._Mipmap, 2);
@@ -347,6 +297,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
                     {
+                        // Copy the target face of the cubemap into a temporary texture
+                        cmd.CopyTexture(skyboxCubemap, faceIdx, 0, m_IntermediateCloudsLighting1Buffer, 0, 0);
+
+                        m_MpbClouds.Clear();
+                        m_MpbClouds.SetTexture(HDShaderIDs._CameraColorTexture, m_IntermediateCloudsLighting1Buffer);
                         m_MpbClouds.SetTexture(HDShaderIDs._VolumetricCloudsTexture, m_IntermediateCloudsLightingCube1Buffer);
                         m_MpbClouds.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, pixelCoordToViewDir[faceIdx]);
                         m_MpbClouds.SetInt(HDShaderIDs._Mipmap, 1);

@@ -596,13 +596,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         cloudRenderer.RenderClouds(m_BuiltinParameters, true);
                 }
 
-                // Generate mipmap for our cubemap
-                Debug.Assert(renderingContext.skyboxCubemapRT.rt.autoGenerateMips == false);
-
                 // Render the volumetric clouds into the cubemap
                 if (volumetricClouds != null)
+                {
+                    // The volumetric clouds explicitly rely on the physically based sky. We need to make sure that the sun textures are properly bound.
+                    // Unfortunately, the global binding happens too late, so we need to bind it here.
+                    skyRenderer.SetGlobalSkyData(m_BuiltinParameters.commandBuffer, m_BuiltinParameters);
                     HDRenderPipeline.currentPipeline.RenderVolumetricClouds_Sky(m_BuiltinParameters.commandBuffer, m_BuiltinParameters.hdCamera, m_facePixelCoordToViewDirMatrices,
                         m_BuiltinParameters.volumetricClouds, (int)m_BuiltinParameters.screenSize.x, (int)m_BuiltinParameters.screenSize.y, renderingContext.skyboxCubemapRT);
+                }
 
                 // Generate mipmap for our cubemap
                 Debug.Assert(renderingContext.skyboxCubemapRT.rt.autoGenerateMips == false);

@@ -20,7 +20,7 @@ CBUFFER_START(ShaderVariablesClouds)
     float _LargeWindSpeed;
     float _MediumWindSpeed;
     float _SmallWindSpeed;
-    int _ExposureSunColor;
+    int _Padding0;
     float4 _SunLightColor;
     float4 _SunDirection;
     int _PhysicallyBasedSun;
@@ -35,7 +35,7 @@ CBUFFER_START(ShaderVariablesClouds)
     float _ShapeScale;
     float _ErosionScale;
     float _TemporalAccumulationFactor;
-    float2 _Padding0;
+    float2 _Padding1;
     float _FadeInStart;
     float _FadeInDistance;
     float4 _ScatteringTint;
@@ -68,7 +68,7 @@ CBUFFER_START(ShaderVariablesClouds)
     int _LowResolutionEvaluation;
     int _EnableIntegration;
     int _RenderForSky;
-    int _Padding1;
+    int _Padding2;
     float4 _DistanceBasedWeights[12];
 CBUFFER_END
 
