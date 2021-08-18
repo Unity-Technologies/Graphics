@@ -165,7 +165,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
             colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xyz * w;
         #endif
     #else
-            #if SINGLE_CHANNEL
+        #if SINGLE_CHANNEL
             colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord / 2).x * w;
         #else
             colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord / 2).xyz * w;

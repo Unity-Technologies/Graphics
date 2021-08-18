@@ -450,7 +450,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (giSettings.denoiseSS)
             {
                 // Evaluate the history's validity
-                float historyValidity0 = EvaluateIndirectDiffuseHistoryValidity0(hdCamera, true, false);
+                float historyValidity0 = EvaluateIndirectDiffuseHistoryValidity0(hdCamera, fullResolution, false);
 
                 HDTemporalFilter temporalFilter = GetTemporalFilter();
                 HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
@@ -478,7 +478,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the second pass is requested, do it otherwise blit
                 if (giSettings.secondDenoiserPassSS)
                 {
-                    float historyValidity1 = EvaluateIndirectDiffuseHistoryValidity1(hdCamera, true, false);
+                    float historyValidity1 = EvaluateIndirectDiffuseHistoryValidity1(hdCamera, fullResolution, false);
 
                     // Run the temporal filter
                     TextureHandle historyBufferLF = renderGraph.ImportTexture(RequestIndirectDiffuseHistoryTextureLF(hdCamera));
@@ -499,11 +499,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
 
                     // Propagate the history validity for the second buffer
-                    PropagateIndirectDiffuseHistoryValidity1(hdCamera, true, false);
+                    PropagateIndirectDiffuseHistoryValidity1(hdCamera, fullResolution, false);
                 }
 
                 // Propagate the history validity for the first buffer
-                PropagateIndirectDiffuseHistoryValidity0(hdCamera, true, false);
+                PropagateIndirectDiffuseHistoryValidity0(hdCamera, fullResolution, false);
 
                 return rtGIBuffer;
             }
