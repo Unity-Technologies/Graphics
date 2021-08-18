@@ -24,6 +24,7 @@ Shader "Hidden/HDRP/CharlieConvolve"
 
             TEXTURECUBE(_MainTex);
             float _InvOmegaP;
+            float _InvFaceCenterTexelSolidAngle;
             float _Level;
 
             float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
@@ -51,20 +52,16 @@ Shader "Hidden/HDRP/CharlieConvolve"
                 float3 viewDirWS = normalize(mul(float3(input.positionCS.xy, 1.0), (float3x3)_PixelCoordToViewDirWS));
                 // Reverse it to point into the scene
                 float3 N = -viewDirWS;
-                // Remove view-dependency from GGX, effectively making the BSDF isotropic.
-                float3 V = N;
 
                 float perceptualRoughness = MipmapLevelToPerceptualRoughness(_Level);
                 float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-                uint  sampleCount = GetIBLRuntimeFilterSampleCount(_Level) * 100;
+                uint  sampleCount = GetIBLRuntimeFilterSampleCount(_Level) / 10; // 10% of the "IBL filter sample count" seems to result in sufficient quality for Charlie convolution
 
                 float4 val = IntegrateLDCharlie(TEXTURECUBE_ARGS(_MainTex, s_trilinear_clamp_sampler),
-                             V, N,
+                             N,
                              roughness,
                              sampleCount,
-                             _InvOmegaP,
-                             true);
-
+                             _InvFaceCenterTexelSolidAngle);
                 return val;
             }
             ENDHLSL

@@ -18,9 +18,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Ordered by frame time in HDRP
             ///<summary>Object Depth pre-pass, only the depth of the object will be rendered.</summary>
-            DepthPrepass    = 1,
+            DepthPrepass = 1,
             ///<summary>Forward pass, render the object color.</summary>
-            Forward         = 0,
+            Forward = 0,
         }
 
         // Used only for the UI to keep track of the toggle state
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static ShaderTagId[] depthShaderTags;
 
         // Cache the shaderTagIds so we don't allocate a new array each frame
-        ShaderTagId[]   cachedShaderTagIDs;
+        ShaderTagId[] cachedShaderTagIDs;
 
         /// <summary>
         /// Called before the first execution of the pass occurs.

@@ -19,7 +19,7 @@ class InjectMockHMDTest
 
             var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
 
-// XRTODO: remove pragmas once MockHMD package is published with new dependencies to xr.sdk.management and replace loaders with activeLoaders
+            // XRTODO: remove pragmas once MockHMD package is published with new dependencies to xr.sdk.management and replace loaders with activeLoaders
 #pragma warning disable CS0618
             Assert.That(buildTargetSettings != null, "Unable to read for XR settings for build target!");
             Assert.AreEqual(1, buildTargetSettings.AssignedSettings.loaders.Count, "There should be exactly one XR loader!");

@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Component that allow you to control the indirect specular and diffuse intensity
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Indirect Lighting Controller")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Indirect Lighting Controller", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Override-Indirect-Lighting-Controller")]
     public class IndirectLightingController : VolumeComponent
     {
@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <param name="value">Light Layer Enum parameter.</param>
             /// <param name="overrideState">Initial override value.</param>
             public LightLayerEnumParameter(LightLayerEnum value, bool overrideState = false)
-                : base(value, overrideState) {}
+                : base(value, overrideState) { }
         }
     }
 }

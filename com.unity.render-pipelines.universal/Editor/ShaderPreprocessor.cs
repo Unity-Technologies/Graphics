@@ -91,6 +91,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_DecalNormalBlendMedium = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendMedium);
         ShaderKeyword m_DecalNormalBlendHigh = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendHigh);
         ShaderKeyword m_ClusteredRendering = new ShaderKeyword(ShaderKeywordStrings.ClusteredRendering);
+        ShaderKeyword m_EditorVisualization = new ShaderKeyword(ShaderKeywordStrings.EDITOR_VISUALIZATION);
 
         ShaderKeyword m_LocalDetailMulx2;
         ShaderKeyword m_LocalDetailScaled;
@@ -152,7 +153,8 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            bool stripDebugDisplayShaders = !Debug.isDebugBuild;
+            var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
+            bool stripDebugDisplayShaders = !Debug.isDebugBuild || (globalSettings == null || !globalSettings.supportRuntimeDebugDisplay);
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
             var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
@@ -160,10 +162,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 stripDebugDisplayShaders = true;
             }
-#endif
-
-#if URP_TEST_AGGRESSIVE_SHADER_STRIPPING
-            stripDebugDisplayShaders = true;
 #endif
 
             if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
@@ -319,6 +317,10 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }
 
+            // Editor visualization is only used in scene view debug modes.
+            if (compilerData.shaderKeywordSet.IsEnabled(m_EditorVisualization))
+                return true;
+
             return false;
         }
 
@@ -412,7 +414,17 @@ namespace UnityEditor.Rendering.Universal
             var inputShaderVariantCount = compilerDataList.Count;
             for (int i = 0; i < inputShaderVariantCount;)
             {
-                bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
+                bool removeInput = true;
+                foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
+                {
+                    if (!StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
+                    {
+                        removeInput = false;
+                        break;
+                    }
+                }
+
+                // Remove at swap back
                 if (removeInput)
                     compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
                 else
@@ -448,19 +460,19 @@ namespace UnityEditor.Rendering.Universal
         , IPostprocessBuildWithReport
 #endif
     {
-        public static ShaderFeatures supportedFeatures
+        public static List<ShaderFeatures> supportedFeaturesList
         {
             get
             {
-                if (_supportedFeatures <= 0)
-                {
+                if (s_SupportedFeaturesList.Count == 0)
                     FetchAllSupportedFeatures();
-                }
-                return _supportedFeatures;
+                return s_SupportedFeaturesList;
             }
         }
 
-        private static ShaderFeatures _supportedFeatures = 0;
+        private static List<ShaderFeatures> s_SupportedFeaturesList = new List<ShaderFeatures>();
+
+
         public int callbackOrder { get { return 0; } }
 #if PROFILE_BUILD
         public void OnPostprocessBuild(BuildReport report)
@@ -489,13 +501,13 @@ namespace UnityEditor.Rendering.Universal
                 urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
             }
 
-            // Must reset flags.
-            _supportedFeatures = 0;
+            s_SupportedFeaturesList.Clear();
+
             foreach (UniversalRenderPipelineAsset urp in urps)
             {
                 if (urp != null)
                 {
-                    _supportedFeatures |= GetSupportedShaderFeatures(urp);
+                    s_SupportedFeaturesList.Add(GetSupportedShaderFeatures(urp));
                 }
             }
         }

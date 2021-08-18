@@ -25,7 +25,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #endif
 
 #ifdef _ALPHAPREMULTIPLY_ON
-    surfaceDescription.BaseColor *= surfaceDescription.Alpha;
+    surfaceDescription.BaseColor *= alpha;
 #endif
 
     return half4(surfaceDescription.BaseColor, alpha);

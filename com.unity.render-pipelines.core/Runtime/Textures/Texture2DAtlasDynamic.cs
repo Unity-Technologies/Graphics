@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering
             public void ClearIsOccupied()
             {
                 UInt16 isOccupiedMask = (UInt16)AtlasNodeFlags.IsOccupied;
-                m_Flags &= (UInt16) ~isOccupiedMask;
+                m_Flags &= (UInt16)~isOccupiedMask;
             }
 
             public bool IsLeafNode()

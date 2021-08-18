@@ -16,7 +16,15 @@ namespace UnityEngine.Experimental.Rendering
         public float dilationDistance;
         public float dilationValidityThreshold;
         public float dilationIterations;
+        public bool squaredDistWeighting;
         public float brickSize;   // Not really a dilation setting, but used during dilation.
+    }
+
+    internal struct VirtualOffsetSettings
+    {
+        public bool useVirtualOffset;
+        public float outOfGeoOffset;
+        public float searchMultiplier;
     }
 
     [ExecuteAlways]
@@ -82,9 +90,19 @@ namespace UnityEngine.Experimental.Rendering
         float m_MaxDilationSampleDistance = 1f;
         [SerializeField]
         int m_DilationIterations = 1;
+        [SerializeField]
+        bool m_DilationInvSquaredWeight = true;
 
         [SerializeField]
         bool m_EnableDilation = true;
+
+        // Virtual offset proof of concept.
+        [SerializeField]
+        bool m_EnableVirtualOffset = true;
+        [SerializeField]
+        float m_VirtualOffsetGeometrySearchMultiplier = 0.2f;
+        [SerializeField]
+        float m_VirtualOffsetBiasOutOfGeometry = 0.01f;
 
         // Field used for the realtime subdivision preview
         [NonSerialized]
@@ -318,7 +336,18 @@ namespace UnityEngine.Experimental.Rendering
             settings.dilationValidityThreshold =  m_DilationValidityThreshold;
             settings.dilationDistance = m_EnableDilation ? m_MaxDilationSampleDistance : 0.0f;
             settings.dilationIterations = m_DilationIterations;
+            settings.squaredDistWeighting = m_DilationInvSquaredWeight;
             settings.brickSize = brickSize;
+
+            return settings;
+        }
+
+        public VirtualOffsetSettings GetVirtualOffsetSettings()
+        {
+            VirtualOffsetSettings settings;
+            settings.useVirtualOffset = m_EnableVirtualOffset;
+            settings.searchMultiplier = m_VirtualOffsetGeometrySearchMultiplier;
+            settings.outOfGeoOffset = m_VirtualOffsetBiasOutOfGeometry;
 
             return settings;
         }

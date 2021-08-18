@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/Scenes/102_ReflectionsPerfHalfRes.unity
     guid: 5fd2fada5be46b04898ce4c60cd49a90
   - enabled: 1
+    path: Assets/Scenes/103_ReflectionsLOD.unity
+    guid: 4e11e67ddf8db1c4da0cee717b4665cc
+  - enabled: 1
     path: Assets/Scenes/103_ReflectionsQuality.unity
     guid: 7c94f7315cc5f9948836ed2db6950643
   - enabled: 1
@@ -41,17 +44,48 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/108_ReflectionsHybridHalfRes.unity
     guid: 4a71d9b31d3fb4e40a56b5be93a15b8d
-    path: Assets/Scenes/108_ReflectionEmissive_Perf_Exposure_0.unity
+  - enabled: 1
+    path: Assets/Scenes/108_Emissive_Perf_Exposure_0.unity
     guid: 84d0d38a16a53224e9a6612392dafaa7
   - enabled: 1
-    path: Assets/Scenes/108_ReflectionEmissive_Perf_Exposure_12.unity
-    guid: 9256657e1a6d16c4ba20bef7ab633c92
+    path: Assets/Scenes/108_Emissive_Perf_Exposure_12.unity
+    guid: be0043f6b7479bf42b72b90e96aefa07
   - enabled: 1
-    path: Assets/Scenes/108_ReflectionEmissive_Quality_Exposure_0.unity
-    guid: 12bcdb701fced1643b60e5e4f1cedcbe
+    path: Assets/Scenes/108_Emissive_Perf_Exposure_15.unity
+    guid: 7ff67506dcffea441921e0a8c1110f8b
   - enabled: 1
-    path: Assets/Scenes/108_ReflectionEmissive_Quality_Exposure_12.unity
-    guid: b458f5a4df209624aa568bb522890c6a
+    path: Assets/Scenes/108_Emissive_Quality_Exposure_0.unity
+    guid: db95b9a238c140246bcb4f826ef5d8d7
+  - enabled: 1
+    path: Assets/Scenes/108_Emissive_Quality_Exposure_12.unity
+    guid: f6793d50f5b5c9b42a4604ffcb450849
+  - enabled: 1
+    path: Assets/Scenes/108_Emissive_Quality_Exposure_15.unity
+    guid: 17802fede7f11db4bb4ec0c698f4a943
+  - enabled: 1
+    path: Assets/Scenes/Reflection_RayMiss_Fallback/109_Reflection_RayMiss_FallbackBoth.unity
+    guid: 7dd9ef30d1f9f704a9dbcc3e68cc4475
+  - enabled: 1
+    path: Assets/Scenes/Reflection_RayMiss_Fallback/109_Reflection_RayMiss_FallbackNone.unity
+    guid: 05a8727ee9005474faced212351902f4
+  - enabled: 1
+    path: Assets/Scenes/Reflection_RayMiss_Fallback/109_Reflection_RayMiss_FallbackProbe.unity
+    guid: fa361ef20ae4ea941870b11ab5834255
+  - enabled: 1
+    path: Assets/Scenes/Reflection_RayMiss_Fallback/109_Reflection_RayMiss_FallbackSky.unity
+    guid: 826118918d11f6a4c8900c5d29a4c6b4
+  - enabled: 1
+    path: Assets/Scenes/Reflection_LastBounce_Fallback/110_Reflection_LastBounce_FallbackBoth.unity
+    guid: 180c7b3e9c4813f44b39ee597770b6e8
+  - enabled: 1
+    path: Assets/Scenes/Reflection_LastBounce_Fallback/110_Reflection_LastBounce_FallbackNone.unity
+    guid: c7d4b30f1f058474186ae254f529e861
+  - enabled: 1
+    path: Assets/Scenes/Reflection_LastBounce_Fallback/110_Reflection_LastBounce_FallbackProbe.unity
+    guid: 90d71a57a4b2fae43bfa1ac0bec6ce54
+  - enabled: 1
+    path: Assets/Scenes/Reflection_LastBounce_Fallback/110_Reflection_LastBounce_FallbackSky.unity
+    guid: 5c56a3e53ee350a4dad439f373d87b59
   - enabled: 1
     path: Assets/Scenes/201_LargeAmbientOcclusion.unity
     guid: 41a04a0db6c8e4e4eb54296e4521c3e5
@@ -97,6 +131,30 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/310_GlobalIlluminationHybridHalfRes.unity
     guid: 0f27d8beeae29414bb547dd3447e9767
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_RayMiss_Fallback/311_GlobalIllumination_RayMiss_FallbackBoth.unity
+    guid: f276d4cfd8f87134aa5844076d660c74
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_RayMiss_Fallback/311_GlobalIllumination_RayMiss_FallbackNone.unity
+    guid: eae4b94b01182af4e8664a5080a9349a
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_RayMiss_Fallback/311_GlobalIllumination_RayMiss_FallbackProbe.unity
+    guid: 666751c5a58dff04a90a2fdb4d8b4980
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_RayMiss_Fallback/311_GlobalIllumination_RayMiss_FallbackSky.unity
+    guid: a8bdb910c10e84b40aa70ebb30be85e5
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_LastBounce_Fallback/312_GlobalIllumination_LastBounce_FallbackBoth.unity
+    guid: 8d7899854dadd944e808fa7275489d1b
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_LastBounce_Fallback/312_GlobalIllumination_LastBounce_FallbackNone.unity
+    guid: ea59d2ffbfa6ae44184cb3c419551cf1
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_LastBounce_Fallback/312_GlobalIllumination_LastBounce_FallbackProbe.unity
+    guid: 5c9d14f073d4f914cb8f32c841b9a1ee
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_LastBounce_Fallback/312_GlobalIllumination_LastBounce_FallbackSky.unity
+    guid: 827c090b62971674ba95418bc420df4f
   - enabled: 1
     path: Assets/Scenes/406_RayTracedShadows.unity
     guid: 4aaf485f4ac39ff4e9fd997caff44abe
@@ -236,6 +294,12 @@ EditorBuildSettings:
     path: Assets/Scenes/1000_RaytracingQualityKeyword_PathTracer_Default.unity
     guid: e94f1768c0fea4843a93cf691ba136fd
   - enabled: 1
+    path: Assets/Scenes/1001_HalfResolutionThreshold_RTR.unity
+    guid: 00792ceab642d9a4fbff4eb1b6d68993
+  - enabled: 1
+    path: Assets/Scenes/1001_HalfResolutionThreshold_RTGI.unity
+    guid: d72a8275f2fd56346bbc0e64277f06ea
+  - enabled: 1
     path: Assets/Scenes/2000_Debug_ScreenSpaceGlobalIllumination.unity
     guid: 8389bea7a4b533e439040027eee5ccf1
   - enabled: 1
@@ -307,6 +371,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/5010_PathTracingAlpha.unity
     guid: 99680d74d8a49be44bd19065fae3d569
+  - enabled: 1
+    path: Assets/Scenes/5011_PathTracing_ShadowMatte.unity
+    guid: a2a018bd807332e419183347eebc8a0c
   - enabled: 1
     path: Assets/Scenes/6000_VertexFormats.unity
     guid: 6788ab4459664394f96537c7ad864afb
