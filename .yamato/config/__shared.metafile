@@ -142,9 +142,9 @@ test_platforms:
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
     after:
-      - [OSX_OpenGlCore]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, iPhone_Metal]: <shared.platform.commands.log_parser>
     after_build:
-      - [OSX_OpenGlCore]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, iPhone_Metal]: <shared.platform.commands.log_parser>
   - type: playmode
     allow_cache: True
     utr_flags:
@@ -176,7 +176,7 @@ test_platforms:
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
     after:
-      - [OSX_OpenGlCore]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, iPhone_Metal]: <shared.platform.commands.log_parser>
 
   - type: editmode
     allow_cache: False
@@ -218,7 +218,7 @@ test_platforms:
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
     after:
-      - [OSX_OpenGlCore]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, iPhone_Metal]: <shared.platform.commands.log_parser>
 
 platforms:
   Win:
@@ -519,6 +519,7 @@ platforms:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
           - command: chmod +x ./utr
+          - command: pip3 install requests
         call_utr:
           - command: |5-
                     export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
@@ -532,6 +533,8 @@ platforms:
             retries: 2
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp  --wait --published-only
             retries: 2
+        log_parser:
+          - command: python3 .yamato/script/log_scripts/log_parser.py
 non_project_agents:
   package_ci_ubuntu_large:
     type: Unity::VM
