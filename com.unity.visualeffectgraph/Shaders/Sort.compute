@@ -315,7 +315,9 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
 #if FINAL_PASS
     sortedSequence[id] = select0 ? kvp0.value : kvp1.value;
 #else
-    sortedSequence[id] = select0 ? kvp0 : kvp1;
+    if (select0)
+        kvp1 = kvp0;
+    sortedSequence[id] = kvp1;
 #endif
 
 }
