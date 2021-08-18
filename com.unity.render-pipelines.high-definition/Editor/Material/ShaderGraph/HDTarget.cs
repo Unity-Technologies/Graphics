@@ -116,7 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
             // Stages
-            context.AddField(Fields.GraphVertex,                    descs.Contains(BlockFields.VertexDescription.Position) ||
+            context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
                 descs.Contains(BlockFields.VertexDescription.Normal) ||
                 descs.Contains(BlockFields.VertexDescription.Tangent));
             context.AddField(Fields.GraphPixel);
@@ -170,7 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 m_CustomEditorGUI = m_CustomGUIField.value;
                 onChange();
             });
-            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => { });
 
             context.globalIndentLevel--;
         }

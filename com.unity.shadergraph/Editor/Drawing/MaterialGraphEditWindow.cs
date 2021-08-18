@@ -703,7 +703,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (deserialized == null)
                 return;
 
-            var subGraph = new GraphData {isSubGraph = true, path = "Sub Graphs"};
+            var subGraph = new GraphData { isSubGraph = true, path = "Sub Graphs" };
             var subGraphOutputNode = new SubGraphOutputNode();
             {
                 var drawState = subGraphOutputNode.drawState;
@@ -1012,8 +1012,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             graphObject.graph.RemoveElements(
                 graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => !(x is PropertyNode || x is SubGraphOutputNode) && x.allowedInSubGraph).ToArray(),
-                new IEdge[] {},
-                new GroupData[] {},
+                new IEdge[] { },
+                new GroupData[] { },
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
 
             List<GraphElement> moved = new List<GraphElement>();
@@ -1135,7 +1135,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphObject.hideFlags = HideFlags.HideAndDontSave;
                     graphObject.graph = new GraphData
                     {
-                        assetGuid = assetGuid, isSubGraph = isSubGraph, messageManager = messageManager
+                        assetGuid = assetGuid,
+                        isSubGraph = isSubGraph,
+                        messageManager = messageManager
                     };
                     MultiJson.Deserialize(graphObject.graph, m_LastSerializedFileContents);
                     graphObject.graph.OnEnable();

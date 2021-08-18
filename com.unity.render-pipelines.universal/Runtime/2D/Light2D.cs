@@ -205,7 +205,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float falloffIntensity => m_FalloffIntensity;
 
         [Obsolete]
-        public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; }}
+        public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; } }
         public OverlapOperation overlapOperation => m_OverlapOperation;
 
         public int lightOrder { get => m_LightOrder; set => m_LightOrder = value; }

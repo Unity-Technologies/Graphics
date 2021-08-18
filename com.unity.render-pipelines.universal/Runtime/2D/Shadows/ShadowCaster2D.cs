@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public bool useRendererSilhouette
         {
             set { m_UseRendererSilhouette = value; }
-            get { return m_UseRendererSilhouette && m_HasRenderer;  }
+            get { return m_UseRendererSilhouette && m_HasRenderer; }
         }
 
         /// <summary>

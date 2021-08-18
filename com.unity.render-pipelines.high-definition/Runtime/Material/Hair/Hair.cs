@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float specularOcclusion;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true, checkIsNormalized = true)]
+            [SurfaceDataAttributes(new string[] { "Normal", "Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3 normalWS;
 
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, checkIsNormalized = true)]
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float perceptualRoughness;
 
             public Vector3 transmittance;
-            public float   rimTransmissionIntensity;
+            public float rimTransmissionIntensity;
 
             // Anisotropic
             [SurfaceDataAttributes("", true)]
@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Init precomputed texture
         //-----------------------------------------------------------------------------
 
-        public Hair() {}
+        public Hair() { }
 
         public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {

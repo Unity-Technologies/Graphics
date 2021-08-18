@@ -45,10 +45,10 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         protected bool m_EnableLuxIntensityMode = false;
 
-        GUIContent[]    m_IntensityModes = { new GUIContent("Exposure"), new GUIContent("Multiplier"), new GUIContent("Lux") };
-        int[]           m_IntensityModeValues = { (int)SkyIntensityMode.Exposure, (int)SkyIntensityMode.Multiplier, (int)SkyIntensityMode.Lux };
-        GUIContent[]    m_IntensityModesNoLux = { new GUIContent("Exposure"), new GUIContent("Multiplier") };
-        int[]           m_IntensityModeValuesNoLux = { (int)SkyIntensityMode.Exposure, (int)SkyIntensityMode.Multiplier };
+        GUIContent[] m_IntensityModes = { new GUIContent("Exposure"), new GUIContent("Multiplier"), new GUIContent("Lux") };
+        int[] m_IntensityModeValues = { (int)SkyIntensityMode.Exposure, (int)SkyIntensityMode.Multiplier, (int)SkyIntensityMode.Lux };
+        GUIContent[] m_IntensityModesNoLux = { new GUIContent("Exposure"), new GUIContent("Multiplier") };
+        int[] m_IntensityModeValuesNoLux = { (int)SkyIntensityMode.Exposure, (int)SkyIntensityMode.Multiplier };
 
         /// <summary>
         /// OnEnable implementation.

@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.Universal
 
         // using a LODGroup skin
         private static readonly GUIStyle s_CascadeSliderBG = "LODSliderRange";
-        private static readonly GUIStyle s_TextCenteredStyle =  new GUIStyle(EditorStyles.whiteMiniLabel)
+        private static readonly GUIStyle s_TextCenteredStyle = new GUIStyle(EditorStyles.whiteMiniLabel)
         {
             alignment = TextAnchor.MiddleCenter
         };
@@ -30,9 +30,9 @@ namespace UnityEditor.Rendering.Universal
         // Internal struct to bundle drag information
         private class DragCache
         {
-            public int      m_ActivePartition;          // the cascade partition that we are currently dragging/resizing
-            public float    m_NormalizedPartitionSize;  // the normalized size of the partition (0.0f < size < 1.0f)
-            public Vector2  m_LastCachedMousePosition;  // mouse position the last time we registered a drag or mouse down.
+            public int m_ActivePartition;          // the cascade partition that we are currently dragging/resizing
+            public float m_NormalizedPartitionSize;  // the normalized size of the partition (0.0f < size < 1.0f)
+            public Vector2 m_LastCachedMousePosition;  // mouse position the last time we registered a drag or mouse down.
 
             public DragCache(int activePartition, float normalizedPartitionSize, Vector2 currentMousePos)
             {
@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.Universal
                 m_LastCachedMousePosition = currentMousePos;
             }
         };
-        private static DragCache  s_DragCache;
+        private static DragCache s_DragCache;
 
         private static readonly int s_CascadeSliderId = "s_CascadeSliderId".GetHashCode();
 
@@ -113,12 +113,12 @@ namespace UnityEditor.Rendering.Universal
 
                 if (unit == EditorUtils.Unit.Percent)
                 {
-                    cascadeText = $"{i+1}\n{currentPartition * 100.0f:F1}%";
+                    cascadeText = $"{i + 1}\n{currentPartition * 100.0f:F1}%";
                 }
                 else
                 {
                     var m = currentPartition * distance;
-                    cascadeText = $"{i+1}\n{m:F1}m";
+                    cascadeText = $"{i + 1}\n{m:F1}m";
                 }
 
                 GUI.Label(textRect, cascadeText, s_TextCenteredStyle);

@@ -170,7 +170,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         foreach (var kp in ppVolumeTypeInjectionPoints)
                         {
                             if (kp.Value == injectionPoint && !customPostProcessTypes.Contains(kp.Key.AssemblyQualifiedName))
-                                menu.AddItem(new GUIContent(kp.Key.ToString()), false, () => {
+                                menu.AddItem(new GUIContent(kp.Key.ToString()), false, () =>
+                                {
                                     Undo.RegisterCompleteObjectUndo(hdrpAsset, $"Added {kp.Key.ToString()} Custom Post Process");
                                     customPostProcessTypes.Add(kp.Key.AssemblyQualifiedName);
                                 });

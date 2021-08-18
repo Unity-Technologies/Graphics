@@ -29,9 +29,9 @@ namespace UnityEngine.Rendering.HighDefinition
         static ProfilingSampler renderNormalFromCameraSampler = new ProfilingSampler("Render Normal");
         static ProfilingSampler renderTangentFromCameraSampler = new ProfilingSampler("Render Tangent");
 
-        static MaterialPropertyBlock    propertyBlock = new MaterialPropertyBlock();
-        static Material                 customPassUtilsMaterial;
-        static Material                 customPassRenderersUtilsMaterial;
+        static MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+        static Material customPassUtilsMaterial;
+        static Material customPassRenderersUtilsMaterial;
 
 
         static Dictionary<int, ComputeBuffer> gaussianWeightsCache = new Dictionary<int, ComputeBuffer>();

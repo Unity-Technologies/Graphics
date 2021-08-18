@@ -160,7 +160,7 @@ namespace UnityEditor.VFX
         abstract public string SRPAssetTypeStr { get; }
         abstract public Type SRPOutputDataType { get; }
 
-        public virtual void SetupMaterial(Material mat) {}
+        public virtual void SetupMaterial(Material mat) { }
     }
 
     // Not in Universal package because we dont want to add a dependency on VFXGraph

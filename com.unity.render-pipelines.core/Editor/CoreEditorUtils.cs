@@ -550,7 +550,7 @@ namespace UnityEditor.Rendering
 
             // Context menu
             var menuIcon = CoreEditorStyles.paneOptionsIcon;
-            var menuRect = new Rect(labelRect.xMax + 3f + 16 + 5 , labelRect.y + 1f, menuIcon.width, menuIcon.height);
+            var menuRect = new Rect(labelRect.xMax + 3f + 16 + 5, labelRect.y + 1f, menuIcon.width, menuIcon.height);
 
             if (contextAction != null)
                 GUI.DrawTexture(menuRect, menuIcon);

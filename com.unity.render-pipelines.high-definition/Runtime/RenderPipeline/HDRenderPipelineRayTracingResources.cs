@@ -106,6 +106,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-    #endif
+#endif
     }
 }

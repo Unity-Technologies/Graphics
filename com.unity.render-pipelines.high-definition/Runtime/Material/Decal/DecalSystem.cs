@@ -635,12 +635,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 var influenceForwardVS = worldToView.MultiplyVector(influenceZ / influenceExtents.z);
                 var influencePositionVS = worldToView.MultiplyPoint(pos); // place the mesh pivot in the center
 
-                m_Bounds[m_DecalDatasCount].center   = influencePositionVS;
+                m_Bounds[m_DecalDatasCount].center = influencePositionVS;
                 m_Bounds[m_DecalDatasCount].boxAxisX = influenceRightVS * influenceExtents.x;
                 m_Bounds[m_DecalDatasCount].boxAxisY = influenceUpVS * influenceExtents.y;
                 m_Bounds[m_DecalDatasCount].boxAxisZ = influenceForwardVS * influenceExtents.z;
-                m_Bounds[m_DecalDatasCount].scaleXY  = 1.0f;
-                m_Bounds[m_DecalDatasCount].radius   = influenceExtents.magnitude;
+                m_Bounds[m_DecalDatasCount].scaleXY = 1.0f;
+                m_Bounds[m_DecalDatasCount].radius = influenceExtents.magnitude;
 
                 // The culling system culls pixels that are further
                 //   than a threshold to the box influence extents.

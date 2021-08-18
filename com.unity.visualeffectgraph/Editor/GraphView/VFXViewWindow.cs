@@ -13,7 +13,7 @@ using UnityObject = UnityEngine.Object;
 using System.IO;
 using UnityEditor.VersionControl;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     [Serializable]
     class VFXViewWindow : EditorWindow
