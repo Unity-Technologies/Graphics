@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 BlockFields.SurfaceDescription.BaseColor,
             };
 
-            GraphUtil.CreateNewGraphWithOutputs(new[] {target}, blockDescriptors);
+            GraphUtil.CreateNewGraphWithOutputs(new[] { target }, blockDescriptors);
         }
     }
 }

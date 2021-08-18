@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution,
                                            string cautionTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
             : this(valueRanges, sliderDistribution, cautionTooltip, cautionTooltip, unitName, hasMarkers, clampValue)
-        {}
+        { }
 
         public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution, string belowRangeTooltip,
                                            string aboveRangeTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public LightUnitSliderUIRange(Texture2D icon, string tooltip, Vector2 value)
         // If no preset value provided, then by default it is the average of the value range.
             : this(icon, tooltip, value, 0.5f * (value.x + value.y))
-        {}
+        { }
 
         public LightUnitSliderUIRange(Texture2D icon, string tooltip, Vector2 value, float presetValue)
         {
@@ -67,8 +67,8 @@ namespace UnityEditor.Rendering.HighDefinition
         };
 
         public GUIContent content;
-        public Vector2    value;
-        public float      presetValue;
+        public Vector2 value;
+        public float presetValue;
     }
 
     static class LightUnitSliderDescriptors
@@ -151,7 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private static class LightUnitSliderDistributions
         {
             // Warning: All of these values need to be kept in sync with their associated descriptor's set of value ranges.
-            public static readonly float[] LuxDistribution = {0.0f, 0.05f, 0.5f, 0.9f, 1.0f};
+            public static readonly float[] LuxDistribution = { 0.0f, 0.05f, 0.5f, 0.9f, 1.0f };
 
             private const float LumenStep = 1 / 4f;
             public static readonly float[] LumenDistribution =
@@ -190,64 +190,64 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // TODO: Move all light unit icons from the package into the built-in resources.
-            public static Texture2D BlueSky          = GetLightUnitIcon("BlueSky");
-            public static Texture2D ClearSky         = GetLightUnitIcon("ClearSky");
-            public static Texture2D Candlelight      = GetLightUnitIcon("Candlelight");
-            public static Texture2D DecorativeLight  = GetLightUnitIcon("DecorativeLight");
-            public static Texture2D DirectSunlight   = GetLightUnitIcon("DirectSunlight");
-            public static Texture2D ExteriorLight    = GetLightUnitIcon("ExteriorLight");
+            public static Texture2D BlueSky = GetLightUnitIcon("BlueSky");
+            public static Texture2D ClearSky = GetLightUnitIcon("ClearSky");
+            public static Texture2D Candlelight = GetLightUnitIcon("Candlelight");
+            public static Texture2D DecorativeLight = GetLightUnitIcon("DecorativeLight");
+            public static Texture2D DirectSunlight = GetLightUnitIcon("DirectSunlight");
+            public static Texture2D ExteriorLight = GetLightUnitIcon("ExteriorLight");
             public static Texture2D IntenseAreaLight = GetLightUnitIcon("IntenseAreaLight");
-            public static Texture2D InteriorLight    = GetLightUnitIcon("InteriorLight");
-            public static Texture2D MediumAreaLight  = GetLightUnitIcon("MediumAreaLight");
-            public static Texture2D MoonlessNight    = GetLightUnitIcon("MoonlessNight");
-            public static Texture2D Moonlight        = GetLightUnitIcon("Moonlight");
-            public static Texture2D Overcast         = GetLightUnitIcon("Overcast");
-            public static Texture2D CloudySky        = GetLightUnitIcon("CloudySky");
-            public static Texture2D SoftAreaLight    = GetLightUnitIcon("SoftAreaLight");
-            public static Texture2D SunriseSunset    = GetLightUnitIcon("SunriseSunset");
-            public static Texture2D VeryBrightSun    = GetLightUnitIcon("VeryBrightSun");
-            public static Texture2D BrightSky        = GetLightUnitIcon("BrightSky");
-            public static Texture2D Shade            = GetLightUnitIcon("Shade");
-            public static Texture2D Fluorescent      = GetLightUnitIcon("Fluorescent");
+            public static Texture2D InteriorLight = GetLightUnitIcon("InteriorLight");
+            public static Texture2D MediumAreaLight = GetLightUnitIcon("MediumAreaLight");
+            public static Texture2D MoonlessNight = GetLightUnitIcon("MoonlessNight");
+            public static Texture2D Moonlight = GetLightUnitIcon("Moonlight");
+            public static Texture2D Overcast = GetLightUnitIcon("Overcast");
+            public static Texture2D CloudySky = GetLightUnitIcon("CloudySky");
+            public static Texture2D SoftAreaLight = GetLightUnitIcon("SoftAreaLight");
+            public static Texture2D SunriseSunset = GetLightUnitIcon("SunriseSunset");
+            public static Texture2D VeryBrightSun = GetLightUnitIcon("VeryBrightSun");
+            public static Texture2D BrightSky = GetLightUnitIcon("BrightSky");
+            public static Texture2D Shade = GetLightUnitIcon("Shade");
+            public static Texture2D Fluorescent = GetLightUnitIcon("Fluorescent");
         }
 
         private static class LightUnitTooltips
         {
             // Caution
-            public const string k_SunCaution           = "Higher than Sunlight";
-            public const string k_PunctualCaution      = "Very high intensity light";
+            public const string k_SunCaution = "Higher than Sunlight";
+            public const string k_PunctualCaution = "Very high intensity light";
             public const string k_ExposureBelowCaution = "Lower than a moonless scene";
             public const string k_ExposureAboveCaution = "Higher than a sunlit scene";
-            public const string k_TemperatureCaution   = "";
+            public const string k_TemperatureCaution = "";
 
             // Lux / Directional
-            public const string k_LuxBrightSky       = "High Sun";
-            public const string k_LuxOvercastSky     = "Cloudy";
-            public const string k_LuxSunriseSunset   = "Low Sun";
-            public const string k_LuxMoonlight       = "Moon";
+            public const string k_LuxBrightSky = "High Sun";
+            public const string k_LuxOvercastSky = "Cloudy";
+            public const string k_LuxSunriseSunset = "Low Sun";
+            public const string k_LuxMoonlight = "Moon";
 
             // Punctual
-            public const string k_PunctualExterior   = "Exterior";
-            public const string k_PunctualInterior   = "Interior";
+            public const string k_PunctualExterior = "Exterior";
+            public const string k_PunctualInterior = "Interior";
             public const string k_PunctualDecorative = "Decorative";
-            public const string k_PunctualCandle     = "Candle";
+            public const string k_PunctualCandle = "Candle";
 
             // Exposure
-            public const string k_ExposureBrightSky     = "Sunlit Scene";
-            public const string k_ExposureOvercastSky   = "Cloudy Scene";
+            public const string k_ExposureBrightSky = "Sunlit Scene";
+            public const string k_ExposureOvercastSky = "Cloudy Scene";
             public const string k_ExposureSunriseSunset = "Low Sun Scene";
-            public const string k_ExposureInterior      = "Interior Scene";
-            public const string k_ExposureMoonlitSky    = "Moonlit Scene";
+            public const string k_ExposureInterior = "Interior Scene";
+            public const string k_ExposureMoonlitSky = "Moonlit Scene";
             public const string k_ExposureMoonlessNight = "Moonless Scene";
 
             // Temperature
-            public const string k_TemperatureBlueSky        = "Blue Sky";
-            public const string k_TemperatureShade          = "Shade (Clear Sky)";
-            public const string k_TemperatureCloudySky      = "Cloudy Skylight";
+            public const string k_TemperatureBlueSky = "Blue Sky";
+            public const string k_TemperatureShade = "Shade (Clear Sky)";
+            public const string k_TemperatureCloudySky = "Cloudy Skylight";
             public const string k_TemperatureDirectSunlight = "Direct Sunlight";
-            public const string k_TemperatureFluorescent    = "Fluorescent Light";
-            public const string k_TemperatureIncandescent   = "Incandescent Light";
-            public const string k_TemperatureCandle         = "Candlelight";
+            public const string k_TemperatureFluorescent = "Fluorescent Light";
+            public const string k_TemperatureIncandescent = "Incandescent Light";
+            public const string k_TemperatureCandle = "Candlelight";
         }
     }
 }
