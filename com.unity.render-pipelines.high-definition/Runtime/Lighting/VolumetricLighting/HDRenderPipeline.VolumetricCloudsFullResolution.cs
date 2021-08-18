@@ -69,6 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.finalHeight = parameters.finalHeight;
             cameraData.viewCount = parameters.viewCount;
             cameraData.enableExposureControl = parameters.commonData.enableExposureControl;
+            cameraData.lowResolution = false;
+            cameraData.enableIntegration = true;
             UpdateShaderVariableslClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, false);
 
             return parameters;
@@ -87,8 +89,6 @@ namespace UnityEngine.Rendering.HighDefinition
             BlueNoise.BindDitheredTextureSet(cmd, parameters.commonData.ditheredTextureSet);
 
             // Set the multi compiles
-            CoreUtils.SetKeyword(cmd, "FULL_RESOLUTION_CLOUDS", true);
-            CoreUtils.SetKeyword(cmd, "PLANAR_REFLECTION_CAMERA", false);
             CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.commonData.localClouds);
 
             // Bind the constant buffer
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Ray-march the clouds for this frame
                 CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", parameters.commonData.cloudsCB._PhysicallyBasedSun == 1);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._DepthTexture, depthPyramid);
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._VolumetricCloudsSourceDepth, depthPyramid);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._Worley128RGBA, parameters.commonData.worley128RGBA);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._ErosionNoise, parameters.commonData.erosionNoise);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudMapTexture, parameters.commonData.cloudMapTexture);
@@ -160,8 +160,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Reset all the multi-compiles
-            CoreUtils.SetKeyword(cmd, "FULL_RESOLUTION_CLOUDS", false);
-            CoreUtils.SetKeyword(cmd, "PLANAR_REFLECTION_CAMERA", false);
             CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
         }
 

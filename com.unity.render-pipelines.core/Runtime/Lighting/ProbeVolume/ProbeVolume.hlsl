@@ -103,6 +103,13 @@ bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize
         maxRelativeIdx.z = (metaData.z >> 20) & 0x3FF;
         cellIsLoaded = true;
     }
+    else
+    {
+        chunkIndex = -1;
+        stepSize = -1;
+        minRelativeIdx = -1;
+        maxRelativeIdx = -1;
+    }
 
     return cellIsLoaded;
 }

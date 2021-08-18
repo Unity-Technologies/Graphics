@@ -81,6 +81,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added warning for when a light is not fitting in the cached shadow atlas and added option to set maximum resolution that would fit.
 - Added a custom post process injection point AfterPostProcessBlurs executing after depth of field and motion blur.
 - Added the support of volumetric clouds for baked and realtime reflection probes.
+- Added a property to control the fallback of the last bounce of a RTGI, RTR, RR ray to keep a previously existing side effect on user demand (case 1350590).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -354,6 +355,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed viewport size when TAA is executed after dynamic res upscale (case 1348541).
 - Fixed the camera near plane not being taken into account when rendering the clouds (case 1353548).
 - Fixed controls for clouds fade in (case 1353548).
+- Reduced the number shader variants for the volumetric clouds.
+- Fixed motion vector for custom meshes loaded from compute buffer in shader graph (like Hair)
+- Fixed incorrect light list indexing when TAA is enabled (case 1352444).
+- Fixed Additional Velocity for Alembic not taking correctly into account vertex animation
+- Fixed wrong LUT initialization in Wireframe mode.
+- Support undo of HDRP Global Settings asset assignation (case 13429870).
+- Fixed an inconsistency between perf mode and quality mode for sky lighting (case 1350590).
+- Fixed an inconsistency between perf mode and quality mode for material simplification in RTGI (case 1350590).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -455,6 +464,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved volumetric clouds (added new noise for erosion, reduced ghosting while flying through, altitude distortion, ghosting when changing from local to distant clouds, fix issue in wind distortion along the Z axis).
 - Fixed upscaling issue that is exagerated by DLSS (case 1347250).
 - Improvements to the RTGI denoising.
+- Remove Bilinear and Lanczos upscale filter.
 
 ## [11.0.0] - 2020-10-21
 

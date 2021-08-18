@@ -699,7 +699,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
-            if (requiresDepthCopyPass)
+            // Also skip if Deferred+RenderPass as CameraDepthTexture is used and filled by the GBufferPass
+            // however we might need the depth texture with Forward-only pass rendered to it, so enable the copy depth in that case
+            if (requiresDepthCopyPass && !(this.actualRenderingMode == RenderingMode.Deferred && useRenderPassEnabled && !renderPassInputs.requiresDepthTexture))
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
 
@@ -801,7 +803,7 @@ namespace UnityEngine.Rendering.Universal
                     // final PP always blit to camera target
                     applyFinalPostProcessing ||
                     // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
-                    (applyPostProcessing && !hasPassesAfterPostProcessing) ||
+                    (applyPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions) ||
                     // offscreen camera rendering to a texture, we don't need a blit pass to resolve to screen
                     m_ActiveCameraColorAttachment == RenderTargetHandle.GetCameraTarget(cameraData.xr);
 
