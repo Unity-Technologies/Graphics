@@ -74,31 +74,31 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Buffers that may be output by the prepass.
             // They will be MSAA depending on the frame settings
-            public TextureHandle        depthBuffer;
-            public TextureHandle        depthAsColor;
-            public TextureHandle        normalBuffer;
-            public TextureHandle        motionVectorsBuffer;
+            public TextureHandle depthBuffer;
+            public TextureHandle depthAsColor;
+            public TextureHandle normalBuffer;
+            public TextureHandle motionVectorsBuffer;
 
             // GBuffer output. Will also contain a reference to the normal buffer (as it is shared between deferred and forward objects)
-            public GBufferOutput        gbuffer;
+            public GBufferOutput gbuffer;
 
-            public DBufferOutput        dbuffer;
+            public DBufferOutput dbuffer;
 
             // Additional buffers only for MSAA
-            public TextureHandle        depthValuesMSAA;
+            public TextureHandle depthValuesMSAA;
 
             // Resolved buffers for MSAA. When MSAA is off, they will be the same reference as the buffers above.
-            public TextureHandle        resolvedDepthBuffer;
-            public TextureHandle        resolvedNormalBuffer;
-            public TextureHandle        resolvedMotionVectorsBuffer;
+            public TextureHandle resolvedDepthBuffer;
+            public TextureHandle resolvedNormalBuffer;
+            public TextureHandle resolvedMotionVectorsBuffer;
 
             // Copy of the resolved depth buffer with mip chain
-            public TextureHandle        depthPyramidTexture;
+            public TextureHandle depthPyramidTexture;
             // Depth buffer used for low res transparents.
-            public TextureHandle        downsampledDepthBuffer;
+            public TextureHandle downsampledDepthBuffer;
 
-            public TextureHandle        stencilBuffer;
-            public ComputeBufferHandle  coarseStencilBuffer;
+            public TextureHandle stencilBuffer;
+            public ComputeBufferHandle coarseStencilBuffer;
         }
 
         TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, MSAASamples msaaSamples)
@@ -113,7 +113,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureDesc depthDesc = new TextureDesc(Vector2.one, true, true)
             {
-                depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, msaaSamples = msaaSamples, clearBuffer = clear, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"
+                depthBufferBits = DepthBits.Depth32,
+                bindTextureMS = msaa,
+                msaaSamples = msaaSamples,
+                clearBuffer = clear,
+                name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"
 #if UNITY_2020_2_OR_NEWER
                 , fastMemoryDesc = fastMemDesc
 #endif
@@ -134,11 +138,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureDesc normalDesc = new TextureDesc(Vector2.one, true, true)
             {
-                colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = NeedClearGBuffer(hdCamera), clearColor = Color.black, bindTextureMS = msaa, msaaSamples = msaaSamples, enableRandomWrite = !msaa, name = msaa ? "NormalBufferMSAA" : "NormalBuffer"
+                colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
+                clearBuffer = NeedClearGBuffer(hdCamera),
+                clearColor = Color.black,
+                bindTextureMS = msaa,
+                msaaSamples = msaaSamples,
+                enableRandomWrite = !msaa,
+                name = msaa ? "NormalBufferMSAA" : "NormalBuffer"
 #if UNITY_2020_2_OR_NEWER
                 , fastMemoryDesc = fastMemDesc
 #endif
-                , fallBackToBlackTexture = true
+                ,
+                fallBackToBlackTexture = true
             };
             return renderGraph.CreateTexture(normalDesc);
         }
@@ -154,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateDepthAsColorBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, msaaSamples = msaaSamples, name = "DepthAsColorMSAA" });
+            { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, msaaSamples = msaaSamples, name = "DepthAsColorMSAA" });
         }
 
         TextureHandle CreateMotionVectorBuffer(RenderGraph renderGraph, bool clear, MSAASamples msaaSamples)
@@ -179,15 +190,15 @@ namespace UnityEngine.Rendering.HighDefinition
             builder.UseColorBuffer(prepassOutput.normalBuffer, index++);
         }
 
-        PrepassOutput RenderPrepass(RenderGraph     renderGraph,
-            TextureHandle   colorBuffer,
-            TextureHandle   sssBuffer,
-            TextureHandle   vtFeedbackBuffer,
-            CullingResults  cullingResults,
-            CullingResults  customPassCullingResults,
-            HDCamera        hdCamera,
-            AOVRequestData  aovRequest,
-            List<RTHandle>  aovBuffers)
+        PrepassOutput RenderPrepass(RenderGraph renderGraph,
+            TextureHandle colorBuffer,
+            TextureHandle sssBuffer,
+            TextureHandle vtFeedbackBuffer,
+            CullingResults cullingResults,
+            CullingResults customPassCullingResults,
+            HDCamera hdCamera,
+            AOVRequestData aovRequest,
+            List<RTHandle> aovBuffers)
         {
             m_IsDepthBufferCopyValid = false;
 
@@ -337,8 +348,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class DrawRendererListPassData
         {
-            public FrameSettings        frameSettings;
-            public RendererListHandle   rendererList;
+            public FrameSettings frameSettings;
+            public RendererListHandle rendererList;
         }
 
         // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.
@@ -569,9 +580,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class GBufferPassData
         {
-            public FrameSettings        frameSettings;
-            public RendererListHandle   rendererList;
-            public DBufferOutput        dBuffer;
+            public FrameSettings frameSettings;
+            public RendererListHandle rendererList;
+            public DBufferOutput dBuffer;
         }
 
         struct GBufferOutput
@@ -603,15 +614,23 @@ namespace UnityEngine.Rendering.HighDefinition
             // If we are in deferred mode and the SSR is enabled, we need to make sure that the second gbuffer is cleared given that we are using that information for clear coat selection
             bool clearGBuffer2 = clearGBuffer || hdCamera.IsSSREnabled();
             prepassOutput.gbuffer.mrt[currentIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
-                new TextureDesc(Vector2.one, true, true) {
-                    colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = clearGBuffer2, clearColor = Color.clear, name = "GBuffer2"
+                new TextureDesc(Vector2.one, true, true)
+                {
+                    colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
+                    clearBuffer = clearGBuffer2,
+                    clearColor = Color.clear,
+                    name = "GBuffer2"
 #if UNITY_2020_2_OR_NEWER
                     , fastMemoryDesc = gbufferFastMemDesc
 #endif
                 }), currentIndex++);
             prepassOutput.gbuffer.mrt[currentIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
-                new TextureDesc(Vector2.one, true, true) {
-                    colorFormat = Builtin.GetLightingBufferFormat(), clearBuffer = clearGBuffer, clearColor = Color.clear, name = "GBuffer3"
+                new TextureDesc(Vector2.one, true, true)
+                {
+                    colorFormat = Builtin.GetLightingBufferFormat(),
+                    clearBuffer = clearGBuffer,
+                    clearColor = Color.clear,
+                    name = "GBuffer3"
 #if UNITY_2020_2_OR_NEWER
                     , fastMemoryDesc = gbufferFastMemDesc
 #endif
@@ -691,12 +710,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class ResolvePrepassData
         {
-            public TextureHandle    depthAsColorBufferMSAA;
-            public TextureHandle    normalBufferMSAA;
-            public TextureHandle    motionVectorBufferMSAA;
-            public Material         depthResolveMaterial;
-            public int              depthResolvePassIndex;
-            public bool             needMotionVectors;
+            public TextureHandle depthAsColorBufferMSAA;
+            public TextureHandle normalBufferMSAA;
+            public TextureHandle motionVectorBufferMSAA;
+            public Material depthResolveMaterial;
+            public int depthResolvePassIndex;
+            public bool needMotionVectors;
         }
 
         void ResolvePrepassBuffers(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
@@ -754,11 +773,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class CopyDepthPassData
         {
-            public TextureHandle    inputDepth;
-            public TextureHandle    outputDepth;
-            public GPUCopy          GPUCopy;
-            public int              width;
-            public int              height;
+            public TextureHandle inputDepth;
+            public TextureHandle outputDepth;
+            public GPUCopy GPUCopy;
+            public int width;
+            public int height;
         }
 
         void CopyDepthBufferIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
@@ -866,16 +885,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderDBufferPassData
         {
-            public RendererListHandle       meshDecalsRendererList;
-            public RendererListHandle       vfxDecalsRendererList;
-            public TextureHandle            depthTexture;
-            public TextureHandle            decalBuffer;
+            public RendererListHandle meshDecalsRendererList;
+            public RendererListHandle vfxDecalsRendererList;
+            public TextureHandle depthTexture;
+            public TextureHandle decalBuffer;
         }
 
         struct DBufferOutput
         {
-            public TextureHandle[]  mrt;
-            public int              dBufferCount;
+            public TextureHandle[] mrt;
+            public int dBufferCount;
         }
 
         static string[] s_DBufferNames = { "DBuffer0", "DBuffer1", "DBuffer2", "DBuffer3" };
@@ -1145,11 +1164,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class GenerateDepthPyramidPassData
         {
-            public TextureHandle                depthTexture;
-            public HDUtils.PackedMipChainInfo   mipInfo;
-            public MipGenerator                 mipGenerator;
+            public TextureHandle depthTexture;
+            public HDUtils.PackedMipChainInfo mipInfo;
+            public MipGenerator mipGenerator;
 
-            public bool                         mip0AlreadyComputed;
+            public bool mip0AlreadyComputed;
         }
 
         void GenerateDepthPyramid(RenderGraph renderGraph, HDCamera hdCamera, bool mip0AlreadyComputed, ref PrepassOutput output)

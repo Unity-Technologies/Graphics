@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph
     class VirtualTextureMaterialSlot : MaterialSlot
     {
         public VirtualTextureMaterialSlot()
-        {}
+        { }
 
         public VirtualTextureMaterialSlot(
             int slotId,
@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
             ShaderStageCapability stageCapability = ShaderStageCapability.All,
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, slotType, stageCapability, hidden)
-        {}
+        { }
 
         public override SlotValueType valueType { get { return SlotValueType.VirtualTexture; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.VirtualTexture; } }

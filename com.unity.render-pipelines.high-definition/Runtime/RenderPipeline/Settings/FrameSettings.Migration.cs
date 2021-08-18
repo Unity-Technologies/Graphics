@@ -442,8 +442,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // SSS moved from 25 to 46.
             fs.SetEnabled(FrameSettingsField.SubsurfaceScattering, fs.bitDatas[25]);
             // Set the defaults.
-            fs.sssQualityMode        = previouslyHighQuality ? SssQualityMode.OverrideQualitySettings : SssQualityMode.FromQualitySettings;
-            fs.sssQualityLevel       = 0;
+            fs.sssQualityMode = previouslyHighQuality ? SssQualityMode.OverrideQualitySettings : SssQualityMode.FromQualitySettings;
+            fs.sssQualityLevel = 0;
             fs.sssCustomSampleBudget = previouslyHighQuality ? 55 : (int)DefaultSssSampleBudgetForQualityLevel.Low;
         }
 

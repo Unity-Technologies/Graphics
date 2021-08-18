@@ -53,7 +53,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool isEditable
         {
-            get {return false; }
+            get { return false; }
         }
 
         public void ConvertToProperty(bool exposed = false)
@@ -109,7 +109,7 @@ namespace UnityEditor.VFX.UI
 
         public override bool isEditable
         {
-            get {return true; }
+            get { return true; }
         }
     }
 
