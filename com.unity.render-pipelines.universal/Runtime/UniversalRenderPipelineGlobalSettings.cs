@@ -39,9 +39,11 @@ namespace UnityEngine.Rendering.Universal
 
             if (asset.k_AssetVersion < 2)
             {
+#pragma warning disable 618 // Obsolete warning
                 // Renamed supportRuntimeDebugDisplay => stripDebugVariants, which results in inverted logic
                 asset.m_StripDebugVariants = !asset.supportRuntimeDebugDisplay;
                 asset.k_AssetVersion = 2;
+#pragma warning restore 618 // Obsolete warning
 
                 // For old test projects lets keep post processing stripping enabled, as huge chance they did not used runtime profile creating
 #if UNITY_INCLUDE_TESTS
