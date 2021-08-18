@@ -292,12 +292,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Combine signal with history
                         CoreUtils.SetKeyword(ctx.cmd, "FULL_RESOLUTION_FILTER", data.fullResolution);
                         ctx.cmd.DispatchCompute(data.temporalFilterCS, data.temporalAccKernel, numTilesX, numTilesY, data.viewCount);
-                        CoreUtils.SetKeyword(ctx.cmd, "FULL_RESOLUTION_FILTER", false);
 
                         // Make sure to copy the new-accumulated signal in our history buffer
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.copyHistoryKernel, HDShaderIDs._DenoiseInputTexture, data.outputBuffer);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.copyHistoryKernel, HDShaderIDs._DenoiseOutputTextureRW, data.historyBuffer);
                         ctx.cmd.DispatchCompute(data.temporalFilterCS, data.copyHistoryKernel, numTilesX, numTilesY, data.viewCount);
+                        CoreUtils.SetKeyword(ctx.cmd, "FULL_RESOLUTION_FILTER", false);
                     });
                 return passData.outputBuffer;
             }

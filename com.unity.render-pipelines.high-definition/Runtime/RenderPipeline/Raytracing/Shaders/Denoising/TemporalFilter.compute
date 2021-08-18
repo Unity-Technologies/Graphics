@@ -189,7 +189,8 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     #ifdef FULL_RESOLUTION_FILTER
     float2 historyTapCoord = (float2)((posInputs.positionNDC - velocity) * _ScreenSize.xy);
     #else
-    float2 historyTapCoord = (float2)((posInputs.positionNDC - velocity) * _ScreenSize.xy * 0.5);
+    // Remap the history tap coord into half res space and compensate for the half resolution half pixel shift
+    float2 historyTapCoord = (float2)((posInputs.positionNDC - velocity) * _ScreenSize.xy * 0.5) + 0.25;
     #endif
     
     // Fetch the current value, history value and current sample count
