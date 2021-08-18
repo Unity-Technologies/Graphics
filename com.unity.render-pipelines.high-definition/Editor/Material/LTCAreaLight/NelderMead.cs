@@ -11,21 +11,21 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
     internal class NelderMead
     {
         // standard coefficients from Nelder-Mead
-        const double    reflect  = 1.0;
-        const double    expand   = 2.0;
-        const double    contract = 0.5;
-        const double    shrink   = 0.5;
+        const double reflect = 1.0;
+        const double expand = 2.0;
+        const double contract = 0.5;
+        const double shrink = 0.5;
 
-        int             DIM;
-        int             NB_POINTS;
-        double[][]      s;
-        double[]        f;
+        int DIM;
+        int NB_POINTS;
+        double[][] s;
+        double[] f;
 
-        public int      m_lastIterationsCount;
+        public int m_lastIterationsCount;
 
-        public delegate double  ObjectiveFunctionDelegate(double[] _parameters);
+        public delegate double ObjectiveFunctionDelegate(double[] _parameters);
 
-        public  NelderMead(int _dimensions)
+        public NelderMead(int _dimensions)
         {
             DIM = _dimensions;
             NB_POINTS = _dimensions + 1;
@@ -49,10 +49,10 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
             for (int i = 0; i < NB_POINTS; i++)
                 f[i] = _objectiveFn(s[i]);
 
-            double[]    o = new double[DIM];    // Centroid
-            double[]    r = new double[DIM];    // Reflection
-            double[]    c = new double[DIM];    // Contraction
-            double[]    e = new double[DIM];    // Expansion
+            double[] o = new double[DIM];    // Centroid
+            double[] r = new double[DIM];    // Reflection
+            double[] c = new double[DIM];    // Contraction
+            double[] e = new double[DIM];    // Expansion
 
             int lo = 0, hi, nh;
             for (m_lastIterationsCount = 0; m_lastIterationsCount < _maxIterations; m_lastIterationsCount++)

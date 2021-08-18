@@ -198,9 +198,9 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly SkyManager m_SkyManager = new SkyManager();
         internal SkyManager skyManager { get { return m_SkyManager; } }
 
-        bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
-        bool                            m_IsDepthBufferCopyValid;
-        RenderTexture                   m_TemporaryTargetForCubemaps;
+        bool m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
+        bool m_IsDepthBufferCopyValid;
+        RenderTexture m_TemporaryTargetForCubemaps;
 
         private CameraCache<(Transform viewer, HDProbe probe, int face)> m_ProbeCameraCache = new
             CameraCache<(Transform viewer, HDProbe probe, int face)>();
@@ -514,14 +514,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 overridesOtherLightingSettings = true,
                 editableMaterialRenderQueue = false,
                 enlighten = true
-                , overridesLODBias = true
-                , overridesMaximumLODLevel = true
-                , overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
-                , overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
-                , overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
-                , autoAmbientProbeBaking = false
-                , autoDefaultReflectionProbeBaking = false
-                , enlightenLightmapper = false
+                ,
+                overridesLODBias = true
+                ,
+                overridesMaximumLODLevel = true
+                ,
+                overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
+                ,
+                overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
+                ,
+                overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
+                ,
+                autoAmbientProbeBaking = false
+                ,
+                autoDefaultReflectionProbeBaking = false
+                ,
+                enlightenLightmapper = false
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -1293,7 +1301,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         index = renderRequests.Count,
                         cameraSettings = CameraSettings.From(hdCamera),
                         viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get()
-                            // TODO: store DecalCullResult
+                        // TODO: store DecalCullResult
                     };
                     renderRequests.Add(request);
                     // This is a root render request
@@ -1387,7 +1395,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             AddHDProbeRenderRequests(
                                 visibleProbe,
                                 viewerTransform,
-                                new List<(int index, float weight)> {visibility},
+                                new List<(int index, float weight)> { visibility },
                                 HDUtils.GetSceneCullingMaskFromCamera(visibleInRenderRequest.hdCamera.camera),
                                 hdParentCamera,
                                 visibleInRenderRequest.hdCamera.camera.fieldOfView,
@@ -1630,7 +1638,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             index = renderRequests.Count,
                             cameraSettings = cameraSettings[j],
                             viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get()
-                                // TODO: store DecalCullResult
+                            // TODO: store DecalCullResult
                         };
 
                         if (m_SkyManager.HasSetValidAmbientProbe(hdCamera))
@@ -2495,7 +2503,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
-                cb._EnableDecals  = 1;
+                cb._EnableDecals = 1;
                 cb._DecalAtlasResolution = new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight);
             }
             else
