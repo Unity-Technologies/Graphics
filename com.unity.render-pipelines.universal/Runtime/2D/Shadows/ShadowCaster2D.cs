@@ -45,11 +45,11 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] CastingSources m_ShadowCastingSource = CastingSources.ShapeEditor;
 
 
-        internal ShadowShapes2D      m_ShadowShapes;
+        internal ShadowShape2D       m_ShadowShape;
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
         internal NativeArray<Vector2> m_ShadowShapeVertices;
-        internal NativeArray<ShadowShapes2D.Edge> m_ShadowShapeEdges;
+        internal NativeArray<ShadowShape2D.Edge> m_ShadowShapeEdges;
 
 
 
@@ -244,14 +244,14 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_ShadowShapeProvider != null)
             {
-                if (m_ShadowShapes == null)
+                if (m_ShadowShape == null)
                 {
-                    m_ShadowShapes = new ShadowShapes2D();
-                    IShadowShapes2DProvider shadowShapeProvider = (IShadowShapes2DProvider)m_ShadowShapeProvider;
-                    shadowShapeProvider?.OnShadowShapesProvided(m_ShadowShapes);
+                    m_ShadowShape = new ShadowShape2D();
+                    IShadowShape2DProvider shadowShapeProvider = (IShadowShape2DProvider)m_ShadowShapeProvider;
+                    shadowShapeProvider?.OnShapeObjectCreated(m_ShadowShape);
                 }
 
-                m_ShadowShapes.GetEdges(m_ShadowShapeContract, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
+                m_ShadowShape.GetEdges(m_ShadowShapeContract, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
                 DrawDebugShadowShapes();
             }
         }
@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
         {
             for(int i=0;i<m_ShadowShapeEdges.Length;i++)
             {
-                ShadowShapes2D.Edge edge = m_ShadowShapeEdges[i];
+                ShadowShape2D.Edge edge = m_ShadowShapeEdges[i];
                 Vector2 pt0 = transform.TransformPoint(m_ShadowShapeVertices[edge.v0]);
                 Vector2 pt1 = transform.TransformPoint(m_ShadowShapeVertices[edge.v1]);
 

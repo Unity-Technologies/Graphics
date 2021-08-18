@@ -8,7 +8,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class ShadowShapes2D : IShadowShapes2DProvider.ShadowShapes2D
+    public class ShadowShape2D : IShadowShape2DProvider.ShadowShapes2D
     {
         delegate int ValueGetter<T>(ref T data, int index);
         delegate int LengthGetter<T>(ref T data);
@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.Universal
         private int NativeArrayGetter(ref NativeArray<int> array, int index) { return array[index]; }
         private int NativeArrayLengthGetter(ref NativeArray<int> array) { return array.Length; }
 
-        public override void SetEdges(Vector2[] vertices, ushort[] indices, IShadowShapes2DProvider.OutlineTopology outlineTopology)
+        public override void SetEdges(Vector2[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
             if (m_ProvidedVertices.IsCreated)
                 m_ProvidedVertices.Dispose();
@@ -158,14 +158,14 @@ namespace UnityEngine.Rendering.Universal
             if (m_ProvidedEdges.IsCreated)
                 m_ProvidedEdges.Dispose();
 
-            if (outlineTopology == IShadowShapes2DProvider.OutlineTopology.Triangles)
+            if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Triangles)
             {
                 m_ProvidedVertices = new NativeArray<Vector2>(vertices, Allocator.Persistent);
                 CalculateEdgesFromTriangles<ushort[]>(indices, ArrayGetter, ArrayLengthGetter);
             }
         }
 
-        public override void SetEdges(NativeArray<Vector2> vertices, NativeArray<int> indices, IShadowShapes2DProvider.OutlineTopology outlineTopology)
+        public override void SetEdges(NativeArray<Vector2> vertices, NativeArray<int> indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
             // Implement this later...
         }
@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.Universal
            
         }
 
-        ~ShadowShapes2D()
+        ~ShadowShape2D()
         {
             m_ProvidedVertices.Dispose();
             m_ProvidedEdges.Dispose();

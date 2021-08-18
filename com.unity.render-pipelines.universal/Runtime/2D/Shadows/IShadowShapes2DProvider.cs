@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEngine.U2D
 {
-    public interface IShadowShapes2DProvider
+    public interface IShadowShape2DProvider
     {
         public enum OutlineTopology
         {
@@ -22,7 +22,6 @@ namespace UnityEngine.U2D
             public abstract void UpdateEdges(NativeArray<Vector2> vertices);
         }
 
-
-        void OnShadowShapesProvided(ShadowShapes2D persistantShapeData);
+        void OnShapeObjectCreated(ShadowShapes2D persistantShapeObject);
     }
 }
