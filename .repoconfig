@@ -17,6 +17,8 @@ path-ignore=<<EOT
 # rooted folder paths
 ^(
  Tools
+ |com\.unity\.template-hd                                   # Todo: Exclude the Library folder of the checks only (keep checks for C# code files)
+ |com\.unity\.template-universal
  |LocalTestProjects
  |TestProjects\/.*\/Library
  |TestProjects\/HDRP_DXR_Tests                              # Ideally all test projects would be included, but doing it wone by one is less overwhelming for teams
