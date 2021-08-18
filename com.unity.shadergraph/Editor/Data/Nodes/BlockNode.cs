@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var newSlot = customSlotDescriptor.createSlot();
                 AddSlot(newSlot);
-                RemoveSlotsNameNotMatching(new int[] {0});
+                RemoveSlotsNameNotMatching(new int[] { 0 });
                 return;
             }
 
@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph
                     AddSlot(new Vector4MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector4Control.value, stageCapability), attemptToModifyExisting);
                     break;
             }
-            RemoveSlotsNameNotMatching(new int[] {0});
+            RemoveSlotsNameNotMatching(new int[] { 0 });
         }
 
         public override string GetVariableNameForNode()
@@ -297,7 +297,7 @@ namespace UnityEditor.ShaderGraph
 
                 name = $"{descTag}.{descName}";
 
-                var wsplit = m_SerializedDescriptor.Split(new char[] {'#', '.' });
+                var wsplit = m_SerializedDescriptor.Split(new char[] { '#', '.' });
 
                 try
                 {
@@ -310,7 +310,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 IControl control;
-                try   { control = (IControl)FindSlot<MaterialSlot>(0).InstantiateControl(); }
+                try { control = (IControl)FindSlot<MaterialSlot>(0).InstantiateControl(); }
                 catch { control = WidthToControl((int)descWidth); }
 
                 descName = NodeUtils.ConvertToValidHLSLIdentifier(wsplit[1]);

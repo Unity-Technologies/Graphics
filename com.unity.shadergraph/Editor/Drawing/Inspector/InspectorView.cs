@@ -227,7 +227,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 if (attribute == null)
                     continue;
 
-                var propertyType = propertyInfo.GetGetMethod(true).Invoke(inspectable, new object[] {}).GetType();
+                var propertyType = propertyInfo.GetGetMethod(true).Invoke(inspectable, new object[] { }).GetType();
 
                 if (IsPropertyTypeHandled(propertyDrawerList, propertyType, out var propertyDrawerTypeToUse))
                 {

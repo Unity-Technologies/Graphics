@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a custom post process injection point AfterPostProcessBlurs executing after depth of field and motion blur.
 - Added the support of volumetric clouds for baked and realtime reflection probes.
 - Added a property to control the fallback of the last bounce of a RTGI, RTR, RR ray to keep a previously existing side effect on user demand (case 1350590).
+- Added a parameter to control the vertical shape offset of the volumetric clouds (case 1358528).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -472,6 +473,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improvements to the RTGI denoising.
 - Remove Bilinear and Lanczos upscale filter.
 - Make some volumetric clouds properties additional to reduce the number default parameters (case 1357926).
+- Renamed the Cloud Offset to Cloud Map Offset in the volumetric clouds volume component (case 1358528).
 
 ## [11.0.0] - 2020-10-21
 

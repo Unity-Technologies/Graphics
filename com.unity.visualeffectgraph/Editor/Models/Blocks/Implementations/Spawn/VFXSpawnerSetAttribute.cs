@@ -102,7 +102,7 @@ namespace UnityEditor.VFX.Block
 
                 var min = base.parameters.First(o => o.name == "Min");
                 var max = base.parameters.First(o => o.name == "Max");
-                return new[] { new VFXNamedExpression(VFXOperatorUtility.Lerp(min.exp, max.exp, random), currentAttribute.name)};
+                return new[] { new VFXNamedExpression(VFXOperatorUtility.Lerp(min.exp, max.exp, random), currentAttribute.name) };
             }
         }
 
