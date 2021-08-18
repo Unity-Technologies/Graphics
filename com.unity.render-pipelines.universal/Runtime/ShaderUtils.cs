@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
 
     public static class ShaderUtils
     {
-        static readonly string[] s_ShaderPaths  =
+        static readonly string[] s_ShaderPaths =
         {
             "Universal Render Pipeline/Lit",
             "Universal Render Pipeline/Simple Lit",

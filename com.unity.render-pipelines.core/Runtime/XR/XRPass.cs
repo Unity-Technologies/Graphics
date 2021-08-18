@@ -41,11 +41,11 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public bool enabled
         {
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             get => viewCount > 0;
-        #else
+#else
             get => false;
-        #endif
+#endif
         }
 
         /// <summary>

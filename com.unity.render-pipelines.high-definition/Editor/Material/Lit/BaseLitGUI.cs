@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kEmissiveIntensity = "_EmissiveIntensity";
         const string kEmissiveColor = "_EmissiveColor";
 
-        protected virtual void UpdateDisplacement() {}
+        protected virtual void UpdateDisplacement() { }
 
         static DisplacementMode GetFilteredDisplacementMode(Material material)
         {

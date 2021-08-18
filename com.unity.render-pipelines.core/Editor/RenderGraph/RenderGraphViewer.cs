@@ -23,7 +23,7 @@ public class RenderGraphViewer : EditorWindow
             style.borderBottomLeftRadius = style.borderTopLeftRadius = style.borderBottomRightRadius = style.borderTopRightRadius = 5;
             style.borderBottomWidth = style.borderTopWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
             style.borderBottomColor = style.borderTopColor = style.borderLeftColor = style.borderRightColor = new Color(0f, 0f, 0f, 1f);
-            style.backgroundColor = (Color) new Color32(88, 88, 88, 255);
+            style.backgroundColor = (Color)new Color32(88, 88, 88, 255);
             style.height = kResourceHeight;
             style.left = idxStart * kRenderPassWidth;
             style.width = (idxEnd - idxStart + 1) * kRenderPassWidth;
@@ -218,7 +218,7 @@ public class RenderGraphViewer : EditorWindow
 
         var resource = m_CurrentDebugData.resourceLists[info.resourceType][info.index];
         UpdatePassColor(info, m_OriginalPassColor, m_OriginalPassColor);
-        UpdateResourceLabelColor(info, resource.imported ? m_ImportedResourceColor : m_OriginalResourceColor);;
+        UpdateResourceLabelColor(info, resource.imported ? m_ImportedResourceColor : m_OriginalResourceColor); ;
     }
 
     VisualElement CreateRenderPass(string name, int index, bool culled)

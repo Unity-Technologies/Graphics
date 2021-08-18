@@ -16,10 +16,10 @@ namespace UnityEngine.Experimental.Rendering
         // Keep track of only one XR layout
         static XRLayout s_Layout = new XRLayout();
 
-    #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
         static List<XRDisplaySubsystem> s_DisplayList = new List<XRDisplaySubsystem>();
         static XRDisplaySubsystem s_Display;
-    #endif
+#endif
 
         // MSAA level (number of samples per pixel) shared by all XR displays
         static MSAASamples s_MSAASamples = MSAASamples.None;
@@ -36,11 +36,11 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         static public bool displayActive
         {
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             get => (s_Display != null) ? s_Display.running : false;
-        #else
+#else
             get => false;
-        #endif
+#endif
         }
 
         /// <summary>
@@ -88,12 +88,12 @@ namespace UnityEngine.Experimental.Rendering
 
             s_MSAASamples = msaaSamples;
 
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             SubsystemManager.GetInstances(s_DisplayList);
 
             foreach (var display in s_DisplayList)
                 display.SetMSAALevel((int)s_MSAASamples);
-        #endif
+#endif
         }
 
         /// <summary>
@@ -111,12 +111,12 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="renderScale">A value of 1.0f represents 100% of the original resolution.</param>
         public static void SetRenderScale(float renderScale)
         {
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             SubsystemManager.GetInstances(s_DisplayList);
 
             foreach (var display in s_DisplayList)
                 display.scaleOfAllRenderTargets = renderScale;
-        #endif
+#endif
         }
 
         /// <summary>
@@ -153,9 +153,9 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="camera"></param>
         public static void RenderMirrorView(CommandBuffer cmd, Camera camera)
         {
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             XRMirrorView.RenderMirrorView(cmd, camera, s_MirrorViewMaterial, s_Display);
-        #endif
+#endif
         }
 
         /// <summary>
@@ -172,14 +172,14 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public static void BeginLateLatching(Camera camera, XRPass xrPass)
         {
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             // Only support late latching for multiview on Android
             if (s_Display != null && Application.platform == RuntimePlatform.Android && xrPass.viewCount == 2)
             {
                 s_Display.BeginRecordingIfLateLatched(camera);
                 xrPass.isLateLatchEnabled = true;
             }
-        #endif
+#endif
         }
 
         /// <summary>
@@ -187,25 +187,25 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public static void EndLateLatching(Camera camera, XRPass xrPass)
         {
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (s_Display != null && xrPass.isLateLatchEnabled)
             {
                 s_Display.EndRecordingIfLateLatched(camera);
                 xrPass.isLateLatchEnabled = false;
             }
-        #endif
+#endif
         }
 
         // Used by the render pipeline to communicate to the XR device the range of the depth buffer.
         internal static void SetDisplayZRange(float zNear, float zFar)
         {
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (s_Display != null)
             {
                 s_Display.zNear = zNear;
                 s_Display.zFar = zFar;
             }
-        #endif
+#endif
         }
 
         internal static void SetDisplaySync()
@@ -246,7 +246,7 @@ namespace UnityEngine.Experimental.Rendering
 
         static void RefreshDeviceInfo()
         {
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             SubsystemManager.GetInstances(s_DisplayList);
 
             if (s_DisplayList.Count > 0)
@@ -268,13 +268,13 @@ namespace UnityEngine.Experimental.Rendering
             {
                 s_Display = null;
             }
-        #endif
+#endif
         }
 
         // Setup the layout to use multi-pass or single-pass based on the runtime caps
         internal static void CreateDefaultLayout(Camera camera)
         {
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (s_Display == null)
                 throw new NullReferenceException(nameof(s_Display));
 
@@ -311,13 +311,13 @@ namespace UnityEngine.Experimental.Rendering
 
             if (s_LayoutOverride != null)
                 s_LayoutOverride.Invoke(s_Layout, camera);
-        #endif
+#endif
         }
 
         // Update the parameters of one pass with a different camera
         internal static void ReconfigurePass(XRPass xrPass, Camera camera)
         {
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (xrPass.enabled && s_Display != null)
             {
                 s_Display.GetRenderPass(xrPass.multipassId, out var renderPass);
@@ -335,7 +335,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (s_LayoutOverride != null)
                     s_LayoutOverride.Invoke(s_Layout, camera);
             }
-        #endif
+#endif
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE

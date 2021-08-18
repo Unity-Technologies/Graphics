@@ -12,13 +12,13 @@ namespace UnityEngine.Rendering
         // XR tests can be enabled from the command line. Cache result to avoid GC.
         static bool activatedFromCommandLine
         {
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-reuse-tests");
-        #elif XR_REUSE_TESTS_STANDALONE
+#elif XR_REUSE_TESTS_STANDALONE
             get => true;
-        #else
+#else
             get => false;
-        #endif
+#endif
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering
         // Helper function to override the XR default layout using settings of new camera
         internal static void OverrideLayout(XRLayout layout, Camera camera)
         {
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (enabled && running)
             {
                 var camProjMatrix = camera.projectionMatrix;
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
-        #endif
+#endif
         }
     }
 }

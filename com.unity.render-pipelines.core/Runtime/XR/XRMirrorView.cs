@@ -7,12 +7,12 @@ namespace UnityEngine.Experimental.Rendering
         static readonly MaterialPropertyBlock s_MirrorViewMaterialProperty = new MaterialPropertyBlock();
         static readonly ProfilingSampler k_MirrorViewProfilingSampler = new ProfilingSampler("XR Mirror View");
 
-        static readonly int k_SourceTex             = Shader.PropertyToID("_SourceTex");
-        static readonly int k_SourceTexArraySlice   = Shader.PropertyToID("_SourceTexArraySlice");
-        static readonly int k_ScaleBias             = Shader.PropertyToID("_ScaleBias");
-        static readonly int k_ScaleBiasRt           = Shader.PropertyToID("_ScaleBiasRt");
-        static readonly int k_SRGBRead              = Shader.PropertyToID("_SRGBRead");
-        static readonly int k_SRGBWrite             = Shader.PropertyToID("_SRGBWrite");
+        static readonly int k_SourceTex = Shader.PropertyToID("_SourceTex");
+        static readonly int k_SourceTexArraySlice = Shader.PropertyToID("_SourceTexArraySlice");
+        static readonly int k_ScaleBias = Shader.PropertyToID("_ScaleBias");
+        static readonly int k_ScaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
+        static readonly int k_SRGBRead = Shader.PropertyToID("_SRGBRead");
+        static readonly int k_SRGBWrite = Shader.PropertyToID("_SRGBWrite");
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         internal static void RenderMirrorView(CommandBuffer cmd, Camera camera, Material mat, UnityEngine.XR.XRDisplaySubsystem display)
