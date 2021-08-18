@@ -25,11 +25,11 @@ VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -57,7 +57,6 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 2
       -  command: brew install unity/unity/unity-downloader-cli
@@ -68,6 +67,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -96,11 +96,11 @@ VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -128,7 +128,6 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 2
       -  command: brew install unity/unity/unity-downloader-cli
@@ -139,6 +138,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -167,7 +167,6 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 2
       -  command: brew install unity/unity/unity-downloader-cli
@@ -178,6 +177,7 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_trunk:
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -203,7 +203,6 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 2
       -  command: brew install unity/unity/unity-downloader-cli
@@ -214,6 +213,7 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_trunk:
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --scripting-backend=IL2CPP --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -239,11 +239,11 @@ VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_2021.2:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -271,7 +271,6 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_2021.2:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 2
       -  command: brew install unity/unity/unity-downloader-cli
@@ -282,6 +281,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_2021.2:
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -310,11 +310,11 @@ VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_2021.2:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -342,7 +342,6 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_2021.2:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 2
       -  command: brew install unity/unity/unity-downloader-cli
@@ -353,6 +352,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_2021.2:
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -381,7 +381,6 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_2021.2:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 2
       -  command: brew install unity/unity/unity-downloader-cli
@@ -392,6 +391,7 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_2021.2:
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -417,7 +417,6 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_2021.2:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 2
       -  command: brew install unity/unity/unity-downloader-cli
@@ -428,6 +427,7 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_2021.2:
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --scripting-backend=IL2CPP --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -453,11 +453,11 @@ VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -485,7 +485,6 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 2
       -  command: brew install unity/unity/unity-downloader-cli
@@ -496,6 +495,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -524,11 +524,11 @@ VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_CUSTOM-REVISION:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -556,7 +556,6 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_CUSTOM-REVI
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 2
       -  command: brew install unity/unity/unity-downloader-cli
@@ -567,6 +566,7 @@ Build_VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_CUSTOM-REVI
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --timeout=1200
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -595,7 +595,6 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_CUSTOM-REVISION:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 2
       -  command: brew install unity/unity/unity-downloader-cli
@@ -606,6 +605,7 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_CUSTOM-REVISION:
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr $CACHE_ARGS --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -631,7 +631,6 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_CUSTOM-REVISION:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x ./utr
-      -  command: pip3 install requests
       -  command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
          retries: 2
       -  command: brew install unity/unity/unity-downloader-cli
@@ -642,6 +641,7 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_CUSTOM-REVISION:
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
                 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --scripting-backend=IL2CPP --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     after:
+      -  command: pip3 install requests
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
