@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Removed shader warnings due to SAMPLE_DEPTH_TEXTURE redefinition [Case 1331262](https://issuetracker.unity3d.com/product/unity/issues/guid/1331262/)
 - Fix potential infinite compilation when using subgraphs [Case 1346576](https://issuetracker.unity3d.com/product/unity/issues/guid/1346576/)
-- Prevent out of sync serialization of VFX assets that could cause the asset to be dirtied without reason [Case 1327805](https://issuetracker.unity3d.com/product/unity/issues/guid/1327805/)
+- Prevent out of sync serialization of VFX assets that could cause the asset to be dirtied without reason
 - Fix undetermitism in space with LocalToWorld and WorldToLocal operators [Case 1355820](https://issuetracker.unity3d.com/product/unity/issues/guid/1355820/)
 
 ## [10.6.0] - 2021-04-29
