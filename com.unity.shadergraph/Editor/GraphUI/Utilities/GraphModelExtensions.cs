@@ -32,7 +32,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.Utilities
                     }
                     else
                     {
-                        Debug.Log("Added to graphhandler");
                         var registry = ((ShaderGraphStencil)graphModel.Stencil).GetRegistry();
 
                         // Use this node's generated guid to bind it to an underlying element in the graph data.
