@@ -18,11 +18,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTargetHandle destination { get; set; }
         internal bool AllocateRT  { get; set; }
         internal int MssaSamples { get; set; }
+        // In some cases (Scene view, XR and etc.) we actually want to output to depth buffer
+        // So this variable needs to be set to true to enable the correct copy shader semantic
+        internal bool CopyToDepth { get; set; }
         Material m_CopyDepthMaterial;
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
             AllocateRT = true;
+            CopyToDepth = false;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
         }
@@ -43,9 +47,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            // descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
-            descriptor.depthBufferBits = 0; //TODO: do we really need this. double check;
+            descriptor.depthBufferBits = 0;
             descriptor.msaaSamples = 1;
             if (this.AllocateRT)
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
@@ -108,6 +111,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.DisableShaderKeyword(ShaderKeywordStrings.DepthMsaa8);
                         break;
                 }
+
+                if (CopyToDepth)
+                    cmd.EnableShaderKeyword("_OUTPUT_DEPTH");
+                else
+                    cmd.DisableShaderKeyword("_OUTPUT_DEPTH");
 
                 cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
 
