@@ -7,12 +7,12 @@
     </ui:Box>
     <ui:Box class="section alternate">
         <ui:Label text="Documentation" class="category" />
-        <ui:Button name="gotoManual" text="Manual" class="indented" />
-        <ui:Button name="gotoForum" text="Forum" class="indented" />
+        <ui:Button name="gotoManual" text="Manual" class="indented link" />
+        <ui:Button name="gotoForum" text="Forum" class="indented link" />
     </ui:Box>
     <ui:Box class="section">
         <ui:Label text="Examples and Resources" class="category" />
-        <ui:Button name="gotoSpaceShip" text="Github: Spaceship Demo" class="indented" />
-        <ui:Button name="gotoSamples" text="Github: VFX Graph Samples" class="indented" />
+        <ui:Button name="gotoSpaceShip" text="Github: Spaceship Demo" class="indented link" />
+        <ui:Button name="gotoSamples" text="Github: VFX Graph Samples" class="indented link" />
     </ui:Box>
 </UXML>
