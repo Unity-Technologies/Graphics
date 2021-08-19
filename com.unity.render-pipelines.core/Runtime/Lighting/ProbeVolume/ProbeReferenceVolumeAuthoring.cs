@@ -257,6 +257,9 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         foreach (var cellInfo in prv.cells.Values)
                         {
+                            if (!cellInfo.loaded)
+                                continue;
+
                             var cell = cellInfo.cell;
                             if (ShouldCullCell(cell.position, prv.GetTransform().posWS))
                                 continue;

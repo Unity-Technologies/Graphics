@@ -240,7 +240,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var cell = cellInfo.cell;
 
-                if (cell.sh == null || cell.sh.Length == 0)
+                if (cell.sh == null || cell.sh.Length == 0 || !cellInfo.loaded)
                     continue;
 
                 float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].subdivisionLevel;

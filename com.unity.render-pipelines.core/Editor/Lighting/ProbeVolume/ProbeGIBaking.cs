@@ -349,7 +349,7 @@ namespace UnityEngine.Experimental.Rendering
                 for (int iterations = 0; iterations < dilationSettings.dilationIterations; ++iterations)
                 {
                     // Make sure all is loaded before performing dilation.
-                    ProbeReferenceVolume.instance.PerformPendingOperations(loadAllCells: true);
+                    ProbeReferenceVolume.instance.PerformPendingOperations(addAllCells: true);
 
                     // Dilate all cells
                     List<ProbeReferenceVolume.Cell> dilatedCells = new List<ProbeReferenceVolume.Cell>(ProbeReferenceVolume.instance.cells.Values.Count);

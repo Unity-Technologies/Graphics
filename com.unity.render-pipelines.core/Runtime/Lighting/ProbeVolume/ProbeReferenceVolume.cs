@@ -538,7 +538,7 @@ namespace UnityEngine.Experimental.Rendering
         Dictionary<string, ProbeVolumeAsset> m_ActiveAssets = new Dictionary<string, ProbeVolumeAsset>();
 
         // List of info for cells that are yet to be loaded.
-        private List<CellSortInfo> m_CellsToBeLoaded = new List<CellSortInfo>();
+        private List<CellSortInfo> m_CellsToBeAdded = new List<CellSortInfo>();
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
@@ -658,11 +658,21 @@ namespace UnityEngine.Experimental.Rendering
             {
                 cells.Remove(cell.index);
 
-                if (cellInfo.flatIdxInCellIndices >= 0)
-                    m_CellIndices.MarkCellAsUnloaded(cellInfo.flatIdxInCellIndices);
-
-                ReleaseBricks(cellInfo);
+                UnloadCell(cellInfo);
             }
+        }
+
+        void UnloadCell(CellInfo cellInfo)
+        {
+            if (cellInfo.flatIdxInCellIndices >= 0)
+                m_CellIndices.MarkCellAsUnloaded(cellInfo.flatIdxInCellIndices);
+
+            ReleaseBricks(cellInfo);
+
+            cellInfo.loaded = false;
+            cellInfo.updateInfo = new ProbeBrickIndex.CellIndexUpdateInfo();
+
+            ClearDebugData();
         }
 
         internal CellInfo AddCell(Cell cell)
@@ -674,6 +684,36 @@ namespace UnityEngine.Experimental.Rendering
             cells[cell.index] = cellInfo;
 
             return cellInfo;
+        }
+
+        void LoadCell(CellInfo cellInfo)
+        {
+            var cell = cellInfo.cell;
+            bool compressed = false;
+            int allocatedBytes = 0;
+            var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, m_SHBands, out allocatedBytes);
+            ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, m_SHBands);
+
+            if (GetCellIndexUpdate(cell, out var cellUpdateInfo))
+            {
+                var regId = AddBricks(cell.bricks, dataLocation, cellUpdateInfo, out var chunkList);
+
+                cellInfo.regId = regId;
+                cellInfo.updateInfo = cellUpdateInfo;
+                cellInfo.chunkList = chunkList;
+                cellInfo.loaded = true;
+
+                m_CellIndices.UpdateCell(cellInfo.flatIdxInCellIndices, cellUpdateInfo);
+
+                dataLocation.Cleanup();
+
+                ClearDebugData();
+            }
+            else
+            {
+                // We need to first remove something to fit, can't load things further.
+                return;
+            }
         }
 
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
@@ -741,10 +781,10 @@ namespace UnityEngine.Experimental.Rendering
         {
             var key = asset.GetSerializedFullPath();
 
-            for (int i = m_CellsToBeLoaded.Count - 1; i >= 0; i--)
+            for (int i = m_CellsToBeAdded.Count - 1; i >= 0; i--)
             {
-                if (m_CellsToBeLoaded[i].sourceAsset == key)
-                    m_CellsToBeLoaded.RemoveAt(i);
+                if (m_CellsToBeAdded[i].sourceAsset == key)
+                    m_CellsToBeAdded.RemoveAt(i);
             }
 
             if (m_ActiveAssets.ContainsKey(key))
@@ -793,7 +833,7 @@ namespace UnityEngine.Experimental.Rendering
                 sortInfo.cell = cell;
                 sortInfo.position = ((Vector3)cell.position * MaxBrickSize() * 0.5f) + m_Transform.posWS;
                 sortInfo.sourceAsset = asset.GetSerializedFullPath();
-                m_CellsToBeLoaded.Add(sortInfo);
+                m_CellsToBeAdded.Add(sortInfo);
             }
         }
 
@@ -889,19 +929,10 @@ namespace UnityEngine.Experimental.Rendering
             return m_Index.AssignIndexChunksToCell(brickCountsAtResolution, ref cellUpdateInfo);
         }
 
-        void UpdateCell(CellInfo cellInfo, RegId regId, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo, List<Chunk> chunkList)
+        void AddPendingCells(bool addAll = false)
         {
-            cellInfo.regId = regId;
-            cellInfo.updateInfo = cellUpdateInfo;
-            cellInfo.chunkList = chunkList;
-
-            m_CellIndices.UpdateCell(cellInfo.flatIdxInCellIndices, cellUpdateInfo);
-        }
-
-        void LoadPendingCells(bool loadAll = false)
-        {
-            int count = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_CellsToBeLoaded.Count);
-            count = loadAll ? m_CellsToBeLoaded.Count : count;
+            int count = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_CellsToBeAdded.Count);
+            count = addAll ? m_CellsToBeAdded.Count : count;
 
             // This should never happen, *unless* an asset was baked with previous version of index buffer.
             if (m_PendingInitInfo.pendingMinCellPosition == m_PendingInitInfo.pendingMaxCellPosition && count > 1)
@@ -913,32 +944,16 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = 0; i < count; ++i)
             {
                 // Pop from queue.
-                var sortInfo = m_CellsToBeLoaded[0];
+                var sortInfo = m_CellsToBeAdded[0];
                 var cell = sortInfo.cell;
 
                 // "Static loading" part
                 var cellInfo = AddCell(cell);
 
                 // Streaming part
-                bool compressed = false;
-                int allocatedBytes = 0;
-                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, m_SHBands, out allocatedBytes);
-                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, m_SHBands);
+                LoadCell(cellInfo);
 
-                if (GetCellIndexUpdate(cell, out var cellUpdateInfo))
-                {
-                    var regId = AddBricks(cell.bricks, dataLocation, cellUpdateInfo, out var chunkList);
-                    UpdateCell(cellInfo, regId, cellUpdateInfo, chunkList);
-
-                    dataLocation.Cleanup();
-                }
-                else
-                {
-                    // We need to first remove something to fit, can't load things further.
-                    return;
-                }
-
-                m_CellsToBeLoaded.RemoveAt(0);
+                m_CellsToBeAdded.RemoveAt(0);
             }
         }
 
@@ -946,12 +961,12 @@ namespace UnityEngine.Experimental.Rendering
         /// Perform all the operations that are relative to changing the content or characteristics of the probe reference volume.
         /// </summary>
         /// <param name ="loadAllCells"> True when all cells are to be immediately loaded..</param>
-        public void PerformPendingOperations(bool loadAllCells = false)
+        public void PerformPendingOperations(bool addAllCells = false)
         {
             PerformPendingDeletion();
             PerformPendingIndexChangeAndInit();
             PerformPendingLoading();
-            LoadPendingCells(loadAllCells);
+            AddPendingCells(addAllCells);
         }
 
         /// <summary>
@@ -995,14 +1010,14 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name ="cameraPosition"> The position to sort against (closer to the position will be loaded first).</param>
         public void SortPendingCells(Vector3 cameraPosition)
         {
-            if (m_CellsToBeLoaded.Count > 0)
+            if (m_CellsToBeAdded.Count > 0)
             {
-                for (int i = 0; i < m_CellsToBeLoaded.Count; ++i)
+                for (int i = 0; i < m_CellsToBeAdded.Count; ++i)
                 {
-                    m_CellsToBeLoaded[i].distanceToCamera = Vector3.Distance(cameraPosition, m_CellsToBeLoaded[i].position);
+                    m_CellsToBeAdded[i].distanceToCamera = Vector3.Distance(cameraPosition, m_CellsToBeAdded[i].position);
                 }
 
-                m_CellsToBeLoaded.Sort();
+                m_CellsToBeAdded.Sort();
             }
         }
 
@@ -1139,6 +1154,9 @@ namespace UnityEngine.Experimental.Rendering
             // clean up the pool
             m_Pool.Deallocate(ch_list);
             m_Registry.Remove(cellInfo.regId);
+
+            cellInfo.regId = new RegId();
+            cellInfo.chunkList = null;
         }
 
         /// <summary>
