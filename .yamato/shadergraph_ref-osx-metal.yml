@@ -112,7 +112,7 @@ ShaderGraph_ref_OSX_Metal_Standalone_cache_ref_images_mono_Linear_trunk:
          retries: 2
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
       -  |5-
-                  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics/; python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph -logfile ~/Editor.log $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/ShaderGraph --timeout=1200 --zero-tests-are-ok=1"
+                  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics/; python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph -editorlogpath ~/Editor.log $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/ShaderGraph --timeout=1200 --zero-tests-are-ok=1"
                   mkdir -p TestProjects/ShaderGraph/test-results/
                   ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "ls ~/./; ls ~/Library/Logs/Unity/"
                   ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP cat ~/Editor.log
@@ -234,7 +234,7 @@ ShaderGraph_ref_OSX_Metal_Standalone_cache_ref_images_mono_Linear_2021.2:
          retries: 2
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
       -  |5-
-                  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics/; python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph -logfile ~/Editor.log $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/ShaderGraph --timeout=1200 --zero-tests-are-ok=1"
+                  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics/; python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph -editorlogpath ~/Editor.log $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/ShaderGraph --timeout=1200 --zero-tests-are-ok=1"
                   mkdir -p TestProjects/ShaderGraph/test-results/
                   ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "ls ~/./; ls ~/Library/Logs/Unity/"
                   ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP cat ~/Editor.log
@@ -356,7 +356,7 @@ ShaderGraph_ref_OSX_Metal_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISIO
          retries: 2
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
       -  |5-
-                  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics/; python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph -logfile ~/Editor.log $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/ShaderGraph --timeout=1200 --zero-tests-are-ok=1"
+                  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics/; python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph -editorlogpath ~/Editor.log $CACHE_ARGS --artifacts_path=/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/ShaderGraph --timeout=1200 --zero-tests-are-ok=1"
                   mkdir -p TestProjects/ShaderGraph/test-results/
                   ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "ls ~/./; ls ~/Library/Logs/Unity/"
                   ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP cat ~/Editor.log
