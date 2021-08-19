@@ -69,6 +69,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float rayLength;
             public int maxDepth;
             public float minSmoothness;
+            public int rayMissFallbackHiearchy;
+            public int lastBounceFallbackHiearchy;
 
             // Other data
             public RayTracingAccelerationStructure accelerationStructure;
@@ -105,6 +107,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayLength = recursiveSettings.rayLength.value;
                 passData.maxDepth = recursiveSettings.maxDepth.value;
                 passData.minSmoothness = recursiveSettings.minSmoothness.value;
+                passData.rayMissFallbackHiearchy = (int)recursiveSettings.rayMiss.value;
+                passData.lastBounceFallbackHiearchy = (int)recursiveSettings.lastBounce.value;
 
                 // Other data
                 passData.accelerationStructure = RequestAccelerationStructure();
@@ -121,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Right now the debug buffer is written to independently of what is happening. This must be changed
                 // TODO RENDERGRAPH
                 passData.debugBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Recursive Rendering Debug Texture" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Recursive Rendering Debug Texture" }));
 
                 builder.SetRenderFunc(
                     (RecursiveRenderingPassData data, RenderGraphContext ctx) =>
@@ -139,6 +143,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RaytracingRayMaxLength = data.rayLength;
                         data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = data.maxDepth;
                         data.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = data.minSmoothness;
+                        data.shaderVariablesRayTracingCB._RayTracingRayMissFallbackHierarchy = data.rayMissFallbackHiearchy;
+                        data.shaderVariablesRayTracingCB._RayTracingLastBounceFallbackHierarchy = data.lastBounceFallbackHiearchy;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Fecth the temporary buffers we shall be using

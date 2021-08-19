@@ -54,6 +54,8 @@ namespace UnityTemplateProjects
             }
         }
 
+        const float k_MouseSensitivityMultiplier = 0.01f;
+
         CameraState m_TargetCameraState = new CameraState();
         CameraState m_InterpolatingCameraState = new CameraState();
 
@@ -165,14 +167,12 @@ namespace UnityTemplateProjects
 
         void Update()
         {
-            // Exit Sample
-
             if (IsEscapePressed())
             {
                 Application.Quit();
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
-                #endif
+#endif
             }
 
             // Hide and lock cursor when right mouse button pressed
@@ -191,7 +191,7 @@ namespace UnityTemplateProjects
             // Rotation
             if (IsCameraRotationAllowed())
             {
-                var mouseMovement = GetInputLookRotation() * Time.deltaTime * mouseSensitivity;
+                var mouseMovement = GetInputLookRotation() * k_MouseSensitivityMultiplier * mouseSensitivity;
                 if (invertY)
                     mouseMovement.y = -mouseMovement.y;
 
@@ -243,7 +243,7 @@ namespace UnityTemplateProjects
             delta *= 0.1f; // Account for sensitivity setting on old Mouse X and Y axes.
             return delta;
 #else
-            return new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y") * (invertY ? 1 : -1));
+            return new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));
 #endif
         }
 

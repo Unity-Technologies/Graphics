@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using UnityEditor;
 using UnityEditor.ShaderGraph.Internal;
@@ -11,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     internal static class ShaderGraphPropertyDrawers
     {
-        static Dictionary<MinimalCategoryData.GraphInputData, bool> s_CompoundPropertyFoldoutStates = new Dictionary<MinimalCategoryData.GraphInputData, bool>();
+        static Dictionary<GraphInputData, bool> s_CompoundPropertyFoldoutStates = new();
 
         public static void DrawShaderGraphGUI(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties)
         {
@@ -27,21 +28,33 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
                 }
             }
-            AssertHelpers.IsNotNull(metadata, "Cannot draw ShaderGraph GUI on a non-ShaderGraph material: " + materialEditor.target);
-            DrawShaderGraphGUI(materialEditor, properties, metadata.categoryDatas);
+
+            if (metadata != null)
+                DrawShaderGraphGUI(materialEditor, properties, metadata.categoryDatas);
+            else
+                PropertiesDefaultGUI(materialEditor, properties);
         }
 
-        private static Rect GetRect(MaterialProperty prop)
+        static void PropertiesDefaultGUI(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties)
+        {
+            foreach (var property in properties)
+            {
+                if ((property.flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
+                    continue;
+
+                float h = materialEditor.GetPropertyHeight(property, property.displayName);
+                Rect r = EditorGUILayout.GetControlRect(true, h, EditorStyles.layerMaskField);
+
+                materialEditor.ShaderProperty(r, property, property.displayName);
+            }
+        }
+
+        static Rect GetRect(MaterialProperty prop)
         {
             return EditorGUILayout.GetControlRect(true, MaterialEditor.GetDefaultPropertyHeight(prop));
         }
 
-        private static Rect GetRect()
-        {
-            return EditorGUILayout.GetControlRect();
-        }
-
-        private static MaterialProperty FindProperty(string propertyName, IEnumerable<MaterialProperty> properties)
+        static MaterialProperty FindProperty(string propertyName, IEnumerable<MaterialProperty> properties)
         {
             foreach (var prop in properties)
             {
@@ -50,7 +63,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return prop;
                 }
             }
-            throw new ArgumentException("no property was found with the name " + propertyName);
+
+            return null;
         }
 
         public static void DrawShaderGraphGUI(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties, IEnumerable<MinimalCategoryData> categoryDatas)
@@ -61,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private static void DrawCategory(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties, MinimalCategoryData minimalCategoryData)
+        static void DrawCategory(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties, MinimalCategoryData minimalCategoryData)
         {
             if (minimalCategoryData.categoryName.Length > 0)
             {
@@ -80,6 +94,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (propData.isCompoundProperty == false)
                     {
                         MaterialProperty prop = FindProperty(propData.referenceName, properties);
+                        if (prop == null) continue;
                         DrawMaterialProperty(materialEditor, prop, propData.propertyType, propData.isKeyword, propData.keywordType);
                     }
                     else
@@ -92,7 +107,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
-        private static void DrawCompoundProperty(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties, MinimalCategoryData.GraphInputData compoundPropertyData)
+        static void DrawCompoundProperty(MaterialEditor materialEditor, IEnumerable<MaterialProperty> properties, GraphInputData compoundPropertyData)
         {
             EditorGUI.indentLevel++;
 
@@ -110,6 +125,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var subProperty in compoundPropertyData.subProperties)
                 {
                     var property = FindProperty(subProperty.referenceName, properties);
+                    if (property == null) continue;
                     DrawMaterialProperty(materialEditor, property, subProperty.propertyType);
                 }
                 EditorGUI.indentLevel--;
@@ -120,7 +136,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             EditorGUI.indentLevel--;
         }
 
-        private static void DrawMaterialProperty(MaterialEditor materialEditor, MaterialProperty property, PropertyType propertyType, bool isKeyword = false, KeywordType keywordType = KeywordType.Boolean)
+        static void DrawMaterialProperty(MaterialEditor materialEditor, MaterialProperty property, PropertyType propertyType, bool isKeyword = false, KeywordType keywordType = KeywordType.Boolean)
         {
             if (isKeyword)
             {
@@ -189,36 +205,36 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private static void DrawColorProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawColorProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
             materialEditor.ShaderProperty(property, property.displayName);
         }
 
-        private static void DrawEnumKeyword(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawEnumKeyword(MaterialEditor materialEditor, MaterialProperty property)
         {
             materialEditor.ShaderProperty(property, property.displayName);
         }
 
-        private static void DrawBooleanKeyword(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawBooleanKeyword(MaterialEditor materialEditor, MaterialProperty property)
         {
             materialEditor.ShaderProperty(property, property.displayName);
         }
 
-        private static void DrawVirtualTextureProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawVirtualTextureProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
         }
 
-        private static void DrawBooleanProperty(MaterialEditor materialEditor, MaterialProperty property)
-        {
-            materialEditor.ShaderProperty(property, property.displayName);
-        }
-
-        private static void DrawFloatProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawBooleanProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
             materialEditor.ShaderProperty(property, property.displayName);
         }
 
-        private static void DrawVector2Property(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawFloatProperty(MaterialEditor materialEditor, MaterialProperty property)
+        {
+            materialEditor.ShaderProperty(property, property.displayName);
+        }
+
+        static void DrawVector2Property(MaterialEditor materialEditor, MaterialProperty property)
         {
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = property.hasMixedValue;
@@ -230,7 +246,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private static void DrawVector3Property(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawVector3Property(MaterialEditor materialEditor, MaterialProperty property)
         {
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = property.hasMixedValue;
@@ -242,47 +258,47 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private static void DrawVector4Property(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawVector4Property(MaterialEditor materialEditor, MaterialProperty property)
         {
             materialEditor.ShaderProperty(property, property.displayName);
         }
 
-        private static void DrawCubemapProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawCubemapProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
             materialEditor.ShaderProperty(property, property.displayName);
         }
 
-        private static void DrawTexture3DProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawTexture3DProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
             materialEditor.ShaderProperty(property, property.displayName);
         }
 
-        private static void DrawTexture2DArrayProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawTexture2DArrayProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
             materialEditor.ShaderProperty(property, property.displayName);
         }
 
-        private static void DrawTexture2DProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawTexture2DProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
             materialEditor.ShaderProperty(property, property.displayName);
         }
 
-        private static void DrawMatrix2Property(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawMatrix2Property(MaterialEditor materialEditor, MaterialProperty property)
         {
             //we dont expose
         }
 
-        private static void DrawMatrix3Property(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawMatrix3Property(MaterialEditor materialEditor, MaterialProperty property)
         {
             //we dont expose
         }
 
-        private static void DrawMatrix4Property(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawMatrix4Property(MaterialEditor materialEditor, MaterialProperty property)
         {
             //we dont expose
         }
 
-        private static void DrawSamplerStateProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawSamplerStateProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
             //we dont expose
         }

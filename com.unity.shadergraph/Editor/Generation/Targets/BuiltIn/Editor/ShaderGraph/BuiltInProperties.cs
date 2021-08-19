@@ -6,19 +6,20 @@ namespace UnityEditor.Rendering.BuiltIn
 {
     internal static class Property
     {
-        public static string SpecularWorkflowMode()          { return SG_SpecularWorkflowMode; }
-        public static string Surface()                       { return SG_Surface; }
-        public static string Blend()                         { return SG_Blend; }
-        public static string AlphaClip()                     { return SG_AlphaClip; }
-        public static string SrcBlend()                      { return SG_SrcBlend; }
-        public static string DstBlend()                      { return SG_DstBlend; }
-        public static string ZWrite()                        { return SG_ZWrite; }
-        public static string ZWriteControl()                 { return SG_ZWriteControl; }
-        public static string ZTest()                         { return SG_ZTest; }   // no HW equivalent
-        public static string Cull()                          { return SG_Cull; }
-        public static string CastShadows()                   { return SG_CastShadows; }
-        public static string ReceiveShadows()                { return SG_ReceiveShadows; }
-        public static string QueueOffset()                   { return SG_QueueOffset; }
+        public static string SpecularWorkflowMode() { return SG_SpecularWorkflowMode; }
+        public static string Surface() { return SG_Surface; }
+        public static string Blend() { return SG_Blend; }
+        public static string AlphaClip() { return SG_AlphaClip; }
+        public static string SrcBlend() { return SG_SrcBlend; }
+        public static string DstBlend() { return SG_DstBlend; }
+        public static string ZWrite() { return SG_ZWrite; }
+        public static string ZWriteControl() { return SG_ZWriteControl; }
+        public static string ZTest() { return SG_ZTest; }   // no HW equivalent
+        public static string Cull() { return SG_Cull; }
+        public static string CastShadows() { return SG_CastShadows; }
+        public static string ReceiveShadows() { return SG_ReceiveShadows; }
+        public static string QueueOffset() { return SG_QueueOffset; }
+        public static string QueueControl() { return SG_QueueControl; }
 
         // for shadergraph shaders (renamed more uniquely to avoid potential naming collisions with HDRP properties and user properties)
         public static readonly string SG_SpecularWorkflowMode = "_BUILTIN_WorkflowMode";
@@ -34,6 +35,7 @@ namespace UnityEditor.Rendering.BuiltIn
         public static readonly string SG_CastShadows = "_BUILTIN_CastShadows";
         public static readonly string SG_ReceiveShadows = "_BUILTIN_ReceiveShadows";
         public static readonly string SG_QueueOffset = "_BUILTIN_QueueOffset";
+        public static readonly string SG_QueueControl = "_BUILTIN_QueueControl";
 
         // Global Illumination requires some properties to be named specifically:
         public static readonly string EmissionMap = "_EmissionMap";

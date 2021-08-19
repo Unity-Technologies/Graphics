@@ -27,7 +27,19 @@ namespace UnityEditor.VFX
     }
 
     class ShowAsColorAttribute : Attribute
-    {}
+    { }
+    public class MinMaxAttribute : PropertyAttribute
+    {
+        public readonly float min;
+        public readonly float max;
+
+        // Attribute used to make a float or int variable in a script be restricted to a specific range.
+        public MinMaxAttribute(float min, float max)
+        {
+            this.min = min;
+            this.max = max;
+        }
+    }
 
     class CoordinateSpaceInfo
     {
@@ -156,7 +168,7 @@ namespace UnityEditor.VFX
         [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the cone is used. The value is in radians.")]
         public float arc;
 
-        public static ArcCone defaultValue = new ArcCone { radius0 = 1.0f, radius1 = 0.1f, height = 1.0f, arc = 2.0f * Mathf.PI};
+        public static ArcCone defaultValue = new ArcCone { radius0 = 1.0f, radius1 = 0.1f, height = 1.0f, arc = 2.0f * Mathf.PI };
     }
 
     [VFXType, Serializable]
@@ -184,7 +196,7 @@ namespace UnityEditor.VFX
         [Angle, Range(0, Mathf.PI * 2.0f), Tooltip("Controls how much of the torus is used.")]
         public float arc;
 
-        public static ArcTorus defaultValue = new ArcTorus { majorRadius = 1.0f, minorRadius = 0.1f, arc = 2.0f * Mathf.PI};
+        public static ArcTorus defaultValue = new ArcTorus { majorRadius = 1.0f, minorRadius = 0.1f, arc = 2.0f * Mathf.PI };
     }
 
     [VFXType, Serializable]

@@ -75,14 +75,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">Enum parameter.</param>
         /// <param name="overrideState">Initial override state.</param>
         public CloudLayerEnumParameter(T value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
     /// Cloud Layer Volume Component.
     /// This component setups the Cloud Layer for rendering.
     /// </summary>
-    [VolumeComponentMenu("Sky/Cloud Layer")]
+    [VolumeComponentMenuForRenderPipeline("Sky/Cloud Layer", typeof(HDRenderPipeline))]
     [CloudUniqueID((int)CloudType.CloudLayer)]
     [HDRPHelpURLAttribute("Override-Cloud-Layer")]
     public class CloudLayer : CloudSettings
@@ -154,13 +154,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public FloatParameter exposure = new FloatParameter(0.0f);
 
             /// <summary>Distortion mode.</summary>
-            [Tooltip("Distortion mode used to simulate cloud movement.")]
+            [Tooltip("Distortion mode used to simulate cloud movement.\nIn Scene View, requires Always Refresh to be enabled.")]
             public VolumeParameter<CloudDistortionMode> distortionMode = new VolumeParameter<CloudDistortionMode>();
-            /// <summary>Direction of the distortion.</summary>
-            public ClampedFloatParameter scrollDirection = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
-            /// <summary>Speed of the distortion.</summary>
-            [Tooltip("Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.")]
-            public MinFloatParameter scrollSpeed = new MinFloatParameter(1.0f, 0.0f);
+            /// <summary>Direction of the distortion. This value can be relative to the Global Wind Orientation defined in the Visual Environment.</summary>
+            public WindOrientationParameter scrollOrientation = new WindOrientationParameter();
+            /// <summary>Speed of the distortion. This value can be relative to the Global Wind Speed defined in the Visual Environment.</summary>
+            public WindSpeedParameter scrollSpeed = new WindSpeedParameter();
             /// <summary>Texture used to distort the UVs for the cloud layer.</summary>
             [Tooltip("Specify the flowmap HDRP uses for cloud distortion (in LatLong layout).")]
             public TextureParameter flowmap = new TextureParameter(null);
@@ -184,10 +183,10 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int NumSteps => lighting.value ? steps.value : 0;
             internal Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
 
-            internal (Vector4, Vector4) GetRenderingParameters(float intensity)
+            internal (Vector4, Vector4) GetRenderingParameters(HDCamera camera, float intensity)
             {
-                float angle = -Mathf.Deg2Rad * scrollDirection.value;
-                Vector4 params1 = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), scrollFactor);
+                float angle = Mathf.Deg2Rad * scrollOrientation.GetValue(camera);
+                Vector4 params1 = new Vector3(-Mathf.Cos(angle), -Mathf.Sin(angle), scrollFactor / 200.0f);
                 Vector4 params2 = tint.value * (ColorUtils.ConvertEV100ToExposure(-exposure.value) * intensity);
                 return (params1, params2);
             }
@@ -249,7 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + exposure.GetHashCode();
 
                     hash = hash * 23 + distortionMode.GetHashCode();
-                    hash = hash * 23 + scrollDirection.GetHashCode();
+                    hash = hash * 23 + scrollOrientation.GetHashCode();
                     hash = hash * 23 + scrollSpeed.GetHashCode();
                     hash = hash * 23 + flowmap.GetHashCode();
 

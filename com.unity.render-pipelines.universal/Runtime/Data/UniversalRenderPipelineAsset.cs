@@ -83,8 +83,10 @@ namespace UnityEngine.Rendering.Universal
     public enum ShaderVariantLogLevel
     {
         Disabled,
+        [InspectorName("Only URP Shaders")]
         OnlyUniversalRPShaders,
-        AllShaders,
+        [InspectorName("All Shaders")]
+        AllShaders
     }
 
     [Obsolete("PipelineDebugLevel is unused and has no effect.", false)]
@@ -208,7 +210,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsDynamicBatching = false;
         [SerializeField] bool m_MixedLightingSupported = true;
         [SerializeField] bool m_SupportsLightLayers = false;
-        [SerializeField][Obsolete] PipelineDebugLevel m_DebugLevel;
+        [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
@@ -277,16 +279,16 @@ namespace UnityEngine.Rendering.Universal
         static void CreateUniversalPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalPipelineAsset>(),
-                "UniversalRenderPipelineAsset.asset", null, null);
+                "New Universal Render Pipeline Asset.asset", null, null);
         }
 
-        internal static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true)
+        internal static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true, string suffix = "Renderer")
         {
             ScriptableRendererData data = CreateRendererData(type);
             string dataPath;
             if (relativePath)
                 dataPath =
-                    $"{Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path))}_Renderer{Path.GetExtension(path)}";
+                    $"{Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path))}_{suffix}{Path.GetExtension(path)}";
             else
                 dataPath = path;
             AssetDatabase.CreateAsset(data, dataPath);
@@ -534,7 +536,7 @@ namespace UnityEngine.Rendering.Universal
 
                 for (var i = 1; i < list.Length; i++)
                 {
-                    list[i] = new GUIContent($"{(i - 1).ToString()}: {RendererDataDisplayName(m_RendererDataList[i-1])}");
+                    list[i] = new GUIContent($"{(i - 1).ToString()}: {RendererDataDisplayName(m_RendererDataList[i - 1])}");
                 }
                 return list;
             }
@@ -654,21 +656,25 @@ namespace UnityEngine.Rendering.Universal
         public LightRenderingMode mainLightRenderingMode
         {
             get { return m_MainLightRenderingMode; }
+            internal set { m_MainLightRenderingMode = value; }
         }
 
         public bool supportsMainLightShadows
         {
             get { return m_MainLightShadowsSupported; }
+            internal set { m_MainLightShadowsSupported = value; }
         }
 
         public int mainLightShadowmapResolution
         {
             get { return (int)m_MainLightShadowmapResolution; }
+            internal set { m_MainLightShadowmapResolution = (ShadowResolution)value; }
         }
 
         public LightRenderingMode additionalLightsRenderingMode
         {
             get { return m_AdditionalLightsRenderingMode; }
+            internal set { m_AdditionalLightsRenderingMode = value; }
         }
 
         public int maxAdditionalLightsCount
@@ -680,11 +686,13 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsAdditionalLightShadows
         {
             get { return m_AdditionalLightShadowsSupported; }
+            internal set { m_AdditionalLightShadowsSupported = value; }
         }
 
         public int additionalLightsShadowmapResolution
         {
             get { return (int)m_AdditionalLightsShadowmapResolution; }
+            internal set { m_AdditionalLightsShadowmapResolution = (ShadowResolution)value; }
         }
 
         /// <summary>
@@ -693,6 +701,7 @@ namespace UnityEngine.Rendering.Universal
         public int additionalLightsShadowResolutionTierLow
         {
             get { return (int)m_AdditionalLightsShadowResolutionTierLow; }
+            internal set { additionalLightsShadowResolutionTierLow = value; }
         }
 
         /// <summary>
@@ -701,6 +710,7 @@ namespace UnityEngine.Rendering.Universal
         public int additionalLightsShadowResolutionTierMedium
         {
             get { return (int)m_AdditionalLightsShadowResolutionTierMedium; }
+            internal set { m_AdditionalLightsShadowResolutionTierMedium = value; }
         }
 
         /// <summary>
@@ -709,6 +719,7 @@ namespace UnityEngine.Rendering.Universal
         public int additionalLightsShadowResolutionTierHigh
         {
             get { return (int)m_AdditionalLightsShadowResolutionTierHigh; }
+            internal set { additionalLightsShadowResolutionTierHigh = value; }
         }
 
         internal int GetAdditionalLightsShadowResolution(int additionalLightsShadowResolutionTier)
@@ -728,11 +739,13 @@ namespace UnityEngine.Rendering.Universal
         public bool reflectionProbeBlending
         {
             get { return m_ReflectionProbeBlending; }
+            internal set { m_ReflectionProbeBlending = value; }
         }
 
         public bool reflectionProbeBoxProjection
         {
             get { return m_ReflectionProbeBoxProjection; }
+            internal set { m_ReflectionProbeBoxProjection = value; }
         }
 
         /// <summary>
@@ -767,6 +780,7 @@ namespace UnityEngine.Rendering.Universal
         public float cascade2Split
         {
             get { return m_Cascade2Split; }
+            internal set { m_Cascade2Split = value; }
         }
 
         /// <summary>
@@ -776,6 +790,7 @@ namespace UnityEngine.Rendering.Universal
         public Vector2 cascade3Split
         {
             get { return m_Cascade3Split; }
+            internal set { m_Cascade3Split = value; }
         }
 
         /// <summary>
@@ -785,6 +800,7 @@ namespace UnityEngine.Rendering.Universal
         public Vector3 cascade4Split
         {
             get { return m_Cascade4Split; }
+            internal set { m_Cascade4Split = value; }
         }
 
         /// <summary>
@@ -815,11 +831,12 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns true Soft Shadows are supported, false otherwise.
+        /// Supports Soft Shadows controls the Soft Shadows.
         /// </summary>
         public bool supportsSoftShadows
         {
             get { return m_SoftShadowsSupported; }
+            internal set { m_SoftShadowsSupported = value; }
         }
 
         public bool supportsDynamicBatching
@@ -1040,6 +1057,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.renderingLayerMaskNames;
 
+        /// <summary>Names used for display of rendering layer masks with prefix.</summary>
+        public override string[] prefixedRenderingLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.prefixedRenderingLayerMaskNames;
+
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
@@ -1131,14 +1151,16 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
-                EditorApplication.delayCall += () => UpgradeAsset(this);
+                EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
             }
 #endif
         }
 
 #if UNITY_EDITOR
-        static void UpgradeAsset(UniversalRenderPipelineAsset asset)
+        static void UpgradeAsset(int assetInstanceID)
         {
+            UniversalRenderPipelineAsset asset = EditorUtility.InstanceIDToObject(assetInstanceID) as UniversalRenderPipelineAsset;
+
             if (asset.k_AssetPreviousVersion < 5)
             {
                 if (asset.m_RendererType == RendererType.UniversalRenderer)

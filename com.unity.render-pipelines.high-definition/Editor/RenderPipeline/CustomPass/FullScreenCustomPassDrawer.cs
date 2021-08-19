@@ -28,10 +28,10 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Fullscreen pass
-        SerializedProperty      m_FullScreenPassMaterial;
-        SerializedProperty      m_MaterialPassName;
-        SerializedProperty      m_FetchColorBuffer;
-        SerializedProperty      m_TargetColorBuffer;
+        SerializedProperty m_FullScreenPassMaterial;
+        SerializedProperty m_MaterialPassName;
+        SerializedProperty m_FetchColorBuffer;
+        SerializedProperty m_TargetColorBuffer;
 
         CustomPass.TargetBuffer targetColorBuffer => (CustomPass.TargetBuffer)m_TargetColorBuffer.intValue;
 

@@ -8,7 +8,7 @@ using System.Linq;
 
 using PositionType = UnityEngine.UIElements.Position;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     class VFXBlackboard : Blackboard, IControlledElement<VFXViewController>, IVFXMovable
     {
@@ -145,6 +145,18 @@ namespace  UnityEditor.VFX.UI
         {
             m_LockedElement.style.display = DisplayStyle.None;
             m_AddButton.SetEnabled(m_Controller != null);
+        }
+
+        public VFXBlackboardCategory AddCategory(string initialName)
+        {
+            var newCategoryName = VFXParameterController.MakeNameUnique(initialName, new HashSet<string>(m_Categories.Keys));
+            var newCategory = new VFXBlackboardCategory { title = newCategoryName };
+            newCategory.SetSelectable();
+            this.m_Categories.Add(newCategoryName, newCategory);
+
+            this.Add(newCategory);
+
+            return newCategory;
         }
 
         DropdownMenuAction.Status GetContextualMenuStatus()
@@ -362,7 +374,7 @@ namespace  UnityEditor.VFX.UI
 
                 SetDragIndicatorVisible(true);
 
-                m_DragIndicator.style.top =  indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
+                m_DragIndicator.style.top = indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
 
                 DragAndDrop.visualMode = DragAndDropVisualMode.Move;
             }
@@ -621,7 +633,7 @@ namespace  UnityEditor.VFX.UI
                     VFXBlackboardCategory cat = null;
                     if (!m_Categories.TryGetValue(catModel.name, out cat))
                     {
-                        cat = new VFXBlackboardCategory() {title = catModel.name };
+                        cat = new VFXBlackboardCategory() { title = catModel.name };
                         cat.SetSelectable();
                         m_Categories.Add(catModel.name, cat);
                     }
@@ -675,6 +687,13 @@ namespace  UnityEditor.VFX.UI
         public void OnMoved()
         {
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard, GetPosition());
+        }
+
+        public void ForceUpdate()
+        {
+            this.Query<PropertyRM>()
+                .ToList()
+                .ForEach(x => x.ForceUpdate());
         }
     }
 }

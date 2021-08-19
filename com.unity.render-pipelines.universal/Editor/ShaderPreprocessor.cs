@@ -91,6 +91,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_DecalNormalBlendMedium = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendMedium);
         ShaderKeyword m_DecalNormalBlendHigh = new ShaderKeyword(ShaderKeywordStrings.DecalNormalBlendHigh);
         ShaderKeyword m_ClusteredRendering = new ShaderKeyword(ShaderKeywordStrings.ClusteredRendering);
+        ShaderKeyword m_EditorVisualization = new ShaderKeyword(ShaderKeywordStrings.EDITOR_VISUALIZATION);
 
         ShaderKeyword m_LocalDetailMulx2;
         ShaderKeyword m_LocalDetailScaled;
@@ -152,7 +153,8 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            bool stripDebugDisplayShaders = !Debug.isDebugBuild;
+            var globalSettings = UniversalRenderPipelineGlobalSettings.instance;
+            bool stripDebugDisplayShaders = !Debug.isDebugBuild || (globalSettings == null || !globalSettings.supportRuntimeDebugDisplay);
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
             var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Standalone);
@@ -160,10 +162,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 stripDebugDisplayShaders = true;
             }
-#endif
-
-#if URP_TEST_AGGRESSIVE_SHADER_STRIPPING
-            stripDebugDisplayShaders = true;
 #endif
 
             if (stripDebugDisplayShaders && compilerData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
@@ -318,6 +316,10 @@ namespace UnityEditor.Rendering.Universal
                 if (compilerData.shaderKeywordSet.IsEnabled(m_LocalClearCoat) || compilerData.shaderKeywordSet.IsEnabled(m_LocalClearCoatMap))
                     return true;
             }
+
+            // Editor visualization is only used in scene view debug modes.
+            if (compilerData.shaderKeywordSet.IsEnabled(m_EditorVisualization))
+                return true;
 
             return false;
         }

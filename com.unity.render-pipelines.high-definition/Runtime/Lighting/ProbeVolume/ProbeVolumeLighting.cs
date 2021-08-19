@@ -6,6 +6,21 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         private ComputeBuffer m_EmptyIndexBuffer = null;
 
+        internal void RetrieveExtraDataFromProbeVolumeBake(ProbeReferenceVolume.ExtraDataActionInput input)
+        {
+            var hdProbes = GameObject.FindObjectsOfType<HDProbe>();
+            foreach (var hdProbe in hdProbes)
+            {
+                hdProbe.TryUpdateLuminanceSHL2ForNormalization();
+            }
+        }
+
+        void RegisterRetrieveOfProbeVolumeExtraDataAction()
+        {
+            ProbeReferenceVolume.instance.retrieveExtraDataAction = null;
+            ProbeReferenceVolume.instance.retrieveExtraDataAction += RetrieveExtraDataFromProbeVolumeBake;
+        }
+
         bool IsAPVEnabled()
         {
             return m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume && m_GlobalSettings.supportProbeVolumes;
@@ -25,6 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (validResources)
                 {
                     cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResIndex, rr.index);
+                    cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResCellIndices, rr.cellIndices);
 
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0_L1Rx, rr.L0_L1rx);
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1G_L1Ry, rr.L1_G_ry);
@@ -52,6 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResIndex, m_EmptyIndexBuffer);
+                cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResCellIndices, m_EmptyIndexBuffer);
 
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0_L1Rx, TextureXR.GetBlackTexture3D());
 

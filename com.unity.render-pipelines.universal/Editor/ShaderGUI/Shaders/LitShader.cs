@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         public override void FillAdditionalFoldouts(MaterialHeaderScopeList materialScopesList)
         {
-            materialScopesList.RegisterHeaderScope(LitDetailGUI.Styles.detailInputs, (uint)Expandable.Details, _ => LitDetailGUI.DoDetailArea(litDetailProperties, materialEditor));
+            materialScopesList.RegisterHeaderScope(LitDetailGUI.Styles.detailInputs, Expandable.Details, _ => LitDetailGUI.DoDetailArea(litDetailProperties, materialEditor));
         }
 
         // collect properties from the material properties
