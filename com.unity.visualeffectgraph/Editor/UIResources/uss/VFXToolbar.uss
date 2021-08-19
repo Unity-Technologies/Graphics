@@ -86,3 +86,8 @@ Box.alternate
 {
     background-color: var(--unity-colors-alternated_rows-background);
 }
+
+#help-button *
+{
+    cursor: link;
+}

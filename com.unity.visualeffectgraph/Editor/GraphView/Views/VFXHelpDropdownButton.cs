@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.UI
         public VFXHelpDropdownButton(VFXView vfxView)
             : base(
                 "VFXHelpDropdownPanel",
-                "Help",
+                "Go to Visual Effect Graph homepage",
                 "help-button",
                 EditorResources.iconsPath + "_Help.png",
                 true)
