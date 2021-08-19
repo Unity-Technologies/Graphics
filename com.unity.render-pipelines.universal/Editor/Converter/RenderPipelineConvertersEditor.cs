@@ -381,7 +381,7 @@ namespace UnityEditor.Rendering.Universal
             ctx.hasConverted = true;
 
             VisualElement child = m_ScrollView[stateIndex];
-            child.Q<ListView>("converterItems").Refresh();
+            child.Q<ListView>("converterItems").Rebuild();
         }
 
         void Convert(ClickEvent evt)
