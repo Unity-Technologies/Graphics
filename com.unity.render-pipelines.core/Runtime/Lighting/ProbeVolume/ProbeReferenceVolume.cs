@@ -482,8 +482,8 @@ namespace UnityEngine.Experimental.Rendering
 
             public bool IsValid() => id != 0;
             public void Invalidate() => id = 0;
-            public static bool operator==(RegId lhs, RegId rhs) => lhs.id == rhs.id;
-            public static bool operator!=(RegId lhs, RegId rhs) => lhs.id != rhs.id;
+            public static bool operator ==(RegId lhs, RegId rhs) => lhs.id == rhs.id;
+            public static bool operator !=(RegId lhs, RegId rhs) => lhs.id != rhs.id;
             public override bool Equals(object obj)
             {
                 if ((obj == null) || !this.GetType().Equals(obj.GetType()))
@@ -500,17 +500,17 @@ namespace UnityEngine.Experimental.Rendering
             public override int GetHashCode() => id;
         }
 
-        bool                            m_IsInitialized = false;
-        int                             m_ID = 0;
-        RefVolTransform                 m_Transform;
-        int                             m_MaxSubdivision;
-        ProbeBrickPool                  m_Pool;
-        ProbeBrickIndex                 m_Index;
-        ProbeCellIndices                m_CellIndices;
-        List<Chunk>                     m_TmpSrcChunks = new List<Chunk>();
-        float[]                         m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
-        Dictionary<RegId, List<Chunk>>  m_Registry = new Dictionary<RegId, List<Chunk>>();
-        Bounds                          m_CurrGlobalBounds = new Bounds();
+        bool m_IsInitialized = false;
+        int m_ID = 0;
+        RefVolTransform m_Transform;
+        int m_MaxSubdivision;
+        ProbeBrickPool m_Pool;
+        ProbeBrickIndex m_Index;
+        ProbeCellIndices m_CellIndices;
+        List<Chunk> m_TmpSrcChunks = new List<Chunk>();
+        float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
+        Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
+        Bounds m_CurrGlobalBounds = new Bounds();
 
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
         Dictionary<int, CellChunkInfo> m_ChunkInfo = new Dictionary<int, CellChunkInfo>();
@@ -613,7 +613,8 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_MemoryBudget = parameters.memoryBudget;
-            m_SHBands = parameters.shBands;
+            // Temporarily reverting recent change to always allocate L2 (which is still required for dilation/debug right now)
+            m_SHBands = ProbeVolumeSHBands.SphericalHarmonicsL2;// parameters.shBands;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
             InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
@@ -883,7 +884,7 @@ namespace UnityEngine.Experimental.Rendering
             sizeOfValidIndicesAtMaxRes.z = Mathf.CeilToInt((toEnd.z) / MinBrickSize()) - minValidLocalIdxAtMaxRes.z + 1;
 
             Vector3Int bricksForCell = new Vector3Int();
-            bricksForCell =  sizeOfValidIndicesAtMaxRes / CellSize(cell.minSubdiv);
+            bricksForCell = sizeOfValidIndicesAtMaxRes / CellSize(cell.minSubdiv);
 
             return bricksForCell.x * bricksForCell.y * bricksForCell.z;
         }

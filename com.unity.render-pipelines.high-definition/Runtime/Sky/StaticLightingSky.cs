@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int parameterCount = newParameters.Count;
             // Copy overridden parameters.
-            for (int i  = 0; i < parameterCount; ++i)
+            for (int i = 0; i < parameterCount; ++i)
             {
                 if (profileParameters[i].overrideState == true)
                 {

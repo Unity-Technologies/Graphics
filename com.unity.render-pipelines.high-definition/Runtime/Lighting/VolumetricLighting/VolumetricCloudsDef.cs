@@ -31,12 +31,19 @@ namespace UnityEngine.Rendering.HighDefinition
         // Displacement vector of the wind
         public Vector2 _WindVector;
 
+        // Offset Applied when applying the shaping (X,Z)
+        public Vector2 _ShapeNoiseOffset;
+        // Displacement of the wind vertically for the shaping
+        public float _VerticalShapeWindDisplacement;
+        // Displacement of the wind vertically for the erosion
+        public float _VerticalErosionWindDisplacement;
+
+        // Vertical shape noise offset
+        public float _VerticalShapeNoiseOffset;
         // Wind speed controllers
         public float _LargeWindSpeed;
         public float _MediumWindSpeed;
         public float _SmallWindSpeed;
-        // Flag that tells us if we should apply the exposure to the sun light color (in case no directional is specified)
-        public int _ExposureSunColor;
 
         // Color * intensity of the directional light
         public Vector4 _SunLightColor;
@@ -85,12 +92,22 @@ namespace UnityEngine.Rendering.HighDefinition
         // Resolution of the history depth buffer
         public Vector2 _HistoryBufferSize;
 
-        // Offset Applied when applying the shaping
-        public Vector2 _ShapeNoiseOffset;
+        // Flag that tells us if we should apply the exposure to the sun light color (in case no directional is specified)
+        public int _ExposureSunColor;
         // Frame index for the accumulation
         public int _AccumulationFrameIndex;
         // Index for which of the 4 local pixels should be evaluated
         public int _SubPixelIndex;
+        // Padding
+        public int _Padding;
+
+        // Fade in parameters
+        public float _FadeInStart;
+        public float _FadeInDistance;
+        // Flag that defines if the clouds should be evaluated at full resolution
+        public int _LowResolutionEvaluation;
+        // Flag that defines if the we should enable integration, checkerboard rendering, etc.
+        public int _EnableIntegration;
 
         // Current ambient probe evaluated for both directions of the vertical axis
         public Vector4 _AmbientProbeTop;
@@ -128,8 +145,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _ErosionFactorCompensation;
         // Fast tonemapping settings
         public int _EnableFastToneMapping;
-        // Padding
-        public float _Padding;
+        // Flag that defines if the current camera is a planar reflection
+        public int _IsPlanarReflection;
 
         [HLSLArray(3 * 4, typeof(Vector4))]
         public fixed float _DistanceBasedWeights[12 * 4];

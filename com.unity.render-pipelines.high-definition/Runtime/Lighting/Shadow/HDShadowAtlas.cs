@@ -57,21 +57,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected List<HDShadowRequest> m_ShadowRequests = new List<HDShadowRequest>();
 
-        public int                  width { get; private set; }
-        public int                  height  { get; private set; }
+        public int width { get; private set; }
+        public int height { get; private set; }
 
-        Material                    m_ClearMaterial;
-        LightingDebugSettings       m_LightingDebugSettings;
-        FilterMode                  m_FilterMode;
-        DepthBits                   m_DepthBufferBits;
-        RenderTextureFormat         m_Format;
-        string                      m_Name;
-        string                      m_MomentName;
-        string                      m_MomentCopyName;
-        string                      m_IntermediateSummedAreaName;
-        string                      m_SummedAreaName;
-        int                         m_AtlasShaderID;
-        HDRenderPipelineRuntimeResources     m_RenderPipelineResources;
+        Material m_ClearMaterial;
+        LightingDebugSettings m_LightingDebugSettings;
+        FilterMode m_FilterMode;
+        DepthBits m_DepthBufferBits;
+        RenderTextureFormat m_Format;
+        string m_Name;
+        string m_MomentName;
+        string m_MomentCopyName;
+        string m_IntermediateSummedAreaName;
+        string m_SummedAreaName;
+        int m_AtlasShaderID;
+        HDRenderPipelineRuntimeResources m_RenderPipelineResources;
 
         // Moment shadow data
         BlurAlgorithm m_BlurAlgorithm;
@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
             { filterMode = m_FilterMode, depthBufferBits = m_DepthBufferBits, isShadowMap = true, name = m_Name };
         }
 
-        public HDShadowAtlas() {}
+        public HDShadowAtlas() { }
 
         public virtual void InitAtlas(HDShadowAtlasInitParameters initParams)
         {
@@ -472,9 +472,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.atlasTexture = builder.ReadTexture(atlasTexture);
                 passData.momentAtlasTexture = builder.WriteTexture(GetOutputTexture(renderGraph));
                 passData.intermediateSummedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                    { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_IntermediateSummedAreaName, enableRandomWrite = true, clearBuffer = true, clearColor = Color.black }));
+                { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_IntermediateSummedAreaName, enableRandomWrite = true, clearBuffer = true, clearColor = Color.black }));
                 passData.summedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                    { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_SummedAreaName, enableRandomWrite = true, clearColor = Color.black }));
+                { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_SummedAreaName, enableRandomWrite = true, clearColor = Color.black }));
 
                 builder.SetRenderFunc(
                     (IMBlurMomentPassData data, RenderGraphContext ctx) =>

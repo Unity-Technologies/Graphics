@@ -63,17 +63,29 @@ EditorBuildSettings:
     path: Assets/Scenes/108_Emissive_Quality_Exposure_15.unity
     guid: 17802fede7f11db4bb4ec0c698f4a943
   - enabled: 1
-    path: Assets/Scenes/109_ReflectionFallbackBoth.unity
+    path: Assets/Scenes/Reflection_RayMiss_Fallback/109_Reflection_RayMiss_FallbackBoth.unity
     guid: 7dd9ef30d1f9f704a9dbcc3e68cc4475
   - enabled: 1
-    path: Assets/Scenes/109_ReflectionFallbackNone.unity
+    path: Assets/Scenes/Reflection_RayMiss_Fallback/109_Reflection_RayMiss_FallbackNone.unity
     guid: 05a8727ee9005474faced212351902f4
   - enabled: 1
-    path: Assets/Scenes/109_ReflectionFallbackRefl.unity
+    path: Assets/Scenes/Reflection_RayMiss_Fallback/109_Reflection_RayMiss_FallbackProbe.unity
     guid: fa361ef20ae4ea941870b11ab5834255
   - enabled: 1
-    path: Assets/Scenes/109_ReflectionFallbackSky.unity
+    path: Assets/Scenes/Reflection_RayMiss_Fallback/109_Reflection_RayMiss_FallbackSky.unity
     guid: 826118918d11f6a4c8900c5d29a4c6b4
+  - enabled: 1
+    path: Assets/Scenes/Reflection_LastBounce_Fallback/110_Reflection_LastBounce_FallbackBoth.unity
+    guid: 180c7b3e9c4813f44b39ee597770b6e8
+  - enabled: 1
+    path: Assets/Scenes/Reflection_LastBounce_Fallback/110_Reflection_LastBounce_FallbackNone.unity
+    guid: c7d4b30f1f058474186ae254f529e861
+  - enabled: 1
+    path: Assets/Scenes/Reflection_LastBounce_Fallback/110_Reflection_LastBounce_FallbackProbe.unity
+    guid: 90d71a57a4b2fae43bfa1ac0bec6ce54
+  - enabled: 1
+    path: Assets/Scenes/Reflection_LastBounce_Fallback/110_Reflection_LastBounce_FallbackSky.unity
+    guid: 5c56a3e53ee350a4dad439f373d87b59
   - enabled: 1
     path: Assets/Scenes/201_LargeAmbientOcclusion.unity
     guid: 41a04a0db6c8e4e4eb54296e4521c3e5
@@ -119,6 +131,30 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/310_GlobalIlluminationHybridHalfRes.unity
     guid: 0f27d8beeae29414bb547dd3447e9767
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_RayMiss_Fallback/311_GlobalIllumination_RayMiss_FallbackBoth.unity
+    guid: f276d4cfd8f87134aa5844076d660c74
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_RayMiss_Fallback/311_GlobalIllumination_RayMiss_FallbackNone.unity
+    guid: eae4b94b01182af4e8664a5080a9349a
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_RayMiss_Fallback/311_GlobalIllumination_RayMiss_FallbackProbe.unity
+    guid: 666751c5a58dff04a90a2fdb4d8b4980
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_RayMiss_Fallback/311_GlobalIllumination_RayMiss_FallbackSky.unity
+    guid: a8bdb910c10e84b40aa70ebb30be85e5
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_LastBounce_Fallback/312_GlobalIllumination_LastBounce_FallbackBoth.unity
+    guid: 8d7899854dadd944e808fa7275489d1b
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_LastBounce_Fallback/312_GlobalIllumination_LastBounce_FallbackNone.unity
+    guid: ea59d2ffbfa6ae44184cb3c419551cf1
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_LastBounce_Fallback/312_GlobalIllumination_LastBounce_FallbackProbe.unity
+    guid: 5c9d14f073d4f914cb8f32c841b9a1ee
+  - enabled: 1
+    path: Assets/Scenes/GlobalIllumination_LastBounce_Fallback/312_GlobalIllumination_LastBounce_FallbackSky.unity
+    guid: 827c090b62971674ba95418bc420df4f
   - enabled: 1
     path: Assets/Scenes/406_RayTracedShadows.unity
     guid: 4aaf485f4ac39ff4e9fd997caff44abe

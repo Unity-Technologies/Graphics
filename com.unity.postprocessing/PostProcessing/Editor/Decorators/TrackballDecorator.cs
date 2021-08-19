@@ -72,11 +72,11 @@ namespace UnityEditor.Rendering.PostProcessing
                     s_Material = new Material(Shader.Find("Hidden/PostProcessing/Editor/Trackball")) { hideFlags = HideFlags.HideAndDontSave };
 
                 // Wheel texture
-            #if UNITY_2018_1_OR_NEWER
+#if UNITY_2018_1_OR_NEWER
                 const RenderTextureReadWrite kReadWrite = RenderTextureReadWrite.sRGB;
-            #else
+#else
                 const RenderTextureReadWrite kReadWrite = RenderTextureReadWrite.Linear;
-            #endif
+#endif
 
                 var oldRT = RenderTexture.active;
                 var rt = RenderTexture.GetTemporary((int)(size * scale), (int)(size * scale), 0, RenderTextureFormat.ARGB32, kReadWrite);
@@ -118,11 +118,14 @@ namespace UnityEditor.Rendering.PostProcessing
 
             switch (attr.mode)
             {
-                case TrackballAttribute.Mode.Lift: displayValue = ColorUtilities.ColorToLift(value);
+                case TrackballAttribute.Mode.Lift:
+                    displayValue = ColorUtilities.ColorToLift(value);
                     break;
-                case TrackballAttribute.Mode.Gamma: displayValue = ColorUtilities.ColorToInverseGamma(value);
+                case TrackballAttribute.Mode.Gamma:
+                    displayValue = ColorUtilities.ColorToInverseGamma(value);
                     break;
-                case TrackballAttribute.Mode.Gain: displayValue = ColorUtilities.ColorToGain(value);
+                case TrackballAttribute.Mode.Gain:
+                    displayValue = ColorUtilities.ColorToGain(value);
                     break;
             }
 

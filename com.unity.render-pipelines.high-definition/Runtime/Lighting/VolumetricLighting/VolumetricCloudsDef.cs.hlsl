@@ -17,10 +17,13 @@ CBUFFER_START(ShaderVariablesClouds)
     float4 _CloudMapTiling;
     float2 _WindDirection;
     float2 _WindVector;
+    float2 _ShapeNoiseOffset;
+    float _VerticalShapeWindDisplacement;
+    float _VerticalErosionWindDisplacement;
+    float _VerticalShapeNoiseOffset;
     float _LargeWindSpeed;
     float _MediumWindSpeed;
     float _SmallWindSpeed;
-    int _ExposureSunColor;
     float4 _SunLightColor;
     float4 _SunDirection;
     int _PhysicallyBasedSun;
@@ -41,9 +44,14 @@ CBUFFER_START(ShaderVariablesClouds)
     float4 _TraceScreenSize;
     float2 _HistoryViewportSize;
     float2 _HistoryBufferSize;
-    float2 _ShapeNoiseOffset;
+    int _ExposureSunColor;
     int _AccumulationFrameIndex;
     int _SubPixelIndex;
+    int Padding0;
+    float _FadeInStart;
+    float _FadeInDistance;
+    int _LowResolutionEvaluation;
+    int _EnableIntegration;
     float4 _AmbientProbeTop;
     float4 _AmbientProbeBottom;
     float4 _SunRight;
@@ -60,7 +68,7 @@ CBUFFER_START(ShaderVariablesClouds)
     float _AltitudeDistortion;
     float _ErosionFactorCompensation;
     int _EnableFastToneMapping;
-    float _Padding;
+    int _IsPlanarReflection;
     float4 _DistanceBasedWeights[12];
 CBUFFER_END
 

@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph
                     AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
                     AddSlot(new DynamicVectorMaterialSlot(1, "On", "On", SlotType.Input, Vector4.zero));
                     AddSlot(new DynamicVectorMaterialSlot(2, "Off", "Off", SlotType.Input, Vector4.zero));
-                    RemoveSlotsNameNotMatching(new int[] {0, 1, 2});
+                    RemoveSlotsNameNotMatching(new int[] { 0, 1, 2 });
                     break;
                 }
                 case KeywordType.Enum:
