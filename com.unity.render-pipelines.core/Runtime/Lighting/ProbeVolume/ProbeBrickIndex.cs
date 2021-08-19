@@ -200,7 +200,7 @@ namespace UnityEngine.Experimental.Rendering
             return (index & ~(mask << shift)) | ((size & mask) << shift);
         }
 
-        internal bool AssignIndexChunksToCell(ProbeReferenceVolume.Cell cell, int bricksCount, ref CellIndexUpdateInfo cellUpdateInfo)
+        internal bool AssignIndexChunksToCell(int bricksCount, ref CellIndexUpdateInfo cellUpdateInfo)
         {
             // We need to better handle the case where the chunks are full, this is where streaming will need to come into place swapping in/out
             // Also the current way to find an empty spot might be sub-optimal, when streaming is in place it'd be nice to have this more efficient

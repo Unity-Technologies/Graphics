@@ -236,16 +236,17 @@ namespace UnityEngine.Experimental.Rendering
 
         void CreateInstancedProbes()
         {
-            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
             {
+                var cell = cellInfo.cell;
+
                 if (cell.sh == null || cell.sh.Length == 0)
                     continue;
 
                 float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].subdivisionLevel;
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
                 List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
-                CellChunkInfo chunks;
-                m_ChunkInfo.TryGetValue(cell.index, out chunks);
+                var chunks = cellInfo.chunkList;
 
                 Vector4[] texels = new Vector4[kProbesPerBatch];
                 float[] validity = new float[kProbesPerBatch];
@@ -262,7 +263,7 @@ namespace UnityEngine.Experimental.Rendering
                     var brickSize = cell.bricks[i / 64].subdivisionLevel;
 
                     int chunkIndex = i / m_Pool.GetChunkSizeInProbeCount();
-                    var chunk = chunks.chunks[chunkIndex];
+                    var chunk = chunks[chunkIndex];
                     int indexInChunk = i % m_Pool.GetChunkSizeInProbeCount();
                     int brickIdx = indexInChunk / 64;
                     int indexInBrick = indexInChunk % 64;

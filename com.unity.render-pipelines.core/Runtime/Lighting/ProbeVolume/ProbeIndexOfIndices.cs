@@ -97,7 +97,7 @@ namespace UnityEngine.Experimental.Rendering
             return GetFlatIndex(normalizedPos);
         }
 
-        internal void AddCell(int cellFlatIdx, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
+        internal void UpdateCell(int cellFlatIdx, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
         {
             int minSubdivCellSize = ProbeReferenceVolume.CellSize(cellUpdateInfo.minSubdivInCell);
             IndexMetaData metaData = new IndexMetaData();

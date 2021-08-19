@@ -1121,6 +1121,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 
+            ProbeReferenceVolume.instance.Update();
+
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))

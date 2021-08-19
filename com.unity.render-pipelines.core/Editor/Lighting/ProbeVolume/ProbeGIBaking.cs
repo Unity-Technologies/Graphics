@@ -283,8 +283,9 @@ namespace UnityEngine.Experimental.Rendering
 
             var dilationSettings = m_BakingReferenceVolumeAuthoring.GetDilationSettings();
 
-            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
             {
+                var cell = cellInfo.cell;
                 for (int i = 0; i < cell.validity.Length; ++i)
                 {
                     if (dilationSettings.dilationDistance > 0.0f && cell.validity[i] > dilationSettings.dilationValidityThreshold)
@@ -353,8 +354,9 @@ namespace UnityEngine.Experimental.Rendering
                     // Dilate all cells
                     List<ProbeReferenceVolume.Cell> dilatedCells = new List<ProbeReferenceVolume.Cell>(ProbeReferenceVolume.instance.cells.Values.Count);
 
-                    foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                    foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
                     {
+                        var cell = cellInfo.cell;
                         PerformDilation(cell, dilationSettings);
                         dilatedCells.Add(cell);
                     }
@@ -513,7 +515,7 @@ namespace UnityEngine.Experimental.Rendering
                     cell.validity[i] = validity[j];
                 }
 
-                probeRefVolume.cells[cell.index] = cell;
+                probeRefVolume.AddCell(cell);
                 UnityEngine.Profiling.Profiler.EndSample();
             }
 
@@ -536,8 +538,9 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // Put cells into the respective assets
-            foreach (var cell in probeRefVolume.cells.Values)
+            foreach (var cellInfo in probeRefVolume.cells.Values)
             {
+                var cell = cellInfo.cell;
                 foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
                 {
                     // This scene has a reference volume authoring component in it?
