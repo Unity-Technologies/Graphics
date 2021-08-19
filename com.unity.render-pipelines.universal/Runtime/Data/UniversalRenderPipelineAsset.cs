@@ -262,6 +262,9 @@ namespace UnityEngine.Rendering.Universal
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
 
+            // Only enable for new URP assets by default
+            instance.m_ConservativeEnclosingSphere = true;
+
             return instance;
         }
 
