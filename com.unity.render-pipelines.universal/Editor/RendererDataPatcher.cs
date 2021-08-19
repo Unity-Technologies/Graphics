@@ -4,8 +4,11 @@
  namespace UnityEditor.Rendering.Universal
  {
      [InitializeOnLoad]
-     class ForwardToUniversalRendererPostprocessor
+     class RendererDataPatcher
      {
+
+         #region Universal Renderer Patcher Params
+
          static bool firstTimeUpgrade = true;
          static int editedAssetsCount = 0;
          static string fwdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("f971995892640ec4f807ef396269e91e"); //ForwardRendererData.cs
@@ -13,45 +16,19 @@
          static string stdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("de640fe3d0db1804a85f9fc8f5cadab6"); //UniversalRendererData.cs
          static Object stdRendererScriptObj;
 
-         static bool UpgradeAsset(Object rendererData, string rendererDataPath)
+         #endregion
+
+         static RendererDataPatcher()
          {
-             if (rendererData == null) return false;
-
-             //Gets the script file objects
-             if (!fwdRendererScriptObj) fwdRendererScriptObj = AssetDatabase.LoadAssetAtPath(fwdRendererScriptFilePath, typeof(Object));
-             if (!stdRendererScriptObj) stdRendererScriptObj = AssetDatabase.LoadAssetAtPath(stdRendererScriptFilePath, typeof(Object));
-
-             //Double check to see if it's using ForwardRendererData
-             SerializedObject so = new SerializedObject(rendererData);
-             SerializedProperty scriptProperty = so.FindProperty("m_Script");
-             Debug.LogWarning($"upgraded renderer {rendererData.name} at {rendererDataPath}");
-
-             if (scriptProperty == null || scriptProperty.objectReferenceValue != fwdRendererScriptObj) return false;
-             //Change the script to use UniversalRendererData
-             so.Update();
-             scriptProperty.objectReferenceValue = stdRendererScriptObj;
-             so.ApplyModifiedProperties();
-
-             //Re-import asset
-             //This prevents the "Importer(NativeFormatImporter) generated inconsistent result" warning
-             AssetDatabase.ImportAsset(rendererDataPath);
-
-             editedAssetsCount++;
-             return true;
+             UniversalRendererPatcher();
          }
 
-         static void IterateSubAssets(string assetPath)
-         {
-             //To prevent infinite importing loop caused by corrupted assets which are created from old bugs e.g. case 1214779
-             Object[] subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(assetPath);
-             if (subAssets.Any(t => UpgradeAsset(t, assetPath))) return;
+         #region Universal Renderer Patcher
 
-             //Upgrade the main Asset
-             Object rendererData = AssetDatabase.LoadAssetAtPath(assetPath, typeof(Object));
-             UpgradeAsset(rendererData, assetPath);
-         }
-
-         static ForwardToUniversalRendererPostprocessor()
+         /// <summary>
+         /// Patcher for fixing UniversalRendererData Scriptable Objects that were made in Unity 2021.2 Alpha & Beta
+         /// </summary>
+         static void UniversalRendererPatcher()
          {
              string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData glob:\"**/*.asset\"", null);
 
@@ -107,6 +84,47 @@
                  //Reset counter and register state
                  editedAssetsCount = 0;
              };
-        }
+         }
+
+         static bool UpgradeAsset(Object rendererData, string rendererDataPath)
+         {
+             if (rendererData == null) return false;
+
+             //Gets the script file objects
+             if (!fwdRendererScriptObj) fwdRendererScriptObj = AssetDatabase.LoadAssetAtPath(fwdRendererScriptFilePath, typeof(Object));
+             if (!stdRendererScriptObj) stdRendererScriptObj = AssetDatabase.LoadAssetAtPath(stdRendererScriptFilePath, typeof(Object));
+
+             //Double check to see if it's using ForwardRendererData
+             SerializedObject so = new SerializedObject(rendererData);
+             SerializedProperty scriptProperty = so.FindProperty("m_Script");
+             Debug.LogWarning($"upgraded renderer {rendererData.name} at {rendererDataPath}");
+
+             if (scriptProperty == null || scriptProperty.objectReferenceValue != fwdRendererScriptObj) return false;
+             //Change the script to use UniversalRendererData
+             so.Update();
+             scriptProperty.objectReferenceValue = stdRendererScriptObj;
+             so.ApplyModifiedProperties();
+
+             //Re-import asset
+             //This prevents the "Importer(NativeFormatImporter) generated inconsistent result" warning
+             AssetDatabase.ImportAsset(rendererDataPath);
+
+             editedAssetsCount++;
+             return true;
+         }
+
+         static void IterateSubAssets(string assetPath)
+         {
+             //To prevent infinite importing loop caused by corrupted assets which are created from old bugs e.g. case 1214779
+             Object[] subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(assetPath);
+             if (subAssets.Any(t => UpgradeAsset(t, assetPath))) return;
+
+             //Upgrade the main Asset
+             Object rendererData = AssetDatabase.LoadAssetAtPath(assetPath, typeof(Object));
+             UpgradeAsset(rendererData, assetPath);
+         }
+
+         #endregion
+
      }
  }
