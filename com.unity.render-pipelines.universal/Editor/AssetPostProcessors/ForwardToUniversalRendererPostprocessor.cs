@@ -33,6 +33,7 @@
              so.Update();
              scriptProperty.objectReferenceValue = stdRendererScriptObj;
              so.ApplyModifiedProperties();
+             EditorUtility.SetDirty(rendererData);
 
              //Re-import asset
              //This prevents the "Importer(NativeFormatImporter) generated inconsistent result" warning
@@ -88,12 +89,13 @@
                      soAsset.Update();
 
                      if (scriptPropertyAsset == null) continue;
-                     
+
                      bool tmp = scriptPropertyAsset.boolValue;
                      scriptPropertyAsset.boolValue = !scriptPropertyAsset.boolValue; //make the changes
                      soAsset.ApplyModifiedProperties();
                      scriptPropertyAsset.boolValue = tmp; //revert the changes
                      soAsset.ApplyModifiedProperties();
+                     EditorUtility.SetDirty(pipelineAsset);
                  }
                           //Reset counter and register state
                  editedAssetsCount = 0;
