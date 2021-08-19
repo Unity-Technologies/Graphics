@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
+using UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
@@ -43,6 +44,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
     public class GraphPreviewStateComponent : ViewStateComponent<GraphPreviewStateComponent.PreviewStateUpdater>
     {
         Dictionary<string, PreviewRenderData> KeyToPreviewDataMap = new ();
+
+        MaterialPropertyBlock m_PreviewMaterialPropertyBlock = new ();
 
         ShaderGraphModel m_ShaderGraphModel;
 
@@ -104,28 +107,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             var nodeInputPorts = m_ShaderGraphModel.GetInputPortsOnNode(nodeModel);
             foreach (var inputPort in nodeInputPorts)
             {
-                var portFields = inputPort.GetFields();
-                foreach (var portField in portFields)
-                {
-                    var portValue = InstantiatePreviewProperty(portField);
-                }
+                var portValue = new PortPreviewHandler(inputPort);
+                portValue.SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock);
+                // TODO: Store for easier access and updating in future
             }
-        }
-
-        object InstantiatePreviewProperty(IFieldReader fieldReader)
-        {
-            // TODO: How to get the actual value of a port/field?
-            // How to get the actual type of a field, is type a sub-field maybe? Speak to Esme
-            // Also, what are the relevance of sub-fields?s
-
-            // Are we meant to be communicating with GTF type handles or direct types at this level?
-            // (maybe using GTF type handles which would be retrieved through some sort of registry typing abstraction)
-
-            // Think about how we will store data regarding node preview state etc. as part of GraphStorage
-            // Creating own stuct to match the PreviewRenderData, can mark structs/classes Serializable
-
-
-            return null;
         }
 
         public void OnElementWithPreviewRemoved(string elementGuid)
