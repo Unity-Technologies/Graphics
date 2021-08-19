@@ -71,7 +71,8 @@ class Execution_log():
                 'tags': ['non-test'],
                 'conclusion': 'failure',
                 'redirect': [
-                    'utr_log'
+                    'utr_log',
+                    'unity_log'
                 ]
             },
             # Order: this matches everything and must therefore be the last item in the list

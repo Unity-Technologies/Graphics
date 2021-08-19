@@ -8,6 +8,7 @@ import glob
 import re
 from utils.execution_log import Execution_log
 from utils.utr_log import UTR_log
+from utils.unity_log import Unity_log
 from utils.shared_utils import *
 
 '''
@@ -68,12 +69,18 @@ def recursively_match_patterns(logs, cmd, patterns, failure_string):
         logs[cmd]['summary'].append(match.group(0) if pattern['tags'][0] != 'unknown' else 'Unknown failure: check logs for more details. ')
 
         if pattern.get('redirect'):
+            test_results_match = re.findall(r'(--artifacts_path=)(.+)(test-results)', cmd)[0]
+            test_results_path = test_results_match[1] + test_results_match[2]
             for redirect in pattern['redirect']:
+
                 if redirect == 'utr_log':
-                    test_results_match = re.findall(r'(--artifacts_path=)(.+)(test-results)', cmd)[0]
-                    test_results_path = test_results_match[1] + test_results_match[2]
                     df = UTR_log(test_results_path)
                     recursively_match_patterns(logs, cmd, df.get_patterns(), df.read_log())
+
+                elif redirect == 'unity_log':
+                    df = Unity_log(test_results_path)
+                    recursively_match_patterns(logs, cmd, df.get_patterns(), df.read_log())
+
                 else:
                     print('! Invalid redirect: ', redirect)
 
