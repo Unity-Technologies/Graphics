@@ -302,7 +302,7 @@ namespace UnityEditor.Rendering
 
             foreach (var gameObject in gameObjects)
             {
-                var clips = AnimationUtility.GetAnimationClips(gameObject).Select(clip =>  (IAnimationClip)(AnimationClipProxy)clip);
+                var clips = AnimationUtility.GetAnimationClips(gameObject).Select(clip => (IAnimationClip)(AnimationClipProxy)clip);
 
                 GatherClipsUsageForAnimatedHierarchy(
                     gameObject.transform, clips, clipData, allUpgradePathsToNewShaders, upgradePathsUsedByMaterials
@@ -413,7 +413,7 @@ namespace UnityEditor.Rendering
 
             // release UnityObject references
             s_RendererBuffer.Clear();
-            foreach (var(_, materials) in s_RenderersByPath.Values)
+            foreach (var (_, materials) in s_RenderersByPath.Values)
                 ListPool<IMaterial>.Release(materials);
             s_RenderersByPath.Clear();
         }

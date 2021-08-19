@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             label = label ?? propertyInfo.Name;
 
             if (!string.IsNullOrEmpty(label))
-                Add(new Label {text = label});
+                Add(new Label { text = label });
 
             var value = (Object)m_PropertyInfo.GetValue(m_Node, null);
             var objectField = new ObjectField { objectType = propertyInfo.PropertyType, value = value };
