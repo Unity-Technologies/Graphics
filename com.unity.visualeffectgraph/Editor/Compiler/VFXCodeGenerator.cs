@@ -366,6 +366,8 @@ namespace UnityEditor.VFX
         {
             var parameterBuffer = new VFXShaderWriter();
             parameterBuffer.WriteCBuffer(contextData.uniformMapper, "parameters");
+            parameterBuffer.WriteLine();
+            parameterBuffer.WriteTexture(contextData.uniformMapper);
             parameterBufferContent = parameterBuffer.ToString();
         }
 
