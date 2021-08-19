@@ -115,6 +115,29 @@ namespace UnityEditor.ShaderFoundry
             inputs.Add(st);
         }
 
+        internal static void BuildCommonTypes(ShaderContainer container)
+        {
+            var unityTextureBuilder = new ShaderType.StructBuilder("UnityTexture2D");
+
+            var texBuilder = new StructField.Builder("tex", container._Texture2D);
+            texBuilder.AddAttribute(new ShaderAttribute.Builder(CommonShaderAttributes.MaterialProperty).Param("declaration", "#(\"#\", 2D)"));
+            texBuilder.AddAttribute(new ShaderAttribute.Builder(CommonShaderAttributes.UniformDeclaration).Param("name", "#").Param("declaration", "TEXTURE2D(#)"));
+            unityTextureBuilder.AddField(texBuilder);
+
+            var samplerBuilder = new StructField.Builder("samplerstate", container._SamplerState);
+            samplerBuilder.AddAttribute(new ShaderAttribute.Builder(CommonShaderAttributes.UniformDeclaration).Param("name", "sampler_#").Param("declaration", "SAMPLER(sampler_#)"));
+            unityTextureBuilder.AddField(samplerBuilder);
+
+            var texelSizeBuilder = new StructField.Builder("texelSize", container._float4);
+            texelSizeBuilder.AddAttribute(new ShaderAttribute.Builder(CommonShaderAttributes.UniformDeclaration).Param("name", "#_TexelSize"));
+            unityTextureBuilder.AddField(texelSizeBuilder);
+
+            var scaleTranslateBuilder = new StructField.Builder("scaleTranslate", container._float4);
+            scaleTranslateBuilder.AddAttribute(new ShaderAttribute.Builder(CommonShaderAttributes.UniformDeclaration).Param("name", "#_ST"));
+            unityTextureBuilder.AddField(scaleTranslateBuilder);
+            var unityTexture2D = unityTextureBuilder.Build(container);
+        }
+
         // Cheat and do a hard-coded lookup of the UniversalTarget for testing.
         // Shader Graph should build targets however it wants to.
         static internal Target GetTarget()

@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderFoundry
             var target = SimpleSampleBuilder.GetTarget();
             var container = new ShaderContainer();
             var shaderBuilder = new ShaderBuilder();
+            SimpleSampleBuilder.BuildCommonTypes(container);
             SimpleSampleBuilder.Build(container, target, ShaderName, BuildSample, shaderBuilder);
 
             var code = shaderBuilder.ToString();
@@ -196,7 +197,15 @@ namespace UnityEditor.ShaderFoundry
 
             // Make a texture for albedo color. Creating a texture is complicated so it's delegated to a helper.
             string albedoTexRefName = "_AlbedoTex";
-            SimpleSampleBuilder.BuildTexture2D(container, albedoTexRefName, "AlbedoTex", inputVariables, propertyVariables);
+            var albedoTexBuilder = new BlockVariable.Builder();
+            albedoTexBuilder.ReferenceName = albedoTexRefName;
+            albedoTexBuilder.DisplayName = "Color";
+            albedoTexBuilder.Type = container.GetType("UnityTexture2D");
+            albedoTexBuilder.AddAttribute(new ShaderAttribute.Builder(CommonShaderAttributes.Global).Build(container));
+            albedoTexBuilder.AddAttribute(new ShaderAttribute.Builder(CommonShaderAttributes.Property).Build(container));
+            albedoTexBuilder.AddAttribute(new ShaderAttribute.Builder(CommonShaderAttributes.DefaultValue).Param("tex", "\"white\" {}").Build(container));
+            var albedoTex = albedoTexBuilder.Build(container);
+            inputVariables.Add(albedoTex);
 
             // Create an output for a float3 color.
             var colorOutBuilder = new BlockVariable.Builder();
@@ -212,9 +221,9 @@ namespace UnityEditor.ShaderFoundry
             var entryPointFnBuilder = new ShaderFunction.Builder("SurfaceFn", outputType);
             entryPointFnBuilder.AddInput(inputType, "inputs");
             entryPointFnBuilder.AddLine($"{outputType.Name} outputs;");
-            entryPointFnBuilder.AddLine($"UnityTexture2D {albedoTexRefName}Tex = UnityBuildTexture2DStruct({albedoTexRefName});");
-            entryPointFnBuilder.AddLine($"float4 {albedoTexRefName}Sample = SAMPLE_TEXTURE2D({albedoTexRefName}Tex.tex, {albedoTexRefName}Tex.samplerstate, {albedoTexRefName}Tex.GetTransformedUV(inputs.{uvInput.ReferenceName}));");
-            entryPointFnBuilder.AddLine($"outputs.{colorOut.ReferenceName} = inputs.{colorInput.ReferenceName} * {albedoTexRefName}Sample.xyz;");
+            entryPointFnBuilder.AddLine($"float2 uv = inputs.{albedoTex.ReferenceName}.GetTransformedUV(inputs.{uvInput.ReferenceName}.xy);");
+            entryPointFnBuilder.AddLine($"float4 {albedoTexRefName}Sample =  inputs.{albedoTex.ReferenceName}.Sample(inputs.{albedoTex.ReferenceName}.samplerstate, uv);");
+            entryPointFnBuilder.AddLine($"outputs.{colorOut.ReferenceName} = inputs.{colorInput.ReferenceName}.xyz * {albedoTexRefName}Sample.xyz;");
             entryPointFnBuilder.AddLine($"return outputs;");
             var entryPointFn = entryPointFnBuilder.Build(container);
 
