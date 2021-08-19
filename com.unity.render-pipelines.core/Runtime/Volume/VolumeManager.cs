@@ -499,11 +499,11 @@ namespace UnityEngine.Rendering
         /// Constructs a scope in which a Camera filters a Volume.
         /// </summary>
         /// <param name="unused">Unused parameter.</param>
-        public VolumeIsolationScope(bool unused) {}
+        public VolumeIsolationScope(bool unused) { }
 
         /// <summary>
         /// Stops the Camera from filtering a Volume.
         /// </summary>
-        void IDisposable.Dispose() {}
+        void IDisposable.Dispose() { }
     }
 }

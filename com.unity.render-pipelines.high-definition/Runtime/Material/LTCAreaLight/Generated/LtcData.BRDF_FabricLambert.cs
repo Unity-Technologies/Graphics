@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         //    • roughness = ( <roughnessIndex> / 63 )^2  (the table is indexed by perceptual roughness)
         //    • cosTheta = 1 - ( <thetaIndex> / 63 )^2
         //
-        internal static double[,]    s_LtcMatrixData_BRDF_FabricLambert = new double[64 * 64, 3 * 3]
+        internal static double[,] s_LtcMatrixData_BRDF_FabricLambert = new double[64 * 64, 3 * 3]
         {
             // Cos (theta) = 1
             { 1, 0, 0, 0, 1, 0, 0, 0, 1.0 },                                                                                        // alpha = 0.001

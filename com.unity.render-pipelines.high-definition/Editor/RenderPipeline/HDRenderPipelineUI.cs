@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new(Expandable.Rendering, "HDRP");
-        static readonly ExpandedState<ExpandableShadows, HDRenderPipelineAsset> k_LightsExpandedState = new(0, "HDRP:Shadows");
+        static readonly ExpandedState<ExpandableShadows, HDRenderPipelineAsset> k_LightsExpandedState = new(0, "HDRP");
 
         static readonly Dictionary<GUIContent, ExpandedState<ExpandableQualities, HDRenderPipelineAsset>>
         k_QualityExpandedStates = new();
@@ -227,7 +227,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else
                 {
-                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost {estimatedVMemCost/(1000 * 1000)} MB.", MessageType.Info, wide: true);
+                    EditorGUILayout.HelpBox($"Estimated GPU Memory cost {estimatedVMemCost / (1000 * 1000)} MB.", MessageType.Info, wide: true);
                 }
             }
             else

@@ -4,15 +4,15 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     internal class SkyUpdateContext
     {
-        SkySettings         m_SkySettings;
-        public SkyRenderer  skyRenderer { get; private set; }
-        public int          cachedSkyRenderingContextId = -1;
+        SkySettings m_SkySettings;
+        public SkyRenderer skyRenderer { get; private set; }
+        public int cachedSkyRenderingContextId = -1;
 
-        CloudSettings           m_CloudSettings;
-        public CloudRenderer    cloudRenderer { get; private set; }
+        CloudSettings m_CloudSettings;
+        public CloudRenderer cloudRenderer { get; private set; }
 
-        public int          skyParametersHash = -1;
-        public float        currentUpdateTime = 0.0f;
+        public int skyParametersHash = -1;
+        public float currentUpdateTime = 0.0f;
 
         public bool settingsHadBigDifferenceWithPrev { get; private set; }
 

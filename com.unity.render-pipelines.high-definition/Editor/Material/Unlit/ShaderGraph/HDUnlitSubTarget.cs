@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_UnlitData = value;
         }
 
-        public static FieldDescriptor EnableShadowMatte =        new FieldDescriptor(string.Empty, "EnableShadowMatte", "_ENABLE_SHADOW_MATTE");
+        public static FieldDescriptor EnableShadowMatte = new FieldDescriptor(string.Empty, "EnableShadowMatte", "_ENABLE_SHADOW_MATTE");
 
         protected override SubShaderDescriptor GetSubShaderDescriptor()
         {

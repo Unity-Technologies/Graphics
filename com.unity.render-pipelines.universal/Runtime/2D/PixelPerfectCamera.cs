@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #endif
 
         public CropFrame cropFrame { get { return m_CropFrame; } set { m_CropFrame = value; } }
-        public GridSnapping gridSnapping { get { return m_GridSnapping;} set { m_GridSnapping = value; } }
+        public GridSnapping gridSnapping { get { return m_GridSnapping; } set { m_GridSnapping = value; } }
 
         public float orthographicSize { get { return m_Internal.orthoSize; } }
 
@@ -234,9 +234,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return m_Internal.CorrectCinemachineOrthoSize(targetOrthoSize);
         }
 
-        [SerializeField] int    m_AssetsPPU         = 100;
-        [SerializeField] int    m_RefResolutionX    = 320;
-        [SerializeField] int    m_RefResolutionY    = 180;
+        [SerializeField] int m_AssetsPPU = 100;
+        [SerializeField] int m_RefResolutionX = 320;
+        [SerializeField] int m_RefResolutionY = 180;
 
         [SerializeField] CropFrame m_CropFrame;
         [SerializeField] GridSnapping m_GridSnapping;

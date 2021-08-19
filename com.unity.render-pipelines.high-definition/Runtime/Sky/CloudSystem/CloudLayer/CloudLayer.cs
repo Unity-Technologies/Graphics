@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">Enum parameter.</param>
         /// <param name="overrideState">Initial override state.</param>
         public CloudLayerEnumParameter(T value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
