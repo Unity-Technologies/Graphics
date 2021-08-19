@@ -54,9 +54,12 @@ namespace UnityEditor.VFX.UI
         private void OnSaveAs()
         {
             var originalPath = AssetDatabase.GetAssetPath(m_VFXView.controller.model);
-            var extension = Path.GetExtension(originalPath);
+            var extension = Path.GetExtension(originalPath).Trim('.');
             var newFilePath = EditorUtility.SaveFilePanelInProject("Save VFX Graph As...", Path.GetFileNameWithoutExtension(originalPath), extension, "", Path.GetDirectoryName(originalPath));
-            m_VFXView.SaveAs(newFilePath);
+            if (!string.IsNullOrEmpty(newFilePath))
+            {
+                m_VFXView.SaveAs(newFilePath);
+            }
 
             ClosePopup();
         }
