@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
             invertFade = densityParams.FindPropertyRelative("invertFade");
 
             distanceFadeStart = densityParams.FindPropertyRelative("distanceFadeStart");
-            distanceFadeEnd   = densityParams.FindPropertyRelative("distanceFadeEnd");
+            distanceFadeEnd = densityParams.FindPropertyRelative("distanceFadeEnd");
 
             falloffMode = densityParams.FindPropertyRelative(nameof(LocalVolumetricFogArtistParameters.falloffMode));
         }

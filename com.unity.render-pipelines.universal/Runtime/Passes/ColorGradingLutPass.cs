@@ -106,19 +106,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                     shadowsMidtonesHighlights.highlightsEnd.value
                 );
 
-                var(shadows, midtones, highlights) = ColorUtils.PrepareShadowsMidtonesHighlights(
+                var (shadows, midtones, highlights) = ColorUtils.PrepareShadowsMidtonesHighlights(
                     shadowsMidtonesHighlights.shadows.value,
                     shadowsMidtonesHighlights.midtones.value,
                     shadowsMidtonesHighlights.highlights.value
                 );
 
-                var(lift, gamma, gain) = ColorUtils.PrepareLiftGammaGain(
+                var (lift, gamma, gain) = ColorUtils.PrepareLiftGammaGain(
                     liftGammaGain.lift.value,
                     liftGammaGain.gamma.value,
                     liftGammaGain.gain.value
                 );
 
-                var(splitShadows, splitHighlights) = ColorUtils.PrepareSplitToning(
+                var (splitShadows, splitHighlights) = ColorUtils.PrepareSplitToning(
                     splitToning.shadows.value,
                     splitToning.highlights.value,
                     splitToning.balance.value
@@ -197,30 +197,30 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Precomputed shader ids to same some CPU cycles (mostly affects mobile)
         static class ShaderConstants
         {
-            public static readonly int _Lut_Params        = Shader.PropertyToID("_Lut_Params");
-            public static readonly int _ColorBalance      = Shader.PropertyToID("_ColorBalance");
-            public static readonly int _ColorFilter       = Shader.PropertyToID("_ColorFilter");
-            public static readonly int _ChannelMixerRed   = Shader.PropertyToID("_ChannelMixerRed");
+            public static readonly int _Lut_Params = Shader.PropertyToID("_Lut_Params");
+            public static readonly int _ColorBalance = Shader.PropertyToID("_ColorBalance");
+            public static readonly int _ColorFilter = Shader.PropertyToID("_ColorFilter");
+            public static readonly int _ChannelMixerRed = Shader.PropertyToID("_ChannelMixerRed");
             public static readonly int _ChannelMixerGreen = Shader.PropertyToID("_ChannelMixerGreen");
-            public static readonly int _ChannelMixerBlue  = Shader.PropertyToID("_ChannelMixerBlue");
-            public static readonly int _HueSatCon         = Shader.PropertyToID("_HueSatCon");
-            public static readonly int _Lift              = Shader.PropertyToID("_Lift");
-            public static readonly int _Gamma             = Shader.PropertyToID("_Gamma");
-            public static readonly int _Gain              = Shader.PropertyToID("_Gain");
-            public static readonly int _Shadows           = Shader.PropertyToID("_Shadows");
-            public static readonly int _Midtones          = Shader.PropertyToID("_Midtones");
-            public static readonly int _Highlights        = Shader.PropertyToID("_Highlights");
-            public static readonly int _ShaHiLimits       = Shader.PropertyToID("_ShaHiLimits");
-            public static readonly int _SplitShadows      = Shader.PropertyToID("_SplitShadows");
-            public static readonly int _SplitHighlights   = Shader.PropertyToID("_SplitHighlights");
-            public static readonly int _CurveMaster       = Shader.PropertyToID("_CurveMaster");
-            public static readonly int _CurveRed          = Shader.PropertyToID("_CurveRed");
-            public static readonly int _CurveGreen        = Shader.PropertyToID("_CurveGreen");
-            public static readonly int _CurveBlue         = Shader.PropertyToID("_CurveBlue");
-            public static readonly int _CurveHueVsHue     = Shader.PropertyToID("_CurveHueVsHue");
-            public static readonly int _CurveHueVsSat     = Shader.PropertyToID("_CurveHueVsSat");
-            public static readonly int _CurveLumVsSat     = Shader.PropertyToID("_CurveLumVsSat");
-            public static readonly int _CurveSatVsSat     = Shader.PropertyToID("_CurveSatVsSat");
+            public static readonly int _ChannelMixerBlue = Shader.PropertyToID("_ChannelMixerBlue");
+            public static readonly int _HueSatCon = Shader.PropertyToID("_HueSatCon");
+            public static readonly int _Lift = Shader.PropertyToID("_Lift");
+            public static readonly int _Gamma = Shader.PropertyToID("_Gamma");
+            public static readonly int _Gain = Shader.PropertyToID("_Gain");
+            public static readonly int _Shadows = Shader.PropertyToID("_Shadows");
+            public static readonly int _Midtones = Shader.PropertyToID("_Midtones");
+            public static readonly int _Highlights = Shader.PropertyToID("_Highlights");
+            public static readonly int _ShaHiLimits = Shader.PropertyToID("_ShaHiLimits");
+            public static readonly int _SplitShadows = Shader.PropertyToID("_SplitShadows");
+            public static readonly int _SplitHighlights = Shader.PropertyToID("_SplitHighlights");
+            public static readonly int _CurveMaster = Shader.PropertyToID("_CurveMaster");
+            public static readonly int _CurveRed = Shader.PropertyToID("_CurveRed");
+            public static readonly int _CurveGreen = Shader.PropertyToID("_CurveGreen");
+            public static readonly int _CurveBlue = Shader.PropertyToID("_CurveBlue");
+            public static readonly int _CurveHueVsHue = Shader.PropertyToID("_CurveHueVsHue");
+            public static readonly int _CurveHueVsSat = Shader.PropertyToID("_CurveHueVsSat");
+            public static readonly int _CurveLumVsSat = Shader.PropertyToID("_CurveLumVsSat");
+            public static readonly int _CurveSatVsSat = Shader.PropertyToID("_CurveSatVsSat");
         }
     }
 }
