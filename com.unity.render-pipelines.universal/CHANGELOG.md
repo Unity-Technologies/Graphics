@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed Post Process Data to bool. When it is no enabled all post processing is stripped from build, when it is enabled you can still override resources there.
 
 ### Fixed
+- Fixed an issue where the 2D Renderer was not rendering depth and stencil in the normal rendering pass [1259874](https://issuetracker.unity3d.com/product/unity/issues/guid/1259874/)
 - Fixed an issue where Transparency Sort Mode value is taken from Graphics Settings instead of 2D Renderer [1310652](https://issuetracker.unity3d.com/issues/transparency-sort-mode-value-is-taken-from-graphics-settings-instead-of-2d-forward-renderer)
 - Fixed an issue where Post Processing doesn't enable when PostProcessData reassigned from the asset selector window.
 - Fixed an issue where the camera renders black screen when Post Processing is enabled in the 2D Renderer and in the Camera Component.
