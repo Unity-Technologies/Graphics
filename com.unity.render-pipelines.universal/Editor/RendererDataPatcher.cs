@@ -12,8 +12,8 @@ namespace UnityEditor.Rendering.Universal
         static int editedAssetsCount = 0;
         static string fwdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("f971995892640ec4f807ef396269e91e");  //ForwardRendererData.cs
         static Object fwdRendererScriptObj;
-        static string stdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("de640fe3d0db1804a85f9fc8f5cadab6");  //UniversalRendererData.cs
-        static Object stdRendererScriptObj;
+        static string universalRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("de640fe3d0db1804a85f9fc8f5cadab6");  //UniversalRendererData.cs
+        static Object universalRendererScriptObj;
 
         #endregion
 
@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.Universal
 
             //Gets the script file objects
             if (!fwdRendererScriptObj) fwdRendererScriptObj = AssetDatabase.LoadAssetAtPath(fwdRendererScriptFilePath, typeof(Object));
-            if (!stdRendererScriptObj) stdRendererScriptObj = AssetDatabase.LoadAssetAtPath(stdRendererScriptFilePath, typeof(Object));
+            if (!universalRendererScriptObj) universalRendererScriptObj = AssetDatabase.LoadAssetAtPath(universalRendererScriptFilePath, typeof(Object));
 
             //Double check to see if it's using ForwardRendererData
             SerializedObject so = new SerializedObject(rendererData);
@@ -101,7 +101,7 @@ namespace UnityEditor.Rendering.Universal
             if (scriptProperty == null || scriptProperty.objectReferenceValue != fwdRendererScriptObj) return false;
             //Change the script to use UniversalRendererData
             so.Update();
-            scriptProperty.objectReferenceValue = stdRendererScriptObj;
+            scriptProperty.objectReferenceValue = universalRendererScriptObj;
             so.ApplyModifiedProperties();
 
             //Re-import asset
