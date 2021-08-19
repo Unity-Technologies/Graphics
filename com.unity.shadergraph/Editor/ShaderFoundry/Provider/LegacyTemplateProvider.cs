@@ -379,10 +379,17 @@ namespace UnityEditor.ShaderFoundry
 
         List<BlockVariable> ExtractFields(IEnumerable<FieldDescriptor> fields)
         {
+            var visitedNames = new HashSet<string>();
+
             var fieldTypes = BuildFieldTypes();
             var results = new List<BlockVariable>();
             foreach (var field in fields)
             {
+                // Don't visit a name twice. This can happen currently due to the vertex attributes and inputs being merged together
+                if (visitedNames.Contains(field.name))
+                    continue;
+                visitedNames.Add(field.name);
+
                 // Some fields have a type set, some don't. Try to look up the type on
                 // the field and if not fallback to checking the lookup map
                 ShaderType fieldType = FindType(field.type);
