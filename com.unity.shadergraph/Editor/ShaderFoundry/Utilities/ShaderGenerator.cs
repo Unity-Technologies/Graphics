@@ -1,27 +1,19 @@
 using System.Collections.Generic;
-using UnityEditor.ShaderFoundry;
 using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
 namespace UnityEditor.ShaderFoundry
 {
-    internal class ShaderDescriptor
-    {
-        internal string name;
-        internal List<TemplateDescriptor> TemplateDescriptors = new List<TemplateDescriptor>();
-        internal string fallbackShader = @"FallBack ""Hidden/Shader Graph/FallbackError""";
-    }
-
     internal class ShaderGenerator
     {
         internal void Generate(ShaderBuilder builder, ShaderContainer container, ShaderDescriptor shaderDesc)
         {
-            builder.AddLine(string.Format(@"Shader ""{0}""", shaderDesc.name));
+            builder.AddLine(string.Format(@"Shader ""{0}""", shaderDesc.Name));
             using (builder.BlockScope())
             {
                 GenerateProperties(builder, container, shaderDesc);
                 GenerateSubShaders(builder, container, shaderDesc);
-                if (!string.IsNullOrEmpty(shaderDesc.fallbackShader))
-                    builder.AddLine(shaderDesc.fallbackShader);
+                if (!string.IsNullOrEmpty(shaderDesc.FallbackShader))
+                    builder.AddLine(shaderDesc.FallbackShader);
             }
         }
 
@@ -56,13 +48,7 @@ namespace UnityEditor.ShaderFoundry
 
                         if (!propertiesMap.ContainsKey(input.ReferenceName))
                         {
-                            var builder = new BlockProperty.Builder();
-                            builder.ReferenceName = input.ReferenceName;
-                            builder.DisplayName = input.DisplayName;
-                            builder.Type = input.Type;
-                            foreach (var attribute in input.Attributes)
-                                builder.AddAttribute(attribute);
-                            var prop = builder.Build(container);
+                            var prop = input.Clone(container);
                             propertiesList.Add(prop);
                             propertiesMap.Add(prop.ReferenceName, prop);
                         }
@@ -103,9 +89,7 @@ namespace UnityEditor.ShaderFoundry
             foreach (var templateDesc in shaderDesc.TemplateDescriptors)
             {
                 var template = templateDesc.Template;
-                var cpDesc = templateDesc.CustomizationPointDescriptors;
                 var linker = template.Linker;
-
                 linker.Link(builder, container, templateDesc);
             }
         }
