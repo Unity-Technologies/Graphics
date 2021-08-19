@@ -331,7 +331,7 @@ namespace UnityEngine.Rendering.Universal
             if (contractionDistance < 0)
                 contractionDistance = 0;
 
-            if (m_ContractionDistance != contractionDistance)
+            //if (m_ContractionDistance != contractionDistance)
             {
                 CalculateContractionDirection();
                 CalculateContractedVertices(contractionDistance);

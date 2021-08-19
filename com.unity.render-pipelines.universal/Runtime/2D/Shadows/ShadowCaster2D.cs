@@ -145,8 +145,6 @@ namespace UnityEngine.Rendering.Universal
 
        private void Awake()
         {
-            m_ShadowShape = new ShadowShape2D();
-
             if (m_ApplyToSortingLayers == null)
                 m_ApplyToSortingLayers = SetDefaultSortingLayers();
 
@@ -209,6 +207,10 @@ namespace UnityEngine.Rendering.Universal
 
         public void Update()
         {
+            if(m_ShadowShape == null)
+                m_ShadowShape = new ShadowShape2D();
+
+
             Renderer renderer;
             m_HasRenderer = TryGetComponent<Renderer>(out renderer);
 
@@ -248,12 +250,19 @@ namespace UnityEngine.Rendering.Universal
             }
 
 
-            if (m_ShadowShapeProvider != null)
+            if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider && m_ShadowShapeProvider != null)
             {
                 IShadowShape2DProvider shadowShapeProvider = (IShadowShape2DProvider)m_ShadowShapeProvider;
                 shadowShapeProvider?.OnShapeObjectCreated(m_ShadowShape);
 
                 m_ShadowShape.GetEdges(m_ShadowShapeContract, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
+                DrawDebugShadowShapes();
+            }
+            else if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
+            {
+                m_ShadowShape.SetEdges(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
+                m_ShadowShape.GetEdges(0, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
+                
                 DrawDebugShadowShapes();
             }
         }
