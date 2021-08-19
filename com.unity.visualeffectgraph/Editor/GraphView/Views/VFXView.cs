@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
+using UnityEditor.Experimental;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.UIElements;
 using UnityEditor.VersionControl;
@@ -126,6 +127,7 @@ namespace UnityEditor.VFX.UI
 
         VisualElement m_NoAssetLabel;
         VisualElement m_LockedElement;
+        Button m_BackButton;
 
         VFXViewController m_Controller;
         Controller IControlledElement.controller
@@ -438,6 +440,11 @@ namespace UnityEditor.VFX.UI
             var compileDropDownButton = new VFXCompileDropdownButton(this);
             m_Toolbar.Add(compileDropDownButton);
 
+            m_BackButton = new Button {tooltip = "Back to parent", name = "BackButton"};
+            m_BackButton.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "back.png"))});
+            m_BackButton.clicked += OnBackToParent;
+            m_Toolbar.Add(m_BackButton);
+
             var flexSpacer = new ToolbarSpacer();
             flexSpacer.style.flexGrow = 1f;
             m_Toolbar.Add(flexSpacer);
@@ -683,6 +690,11 @@ namespace UnityEditor.VFX.UI
             {
                 anchor.ForceUpdate();
             }
+        }
+
+        void OnBackToParent()
+        {
+            VFXViewWindow.currentWindow.PopResource();
         }
 
         void ToggleBlackboard(ChangeEvent<bool> e)
@@ -2340,6 +2352,13 @@ namespace UnityEditor.VFX.UI
             {
                 context.UpdateLabel();
             }
+        }
+
+        public void UpdateIsSubgraph()
+        {
+            m_BackButton.style.display = controller.graph.visualEffectResource.isSubgraph && VFXViewWindow.currentWindow.CanPopResource()
+                ? DisplayStyle.Flex
+                : DisplayStyle.None;
         }
 
         void OnDragUpdated(DragUpdatedEvent e)

@@ -35,3 +35,16 @@ ToolbarToggle
 {
     border-right-width: 0px;
 }
+
+#BackButton
+{
+    padding-top: 3px;
+    border-width: 0;
+    border-radius: 0;
+    background-color: transparent;
+}
+
+#BackButton:hover
+{
+    background-color: var(--unity-colors-app_toolbar_button-background-hover);
+}

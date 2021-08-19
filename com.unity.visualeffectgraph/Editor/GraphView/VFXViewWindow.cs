@@ -106,6 +106,12 @@ namespace  UnityEditor.VFX.UI
             graphView.controller = VFXViewController.GetController(resource, true);
             graphView.UpdateGlobalSelection();
             graphView.FrameNewController();
+            graphView.UpdateIsSubgraph();
+        }
+
+        public bool CanPopResource()
+        {
+            return m_ResourceHistory.Any();
         }
 
         public void PopResource()
