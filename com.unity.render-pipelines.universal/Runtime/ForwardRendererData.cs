@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
+using UnityEditor.Rendering.Universal;
 #endif
 using System;
 
@@ -76,7 +77,9 @@ namespace UnityEngine.Rendering.Universal
 
         protected override ScriptableRenderer Create()
         {
-            throw new NotSupportedException(k_ErrorMessage);
+            var universalRendererData = CreateInstance<UniversalRendererData>();
+            var rendererData = new UniversalRenderer(universalRendererData);
+            return rendererData;
         }
 
         public LayerMask opaqueLayerMask

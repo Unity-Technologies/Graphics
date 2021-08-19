@@ -5,7 +5,8 @@
 
  namespace UnityEditor.Rendering.Universal
  {
-     class ForwardToUniversalRendererPostprocessor : AssetPostprocessor
+     [InitializeOnLoad]
+     class ForwardToUniversalRendererPostprocessor
      {
          static bool firstTimeUpgrade = true;
          static bool registeredRendererUpdate = false;
@@ -58,8 +59,7 @@
              UpgradeAsset(rendererData, assetPath);
          }
 
-         [InitializeOnLoadMethod]
-         static void RegisterUpgraderReimport()
+         static ForwardToUniversalRendererPostprocessor()
          {
              Debug.LogWarning($"kicked off upgrader");
 
@@ -91,8 +91,10 @@
                  }
                           //If there is no asset upgraded then we don't need to do the following
                  if (editedAssetsCount == 0) return;
-                          //Gets all the UniversalRenderPipeline Assets in project
-                 string[] allURPassets = AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset glob:\"**/*.asset\"", null);
+
+                 //Gets all the UniversalRenderPipeline Assets in project
+                 string[] allURPassets =
+                     AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset glob:\"**/*.asset\"", null);
                  foreach (var t in allURPassets)
                  {
                      string pipelineAssetPath = AssetDatabase.GUIDToAssetPath(t);
@@ -112,7 +114,8 @@
                      soAsset.ApplyModifiedProperties();
                      EditorUtility.SetDirty(pipelineAsset);
                  }
-                          //Reset counter and register state
+
+                 //Reset counter and register state
                  editedAssetsCount = 0;
                  registeredRendererUpdate = false;
              };
