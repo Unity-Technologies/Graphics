@@ -68,9 +68,9 @@ namespace UnityEngine.Rendering.HighDefinition
         uint  m_CacheMaxIteration = 0;
 #endif // UNITY_EDITOR
         ulong m_CacheAccelSize = 0;
-        uint  m_CacheLightCount = 0;
-        int   m_CameraID = 0;
-        bool  m_RenderSky = true;
+        uint m_CacheLightCount = 0;
+        int m_CameraID = 0;
+        bool m_RenderSky = true;
 
         TextureHandle m_FrameTexture; // stores the per-pixel results of path tracing for one frame
         TextureHandle m_SkyTexture; // stores the sky background

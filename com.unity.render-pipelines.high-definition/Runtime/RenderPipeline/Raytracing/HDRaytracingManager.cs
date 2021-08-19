@@ -588,21 +588,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int RayTracingFrameIndex(HDCamera hdCamera)
         {
-        #if UNITY_HDRP_DXR_TESTS_DEFINE
+#if UNITY_HDRP_DXR_TESTS_DEFINE
             if (Application.isPlaying)
                 return 0;
             else
-        #endif
+#endif
             return (int)hdCamera.GetCameraFrameCount() % 8;
         }
 
         internal int RayTracingFrameIndex(HDCamera hdCamera, int targetFrameCount = 8)
         {
-            #if UNITY_HDRP_DXR_TESTS_DEFINE
+#if UNITY_HDRP_DXR_TESTS_DEFINE
             if (Application.isPlaying)
                 return 0;
             else
-            #endif
+#endif
             return (int)hdCamera.GetCameraFrameCount() % targetFrameCount;
         }
 
@@ -712,11 +712,11 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal bool currentSystemSupportsRayTracing
             => SystemInfo.supportsRayTracing;
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         static internal bool buildTargetSupportsRayTracing
             => (UnityEditor.PlayerSettings.GetGraphicsAPIs(UnityEditor.EditorUserBuildSettings.activeBuildTarget)[0] == GraphicsDeviceType.Direct3D12)
             || (UnityEditor.PlayerSettings.GetGraphicsAPIs(UnityEditor.EditorUserBuildSettings.activeBuildTarget)[0] == GraphicsDeviceType.PlayStation5);
-        #endif
+#endif
 
         internal BlueNoise GetBlueNoiseManager()
         {

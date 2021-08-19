@@ -167,7 +167,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     switch (serialized.areaLightShape)
                     {
                         case AreaLightShape.Rectangle:
-                            serialized.shapeWidth.floatValue = Mathf.Max(serialized.shapeWidth.floatValue,  HDAdditionalLightData.k_MinLightSize);
+                            serialized.shapeWidth.floatValue = Mathf.Max(serialized.shapeWidth.floatValue, HDAdditionalLightData.k_MinLightSize);
                             serialized.shapeHeight.floatValue = Mathf.Max(serialized.shapeHeight.floatValue, HDAdditionalLightData.k_MinLightSize);
                             break;
                         case AreaLightShape.Tube:

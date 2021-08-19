@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        public ForwardLights() : this(InitParams.GetDefault()) {}
+        public ForwardLights() : this(InitParams.GetDefault()) { }
 
         internal ForwardLights(InitParams initParams)
         {

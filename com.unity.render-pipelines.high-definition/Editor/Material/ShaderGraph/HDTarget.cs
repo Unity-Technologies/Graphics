@@ -193,7 +193,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 m_CustomEditorGUI = m_CustomGUIField.value;
                 onChange();
             });
-            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => { });
 
             if (VFXViewPreference.generateOutputContextWithShaderGraph)
             {

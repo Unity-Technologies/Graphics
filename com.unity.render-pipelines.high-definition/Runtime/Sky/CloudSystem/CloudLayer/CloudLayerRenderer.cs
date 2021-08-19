@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static PrecomputationCache  s_PrecomputationCache = new PrecomputationCache();
-        PrecomputationData          m_PrecomputedData;
+        static PrecomputationCache s_PrecomputationCache = new PrecomputationCache();
+        PrecomputationData m_PrecomputedData;
     }
 }

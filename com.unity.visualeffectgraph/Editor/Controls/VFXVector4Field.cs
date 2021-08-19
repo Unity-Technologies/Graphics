@@ -6,7 +6,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXVector4Field : VFXVectorNField<Vector4>
     {
-        protected override  int componentCount {get {return 4; }}
+        protected override int componentCount { get { return 4; } }
         protected override void SetValueComponent(ref Vector4 value, int i, float componentValue)
         {
             switch (i)

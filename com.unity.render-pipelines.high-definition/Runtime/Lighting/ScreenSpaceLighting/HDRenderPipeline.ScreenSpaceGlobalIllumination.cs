@@ -219,11 +219,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Temporary textures
                 passData.hitPointBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "SSGI Hit Point"});
+                { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "SSGI Hit Point" });
 
                 // Output textures
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Color"}));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Color" }));
 
                 builder.SetRenderFunc(
                     (TraceSSGIPassData data, RenderGraphContext ctx) =>
@@ -332,7 +332,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.inputBuffer = builder.ReadTexture(inputBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Final" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Final" }));
 
                 builder.SetRenderFunc(
                     (UpscaleSSGIPassData data, RenderGraphContext ctx) =>
@@ -417,7 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.inputBuffer = builder.ReadWriteTexture(inputBuffer);
                 // Output buffer
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Converted" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Converted" }));
 
                 builder.SetRenderFunc(
                     (ConvertSSGIPassData data, RenderGraphContext ctx) =>
@@ -543,7 +543,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_ShaderVariablesRayTracingCB);
                     break;
                 default:
-                    result =  m_RenderGraph.defaultResources.blackTextureXR;
+                    result = m_RenderGraph.defaultResources.blackTextureXR;
                     break;
             }
             PushFullScreenDebugTexture(m_RenderGraph, result, FullScreenDebugMode.ScreenSpaceGlobalIllumination);
