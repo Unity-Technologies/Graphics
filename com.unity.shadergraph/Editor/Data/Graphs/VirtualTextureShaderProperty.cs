@@ -93,20 +93,6 @@ namespace UnityEditor.ShaderGraph
 
                 if (!value.procedural)
                 {
-                    //declare shared sampler for VT cache samples
-                    action(new HLSLProperty(HLSLType._CUSTOM, "VT_SAMPLER", HLSLDeclaration.UnityPerMaterial, concretePrecision)
-                    {
-                        customDeclaration = (ssb) =>
-                        {
-                            ssb.AppendIndentation();
-                            ssb.AppendLine("#ifndef VT_SAMPLER");
-                            ssb.AppendLine("#define VT_SAMPLER sampler_clamp_trilinear_aniso4");
-                            ssb.AppendLine("SAMPLER(sampler_clamp_trilinear_aniso4);");
-                            ssb.AppendLine("#endif");
-                            ssb.AppendIndentation();
-                        }
-                    });
-
                     //declare regular texture properties (for fallback case)
                     for (int i = 0; i < numLayers; i++)
                     {
@@ -139,11 +125,7 @@ namespace UnityEditor.ShaderGraph
                     builder.Append(referenceName);
                     builder.Append(" AddTextureType(BuildVTProperties_");
                     builder.Append(referenceName);
-                    builder.Append("(");
-#if ENABLE_VIRTUALTEXTURES
-                    builder.Append(" VT_SAMPLER ");
-#endif
-                    builder.Append(")");
+                    builder.Append("()");
                     for (int i = 0; i < value.layers.Count; i++)
                     {
                         builder.Append(",");
@@ -184,7 +166,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override ShaderInput Copy()
         {
-            var vt =  new VirtualTextureShaderProperty
+            var vt = new VirtualTextureShaderProperty
             {
                 displayName = displayName,
                 value = new SerializableVirtualTexture(),
