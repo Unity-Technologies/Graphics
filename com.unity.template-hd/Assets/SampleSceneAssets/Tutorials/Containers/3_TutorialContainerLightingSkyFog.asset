@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89305aa391d1c5141bbe1628d930a2c5, type: 3}
+  m_Name: 3_TutorialContainerLightingSkyFog
+  m_EditorClassIdentifier: 
+  Modified:
+    m_PersistentCalls:
+      m_Calls: []
+  ParentContainer: {fileID: 11400000, guid: 938ffbc4ff2eabb48a668123d363dfe1, type: 2}
+  OrderInView: 1
+  BackgroundImage: {fileID: 2800000, guid: bc130a39c76dc3b428720e235088e037, type: 3}
+  Title:
+    m_Untranslated: Sky and Fog
+  Subtitle:
+    m_Untranslated: Learn about how to set up the atmosphere
+  Description:
+    m_Untranslated: 
+  ProjectLayout: {fileID: 0}
+  Sections:
+  - OrderInView: 0
+    Heading:
+      m_Untranslated: Sky
+    Text:
+      m_Untranslated: Learn how to control the Sky
+    Metadata: 
+    Url: 
+    Image: {fileID: 2800000, guid: 962d1d34f77f4804581a2389f5c55a72, type: 3}
+    Tutorial: {fileID: 11400000, guid: 5b56243ad5e5e5a4c96029c7772fe66d, type: 2}
+  - OrderInView: 1
+    Heading:
+      m_Untranslated: Fog
+    Text:
+      m_Untranslated: Learn about important Fog properties
+    Metadata: 
+    Url: 
+    Image: {fileID: 2800000, guid: 4c2596688b56ad9408d54eb7f7988a66, type: 3}
+    Tutorial: {fileID: 11400000, guid: 9d614f6782108e74a86a3633362490da, type: 2}
+  - OrderInView: 1
+    Heading:
+      m_Untranslated: Local Volumetric Fog
+    Text:
+      m_Untranslated: ' Learn how to control the Volumetric Fog in specific areas'
+    Metadata: 
+    Url: 
+    Image: {fileID: 2800000, guid: 78a3d6c49f1c2e74c95bd052a569cc08, type: 3}
+    Tutorial: {fileID: 11400000, guid: 2d4fd22e1b9ec5b4bbf9b0d3841fa6ef, type: 2}

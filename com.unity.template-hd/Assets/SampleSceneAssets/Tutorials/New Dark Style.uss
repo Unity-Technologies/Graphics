@@ -1,0 +1,561 @@
+/****************************
+*  TUTORIAL PANEL
+****************************/
+
+.container {
+    flex-grow: 1;
+    flex-basis: 1px;
+}
+
+.container--header {
+    background-color: #252625;
+}
+
+.container--header-labels {
+    background-color: #252625;
+    min-height: 36px;
+    flex-direction: row;
+    padding-left: 15px;
+    padding-right: 5px;
+    border-bottom-width: 1px;
+    border-color: rgba(255,255,255,0.05);
+}
+
+.container--tutorial-media {
+    min-height: 180px;
+    align-items: center;
+}
+
+.tutorial-media {
+    min-height: 180px;
+    width: 300px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+#VideoBox {
+    background-color: #252625;
+    align-items: center;
+    justify-content: center;
+}
+
+.container--header-large {
+    height: 98px;
+    flex-direction: column;
+    padding-left: 15px;
+    padding-right: 15px;
+    -unity-background-scale-mode: scale-and-crop;
+    border-bottom-width: 1px;
+}
+
+.container--tutorialcontainer {
+    height: 98px;
+    flex-direction: row;
+    padding-left: 15px;
+    padding-right: 15px;
+    border-bottom-width: 1px;
+}
+
+.label--header {
+    white-space: normal;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 9px;
+}
+
+.label--header-large {
+    margin-top: 20px;
+    white-space: normal;
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: #fff;
+}
+
+.label--header-subtitle {
+    white-space: normal;
+    -unity-font-style: bold;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 15px;
+}
+
+.image--base {
+    width: 24px;
+    height: 24px;
+    margin-left: 0px;
+    margin-top: 5px;
+}
+
+.image--close {
+    background-image: url('Images/Icons/Close.png');
+    width: 24px;
+    height: 24px;
+    margin-left: 0px;
+    margin-top: 5px;
+    opacity: 0.6;
+}
+
+.image--close:hover {
+    opacity: 1;
+}
+
+.label--step-count {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    -unity-font-style: bold;
+    margin-right: 10px;
+    margin-top: 9px;
+}
+
+.image--back {
+    background-image: url('Images/Icons/Back.png');
+    width: 24px;
+    height: 24px;
+    margin-left: 5px;
+    margin-top: 5px;
+    opacity: 0.6;
+    position: absolute;
+}
+
+.image--back:hover {
+    opacity: 1;
+}
+
+.image--forward {
+    background-image: url('Images/Icons/NavigateNext.png');
+    width: 24px;
+    height: 24px;
+    margin-left: 0px;
+    margin-top: 5px;
+    opacity: 0.6;
+}
+
+.image--forward:hover {
+    opacity: 1;
+}
+
+/****************************
+*  CARD
+****************************/
+
+.flexiblespace {
+    flex-grow: 1;
+}
+
+.scrollview--tutorial-list .unity-scroll-view__content-viewport {
+    width: 100%;
+}
+
+.scrollview--tutorial-list {
+    flex-grow: 1;
+}
+
+.container--select-tutorials{
+    margin-top: 10px;
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+.container--card {
+    flex-grow: 1;
+    margin-top: 10px;
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+.containercard {
+    background-color: #414141;
+    border-color: #212421;
+    flex-direction: column;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-width: 1px;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.card {
+    flex-direction: row;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-width: 1px;
+    min-width: 270px;
+}
+
+.card--tutorial-group {
+    flex-direction: column;
+}
+
+.container--tutorial-icon {
+    background-color: #414141;
+    max-width: 80px;
+    min-width: 80px;
+    min-height: 80px;
+    border-right-width: 1px;
+    border-color: #212421;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    align-items: center;
+    justify-content: center;
+}
+
+.card--link .container--tutorial-icon {
+    border-width: 0;
+    border-right-width: 1px;
+}
+
+.image--tutorial-icon {
+    height: 64px;
+    width: 64px;
+}
+
+.icon--tutorial-checkmark {
+    width: 16px;
+    height: 16px;
+    top: 2px;
+    right: 2px;
+    position: absolute;
+    background-image: url('Images/Icons/Checkmark.png');
+}
+
+.card--tutorial-group .image--tutorial-icon {
+    height: 100px;
+    width: auto;
+}
+
+.container--card-text {
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    justify-content: center;
+    min-height: 90px;
+}
+
+.label--tutorial-name {
+    white-space: normal;
+    font-size: 12px;
+    -unity-font-style: bold;
+}
+
+.label--tutorial-description {
+    white-space: normal;
+    margin-top: 2px;
+}
+
+.label--completed {
+    -unity-font-style: bold;
+    font-size: 11px;
+    margin-top: 4px;
+    opacity: 0.5;
+}
+
+/****************************
+*  TUTORIAL STEP
+****************************/
+
+BoldLabel {
+    -unity-font-style: bold;
+}
+
+ItalicLabel {
+    -unity-font-style: italic;
+}
+
+TextLabel {
+
+}
+
+WrapCharLabel {
+    margin-left: -2px;
+    margin-right: -2px;
+}
+
+.container--tutorial {
+    flex-grow: 1;
+    border-top-width: 1px;
+}
+
+.scrollview--tutorial .unity-scroll-view__content-container {
+    padding: 15px;
+}
+
+.scrollview--tutorial-list .unity-scroll-view__content-container {
+    padding-bottom: 15px;
+    padding-top: 5px;
+}
+
+.label--tutorial-title {
+    font-size: 16px;
+    margin-bottom: 15px;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.label--tutorial-step-description {
+    font-size: 12px;
+    margin-bottom: 15px;
+    white-space: normal;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+#TutorialContainer .unity-scroll-view .unity-scroller--horizontal {
+    display: none;
+}
+
+/****************************
+*  INSTRUCTION BOX
+****************************/
+
+.container--instruction {
+    margin-top: 5px;
+    margin-bottom: 15px;
+    padding: 15px;
+    flex-direction: row;
+    border-bottom-width: 1px;
+}
+
+.container--instruction-text {
+    padding-left: 25px;
+}
+
+.label--instruction-title {
+    font-size: 12px;
+    margin-bottom: 5px;
+    -unity-font-style: bold;
+    white-space: normal;
+}
+
+.label--instruction-description {
+    font-size: 12px;
+    white-space: normal;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+.container--instruction-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+}
+
+.container--instruction-highlight-blue {
+    margin-left: 0;
+    width: 6px;
+    background-color: #0089E4;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    bottom: 0px;
+}
+
+.container--instruction-highlight-green {
+    margin-left: 0;
+    width: 6px;
+    background-color: #30A050;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    bottom: 0px;
+}
+
+.container--instruction-icon {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 16px;
+    height: 16px;
+}
+
+.image--instruction-checkmark {
+    background-image: url('Images/Icons/Checkmark.png');
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/****************************
+*  ACTIONS FOOTER
+****************************/
+
+.container--tutorial-actions {
+    display: flex;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    min-height: 50px;
+    flex-direction: row;
+    border-top-width: 1px;
+}
+
+.button--tutorial-action {
+    flex-grow: 1;
+    flex-basis: 1px;
+    -unity-font-style: bold;
+}
+
+.button-background--tutorial-action {
+    flex-grow: 1;
+    flex-basis: 1px;
+    background-color: rgba(255,255,255,0);
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    margin-left: -6px;
+    margin-right: -6px;
+    margin-top: -1px;
+    margin-bottom: -1px;
+    border-width: 3px;
+    border-color: #5ABAFA;
+    display: none;
+}
+
+.button--next-tutorial {
+    margin: 15px;
+    margin-top: 0px;
+    min-height: 28px;
+    -unity-font-style: bold;
+    background-color: #0789E4;
+    border-color: #005793;
+    color: #fff;
+}
+
+.button--next-tutorial:hover {
+    background-color: #269FF4;
+}
+
+HyperlinkLabel {
+    color: #418CD6;
+    border-bottom-color: #418CD6;
+    border-bottom-width: 1px;
+}
+
+ParseErrorLabel {
+    color: red;
+    border-bottom-color: red;
+    border-bottom-width: 1px;
+}
+
+/****************************
+*  WELCOME DIALOG
+****************************/
+
+.container--welcome-dialog {
+    flex-grow: 1;
+}
+
+.container--welcome-dialog-content {
+    flex-grow: 1;
+}
+
+.container--welcome-dialog-media {
+    background-color: #252625;
+    align-items: center;
+    min-height: 200px;
+}
+
+.image--welcome-dialog {
+    min-height: 200px;
+    width: 700px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.label--welcome-dialog-title {
+    font-size: 20px;
+    -unity-font-style: bold;
+    margin: 15px;
+    margin-bottom: 10px;
+}
+
+.label--welcome-dialog-description {
+    white-space: normal;
+    font-size: 14px;
+    margin-left: 15px;
+    margin-right: 15px;
+    margin-bottom: 15px;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.container--welcome-dialog-text {
+    flex-grow: 1;
+}
+
+.container--welcome-dialog-actions {
+    flex-direction: row;
+    border-top-width: 1px;
+    padding: 12px;
+    min-height: 56px;
+    align-items: center;
+    justify-content: center;
+}
+
+.container--welcome-dialog-actions Button {
+    min-height: 32px;
+    padding-left: 12px;
+    padding-right: 12px;
+    -unity-font-style: bold;
+    font-size: 14px;
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+/****************************
+*  THEME SPECIFIC COLORS
+****************************/
+
+.container {
+    background-color: #353535;
+}
+
+.container--header-large {
+    border-color: rgba(255,255,255,0.1);
+}
+
+.card {
+    background-color: #414141;
+    border-color: #212421;
+}
+
+.card:hover {
+    background-color: #4A4A4A;
+}
+
+.containercard:hover {
+    background-color: #4A4A4A;
+}
+
+.card--link .container--tutorial-icon {
+    background-color: #414141;
+    border-color: #212421;
+}
+
+.container--tutorial {
+    border-top-color: rgba(255, 255, 255, 0.05);
+    background-color: #2E2E2E;
+}
+
+.container--instruction {
+    background-color: #414141;
+    border-bottom-color: rgba(0, 0, 0, 0.4);
+}
+
+.container--tutorial-actions {
+    border-color: rgba(0,0,0,0.3);
+}
+
+.container--welcome-dialog-content {
+    background-color: #2E2E2E;
+}
+
+.container--welcome-dialog-actions {
+    border-color: rgba(0,0,0,0.5);
+}

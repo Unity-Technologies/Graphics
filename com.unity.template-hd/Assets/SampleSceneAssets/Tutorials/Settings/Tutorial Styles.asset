@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a385a00f03d2f4d1aa06e69dc6fdeea4, type: 3}
+  m_Name: Tutorial Styles
+  m_EditorClassIdentifier: 
+  m_MaskingColor: {r: 0.11213955, g: 0.179666, b: 0.2264151, a: 0.5882353}
+  m_HighlightColor: {r: 0.3915094, g: 0.7492484, b: 1, a: 1}
+  m_BlockedInteractionColor: {r: 0.16078432, g: 0.63529414, b: 0.96862745, a: 0.019607844}
+  m_HighlightThickness: 3
+  m_HighlightAnimationSpeed: 7.52
+  m_HighlightAnimationDelay: 0
+  LightThemeStyleSheet: {fileID: 7433441132597879392, guid: f024b7035a09345e5848e3de8f1b5dcb, type: 3}
+  DarkThemeStyleSheet: {fileID: 7433441132597879392, guid: 1cc9851f62063cd4ba510d60b2c81bbe, type: 3}
+  m_OrderedListDelimiter: .
+  m_UnorderedListBullet: "\u2022"

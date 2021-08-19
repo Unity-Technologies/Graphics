@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89305aa391d1c5141bbe1628d930a2c5, type: 3}
+  m_Name: 2_TutorialContainerLightingExposure
+  m_EditorClassIdentifier: 
+  Modified:
+    m_PersistentCalls:
+      m_Calls: []
+  ParentContainer: {fileID: 11400000, guid: 938ffbc4ff2eabb48a668123d363dfe1, type: 2}
+  OrderInView: 0
+  BackgroundImage: {fileID: 2800000, guid: 91a97b7a700f12d4fa809475c385bceb, type: 3}
+  Title:
+    m_Untranslated: Exposure and Lighting
+  Subtitle:
+    m_Untranslated: Learn about physically based lighting
+  Description:
+    m_Untranslated: 
+  ProjectLayout: {fileID: 0}
+  Sections:
+  - OrderInView: 0
+    Heading:
+      m_Untranslated: Exposure
+    Text:
+      m_Untranslated: Learn how to control the perceived brightness of a Scene
+    Metadata: 
+    Url: 
+    Image: {fileID: 2800000, guid: 297cae5beb9f66340b565929d08f84ed, type: 3}
+    Tutorial: {fileID: 11400000, guid: 5a97a8110d08a744da2eb4678c76d1fb, type: 2}
+  - OrderInView: 1
+    Heading:
+      m_Untranslated: Physically Based Lighting
+    Text:
+      m_Untranslated: Learn how to use Physical Light properties to increase visual
+        quality and consistency
+    Metadata: 
+    Url: 
+    Image: {fileID: 2800000, guid: ac897dd6f093b654a9048128ab32661c, type: 3}
+    Tutorial: {fileID: 11400000, guid: 57eeee29217d0014889ef2dff656f4bf, type: 2}
+  - OrderInView: 2
+    Heading:
+      m_Untranslated: Light Cookies
+    Text:
+      m_Untranslated: Learn how textures can be applied to lights to improve visual
+        fidelity
+    Metadata: 
+    Url: 
+    Image: {fileID: 2800000, guid: 5f2e608fc77f6b04ca01149ddcfa006b, type: 3}
+    Tutorial: {fileID: 11400000, guid: a22d74cc7147e584e8bcc596340db0ba, type: 2}
+  - OrderInView: 3
+    Heading:
+      m_Untranslated: Light Layers
+    Text:
+      m_Untranslated: Learn how to restrict the objects that Lights and Reflection
+        Probes can affect
+    Metadata: 
+    Url: 
+    Image: {fileID: 2800000, guid: 6f44c226a1eced34dbf1887898cb361f, type: 3}
+    Tutorial: {fileID: 11400000, guid: dbf1444cb3f174246b015a9c9b4c5b1b, type: 2}
+  - OrderInView: 4
+    Heading:
+      m_Untranslated: White Balance
+    Text:
+      m_Untranslated: Learn how to resolve unwanted color casts from artificial and
+        natural light
+    Metadata: 
+    Url: 
+    Image: {fileID: 2800000, guid: f840fafbbe7522d439b9574c5cd58c1e, type: 3}
+    Tutorial: {fileID: 11400000, guid: 5dccaf730723e85469a2245856ee3d8b, type: 2}
+  - OrderInView: 5
+    Heading:
+      m_Untranslated: Materials
+    Text:
+      m_Untranslated: Learn about the wide range of materials offered by HDRP
+    Metadata: 
+    Url: 
+    Image: {fileID: 2800000, guid: 07d1dc4bedbbda54caeb0a12c047721e, type: 3}
+    Tutorial: {fileID: 11400000, guid: 5fc2e27d531af7b43bf1195d1213e7b5, type: 2}

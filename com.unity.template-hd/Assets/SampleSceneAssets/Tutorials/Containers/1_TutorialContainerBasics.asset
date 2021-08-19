@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89305aa391d1c5141bbe1628d930a2c5, type: 3}
+  m_Name: 1_TutorialContainerBasics
+  m_EditorClassIdentifier: 
+  Modified:
+    m_PersistentCalls:
+      m_Calls: []
+  ParentContainer: {fileID: 11400000, guid: 938ffbc4ff2eabb48a668123d363dfe1, type: 2}
+  OrderInView: -1
+  BackgroundImage: {fileID: 2800000, guid: a30c03ddffd300c48ba1632d06d05a3d, type: 3}
+  Title:
+    m_Untranslated: Basics
+  Subtitle:
+    m_Untranslated: Introduction to core HDRP concepts
+  Description:
+    m_Untranslated: 
+  ProjectLayout: {fileID: 0}
+  Sections:
+  - OrderInView: 0
+    Heading:
+      m_Untranslated: Before You Start
+    Text:
+      m_Untranslated: Recommendations for an optimal experience
+    Metadata: 
+    Url: 
+    Image: {fileID: 2800000, guid: 6bbc075f2263e2f40876f783a1dc3a3a, type: 3}
+    Tutorial: {fileID: 11400000, guid: ebec4973514480040801a2b878ce8bfc, type: 2}
+  - OrderInView: 2
+    Heading:
+      m_Untranslated: HDRP Settings
+    Text:
+      m_Untranslated: Learn how to set up the basic HDRP settings
+    Metadata: 
+    Url: 
+    Image: {fileID: 2800000, guid: 67d4b8ade7870e14dac05b712639ffec, type: 3}
+    Tutorial: {fileID: 11400000, guid: 33c48265c0689f44f8792be685c0e101, type: 2}
+  - OrderInView: 3
+    Heading:
+      m_Untranslated: Volumes
+    Text:
+      m_Untranslated: Learn how Volumes are used to control HDRP effects
+    Metadata: 
+    Url: 
+    Image: {fileID: 2800000, guid: 7247a937d9e0c994491a80d845d90f83, type: 3}
+    Tutorial: {fileID: 11400000, guid: 1bc5b07bc0e03774ea5b1d3d27746d15, type: 2}
