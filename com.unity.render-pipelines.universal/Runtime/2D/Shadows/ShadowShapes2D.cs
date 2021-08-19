@@ -10,8 +10,10 @@ namespace UnityEngine.Rendering.Universal
 {
     public class ShadowShape2D : IShadowShape2DProvider.ShadowShapes2D
     {
-        delegate int ValueGetter<T>(ref T data, int index);
-        delegate int LengthGetter<T>(ref T data);
+        delegate int     IndexValueGetter<T>(ref T data, int index);
+        delegate Vector2 VertexValueGetter<T>(ref T data, int index);
+        delegate int     LengthGetter<T>(ref T data);
+    
         public struct Edge
         {
             public int v0;
@@ -49,15 +51,135 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static public Dictionary<Edge, int> m_EdgeDictionary = new Dictionary<Edge, int>(new EdgeComparer());
+        static public Dictionary<Edge, int> m_EdgeDictionary = new Dictionary<Edge, int>(new EdgeComparer());  // This is done so we don't create garbage allocating and deallocating a dictionary object
         public NativeArray<Vector2> m_ProvidedVertices;
         public NativeArray<Edge>    m_ProvidedEdges;
+        public NativeArray<Vector2> m_Tangents;
         public NativeArray<Vector2> m_ContractionDirection;
         public NativeArray<float>   m_ContractionMaximum;
         public NativeArray<Vector2> m_ContractedVertices;
         private float               m_ContractionDistance = -1.0f;
 
-        private void CalculateEdgesFromTriangles<T>(T indices, ValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
+        // This will needs to use NativeArrays        
+        public BoundingSphere GenerateShadowMesh(Mesh mesh, Vector3[] shapePath)
+        {
+            Debug.AssertFormat(shapePath.Length > 3, "Shadow shape path must have 3 or more vertices");
+
+            List<Vector3> vertices = new List<Vector3>();
+            List<int> triangles = new List<int>();
+            List<Vector4> normals = new List<Vector4>();
+
+            float minX = float.MaxValue;
+            float maxX = float.MinValue;
+            float minY = float.MaxValue;
+            float maxY = float.MinValue;
+
+            // Add outline vertices
+            int pathLength = shapePath.Length;
+            for (int i = 0; i < pathLength; i++)
+            {
+                Vector3 vertex = shapePath[i];
+                vertices.Add(vertex);
+                normals.Add(Vector3.zero);
+
+                if (minX > vertex.x)
+                    minX = vertex.x;
+                if (maxX < vertex.x)
+                    maxX = vertex.x;
+
+                if (minY > vertex.y)
+                    minY = vertex.y;
+                if (maxY < vertex.y)
+                    maxY = vertex.y;
+            }
+
+            // Add extrusion vertices, normals, and triangles
+            int vertexCount = pathLength;
+            for (int i = 0; i < pathLength; i++)
+            {
+                int startIndex = i;
+                int endIndex = (i + 1) % pathLength;
+
+                Vector3 start = shapePath[startIndex];
+                Vector3 end = shapePath[endIndex];
+
+                Vector4 normal = Vector3.Cross(Vector3.Normalize(end - start), -Vector3.forward);
+                normal = new Vector4(normal.x, normal.y, end.x, end.y);
+                normals.Add(normal);
+                normal = new Vector4(normal.x, normal.y, start.x, start.y);
+                normals.Add(normal);
+
+                // Triangle 1
+                triangles.Add(startIndex);
+                triangles.Add(vertexCount);
+                triangles.Add(vertexCount + 1);
+                // Triangle 2
+                triangles.Add(vertexCount + 1);
+                triangles.Add(endIndex);
+                triangles.Add(startIndex);
+
+                vertices.Add(start);
+                vertices.Add(end);
+
+                vertexCount += 2;
+            }
+
+            mesh.Clear();
+            mesh.vertices = vertices.ToArray();
+            mesh.triangles = triangles.ToArray();
+            mesh.tangents = normals.ToArray();
+
+            // Calculate bounding sphere (circle)
+            Vector3 origin = new Vector2(0.5f * (minX + maxX), 0.5f * (minY + maxY));
+            float deltaX = maxX - minX;
+            float deltaY = maxY - minY;
+            float radius = 0.5f * Mathf.Sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            BoundingSphere retSphere = new BoundingSphere(origin, radius);
+
+            return retSphere;
+        }
+
+        private void CalculateEdgesFromLines<T>(T indices, IndexValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
+        {
+            int numOfIndices = lengthGetter(ref indices) >> 1;  // Each line is 2 indices
+
+            m_ProvidedEdges = new NativeArray<Edge>(numOfIndices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < numOfIndices; i+=2)
+            {
+                int index0 = valueGetter(ref indices, i);
+                int index1 = valueGetter(ref indices, i+1);
+                m_ProvidedEdges[i] = new Edge(index0, index1); ;
+            }
+        }
+
+        private void CalculateEdgesFromLineStrip<T>(T indices, IndexValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
+        {
+            int numOfIndices = lengthGetter(ref indices);
+            int lastIndex = valueGetter(ref indices, numOfIndices - 1);
+
+            m_ProvidedEdges = new NativeArray<Edge>(numOfIndices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < numOfIndices; i++)
+            {
+                int curIndex = valueGetter(ref indices, i);
+                m_ProvidedEdges[i] = new Edge(lastIndex, curIndex); ;
+                lastIndex = curIndex;
+            }
+        }
+
+
+        private void CalculateEdgesForSimpleLineStrip(int numOfIndices)
+        {
+            int lastIndex = numOfIndices - 1;
+            m_ProvidedEdges = new NativeArray<Edge>(numOfIndices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < numOfIndices; i++)
+            {
+                m_ProvidedEdges[i] = new Edge(lastIndex, i); ;
+                lastIndex = i;
+            }
+        }
+
+        private void CalculateEdgesFromTriangles<T>(T indices, IndexValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
         {
             // Add our edges to an edge list
             m_EdgeDictionary.Clear();
@@ -145,12 +267,17 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private int ArrayGetter(ref ushort[] array, int index) { return array[index]; }
-        private int ArrayLengthGetter(ref ushort[] array) { return array.Length; }
+        private Vector2 Vector2ArrayGetter(ref Vector2[] array, int index) { return array[index]; }
+        private int Vector2ArrayLengthGetter(ref Vector2[] array) { return array.Length; }
+        private Vector2 Vector3ArrayGetter(ref Vector3[] array, int index) { return array[index]; }
+        private int Vector3ArrayLengthGetter(ref Vector3[] array) { return array.Length; }
+
+        private int UShortArrayGetter(ref ushort[] array, int index) { return array[index]; }
+        private int UShortArrayLengthGetter(ref ushort[] array) { return array.Length; }
         private int NativeArrayGetter(ref NativeArray<int> array, int index) { return array[index]; }
         private int NativeArrayLengthGetter(ref NativeArray<int> array) { return array.Length; }
 
-        public override void SetEdges(Vector2[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
+        private void SetEdges<V,I>(V vertices, I indices, VertexValueGetter<V> vertexGetter, LengthGetter<V> vertexLengthGetter, IndexValueGetter<I> indexGetter, LengthGetter<I> indexLengthGetter, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
             if (m_ProvidedVertices.IsCreated)
                 m_ProvidedVertices.Dispose();
@@ -158,16 +285,45 @@ namespace UnityEngine.Rendering.Universal
             if (m_ProvidedEdges.IsCreated)
                 m_ProvidedEdges.Dispose();
 
+            Debug.Assert(vertices != null, "Vertices array cannot be null");
             if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Triangles)
             {
-                m_ProvidedVertices = new NativeArray<Vector2>(vertices, Allocator.Persistent);
-                CalculateEdgesFromTriangles<ushort[]>(indices, ArrayGetter, ArrayLengthGetter);
+                Debug.Assert(indices != null, "Indices array cannot be null for Triangles topology");
+
+                m_ProvidedVertices = new NativeArray<Vector2>(vertexLengthGetter(ref vertices), Allocator.Persistent);
+                CalculateEdgesFromTriangles<I>(indices, indexGetter, indexLengthGetter);
             }
+            else if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Lines)
+            {
+
+            }
+            else if (outlineTopology == IShadowShape2DProvider.OutlineTopology.LineStrip)
+            {
+                if (indices == null)
+                    CalculateEdgesForSimpleLineStrip(vertexLengthGetter(ref vertices));
+                else
+                    CalculateEdgesFromLineStrip<I>(indices, indexGetter, indexLengthGetter);
+            }
+
+            // Copy the vertices
+            int numVertices = vertexLengthGetter(ref vertices);
+            m_ProvidedVertices = new NativeArray<Vector2>(numVertices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            for (int i=0;i<numVertices;i++)
+                m_ProvidedVertices[i] = vertexGetter(ref vertices, i);
+        }
+
+        public override void SetEdges(Vector2[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
+        {
+            SetEdges<Vector2[], ushort[]>(vertices, indices, Vector2ArrayGetter, Vector2ArrayLengthGetter, UShortArrayGetter, UShortArrayLengthGetter, outlineTopology);
+        }
+
+        public override void SetEdges(Vector3[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
+        {
+            SetEdges<Vector3[], ushort[]>(vertices, indices, Vector3ArrayGetter, Vector3ArrayLengthGetter, UShortArrayGetter, UShortArrayLengthGetter, outlineTopology);
         }
 
         public override void SetEdges(NativeArray<Vector2> vertices, NativeArray<int> indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
-            // Implement this later...
         }
 
         public void GetEdges(float contractionDistance, out NativeArray<Vector2> vertices, out NativeArray<Edge> edges)

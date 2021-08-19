@@ -146,12 +146,12 @@ namespace UnityEditor.Rendering.Universal
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel, null);
 
-            if ((ShadowCaster2D.CastingSources)m_CastingSource.intValue == ShadowCaster2D.CastingSources.ShapeProvider)
+            if ((ShadowCaster2D.ShadowCastingSources)m_CastingSource.intValue == ShadowCaster2D.ShadowCastingSources.ShapeProvider)
             {
                 EditorGUILayout.PropertyField(m_ShadowShapeProvider, Styles.shadowShapeProvider);
                 EditorGUILayout.PropertyField(m_ShadowShapeContract, Styles.shadowShapeContract);
             }
-            else if ((ShadowCaster2D.CastingSources)m_CastingSource.intValue == ShadowCaster2D.CastingSources.ShapeEditor)
+            else if ((ShadowCaster2D.ShadowCastingSources)m_CastingSource.intValue == ShadowCaster2D.ShadowCastingSources.ShapeEditor)
                 ShadowCaster2DInspectorGUI<ShadowCaster2DShadowCasterShapeTool>();
 
             serializedObject.ApplyModifiedProperties();

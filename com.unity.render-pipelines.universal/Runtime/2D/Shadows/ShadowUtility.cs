@@ -10,6 +10,10 @@ namespace UnityEngine.Rendering.Universal
     {
 
 
+
+
+
+
         // I need another function to generate the mesh from the outline.
         public static BoundingSphere GenerateShadowMesh(Mesh mesh, Vector3[] shapePath)
         {
@@ -78,6 +82,9 @@ namespace UnityEngine.Rendering.Universal
             mesh.vertices = vertices.ToArray();
             mesh.triangles = triangles.ToArray();
             mesh.tangents = normals.ToArray();
+
+
+            
 
             // Calculate bounding sphere (circle)
             Vector3 origin = new Vector2(0.5f * (minX + maxX), 0.5f * (minY + maxY));

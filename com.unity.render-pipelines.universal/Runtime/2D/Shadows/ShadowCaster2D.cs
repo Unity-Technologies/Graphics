@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
         const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
 
-        public enum CastingSources
+        public enum ShadowCastingSources
         {
             None,
             ShapeEditor,
@@ -42,16 +42,13 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShapeProvider;
         [SerializeField] float m_ShadowShapeContract;
-        [SerializeField] CastingSources m_ShadowCastingSource = CastingSources.ShapeEditor;
+        [SerializeField] ShadowCastingSources m_ShadowCastingSource = ShadowCastingSources.ShapeEditor;
 
-
-        internal ShadowShape2D       m_ShadowShape;
-        internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
-        internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
+        internal ShadowShape2D        m_ShadowShape;
+        internal ShadowCasterGroup2D  m_ShadowCasterGroup = null;
+        internal ShadowCasterGroup2D  m_PreviousShadowCasterGroup = null;
         internal NativeArray<Vector2> m_ShadowShapeVertices;
         internal NativeArray<ShadowShape2D.Edge> m_ShadowShapeEdges;
-
-
 
         [SerializeField]
         internal BoundingSphere m_ProjectedBoundingSphere;
@@ -148,6 +145,8 @@ namespace UnityEngine.Rendering.Universal
 
        private void Awake()
         {
+            m_ShadowShape = new ShadowShape2D();
+
             if (m_ApplyToSortingLayers == null)
                 m_ApplyToSortingLayers = SetDefaultSortingLayers();
 
@@ -192,7 +191,11 @@ namespace UnityEngine.Rendering.Universal
             if (m_Mesh == null || m_InstanceId != GetInstanceID())
             {
                 m_Mesh = new Mesh();
-                m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+
+                if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
+                    m_ShadowShape.SetEdges(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
+                
+                m_ProjectedBoundingSphere = m_ShadowShape.GenerateShadowMesh(m_Mesh, m_ShapePath);
                 m_InstanceId = GetInstanceID();
             }
 
@@ -212,7 +215,10 @@ namespace UnityEngine.Rendering.Universal
             bool rebuildMesh = LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
             if (rebuildMesh)
             {
-                m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+                if(m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
+                    m_ShadowShape.SetEdges(shapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
+
+                m_ProjectedBoundingSphere = m_ShadowShape.GenerateShadowMesh(m_Mesh, m_ShapePath);
             }
 
             m_PreviousShadowCasterGroup = m_ShadowCasterGroup;
@@ -244,12 +250,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_ShadowShapeProvider != null)
             {
-                if (m_ShadowShape == null)
-                {
-                    m_ShadowShape = new ShadowShape2D();
-                    IShadowShape2DProvider shadowShapeProvider = (IShadowShape2DProvider)m_ShadowShapeProvider;
-                    shadowShapeProvider?.OnShapeObjectCreated(m_ShadowShape);
-                }
+                IShadowShape2DProvider shadowShapeProvider = (IShadowShape2DProvider)m_ShadowShapeProvider;
+                shadowShapeProvider?.OnShapeObjectCreated(m_ShadowShape);
 
                 m_ShadowShape.GetEdges(m_ShadowShapeContract, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
                 DrawDebugShadowShapes();
