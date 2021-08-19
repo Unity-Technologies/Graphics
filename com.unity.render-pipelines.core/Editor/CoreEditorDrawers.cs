@@ -78,7 +78,7 @@ namespace UnityEditor.Rendering
         public static readonly IDrawer space = Group((data, owner) => EditorGUILayout.Space());
 
         /// <summary> Use it when IDrawer required but no operation should be done </summary>
-        public static readonly IDrawer noop = Group((data, owner) => {});
+        public static readonly IDrawer noop = Group((data, owner) => { });
 
         /// <summary>
         /// Conditioned drawer that will only be drawn if its enabler function is null or return true

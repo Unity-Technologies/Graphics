@@ -382,7 +382,7 @@ namespace UnityEditor.VFX
 
             foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
                 if (VFXExpression.GetVFXValueTypeFromType(field.FieldType) == VFXValueType.None
-                    &&  !CheckBlittablePublic(field.FieldType))
+                    && !CheckBlittablePublic(field.FieldType))
                     return false;
 
             return true;

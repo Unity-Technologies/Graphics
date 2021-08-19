@@ -201,7 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return subShaderDescriptor;
         }
 
-        protected virtual void CollectPassKeywords(ref PassDescriptor pass) {}
+        protected virtual void CollectPassKeywords(ref PassDescriptor pass) { }
 
         public override void GetFields(ref TargetFieldContext context)
         {
