@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     internal static class CreateDecalShaderGraph
     {
-        [MenuItem("Assets/Create/Shader Graph/URP/Decal Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 1)]
+        [MenuItem("Assets/Create/Shader Graph/URP/Decal Shader Graph", priority = CoreUtils.Sections.section4 + CoreUtils.Priorities.assetsCreateShaderMenuPriority + 1)]
         public static void CreateLitGraph()
         {
             var target = (UniversalTarget)Activator.CreateInstance(typeof(UniversalTarget));

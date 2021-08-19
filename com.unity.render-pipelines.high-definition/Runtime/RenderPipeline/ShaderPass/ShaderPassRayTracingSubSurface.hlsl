@@ -18,7 +18,7 @@ void ClosestSubSurface(inout RayIntersectionSubSurface rayIntersection : SV_RayP
 
     // Build the Frag inputs from the intersection vertex
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, incidentDirection, fragInput);
+    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;

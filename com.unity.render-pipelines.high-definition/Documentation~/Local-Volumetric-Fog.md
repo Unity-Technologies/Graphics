@@ -41,6 +41,15 @@ The **Max Local Volumetric Fog Size** controls the maximum resolution you can us
 
 The **Max Local Volumetric Fog On Screen** controls how many Local Volumetric Fog components can appear on-screen at once. This setting also has an impact on memory.
 
+## Builtin Density Mask Texture
+
+HDRP includes 3D Density Mask Textures with different noise values and shapes that you can use in your scene. To use these Textures, import them from the HDRP samples package:
+
+1. Open the Package Manager window (menu: **Window** > **Package Manager**).
+2. Find the High Definition RP package.
+3. Expand **Samples**.
+4. Find the **Local Volumetric Fog Mask Textures** sample and click on the Import button to the right.
+
 ## Creating a Density Mask Texture
 
 1. In image-editing software of your choice, prepare an RGBA flipbook texture and [import it as a 3D texture](https://docs.unity3d.com/2020.2/Documentation/Manual/class-Texture3D.html). For example, a texture of size 1024x32 describes a 3D texture of size 32x32x32 with 32 slices laid out one after another.

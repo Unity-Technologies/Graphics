@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph
         public BlendNode()
         {
             name = "Blend";
+            synonyms = new string[] { "burn", "darken", "difference", "dodge", "divide", "exclusion", "hard light", "hard mix", "linear burn", "linear dodge", "linear light", "multiply", "negate", "overlay", "pin light", "screen", "soft light", "subtract", "vivid light", "overwrite" };
         }
 
         string GetCurrentBlendName()

@@ -1,4 +1,5 @@
 using UnityEngine;
+using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -7,21 +8,27 @@ namespace UnityEngine.Rendering.Universal
         internal DebugLightingMode DebugLightingMode { get; private set; }
         internal DebugLightingFeatureFlags DebugLightingFeatureFlagsMask { get; private set; }
 
+        static class Strings
+        {
+            public static readonly NameAndTooltip LightingDebugMode = new() { name = "Lighting Debug Mode", tooltip = "Use the drop-down to select which lighting and shadow debug information to overlay on the screen." };
+            public static readonly NameAndTooltip LightingFeatures = new() { name = "Lighting Features", tooltip = "Filter and debug selected lighting features in the system." };
+        }
+
         internal static class WidgetFactory
         {
             internal static DebugUI.Widget CreateLightingDebugMode(DebugDisplaySettingsLighting data) => new DebugUI.EnumField
             {
-                displayName = "Lighting Debug Mode",
+                nameAndTooltip = Strings.LightingDebugMode,
                 autoEnum = typeof(DebugLightingMode),
                 getter = () => (int)data.DebugLightingMode,
-                setter = (value) => {},
+                setter = (value) => { },
                 getIndex = () => (int)data.DebugLightingMode,
                 setIndex = (value) => data.DebugLightingMode = (DebugLightingMode)value
             };
 
             internal static DebugUI.Widget CreateLightingFeatures(DebugDisplaySettingsLighting data) => new DebugUI.BitField
             {
-                displayName = "Lighting Features",
+                nameAndTooltip = Strings.LightingFeatures,
                 getter = () => data.DebugLightingFeatureFlagsMask,
                 setter = (value) => data.DebugLightingFeatureFlagsMask = (DebugLightingFeatureFlags)value,
                 enumType = typeof(DebugLightingFeatureFlags),

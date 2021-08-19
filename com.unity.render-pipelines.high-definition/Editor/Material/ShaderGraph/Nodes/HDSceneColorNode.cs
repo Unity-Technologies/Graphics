@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public HDSceneColorNode()
         {
             name = "HD Scene Color";
+            synonyms = new string[] { "screen buffer" };
             UpdateNodeAfterDeserialization();
         }
 

@@ -154,7 +154,7 @@ namespace  UnityEditor.VFX.UI
 
         Action m_OnUpdateAction;
 
-        protected void OnEnable()
+        protected void CreateGUI()
         {
             VFXManagerEditor.CheckVFXManager();
 

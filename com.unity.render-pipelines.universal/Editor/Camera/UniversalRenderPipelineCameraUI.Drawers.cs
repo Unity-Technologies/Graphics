@@ -7,26 +7,44 @@ namespace UnityEditor.Rendering.Universal
 
     static partial class UniversalRenderPipelineCameraUI
     {
-        static readonly ExpandedState<CameraUI.Expandable, Camera> k_ExpandedState = new(CameraUI.Expandable.Projection, "URP");
+        [URPHelpURL("camera-component-reference")]
+        public enum Expandable
+        {
+            /// <summary> Projection</summary>
+            Projection = 1 << 0,
+            /// <summary> Physical</summary>
+            Physical = 1 << 1,
+            /// <summary> Output</summary>
+            Output = 1 << 2,
+            /// <summary> Orthographic</summary>
+            Orthographic = 1 << 3,
+            /// <summary> RenderLoop</summary>
+            RenderLoop = 1 << 4,
+            /// <summary> Rendering</summary>
+            Rendering = 1 << 5,
+            /// <summary> Environment</summary>
+            Environment = 1 << 6,
+            /// <summary> Stack</summary>
+            Stack = 1 << 7,
+        }
+
+        static readonly ExpandedState<Expandable, Camera> k_ExpandedState = new(Expandable.Projection, "URP");
 
         public static readonly CED.IDrawer SectionProjectionSettings = CED.FoldoutGroup(
             CameraUI.Styles.projectionSettingsHeaderContent,
-            CameraUI.Expandable.Projection,
+            Expandable.Projection,
             k_ExpandedState,
             FoldoutOption.Indent,
             CED.Group(
                 DrawerProjection
                 ),
-            PhysicalCamera.Drawer,
-            CED.Group(
-                CameraUI.Drawer_FieldClippingPlanes
-            )
+            PhysicalCamera.Drawer
         );
 
         public static readonly CED.IDrawer SectionStackSettings =
             CED.Conditional(
                 (serialized, editor) => (CameraRenderType)serialized.cameraType.intValue == CameraRenderType.Base,
-                CED.FoldoutGroup(Styles.stackSettingsText, CameraUI.Expandable.Stack, k_ExpandedState, FoldoutOption.Indent, CED.Group(DrawerStackCameras)));
+                CED.FoldoutGroup(Styles.stackSettingsText, Expandable.Stack, k_ExpandedState, FoldoutOption.Indent, CED.Group(DrawerStackCameras)));
 
         public static readonly CED.IDrawer[] Inspector =
         {

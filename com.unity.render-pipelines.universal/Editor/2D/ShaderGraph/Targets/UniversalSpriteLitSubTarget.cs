@@ -2,9 +2,8 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
-using UnityEngine.Rendering;
-using UnityEditor.Experimental.Rendering.Universal;
 using UnityEditor.ShaderGraph.Legacy;
+using UnityEditor.UIElements;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -22,7 +21,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-            context.AddSubShader(SubShaders.SpriteLit);
+            context.AddSubShader(SubShaders.SpriteLit(target));
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -32,10 +31,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             bool useLegacyBlocks = !descs.Contains(BlockFields.SurfaceDescription.BaseColor) && !descs.Contains(BlockFields.SurfaceDescription.Alpha);
             context.AddField(CoreFields.UseLegacySpriteBlocks, useLegacyBlocks);
 
-            // Surface Type & Blend Mode
+            // Surface Type
             context.AddField(UniversalFields.SurfaceTransparent);
-            context.AddField(Fields.BlendAlpha);
             context.AddField(Fields.DoubleSided);
+
+            // Blend Mode
+            switch (target.alphaMode)
+            {
+                case AlphaMode.Premultiply:
+                    context.AddField(UniversalFields.BlendPremultiply);
+                    break;
+                case AlphaMode.Additive:
+                    context.AddField(UniversalFields.BlendAdd);
+                    break;
+                case AlphaMode.Multiply:
+                    context.AddField(UniversalFields.BlendMultiply);
+                    break;
+                default:
+                    context.AddField(Fields.BlendAlpha);
+                    break;
+            }
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -51,6 +66,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
+            context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, (evt) =>
+            {
+                if (Equals(target.alphaMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Blend");
+                target.alphaMode = (AlphaMode)evt.newValue;
+                onChange();
+            });
         }
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
@@ -76,20 +100,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
+            public static SubShaderDescriptor SpriteLit(UniversalTarget target)
             {
-                pipelineTag = UniversalTarget.kPipelineTag,
-                customTags = UniversalTarget.kLitMaterialTypeTag,
-                renderType = $"{RenderType.Transparent}",
-                renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
-                generatesPreview = true,
-                passes = new PassCollection
+                SubShaderDescriptor result = new SubShaderDescriptor()
                 {
-                    { SpriteLitPasses.Lit },
-                    { SpriteLitPasses.Normal },
-                    { SpriteLitPasses.Forward },
-                },
-            };
+                    pipelineTag = UniversalTarget.kPipelineTag,
+                    customTags = UniversalTarget.kLitMaterialTypeTag,
+                    renderType = $"{RenderType.Transparent}",
+                    renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
+                    generatesPreview = true,
+                    passes = new PassCollection
+                    {
+                        { SpriteLitPasses.Lit },
+                        { SpriteLitPasses.Normal },
+                        { CorePasses._2DSceneSelection(target) },
+                        { CorePasses._2DScenePicking(target) },
+                        // Currently this pass must be last for the game view for UI shaders to render
+                        // correctly. Verify [1352225] before changing this order.
+                        { SpriteLitPasses.Forward },
+                    },
+                };
+                return result;
+            }
         }
         #endregion
 

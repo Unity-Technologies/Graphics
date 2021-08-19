@@ -362,6 +362,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
                     continue;
 
+
                 (HDShaderUtils.ShaderID id, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromShader(material.shader);
                 var latestVersion = k_Migrations.Length;
 
