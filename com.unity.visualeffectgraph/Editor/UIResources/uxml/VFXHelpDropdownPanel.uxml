@@ -12,7 +12,7 @@
     </ui:Box>
     <ui:Box class="section">
         <ui:Label text="Examples and Resources" class="category" />
-        <ui:Button name="gotoSpaceShip" text="Github: Spaceship Demo" class="indented link" />
-        <ui:Button name="gotoSamples" text="Github: VFX Graph Samples" class="indented link" />
+        <ui:Button name="gotoSpaceShip" text="[Github] Spaceship Demo" class="indented link" />
+        <ui:Button name="gotoSamples" text="[Github] VFX Graph Samples" class="indented link" />
     </ui:Box>
 </UXML>
