@@ -571,6 +571,8 @@ namespace UnityEngine.Experimental.Rendering
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         ProbeVolumeSHBands m_SHBands;
 
+        public ProbeVolumeSHBands shBands { get { return m_SHBands; } }
+
         internal bool clearAssetsOnVolumeClear = false;
 
         /// <summary>
@@ -733,7 +735,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            m_NeedsIndexRebuild = m_Index == null || m_PendingInitInfo.pendingMinCellPosition != minCellPosition || m_PendingInitInfo.pendingMaxCellPosition != maxCellPosition;
+            m_NeedsIndexRebuild |= m_Index == null || m_PendingInitInfo.pendingMinCellPosition != minCellPosition || m_PendingInitInfo.pendingMaxCellPosition != maxCellPosition;
 
             m_PendingInitInfo.pendingMinCellPosition = minCellPosition;
             m_PendingInitInfo.pendingMaxCellPosition = maxCellPosition;
