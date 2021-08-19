@@ -63,7 +63,6 @@
         * [Combine](Combine-Node)  
         * [Flip](Flip-Node)  
         * [Split](Split-Node)  
-        * [Swizzle](Swizzle-Node)  
     * [Input](Input-Nodes) 
         * Basic
             * [Boolean](Boolean-Node)  
