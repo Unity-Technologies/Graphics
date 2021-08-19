@@ -4,7 +4,9 @@ using UnityEditor.Rendering.Universal.Converters;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("MaterialPostprocessor")]
 namespace UnityEditor.Rendering.Universal
 {
     internal sealed class UniversalRenderPipelineMaterialUpgrader : RenderPipelineConverter
@@ -68,6 +70,7 @@ namespace UnityEditor.Rendering.Universal
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7 Billboard");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8");
+            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8_PBRLit");
             shadersToIgnore.Add("Universal Render Pipeline/2D/Sprite-Lit-Default");
             shadersToIgnore.Add("Universal Render Pipeline/Terrain/Lit");
             shadersToIgnore.Add("Universal Render Pipeline/Unlit");
@@ -528,11 +531,13 @@ namespace UnityEditor.Rendering.Universal
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7Billboard));
         }
     }
-    internal class SpeedTree8Upgrader : MaterialUpgrader
+
+    internal class SpeedTree8Upgrader : SpeedTree8MaterialUpgrader
     {
         internal SpeedTree8Upgrader(string oldShaderName)
+            : base(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8), SpeedTree8MaterialFinalizer)
         {
-            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8));
+            RenameFloat("_TwoSided", Property.CullMode);
         }
     }
 

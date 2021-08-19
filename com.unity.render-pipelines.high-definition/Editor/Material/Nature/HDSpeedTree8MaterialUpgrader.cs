@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public HDSpeedTree8MaterialUpgrader(string sourceShaderName, string destShaderName)
             : base(sourceShaderName, destShaderName, HDSpeedTree8MaterialFinalizer)
         {
+            RenameFloat("_TwoSided", "_CullMode");
         }
 
         public static void HDSpeedTree8MaterialFinalizer(Material mat)
@@ -61,6 +62,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 mat.SetFloat("_DoubleSidedEnable", 1.0f);
             }
+
+            if (mat.HasFloat("_TwoSided"))
+                mat.SetFloat("_CullMode", mat.GetFloat("_TwoSided"));
 
             SetDefaultDiffusionProfile(mat);
         }
