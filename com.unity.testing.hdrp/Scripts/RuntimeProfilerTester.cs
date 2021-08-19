@@ -106,7 +106,7 @@ class RuntimeProfilerBottleneckUtility
     public void ResetAll()
     {
         int numInstances = m_Instances.Count;
-        for (int i = numInstances-1; i >= 0; i--)
+        for (int i = numInstances - 1; i >= 0; i--)
         {
             GameObject.DestroyImmediate(m_Instances[i]);
         }
