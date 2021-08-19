@@ -41,20 +41,20 @@ namespace UnityEditor.ShaderFoundry
 
     internal static class ShaderFunctionExtensions
     {
-        // Get the name of the input and output type for this function (assumed to be an entry point)
-        internal static bool GetInOutTypeNames(this ShaderFunction function, out string inputTypeName, out string outputTypeName)
+        // Get the input and output types for this function (assumed to be an entry point)
+        internal static bool GetInOutTypes(this ShaderFunction function, out ShaderType inputType, out ShaderType outputType)
         {
             if (function.IsValid)
             {
                 var parameters = function.Parameters.GetEnumerator();
                 if (parameters.MoveNext())
                 {
-                    inputTypeName = parameters.Current.Type.Name;
-                    outputTypeName = function.ReturnType.Name;
+                    inputType = parameters.Current.Type;
+                    outputType = function.ReturnType;
                     return true;
                 }
             }
-            inputTypeName = outputTypeName = null;
+            inputType = outputType = ShaderType.Invalid;
             return false;
         }
 

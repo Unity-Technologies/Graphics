@@ -320,15 +320,16 @@ namespace UnityEditor.ShaderFoundry
             blockBuilder.AddType(outputType);
             var outputInstanceName = buildingContext.OutputTypeName.ToLower();
 
-            subEntryPointFn.GetInOutTypeNames(out var subBlockInputTypeName, out var subBlockOutputTypeName);
-            var subBlockInputInstanceName = subBlockInputTypeName.ToLower();
-            var subBlockOutputInstanceName = subBlockOutputTypeName.ToLower();
+            subEntryPointFn.GetInOutTypes(out var subBlockInputType, out var subBlockOutputType);
+            var subBlockInputInstanceName = subBlockInputType.Name.ToLower();
+            var subBlockOutputInstanceName = subBlockOutputType.Name.ToLower();
 
             // Build up the actual description functions
             var fnBuilder = new ShaderFunction.Builder(buildingContext.FunctionName, outputType);
             fnBuilder.AddInput(inputType, inputInstanceName);
 
-            fnBuilder.AddLine($"{subBlockInputTypeName} {subBlockInputInstanceName};");
+            fnBuilder.AddLine($"{subBlockInputType.Name} {subBlockInputInstanceName};");
+            var visitedInputs = new HashSet<string>();
             // Copy all inputs into the sub-block struct
             foreach (var inputData in inputs)
             {
@@ -344,7 +345,7 @@ namespace UnityEditor.ShaderFoundry
                 blockBuilder.AddProperty(propData.Source);
             }
             // Call the sub-block entry point
-            fnBuilder.AddLine($"{subBlockOutputTypeName} {subBlockOutputInstanceName} = {subEntryPointFn.Name}({subBlockInputInstanceName});");
+            fnBuilder.AddLine($"{subBlockOutputType.Name} {subBlockOutputInstanceName} = {subEntryPointFn.Name}({subBlockInputInstanceName});");
             // Copy all outputs into the legacy description type
             fnBuilder.AddLine($"{outputType.Name} {outputInstanceName};");
             foreach (var outputData in outputs)
