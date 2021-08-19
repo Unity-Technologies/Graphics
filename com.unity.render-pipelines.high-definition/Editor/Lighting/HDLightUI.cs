@@ -87,11 +87,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static HDLightUI()
         {
             Inspector = CED.Group(
-                CED.AdditionalPropertiesFoldoutGroup(s_Styles.generalHeader, Expandable.General, k_ExpandedState, AdditionalProperties.General, k_AdditionalPropertiesState, DrawGeneralContent, DrawGeneralAdditionalContent),
-                CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawShapeContent),
+                CED.AdditionalPropertiesFoldoutGroup(LightUI.Styles.generalHeader, Expandable.General, k_ExpandedState, AdditionalProperties.General, k_AdditionalPropertiesState, DrawGeneralContent, DrawGeneralAdditionalContent),
+                CED.FoldoutGroup(LightUI.Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawShapeContent),
                 CED.Conditional((serialized, owner) => serialized.type == HDLightType.Directional && !serialized.settings.isCompletelyBaked,
                     CED.FoldoutGroup(s_Styles.celestialBodyHeader, Expandable.CelestialBody, k_ExpandedState, DrawCelestialBodyContent)),
-                CED.AdditionalPropertiesFoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedState, AdditionalProperties.Emission, k_AdditionalPropertiesState, DrawEmissionContent, DrawEmissionAdditionalContent),
+                CED.AdditionalPropertiesFoldoutGroup(LightUI.Styles.emissionHeader, Expandable.Emission, k_ExpandedState, AdditionalProperties.Emission, k_AdditionalPropertiesState, DrawEmissionContent, DrawEmissionAdditionalContent),
                 CED.Conditional((serialized, owner) => serialized.type != HDLightType.Area && !serialized.settings.isCompletelyBaked,
                     CED.FoldoutGroup(s_Styles.volumetricHeader, Expandable.Volumetric, k_ExpandedState, DrawVolumetric)),
                 CED.Conditional((serialized, owner) =>
@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return type != HDLightType.Area || type == HDLightType.Area && serialized.areaLightShape != AreaLightShape.Tube;
                 },
                     CED.TernaryConditional((serialized, owner) => !serialized.settings.isCompletelyBaked,
-                        CED.AdditionalPropertiesFoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedState, AdditionalProperties.Shadow, k_AdditionalPropertiesState,
+                        CED.AdditionalPropertiesFoldoutGroup(LightUI.Styles.shadowHeader, Expandable.Shadows, k_ExpandedState, AdditionalProperties.Shadow, k_AdditionalPropertiesState,
                             CED.Group(
                                 CED.Group(
                                     CED.AdditionalPropertiesFoldoutGroup(s_Styles.shadowMapSubHeader, Expandable.ShadowMap, k_ExpandedState, AdditionalProperties.Shadow, k_AdditionalPropertiesState,
@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 ),
                             CED.noop //will only add parameter in first sub header
                             ),
-                        CED.FoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedState,
+                        CED.FoldoutGroup(LightUI.Styles.shadowHeader, Expandable.Shadows, k_ExpandedState,
                             CED.FoldoutGroup(s_Styles.bakedShadowsSubHeader, Expandable.BakedShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawBakedShadowsContent))
                     )
                 )
@@ -133,11 +133,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PresetInspector = CED.Group(
                 CED.Group((serialized, owner) =>
-                    EditorGUILayout.HelpBox(s_Styles.unsupportedPresetPropertiesMessage, MessageType.Info)),
+                    EditorGUILayout.HelpBox(LightUI.Styles.unsupportedPresetPropertiesMessage, MessageType.Info)),
                 CED.Group((serialized, owner) => EditorGUILayout.Space()),
-                CED.FoldoutGroup(s_Styles.generalHeader, Expandable.General, k_ExpandedStatePreset, DrawGeneralContent),
-                CED.FoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedStatePreset, DrawEmissionContentForPreset),
-                CED.FoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedStatePreset, DrawEnableShadowMapInternal)
+                CED.FoldoutGroup(LightUI.Styles.generalHeader, Expandable.General, k_ExpandedStatePreset, DrawGeneralContent),
+                CED.FoldoutGroup(LightUI.Styles.emissionHeader, Expandable.Emission, k_ExpandedStatePreset, DrawEmissionContentForPreset),
+                CED.FoldoutGroup(LightUI.Styles.shadowHeader, Expandable.Shadows, k_ExpandedStatePreset, DrawEnableShadowMapInternal)
             );
         }
 
@@ -221,7 +221,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 using (var change = new EditorGUI.ChangeCheckScope())
                 {
-                    EditorGUILayout.PropertyField(serialized.lightlayersMask, s_Styles.lightLayer);
+                    EditorGUILayout.PropertyField(serialized.lightlayersMask, LightUI.Styles.lightLayer);
                     if (change.changed && serialized.linkShadowLayers.boolValue)
                         SyncLightAndShadowLayers(serialized, owner);
                 }
@@ -625,7 +625,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Draw the unit textfield
             EditorGUI.BeginChangeCheck();
-            EditorGUI.PropertyField(valueRect, serialized.intensity, s_Styles.empty);
+            EditorGUI.PropertyField(valueRect, serialized.intensity, CoreEditorStyles.empty);
             DrawLightIntensityUnitPopup(unitRect, serialized, owner);
 
             if (EditorGUI.EndChangeCheck())
@@ -652,21 +652,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     // Use the color temperature bool to create a popup dropdown to choose between the two modes.
                     var colorTemperaturePopupValue = Convert.ToInt32(serialized.settings.useColorTemperature.boolValue);
-                    var lightAppearanceOptions = new[] { "Color", "Filter and Temperature" };
-                    colorTemperaturePopupValue = EditorGUILayout.Popup(s_Styles.lightAppearance, colorTemperaturePopupValue, lightAppearanceOptions);
+                    colorTemperaturePopupValue = EditorGUILayout.Popup(LightUI.Styles.lightAppearance, colorTemperaturePopupValue, LightUI.Styles.lightAppearanceOptions);
                     serialized.settings.useColorTemperature.boolValue = Convert.ToBoolean(colorTemperaturePopupValue);
 
                     if (serialized.settings.useColorTemperature.boolValue)
                     {
                         EditorGUI.indentLevel += 1;
-                        EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.colorFilter);
+                        EditorGUILayout.PropertyField(serialized.settings.color, LightUI.Styles.colorFilter);
 
                         // Light unit slider
                         const int k_ValueUnitSeparator = 2;
                         var lineRect = EditorGUILayout.GetControlRect();
                         var labelRect = lineRect;
                         labelRect.width = EditorGUIUtility.labelWidth;
-                        EditorGUI.LabelField(labelRect, s_Styles.colorTemperature);
+                        EditorGUI.LabelField(labelRect, LightUI.Styles.colorTemperature);
 
                         var temperatureSliderRect = lineRect;
                         temperatureSliderRect.x += EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
@@ -684,16 +683,16 @@ namespace UnityEditor.Rendering.HighDefinition
                         unitRect.x += valueRect.width - indent + k_ValueUnitSeparator;
                         unitRect.width = k_UnitWidth + .5f;
 
-                        EditorGUI.PropertyField(valueRect, serialized.settings.colorTemperature, s_Styles.empty);
+                        EditorGUI.PropertyField(valueRect, serialized.settings.colorTemperature, CoreEditorStyles.empty);
                         EditorGUI.Popup(unitRect, 0, new[] { "Kelvin" });
 
                         EditorGUI.indentLevel -= 1;
                     }
                     else
-                        EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.color);
+                        EditorGUILayout.PropertyField(serialized.settings.color, LightUI.Styles.color);
                 }
                 else
-                    EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.color);
+                    EditorGUILayout.PropertyField(serialized.settings.color, LightUI.Styles.color);
             }
 
             if (!isInPreset)
