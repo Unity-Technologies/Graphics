@@ -1,7 +1,5 @@
- using UnityEditor;
+ using System.Linq;
  using UnityEngine;
- using UnityEngine.Rendering;
- using UnityEngine.Rendering.Universal;
 
  namespace UnityEditor.Rendering.Universal
  {
@@ -9,7 +7,6 @@
      class ForwardToUniversalRendererPostprocessor
      {
          static bool firstTimeUpgrade = true;
-         static bool registeredRendererUpdate = false;
          static int editedAssetsCount = 0;
          static string fwdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("f971995892640ec4f807ef396269e91e"); //ForwardRendererData.cs
          static Object fwdRendererScriptObj;
@@ -47,12 +44,7 @@
          {
              //To prevent infinite importing loop caused by corrupted assets which are created from old bugs e.g. case 1214779
              Object[] subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(assetPath);
-             foreach (var t in subAssets)
-             {
-                 //Upgrade subAssets
-                 if(UpgradeAsset(t, assetPath))
-                    return;
-             }
+             if (subAssets.Any(t => UpgradeAsset(t, assetPath))) return;
 
              //Upgrade the main Asset
              Object rendererData = AssetDatabase.LoadAssetAtPath(assetPath, typeof(Object));
@@ -87,7 +79,7 @@
                      }
                      firstTimeUpgrade = false;
                  }
-                          //If there is no asset upgraded then we don't need to do the following
+                 //If there is no asset upgraded then we don't need to do the following
                  if (editedAssetsCount == 0) return;
 
                  //Gets all the UniversalRenderPipeline Assets in project
@@ -112,10 +104,8 @@
                      soAsset.ApplyModifiedProperties();
                      EditorUtility.SetDirty(pipelineAsset);
                  }
-
                  //Reset counter and register state
                  editedAssetsCount = 0;
-                 registeredRendererUpdate = false;
              };
         }
      }
