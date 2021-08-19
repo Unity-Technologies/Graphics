@@ -403,7 +403,7 @@ namespace UnityEditor.ShaderFoundry
 
             // Initialize custom interpolator sub generator
             CustomInterpSubGen customInterpSubGen = new CustomInterpSubGen(m_OutputNode != null);
-            foreach(var customInterpolatorField in blockVaryings)
+            foreach (var customInterpolatorField in blockVaryings)
                 customInterpSubGen.AddCustomInterpolant(customInterpolatorField);
 
             // Initiailize Collectors
@@ -656,14 +656,13 @@ namespace UnityEditor.ShaderFoundry
             // --------------------------------------------------
             // Graph Properties
 
-            //using ()
             {
                 var propertyBuilder = new ShaderBuilder();
                 var perMaterialBuilder = new ShaderBuilder();
                 var globalBuilder = new ShaderBuilder();
 
                 var visitedProperties = new HashSet<string>();
-                foreach(var prop in shaderProperties)
+                foreach (var prop in shaderProperties)
                 {
                     if (visitedProperties.Contains(prop.ReferenceName))
                         continue;
@@ -671,13 +670,28 @@ namespace UnityEditor.ShaderFoundry
                     prop.DeclarePassProperty(perMaterialBuilder, globalBuilder);
                 }
 
+                //if (m_Mode == GenerationMode.VFX)
+                //{
+                //    const string k_GraphPropertiesStruct = "GraphProperties";
+                //    propertyBuilder.AppendLine($"struct {k_GraphPropertiesStruct}");
+                //    using (propertyBuilder.BlockSemicolonScope())
+                //    {
+                //        m_GraphData.ForeachHLSLProperty(h =>
+                //        {
+                //            if (!h.IsObjectType())
+                //                h.AppendTo(propertyBuilder);
+                //        });
+                //    }
+                //}
+
+
                 propertyBuilder.AppendLine("CBUFFER_START(UnityPerMaterial)");
                 propertyBuilder.Append(perMaterialBuilder.ToString());
                 propertyBuilder.AppendLine("CBUFFER_END");
                 propertyBuilder.Append(globalBuilder.ToString());
 
                 var propertiesStr = propertyBuilder.ToString();
-                if(string.IsNullOrEmpty(propertiesStr))
+                if (string.IsNullOrEmpty(propertiesStr))
                     propertiesStr = "// GraphProperties: <None>";
                 spliceCommands.Add("GraphProperties", propertiesStr);
             }
@@ -728,58 +742,15 @@ namespace UnityEditor.ShaderFoundry
             {
                 graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
 
-                void AddDefines(DefineCollection defines, IEnumerable<DefineDescriptor> defineDescriptors, ShaderStringBuilder graphDefines)
+                if (pass.defines != null)
                 {
-                    if (defines != null)
+                    foreach (var define in pass.defines)
                     {
-                        foreach (var define in defines)
-                        {
-                            if (define.TestActive(blockActiveFields))
-                                graphDefines.AppendLine(define.value);
-                        }
+                        if (define.TestActive(blockActiveFields))
+                            graphDefines.AppendLine(define.value);
                     }
                 }
-
-                AddDefines(pass.defines, shaderDefines, graphDefines);
                 WriteDefines(shaderDefines, graphDefines);
-                //if (graphRequirements.permutationCount > 0)
-                //{
-                //    List<int> activePermutationIndices;
-
-                //    // Depth Texture
-                //    activePermutationIndices = graphRequirements.allPermutations.instances
-                //        .Where(p => p.requirements.requiresDepthTexture)
-                //        .Select(p => p.permutationIndex)
-                //        .ToList();
-                //    if (activePermutationIndices.Count > 0)
-                //    {
-                //        graphDefines.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(activePermutationIndices));
-                //        graphDefines.AppendLine("#define REQUIRE_DEPTH_TEXTURE");
-                //        graphDefines.AppendLine("#endif");
-                //    }
-
-                //    // Opaque Texture
-                //    activePermutationIndices = graphRequirements.allPermutations.instances
-                //        .Where(p => p.requirements.requiresCameraOpaqueTexture)
-                //        .Select(p => p.permutationIndex)
-                //        .ToList();
-                //    if (activePermutationIndices.Count > 0)
-                //    {
-                //        graphDefines.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(activePermutationIndices));
-                //        graphDefines.AppendLine("#define REQUIRE_OPAQUE_TEXTURE");
-                //        graphDefines.AppendLine("#endif");
-                //    }
-                //}
-                //else
-                //{
-                //    // Depth Texture
-                //    if (graphRequirements.baseInstance.requirements.requiresDepthTexture)
-                //        graphDefines.AppendLine("#define REQUIRE_DEPTH_TEXTURE");
-
-                //    // Opaque Texture
-                //    if (graphRequirements.baseInstance.requirements.requiresCameraOpaqueTexture)
-                //        graphDefines.AppendLine("#define REQUIRE_OPAQUE_TEXTURE");
-                //}
 
                 // Add to splice commands
                 spliceCommands.Add("GraphDefines", graphDefines.ToCodeBlock());
