@@ -15,9 +15,9 @@
          static string stdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("de640fe3d0db1804a85f9fc8f5cadab6"); //UniversalRendererData.cs
          static Object stdRendererScriptObj;
 
-         static void UpgradeAsset(Object rendererData, string rendererDataPath)
+         static bool UpgradeAsset(Object rendererData, string rendererDataPath)
          {
-             if (rendererData == null) return;
+             if (rendererData == null) return false;
 
              //Gets the script file objects
              if (!fwdRendererScriptObj) fwdRendererScriptObj = AssetDatabase.LoadAssetAtPath(fwdRendererScriptFilePath, typeof(Object));
@@ -28,18 +28,18 @@
              SerializedProperty scriptProperty = so.FindProperty("m_Script");
              Debug.LogWarning($"upgraded renderer {rendererData.name} at {rendererDataPath}");
 
-             if (scriptProperty == null || scriptProperty.objectReferenceValue != fwdRendererScriptObj) return;
+             if (scriptProperty == null || scriptProperty.objectReferenceValue != fwdRendererScriptObj) return false;
              //Change the script to use UniversalRendererData
              so.Update();
              scriptProperty.objectReferenceValue = stdRendererScriptObj;
              so.ApplyModifiedProperties();
-             EditorUtility.SetDirty(rendererData);
 
              //Re-import asset
              //This prevents the "Importer(NativeFormatImporter) generated inconsistent result" warning
              AssetDatabase.ImportAsset(rendererDataPath);
 
              editedAssetsCount++;
+             return true;
          }
 
          static void IterateSubAssets(string assetPath)
@@ -49,8 +49,8 @@
              foreach (var t in subAssets)
              {
                  //Upgrade subAssets
-                 UpgradeAsset(t, assetPath);
-                 return;
+                 if(UpgradeAsset(t, assetPath))
+                    return;
              }
 
              //Upgrade the main Asset
@@ -61,6 +61,21 @@
          [InitializeOnLoadMethod]
          static void RegisterUpgraderReimport()
          {
+             Debug.LogWarning($"kicked off upgrader");
+
+             string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData glob:\"**/*.asset\"", null);
+
+             foreach (var t in allRenderers)
+             {
+                 string rendererDataPath = AssetDatabase.GUIDToAssetPath(t);
+                 var assetType = AssetDatabase.GetMainAssetTypeAtPath(rendererDataPath);
+                 if (assetType == null) continue;
+                 if (assetType.ToString().Contains("Universal.ForwardRendererData"))
+                 {
+                     IterateSubAssets(rendererDataPath);
+                 }
+             }
+
              //Putting in delayCall will make sure AssetDatabase is ready for the FindAssets search below
              EditorApplication.delayCall += () => {
                  //This helps to scan the RendererData Assets which are subAssets caused by case 1214779
@@ -103,7 +118,7 @@
              };
         }
 
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        /*static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
              Debug.LogWarning($"kicked off method");
 
@@ -127,6 +142,6 @@
                  RegisterUpgraderReimport();
                  registeredRendererUpdate = true;
              }
-         }
+         }*/
      }
  }
