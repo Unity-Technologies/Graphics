@@ -2,7 +2,7 @@
 
 The **Volumetric Clouds** [Volume component override](Volume-Components.md) controls settings relevant to rendering volumetric clouds in the High Definition Render Pipeline (HDRP). Volumetric clouds are intractable clouds that can render shadows, and receive fog and volumetric light.
 
-To generate and render volumetric clouds, HDRP uses: 
+To generate and render volumetric clouds, HDRP uses:
 
 * A cloud lookup table - defines properties such as the altitude, density, and lighting.
 * A cloud volume - describes the area in the Scene that HDRP generates the clouds in.
