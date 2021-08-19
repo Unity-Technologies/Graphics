@@ -17,12 +17,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [Flags]
         public enum Features
         {
-            None                    = 0,
-            ShowDoubleSidedNormal   = 1 << 0,
-            All                     = ~0,
+            None = 0,
+            ShowDoubleSidedNormal = 1 << 0,
+            All = ~0,
 
-            Unlit                   = Lit ^ ShowDoubleSidedNormal, // hide double sided normal for unlit
-            Lit                     = All,
+            Unlit = Lit ^ ShowDoubleSidedNormal, // hide double sided normal for unlit
+            Lit = All,
         }
 
         class Styles
@@ -40,7 +40,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CreatePropertyGUI()
         {
-            AddProperty(surfaceTypeText, () => systemData.surfaceType, (newValue) => {
+            AddProperty(surfaceTypeText, () => systemData.surfaceType, (newValue) =>
+            {
                 systemData.surfaceType = newValue;
                 systemData.TryChangeRenderingPass(systemData.renderQueueType);
             });

@@ -244,7 +244,7 @@ namespace UnityEditor.VFX
 
             VFXParameter parameter = GetParameter(name, resource);
 
-            if (!VFXGizmoUtility.HasGizmo(parameter.type))
+            if (parameter == null || !VFXGizmoUtility.HasGizmo(parameter.type))
             {
                 base.EmptyLineControl(name, tooltip, depth, resource);
                 return;
@@ -361,7 +361,7 @@ namespace UnityEditor.VFX
 
             public override System.Type portType
             {
-                get {return m_Parameter.type; }
+                get { return m_Parameter.type; }
             }
 
             public override VFXCoordinateSpace space
@@ -401,7 +401,7 @@ namespace UnityEditor.VFX
             public override VFXGizmo.IProperty<T> RegisterProperty<T>(string memberPath)
             {
                 var cmdList = new List<Action<List<object>, object>>();
-                bool succeeded = BuildPropertyValue<T>(cmdList, m_Parameter.type, m_Parameter.exposedName, memberPath.Split(new char[] {separator[0]}, StringSplitOptions.RemoveEmptyEntries), 0);
+                bool succeeded = BuildPropertyValue<T>(cmdList, m_Parameter.type, m_Parameter.exposedName, memberPath.Split(new char[] { separator[0] }, StringSplitOptions.RemoveEmptyEntries), 0);
                 if (succeeded)
                 {
                     return new Property<T>(m_SerializedObject, cmdList);
@@ -495,7 +495,8 @@ namespace UnityEditor.VFX
                         if (specialSpacableVector3CaseField != null)
                         {
                             cmdList.Add(
-                                (l, o) => {
+                                (l, o) =>
+                                {
                                     object vector3Property = specialSpacableVector3CaseField.GetValue(o);
                                     SetObjectValue(property, vector3Property);
                                 });
@@ -528,7 +529,7 @@ namespace UnityEditor.VFX
 
                     FieldInfo vector3Field = type.GetFields(BindingFlags.Instance | BindingFlags.Public).First(t => t.FieldType == typeof(Vector3));
                     string name = vector3Field.Name;
-                    return BuildPropertyValue<T>(cmdList, typeof(Vector3), propertyPath + "_" + name, new string[] {name}, 1, vector3Field);
+                    return BuildPropertyValue<T>(cmdList, typeof(Vector3), propertyPath + "_" + name, new string[] { name }, 1, vector3Field);
                 }
                 Debug.LogError("Setting A value across multiple property is not yet supported");
 
@@ -650,7 +651,7 @@ namespace UnityEditor.VFX
                     m_CmdList = cmdlist;
                 }
 
-                public bool isEditable { get {return true; } }
+                public bool isEditable { get { return true; } }
 
 
                 List<Action<List<object>, object>> m_CmdList;

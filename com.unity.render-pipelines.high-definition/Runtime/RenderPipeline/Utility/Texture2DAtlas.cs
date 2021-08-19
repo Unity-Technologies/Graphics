@@ -359,9 +359,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public virtual bool NeedsUpdate(Texture texture, bool needMips = false)
         {
-            RenderTexture   rt = texture as RenderTexture;
-            int             key = GetTextureID(texture);
-            int             textureHash = GetTextureHash(texture);
+            RenderTexture rt = texture as RenderTexture;
+            int key = GetTextureID(texture);
+            int textureHash = GetTextureHash(texture);
 
             // Update the render texture if needed
             if (rt != null)

@@ -5,7 +5,8 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class LitGUI
+    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")]
+    public static class LitGUI
     {
         public enum WorkflowMode
         {
@@ -50,14 +51,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public static GUIContent occlusionText = new GUIContent("Occlusion Map",
                 "Sets an occlusion map to simulate shadowing from ambient lighting.");
 
-            public static readonly string[] metallicSmoothnessChannelNames = {"Metallic Alpha", "Albedo Alpha"};
-            public static readonly string[] specularSmoothnessChannelNames = {"Specular Alpha", "Albedo Alpha"};
+            public static readonly string[] metallicSmoothnessChannelNames = { "Metallic Alpha", "Albedo Alpha" };
+            public static readonly string[] specularSmoothnessChannelNames = { "Specular Alpha", "Albedo Alpha" };
 
-            public static GUIContent clearCoatText   = new GUIContent("Clear Coat",
+            public static GUIContent clearCoatText = new GUIContent("Clear Coat",
                 "A multi-layer material feature which simulates a thin layer of coating on top of the surface material." +
                 "\nPerformance cost is considerable as the specular component is evaluated twice, once per layer.");
 
-            public static GUIContent clearCoatMaskText   = new GUIContent("Mask",
+            public static GUIContent clearCoatMaskText = new GUIContent("Mask",
                 "Specifies the amount of the coat blending." +
                 "\nActs as a multiplier of the clear coat map mask value or as a direct mask value if no map is specified." +
                 "\nThe map specifies clear coat mask in the red channel and clear coat smoothness in the green channel.");
@@ -116,9 +117,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 highlights = BaseShaderGUI.FindProperty("_SpecularHighlights", properties, false);
                 reflections = BaseShaderGUI.FindProperty("_EnvironmentReflections", properties, false);
 
-                clearCoat           = BaseShaderGUI.FindProperty("_ClearCoat", properties, false);
-                clearCoatMap        = BaseShaderGUI.FindProperty("_ClearCoatMap", properties, false);
-                clearCoatMask       = BaseShaderGUI.FindProperty("_ClearCoatMask", properties, false);
+                clearCoat = BaseShaderGUI.FindProperty("_ClearCoat", properties, false);
+                clearCoatMap = BaseShaderGUI.FindProperty("_ClearCoatMap", properties, false);
+                clearCoatMask = BaseShaderGUI.FindProperty("_ClearCoatMask", properties, false);
                 clearCoatSmoothness = BaseShaderGUI.FindProperty("_ClearCoatSmoothness", properties, false);
             }
         }
@@ -190,7 +191,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 EditorGUI.indentLevel += 2;
 
                 // Texture and HDR color controls
-                materialEditor.ShaderProperty(properties.clearCoatSmoothness , Styles.clearCoatSmoothnessText);
+                materialEditor.ShaderProperty(properties.clearCoatSmoothness, Styles.clearCoatSmoothnessText);
 
                 EditorGUI.indentLevel -= 2;
             }

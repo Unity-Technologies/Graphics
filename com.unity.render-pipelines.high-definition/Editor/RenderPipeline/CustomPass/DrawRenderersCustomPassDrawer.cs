@@ -64,30 +64,30 @@ namespace UnityEditor.Rendering.HighDefinition
         private int m_MaterialLines = 2;
 
         // Foldouts
-        SerializedProperty      m_FilterFoldout;
-        SerializedProperty      m_RendererFoldout;
-        SerializedProperty      m_PassFoldout;
-        SerializedProperty      m_TargetDepthBuffer;
+        SerializedProperty m_FilterFoldout;
+        SerializedProperty m_RendererFoldout;
+        SerializedProperty m_PassFoldout;
+        SerializedProperty m_TargetDepthBuffer;
 
         // Filter
-        SerializedProperty      m_RenderQueue;
-        SerializedProperty      m_LayerMask;
-        SerializedProperty      m_ShaderPasses;
+        SerializedProperty m_RenderQueue;
+        SerializedProperty m_LayerMask;
+        SerializedProperty m_ShaderPasses;
 
         // Render
-        SerializedProperty      m_OverrideMaterial;
-        SerializedProperty      m_OverrideMaterialPassName;
-        SerializedProperty      m_SortingCriteria;
-        SerializedProperty      m_ShaderPass;
+        SerializedProperty m_OverrideMaterial;
+        SerializedProperty m_OverrideMaterialPassName;
+        SerializedProperty m_SortingCriteria;
+        SerializedProperty m_ShaderPass;
 
         // Override depth state
-        SerializedProperty      m_OverrideDepthState;
-        SerializedProperty      m_DepthCompareFunction;
-        SerializedProperty      m_DepthWrite;
+        SerializedProperty m_OverrideDepthState;
+        SerializedProperty m_DepthCompareFunction;
+        SerializedProperty m_DepthWrite;
 
-        ReorderableList         m_ShaderPassesList;
+        ReorderableList m_ShaderPassesList;
 
-        CustomPassVolume        m_Volume;
+        CustomPassVolume m_Volume;
 
         bool customDepthIsNone => (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue == CustomPass.TargetBuffer.None;
 
@@ -130,7 +130,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUIUtility.labelWidth = labelWidth;
             };
 
-            m_ShaderPassesList.drawHeaderCallback = (Rect testHeaderRect) => {
+            m_ShaderPassesList.drawHeaderCallback = (Rect testHeaderRect) =>
+            {
                 EditorGUI.LabelField(testHeaderRect, Styles.shaderPassFilter);
             };
         }

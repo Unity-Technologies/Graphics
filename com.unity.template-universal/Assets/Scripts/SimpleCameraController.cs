@@ -167,9 +167,9 @@ namespace UnityTemplateProjects
             if (IsEscapePressed())
             {
                 Application.Quit();
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
-                #endif
+#endif
             }
 
             // Hide and lock cursor when right mouse button pressed

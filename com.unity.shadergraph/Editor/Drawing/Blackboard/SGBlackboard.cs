@@ -31,7 +31,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             windowDockingLayout.dockingLeft = true;
 
             var addButton = m_MainContainer.Q(name: "addButton") as Button;
-            addButton.clickable.clicked += () => {
+            addButton.clickable.clicked += () =>
+            {
                 if (addItemRequested != null)
                 {
                     addItemRequested(this);

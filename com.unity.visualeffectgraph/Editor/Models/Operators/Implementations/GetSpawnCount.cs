@@ -6,7 +6,7 @@ using UnityEditor.VFX;
 [VFXInfo(category = "Spawn", experimental = true)]
 class GetSpawnCount : VFXOperator
 {
-    public override string name { get { return "Get Spawn Count"; }  }
+    public override string name { get { return "Get Spawn Count"; } }
 
     public class OutputProperties
     {
@@ -16,6 +16,6 @@ class GetSpawnCount : VFXOperator
 
     protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
     {
-        return new VFXExpression[] { new VFXExpressionCastFloatToUint(new VFXAttributeExpression(new VFXAttribute("spawnCount", UnityEngine.VFX.VFXValueType.Float), VFXAttributeLocation.Source))  };
+        return new VFXExpression[] { new VFXExpressionCastFloatToUint(new VFXAttributeExpression(new VFXAttribute("spawnCount", UnityEngine.VFX.VFXValueType.Float), VFXAttributeLocation.Source)) };
     }
 }

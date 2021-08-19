@@ -7,19 +7,19 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         class AfterPostProcessPassData
         {
-            public PostProcessParameters    parameters;
-            public TextureHandle            afterPostProcessBuffer;
-            public TextureHandle            depthStencilBuffer;
-            public RendererListHandle       opaqueAfterPostprocessRL;
-            public RendererListHandle       transparentAfterPostprocessRL;
+            public PostProcessParameters parameters;
+            public TextureHandle afterPostProcessBuffer;
+            public TextureHandle depthStencilBuffer;
+            public RendererListHandle opaqueAfterPostprocessRL;
+            public RendererListHandle transparentAfterPostprocessRL;
         }
 
-        TextureHandle RenderPostProcess(RenderGraph     renderGraph,
-            PrepassOutput   prepassOutput,
-            TextureHandle   inputColor,
-            TextureHandle   backBuffer,
-            CullingResults  cullResults,
-            HDCamera        hdCamera)
+        TextureHandle RenderPostProcess(RenderGraph renderGraph,
+            PrepassOutput prepassOutput,
+            TextureHandle inputColor,
+            TextureHandle backBuffer,
+            CullingResults cullResults,
+            HDCamera hdCamera)
         {
             PostProcessParameters parameters = PreparePostProcess(cullResults, hdCamera);
 

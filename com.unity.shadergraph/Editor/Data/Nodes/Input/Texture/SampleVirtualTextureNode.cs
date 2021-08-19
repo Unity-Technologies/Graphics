@@ -162,7 +162,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public SampleVirtualTextureNode() : this(false, false)
-        {}
+        { }
 
         public SampleVirtualTextureNode(bool isLod = false, bool noResolve = false)
         {
@@ -328,10 +328,10 @@ namespace UnityEditor.ShaderGraph
             sb.AppendIndentation();
             sb.Append(outputVariableName); sb.Append(" = ");
             sb.Append("SampleVTLayerWithTextureType(");
-            sb.Append(propertiesName);          sb.Append(", ");
-            sb.Append(vtInputVariable);         sb.Append(", ");
-            sb.Append(infoVariable);            sb.Append(", ");
-            sb.Append(layerIndex.ToString());   sb.Append(");");
+            sb.Append(propertiesName); sb.Append(", ");
+            sb.Append(vtInputVariable); sb.Append(", ");
+            sb.Append(infoVariable); sb.Append(", ");
+            sb.Append(layerIndex.ToString()); sb.Append(");");
             sb.AppendNewLine();
         }
 

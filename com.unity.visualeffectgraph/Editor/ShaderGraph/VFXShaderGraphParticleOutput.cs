@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
                 dependencies.Add(shaderGraph.GetInstanceID());
         }
 
-        protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) {}
+        protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) { }
         static Type GetSGPropertyType(AbstractShaderProperty property)
         {
             switch (property.propertyType)
@@ -162,8 +162,8 @@ namespace UnityEditor.VFX
         {
             base.CheckGraphBeforeImport();
             // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
-
-            ResyncSlots(true);
+            if (!VFXGraph.explicitCompile)
+                ResyncSlots(true);
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties

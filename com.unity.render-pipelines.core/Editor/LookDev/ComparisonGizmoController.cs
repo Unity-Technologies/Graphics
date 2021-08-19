@@ -129,11 +129,11 @@ namespace UnityEditor.Rendering.LookDev
 
             switch (m_Selected)
             {
-                case Selected.PlaneSeparator:   OnDragPlaneSeparator(evt);      break;
+                case Selected.PlaneSeparator: OnDragPlaneSeparator(evt); break;
                 case Selected.NodeFirstView:
-                case Selected.NodeSecondView:   OnDragPlaneNodeExtremity(evt);  break;
-                case Selected.Fader:            OnDragFader(evt);               break;
-                default:    throw new ArgumentException("Unknown kind of Selected");
+                case Selected.NodeSecondView: OnDragPlaneNodeExtremity(evt); break;
+                case Selected.Fader: OnDragFader(evt); break;
+                default: throw new ArgumentException("Unknown kind of Selected");
             }
         }
 

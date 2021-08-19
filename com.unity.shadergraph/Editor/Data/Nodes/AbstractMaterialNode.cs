@@ -433,7 +433,7 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
-        protected internal virtual string GetOutputForSlot(SlotReference fromSocketRef,  ConcreteSlotValueType valueType, GenerationMode generationMode)
+        protected internal virtual string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
         {
             var slot = FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
             if (slot == null)
@@ -913,7 +913,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public virtual void UpdateNodeAfterDeserialization()
-        {}
+        { }
 
         public bool IsSlotConnected(int slotId)
         {
@@ -921,7 +921,7 @@ namespace UnityEditor.ShaderGraph
             return slot != null && owner.GetEdges(slot.slotReference).Any();
         }
 
-        public virtual void Setup() {}
+        public virtual void Setup() { }
 
         protected void EnqueSlotsForSerialization()
         {

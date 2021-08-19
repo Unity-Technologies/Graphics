@@ -124,7 +124,7 @@ namespace UnityEditor.VFX.UI
 
         public bool indeterminate
         {
-            get {return m_Control.parent == null; }
+            get { return m_Control.parent == null; }
 
             set
             {

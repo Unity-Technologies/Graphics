@@ -561,21 +561,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int RayTracingFrameIndex(HDCamera hdCamera)
         {
-        #if UNITY_HDRP_DXR_TESTS_DEFINE
+#if UNITY_HDRP_DXR_TESTS_DEFINE
             if (Application.isPlaying)
                 return 0;
             else
-        #endif
+#endif
             return (int)hdCamera.GetCameraFrameCount() % 8;
         }
 
         internal int RayTracingFrameIndex(HDCamera hdCamera, int targetFrameCount = 8)
         {
-            #if UNITY_HDRP_DXR_TESTS_DEFINE
+#if UNITY_HDRP_DXR_TESTS_DEFINE
             if (Application.isPlaying)
                 return 0;
             else
-            #endif
+#endif
             return (int)hdCamera.GetCameraFrameCount() % targetFrameCount;
         }
 
