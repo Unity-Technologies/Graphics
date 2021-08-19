@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected override ScriptableRenderer Create()
         {
-            Debug.Log("Forward Renderer Data has been deprecated.");
+            Debug.LogWarning($"Forward Renderer Data has been deprecated, {name} will be upgraded to a {nameof(UniversalRendererData)}.");
             return null;
         }
 

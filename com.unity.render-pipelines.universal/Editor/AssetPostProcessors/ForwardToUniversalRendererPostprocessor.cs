@@ -61,8 +61,6 @@
 
          static ForwardToUniversalRendererPostprocessor()
          {
-             Debug.LogWarning($"kicked off upgrader");
-
              string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData glob:\"**/*.asset\"", null);
 
              foreach (var t in allRenderers)
@@ -120,31 +118,5 @@
                  registeredRendererUpdate = false;
              };
         }
-
-        /*static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-        {
-             Debug.LogWarning($"kicked off method");
-
-             //Opening some projects e.g. URP Template relies on this interation for doing the asset upgrade.
-             //This also makes sure the RendererData will be re-upgraded again if the uppgraded changes are discarded using source control.
-             foreach (var t in importedAssets)
-             {
-                 var assetType = AssetDatabase.GetMainAssetTypeAtPath(t);
-                 if (assetType == null) continue;
-                 if (assetType.ToString().Contains("Universal.ForwardRendererData"))
-                 {
-                     IterateSubAssets(t);
-                 }
-             }
-
-             //If there are assets being upgraded then we need to trigger an update on the Pipeline assets to avoid "no Default Renderer asset" error and making rendering fine again.
-             //However at this moment the Pipeline assets are not yet updated, so the error might still happen in the case of discarded upgrade changes, but it won't harm rendering
-             //This makes sure we re-register the delayCall only once
-             if (!registeredRendererUpdate && editedAssetsCount > 0)
-             {
-                 RegisterUpgraderReimport();
-                 registeredRendererUpdate = true;
-             }
-         }*/
      }
  }
