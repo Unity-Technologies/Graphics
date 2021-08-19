@@ -47,7 +47,7 @@ CBUFFER_START(ShaderVariablesClouds)
     int _ExposureSunColor;
     int _AccumulationFrameIndex;
     int _SubPixelIndex;
-    int Padding0;
+    int _RenderForSky;
     float _FadeInStart;
     float _FadeInDistance;
     int _LowResolutionEvaluation;
@@ -65,6 +65,7 @@ CBUFFER_START(ShaderVariablesClouds)
     float4x4 _CameraViewProjection_NO;
     float4x4 _CameraInverseViewProjection_NO;
     float4x4 _CameraPrevViewProjection_NO;
+    float4x4 _CloudsPixelCoordToViewDirWS;
     float _AltitudeDistortion;
     float _ErosionFactorCompensation;
     int _EnableFastToneMapping;

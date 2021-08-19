@@ -300,8 +300,11 @@ namespace UnityEngine.Rendering.HighDefinition
             tooltip: "Sets the custom sample budget of the Subsurface Scattering algorithm.")]
         SssCustomSampleBudget = 49,
         /// <summary>When enabled, Cameras using these Frame Settings calculate Volumetric Clouds.</summary>
-        [FrameSettingsField(1, autoName: VolumetricClouds, tooltip: "When enabled, Cameras using these Frame Settings calculate Volumetric Clouds.")]
+        [FrameSettingsField(1, autoName: VolumetricClouds, customOrderInGroup: 50, tooltip: "When enabled, Cameras using these Frame Settings calculate Volumetric Clouds.")]
         VolumetricClouds = 79,
+        /// <summary>When enabled, Cameras using these Frame Settings calculate Volumetric Clouds at full resolution when evaluating the sky texture.</summary>
+        [FrameSettingsField(1, autoName: FullResolutionCloudsForSky, customOrderInGroup: 51, positiveDependencies: new[] { VolumetricClouds }, tooltip: "When enabled, Cameras using these Frame Settings calculate Volumetric Clouds at full resolution when evaluating the sky texture.")]
+        FullResolutionCloudsForSky = 98,
 
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).</summary>
         [FrameSettingsField(1, autoName: Transmission, tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).")]
@@ -476,6 +479,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.AlphaToMask,
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.VolumetricClouds,
+                // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
             sssQualityMode = SssQualityMode.FromQualitySettings,
@@ -536,6 +540,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 // (uint)FrameSettingsField.VolumetricClouds,
+                // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
             sssQualityMode = SssQualityMode.FromQualitySettings,
@@ -593,6 +598,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // (uint)FrameSettingsField.EnableSkyReflection,
                 // (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.VolumetricClouds,
+                // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
             sssQualityMode = SssQualityMode.FromQualitySettings,
@@ -831,6 +837,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSGI] &= renderPipelineSettings.supportSSGI && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] && temporalAccumulationAllowed;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= renderPipelineSettings.supportSubsurfaceScattering;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds] &= renderPipelineSettings.supportVolumetricClouds && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FullResolutionCloudsForSky] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds];
 
             // We must take care of the scene view fog flags in the editor
             bool atmosphericScattering = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;
