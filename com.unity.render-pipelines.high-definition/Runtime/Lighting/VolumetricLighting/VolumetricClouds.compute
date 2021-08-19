@@ -353,6 +353,9 @@ float3 AnimateCloudMapPosition(float3 positionPS)
 
 float3 AnimateBaseNoisePosition(float3 positionPS)
 {
+    // We reduce the top-view repetition of the pattern
+    positionPS.y += (positionPS.x / 3.0f + positionPS.z / 7.0f);
+    // We add the contribution of the wind displacements
     return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _MediumWindSpeed + float3(0.0, _VerticalShapeWindDisplacement, 0.0);
 }
 
