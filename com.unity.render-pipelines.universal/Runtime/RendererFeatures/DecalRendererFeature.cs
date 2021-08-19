@@ -199,8 +199,6 @@ namespace UnityEngine.Rendering.Universal
         private DecalDrawGBufferSystem m_DrawGBufferSystem;
         private DeferredLights m_DeferredLights;
 
-        private bool m_UseRenderPassEnabled;
-
         internal bool intermediateRendering => m_Technique == DecalTechnique.DBuffer;
 
         public override void Create()
@@ -368,8 +366,6 @@ namespace UnityEngine.Rendering.Universal
             var universalRenderer = renderer as UniversalRenderer;
             Assert.IsNotNull(universalRenderer);
 
-            m_UseRenderPassEnabled = universalRenderer.useRenderPassEnabled;
-
             switch (m_Technique)
             {
                 case DecalTechnique.ScreenSpace:
@@ -398,8 +394,6 @@ namespace UnityEngine.Rendering.Universal
                         m_DBufferRenderPass.deferredLights = universalRenderer.deferredLights;
                         m_DBufferRenderPass.deferredLights.DisableFramebufferFetchInput();
                     }
-
-
                     break;
             }
 
