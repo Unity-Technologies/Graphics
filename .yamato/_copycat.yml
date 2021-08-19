@@ -40,7 +40,7 @@ vendor:
     - copycat vendor --revision "${GIT_TAG:-${GIT_BRANCH%%' (tag)'}}" --sha "$GIT_REVISION" "../destination/$MANIFEST"
     - |
       author=${YAMATO_OWNER_EMAIL%@unity3d.com}
-      python3 ../gfx-sdet-tools/scripts/gfx_to_ono_changelog_converter.py --author "$author"
+      python3 ../gfx-sdet-tools/scripts/gfx_to_ono_changelog_converter.py --author "$author" --unity-target-branch "$RELEASE_BRANCH"
     - python3 ../gfx-sdet-tools/scripts/srp_test_references_updater.py --srp-version $SRP_VERSION --destination-folder ../destination
     - copycat ono --no-reviewers "../destination/$MANIFEST" ../diff.patch
     - copycat katana "../destination/$MANIFEST"
