@@ -293,6 +293,16 @@ namespace UnityEditor.Rendering.Universal
             serialized.shadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, serialized.shadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
             serialized.shadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, serialized.shadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
             EditorGUILayout.PropertyField(serialized.softShadowsSupportedProp, Styles.supportsSoftShadows);
+
+            EditorGUILayout.PropertyField(serialized.conservativeEnclosingSphereProp, Styles.conservativeEnclosingSphere);
+
+            if (serialized.conservativeEnclosingSphereProp.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.IntSlider(serialized.numIterationsEnclosingSphereProp, 1, UniversalRenderPipeline.maxNumIterationsEnclosingSphere, Styles.numIterationsEnclosingSphere);
+                EditorGUI.indentLevel--;
+            }
+
             EditorGUI.indentLevel--;
         }
 

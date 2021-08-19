@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
-        [SerializeField] bool m_TightEnclosingSphere = false;
+        [SerializeField] bool m_ConservativeEnclosingSphere = false;
         [SerializeField] int m_NumIterationsEnclosingSphere = 64;
 
         // Light Cookie Settings
@@ -911,10 +911,10 @@ namespace UnityEngine.Rendering.Universal
             set { m_UseAdaptivePerformance = value; }
         }
 
-        public bool tightEnclosingSphere
+        public bool conservativeEnclosingSphere
         {
-            get { return m_TightEnclosingSphere; }
-            set { m_TightEnclosingSphere = value; }
+            get { return m_ConservativeEnclosingSphere; }
+            set { m_ConservativeEnclosingSphere = value; }
         }
 
         public int numItertionsEnclosingSphere

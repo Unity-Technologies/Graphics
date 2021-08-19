@@ -45,8 +45,9 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty shadowCascadeBorderProp { get; }
         public SerializedProperty shadowDepthBiasProp { get; }
         public SerializedProperty shadowNormalBiasProp { get; }
-
         public SerializedProperty softShadowsSupportedProp { get; }
+        public SerializedProperty conservativeEnclosingSphereProp { get; }
+        public SerializedProperty numIterationsEnclosingSphereProp { get; }
 
         public SerializedProperty srpBatcher { get; }
         public SerializedProperty supportsDynamicBatching { get; }
@@ -111,6 +112,8 @@ namespace UnityEditor.Rendering.Universal
             shadowDepthBiasProp = serializedObject.FindProperty("m_ShadowDepthBias");
             shadowNormalBiasProp = serializedObject.FindProperty("m_ShadowNormalBias");
             softShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
+            conservativeEnclosingSphereProp = serializedObject.FindProperty("m_ConservativeEnclosingSphere");
+            numIterationsEnclosingSphereProp = serializedObject.FindProperty("m_NumIterationsEnclosingSphere");
 
             srpBatcher = serializedObject.FindProperty("m_UseSRPBatcher");
             supportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");

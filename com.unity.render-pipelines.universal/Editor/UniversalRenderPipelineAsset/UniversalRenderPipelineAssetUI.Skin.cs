@@ -74,6 +74,8 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent shadowDepthBias = EditorGUIUtility.TrTextContent("Depth Bias", "Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts.");
             public static GUIContent shadowNormalBias = EditorGUIUtility.TrTextContent("Normal Bias", "Controls distance at which the shadow casting surfaces will be shrunk along the surface normal. Useful for avoiding false self-shadowing artifacts.");
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
+            public static GUIContent conservativeEnclosingSphere = EditorGUIUtility.TrTextContent("Conservative Enclosing Sphere", "If enabled, a conservative enclosing sphere is used. If disabled, the sphere will be smaller than the cascade size, and shadows will be culled in the corners of the cascades.");
+            public static GUIContent numIterationsEnclosingSphere = EditorGUIUtility.TrTextContent("Number of Iterations", "Number of iterations for the minimal enclosing sphere iterative method. A higher number of iterations will minimize the sphere but increases CPU computation necessary.");
 
             // Post-processing
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");

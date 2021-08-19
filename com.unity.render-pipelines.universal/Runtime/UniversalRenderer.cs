@@ -889,7 +889,7 @@ namespace UnityEngine.Rendering.Universal
             }
             cullingParameters.shadowDistance = cameraData.maxShadowDistance;
 
-            cullingParameters.tightEnclosingSphere = UniversalRenderPipeline.asset.tightEnclosingSphere;
+            cullingParameters.conservativeEnclosingSphere = UniversalRenderPipeline.asset.conservativeEnclosingSphere;
 
             cullingParameters.numIterationsEnclosingSphere = UniversalRenderPipeline.asset.numItertionsEnclosingSphere;
         }
