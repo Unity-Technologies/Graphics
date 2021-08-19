@@ -82,14 +82,26 @@ float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
 #endif
 }
 
+//TODOPAUL : Check ApplyCameraTranslationToMatrix
+
 float4x4 VFXGetObjectToWorldMatrix()
 {
+    // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
+#ifdef HAVE_VFX_MODIFICATION
+    return unity_ObjectToWorld;
+#else
     return GetObjectToWorldMatrix();
+#endif
 }
 
 float4x4 VFXGetWorldToObjectMatrix()
 {
+    // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_I_M)
+#ifdef HAVE_VFX_MODIFICATION
+    return unity_WorldToObject;
+#else
     return GetWorldToObjectMatrix();
+#endif
 }
 
 float3x3 VFXGetWorldToViewRotMatrix()
