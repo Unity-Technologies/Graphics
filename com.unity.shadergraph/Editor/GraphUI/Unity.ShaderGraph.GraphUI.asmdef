@@ -13,7 +13,8 @@
         "Unity.GraphTools.Foundation.Overdrive.CommandStateObserver",
         "Unity.GraphToolsFoundation.Searcher.Editor",
         "Unity.GraphTools.Foundation.Searcher",
-        "Unity.RenderPipelines.Core.Runtime"
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.ShaderGraph.GraphDeltaRegistry"
     ],
     "includePlatforms": [
         "Editor"

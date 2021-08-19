@@ -30,14 +30,14 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         {
             private bool IsPortReader(Element element)
             {
-                if (element.TryGetData(out PortFlagsStruct _))
+                if (element.TryGetData(out Element innerElem) && innerElem.TryGetData(out PortFlagsStruct _))
                 {
                     return true;
                 }
                 return false;
             }
 
-            public WeakReference<Element> elementReference;
+            public WeakReference<Element<Element>> elementReference;
             public GraphStorage storageReference;
             public void Dispose()
             {
@@ -47,13 +47,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public GraphReader(Element element, GraphStorage storage)
             {
-                this.elementReference = new WeakReference<Element>(element);
+                this.elementReference = new WeakReference<Element<Element>>(storage.m_flatStructureLookup[element.GetFullPath()]);
                 this.storageReference = storage;
             }
 
             private IEnumerable<Element> GetSubElements()
             {
-                if (elementReference.TryGetTarget(out Element element))
+                if (elementReference.TryGetTarget(out Element<Element> element))
                 {
                     return element.children;
                 }
@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool TryGetValue<T>(out T value)
             {
-                if (elementReference.TryGetTarget(out Element element) && element is Element<T> typeElement)
+                if (elementReference.TryGetTarget(out Element<Element> element) && element.data is Element<T> typeElement)
                 {
                     value = typeElement.data;
                     return true;
@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             private bool TryGetSubReader(string searchKey, out GraphReader graphReader)
             {
-                if (elementReference.TryGetTarget(out Element element))
+                if (elementReference.TryGetTarget(out Element<Element> element))
                 {
                     Element maybeElement = storageReference.SearchRelative(element, searchKey);
                     if (maybeElement != null)
@@ -161,7 +161,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool TryGetPort(string portKey, out IPortReader portReader)
             {
-                if (elementReference.TryGetTarget(out Element element))
+                if (elementReference.TryGetTarget(out Element<Element> element))
                 {
                     Element maybePort = storageReference.SearchRelative(element, portKey);
                     if (IsPortReader(maybePort))
@@ -176,7 +176,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             bool INodeReader.TryGetField(string fieldKey, out IFieldReader fieldReader)
             {
-                if (elementReference.TryGetTarget(out Element element))
+                if (elementReference.TryGetTarget(out Element<Element> element))
                 {
                     Element maybeField = storageReference.SearchRelative(element, fieldKey);
                     if (!IsPortReader(maybeField))
@@ -236,7 +236,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 if (elementReference.TryGetTarget(out Element element))
                 {
-                    Element addedData = element.AddData(key);
+                    storageReference.AddData(element, key, out Element addedData);
                     if (addedData != null)
                     {
                         graphWriter = new GraphWriter(addedData, this.storageReference);
@@ -251,7 +251,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 if (elementReference.TryGetTarget(out Element element))
                 {
-                    Element<T> addedData = element.AddData(key, default(T));
+                    storageReference.AddData(element, key, default, out Element<T> addedData);
                     if (addedData != null)
                     {
                         graphWriter = new GraphWriter<T>(addedData, this.storageReference);
@@ -272,6 +272,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                         graphWriter = new GraphWriter(subElement, this.storageReference);
                         return true;
                     }
+                    else
+                    {
+                        return TryAddSubWriter(key, out graphWriter);
+                    }
                 }
                 graphWriter = null;
                 return false;
@@ -286,6 +290,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     {
                         graphWriter = new GraphWriter<T>(typedSubElement, this.storageReference);
                         return true;
+                    }
+                    else
+                    {
+                        return TryAddSubWriter(key, out graphWriter);
                     }
                 }
                 graphWriter = null;
@@ -403,8 +411,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         protected override void AddDefaultLayers()
         {
-            m_layerList.Add(0, (new LayerDescriptor() { name = k_concrete }, new Element(this)));
-            m_layerList.Add(1, (new LayerDescriptor() { name = k_user     }, new Element(this)));
+            m_layerList.AddLayer(0, k_concrete, false);
+            m_layerList.AddLayer(1, k_user,     true);
         }
 
         internal INodeWriter AddNodeWriterToLayer(string layerName, string id)
@@ -414,7 +422,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return nodeWriter;
         }
 
-        internal INodeReader  GetNodeReaderFromLayer( string layerName, string id) => GetReaderFromLayer(layerName, id);
+        internal INodeReader  GetNodeReader(string id) => GetReader(id);
         internal INodeWriter  GetNodeWriterFromLayer( string layerName, string id) => GetWriterFromLayer(layerName, id);
 
         private GraphWriter GetWriterFromLayer(string layerName, string id)
@@ -429,9 +437,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return new GraphWriter(element, this);
             }
         }
-        private GraphReader GetReaderFromLayer(string layerName, string id)
+        private GraphReader GetReader(string id)
         {
-            Element element = GetElementFromLayer(layerName, id);
+            Element element = m_flatStructureLookup[id];
             if (element == null)
             {
                 return null;
@@ -444,7 +452,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private Element GetElementFromLayer(string layerName, string id)
         {
-            Element root = GetLayerRoot(layerName);
+            Element root = m_layerList.GetLayerRoot(layerName);
             if (root == null)
             {
                 return null;
@@ -470,7 +478,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private Element AddElementToLayer(string layerName, string id)
         {
-            Element root = GetLayerRoot(layerName);
+            Element root = m_layerList.GetLayerRoot(layerName);
             if (root == null)
             {
                 return null;

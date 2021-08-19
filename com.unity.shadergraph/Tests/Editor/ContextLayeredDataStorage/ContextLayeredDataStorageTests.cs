@@ -7,8 +7,9 @@ namespace UnityEditor.ContextLayeredDataStorage
     {
         protected override void AddDefaultLayers()
         {
-            m_layerList.Add(0, (new LayerDescriptor() { isSerialized = true, name = "TestRoot" }, new Element(this)));
+            m_layerList.AddLayer(0, "TestRoot", true);
         }
+
 
         [TestFixture]
         class ContextLayeredDataStorageFixture

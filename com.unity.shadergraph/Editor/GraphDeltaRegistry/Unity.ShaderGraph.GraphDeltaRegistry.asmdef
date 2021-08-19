@@ -1,5 +1,5 @@
 {
-    "name": "Unity.ShaderGraph.GraphDelta",
+    "name": "Unity.ShaderGraph.GraphDeltaRegistry",
     "rootNamespace": "",
     "references": [
         "ContextLayeredDataStorage"

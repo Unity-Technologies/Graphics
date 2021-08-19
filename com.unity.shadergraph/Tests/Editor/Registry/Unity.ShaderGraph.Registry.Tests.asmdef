@@ -2,7 +2,8 @@
     "name": "Unity.ShaderGraph.Registry.Tests",
     "rootNamespace": "",
     "references": [
-        "Unity.ShaderGraph.GraphDelta"
+        "Unity.ShaderGraph.GraphDeltaRegistry",
+        "GtfPlayground"
     ],
     "includePlatforms": [
         "Editor"
