@@ -5,7 +5,7 @@ using UnityEngine.Rendering.Universal;
 
 public class ForceRenderScale : MonoBehaviour
 {
-    static readonly float s_TargetRenderScale = 0.1f;
+    static readonly float s_TargetRenderScale = 0.9f;
     float m_previousRenderScale;
 
     void OnDisable()
