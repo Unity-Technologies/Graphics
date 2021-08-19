@@ -215,11 +215,11 @@ namespace UnityEditor.ShaderFoundry
                 blockBuilder.MergeTypesFunctionsDescriptors(blockLinkInstance.Block);
 
             // Create the input/output types
-            var inputTypeBuilder = TypeUtilities.BuildStructBuilder(context.InputTypeName, mergedInputType.ResolvedFields);
+            var inputTypeBuilder = TypeUtilities.BuildStructBuilder(context.InputTypeName, mergedInputType.Fields);
             mergedInputType.Instance.Type = inputTypeBuilder.Build(Container);
             blockBuilder.AddType(mergedInputType.Instance.Type);
 
-            var outputTypeBuilder = TypeUtilities.BuildStructBuilder(context.OutputTypeName, mergedOutputType.ResolvedFields);
+            var outputTypeBuilder = TypeUtilities.BuildStructBuilder(context.OutputTypeName, mergedOutputType.Fields);
             mergedOutputType.Instance.Type = outputTypeBuilder.Build(Container);
             blockBuilder.AddType(mergedOutputType.Instance.Type);
 
