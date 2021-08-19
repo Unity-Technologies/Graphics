@@ -48,3 +48,5 @@ vendor:
     release_notes:
       paths:
         - ono_release_notes.txt
+        - fogbugz_cases.txt
+        - gfx_to_ono_changelog.log
