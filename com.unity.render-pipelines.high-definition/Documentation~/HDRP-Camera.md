@@ -96,3 +96,6 @@ The Camera Inspector includes the following groups of properties:
 | **Target Texture** | Assign a RenderTexture that this Camera renders to. If you assign this property, the Camera no longer renders to the screen. |
 | **Depth**          | Set the Camera's position in the draw order. Unity processes Cameras with a smaller **Depth** first, then processes Cameras with a larger **Depth** on top. |
 | **ViewPort Rect**  | Set the position and size of this Camera's output on the screen.<br />&#8226; **X**: The beginning horizontal position of the output.<br />&#8226; **Y**: The beginning vertical position of the output.<br />&#8226; **W**: The width of the output.<br />&#8226; **H**: The height of the output. |
+
+## Preset
+When using Preset of a HD Camera, only a subset of properties are supported. Unsupported properties are hidden.

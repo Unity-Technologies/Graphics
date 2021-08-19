@@ -34,11 +34,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            m_SerializedHDProbe.Update();
-            EditorGUI.BeginChangeCheck();
-            Draw(m_SerializedHDProbe, this);
-            if (EditorGUI.EndChangeCheck())
-                m_SerializedHDProbe.Apply();
+            if (HDEditorUtils.IsPresetEditor(this))
+            {
+                EditorGUILayout.HelpBox(HDProbeUI.k_UnsupportedPresetPropertiesMessage, MessageType.Info);
+            }
+            else
+            {
+                m_SerializedHDProbe.Update();
+                EditorGUI.BeginChangeCheck();
+                Draw(m_SerializedHDProbe, this);
+                if (EditorGUI.EndChangeCheck())
+                    m_SerializedHDProbe.Apply();
+            }
         }
 
         const string k_ShowChromeGizmoKey = "HDRP:ReflectionProbe:ChromeGizmo";
