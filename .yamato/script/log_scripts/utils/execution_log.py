@@ -1,6 +1,5 @@
 import os
 import glob
-from .utr_log_patterns import UTR_log
 from .shared_utils import load_json, find_matching_patterns
 
 
@@ -71,7 +70,7 @@ class Execution_log():
                 'pattern': r'Reason\(s\): One or more non-test related errors or failures occurred.', # if hit this, read hoarder file
                 'tags': ['non-test'],
                 'conclusion': 'failure',
-                'direct_further': [
+                'redirect': [
                     'utr_log'
                 ]
             },

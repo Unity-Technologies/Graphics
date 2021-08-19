@@ -6,24 +6,20 @@ import sys
 import json
 import glob
 import re
-from utils.execution_log_patterns import Execution_log
-from utils.utr_log_patterns import UTR_log
+from utils.execution_log import Execution_log
+from utils.utr_log import UTR_log
 from utils.shared_utils import *
 
 '''
 This script runs for extended Yamato reporting. It
 1. Parses the execution log and for each command and its output (except successful non-retries and failed tests)
-    - finds matching patterns from execution_log_patterns
+    - finds matching patterns from execution_log.py patterns
+    - for each matched pattern, recursively finds matches also for any pattern with 'redirect' specified
     - sends to Yamato extended reporting server
         title: command itself
         summary: substring(s) of the command output matching the specified pattern(s)
         tags: all (distinct) tags beloging to the matched pattern(s)
         conclusion: failure/inconclusive/cancelled/success, which applies to the parsed command (not the whole job status)
-2. In case non-test related failure from UTR is matched, the script also reads TestResults.json and
-    - finds matching patterns from utr_log_patterns
-    - extends the data sent to Yamato extended reporting server in the previous point, by
-        extending the summary with matched substrings from the utr pattern and by
-        appending the utr pattern tags to the list of previous tags
 
 By default, the script requires no parameters and uses default execution log location in Yamato.
 To run it locally, specify
@@ -62,6 +58,8 @@ def parse_failures(execution_log, logs, local):
 
 
 def recursively_match_patterns(logs, cmd, patterns, failure_string):
+    '''Match the given string against any known patterns. If any of the patterns contains a 'redirect',
+    parse also the directed log in a recursive fashion.'''
     matches = find_matching_patterns(patterns, failure_string)
     for pattern, match in matches:
 
@@ -69,15 +67,15 @@ def recursively_match_patterns(logs, cmd, patterns, failure_string):
         logs[cmd]['tags'].append(pattern['tags'])
         logs[cmd]['summary'].append(match.group(0) if pattern['tags'][0] != 'unknown' else 'Unknown failure: check logs for more details. ')
 
-        if pattern.get('direct_further'):
-            for direct_further in pattern['direct_further']:
-                if direct_further == 'utr_log':
+        if pattern.get('redirect'):
+            for redirect in pattern['redirect']:
+                if redirect == 'utr_log':
                     test_results_match = re.findall(r'(--artifacts_path=)(.+)(test-results)', cmd)[0]
                     test_results_path = test_results_match[1] + test_results_match[2]
                     df = UTR_log(test_results_path)
                     recursively_match_patterns(logs, cmd, df.get_patterns(), df.read_log())
                 else:
-                    print('! Invalid redirect: ', direct_further)
+                    print('! Invalid redirect: ', redirect)
 
 
 def post_additional_results(cmd, local):
