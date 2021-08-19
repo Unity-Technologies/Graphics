@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 nodeWriter.AddPort<T>("Out", false, true, registry);
             }
 
-            var nodeReader = GetNodeReaderFromLayer(GraphStorage.k_user, name);
+            var nodeReader = GetNodeReader(name);
             var transientWriter = AddNodeToLayer(GraphStorage.k_concrete, name);
             builder.BuildNode(nodeReader, transientWriter, registry);
 
@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 portFieldWriter.TryWriteData(key);
             }
 
-            var nodeReader = GetNodeReaderFromLayer(GraphStorage.k_user, name);
+            var nodeReader = GetNodeReader(name);
             var transientWriter = AddNodeToLayer(GraphStorage.k_concrete, name);
             builder.BuildNode(nodeReader, transientWriter, registry);
 
@@ -73,12 +73,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public INodeReader GetNodeReader(string id)
         {
-            return m_data.GetNodeReaderFromLayer(GraphStorage.k_user, id);
-        }
-
-        internal INodeReader GetNodeReaderFromLayer(string layerName, string id)
-        {
-            return m_data.GetNodeReaderFromLayer(layerName, id);
+            return m_data.GetNodeReader(id);
         }
 
         public INodeWriter GetNodeWriter(string id)
