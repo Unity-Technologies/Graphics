@@ -2,11 +2,11 @@
 
 The **Volumetric Clouds** [Volume component override](Volume-Components.md) controls settings relevant to rendering volumetric clouds in the High Definition Render Pipeline (HDRP). Volumetric clouds are intractable clouds that can render shadows, and receive fog and volumetric light.
 
-To generate and render volumetric clouds, HDRP uses three things: a cloud lookup table, a cloud volume, and a cloud map:
+To generate and render volumetric clouds, HDRP uses: 
 
-* The look up table defines properties such as the altitude, density, and lighting.
-* The cloud volume describes the area in the Scene that HDRP generates the clouds in.
-* The cloud map acts like a top down view of the scene. It defines which areas of the cloud volume have clouds and what kind of cloud they are.
+* A cloud lookup table - defines properties such as the altitude, density, and lighting.
+* A cloud volume - describes the area in the Scene that HDRP generates the clouds in.
+* A cloud map - acts like a top down view of the scene. It defines which areas of the cloud volume have clouds and what kind of cloud they are.
 
 Using these three things, HDRP generates volumetric clouds in a two-step process:
 
@@ -87,8 +87,8 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | - **Cloud Map Resolution**        | Specifies the resolution for the internal texture HDRP uses for the cloud map. A lower resolution produces better performance, but less precise cloud type transitions. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced**. |
 | - **Cloud Map**                   | Specifies the cloud map to use for the volumetric clouds. For information on the format of this texture, see [Cloud map and cloud lookup table](#cloud-map-and-cloud-lookup-table). <br/><br/>This property only appears if you set **Cloud Control** to **Custom**. |
 | - **Cloud LUT**                   | Specifies the lookup table for the clouds. For information on the format of this texture, see [Cloud map and cloud lookup table](#cloud-map-and-cloud-lookup-table).  <br/><br/>This property only appears if you set **Cloud Control** to **Custom**. |
-| - **Cloud Map Tiling**            | The **X** and **Y** UV tile rate for the cloud map texture/textures. HDRP uses the **X** and **Y** values to tile the clouds across the sky.<br/>If **Cloud Control** is set to **Advanced**, this affects **Cumulus Map**, **Alto Stratus Map**, **Cumulonimbus Map**, and **Rain Map**.<br/>If **Cloud Control** is set to **Custom**, this affects the texture assigned to the **Cloud Map** property.<br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**. |
-| - **Cloud Map Offset**            | The **X** and **Y** UV offset for the cloud map texture/textures. HDRP uses the **X** and **Y** values to offset the clouds across the sky.<br/>If **Cloud Control** is set to **Advanced**, this affects **Cumulus Map**, **Alto Stratus Map**, **Cumulonimbus Map**, and **Rain Map**.<br/>If **Cloud Control** is set to **Custom**, this affects the texture assigned to the **Cloud Map** property.<br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**, or if you set it to **Simple** and then set **Cloud Preset** to **Custom**. |
+| - **Cloud Map Tiling**            | The X and Y UV tile rate for the cloud map texture/textures. HDRP uses the X and Y values to tile the clouds across the sky.<br/>If **Cloud Control** is set to **Advanced**, this affects **Cumulus Map**, **Alto Stratus Map**, **Cumulonimbus Map**, and **Rain Map**.<br/>If **Cloud Control** is set to **Custom**, this affects the texture assigned to the **Cloud Map** property.<br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**. |
+| - **Cloud Map Offset**            | The X and Y UV offset for the cloud map texture/textures. HDRP uses the X and Y values to offset the clouds across the sky.<br/>If **Cloud Control** is set to **Advanced**, this affects **Cumulus Map**, **Alto Stratus Map**, **Cumulonimbus Map**, and **Rain Map**.<br/>If **Cloud Control** is set to **Custom**, this affects the texture assigned to the **Cloud Map** property.<br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**, or if you set it to **Simple** and then set **Cloud Preset** to **Custom**. |
 | - **Density Multiplier**          | The global density of the volumetric clouds. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**, or if you set it to **Simple** and then set **Cloud Preset** to **Custom**. |
 | - **Shape Factor**                | Controls the amount of shaping to apply to the cloud volume. A higher value produces less cloud coverage and smaller clouds. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**, or if you set it to **Simple** and then set **Cloud Preset** to **Custom**. |
 | - **Shape Scale**                 | Controls the size of the noise HDRP uses in the shaping stage to generate the general cloud shapes. <br/><br/>This property only appears if you set **Cloud Control** to **Advanced** or **Custom**, or if you set it to **Simple** and then set **Cloud Preset** to **Custom**. |
@@ -121,7 +121,7 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 | **Property**                     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
 | **Temporal Accumulation Factor** | The amount of temporal accumulation to apply to the clouds. Temporal accumulation increases the visual quality of clouds by decreasing the noise. A higher value produces better quality clouds, but can create [ghosting](Glossary.md#ghosting). |
-| **Ghosting Reduction**           | When you enable this property, HDRP removes the ghosting caused by temporal accumulation. This effect may cause a flickering effect when the **Temporal Accumulation Factor** value is low. |
+| **Ghosting Reduction**           | When you enable this property, HDRP removes the ghosting caused by temporal accumulation. This effect might cause a flickering effect when the **Temporal Accumulation Factor** value is low. |
 | **Num Primary Steps**            | The number of steps to use to evaluate the clouds' transmittance. Higher values linearly increase the resource intensity of the effect. |
 | **Num Light Steps**              | The number of steps to use to evaluate the clouds' lighting. Higher values exponent increase the resource intensity of the effect. |
 
@@ -148,9 +148,7 @@ When importing these two map textures, disable **sRGB**. For best results, do no
 
 ## Limitations
 
-This section lists any limitations that HDRP's volumetric clouds have:
-
-- By default volumetric clouds are disabled on [Planar Reflection Probes](Planar-Reflection-Probe.md) and realtime [Reflection Probes](Reflection-Probe.md) because of the performance cost.
-- When enabled for [Reflection Probes](Reflection-Probe.md), the volumetric clouds are rendered at low resolution, without any form of temporal accumulation for performance and stability reasons.
-- By default volumetric clouds are enabled on the baked [Reflection Probes](Reflection-Probe.md) if the asset allows it. They are rendered at full resolution without any form of temporal accumulation.
-- Volumetric clouds do not appear in ray-traced effects.
+* By default volumetric clouds are disabled on [Planar Reflection Probes](Planar-Reflection-Probe.md) and realtime [Reflection Probes](Reflection-Probe.md) because of the performance cost.
+* When enabled for [Reflection Probes](Reflection-Probe.md), the volumetric clouds are rendered at low resolution, without any form of temporal accumulation for performance and stability reasons.
+* By default volumetric clouds are enabled on the baked [Reflection Probes](Reflection-Probe.md) if the asset allows it. They are rendered at full resolution without any form of temporal accumulation.
+* Volumetric clouds do not appear in ray-traced effects.
