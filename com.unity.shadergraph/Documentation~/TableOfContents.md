@@ -60,11 +60,10 @@
         * Utility
             * [Colorspace Conversion](Colorspace-Conversion-Node)
     * [Channel](Channel-Nodes)
-        * [Combine](Combine-Node)
-        * [Flip](Flip-Node)
-        * [Split](Split-Node)
-        * [Swizzle](Swizzle-Node)
-    * [Input](Input-Nodes)
+        * [Combine](Combine-Node)  
+        * [Flip](Flip-Node)  
+        * [Split](Split-Node)  
+    * [Input](Input-Nodes) 
         * Basic
             * [Boolean](Boolean-Node)
             * [Color](Color-Node)
