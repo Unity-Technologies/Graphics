@@ -142,7 +142,7 @@ test_platforms:
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
     after:
-      - [OSX_OpenGlCore, iPhone_Metal, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.log_parser>
     after_build:
       - [OSX_OpenGlCore, iPhone_Metal, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.log_parser>
   - type: playmode
@@ -176,7 +176,7 @@ test_platforms:
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
     after:
-      - [OSX_OpenGlCore, iPhone_Metal, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.log_parser>
 
   - type: editmode
     allow_cache: False
@@ -218,7 +218,7 @@ test_platforms:
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
     after:
-      - [OSX_OpenGlCore, iPhone_Metal, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.log_parser>
 
 platforms:
   Win:
@@ -326,6 +326,9 @@ platforms:
             retries: 2
           - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only'
             retries: 2
+        log_parser:
+          - command: pip3 install requests
+          - command: python3 .yamato/script/log_scripts/log_parser.py
       [OpenGlCore]:
         setup_utr:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
