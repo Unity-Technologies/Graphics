@@ -83,6 +83,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the support of volumetric clouds for baked and realtime reflection probes.
 - Added a property to control the fallback of the last bounce of a RTGI, RTR, RR ray to keep a previously existing side effect on user demand (case 1350590).
 - Added a parameter to control the vertical shape offset of the volumetric clouds (case 1358528).
+- Added an option to render screen space global illumination in half resolution to achieve real-time compatible performance in high resolutions (case 1353727).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
