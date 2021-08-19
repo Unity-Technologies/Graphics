@@ -77,9 +77,8 @@ namespace UnityEngine.Rendering.Universal
 
         protected override ScriptableRenderer Create()
         {
-            var universalRendererData = CreateInstance<UniversalRendererData>();
-            var rendererData = new UniversalRenderer(universalRendererData);
-            return rendererData;
+            Debug.Log("Forward Renderer Data has been deprecated.");
+            return null;
         }
 
         public LayerMask opaqueLayerMask
