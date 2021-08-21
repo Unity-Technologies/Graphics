@@ -286,7 +286,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             defineSpaceDescriptor = new AdditionalCommandDescriptor("VFXDefineSpace", defineSpaceDescriptorContent);
 
             // Parameter Cbuffer
-            VFXCodeGenerator.BuildParameterBuffer(contextData, out var parameterBuffer);
+            VFXCodeGenerator.BuildParameterBuffer(context, contextData, out var parameterBuffer);
             parameterBufferDescriptor = new AdditionalCommandDescriptor("VFXParameterBuffer", parameterBuffer);
 
             // Defines & Headers - Not all are necessary, however some important ones are mixed in like indirect draw, strips, flipbook, particle strip info...
