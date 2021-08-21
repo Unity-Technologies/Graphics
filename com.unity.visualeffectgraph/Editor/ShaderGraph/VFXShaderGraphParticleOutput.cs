@@ -511,7 +511,16 @@ namespace UnityEditor.VFX
                 foreach (var sgProperty in shaderGraph.properties)
                 {
                     if (inputSlots.Any(t => t.property.name == sgProperty.referenceName))
+                    {
+                        var namedExpression = slotExpressions.First(o => o.name == sgProperty.referenceName);
+                        /*
+//TODOPAUL Clean this code & document PR
+Could have been a solution but then, we missed the declaration of not exposed texture
+                         * if (shaderGraph.generatesWithShaderGraph && namedExpression.exp.valueType == UnityEngine.VFX.VFXValueType.Texture2D)
+                            continue;*/
+
                         yield return slotExpressions.First(o => o.name == sgProperty.referenceName);
+                    }
                 }
             }
         }
