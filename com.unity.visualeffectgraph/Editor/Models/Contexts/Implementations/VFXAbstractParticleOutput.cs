@@ -523,9 +523,9 @@ namespace UnityEditor.VFX
                 }
                 if (!subOutput.supportsExcludeFromTAA)
                     yield return "excludeFromTAA";
-                if (sort == SortActivationMode.Off)
+                if (sort == SortActivationMode.Off || HasStrips(true))
                 {
-                    yield return "sortCriterion";
+                    yield return "sortMode";
                 }
             }
         }
