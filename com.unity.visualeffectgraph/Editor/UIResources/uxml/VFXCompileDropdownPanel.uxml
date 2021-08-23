@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <UXML xmlns:ui="UnityEngine.UIElements">
     <ui:Box>
-        <ui:Toggle name="autoCompile" text="Auto Compile" style="margin-top:4px" />
+        <ui:Toggle name="autoCompile" text="Auto Compile" tooltip="Toggles auto-compilation" style="margin-top:4px" />
     </ui:Box>
     <ui:Box class="alternate">
-        <ui:Toggle name="runtimeMode" text="Runtime Mode" />
+        <ui:Toggle name="runtimeMode" text="Runtime Mode" tooltip="Forces optimized compilation" />
     </ui:Box>
     <ui:Box>
-        <ui:Toggle name="shaderValidation" text="Shader Validation" />
+        <ui:Toggle name="shaderValidation" text="Shader Validation" tooltip="Performs a forced Shader compilation when the effect recompiles" />
     </ui:Box>
     <ui:Box class="alternate">
         <ui:Button name="resyncMaterial" text="Resync Material" />
