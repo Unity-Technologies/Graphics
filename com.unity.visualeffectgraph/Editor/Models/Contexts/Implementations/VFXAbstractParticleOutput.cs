@@ -687,7 +687,7 @@ namespace UnityEditor.VFX
                 {
                     manager.RegisterError("SortingKeyOverriden", VFXErrorType.Warning,
                         $"Sorting happens in Update, before the attributes were modified in the Output context." +
-                        $" All the modifications made in this context won't be taken into account during sorting.");
+                        $" All the modifications made here will not be taken into account during sorting.");
                 }
             }
         }
