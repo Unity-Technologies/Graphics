@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering
 
             internal void Pack(out uint[] vals)
             {
-                vals = new uint[kUintPerEntry];
+                vals = s_PackedValues;
                 for (int i = 0; i < kUintPerEntry; ++i)
                 {
                     vals[i] = 0;
@@ -56,6 +56,8 @@ namespace UnityEngine.Experimental.Rendering
                 vals[2] |= ((uint)maxLocalIdx.z & 0x3FF) << 20;
             }
         }
+
+        static uint[] s_PackedValues = new uint[kUintPerEntry];
 
         ComputeBuffer m_IndexOfIndicesBuffer;
         uint[] m_IndexOfIndicesData;
