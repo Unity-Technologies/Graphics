@@ -1,13 +1,27 @@
+// Depth related kernels
 #pragma kernel ConvertObliqueDepth
 #pragma kernel DownscaleDepth
+
+// Render clouds
 #pragma kernel RenderClouds
+
+// Trace to intermedaite
 #pragma kernel ReprojectClouds                      REPROJECT_CLOUDS=ReprojectClouds
 #pragma kernel ReprojectCloudsRejection             REPROJECT_CLOUDS=ReprojectCloudsRejection WITH_REJECTION
 #pragma kernel PreUpscaleClouds
+#pragma kernel PreUpscaleCloudsSky
+
+// Intermediate to Full resolution
 #pragma kernel UpscaleAndCombineClouds_ColorRW      UPSAMPLE_KERNEL=UpscaleAndCombineClouds_ColorRW CAN_RW_ON_COLOR_BUFFER
 #pragma kernel UpscaleAndCombineClouds_ColorCopy    UPSAMPLE_KERNEL=UpscaleAndCombineClouds_ColorCopy
+#pragma kernel UpscaleAndCombineCloudsSky           UPSAMPLE_KERNEL_SKY=UpscaleAndCombineCloudsSky
+
+// Full resolution combination
 #pragma kernel CombineClouds_ColorRW                COMBINE_KERNEL=CombineClouds_ColorRW CAN_RW_ON_COLOR_BUFFER
 #pragma kernel CombineClouds_ColorCopy              COMBINE_KERNEL=CombineClouds_ColorCopy
+#pragma kernel CombineCloudsSky                     COMBINE_KERNEL_SKY=CombineCloudsSky
+
+// Shadows
 #pragma kernel ComputeVolumetricCloudsShadow
 
 #pragma multi_compile _ PHYSICALLY_BASED_SUN
@@ -85,11 +99,17 @@ RW_TEXTURE2D_X(float3, _CloudsAdditionalTextureRW);
 #define REAL_TIME_VOLUMETRIC_CLOUDS
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricCloudsUtilities.hlsl"
 
+float3 GetCloudViewDirWS(float2 positionCS)
+{
+    float4 viewDirWS = mul(float4(positionCS.xy, 1.0f, 1.0f), _CloudsPixelCoordToViewDirWS);
+    return -normalize(viewDirWS.xyz);
+}
+
 float ConvertObliqueDepthToNonOblique(int2 currentCoord, float obliqueDepth)
 {
     // Compute the world position of the tapped pixel
     // Note: the view matrix here is not really used, but a valid matrix needs to be passed to this function.
-    PositionInputs centralPosInput = GetPositionInput(currentCoord, _ScreenSize.zw, obliqueDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+    PositionInputs centralPosInput = GetPositionInput(currentCoord, _FinalScreenSize.zw, obliqueDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
     // For some reason, with oblique matrices, when the point is on the background the reconstructed position ends up behind the camera and at the wrong position
     float3 rayDirection = normalize(-centralPosInput.positionWS);
@@ -110,7 +130,7 @@ void ConvertObliqueDepth(uint3 currentCoord : SV_DispatchThreadID, uint2 groupTh
     UNITY_XR_ASSIGN_VIEW_INDEX(currentCoord.z);
 
     // If this is bigger than the trace size, we are done
-    if (any(currentCoord.xy > uint2(_ScreenSize.xy)))
+    if (any(currentCoord.xy >= uint2(_FinalScreenSize.xy)))
         return;
 
     // Combine it with the current shift to define which half res depth should be used
@@ -123,7 +143,7 @@ void DownscaleDepth(uint3 intermediateCoord : SV_DispatchThreadID, uint2 groupTh
     UNITY_XR_ASSIGN_VIEW_INDEX(intermediateCoord.z);
 
     // If this is bigger than the trace size, we are done
-    if (any(intermediateCoord.xy > uint2(_IntermediateScreenSize.xy)))
+    if (any(intermediateCoord.xy >= uint2(_IntermediateScreenSize.xy)))
         return;
 
     // TODO USE LDS for this
@@ -190,18 +210,29 @@ CloudRay BuildRay(uint2 intermediateCoord, float integrationNoise)
     float isOccluded = 0.0;
 #endif
 
-    // Compute the world space position of the pixel (or at a virtual position is it the sky)
-    float3 pos = ComputeWorldSpacePosition((intermediateCoord + 0.5) * _IntermediateScreenSize.zw, lerp(0.5, ray.depthValue, isOccluded), _IsPlanarReflection ? _CameraInverseViewProjection_NO : UNITY_MATRIX_I_VP);
+    if (_RenderForSky)
+    {
+        // normalize to get the direction
+        ray.direction = GetCloudViewDirWS(_LowResolutionEvaluation ? intermediateCoord * 2 : intermediateCoord);
 
-    // normalize to get the direction
-    ray.direction = normalize(pos);
+        // Compute the max cloud ray length
+        ray.maxRayLength = MAX_SKYBOX_VOLUMETRIC_CLOUDS_DISTANCE;
+    }
+    else
+    {
+        // Compute the world space position of the pixel (or at a virtual position is it the sky)
+        float3 pos = ComputeWorldSpacePosition((intermediateCoord + 0.5) * _IntermediateScreenSize.zw, lerp(0.5, ray.depthValue, isOccluded), _IsPlanarReflection ? _CameraInverseViewProjection_NO : UNITY_MATRIX_I_VP);
 
-    // Compute the max cloud ray length
-#ifdef LOCAL_VOLUMETRIC_CLOUDS
-    ray.maxRayLength = lerp(_ProjectionParams.z, length(pos), isOccluded);
-#else
-    ray.maxRayLength = MAX_SKYBOX_VOLUMETRIC_CLOUDS_DISTANCE;
-#endif
+        // normalize to get the direction
+        ray.direction = normalize(pos);
+
+        // Compute the max cloud ray length
+        #ifdef LOCAL_VOLUMETRIC_CLOUDS
+            ray.maxRayLength = lerp(_ProjectionParams.z, length(pos), isOccluded);
+        #else
+            ray.maxRayLength = MAX_SKYBOX_VOLUMETRIC_CLOUDS_DISTANCE;
+        #endif
+    }
 
     // Compute the position of the point from which the ray will start
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
@@ -353,6 +384,9 @@ float3 AnimateCloudMapPosition(float3 positionPS)
 
 float3 AnimateBaseNoisePosition(float3 positionPS)
 {
+    // We reduce the top-view repetition of the pattern
+    positionPS.y += (positionPS.x / 3.0f + positionPS.z / 7.0f);
+    // We add the contribution of the wind displacements
     return positionPS + float3(_WindVector.x, 0.0, _WindVector.y) * _MediumWindSpeed + float3(0.0, _VerticalShapeWindDisplacement, 0.0);
 }
 
@@ -391,7 +425,7 @@ float3 unapplyFastTonemapping(float3 input)
 
 void EvaluateSunColorAttenuation(float3 evaluationPointWS, float3 sunDirection, inout float3 sunColor)
 {
-   #ifdef PHYSICALLY_BASED_SUN
+#ifdef PHYSICALLY_BASED_SUN
     if(_PhysicallyBasedSun == 1)
     // TODO: move this into a shared function
     {
@@ -424,7 +458,7 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 entryEvalua
     // Sun parameters
     EnvironmentLighting environmentLight;
     environmentLight.sunDirection = _SunDirection.xyz;
-    environmentLight.sunColor0 = _SunLightColor.xyz * (_ExposureSunColor ? GetCurrentExposureMultiplier() : 1.0);
+    environmentLight.sunColor0 = _SunLightColor.xyz * GetCurrentExposureMultiplier();
     environmentLight.sunColor1 = environmentLight.sunColor0;
     environmentLight.ambientTermTop = _AmbientProbeTop.xyz * GetCurrentExposureMultiplier();
     environmentLight.ambientTermBottom = _AmbientProbeBottom.xyz * GetCurrentExposureMultiplier();
@@ -799,7 +833,7 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
     UNITY_XR_ASSIGN_VIEW_INDEX(traceCoord.z);
 
     // If this is bigger than the trace size, we are done
-    if (any(traceCoord.xy > uint2(_TraceScreenSize.xy)))
+    if (any(traceCoord.xy >= uint2(_TraceScreenSize.xy)))
         return;
 
     // Depending on if we are in full res or not, use a different intermediate coord
@@ -1101,7 +1135,6 @@ void PreUpscaleClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // Compute the set of coordinates we need
     uint2 intermediateCoord = dispatchThreadId.xy;
-    uint2 fullResCoord = intermediateCoord * 2;
     uint2 traceCoord = intermediateCoord / 2;
 
 #ifndef WITHOUT_LDS
@@ -1180,6 +1213,44 @@ void PreUpscaleClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     _CloudsAdditionalTextureRW[COORD_TEXTURE2D_X(intermediateCoord)] = float3(1, currentDepth, cloudCloudDepth);
 }
 
+[numthreads(8, 8, 1)]
+void PreUpscaleCloudsSky(uint3 dispatchThreadId : SV_DispatchThreadID,
+                    int groupIndex : SV_GroupIndex,
+                    uint2 groupThreadId : SV_GroupThreadID,
+                    uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the set of coordinates we need
+    uint2 intermediateCoord = dispatchThreadId.xy;
+    uint2 traceCoord = intermediateCoord / 2;
+
+#ifndef WITHOUT_LDS
+    // Only 36 workers of the 64 do the pre-fetching
+    if (groupIndex < 36)
+    {
+        // Load 1 value per thread
+        FillCloudReprojectionLDS(groupIndex, groupId * 8);
+    }
+    // Make sure all values are loaded in LDS by now.
+    GroupMemoryBarrierWithGroupSync();
+#endif
+
+    // If out of bounds, leave right away
+    if (any(intermediateCoord.xy >= uint2(_IntermediateScreenSize.xy)))
+        return;
+
+    // Grab the cloud data
+#ifdef WITHOUT_LDS
+    float4 cloudLighting = LOAD_TEXTURE2D_X(_CloudsLightingTexture, traceCoord);
+#else
+    float4 cloudLighting = GetCloudLighting_LDS(groupThreadId, int2(0, 0));
+#endif
+
+    // Accumulate the result with the previous frame
+    _CloudsLightingTextureRW[COORD_TEXTURE2D_X(intermediateCoord)] = cloudLighting;
+}
+
 // Constant buffer where all variables should land
 CBUFFER_START(VolumetricCloudsUpscaleConstantBuffer)
     float2 _UpperScreenSize;
@@ -1189,15 +1260,11 @@ CBUFFER_END
 TEXTURE2D_X(_VolumetricCloudsTexture);
 TEXTURE2D_X(_DepthStatusTexture);
 
-#ifdef USE_INTERMEDIATE_BUFFER
-RW_TEXTURE2D_X(float4, _VolumetricCloudsUpscaleTextureRW);
-#else
 // Input output camera color buffer
 #ifndef CAN_RW_ON_COLOR_BUFFER
 TEXTURE2D_X(_CameraColorTexture);
 #endif
-RW_TEXTURE2D_X(float4, _CameraColorTextureRW);
-#endif
+RW_TEXTURE2D_X(float4, _VolumetricCloudsUpscaleTextureRW);
 
 void FillLDSUpscale(uint groupIndex, uint2 groupOrigin)
 {
@@ -1247,7 +1314,7 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     GroupMemoryBarrierWithGroupSync();
 
     // If out of bounds, leave right away
-    if (any(finalCoord.xy > uint2(_ScreenSize.xy)))
+    if (any(finalCoord.xy >= uint2(_FinalScreenSize.xy)))
         return;
 
     // Grab the depth value of the pixel
@@ -1308,13 +1375,45 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
 #else
     // Read the color buffer
 #ifdef CAN_RW_ON_COLOR_BUFFER
-    float4 currentColor = _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)];
+    float4 currentColor = _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)];
 #else
     float4 currentColor = _CameraColorTexture[COORD_TEXTURE2D_X(finalCoord.xy)];
 #endif
     // If this is a background pixel, we want the cloud value, otherwise we do not.
-    _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentColor.xyz * currentClouds.a + currentClouds.xyz, currentColor.a);
+    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentColor.xyz * currentClouds.a + currentClouds.xyz, currentColor.a);
 #endif
+}
+
+[numthreads(8, 8, 1)]
+void UPSAMPLE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID,
+                            int groupIndex : SV_GroupIndex,
+                            uint2 groupThreadId : SV_GroupThreadID,
+                            uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(finalCoord.z);
+
+    // Only 36 workers of the 64 do the pre-fetching
+    if (groupIndex < 36)
+    {
+        // Load 1 value per thread
+        FillLDSUpscale(groupIndex, groupId * 8);
+    }
+
+    // Make sure all values are loaded in LDS by now.
+    GroupMemoryBarrierWithGroupSync();
+
+    // If out of bounds, leave right away
+    if (any(finalCoord.xy >= uint2(_FinalScreenSize.xy)))
+        return;
+
+    float4 currentClouds = GetCloudLighting_LDS(groupThreadId, int2(0, 0));
+
+    // De-tonemap the inscattering value
+    currentClouds.xyz = unapplyFastTonemapping(currentClouds.xyz);
+    currentClouds.w = saturate(currentClouds.w);
+
+    // Store the upscaled result only, composite in later pass.
+    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
 }
 
 [numthreads(8, 8, 1)]
@@ -1326,13 +1425,12 @@ void COMBINE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     UNITY_XR_ASSIGN_VIEW_INDEX(finalCoord.z);
 
     // If out of bounds, leave right away
-    if (any(finalCoord.xy > uint2(_ScreenSize.xy)))
+    if (any(finalCoord.xy >= uint2(_FinalScreenSize.xy)))
         return;
 
     // Grab the depth value of the pixel
     float highDepth = LOAD_TEXTURE2D_X(_DepthTexture, finalCoord.xy).x;
     float4 sampleVal = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, finalCoord.xy);
-    float cloudsDepth = LOAD_TEXTURE2D_X(_DepthStatusTexture, finalCoord.xy).x;
 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
     // Do the bilateral upscale
@@ -1345,8 +1443,10 @@ void COMBINE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.xyz = unapplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
 
-#ifndef LOCAL_VOLUMETRIC_CLOUDS
-    cloudsDepth = UNITY_RAW_FAR_CLIP_VALUE;
+#ifdef LOCAL_VOLUMETRIC_CLOUDS
+    float cloudsDepth = LOAD_TEXTURE2D_X(_DepthStatusTexture, finalCoord.xy).x;
+#else
+    float cloudsDepth = UNITY_RAW_FAR_CLIP_VALUE;
 #endif
 
     // Compute the pos input of the cloud position
@@ -1367,13 +1467,33 @@ void COMBINE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
 #else
     // Read the color buffer
 #ifdef CAN_RW_ON_COLOR_BUFFER
-    float4 currentColor = _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)];
+    float4 currentColor = _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)];
 #else
     float4 currentColor = _CameraColorTexture[COORD_TEXTURE2D_X(finalCoord.xy)];
 #endif
     // If this is a background pixel, we want the cloud value, otherwise we do not.
-    _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentColor.xyz * currentClouds.a + currentClouds.xyz, currentColor.a);
+    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float4(currentColor.xyz * currentClouds.a + currentClouds.xyz, currentColor.a);
 #endif
+}
+
+[numthreads(8, 8, 1)]
+void COMBINE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(finalCoord.z);
+
+    // If out of bounds, leave right away
+    if (any(finalCoord.xy >= uint2(_FinalScreenSize.xy)))
+        return;
+
+    // Grab the depth value of the pixel
+    float4 currentClouds = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, finalCoord.xy);
+
+    // De-tonemap the inscattering value
+    currentClouds.xyz = unapplyFastTonemapping(currentClouds.xyz);
+    currentClouds.w = saturate(currentClouds.w);
+
+    // Store the upscaled result only, composite in later pass.
+    _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
 }
 
 RW_TEXTURE2D(float3, _VolumetricCloudsShadowRW);

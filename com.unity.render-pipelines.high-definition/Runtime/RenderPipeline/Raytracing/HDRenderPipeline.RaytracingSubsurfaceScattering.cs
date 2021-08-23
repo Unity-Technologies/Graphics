@@ -204,6 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
             filterParams.occluderMotionRejection = false;
             filterParams.receiverMotionRejection = true;
             filterParams.exposureControl = false;
+            filterParams.fullResolution = true;
 
             return GetTemporalFilter().Denoise(renderGraph, hdCamera, filterParams,
                 rayTracedSSS, renderGraph.defaultResources.blackTextureXR, historyBuffer,
