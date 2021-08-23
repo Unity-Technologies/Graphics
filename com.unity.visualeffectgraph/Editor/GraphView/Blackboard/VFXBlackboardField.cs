@@ -12,7 +12,7 @@ using System.Text;
 using UnityEditor.Graphs;
 using UnityEditor.SceneManagement;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     class VFXBlackboardField : BlackboardField, IControlledElement<VFXParameterController>
     {
@@ -61,7 +61,7 @@ namespace  UnityEditor.VFX.UI
         {
             get { return owner.controller; }
         }
-        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e) {}
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e) { }
 
         public void SelfChange()
         {

@@ -303,7 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // let's compute the oobb of the light influence volume first
                         Vector3 oobbDimensions = new Vector3(currentLight.shapeWidth + 2 * lightRange, currentLight.shapeHeight + 2 * lightRange, lightRange); // One-sided
-                        Vector3 extents    = 0.5f * oobbDimensions;
+                        Vector3 extents = 0.5f * oobbDimensions;
                         Vector3 oobbCenter = lightPositionRWS + extents.z * currentLight.gameObject.transform.forward;
 
                         // Let's now compute an AABB that matches the previously defined OOBB
@@ -543,7 +543,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int shadowIndex = additionalLightData.shadowIndex;
                 int screenSpaceShadowIndex = -1;
                 int screenSpaceChannelSlot = -1;
-                Vector3 lightDimensions =  new Vector3(0.0f, 0.0f, 0.0f);
+                Vector3 lightDimensions = new Vector3(0.0f, 0.0f, 0.0f);
 
                 // Use the shared code to build the light data
                 m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData,
@@ -635,7 +635,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
                 passData.depthPyramid = builder.ReadTexture(depthStencilBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Light Cluster Debug Texture" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Light Cluster Debug Texture" }));
 
                 builder.SetRenderFunc(
                     (LightClusterDebugPassData data, RenderGraphContext ctx) =>

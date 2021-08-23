@@ -210,7 +210,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PostCreateAssetWork(newAsset);
             }
 
-            protected virtual void PostCreateAssetWork(TAssetType asset) {}
+            protected virtual void PostCreateAssetWork(TAssetType asset) { }
         }
 
         class DoCreateNewAssetDiffusionProfileSettings : DoCreateNewAsset<DiffusionProfileSettings>

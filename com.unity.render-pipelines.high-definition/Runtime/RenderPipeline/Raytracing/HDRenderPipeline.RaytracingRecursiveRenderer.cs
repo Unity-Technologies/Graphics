@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Right now the debug buffer is written to independently of what is happening. This must be changed
                 // TODO RENDERGRAPH
                 passData.debugBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Recursive Rendering Debug Texture" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Recursive Rendering Debug Texture" }));
 
                 builder.SetRenderFunc(
                     (RecursiveRenderingPassData data, RenderGraphContext ctx) =>

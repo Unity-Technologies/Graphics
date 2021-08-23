@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.UI
         protected VFXMinMaxSliderField m_Slider;
 
         public Vector2PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
-        {}
+        { }
 
         private void ValueDragStarted()
         {

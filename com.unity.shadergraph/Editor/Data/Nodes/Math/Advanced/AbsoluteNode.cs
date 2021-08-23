@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
         public AbsoluteNode()
         {
             name = "Absolute";
+            synonyms = new string[] { "positive" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

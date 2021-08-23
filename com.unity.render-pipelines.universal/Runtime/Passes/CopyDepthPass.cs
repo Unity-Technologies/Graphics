@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
-        internal bool AllocateRT  { get; set; }
+        internal bool AllocateRT { get; set; }
         internal int MssaSamples { get; set; }
         // In some cases (Scene view, XR and etc.) we actually want to output to depth buffer
         // So this variable needs to be set to true to enable the correct copy shader semantic
