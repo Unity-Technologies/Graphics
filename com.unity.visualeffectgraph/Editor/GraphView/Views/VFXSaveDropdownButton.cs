@@ -34,15 +34,14 @@ namespace UnityEditor.VFX.UI
             selectButton.clicked += OnSelectAsset;
         }
 
-        protected override Vector2 GetPopupSize() => new Vector2(150, 76);
+        protected override Vector2 GetPopupSize() => new Vector2(150, CanCheckout() ? 76 : 56);
 
         protected override void OnOpenPopup()
         {
             // Disable checkout button if perforce is not available
             if (m_VFXView.controller?.model?.visualEffectObject != null)
             {
-                var canCheckout = !this.m_VFXView.IsAssetEditable() && Provider.isActive && Provider.enabled;
-                m_CheckoutButton.SetEnabled(canCheckout);
+                m_CheckoutButton.style.display = CanCheckout() ? DisplayStyle.Flex : DisplayStyle.None;
             }
         }
 
@@ -51,7 +50,9 @@ namespace UnityEditor.VFX.UI
             m_VFXView.OnSave();
         }
 
-        private void OnSaveAs()
+        bool CanCheckout() => !this.m_VFXView.IsAssetEditable() && Provider.isActive && Provider.enabled;
+
+        void OnSaveAs()
         {
             var originalPath = AssetDatabase.GetAssetPath(m_VFXView.controller.model);
             var extension = Path.GetExtension(originalPath).Trim('.');
