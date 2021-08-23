@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
@@ -47,6 +48,85 @@ namespace UnityEditor.Rendering.Universal
             return translucentTex;
         }
 
+        Vector2[][] GenerateOutline(Clipper clipper, Texture2D texture, SpriteRect spriteRect, float detail, PolyType polyType)
+        {
+            InternalEditorBridge.GenerateOutline(texture, spriteRect.rect, detail, 0, true, out var solidPaths);
+            foreach (var path in solidPaths)
+            {
+                var intPath = new List<IntPoint>(path.Length);
+                for(var i = 0; i < path.Length; i++)
+                    intPath.Add(new IntPoint(path[i].x * ClipperScale, path[i].y * ClipperScale));
+                clipper.AddPath(intPath, polyType, true);
+            }
+
+            return solidPaths;
+        }
+
+        void Tessellate<T>(Tess tess, IReadOnlyList<IReadOnlyList<T>> paths, Func<T, Vec3> ToVec3)
+        {
+            foreach (var path in paths)
+            {
+                var contour = new ContourVertex[path.Count()];
+                for (var i = 0; i < path.Count(); i++)
+                {
+                    contour[i] = new ContourVertex
+                    {
+                        Position = ToVec3(path[i])
+                    };
+                }
+                tess.AddContour(contour);
+            }
+        }
+
+        void FillSprite(Sprite sprite, params Tess[] tesses)
+        {
+            var totalVertices = tesses.Sum(t => t.VertexCount);
+            var vertices = new NativeArray<Vector3>(totalVertices, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var vertexOffset = 0;
+            foreach (var tess in tesses)
+            {
+                for (var i = 0; i < tess.VertexCount; i++)
+                {
+                    var pos = tess.Vertices[i].Position;
+                    vertices[i + vertexOffset] = new Vector3(pos.X / sprite.pixelsPerUnit, pos.Y / sprite.pixelsPerUnit, 0);
+                }
+
+                vertexOffset += tess.VertexCount;
+            }
+
+            var totalIndices = tesses.Sum(t => t.Elements.Length);
+            var indices = new NativeArray<ushort>(totalIndices, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            vertexOffset = 0;
+            var indexOffset = 0;
+            foreach (var tess in tesses)
+            {
+                for (var i = 0; i < tess.Elements.Length; i++)
+                {
+                    indices[i + indexOffset] = (ushort) (tess.Elements[i] + vertexOffset);
+                }
+
+                indexOffset += tess.Elements.Length;
+                vertexOffset += tess.VertexCount;
+            }
+
+            sprite.SetVertexCount(vertices.Length);
+            sprite.SetVertexAttribute(VertexAttribute.Position, vertices);
+            sprite.SetIndices(indices);
+            // set indices
+
+            // setup the submeshes
+            sprite.SetSubMeshCount(tesses.Length);
+            vertexOffset = 0;
+            indexOffset = 0;
+            var index = 0;
+            foreach (var tess in tesses)
+            {
+                sprite.SetSubMesh(index++, vertexOffset, tess.VertexCount, indexOffset, tess.Elements.Length);
+                vertexOffset += tess.VertexCount;
+                indexOffset += tess.Elements.Length;
+            }
+        }
+
         private void OnPostprocessSprites(Texture2D texture, Sprite[] sprites)
         {
             var ai = GetSpriteEditorDataProvider(assetPath);
@@ -62,68 +142,24 @@ namespace UnityEditor.Rendering.Universal
                 var spriteRect = spriteRects.First(s => s.spriteID == guid);
                 var clipper = new Clipper();
 
-                InternalEditorBridge.GenerateOutline(texture, spriteRect.rect, detail, 0, true, out var solidPaths);
-                foreach (var path in solidPaths)
-                {
-                    var intPath = new List<IntPoint>(path.Length);
-                    for(var i = 0; i < path.Length; i++)
-                        intPath.Add(new IntPoint(path[i].x * ClipperScale, path[i].y * ClipperScale));
-                    clipper.AddPath(intPath, PolyType.ptSubject, true);
-                }
+                GenerateOutline(clipper, texture, spriteRect, detail, PolyType.ptSubject);
 
-                // generate the translucent path
-                var translucentTex = GenerateTranslucentTexture(texture);
-                InternalEditorBridge.GenerateOutline(translucentTex, spriteRect.rect, detail, 0, true, out var translucentPaths);
-
-                if (translucentPaths.Length == 0)
-                {
-                    Debug.Log("No paths");
-                    return;
-                }
-
-                foreach (var path in translucentPaths)
-                {
-                    var intPath = new List<IntPoint>(path.Length);
-                    for(var i = 0; i < path.Length; i++)
-                        intPath.Add(new IntPoint(path[i].x * ClipperScale, path[i].y * ClipperScale));
-                    clipper.AddPath(intPath, PolyType.ptClip, true);
-                }
+                var translucentTexture = GenerateTranslucentTexture(texture);
+                var translucentPaths = GenerateOutline(clipper, translucentTexture, spriteRect, detail, PolyType.ptClip);
 
                 var solution = new List<List<IntPoint>>();
                 clipper.Execute(ClipType.ctDifference, solution);
 
-                var tess = new Tess();
-                foreach (var path in solution)
-                {
-                    var contour = new ContourVertex[path.Count];
-                    for (var i = 0; i < path.Count; i++)
-                    {
-                        contour[i] = new ContourVertex
-                        {
-                            Position = new Vec3 {X = path[i].X / ClipperScale, Y = path[i].Y / ClipperScale, Z = 0.0f}
-                        };
-                    }
-                    tess.AddContour(contour);
-                }
+                var opaqueTess = new Tess();
+                Tessellate(opaqueTess, solution, (pos) => new Vec3{X = pos.X/ClipperScale, Y = pos.Y/ClipperScale, Z=0});
+                opaqueTess.Tessellate(WindingRule.NonZero, ElementType.Polygons, 3);
 
-                tess.Tessellate(WindingRule.EvenOdd, ElementType.Polygons, 3);
+                var translucentTess = new Tess();
+                Tessellate(translucentTess, translucentPaths, (pos) => new Vec3{X = pos.x, Y = pos.y, Z=0});
+                translucentTess.Tessellate(WindingRule.NonZero, ElementType.Polygons, 3);
 
-                var vertices = new NativeArray<Vector3>(tess.VertexCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                for (var i = 0; i < vertices.Length; i++)
-                {
-                    var pos = tess.Vertices[i].Position;
-                    vertices[i] = new Vector3(pos.X / sprite.pixelsPerUnit, pos.Y / sprite.pixelsPerUnit, 0);
-                }
-
-                var indices = new NativeArray<ushort>(tess.Elements.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                for (var i = 0; i < indices.Length; i++)
-                {
-                    indices[i] = (ushort) tess.Elements[i];
-                }
-                sprite.SetVertexCount(vertices.Length);
-                sprite.SetVertexAttribute(VertexAttribute.Position, vertices);
-                sprite.SetIndices(indices, 0);
-
+                FillSprite(sprite, opaqueTess, translucentTess);
+                // FillSprite(sprite, translucentTess, opaqueTess);
             }
         }
 
