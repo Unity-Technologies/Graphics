@@ -3064,6 +3064,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 ShaderConfig.s_CameraRelativeRendering != 0,
                                 data.hdCamera.mainViewConstants.worldSpaceCameraPos,
                                 data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
+                                //data.hdCamera.mainViewConstants.viewProjMatrix,
                                 ctx.cmd, data.source,
                                 // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
                                 // And here the lambda setup like that seem to not alloc anything.
