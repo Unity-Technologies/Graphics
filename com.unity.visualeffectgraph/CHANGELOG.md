@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Inspector group headers now have a better indentation and alignment
 - Zoom and warning icons were blurry in the "Play Controls" and "Visual Effect Model" scene overlays
 - Random crash using subgraph [Case 1345426](https://issuetracker.unity3d.com/product/unity/issues/guid/1345426/)
+- Compilation issue while using new SG integration and SampleTexture/SampleMesh [Case 1359391](https://issuetracker.unity3d.com/product/unity/issues/guid/1359391/)
 
 ## [11.0.0] - 2020-10-21
 ### Added
