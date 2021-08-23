@@ -81,6 +81,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorUtility.SetDirty(pipelineAsset);
                 }
                 //Reset counter and register state
+                Debug.LogWarning($"URP Renderer(s) have been upgraded, please remember to save your project to write the upgrade to disk.");
                 editedAssetsCount = 0;
             };
         }
@@ -96,9 +97,10 @@ namespace UnityEditor.Rendering.Universal
             //Double check to see if it's using ForwardRendererData
             SerializedObject so = new SerializedObject(rendererData);
             SerializedProperty scriptProperty = so.FindProperty("m_Script");
-            Debug.LogWarning($"upgraded renderer {rendererData.name} at {rendererDataPath}");
 
             if (scriptProperty == null || scriptProperty.objectReferenceValue != fwdRendererScriptObj) return false;
+            //Write debug warning out before renderer is switched and data is nullified
+            Debug.LogWarning($"Upgraded renderer {rendererData.name} at {rendererDataPath}.\nYou should only see this if you are upgrading from 2021.2 Alpha/Beta cycle.");
             //Change the script to use UniversalRendererData
             so.Update();
             scriptProperty.objectReferenceValue = universalRendererScriptObj;
