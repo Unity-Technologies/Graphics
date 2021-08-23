@@ -18,7 +18,7 @@ def find_matching_patterns(patterns, failure_string):
         if match:
 
             # if a matching patterns was found, skip the general unknown pattern
-            if len(matches) > 0 and pattern['pattern'] == '.+':
+            if len(matches) > 0 and not all([p['tags'][0]=='retry' for p,m in matches]) and pattern['pattern'] == '.+':
                 continue
 
             print('Found match for pattern: ',  pattern['pattern'])
