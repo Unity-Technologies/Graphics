@@ -87,10 +87,10 @@ def parse_failures(logs, local):
         # TODO: do we also want to add additional yamato results for these?
         if ((logs[cmd]['status'] == 'Success' and not any("Retrying" in line for line in logs[cmd]['output']))
                 or any("Reason(s): One or more tests have failed." in line for line in logs[cmd]['output'])):
-            print('Skipping: ', cmd)
+            # print('Skipping: ', cmd)
             continue
 
-        print('\nReading: ', cmd)
+        print('\Found failed command: ', cmd)
 
         # check if the error matches any known pattern marked in log_patterns.py
         output = '\n'.join(logs[cmd]['output'])

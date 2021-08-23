@@ -156,11 +156,6 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
     output.positionCS.z = 1.0f;
     output.positionCS.w = 1.0f;
 
-#ifdef FLARE_DYNAMIC_RESOLUTION
-    output.positionCS.x = (output.positionCS.x + 1.0f) * _RTHandleScale.x - 1.0f;
-    output.positionCS.y = (output.positionCS.y - 1.0f) * _RTHandleScale.y + 1.0f;
-#endif
-
 #if FLARE_OCCLUSION
     float occlusion = GetOcclusion(screenRatio);
 

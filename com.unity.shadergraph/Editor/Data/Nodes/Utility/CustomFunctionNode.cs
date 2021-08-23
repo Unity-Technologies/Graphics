@@ -68,6 +68,7 @@ namespace UnityEditor.ShaderGraph
         public CustomFunctionNode()
         {
             UpdateNodeName();
+            synonyms = new string[] { "code", "HLSL" };
         }
 
         void UpdateNodeName()
