@@ -33,7 +33,8 @@ if(_EnableDecalLayers)
 	float3 clipPos;
 	clipPos.xy = (i.pos.xy / _ScreenParams.xy) * 2.0f - 1.0f;
 	clipPos.z = VFXSampleDepth(i.pos);
-    clipPos.y = -clipPos.y;
+	if (_ProjectionParams.x < 0)
+        clipPos.y = -clipPos.y;
 
     float4 hpositionWS = mul(UNITY_MATRIX_I_VP, float4(clipPos,1.0f));
     float4 worldPos = float4(hpositionWS.xyz / hpositionWS.w, 1.0f);

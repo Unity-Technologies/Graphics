@@ -206,6 +206,12 @@ namespace UnityEngine.Rendering.Universal
             // This setup is tailored especially for overlay camera game view
             // For other scenarios this will be overwritten correctly by SetupCameraProperties
             bool isOffscreen = cameraData.targetTexture != null;
+            //TODOPAUL : It seems wrong, ask to URP if it's a known issue.
+            //In 104_Decal_And_SoftParticle : base & overlay camera renders within the same buffer with the same orientation.
+            //But (without this change) in CameraRenderType.Base, projectionFlipSign is -1.0f while in CameraRenderType.Overlay is 1.0f
+            //It leads to incorrect VFX decals rendering.
+            if (cameraData.renderType == CameraRenderType.Overlay)
+                isOffscreen = true;
             bool invertProjectionMatrix = isOffscreen && SystemInfo.graphicsUVStartsAtTop;
             float projectionFlipSign = invertProjectionMatrix ? -1.0f : 1.0f;
             Vector4 projectionParams = new Vector4(projectionFlipSign, near, far, 1.0f * invFar);
