@@ -1,6 +1,18 @@
 # Point Caches in the Visual Effect Graph
 
-A Point Cache is an asset that stores a number of points and their attributes baked into textures. You can use Point Caches to create particle effects in the shape of complex geometry.
+A Point Cache is an asset that stores points and their attributes baked into textures. You can use Point Caches to create particle effects in the shape of complex geometry.
+
+## Attribute map
+
+A Point Cache stores data in attribute maps. An attribute map is a list of values (one for every point in the Point Cache) for a particular point attribute. For example, the position attribute map stores a position for each point in the Point Cache. Each point has an index which you can use to access its attribute values. To get the attribute data for a point, you look up each attribute map at the point's index. You can think of a Point Cache as a table where each column represents an attribute map and each row represents a point. For example:
+
+|             | **Position** | **Normal** | **Color** |
+| ----------- | ------------ | ---------- | --------- |
+| **Point 1** | ...          | ...        | ...       |
+| **Point 2** | ...          | ...        | ...       |
+| **Point 3** | ...          | ...        | ...       |
+| **Point 4** | ...          | ...        | ...       |
+| **...**     | ...          | ...        | ...       |
 
 ## Point Cache assets
 
@@ -16,7 +28,7 @@ The [Point Cache Operator](Operator-PointCache.md) enables you to use Point Cach
 
 ## Generating Point Caches
 
-There are multiple ways to generate a Point Cache to use in a visual effect:
+To generate a Point Cache for use in a visual effect, you can use any of the following methods:
 
 - The built-in [Point Cache Bake Tool](point-cache-bake-tool.md)
 - The Houdini pCache Exporter bundled with [*VFXToolbox*](https://github.com/Unity-Technologies/VFXToolbox) (located in the /DCC~ folder) enables you to bake Point Caches.
@@ -25,4 +37,4 @@ There are multiple ways to generate a Point Cache to use in a visual effect:
 
 ## Limitations and Caveats
 
-Currently, only the `float` and `uchar` property types are supported by the Importer. Any property of other types returns an error.
+The Importer supports the `float` and `uchar` property types. Any property of other types returns an error.

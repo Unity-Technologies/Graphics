@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The light will no affect any object.</summary>
         Nothing = 0,   // Custom name for "Nothing" option
         /// <summary>Decal Layer 0.</summary>
-        LightLayerDefault = 1 << 0,
+        DecalLayerDefault = 1 << 0,
         /// <summary>Decal Layer 1.</summary>
         DecalLayer1 = 1 << 1,
         /// <summary>Decal Layer 2.</summary>

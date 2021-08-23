@@ -6,30 +6,10 @@ test_platforms:
     utr_flags:
       - [all]: --compilation-errors-as-warnings
   - type: playmode
-    name: playmode_cache
-    utr_flags:
-    - [all]: --compilation-errors-as-warnings
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-  - type: playmode
     name: playmode_XR
     utr_flags:
       - [all]: --extra-editor-arg="-xr-tests"
       - [all]: --compilation-errors-as-warnings
-  - type: playmode
-    name: playmode_XR_cache
-    utr_flags:
-    - [all]: --extra-editor-arg="-xr-tests"
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
   # - type: editmode
   #  utr_flags:
   #    - [all]: --compilation-errors-as-warnings
@@ -61,42 +41,7 @@ test_platforms:
           - [Android_OpenGLES3]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
           - [iPhone_Metal]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
 
-  - type: Standalone
-    name: Standalone_DOTS_cache
-    commands:
-      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
-      - [all]: <shared.platform.commands.setup_utr>
-      - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --compilation-errors-as-warnings
-          - [OSX_Metal]: --timeout=2400
-    commands_build:
-      - [iPhone_Metal]: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      - [iPhone_Metal]: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp   --wait --published-only
-      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
-      - [all]: <shared.platform.commands.setup_utr>
-      - [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --timeout=3000
-          - [all]: --compilation-errors-as-warnings
-          - [all]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration"
-          - [Win_DX11]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
-          - [Win_DX12]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
-          - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
-          - [Android_OpenGLES3]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
-          - [iPhone_Metal]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
-          - [all]: --extra-editor-arg="-adb2"
-          - [all]: --extra-editor-arg="-enableCacheServer"
-          - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-          - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="{{cache.cacheServerNamespacePrefix}}"
-          - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-          - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
 
-expression_trigger:
-  expression: ""
 platforms:
   - name: Win
     apis:
@@ -140,34 +85,34 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone_DOTS
-          - name: Standalone_DOTS_cache
           - name: playmode_XR
-          - name: playmode_XR_cache
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode_XR
-          - name: playmode_XR_cache
     build_configs:
       - name: mono
     color_spaces:
       - Linear
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode
-        - Standalone_DOTS
-nightly:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_XR
-        # - playmode_XR_cache
-    - project: HDRP_Hybrid
-      pr: true
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode
+            - Standalone_DOTS
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+            - playmode_XR
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

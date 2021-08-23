@@ -239,11 +239,11 @@ namespace UnityEditor.VFX.UI
             {
                 m_Name = newName;
 
-                if (model != null)
+                if (model != null && model.name != m_Name)
                 {
                     model.name = m_Name;
                 }
-                if (graph != null)
+                if (graph != null && (graph as UnityObject).name != m_Name)
                 {
                     (graph as UnityObject).name = m_Name;
                 }
