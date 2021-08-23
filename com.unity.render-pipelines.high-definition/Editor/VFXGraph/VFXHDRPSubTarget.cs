@@ -285,9 +285,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             defineSpaceDescriptor = new AdditionalCommandDescriptor("VFXDefineSpace", defineSpaceDescriptorContent);
 
-            //Texture used as input of shaderGraph will be declared by shaderGraph generation
-            //However, if we are sampling a texture (or a mesh), we have to declare them before VFX code generation.
-            //Thus, remove texture used in SG from VFX declaration and let the remaining.
+            //Texture used as input of the shaderGraph will be declared by the shaderGraph generation
+            //However, if we are sampling a texture (or a mesh), we have to declare them before the VFX code generation.
+            //Thus, remove texture used in SG from VFX declaration and let the remainder.
             var filteredTextureInSG = context.inputSlots.Where(o =>
             {
                 return VFXExpression.IsTexture(o.property.type);
