@@ -11,10 +11,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         float scrollFactor = 0.0f, lastTime = 0.0f;
 
-        private static int m_RenderCubemapID                                = 0; // FragBaking
-        private static int m_RenderFullscreenSkyID                          = 1; // FragRender
-        private static int m_RenderFullscreenSkyWithBackplateID             = 2; // FragRenderBackplate
-        private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID    = 3; // FragRenderBackplateDepth
+        private static int m_RenderCubemapID = 0; // FragBaking
+        private static int m_RenderFullscreenSkyID = 1; // FragRender
+        private static int m_RenderFullscreenSkyWithBackplateID = 2; // FragRenderBackplate
+        private static int m_RenderDepthOnlyFullscreenSkyWithBackplateID = 3; // FragRenderBackplateDepth
 
         public HDRISkyRenderer()
         {
@@ -33,9 +33,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void GetParameters(out float intensity, out float phi, out float backplatePhi, BuiltinSkyParameters builtinParams, HDRISky hdriSky)
         {
-            intensity       = GetSkyIntensity(hdriSky, builtinParams.debugSettings);
-            phi             = -Mathf.Deg2Rad * hdriSky.rotation.value; // -rotation to match Legacy...
-            backplatePhi    = phi - Mathf.Deg2Rad * hdriSky.plateRotation.value;
+            intensity = GetSkyIntensity(hdriSky, builtinParams.debugSettings);
+            phi = -Mathf.Deg2Rad * hdriSky.rotation.value; // -rotation to match Legacy...
+            backplatePhi = phi - Mathf.Deg2Rad * hdriSky.plateRotation.value;
         }
 
         private Vector4 GetBackplateParameters0(HDRISky hdriSky)

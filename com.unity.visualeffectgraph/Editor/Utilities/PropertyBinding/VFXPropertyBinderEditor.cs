@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental.VFX.Utility
             public static GUIStyle labelStyle;
             static Styles()
             {
-                labelStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset(20, 0, 2, 0), richText = true};
+                labelStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset(20, 0, 2, 0), richText = true };
             }
         }
 

@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: MaximumLODLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "Sets the Maximum Level Of Detail Level or the Offset on it.")]
         MaximumLODLevel = 63,
         /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
-        [FrameSettingsField(0,  displayedName: "Quality Level", type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 102, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
+        [FrameSettingsField(0, displayedName: "Quality Level", type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 102, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
         MaximumLODLevelQualityLevel = 65,
         /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
         [FrameSettingsField(0, autoName: MaterialQualityLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, tooltip: "The material quality level to use.")]
@@ -300,8 +300,11 @@ namespace UnityEngine.Rendering.HighDefinition
             tooltip: "Sets the custom sample budget of the Subsurface Scattering algorithm.")]
         SssCustomSampleBudget = 49,
         /// <summary>When enabled, Cameras using these Frame Settings calculate Volumetric Clouds.</summary>
-        [FrameSettingsField(1, autoName: VolumetricClouds, tooltip: "When enabled, Cameras using these Frame Settings calculate Volumetric Clouds.")]
+        [FrameSettingsField(1, autoName: VolumetricClouds, customOrderInGroup: 50, tooltip: "When enabled, Cameras using these Frame Settings calculate Volumetric Clouds.")]
         VolumetricClouds = 79,
+        /// <summary>When enabled, Cameras using these Frame Settings calculate Volumetric Clouds at full resolution when evaluating the sky texture.</summary>
+        [FrameSettingsField(1, autoName: FullResolutionCloudsForSky, customOrderInGroup: 51, positiveDependencies: new[] { VolumetricClouds }, tooltip: "When enabled, Cameras using these Frame Settings calculate Volumetric Clouds at full resolution when evaluating the sky texture.")]
+        FullResolutionCloudsForSky = 98,
 
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).</summary>
         [FrameSettingsField(1, autoName: Transmission, tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).")]
@@ -476,12 +479,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.AlphaToMask,
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.VolumetricClouds,
+                // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
-            sssQualityMode        = SssQualityMode.FromQualitySettings,
-            sssQualityLevel       = 0,
+            sssQualityMode = SssQualityMode.FromQualitySettings,
+            sssQualityLevel = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
-            msaaMode              = MSAAMode.None,
+            msaaMode = MSAAMode.None,
         };
         internal static FrameSettings NewDefaultRealtimeReflectionProbe() => new FrameSettings()
         {
@@ -536,12 +540,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 // (uint)FrameSettingsField.VolumetricClouds,
+                // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
-            sssQualityMode        = SssQualityMode.FromQualitySettings,
-            sssQualityLevel       = 0,
+            sssQualityMode = SssQualityMode.FromQualitySettings,
+            sssQualityLevel = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
-            msaaMode              = MSAAMode.None,
+            msaaMode = MSAAMode.None,
         };
         internal static FrameSettings NewDefaultCustomOrBakeReflectionProbe() => new FrameSettings()
         {
@@ -593,12 +598,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 // (uint)FrameSettingsField.EnableSkyReflection,
                 // (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.VolumetricClouds,
+                // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
-            sssQualityMode        = SssQualityMode.FromQualitySettings,
-            sssQualityLevel       = 0,
+            sssQualityMode = SssQualityMode.FromQualitySettings,
+            sssQualityLevel = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
-            msaaMode              = MSAAMode.None,
+            msaaMode = MSAAMode.None,
         };
 
         // Each time you add data in the framesettings. Attempt to add boolean one only if possible.
@@ -716,7 +722,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var source = hdrp.currentPlatformRenderPipelineSettings.sssSampleBudget;
             switch (sssQualityMode)
             {
-                case SssQualityMode.FromQualitySettings:     return source[sssQualityLevel];
+                case SssQualityMode.FromQualitySettings: return source[sssQualityLevel];
                 case SssQualityMode.OverrideQualitySettings: return sssCustomSampleBudget;
                 default: throw new ArgumentOutOfRangeException(nameof(sssCustomSampleBudget));
             }
@@ -831,6 +837,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSGI] &= renderPipelineSettings.supportSSGI && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] && temporalAccumulationAllowed;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= renderPipelineSettings.supportSubsurfaceScattering;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds] &= renderPipelineSettings.supportVolumetricClouds && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FullResolutionCloudsForSky] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VolumetricClouds];
 
             // We must take care of the scene view fog flags in the editor
             bool atmosphericScattering = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AtmosphericScattering] &= sceneViewFog && !preview;
@@ -932,19 +939,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="a">First frame settings.</param>
         /// <param name="b">Second frame settings.</param>
         /// <returns>True if both settings are equal.</returns>
-        public static bool operator==(FrameSettings a, FrameSettings b)
-            => a.bitDatas                    == b.bitDatas
-            && a.sssQualityMode              == b.sssQualityMode
-            && a.sssQualityLevel             == b.sssQualityLevel
-            && a.sssCustomSampleBudget       == b.sssCustomSampleBudget
-            && a.lodBias                     == b.lodBias
-            && a.lodBiasMode                 == b.lodBiasMode
-            && a.lodBiasQualityLevel         == b.lodBiasQualityLevel
-            && a.maximumLODLevel             == b.maximumLODLevel
-            && a.maximumLODLevelMode         == b.maximumLODLevelMode
+        public static bool operator ==(FrameSettings a, FrameSettings b)
+            => a.bitDatas == b.bitDatas
+            && a.sssQualityMode == b.sssQualityMode
+            && a.sssQualityLevel == b.sssQualityLevel
+            && a.sssCustomSampleBudget == b.sssCustomSampleBudget
+            && a.lodBias == b.lodBias
+            && a.lodBiasMode == b.lodBiasMode
+            && a.lodBiasQualityLevel == b.lodBiasQualityLevel
+            && a.maximumLODLevel == b.maximumLODLevel
+            && a.maximumLODLevelMode == b.maximumLODLevelMode
             && a.maximumLODLevelQualityLevel == b.maximumLODLevelQualityLevel
-            && a.materialQuality             == b.materialQuality
-            && a.msaaMode                    == b.msaaMode;
+            && a.materialQuality == b.materialQuality
+            && a.msaaMode == b.msaaMode;
 
         /// <summary>
         /// Inequality operator between two FrameSettings. Return `true` if different. (comparison of content).
@@ -952,7 +959,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="a">First frame settings.</param>
         /// <param name="b">Second frame settings.</param>
         /// <returns>True if settings are not equal.</returns>
-        public static bool operator!=(FrameSettings a, FrameSettings b) => !(a == b);
+        public static bool operator !=(FrameSettings a, FrameSettings b) => !(a == b);
 
         /// <summary>
         /// Equality operator between two FrameSettings. Return `true` if equivalent. (comparison of content).

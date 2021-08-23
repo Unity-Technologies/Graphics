@@ -290,7 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
             settings.frustum.projectionMatrix = hdCamera.camera.projectionMatrix;
             settings.invertFaceCulling = false;
 
-            HDAdditionalCameraData   add;
+            HDAdditionalCameraData add;
             if (hdCamera.camera.TryGetComponent<HDAdditionalCameraData>(out add))
             {
                 settings.customRenderingSettings = add.customRenderingSettings;
@@ -350,10 +350,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // Marked as internal as it is here just for propagation purposes, the correct way to edit this value is through the probe itself.
         internal float probeRangeCompressionFactor;
 
-        [SerializeField][FormerlySerializedAs("renderingPath")][Obsolete("For data migration")]
+        [SerializeField]
+        [FormerlySerializedAs("renderingPath")]
+        [Obsolete("For data migration")]
         internal int m_ObsoleteRenderingPath;
 #pragma warning disable 618 // Type or member is obsolete
-        [SerializeField][FormerlySerializedAs("frameSettings")][Obsolete("For data migration")]
+        [SerializeField]
+        [FormerlySerializedAs("frameSettings")]
+        [Obsolete("For data migration")]
         internal ObsoleteFrameSettings m_ObsoleteFrameSettings;
 #pragma warning restore 618
 
