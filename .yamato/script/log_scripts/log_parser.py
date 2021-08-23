@@ -74,12 +74,17 @@ def recursively_match_patterns(logs, cmd, patterns, failure_string):
             for redirect in pattern['redirect']:
 
                 if redirect == 'utr_log':
-                    df = UTR_log(test_results_path)
-                    recursively_match_patterns(logs, cmd, df.get_patterns(), df.read_log())
-
+                    try:
+                        df = UTR_log(test_results_path)
+                        recursively_match_patterns(logs, cmd, df.get_patterns(), df.read_log())
+                    except Exception as e:
+                        print('! Failed to parse UTR TestResults.json: ', e)
                 elif redirect == 'unity_log':
-                    df = Unity_log(test_results_path)
-                    recursively_match_patterns(logs, cmd, df.get_patterns(), df.read_log())
+                    try:
+                        df = Unity_log(test_results_path)
+                        recursively_match_patterns(logs, cmd, df.get_patterns(), df.read_log())
+                    except Exception as e:
+                        print('! Failed to parse UnityLog.txt', e)
 
                 else:
                     print('! Invalid redirect: ', redirect)
@@ -95,7 +100,7 @@ def post_additional_results(cmd, local):
 
     data = {
         'title': cmd['title'],
-        'summary': ' | '.join([s[:500] for s in cmd['summary']]),
+        'summary': ' | '.join(list(set([s[:500] for s in cmd['summary']]))),
         'conclusion': get_ruling_conclusion(cmd['conclusion']),
         'tags' : list(set(flatten_tags(cmd['tags'])))
     }
