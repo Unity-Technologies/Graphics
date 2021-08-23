@@ -35,11 +35,10 @@ namespace UnityEditor.ShaderFoundry
             this.block = blockDescriptor.Block;
 
             BuildNameOverrides(blockDescriptor);
-            string inTypeName, outTypeName;
-            if(block.EntryPointFunction.GetInOutTypeNames(out inTypeName, out outTypeName))
+            if(block.EntryPointFunction.GetInOutTypes(out var inType, out var outType))
             {
-                CreateTypeLinkInstance(inTypeName, block.Inputs, InputInstance);
-                CreateTypeLinkInstance(outTypeName, block.Outputs, OutputInstance);
+                CreateTypeLinkInstance(inType.Name, block.Inputs, InputInstance);
+                CreateTypeLinkInstance(outType.Name, block.Outputs, OutputInstance);
             }
         }
 
