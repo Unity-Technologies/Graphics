@@ -5,7 +5,7 @@ The example on this page describes how to create a custom scriptable rendering f
 ## Example overview
 
 This example adds a ScriptableRenderPass that blits ScriptableRenderPassInput.Depth to the CameraColorTarget. It uses the command buffer to draw a full screen mesh for both eyes.
-The example also includes a shader used to perform the GPU side of the rendering, which works by sampling the depth buffer using XR sampler macros. 
+The example also includes a shader used to perform the GPU side of the rendering, which works by sampling the depth buffer using XR sampler macros.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ This example requires the following:
 
 To follow the steps in this example, create a new Scene with the following GameObjects:
 
-1. Create a Cube. 
+1. Create a Cube.
 
     ![Scene Cube](../Images/how-to-blit-in-xr/renderobj-cube.png)
 
@@ -75,7 +75,7 @@ internal class DepthDebugRendererFeature : ScriptableRendererFeature
 }
 ```
 2. Create the scriptable render pass that issue the custom blit draw call. In this example, we name the file `DepthDebugPass.cs`
-In this example, we use `cmd.DrawMesh` to draw a fullscreen quad. This provides URP more explicit control about this blit pass. 
+In this example, we use `cmd.DrawMesh` to draw a fullscreen quad. This provides URP more explicit control about this blit pass.
 Do **Not** use the `cmd.Blit` in URP XR as it has serveral compatibility issues with URP XR integration and it may enable/disable XR shader keyword behind the scene.
 ```cs
 using UnityEngine;
@@ -109,7 +109,7 @@ internal class DepthDebugPass : ScriptableRenderPass
 
         if (m_Material == null)
             return;
-		
+
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler))
         {
@@ -184,7 +184,7 @@ Shader "DepthDebug"
 
             half4 frag (Varyings input) : SV_Target
             {
-			UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 float4 vel = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, input.uv);
                 return vel * _Intensity;
             }
@@ -198,13 +198,12 @@ Shader "DepthDebug"
     ![Select Forward Renderer](../Images/how-to-blit-in-xr/forward-renderer-asset.png)
 
 7. Configure forward renderer to use the new render feature.
-   
+
     ![Configure New Renderer Feature](../Images/how-to-blit-in-xr/new-render-feature.png)
-    
+
 6. Configure project to use XRSDK. Add mock hmd provider and select single pass instanced as rendering mode.
-    
+
     ![Configure MockHMD](../Images/how-to-blit-in-xr/mock-hmd-render-mode.png)
 
 The example is complete. When running in playmode, depth buffer is displayed.
 ![Depth Debug Output](../Images/how-to-blit-in-xr/render-obj-cube-depth-output.png)
-    
