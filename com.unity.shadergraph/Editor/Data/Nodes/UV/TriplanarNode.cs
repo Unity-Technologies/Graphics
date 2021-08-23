@@ -29,6 +29,7 @@ namespace UnityEditor.ShaderGraph
         public TriplanarNode()
         {
             name = "Triplanar";
+            synonyms = new string[] { "project" };
             m_PreviewMode = PreviewMode.Preview3D;
             UpdateNodeAfterDeserialization();
         }

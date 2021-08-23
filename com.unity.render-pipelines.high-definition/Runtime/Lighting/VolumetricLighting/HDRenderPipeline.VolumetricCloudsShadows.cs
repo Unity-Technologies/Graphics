@@ -65,7 +65,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CloudModelData cloudModelData = GetCloudModelData(settings);
 
             // Fill the common data
-            FillVolumetricCloudsCommonData(hdCamera, settings, TVolumetricCloudsCameraType.Default, in cloudModelData, ref parameters.commonData);
+            FillVolumetricCloudsCommonData(false, settings, TVolumetricCloudsCameraType.Default, in cloudModelData, ref parameters.commonData);
+
             parameters.shadowsKernel = m_ComputeShadowCloudsKernel;
 
             // Update the constant buffer

@@ -32,24 +32,24 @@ namespace UnityEditor.Rendering.HighDefinition
             this.root = root;
 
             // DoF
-            NearBlurSampleCount         = root.Find((GlobalPostProcessingQualitySettings s) => s.NearBlurSampleCount);
-            NearBlurMaxRadius           = root.Find((GlobalPostProcessingQualitySettings s) => s.NearBlurMaxRadius);
-            FarBlurSampleCount          = root.Find((GlobalPostProcessingQualitySettings s) => s.FarBlurSampleCount);
-            FarBlurMaxRadius            = root.Find((GlobalPostProcessingQualitySettings s) => s.FarBlurMaxRadius);
-            DoFResolution               = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFResolution);
-            DoFHighFilteringQuality     = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFHighQualityFiltering);
-            DoFPhysicallyBased          = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFPhysicallyBased);
+            NearBlurSampleCount = root.Find((GlobalPostProcessingQualitySettings s) => s.NearBlurSampleCount);
+            NearBlurMaxRadius = root.Find((GlobalPostProcessingQualitySettings s) => s.NearBlurMaxRadius);
+            FarBlurSampleCount = root.Find((GlobalPostProcessingQualitySettings s) => s.FarBlurSampleCount);
+            FarBlurMaxRadius = root.Find((GlobalPostProcessingQualitySettings s) => s.FarBlurMaxRadius);
+            DoFResolution = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFResolution);
+            DoFHighFilteringQuality = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFHighQualityFiltering);
+            DoFPhysicallyBased = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFPhysicallyBased);
 
             // Motion Blur
-            MotionBlurSampleCount       = root.Find((GlobalPostProcessingQualitySettings s) => s.MotionBlurSampleCount);
+            MotionBlurSampleCount = root.Find((GlobalPostProcessingQualitySettings s) => s.MotionBlurSampleCount);
 
             // Bloom
-            BloomRes                    = root.Find((GlobalPostProcessingQualitySettings s) => s.BloomRes);
-            BloomHighFilteringQuality   = root.Find((GlobalPostProcessingQualitySettings s) => s.BloomHighQualityFiltering);
+            BloomRes = root.Find((GlobalPostProcessingQualitySettings s) => s.BloomRes);
+            BloomHighFilteringQuality = root.Find((GlobalPostProcessingQualitySettings s) => s.BloomHighQualityFiltering);
             BloomHighPrefilteringQuality = root.Find((GlobalPostProcessingQualitySettings s) => s.BloomHighQualityPrefiltering);
 
             // Chromatic Aberration
-            ChromaticAbMaxSamples       = root.Find((GlobalPostProcessingQualitySettings s) => s.ChromaticAberrationMaxSamples);
+            ChromaticAbMaxSamples = root.Find((GlobalPostProcessingQualitySettings s) => s.ChromaticAberrationMaxSamples);
         }
     }
 }

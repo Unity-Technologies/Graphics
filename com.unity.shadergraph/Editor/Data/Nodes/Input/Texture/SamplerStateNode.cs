@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
                 value = new TextureSamplerState()
                 {
                     filter = m_filter,
-                    wrap =  m_wrap
+                    wrap = m_wrap
                 }
             });
         }

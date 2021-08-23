@@ -4,15 +4,17 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     internal class SkyUpdateContext
     {
-        SkySettings         m_SkySettings;
-        public SkyRenderer  skyRenderer { get; private set; }
-        public int          cachedSkyRenderingContextId = -1;
+        SkySettings m_SkySettings;
+        public SkyRenderer skyRenderer { get; private set; }
+        public int cachedSkyRenderingContextId = -1;
 
-        CloudSettings           m_CloudSettings;
-        public CloudRenderer    cloudRenderer { get; private set; }
+        CloudSettings m_CloudSettings;
+        public CloudRenderer cloudRenderer { get; private set; }
 
-        public int          skyParametersHash = -1;
-        public float        currentUpdateTime = 0.0f;
+        public int skyParametersHash = -1;
+        public float currentUpdateTime = 0.0f;
+
+        VolumetricClouds m_VolumetricClouds;
 
         public bool settingsHadBigDifferenceWithPrev { get; private set; }
 
@@ -77,6 +79,25 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public VolumetricClouds volumetricClouds
+        {
+            get { return m_VolumetricClouds; }
+            set
+            {
+                if (m_VolumetricClouds == value)
+                    return;
+
+                m_VolumetricClouds = value;
+
+                if (m_CloudSettings != null && cloudRenderer == null)
+                {
+                    var rendererType = m_CloudSettings.GetCloudRendererType();
+                    cloudRenderer = (CloudRenderer)Activator.CreateInstance(rendererType);
+                    cloudRenderer.Build();
+                }
+            }
+        }
+
         public void Cleanup()
         {
             if (skyRenderer != null)
@@ -99,6 +120,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool HasClouds()
         {
             return m_CloudSettings != null;
+        }
+
+        public bool HasVolumetricClouds()
+        {
+            return m_VolumetricClouds != null;
         }
     }
 }
