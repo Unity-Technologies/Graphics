@@ -29,16 +29,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
     struct PreviewRenderData
     {
         public string Guid;
+        public bool isPreviewExpanded;
         public PreviewShaderData shaderData;
         public RenderTexture renderTexture;
         public Texture texture;
         public PreviewMode previewMode;
-        public Action onPreviewChanged;
-
-        public void NotifyPreviewChanged()
-        {
-            onPreviewChanged?.Invoke();
-        }
+        public List<PortPreviewHandler> previewPropertyHandlers;
     }
 
     public class GraphPreviewStateComponent : ViewStateComponent<GraphPreviewStateComponent.PreviewStateUpdater>
@@ -58,7 +54,20 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
         {
             public void ChangePreviewExpansionState(string changedElementGuid, bool isPreviewExpanded)
             {
-                m_State.SetUpdateType(UpdateType.Partial);
+                if(m_State.KeyToPreviewDataMap.ContainsKey(changedElementGuid))
+                {
+                    m_State.KeyToPreviewDataMap.TryGetValue(changedElementGuid, out var previewRenderData);
+                    previewRenderData.isPreviewExpanded = isPreviewExpanded;
+                    m_State.KeyToPreviewDataMap[changedElementGuid] = previewRenderData;
+                    m_State.SetUpdateType(UpdateType.Partial);
+                }
+            }
+
+            public void UpdatePortConstantValue(string changedElementGuid, bool isPreviewExpanded)
+            {
+                // Get the changed port guid/port-reader or some other GUID we can get to compare
+
+                // Then set preview property in MPB from that
             }
         }
 
@@ -81,7 +90,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 new RenderTexture(200, 200, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default)
                 {
                     hideFlags = HideFlags.HideAndDontSave
-                }
+                },
+                previewPropertyHandlers = new List<PortPreviewHandler>()
             };
 
             var shaderData = new PreviewShaderData
@@ -94,12 +104,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 
             renderData.shaderData = shaderData;
 
-            CollectPreviewPropertiesFromNode(nodeModel);
+            CollectPreviewPropertiesFromNode(nodeModel, ref renderData);
 
             KeyToPreviewDataMap.Add(nodeGuid, renderData);
         }
 
-        void CollectPreviewPropertiesFromNode(GraphDataNodeModel nodeModel)
+        void CollectPreviewPropertiesFromNode(GraphDataNodeModel nodeModel, ref PreviewRenderData previewRenderData)
         {
             // TODO: Collect preview properties from the newly added graph element
             // For a node: Get the input ports for the node, get fields from the ports, and get values from the fields
@@ -107,9 +117,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             var nodeInputPorts = m_ShaderGraphModel.GetInputPortsOnNode(nodeModel);
             foreach (var inputPort in nodeInputPorts)
             {
-                var portValue = new PortPreviewHandler(inputPort);
-                portValue.SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock);
-                // TODO: Store for easier access and updating in future
+                var portPreviewHandler = new PortPreviewHandler(inputPort);
+                portPreviewHandler.SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock);
+                previewRenderData.previewPropertyHandlers.Add(portPreviewHandler);
             }
         }
 
