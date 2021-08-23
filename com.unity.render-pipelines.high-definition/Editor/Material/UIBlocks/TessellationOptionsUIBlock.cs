@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Shader graph
             public static GUIContent tessellationEnableText = new GUIContent("Tessellation", "When enabled, HDRP active tessellation for this Material.");
-            public static GUIContent tessellationModeText = new GUIContent("Tessellation Mode", "Specifies the method HDRP uses to tessellate the mesh.");
+            public static GUIContent tessellationModeText = new GUIContent("Tessellation Mode", "Specifies the method HDRP uses to tessellate the mesh. None uses only the Displacement Map to tessellate the mesh. Phong tessellation applies additional Phong tessellation interpolation for smoother mesh.");
         }
 
         // tessellation params
