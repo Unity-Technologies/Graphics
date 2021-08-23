@@ -16,11 +16,13 @@ namespace UnityEngine.U2D
 
         public abstract class ShadowShapes2D
         {
-            public abstract void SetEdges(Vector2[] vertices, ushort[] indices, OutlineTopology outlineTopology);
-            public abstract void SetEdges(Vector3[] vertices, ushort[] indices, OutlineTopology outlineTopology);
-            public abstract void SetEdges(NativeArray<Vector2> vertices, NativeArray<int> indices, OutlineTopology outlineTopology);
-            public abstract void UpdateEdges(Vector2[] vertices);
-            public abstract void UpdateEdges(NativeArray<Vector2> vertices);
+            public abstract bool supportsContraction { get; set; }
+
+            public abstract void CreateShape(Vector2[] vertices, ushort[] indices, OutlineTopology outlineTopology);
+            public abstract void CreateShape(Vector3[] vertices, ushort[] indices, OutlineTopology outlineTopology);
+            public abstract void CreateShape(NativeArray<Vector2> vertices, NativeArray<int> indices, OutlineTopology outlineTopology);
+            public abstract void UpdateVertices(Vector2[] vertices);
+            public abstract void UpdateVertices(NativeArray<Vector2> vertices);
         }
 
         void OnShapeObjectCreated(ShadowShapes2D persistantShapeObject);

@@ -9,7 +9,7 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal class ShadowShape2DMesh
+    internal class ShadowMesh2D
     {
         const int k_VerticesPerTriangle = 3;
         const int k_TrianglesPerEdge = 2;

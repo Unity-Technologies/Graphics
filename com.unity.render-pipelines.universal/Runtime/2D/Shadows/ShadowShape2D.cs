@@ -14,21 +14,19 @@ namespace UnityEngine.Rendering.Universal
         delegate Vector2 VertexValueGetter<T>(ref T data, int index);
         delegate int     LengthGetter<T>(ref T data);
     
-        public struct Edge
+        internal struct Edge
         {
             public int v0;
             public int v1;
-            public int nextEdgeIndex;
 
             public Edge(int indexA, int indexB)
             {
                 v0 = indexA;
                 v1 = indexB;
-                nextEdgeIndex = -1;
             }
         }
 
-        public class EdgeComparer : IEqualityComparer<Edge>
+        private class EdgeComparer : IEqualityComparer<Edge>
         {
             public bool Equals(Edge edge0, Edge edge1)
             {
@@ -51,32 +49,51 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        static Dictionary<Edge, int> m_EdgeDictionary = new Dictionary<Edge, int>(new EdgeComparer());  // This is done so we don't create garbage allocating and deallocating a dictionary object
+        NativeArray<Vector2>         m_ProvidedVertices;
+        NativeArray<Edge>            m_ProvidedEdges;
 
-        static public Dictionary<Edge, int> m_EdgeDictionary = new Dictionary<Edge, int>(new EdgeComparer());  // This is done so we don't create garbage allocating and deallocating a dictionary object
-        public NativeArray<Vector2> m_ProvidedVertices;
-        public NativeArray<Edge>    m_ProvidedEdges;
+        NativeArray<Vector2>         m_ContractionDirection;
+        NativeArray<float>           m_ContractionMaximum;
+        NativeArray<Vector2>         m_ContractedVertices;
+        bool                         m_SupportsContraction;
 
+        public override bool supportsContraction
+        {
+            get
+            {
+                return m_SupportsContraction;
+            }
+            set
+            {
+                m_SupportsContraction = value;
+            }
+        }
 
-
-        public NativeArray<Vector2> m_ContractionDirection;
-        public NativeArray<float>   m_ContractionMaximum;
-        public NativeArray<Vector2> m_ContractedVertices;
-        private float               m_ContractionDistance = -1.0f;
-
-        // This will needs to use NativeArrays        
-    
+        private Vector2 Vector2ArrayGetter(ref Vector2[] array, int index) { return array[index]; }
+        private int Vector2ArrayLengthGetter(ref Vector2[] array) { return array.Length; }
+        private Vector2 Vector3ArrayGetter(ref Vector3[] array, int index) { return array[index]; }
+        private int Vector3ArrayLengthGetter(ref Vector3[] array) { return array.Length; }
+        private int UShortArrayGetter(ref ushort[] array, int index) { return array[index]; }
+        private int UShortArrayLengthGetter(ref ushort[] array) { return array.Length; }
+        private T NativeArrayGetter<T>(ref NativeArray<T> array, int index) where T : struct { return array[index]; }
+        private int NativeArrayLengthGetter<T>(ref NativeArray<T> array) where T : struct { return array.Length; }
 
         private void CalculateEdgesFromLines<T>(T indices, IndexValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
         {
             int numOfIndices = lengthGetter(ref indices) >> 1;  // Each line is 2 indices
 
-            m_ProvidedEdges = new NativeArray<Edge>(numOfIndices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            NativeArray<Edge> unsortedEdges = new NativeArray<Edge>(numOfIndices, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             for (int i = 0; i < numOfIndices; i+=2)
             {
                 int index0 = valueGetter(ref indices, i);
                 int index1 = valueGetter(ref indices, i+1);
-                m_ProvidedEdges[i] = new Edge(index0, index1); ;
+                unsortedEdges[i] = new Edge(index0, index1); ;
             }
+
+            m_ProvidedEdges = new NativeArray<Edge>(numOfIndices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            SortEdges(unsortedEdges, m_ProvidedEdges);
+            unsortedEdges.Dispose();
         }
 
         private void CalculateEdgesFromLineStrip<T>(T indices, IndexValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
@@ -84,13 +101,17 @@ namespace UnityEngine.Rendering.Universal
             int numOfIndices = lengthGetter(ref indices);
             int lastIndex = valueGetter(ref indices, numOfIndices - 1);
 
-            m_ProvidedEdges = new NativeArray<Edge>(numOfIndices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            NativeArray<Edge> unsortedEdges = new NativeArray<Edge>(numOfIndices, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             for (int i = 0; i < numOfIndices; i++)
             {
                 int curIndex = valueGetter(ref indices, i);
-                m_ProvidedEdges[i] = new Edge(lastIndex, curIndex); ;
+                unsortedEdges[i] = new Edge(lastIndex, curIndex); ;
                 lastIndex = curIndex;
             }
+
+            m_ProvidedEdges = new NativeArray<Edge>(numOfIndices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            SortEdges(unsortedEdges, m_ProvidedEdges);
+            unsortedEdges.Dispose();
         }
 
 
@@ -144,16 +165,19 @@ namespace UnityEngine.Rendering.Universal
                 if (keyValuePair.Value == 1)
                     outsideEdges++;
             }
-            m_ProvidedEdges = new NativeArray<Edge>(outsideEdges, Allocator.Persistent);
 
             // Populate the array
+            NativeArray<Edge> unsortedEdges = new NativeArray<Edge>(outsideEdges, Allocator.Temp);
             foreach (KeyValuePair<Edge, int> keyValuePair in m_EdgeDictionary)
             {
                 if (keyValuePair.Value == 1)
                 {
-                    m_ProvidedEdges[keyValuePair.Key.v0] = keyValuePair.Key;
+                    unsortedEdges[keyValuePair.Key.v0] = keyValuePair.Key;
                 }
             }
+
+            m_ProvidedEdges = new NativeArray<Edge>(outsideEdges, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            SortEdges(unsortedEdges, m_ProvidedEdges);
         }
 
         private void CalculateContractionDirection()
@@ -193,17 +217,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private Vector2 Vector2ArrayGetter(ref Vector2[] array, int index) { return array[index]; }
-        private int Vector2ArrayLengthGetter(ref Vector2[] array) { return array.Length; }
-        private Vector2 Vector3ArrayGetter(ref Vector3[] array, int index) { return array[index]; }
-        private int Vector3ArrayLengthGetter(ref Vector3[] array) { return array.Length; }
-
-        private int UShortArrayGetter(ref ushort[] array, int index) { return array[index]; }
-        private int UShortArrayLengthGetter(ref ushort[] array) { return array.Length; }
-        private int NativeArrayGetter(ref NativeArray<int> array, int index) { return array[index]; }
-        private int NativeArrayLengthGetter(ref NativeArray<int> array) { return array.Length; }
-
-        private void SetEdges<V,I>(V vertices, I indices, VertexValueGetter<V> vertexGetter, LengthGetter<V> vertexLengthGetter, IndexValueGetter<I> indexGetter, LengthGetter<I> indexLengthGetter, IShadowShape2DProvider.OutlineTopology outlineTopology)
+        private void CreateShape<V,I>(V vertices, I indices, VertexValueGetter<V> vertexGetter, LengthGetter<V> vertexLengthGetter, IndexValueGetter<I> indexGetter, LengthGetter<I> indexLengthGetter, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
             if (m_ProvidedVertices.IsCreated)
                 m_ProvidedVertices.Dispose();
@@ -238,48 +252,55 @@ namespace UnityEngine.Rendering.Universal
                 m_ProvidedVertices[i] = vertexGetter(ref vertices, i);
         }
 
-        public override void SetEdges(Vector2[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
+        public override void CreateShape(Vector2[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
-            SetEdges<Vector2[], ushort[]>(vertices, indices, Vector2ArrayGetter, Vector2ArrayLengthGetter, UShortArrayGetter, UShortArrayLengthGetter, outlineTopology);
+            CreateShape<Vector2[], ushort[]>(vertices, indices, Vector2ArrayGetter, Vector2ArrayLengthGetter, UShortArrayGetter, UShortArrayLengthGetter, outlineTopology);
         }
 
-        public override void SetEdges(Vector3[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
+        public override void CreateShape(Vector3[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
-            SetEdges<Vector3[], ushort[]>(vertices, indices, Vector3ArrayGetter, Vector3ArrayLengthGetter, UShortArrayGetter, UShortArrayLengthGetter, outlineTopology);
+            CreateShape<Vector3[], ushort[]>(vertices, indices, Vector3ArrayGetter, Vector3ArrayLengthGetter, UShortArrayGetter, UShortArrayLengthGetter, outlineTopology);
         }
 
-        public override void SetEdges(NativeArray<Vector2> vertices, NativeArray<int> indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
+        public override void CreateShape(NativeArray<Vector2> vertices, NativeArray<int> indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
+            CreateShape<NativeArray<Vector2>, NativeArray<int>>(vertices, indices, NativeArrayGetter<Vector2>, NativeArrayLengthGetter<Vector2>, NativeArrayGetter<int>, NativeArrayLengthGetter<int>, outlineTopology);
         }
 
-        public void GetEdges(float contractionDistance, out NativeArray<Vector2> vertices, out NativeArray<Edge> edges)
+        public override void UpdateVertices(Vector2[] vertices)
         {
-            if (contractionDistance < 0)
-                contractionDistance = 0;
+            if (m_ProvidedVertices.IsCreated && vertices.Length >= m_ProvidedVertices.Length)
+                m_ProvidedVertices.CopyFrom(vertices);
+        }
 
-            //if (m_ContractionDistance != contractionDistance)
+        public override void UpdateVertices(NativeArray<Vector2> vertices)
+        {
+            if (m_ProvidedVertices.IsCreated && vertices.Length >= m_ProvidedVertices.Length)
+                m_ProvidedVertices.CopyFrom(vertices);
+        }
+
+        void SortEdges(NativeArray<Edge> unsortedEdges, NativeArray<Edge> sortedEdges)
+        {
+            NativeArray<int>  edgeMap = new NativeArray<int>(unsortedEdges.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+            for (int i=0;i< unsortedEdges.Length;i++)
+                edgeMap[unsortedEdges[i].v0] = i;
+
+            int edgeIndex = 0;
+            for (int i = 0; i < unsortedEdges.Length; i++)
             {
-                CalculateContractionDirection();
-                CalculateContractedVertices(contractionDistance);
-
-                m_ContractionDistance = contractionDistance;
+                sortedEdges[i] = unsortedEdges[edgeIndex];
+                int nextVertex = unsortedEdges[edgeIndex].v1;
+                edgeIndex = edgeMap[nextVertex];
+                
             }
 
-            vertices = m_ContractedVertices;
-            edges = m_ProvidedEdges;
+            edgeMap.Dispose();
         }
 
-        public override void UpdateEdges(Vector2[] vertices)
+        public void GenerateShadowMesh(float contractionDistance, ref Mesh mesh, ref BoundingSphere boundingSphere)
         {
-            if (m_ProvidedVertices.IsCreated && vertices.Length >= m_ProvidedVertices.Length)
-                m_ProvidedVertices.CopyFrom(vertices);
-        }
 
-        public override void UpdateEdges(NativeArray<Vector2> vertices)
-        {
-            if (m_ProvidedVertices.IsCreated && vertices.Length >= m_ProvidedVertices.Length)
-                m_ProvidedVertices.CopyFrom(vertices);
-           
         }
 
         ~ShadowShape2D()

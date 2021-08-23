@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SelfShadows = false;
         [SerializeField] int[] m_ApplyToSortingLayers = null;
         [SerializeField] Vector3[] m_ShapePath = null;
-        [SerializeField] int m_ShapePathHash = 0;
+        [SerializeField] int  m_ShapePathHash = 0;
         [SerializeField] Mesh m_Mesh;
         [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShapeProvider;
@@ -191,9 +191,9 @@ namespace UnityEngine.Rendering.Universal
                 m_Mesh = new Mesh();
 
                 if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
-                    m_ShadowShape.SetEdges(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
+                    m_ShadowShape.CreateShape(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
                 
-                m_ProjectedBoundingSphere = m_ShadowShape.GenerateShadowMesh(m_Mesh, m_ShapePath);
+                m_ShadowShape.GenerateShadowMesh(ref m_Mesh, ref m_ProjectedBoundingSphere);
                 m_InstanceId = GetInstanceID();
             }
 
@@ -218,9 +218,9 @@ namespace UnityEngine.Rendering.Universal
             if (rebuildMesh)
             {
                 if(m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
-                    m_ShadowShape.SetEdges(shapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
+                    m_ShadowShape.CreateShape(shapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
 
-                m_ProjectedBoundingSphere = m_ShadowShape.GenerateShadowMesh(m_Mesh, m_ShapePath);
+                m_ShadowShape.GenerateShadowMesh(m_ShadowShapeContract, ref m_Mesh, ref m_ProjectedBoundingSphere);
             }
 
             m_PreviousShadowCasterGroup = m_ShadowCasterGroup;
@@ -260,8 +260,8 @@ namespace UnityEngine.Rendering.Universal
             }
             else if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
             {
-                m_ShadowShape.SetEdges(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
-                m_ShadowShape.GetEdges(0, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
+                m_ShadowShape.CreateShape(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
+                //m_ShadowShape.CreateShape(0, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
                 
                 DrawDebugShadowShapes();
             }
