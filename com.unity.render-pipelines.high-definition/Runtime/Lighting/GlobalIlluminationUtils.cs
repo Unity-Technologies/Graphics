@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Cookie cookie;
             LightmapperUtils.Extract(light, out cookie);
-            lightDataGI.cookieID    = cookie.instanceID;
+            lightDataGI.cookieID = cookie.instanceID;
             lightDataGI.cookieScale = cookie.scale;
 
             // TODO: Currently color temperature is not handled at runtime, need to expose useColorTemperature publicly
@@ -70,10 +70,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // For HDRP we need to divide the analytic light color by PI (HDRP do explicit PI division for Lambert, but built in Unity and the GI don't for punctual lights)
                 // We apply it on both direct and indirect are they are separated, seems that direct is no used if we used mixed mode with indirect or shadowmask bake.
-                lightDataGI.color.intensity         /= Mathf.PI;
+                lightDataGI.color.intensity /= Mathf.PI;
                 lightDataGI.indirectColor.intensity /= Mathf.PI;
-                directColor.intensity               /= Mathf.PI;
-                indirectColor.intensity             /= Mathf.PI;
+                directColor.intensity /= Mathf.PI;
+                indirectColor.intensity /= Mathf.PI;
             }
 
             switch (lightType)
@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                             spot.sphereRadius = light.shadows != LightShadows.None ? light.shadowRadius : 0.0f;
 #else
-                            spot.sphereRadius   = 0.0f;
+                            spot.sphereRadius = 0.0f;
 #endif
                             spot.position = light.transform.position;
                             spot.orientation = light.transform.rotation;

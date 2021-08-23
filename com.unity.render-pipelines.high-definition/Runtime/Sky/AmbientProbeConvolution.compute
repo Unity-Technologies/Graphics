@@ -6,9 +6,12 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel AmbientProbeConvolution KERNEL_NAME=AmbientProbeConvolution
+#pragma kernel AmbientProbeConvolutionNoMip KERNEL_NAME=AmbientProbeConvolutionNoMip NO_MIPS
 
-RWStructuredBuffer<float> _AmbientProbeOutputBuffer;
+// Input Cubemap
 TEXTURECUBE(_AmbientProbeInputCubemap);
+// Output buffer
+RWStructuredBuffer<float> _AmbientProbeOutputBuffer;
 
 // Constants from SetSHEMapConstants function in the Stupid Spherical Harmonics Tricks paper:
 // http://www.ppsloan.org/publications/StupidSH36.pdf
@@ -37,6 +40,15 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
 {
     uint sampleCount = SAMPLE_COUNT;
 
+    // Construct the direction
+    float2 u = Hammersley2d(dispatchThreadId, sampleCount);
+    float3 n = SampleSphereUniform(u.x, u.y);
+
+#if defined(NO_MIPS)
+    // Sample once per thread
+    float4 value = SAMPLE_TEXTURECUBE_LOD(_AmbientProbeInputCubemap, s_linear_clamp_sampler, n, 0);
+#else
+    // Grab the cubemap size
     float2 cubeSize;
     _AmbientProbeInputCubemap.GetDimensions(cubeSize.x, cubeSize.y);
 
@@ -52,11 +64,9 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
     float omegaS = rcp(sampleCount) * rcp(pdf);
     float mipLevel = 0.5 * log2(omegaS * invOmegaP);
 
-    float2 u = Hammersley2d(dispatchThreadId, sampleCount);
-    float3 n = SampleSphereUniform(u.x, u.y);
-
     // Sample once per thread
     float4 value = SAMPLE_TEXTURECUBE_LOD(_AmbientProbeInputCubemap, s_linear_clamp_sampler, n, mipLevel);
+#endif
 
     float outputSHCoeffs[SH_COEFF_COUNT];
 
