@@ -177,10 +177,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        /*
+
         static void OnImportedShaderGraph(Shader shaderGraph, string assetPath)
         {
             // We intercept shadergraphs just to add them to s_ImportedAssetThatNeedSaving to make them editable when we save assets
-            /* if (assetPath.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}"))
+             if (assetPath.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}"))
              {
                  bool justCreated = s_CreatedAssets.Contains(assetPath);
 
@@ -194,11 +196,11 @@ namespace UnityEditor.Rendering.HighDefinition
                      s_CreatedAssets.Remove(assetPath);
                  }
                  return;
-             }*/
+             }
 
             //TODOJENNY: ask Stephane if his plugin makes s_ReimportShaderGraphDependencyOnMaterialUpdate set to true
             //is this needed if we simply bump the importer version number on any change? this will force reimport of SG and we can ensure HDMetaData
-            /*if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
+            if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraphAsset(material.shader))
             {
                 // Check first if the HDRP shadergraph assigned needs a migration:
                 // Here ignoreNonHDRPShaderGraphs = false is useful to not ignore non HDRP ShaderGraphs as
@@ -220,8 +222,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     AssetDatabase.ImportAsset(asset);
                     continue;
                 }
-            }*/
-        }
+            }
+        }*/
 
         static void OnImportedMaterial(Material material, string assetPath)
         {

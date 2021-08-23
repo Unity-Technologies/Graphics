@@ -72,6 +72,8 @@ namespace UnityEditor.ShaderGraph
             if (anyRemovedShaders)
                 DisplayDeletionDialog(deletedAssets);
 
+            //++TODOJENNY
+            // MaterialGraphEditWindow - why is the Editor window not refreshing if the asset has changed (checking AssetDatabase.GetAssetDependencyHash every X frames)
             var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
 
             var changedGraphGuids = importedAssets
@@ -102,6 +104,7 @@ namespace UnityEditor.ShaderGraph
                     window.ReloadSubGraphsOnNextUpdate(changedFileGUIDs);
                 }
             }
+            //--TODOJENNY
         }
     }
 }
