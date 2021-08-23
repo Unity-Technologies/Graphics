@@ -96,7 +96,7 @@ HDRP provides the following upscale filter methods:
 | Catmull-Rom                          | This upscale filter uses four bilinear samples. This method uses the least resources, but it can cause blurry images after HDRP performs the upscaling step.<br/><br/> This upscale filter has no dependencies and runs at the end of the post-processing pipeline. |
 | Contrast Adaptive Sharpen (CAS)      | This method produces a sharp image with an aggressive sharpening step. Do not use this option when the dynamic resolution screen percentage is less than 50%.  <br/>This upscale filter uses **FidelityFX (CAS) AMD™**. For information about FidelityFX and Contrast Adaptive Sharpening, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).<br/><br/> This upscale filter has no dependencies and runs at the end of the post-processing pipeline. |
 | FidelityFX Super Resolution 1.0      | This upscale filter uses a spatial super-resolution method that balances quality and performance. For more information, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).<br/><br/> This upscale filter has no dependencies and runs at the end of the post-processing pipeline. |
-| Temporal Anti-Aliasing (TAA) Upscale | This upscale filter uses temporal integration to produce a sharp image. This method uses the fewest resources on the GPU.<br />HDRP executes this upscale filter before post processing and at the same time as the TAA step. This means you can only use the TAA anti-aliasing method. This filter is not compatible with other anti-aliasing methods. <br /><br/>More information on [Notes on TAA Upscale](Dynamic-Resolution.md#Notes on TAA Upscale) section. |
+| Temporal Anti-Aliasing (TAA) Upscale | This upscale filter uses temporal integration to produce a sharp image. This method uses the fewest resources on the GPU.<br />HDRP executes this upscale filter before post processing and at the same time as the TAA step. This means you can only use the TAA anti-aliasing method. This filter is not compatible with other anti-aliasing methods. <br /><br/>More information on [Notes on TAA Upscale](Dynamic-Resolution.md#Notes) section. |
 
 You can also override the upscale  options in the HDRP asset for each Camera in your scene using code.  To do this, call `DynamicResolutionHandler.SetUpscaleFilter(Camera camera, DynamicResUpscaleFilter filter)`, to make HDRP ignore the value in the HDRP Asset for a given camera.
 
@@ -107,7 +107,7 @@ When you enable Temporal Anti-Aliasing (TAA) Upscaling, it replaces Temporal Ant
 - Temporal Anti-Aliasing is the only the anti-aliasing method and no other post-process anti-aliasing option will work.
 - The post-process pipeline runs at final resolution. Before HDRP applies TAA Upscaling, the pipeline uses a downscaled resolution. This gives a more precise post-processing result, but also uses more GPU resources.
 
-Temporal Anti-Aliasing Upscaling sets the [Camera's](HDRP-Camera) **TAA Quality Preset** to **High Quality**. When you select the Temporal Anti-Aliasing Upscaling method, you cannot use change this preset.
+Temporal Anti-Aliasing Upscaling sets the [Camera's](HDRP-Camera.md) **TAA Quality Preset** to **High Quality**. When you select the Temporal Anti-Aliasing Upscaling method, you cannot use change this preset.
 
 Any option that can control TAA also controls TAA Upscaling. however it is important to remember that the source of current frame is lower resolution than the final image/history buffer. For this reason:
 
