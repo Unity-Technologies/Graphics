@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Formats the provided descriptor into a linear slider with contextual slider markers, tooltips, and icons.
     /// </summary>
-    class LightUnitSlider
+    public class LightUnitSlider
     {
         protected SerializedObject m_SerializedObject;
 
