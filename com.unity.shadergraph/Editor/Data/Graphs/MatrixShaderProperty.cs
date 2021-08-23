@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
         {
             HLSLDeclaration decl = GetDefaultHLSLDeclaration();
             if (decl == HLSLDeclaration.HybridPerInstance)
-                return $"UNITY_ACCESS_HYBRID_INSTANCED_PROP({referenceName}, {concretePrecision.ToShaderString()}4x4)";
+                return $"UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT({concretePrecision.ToShaderString()}4x4, {referenceName})";
             else
                 return referenceName;
         }
