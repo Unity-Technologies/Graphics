@@ -121,12 +121,14 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
 
                 bakeDiffuseLighting = EvalL1(L0, float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w), L1G_L1Ry.xyz, L1B_L1Rz.xyz, normal);
 
+        #ifdef PROBE_VOLUMES_L2
                 float4 L2_R = apvRes.L2_0[texLoc].rgba;
                 float4 L2_G = apvRes.L2_1[texLoc].rgba;
                 float4 L2_B = apvRes.L2_2[texLoc].rgba;
                 float4 L2_C = apvRes.L2_3[texLoc].rgba;
 
                 bakeDiffuseLighting += EvalL2(L0, L2_R, L2_G, L2_B, L2_C, normal);
+        #endif
                 bakeDiffuseLighting += L0;
                 return float4(bakeDiffuseLighting * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
             }
