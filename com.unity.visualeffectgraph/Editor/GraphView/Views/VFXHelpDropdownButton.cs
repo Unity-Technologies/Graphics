@@ -55,12 +55,6 @@ namespace UnityEditor.VFX.UI
 
         protected override Vector2 GetPopupSize() => new Vector2(200, 224);
 
-        protected override void OnOpenPopup()
-        {
-            m_installSamplesButton.SetEnabled(!IsSampleInstalled(k_AdditionalSamples));
-            m_installHelpersButton.SetEnabled(!IsSampleInstalled(k_AdditionalHelpers));
-        }
-
         protected override void OnMainButton()
         {
             GotoUrl(k_VfxGraphUrl);
@@ -89,6 +83,14 @@ namespace UnityEditor.VFX.UI
             if (!sample.isImported)
             {
                 sample.Import();
+            }
+            else
+            {
+                var reinstall = EditorUtility.DisplayDialog("Warning", "This sample package is already installed.\nDo you want to reinstall it?", "Yes", "No");
+                if (reinstall)
+                {
+                    sample.Import(Sample.ImportOptions.OverridePreviousImports);
+                }
             }
         }
     }
