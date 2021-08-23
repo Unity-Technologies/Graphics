@@ -362,21 +362,13 @@ namespace UnityEditor.VFX
             blockCallFunctionContent = blockCallFunction.builder.ToString();
         }
 
-        internal static void BuildParameterBuffer(VFXContext context, VFXContextCompiledData contextData, out string parameterBufferContent)
+        internal static void BuildParameterBuffer(VFXContextCompiledData contextData, IEnumerable<string> filteredOutTextures, out string parameterBufferContent)
         {
             var parameterBuffer = new VFXShaderWriter();
             parameterBuffer.WriteCBuffer(contextData.uniformMapper, "parameters");
             parameterBuffer.WriteLine();
 
-            //Texture used as input of shaderGraph will be declared by shaderGraph generation
-            //However, if we are sampling a texture (or a mesh), we have to declare them before VFX code generation.
-            var filteredTextureInSG = context.inputSlots.Where(o =>
-            {
-                var type = VFXExpression.GetVFXValueTypeFromType(o.property.type);
-                return VFXExpression.IsTexture(type);
-            }).Select(o => o.property.name);
-
-            parameterBuffer.WriteTexture(contextData.uniformMapper, filteredTextureInSG);
+            parameterBuffer.WriteTexture(contextData.uniformMapper, filteredOutTextures);
             parameterBufferContent = parameterBuffer.ToString();
         }
 
