@@ -327,7 +327,7 @@ platforms:
           - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only'
             retries: 2
         log_parser:
-          - command: pip3 install requests
+          - command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
           - command: python3 .yamato/script/log_scripts/log_parser.py
       [OpenGlCore]:
         setup_utr:
@@ -544,7 +544,7 @@ platforms:
           - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c iOS -c il2cpp  --wait --published-only
             retries: 2
         log_parser:
-          - command: pip3 install requests
+          - command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
           - command: python3 .yamato/script/log_scripts/log_parser.py
 non_project_agents:
   package_ci_ubuntu_large:

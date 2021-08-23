@@ -40,7 +40,7 @@ HDRP_Hybrid_OSX_Metal_playmode_mono_Linear_trunk:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -81,7 +81,7 @@ HDRP_Hybrid_OSX_Metal_playmode_XR_mono_Linear_trunk:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -122,7 +122,7 @@ HDRP_Hybrid_OSX_Metal_Standalone_mono_Linear_trunk:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -163,7 +163,7 @@ HDRP_Hybrid_OSX_Metal_playmode_mono_Linear_2021.2:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -204,7 +204,7 @@ HDRP_Hybrid_OSX_Metal_playmode_XR_mono_Linear_2021.2:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -245,7 +245,7 @@ HDRP_Hybrid_OSX_Metal_Standalone_mono_Linear_2021.2:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -286,7 +286,7 @@ HDRP_Hybrid_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -327,7 +327,7 @@ HDRP_Hybrid_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
@@ -368,7 +368,7 @@ HDRP_Hybrid_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
                 exit $UTR_RESULT
     after:
-      -  command: pip3 install requests
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
