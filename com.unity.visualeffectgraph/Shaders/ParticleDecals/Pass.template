@@ -112,8 +112,7 @@ ps_output frag(ps_input i)
 
 	clipPos.xy = VFXGetNormalizedScreenSpaceUV(i.pos) * 2.0f - 1.0f;
 	clipPos.z = VFXSampleDepth(i.pos);
-	//if (_ProjectionParams.x < 0) //TODO : Double check with ludovic about this issue
-        clipPos.y = -clipPos.y;
+	clipPos.y = -clipPos.y;
 
     float4 hpositionWS = mul(UNITY_MATRIX_I_VP, float4(clipPos,1.0f));
     float4 worldPos = float4(hpositionWS.xyz / hpositionWS.w, 1.0f);
