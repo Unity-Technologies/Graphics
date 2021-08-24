@@ -384,9 +384,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (VFXViewPreference.generateOutputContextWithShaderGraph)
             {
                 // VFX Support
-                /*if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                if (!(m_ActiveSubTarget.value is UniversalSubTarget))
                     context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
-                else*/
+                else
                 {
                     m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
                     context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
