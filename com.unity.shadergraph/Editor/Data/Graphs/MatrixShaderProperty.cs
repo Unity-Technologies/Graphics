@@ -12,7 +12,11 @@ namespace UnityEditor.ShaderGraph
 
         internal override string GetHLSLVariableName(bool isSubgraphProperty)
         {
-            return referenceName;
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            if (decl == HLSLDeclaration.HybridPerInstance)
+                return $"UNITY_ACCESS_HYBRID_INSTANCED_PROP({referenceName}, {concretePrecision.ToShaderString()}4x4)";
+            else
+                return referenceName;
         }
 
         internal override HLSLDeclaration GetDefaultHLSLDeclaration()
