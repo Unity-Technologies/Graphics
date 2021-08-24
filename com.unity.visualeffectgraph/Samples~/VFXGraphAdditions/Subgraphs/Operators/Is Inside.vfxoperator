@@ -6,7 +6,7 @@ VisualEffectResource:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Trigger
+  m_Name: Is Inside
   m_Graph: {fileID: 114350483966674976}
   m_Infos:
     m_RendererSettings:
@@ -30,7 +30,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: Trigger
+  m_Name: Is Inside
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 0}
@@ -52,7 +52,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114350483966674977}
   m_ParameterInfo:
-  - name: Comparison Position
+  - name: Position
     path: 
     tooltip: 
     sheetType: 
@@ -66,7 +66,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 1
   - name: position
-    path: Comparison Position_position
+    path: Position_position
     tooltip: The position.
     sheetType: m_Vector3f
     realType: Vector3
@@ -79,8 +79,8 @@ MonoBehaviour:
     max: Infinity
     enumValues: []
     descendantCount: 0
-  - name: Comparison Range
-    path: Comparison Range
+  - name: Range
+    path: Range
     tooltip: 
     sheetType: m_Float
     realType: Single
@@ -110,9 +110,8 @@ MonoBehaviour:
     - World
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 7
+  m_GraphVersion: 8
   m_ResourceVersion: 1
-  m_saved: 0
   m_SubgraphDependencies: []
   m_CategoryPath: 
 --- !u!114 &114350483966674977
@@ -134,7 +133,7 @@ MonoBehaviour:
     serializedVersion: 2
     x: -569
     y: 755
-    width: 1746
+    width: 1724
     height: 414
 --- !u!114 &114350483966674981
 MonoBehaviour:
@@ -854,7 +853,7 @@ MonoBehaviour:
   m_InputSlots:
   - {fileID: 114350483966675034}
   m_OutputSlots: []
-  m_ExposedName: Is Triggered
+  m_ExposedName: Is Inside
   m_Exposed: 0
   m_Order: 0
   m_Category: 
@@ -936,7 +935,7 @@ MonoBehaviour:
   - {fileID: 114350483966675086}
   m_ExposedName: SystemSpace
   m_Exposed: 1
-  m_Order: 2
+  m_Order: 3
   m_Category: 
   m_Min:
     m_Type:
@@ -2383,9 +2382,9 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114350483966675141}
-  m_ExposedName: Comparison Range
+  m_ExposedName: Range
   m_Exposed: 1
-  m_Order: 1
+  m_Order: 2
   m_Category: 
   m_Min:
     m_Type:
@@ -2463,9 +2462,9 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114350483966675143}
-  m_ExposedName: Comparison Position
+  m_ExposedName: Position
   m_Exposed: 1
-  m_Order: 0
+  m_Order: 1
   m_Category: 
   m_Min:
     m_Type:
