@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph;
 using System.Linq;
+using Unity.Rendering.Universal;
 using UnityEditor.Rendering.Universal.ShaderGraph;
 using System.Collections.Generic;
 
@@ -16,28 +17,11 @@ namespace UnityEditor.VFX.URP
         public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
         public override Type SRPOutputDataType { get { return null; } } // null by now but use VFXURPSubOutput when there is a need to store URP specific data
 
-        public override void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
+        public override void SetupMaterial(Material material, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
-            //TODOPAUL (N.B. conflict on this function definition incoming ^)
-            try
-            {
-                if (shaderGraph != null)
-                {
-                    //TODOPAUL : retrieve id & switch among target here
-                    Rendering.Universal.ShaderGUI.UnlitShader.SetMaterialKeywords(mat);
-
-                    // Configure HDRP Shadow + MV
-                    //mat.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, hasMotionVector);
-                    //mat.SetShaderPassEnabled(HDShaderPassNames.s_ShadowCasterStr, hasShadowCasting);
-                }
-                else
-                {
-                    //TODOPAUL : Something todo ?
-                    //HDShaderUtils.ResetMaterialKeywords(mat);
-                }
-            }
-            catch (ArgumentException) // TODOPAUL : is it something expected ?
-            {}
+            ShaderUtils.UpdateMaterial(material, ShaderUtils.MaterialUpdateType.ModifiedShader);
+            material.SetShaderPassEnabled("MotionVectors", hasMotionVector);
+            material.SetShaderPassEnabled("ShadowCaster", hasShadowCasting);
         }
 
         public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(VFXMaterialSerializedSettings materialSettings)
@@ -54,7 +38,8 @@ namespace UnityEditor.VFX.URP
                         case BaseShaderGUI.BlendMode.Alpha: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Alpha; break;
                         case BaseShaderGUI.BlendMode.Premultiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.AlphaPremultiplied; break;
                         case BaseShaderGUI.BlendMode.Additive: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
-                        case BaseShaderGUI.BlendMode.Multiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break; //TODOPAUL : Should we add it ?
+                        //Actually, BlendMode multiply isn't officially supported by the VFX (TODOPAUL : Test it)
+                        case BaseShaderGUI.BlendMode.Multiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
                     }
                 }
             }
