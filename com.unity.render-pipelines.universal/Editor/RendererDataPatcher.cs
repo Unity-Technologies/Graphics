@@ -43,7 +43,8 @@ namespace UnityEditor.Rendering.Universal
             }
 
             //Putting in delayCall will make sure AssetDatabase is ready for the FindAssets search below
-            EditorApplication.delayCall += () => {
+            EditorApplication.delayCall += () =>
+            {
                 //This helps to scan the RendererData Assets which are subAssets caused by case 1214779
                 if (firstTimeUpgrade)
                 {
