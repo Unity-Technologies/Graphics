@@ -77,7 +77,12 @@ namespace UnityEditor.VFX.UI
 
         private bool FilterHandler(SearchItem arg)
         {
-            return true;
+            if (arg.ToObject<GameObject>().TryGetComponent(typeof(VisualEffect), out var component) && component is VisualEffect vfx)
+            {
+                return vfx.visualEffectAsset == m_vfxView.controller?.graph?.visualEffectResource.asset;
+            }
+
+            return false;
         }
 
         private void UpdateAttachedLabel()
