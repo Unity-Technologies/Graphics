@@ -113,7 +113,7 @@ namespace UnityEditor.VFX
             };
         }
 
-        static void GenerateVFXAdditionalCommands(VFXContext context, VFXContextCompiledData contextData,
+        static void GenerateVFXAdditionalCommands(VFXContext context, VFXSRPBinder.ShaderGraphBinder shaderGraphBinder, VFXContextCompiledData contextData,
             out AdditionalCommandDescriptor loadAttributeDescriptor,
             out AdditionalCommandDescriptor blockFunctionDescriptor,
             out AdditionalCommandDescriptor blockCallFunctionDescriptor,
@@ -152,10 +152,10 @@ namespace UnityEditor.VFX
             interpolantsGenerationDescriptor = new AdditionalCommandDescriptor("VFXInterpolantsGeneration", interpolatorsGeneration);
 
             // Frag Inputs - Only VFX will know if frag inputs come from interpolator or the CBuffer.
-            VFXCodeGenerator.BuildFragInputsGeneration(context, contextData, out var buildFragInputsGeneration);
+            VFXCodeGenerator.BuildFragInputsGeneration(context, contextData, shaderGraphBinder.useFragInputs, out var buildFragInputsGeneration);
             buildVFXFragInputsDescriptor = new AdditionalCommandDescriptor("VFXSetFragInputs", buildFragInputsGeneration);
 
-            VFXCodeGenerator.BuildPixelPropertiesAssign(context, contextData, out var pixelPropertiesAssign);
+            VFXCodeGenerator.BuildPixelPropertiesAssign(context, contextData, shaderGraphBinder.useFragInputs, out var pixelPropertiesAssign);
             pixelPropertiesAssignDescriptor = new AdditionalCommandDescriptor("VFXPixelPropertiesAssign", pixelPropertiesAssign);
 
             // Define coordinate space
@@ -246,7 +246,7 @@ namespace UnityEditor.VFX
             // We use the AdditionalCommand descriptors for ShaderGraph generation to splice these in.
             // ( i.e. VFX Graph Block Function declaration + calling, Property Mapping, etc. )
             GenerateVFXAdditionalCommands(
-                context, data,
+                context, shaderGraphSRPInfo, data,
                 out var loadAttributeDescriptor,
                 out var blockFunctionDescriptor,
                 out var blockCallFunctionDescriptor,

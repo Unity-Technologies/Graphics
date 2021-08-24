@@ -239,7 +239,8 @@ namespace UnityEditor.VFX.HDRP
                     AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, data),
                 },
 
-                fieldDependencies = ElementSpaceDependencies
+                fieldDependencies = ElementSpaceDependencies,
+                useFragInputs = true
             };
         }
     }

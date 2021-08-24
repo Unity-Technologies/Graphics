@@ -208,7 +208,8 @@ namespace UnityEditor.VFX.URP
                     Structs.VertexDescriptionInputs,
                 },
 
-                fieldDependencies = ElementSpaceDependencies
+                fieldDependencies = ElementSpaceDependencies,
+                useFragInputs = false
             };
         }
     }

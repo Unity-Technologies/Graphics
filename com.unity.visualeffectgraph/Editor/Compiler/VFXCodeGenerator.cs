@@ -468,7 +468,7 @@ namespace UnityEditor.VFX
             interpolatorsGeneration = additionalInterpolantsGeneration.ToString();
         }
 
-        internal static void BuildFragInputsGeneration(VFXContext context, VFXContextCompiledData contextData, out string buildFragInputsGeneration)
+        internal static void BuildFragInputsGeneration(VFXContext context, VFXContextCompiledData contextData, bool useFragInputs, out string buildFragInputsGeneration)
         {
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
             expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
@@ -482,10 +482,7 @@ namespace UnityEditor.VFX
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
                 var isInterpolant = !(expressionToName.ContainsKey(filteredNamedExpression.exp) && expressionToName[filteredNamedExpression.exp] == filteredNamedExpression.name);
 
-                //TODOPAUL : hacky workaround (surfaceInput == FragsInput)
-                bool isHDRP = VFXLibrary.currentSRPBinder != null && VFXLibrary.currentSRPBinder.ToString().Contains("HDRP");
-                var surfaceSetter = isHDRP ? "output.vfx" : "output";
-
+                var surfaceSetter = useFragInputs ? "output.vfx" : "output";
                 fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"{surfaceSetter}.{filteredNamedExpression.name}", $"{(isInterpolant ? "input." : string.Empty)}{filteredNamedExpression.name}");
                 fragInputsGeneration.WriteLine();
             }
@@ -493,7 +490,7 @@ namespace UnityEditor.VFX
             buildFragInputsGeneration = fragInputsGeneration.ToString();
         }
 
-        internal static void BuildPixelPropertiesAssign(VFXContext context, VFXContextCompiledData contextData, out string buildFragInputsGeneration)
+        internal static void BuildPixelPropertiesAssign(VFXContext context, VFXContextCompiledData contextData, bool useFragInputs, out string buildFragInputsGeneration)
         {
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
             expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
@@ -505,10 +502,7 @@ namespace UnityEditor.VFX
             foreach (string fragmentParameter in context.fragmentParameters)
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
-
-                //TODOPAUL : hacky workaround (surfaceInput == FragsInput)
-                bool isHDRP = VFXLibrary.currentSRPBinder != null && VFXLibrary.currentSRPBinder.ToString().Contains("HDRP");
-                var surfaceGetter = isHDRP ? "fragInputs.vfx" : "fragInputs";
+                var surfaceGetter = useFragInputs ? "fragInputs.vfx" : "fragInputs";
                 fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"{surfaceGetter}.{filteredNamedExpression.name}");
                 fragInputsGeneration.WriteLine();
             }
