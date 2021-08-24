@@ -68,9 +68,9 @@ namespace UnityEngine.Rendering.HighDefinition
         uint  m_CacheMaxIteration = 0;
 #endif // UNITY_EDITOR
         ulong m_CacheAccelSize = 0;
-        uint  m_CacheLightCount = 0;
-        int   m_CameraID = 0;
-        bool  m_RenderSky = true;
+        uint m_CacheLightCount = 0;
+        int m_CameraID = 0;
+        bool m_RenderSky = true;
 
         TextureHandle m_FrameTexture; // stores the per-pixel results of path tracing for one frame
         TextureHandle m_SkyTexture; // stores the sky background
@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky for Path Tracing", out var passData))
             {
                 passData.visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-                passData.sunLight = GetCurrentSunLight();
+                passData.sunLight = GetMainLight();
                 passData.hdCamera = hdCamera;
                 passData.colorBuffer = builder.WriteTexture(skyBuffer);
                 passData.depthTexture = builder.WriteTexture(CreateDepthBuffer(renderGraph, true, MSAASamples.None));
@@ -360,6 +360,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int camID = hdCamera.camera.GetInstanceID();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
+
+            // Check if the camera has a valid history buffer and if not reset the accumulation.
+            // This can happen if a script disables and re-enables the camera (case 1337843).
+            if (!hdCamera.isPersistent && hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing) == null)
+            {
+                m_SubFrameManager.Reset(camID);
+            }
 
             if (!m_SubFrameManager.isRecording)
             {

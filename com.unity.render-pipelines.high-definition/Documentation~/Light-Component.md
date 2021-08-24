@@ -29,7 +29,7 @@ To configure the properties of a Light, select a GameObject in your Scene with a
 
 HDRP includes multiple types of Light. Although HDRP Lights share many properties, each one has its own unique behavior and set of properties.
 
-For more detailed information on how to configure realistic light fixtures, see the [Create High-Quality Light Fixtures in Unity](https://docs.unity3d.com/uploads/ExpertGuides/Create_High-Quality_Light_Fixtures_in_Unity.pdf) expert guide. For general guidance on light intensities, see [Physical light units](Physical-Light-Units.md#light-intensities).
+For more detailed information on how to configure realistic light fixtures, see the [Create High-Quality Light Fixtures in Unity](https://pydonzallaz.files.wordpress.com/2019/02/create-high-quality-light-fixtures-in-unity.pdf) expert guide. For general guidance on light intensities, see [Physical light units](Physical-Light-Units.md#light-intensities).
 
 ## Properties
 
@@ -256,6 +256,9 @@ In your [HDRP Asset](HDRP-Asset.md), select **High** from the **Filtering Qualit
 | **Filter Sample Count**        | The number of samples HDRP uses to blur shadows. Higher values give smoother results. |
 | **Minimum Size of the Filter** | The minimum size of the whole shadow’s blur effect, no matter the distance between the pixel and the shadow caster. Higher values give blurrier results. |
 
-#### Real-time light cookies:
+#### Real-time light cookies
 
 HDRP allows you to use a RenderTexture as a light cookie. However, for the sake of performance, if you make any changes to the RenderTexture, HDRP does not automatically update the cookie atlas. To notify the system that the RenderTexture content has changed and thus make the system upload the change to the cookie atlas, call `IncrementUpdateCount()` on the RenderTexture. If you do not do this, the system does not update the cookie.
+
+## Preset
+When using Preset of Light Component, only a subset of properties are supported.  Unsupported properties are hidden.

@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
         public override int latestVersion => 1;
         private const int kOutputSlotId = 0;
         public const string kOutputSlotName = "Out";
-        public override List<CoordinateSpace> validSpaces => new List<CoordinateSpace> {CoordinateSpace.Object, CoordinateSpace.View, CoordinateSpace.World, CoordinateSpace.Tangent, CoordinateSpace.AbsoluteWorld};
+        public override List<CoordinateSpace> validSpaces => new List<CoordinateSpace> { CoordinateSpace.Object, CoordinateSpace.View, CoordinateSpace.World, CoordinateSpace.Tangent, CoordinateSpace.AbsoluteWorld };
         [SerializeField]
         internal PositionSource m_PositionSource = PositionSource.Default;
 
@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Position";
             precision = Precision.Single;
+            synonyms = new string[] { "location" };
             UpdateNodeAfterDeserialization();
         }
 

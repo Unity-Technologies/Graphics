@@ -3,7 +3,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    internal partial class UniversalRenderPipelineLightUI
+    partial class UniversalRenderPipelineLightUI
     {
         static class Styles
         {
@@ -47,9 +47,9 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent[] ShadowResolutionDefaultOptions =
             {
                 new GUIContent("Custom"),
-                UniversalRenderPipelineAssetEditor.Styles.additionalLightsShadowResolutionTierNames[0],
-                UniversalRenderPipelineAssetEditor.Styles.additionalLightsShadowResolutionTierNames[1],
-                UniversalRenderPipelineAssetEditor.Styles.additionalLightsShadowResolutionTierNames[2],
+                UniversalRenderPipelineAssetUI.Styles.additionalLightsShadowResolutionTierNames[0],
+                UniversalRenderPipelineAssetUI.Styles.additionalLightsShadowResolutionTierNames[1],
+                UniversalRenderPipelineAssetUI.Styles.additionalLightsShadowResolutionTierNames[2],
             };
 
             // Bias (default or custom)
@@ -72,6 +72,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent lightAppearance = new GUIContent("Light Appearance", "Specifies the mode for how this Light's color is calculated.");
             public static readonly GUIContent color = new GUIContent("Color", "Specifies the color this Light emits.");
             public static readonly GUIContent colorFilter = new GUIContent("Filter", "Specifies a color which tints the Light source.");
+            public static readonly string unsupportedPresetPropertiesMessage = L10n.Tr("When using Preset of Light Component, only a subset of properties are supported.  Unsupported properties are hidden.");
         }
     }
 }

@@ -67,6 +67,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix unexpected Spawn context execution ordering
 - Fix incorrect buffer type for strips
 - Enabled an optimization for motion vectors, storing projected positions for vertices instead of the transform matrix
+- In the Gradient editor undo will now properly refresh the gradient preview (color swatches)
+- Eye dropper in the color fields kept updating after pressing the Esc key
 - Sticky notes can now be deleted through contextual manual menu
 - Blackboard fields can now be duplicated either with a shortcut (Ctrl+D) or with a contextual menu option
 - Properties labels do not overlap anymore
@@ -74,6 +76,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix Soft Particle depth computation when using an orthographic camera [Case 1309961](https://issuetracker.unity3d.com/product/unity/issues/guid/1309961)
 - When adding a new node/operator in the graph editor and using the search field, the search results are sorted in a smarter way
 - Unexpected operator and block removal during migration [Case 1344645](https://issuetracker.unity3d.com/product/unity/issues/guid/1344645/)
+- Inspector group headers now have a better indentation and alignment
+- Zoom and warning icons were blurry in the "Play Controls" and "Visual Effect Model" scene overlays
+- Random crash using subgraph [Case 1345426](https://issuetracker.unity3d.com/product/unity/issues/guid/1345426/)
 
 ## [11.0.0] - 2020-10-21
 ### Added
