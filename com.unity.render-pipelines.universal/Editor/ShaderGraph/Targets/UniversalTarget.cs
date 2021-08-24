@@ -608,8 +608,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (m_ActiveSubTarget.value == null)
                 return false;
 
-            //TODOPAUL : Filter correctly unsupported target
-            return true;
+            if (m_ActiveSubTarget.value is UniversalSubTarget)
+                return true;
+
+            //It excludes:
+            // - UniversalDecalSubTarget
+            // - UniversalSpriteLitSubTarget
+            // - UniversalSpriteUnlitSubTarget
+            // - UniversalSpriteCustomLitSubTarget
+            return false;
         }
 
         public bool SupportsVFX()
