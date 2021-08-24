@@ -205,26 +205,6 @@ void BuildElementToWorld(Varyings input)
 #endif
 }
 
-//TODOPAUL : URP Specific code, these function doesn't exist
-float4x4 ApplyCameraTranslationToMatrix(float4x4 modelMatrix)
-{
-    return modelMatrix;
-}
-float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
-{
-    return inverseModelMatrix;
-}
-float4x4 GetRawUnityObjectToWorld()
-{
-    return unity_ObjectToWorld;
-}
-float4x4 GetRawUnityWorldToObject()
-{
-    return unity_WorldToObject;
-}
-//End TODOPAUL
-
-
 void SetupVFXMatrices(AttributesElement element, inout Varyings output)
 {
     // Due to a very stubborn compiler bug we cannot refer directly to the redefined UNITY_MATRIX_M / UNITY_MATRIX_I_M here, due to a rare case where the matrix alias
@@ -242,9 +222,9 @@ void SetupVFXMatrices(AttributesElement element, inout Varyings output)
         element.attributes.position);
 
 #if VFX_LOCAL_SPACE
-    elementToWorld = mul(ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld()), elementToWorld);
+    elementToWorld = mul(VFXApplyCameraTranslationToMatrix(VFXGetRawUnityObjectToWorld()), elementToWorld);
 #else
-    elementToWorld = ApplyCameraTranslationToMatrix(elementToWorld);
+    elementToWorld = VFXApplyCameraTranslationToMatrix(elementToWorld);
 #endif
 
     // World -> Element
@@ -259,9 +239,9 @@ void SetupVFXMatrices(AttributesElement element, inout Varyings output)
     );
 
 #if VFX_LOCAL_SPACE
-    worldToElement = mul(worldToElement, ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject()));
+    worldToElement = mul(worldToElement, VFXApplyCameraTranslationToInverseMatrix(VFXGetRawUnityWorldToObject()));
 #else
-    worldToElement = ApplyCameraTranslationToInverseMatrix(worldToElement);
+    worldToElement = VFXApplyCameraTranslationToInverseMatrix(worldToElement);
 #endif
 
     // Pack matrices into interpolator if requested by any node.
