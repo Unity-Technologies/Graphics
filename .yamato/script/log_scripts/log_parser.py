@@ -10,6 +10,7 @@ from utils.execution_log import Execution_log
 from utils.utr_log import UTR_log
 from utils.unity_log import Unity_log
 from utils.shared_utils import *
+from utils.constants import *
 
 '''
 This script runs for extended Yamato reporting. It
@@ -73,18 +74,18 @@ def recursively_match_patterns(logs, cmd, patterns, failure_string):
             test_results_path = test_results_match[1] + test_results_match[2]
             for redirect in pattern['redirect']:
 
-                if redirect == 'utr_log':
+                if redirect == UTR_LOG:
                     try:
                         df = UTR_log(test_results_path)
                         recursively_match_patterns(logs, cmd, df.get_patterns(), df.read_log())
                     except Exception as e:
-                        print('! Failed to parse UTR TestResults.json: ', e)
-                elif redirect == 'unity_log':
+                        print(f'! Failed to parse UTR TestResults.json: ', str(e))
+                elif redirect == UNITY_LOG:
                     try:
                         df = Unity_log(test_results_path)
                         recursively_match_patterns(logs, cmd, df.get_patterns(), df.read_log())
                     except Exception as e:
-                        print('! Failed to parse UnityLog.txt', e)
+                        print(f'! Failed to parse UnityLog.txt', str(e))
 
                 else:
                     print('! Invalid redirect: ', redirect)
