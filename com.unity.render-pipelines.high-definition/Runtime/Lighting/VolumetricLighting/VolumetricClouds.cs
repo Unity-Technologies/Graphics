@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudControlParameter(CloudControl value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudControlParameter(CloudControl value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudPresetsParameter(CloudPresets value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudPresetsParameter(CloudPresets value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudShadowResolutionParameter(CloudShadowResolution value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudShadowResolutionParameter(CloudShadowResolution value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudMapResolutionParameter(CloudMapResolution value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudMapResolutionParameter(CloudMapResolution value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudErosionNoiseParameter(CloudErosionNoise value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudErosionNoiseParameter(CloudErosionNoise value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudFadeInModeParameter(CloudFadeInMode value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudFadeInModeParameter(CloudFadeInMode value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -385,6 +385,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public FloatParameter shapeOffsetX = new FloatParameter(0.0f);
 
         /// <summary>
+        /// Controls the offset (world Y-axis) applied when evaluating the larger noise passing through the cloud coverage.
+        /// </summary>
+        [Tooltip("Controls the offset (world Y-axis) applied when evaluating the larger noise passing through the cloud coverage.")]
+        public FloatParameter shapeOffsetY = new FloatParameter(0.0f);
+
+        /// <summary>
         /// Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage.
         /// </summary>
         [Tooltip("Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage.")]
@@ -481,6 +487,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Temporal accumulation increases the visual quality of clouds by decreasing the noise. A higher value will give you better quality but can create ghosting.")]
         public ClampedFloatParameter temporalAccumulationFactor = new ClampedFloatParameter(0.95f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Enable/Disable the volumetric clouds ghosting reduction. When enabled, reduces significantly the ghosting of the volumetric clouds, but may introduce some flickering at lower temporal accumulation factors.
+        /// </summary>
+        [Tooltip("Enable/Disable the volumetric clouds ghosting reduction. When enabled, reduces significantly the ghosting of the volumetric clouds, but may introduce some flickering at lower temporal accumulation factors.")]
+        public BoolParameter ghostingReduction = new BoolParameter(false);
 
         /// <summary>
         /// Enable/Disable the volumetric clouds shadow. This will override the cookie of your directional light and the cloud layer shadow (if active).

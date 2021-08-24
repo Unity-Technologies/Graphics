@@ -229,9 +229,9 @@ namespace UnityEditor.VFX
                     var parents = expression.parents.Select(e =>
                     {
                         var parent = Compile(e);
-                        bool currentGPUTransformation =     gpuTransformation
-                            &&  expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU)
-                            &&  !parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
+                        bool currentGPUTransformation = gpuTransformation
+                            && expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU)
+                            && !parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
                         parent = PatchVFXExpression(parent, expression, currentGPUTransformation, patchReadAttributeForSpawn, m_GlobalEventAttribute);
                         return parent;
                     }).ToArray();

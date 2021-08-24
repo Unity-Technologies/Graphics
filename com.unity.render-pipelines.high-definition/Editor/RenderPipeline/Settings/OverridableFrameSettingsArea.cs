@@ -386,6 +386,6 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public FrameSettingsNotFoundInGroupException(string message)
             : base(message)
-        {}
+        { }
     }
 }
