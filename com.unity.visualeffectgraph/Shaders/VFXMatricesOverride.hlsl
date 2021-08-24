@@ -1,9 +1,9 @@
-//TODOPAUL : Move it to vfx
+#ifndef UNITY_VISUAL_EFFECT_MATRICES_OVERRIDE_INCLUDED
+#define UNITY_VISUAL_EFFECT_MATRICES_OVERRIDE_INCLUDED
 
-
-#ifndef UNITY_VISUAL_EFFECT_MATRICES_INCLUDED
-#define UNITY_VISUAL_EFFECT_MATRICES_INCLUDED
-#ifdef  HAVE_VFX_MODIFICATION
+#ifndef HAVE_VFX_MODIFICATION
+#error HAVE_VFX_MODIFICATION is expected at this point (ShaderGraph code generation for VFX)
+#endif
 
 #ifdef UNITY_SPACE_TRANSFORMS_INCLUDED
 #error VisualEffectMatrices must be included *before* space transform
@@ -18,5 +18,4 @@ static float4x4 elementToWorld;
 static float4x4 worldToElement;
 #define UNITY_MATRIX_I_M worldToElement
 
-#endif
 #endif
