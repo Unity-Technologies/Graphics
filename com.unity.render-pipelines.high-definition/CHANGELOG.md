@@ -375,6 +375,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the clouds missing in the ambient probe and in the static and dynamic sky.
 - Fixed lens flare not rendering correctly with TAAU or DLSS.
 - Fixed assert failure when enabling the probe volume system for the first time.
+- Significantly improved performance of APV probe debug.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
