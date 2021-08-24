@@ -3,10 +3,10 @@
     // For Directional lights, _LightDirection is used when applying shadow Normal Bias.
     // For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
 
-//_LightDirection is already defined in com.unity.render-pipelines.universal\Runtime\VFXGraph\Shaders\VFXCommon.hlsl
-//TODOPAUL : Check if we can't move this declaration somewhere else
 #ifndef HAVE_VFX_MODIFICATION
     float3 _LightDirection;
+#else
+    //_LightDirection is already defined in com.unity.render-pipelines.universal\Runtime\VFXGraph\Shaders\VFXCommon.hlsl
 #endif
     float3 _LightPosition;
 #endif
