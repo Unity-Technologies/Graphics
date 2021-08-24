@@ -18,7 +18,7 @@ public class ObjectIDScript : MonoBehaviour
         {
             MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
             float hue = (float)index / RendererList.Length;
-            propertyBlock.SetColor("ObjectColor",  Color.HSVToRGB(hue, 0.7f, 1.0f));
+            propertyBlock.SetColor("ObjectColor", Color.HSVToRGB(hue, 0.7f, 1.0f));
             renderer.SetPropertyBlock(propertyBlock);
             index++;
         }
