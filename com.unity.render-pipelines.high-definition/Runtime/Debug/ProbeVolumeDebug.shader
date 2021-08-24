@@ -65,7 +65,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             float4 position = float4(UNITY_MATRIX_M._m03_m13_m23, 1);
             int brickSize = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).w;
 
-            if (distance(position.xyz, _WorldSpaceCameraPos.xyz) > _CullDistance ||
+            if (distance(position.xyz, GetCurrentViewPosition()) > _CullDistance ||
                 brickSize > _MaxAllowedSubdiv)
             {
                 o.vertex = 0;
