@@ -1,7 +1,11 @@
 import os
 import glob
 from .shared_utils import load_json, find_matching_patterns
+from .constants import *
 
+COMMAND_START = '################################### Running next command ###################################'
+COMMAND_END = '############################################################################################'
+AFTER_BLOCK_START = 'Starting After Block'
 
 class Execution_log():
     '''Handles log parsing and error matching of the execution log'''
@@ -71,8 +75,8 @@ class Execution_log():
                 'tags': ['non-test'],
                 'conclusion': 'failure',
                 'redirect': [
-                    'utr_log',
-                    'unity_log'
+                    UTR_LOG,
+                    UNITY_LOG
                 ]
             },
             # Order: this matches everything and must therefore be the last item in the list
@@ -94,11 +98,11 @@ class Execution_log():
             lines = [l.replace('\n','') for l in f.readlines() if l != '\n'] # remove empty lines and all newline indicators
 
         # after block index
-        after_idx = [i for i,line  in enumerate(lines) if 'Starting After Block' in line][0]
+        after_idx = [i for i,line  in enumerate(lines) if AFTER_BLOCK_START in line][0]
 
         # all log line idx starting/ending a new command
-        cmd_idxs = [i for i,line  in enumerate(lines) if '################################### Running next command ###################################' in line]
-        cmd_idxs_end = [i for i,line  in enumerate(lines) if '############################################################################################' in line]
+        cmd_idxs = [i for i,line  in enumerate(lines) if COMMAND_START in line]
+        cmd_idxs_end = [i for i,line  in enumerate(lines) if COMMAND_END in line]
         cmd_idxs.append(len(lines)) # add dummy idx to handle the last command
 
         # get output (list of lines) for each command
