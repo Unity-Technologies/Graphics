@@ -248,9 +248,6 @@ namespace UnityEditor.ShaderGraph
             // VFX
             public static FieldDescriptor worldToElement = new FieldDescriptor(SurfaceDescriptionInputs.name, "worldToElement", "", ShaderValueType.Matrix4, subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor elementToWorld = new FieldDescriptor(SurfaceDescriptionInputs.name, "elementToWorld", "", ShaderValueType.Matrix4, subscriptOptions: StructFieldOptions.Optional);
-
-            //TODOPAUL : Clean this, it would be nice to be able to declare a struct here
-            //public static FieldDescriptor vfx = new FieldDescriptor(SurfaceDescriptionInputs.name, "vfx", "HAVE_VFX_MODIFICATION", ShaderValueType.Uint, subscriptOptions: StructFieldOptions.Generated & StructFieldOptions.Optional);
         }
     }
 }
