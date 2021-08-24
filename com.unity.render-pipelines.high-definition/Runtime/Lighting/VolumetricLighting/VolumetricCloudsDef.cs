@@ -98,8 +98,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _AccumulationFrameIndex;
         // Index for which of the 4 local pixels should be evaluated
         public int _SubPixelIndex;
-        // Padding
-        public int _Padding;
+        // Render the clouds for the sky
+        public int _RenderForSky;
 
         // Fade in parameters
         public float _FadeInStart;
@@ -138,12 +138,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _CameraViewProjection_NO;
         public Matrix4x4 _CameraInverseViewProjection_NO;
         public Matrix4x4 _CameraPrevViewProjection_NO;
+        public Matrix4x4 _CloudsPixelCoordToViewDirWS;
 
         // Controls the intensity of the wind distortion at high altitudes
         public float _AltitudeDistortion;
         // Internal parameters that compensates the erosion factor to match between the different erosion noises
         public float _ErosionFactorCompensation;
-        // Fast tonemapping settings
+        // Fast tone mapping settings
         public int _EnableFastToneMapping;
         // Flag that defines if the current camera is a planar reflection
         public int _IsPlanarReflection;

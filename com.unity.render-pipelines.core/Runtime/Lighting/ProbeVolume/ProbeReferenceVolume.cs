@@ -615,6 +615,7 @@ namespace UnityEngine.Experimental.Rendering
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
             InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
+            m_NeedsIndexRebuild = true;
             sceneBounds = parameters.sceneBounds;
 #if UNITY_EDITOR
             if (sceneBounds != null)
@@ -761,6 +762,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
+            // |= because this can be called more than once before rebuild is done.
             m_NeedsIndexRebuild |= m_Index == null || m_PendingInitInfo.pendingMinCellPosition != minCellPosition || m_PendingInitInfo.pendingMaxCellPosition != maxCellPosition;
 
             m_PendingInitInfo.pendingMinCellPosition = minCellPosition;
@@ -1000,7 +1002,6 @@ namespace UnityEngine.Experimental.Rendering
                 ClearDebugData();
 
                 m_NeedLoadAsset = true;
-                m_NeedsIndexRebuild = true;
             }
         }
 
