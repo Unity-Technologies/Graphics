@@ -204,7 +204,7 @@ namespace UnityEngine
             {
                 var d = (anchorPosition - camera.transform.position).normalized;
                 var f = Quaternion.LookRotation(d);
-                viewToWorld = Matrix4x4.Scale(new Vector3(1, 1, -1)) *  Matrix4x4.TRS(camera.transform.position, f, Vector3.one).inverse;
+                viewToWorld = Matrix4x4.Scale(new Vector3(1, 1, -1)) * Matrix4x4.TRS(camera.transform.position, f, Vector3.one).inverse;
                 viewToWorld = viewToWorld.inverse;
             }
 
