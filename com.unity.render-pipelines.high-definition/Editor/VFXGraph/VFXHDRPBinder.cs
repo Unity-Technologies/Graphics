@@ -97,41 +97,15 @@ namespace UnityEditor.VFX.HDRP
             return HDShaderUtils.GetMaterialSubTargetDisplayName(subTargetGUID);
         }
 
-        // List of shader properties that currently are not supported for exposure in VFX shaders.
-        private static readonly Dictionary<Type, string> s_UnsupportedShaderPropertyTypes = new Dictionary<Type, string>()
+        // List of shader properties that currently are not supported for exposure in VFX shaders (for HDRP).
+        private static readonly Dictionary<Type, string> s_UnsupportedHDRPShaderPropertyTypes = new Dictionary<Type, string>()
         {
             { typeof(DiffusionProfileShaderProperty), "Diffusion Profile" },
-            { typeof(VirtualTextureShaderProperty),   "Virtual Texture"   },
-            { typeof(GradientShaderProperty),         "Gradient"          }
         };
 
-        public override bool IsGraphDataValid(GraphData graph)
+        public override IEnumerable<KeyValuePair<Type, string>> GetUnsupportedShaderPropertyType()
         {
-            var valid = true;
-
-            var warnings = new List<string>();
-
-            // Filter property list for any unsupported shader properties.
-            foreach (var property in graph.properties)
-            {
-                if (s_UnsupportedShaderPropertyTypes.ContainsKey(property.GetType()))
-                {
-                    warnings.Add(s_UnsupportedShaderPropertyTypes[property.GetType()]);
-                    valid = false;
-                }
-            }
-
-            // VFX currently does not support the concept of per-particle keywords.
-            if (graph.keywords.Any())
-            {
-                warnings.Add("Keyword");
-                valid = false;
-            }
-
-            if (!valid)
-                Debug.LogWarning($"({String.Join(", ", warnings)}) blackboard properties in Shader Graph are currently not supported in Visual Effect shaders. Falling back to default generation path.");
-
-            return valid;
+            return base.GetUnsupportedShaderPropertyType().Concat(s_UnsupportedHDRPShaderPropertyTypes);
         }
 
         static readonly StructDescriptor AttributesMeshVFX = new StructDescriptor()

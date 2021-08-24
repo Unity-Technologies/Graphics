@@ -16,12 +16,6 @@ namespace UnityEditor.VFX.URP
         public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
         public override Type SRPOutputDataType { get { return null; } } // null by now but use VFXURPSubOutput when there is a need to store URP specific data
 
-        public override bool IsGraphDataValid(ShaderGraph.GraphData graph)
-        {
-            //TODOPAUL : Probably filter todo
-            return true;
-        }
-
         public override void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
             //TODOPAUL (N.B. conflict on this function definition incoming ^)
@@ -155,8 +149,7 @@ namespace UnityEditor.VFX.URP
             return interpolator;
         }
 
-        //Special Implementation for URP TODOPAUL (clean)
-        static IEnumerable<FieldDescriptor> GenerateFragInputs_Special_URP(VFXContext context, VFXContextCompiledData contextData)
+        static IEnumerable<FieldDescriptor> GenerateSurfaceDescriptionInput(VFXContext context, VFXContextCompiledData contextData)
         {
             // VFX Material Properties
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
@@ -195,7 +188,7 @@ namespace UnityEditor.VFX.URP
             {
                 name = StructFields.SurfaceDescriptionInputs.name,
                 populateWithCustomInterpolators = true,
-                fields = GenerateFragInputs_Special_URP(context, data).ToArray()
+                fields = GenerateSurfaceDescriptionInput(context, data).ToArray()
             };
 
             return new ShaderGraphBinder()
@@ -204,7 +197,7 @@ namespace UnityEditor.VFX.URP
                 {
                     AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
                     AppendVFXInterpolator(UniversalStructs.Varyings, context, data),
-                    surfaceDescriptionInputWithVFX, //TODOPAUL : URP specific FragInput == SurfaceDescriptionInputs
+                    surfaceDescriptionInputWithVFX, //N.B. FragInput is in SurfaceDescriptionInputs
                     Structs.VertexDescriptionInputs,
                 },
 

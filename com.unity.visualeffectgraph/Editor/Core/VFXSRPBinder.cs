@@ -37,7 +37,46 @@ namespace UnityEditor.VFX
 
         public virtual string GetShaderName(ShaderGraphVfxAsset shaderGraph) => string.Empty;
 
-        public virtual bool IsGraphDataValid(GraphData graph) => false;
+        // List of shader properties that currently are not supported for exposure in VFX shaders (for all pipeline).
+        private static readonly Dictionary<Type, string> s_BaseUnsupportedShaderPropertyTypes = new Dictionary<Type, string>()
+        {
+            { typeof(VirtualTextureShaderProperty),   "Virtual Texture"   },
+            { typeof(GradientShaderProperty),         "Gradient"          }
+        };
+
+        public virtual IEnumerable<KeyValuePair<Type, string>> GetUnsupportedShaderPropertyType()
+        {
+            return s_BaseUnsupportedShaderPropertyTypes;
+        }
+
+        public bool IsGraphDataValid(GraphData graph)
+        {
+            var valid = true;
+            var warnings = new List<string>();
+
+            var unsupportedShaderPropertyTypes = GetUnsupportedShaderPropertyType().ToDictionary(a => a.Key, b => b.Value);
+            // Filter property list for any unsupported shader properties.
+            foreach (var property in graph.properties)
+            {
+                if (unsupportedShaderPropertyTypes.ContainsKey(property.GetType()))
+                {
+                    warnings.Add(unsupportedShaderPropertyTypes[property.GetType()]);
+                    valid = false;
+                }
+            }
+
+            // VFX currently does not support the concept of per-particle keywords.
+            if (graph.keywords.Any())
+            {
+                warnings.Add("Keyword");
+                valid = false;
+            }
+
+            if (!valid)
+                Debug.LogWarning($"({String.Join(", ", warnings)}) blackboard properties in Shader Graph are currently not supported in Visual Effect shaders. Falling back to default generation path.");
+
+            return valid;
+        }
 
         public virtual ShaderGraphBinder GetShaderGraphDescriptor(VFXContext context, VFXContextCompiledData data)
         {
