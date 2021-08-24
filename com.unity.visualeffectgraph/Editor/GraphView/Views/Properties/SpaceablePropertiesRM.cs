@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.UI
     {
         public SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            m_Button = new VisualElement() {name = "spacebutton"};
+            m_Button = new VisualElement() { name = "spacebutton" };
             m_Button.AddManipulator(new Clickable(OnButtonClick));
             Add(m_Button);
             AddToClassList("spaceablepropertyrm");

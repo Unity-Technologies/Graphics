@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudControlParameter(CloudControl value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudControlParameter(CloudControl value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudPresetsParameter(CloudPresets value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudPresetsParameter(CloudPresets value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudShadowResolutionParameter(CloudShadowResolution value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudShadowResolutionParameter(CloudShadowResolution value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudMapResolutionParameter(CloudMapResolution value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudMapResolutionParameter(CloudMapResolution value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudErosionNoiseParameter(CloudErosionNoise value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudErosionNoiseParameter(CloudErosionNoise value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -175,7 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             /// <param name="value">The initial value to store in the parameter.</param>
             /// <param name="overrideState">The initial override state for the parameter.</param>
-            public CloudFadeInModeParameter(CloudFadeInMode value, bool overrideState = false) : base(value, overrideState) {}
+            public CloudFadeInModeParameter(CloudFadeInMode value, bool overrideState = false) : base(value, overrideState) { }
         }
 
         /// <summary>
@@ -350,12 +350,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the amount of local scattering in the clouds. A value of 1 may provide a more powdery aspect.
         /// </summary>
         [Tooltip("Controls the amount of local scattering in the clouds. A value of 1 may provide a more powdery aspect.")]
+        [AdditionalProperty]
         public ClampedFloatParameter powderEffectIntensity = new ClampedFloatParameter(0.7f, 0.0f, 1.0f);
 
         /// <summary>
         /// Controls the amount of multi-scattering inside the cloud.
         /// </summary>
         [Tooltip("Controls the amount of multi-scattering inside the cloud.")]
+        [AdditionalProperty]
         public ClampedFloatParameter multiScattering = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
@@ -381,6 +383,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the offset (world X-axis) applied when evaluating the larger noise passing through the cloud coverage.")]
         public FloatParameter shapeOffsetX = new FloatParameter(0.0f);
+
+        /// <summary>
+        /// Controls the offset (world Y-axis) applied when evaluating the larger noise passing through the cloud coverage.
+        /// </summary>
+        [Tooltip("Controls the offset (world Y-axis) applied when evaluating the larger noise passing through the cloud coverage.")]
+        public FloatParameter shapeOffsetY = new FloatParameter(0.0f);
 
         /// <summary>
         /// Controls the offset (world Z-axis) applied when evaluating the larger noise passing through the cloud coverage.
@@ -417,6 +425,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes.
         /// </summary>
         [Tooltip("Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes.")]
+        [AdditionalProperty]
         public ClampedFloatParameter erosionOcclusion = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         /// <summary>
@@ -478,6 +487,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Temporal accumulation increases the visual quality of clouds by decreasing the noise. A higher value will give you better quality but can create ghosting.")]
         public ClampedFloatParameter temporalAccumulationFactor = new ClampedFloatParameter(0.95f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Enable/Disable the volumetric clouds ghosting reduction. When enabled, reduces significantly the ghosting of the volumetric clouds, but may introduce some flickering at lower temporal accumulation factors.
+        /// </summary>
+        [Tooltip("Enable/Disable the volumetric clouds ghosting reduction. When enabled, reduces significantly the ghosting of the volumetric clouds, but may introduce some flickering at lower temporal accumulation factors.")]
+        public BoolParameter ghostingReduction = new BoolParameter(false);
 
         /// <summary>
         /// Enable/Disable the volumetric clouds shadow. This will override the cookie of your directional light and the cloud layer shadow (if active).

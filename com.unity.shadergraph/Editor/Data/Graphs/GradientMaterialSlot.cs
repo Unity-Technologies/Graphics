@@ -7,7 +7,7 @@ namespace UnityEditor.ShaderGraph
     class GradientMaterialSlot : MaterialSlot
     {
         public GradientMaterialSlot()
-        {}
+        { }
 
         public GradientMaterialSlot(
             int slotId,
@@ -17,16 +17,16 @@ namespace UnityEditor.ShaderGraph
             ShaderStageCapability stageCapability = ShaderStageCapability.All,
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, slotType, stageCapability, hidden)
-        {}
+        { }
 
         public override SlotValueType valueType { get { return SlotValueType.Gradient; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Gradient; } }
         public override bool isDefaultValue => true;
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
-        {}
+        { }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
-        {}
+        { }
     }
 }

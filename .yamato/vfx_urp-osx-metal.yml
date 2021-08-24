@@ -39,6 +39,9 @@ VFX_URP_OSX_Metal_Standalone_mono_Linear_trunk:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -77,6 +80,9 @@ VFX_URP_OSX_Metal_Standalone_PerformanceTests_mono_Linear_trunk:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -115,6 +121,9 @@ VFX_URP_OSX_Metal_playmode_mono_Linear_trunk:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -153,6 +162,9 @@ VFX_URP_OSX_Metal_playmode_PerformanceTests_mono_Linear_trunk:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -191,6 +203,9 @@ VFX_URP_OSX_Metal_editmode_mono_Linear_trunk:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -229,6 +244,9 @@ VFX_URP_OSX_Metal_editmode_PerformanceTests_mono_Linear_trunk:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -267,6 +285,9 @@ VFX_URP_OSX_Metal_Standalone_mono_Linear_2021.2:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -305,6 +326,9 @@ VFX_URP_OSX_Metal_Standalone_PerformanceTests_mono_Linear_2021.2:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -343,6 +367,9 @@ VFX_URP_OSX_Metal_playmode_mono_Linear_2021.2:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -381,6 +408,9 @@ VFX_URP_OSX_Metal_playmode_PerformanceTests_mono_Linear_2021.2:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -419,6 +449,9 @@ VFX_URP_OSX_Metal_editmode_mono_Linear_2021.2:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -457,6 +490,9 @@ VFX_URP_OSX_Metal_editmode_PerformanceTests_mono_Linear_2021.2:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -495,6 +531,9 @@ VFX_URP_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -533,6 +572,9 @@ VFX_URP_OSX_Metal_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -571,6 +613,9 @@ VFX_URP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -609,6 +654,9 @@ VFX_URP_OSX_Metal_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -647,6 +695,9 @@ VFX_URP_OSX_Metal_editmode_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -685,6 +736,9 @@ VFX_URP_OSX_Metal_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
                 mkdir -p TestProjects/VisualEffectGraph_URP/test-results/
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_URP/test-results/ TestProjects/VisualEffectGraph_URP/test-results/
                 exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
