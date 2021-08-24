@@ -4066,7 +4066,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                 {
                     // Compute the cookie data for the specular term
                     float3 formFactorAS =  PolygonFormFactor(LAS);
-                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LAS, formFactorAS);
+                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LAS, formFactorAS, bsdfData.perceptualRoughnessA);
                 }
     
                 // See EvaluateBSDF_Env TODOENERGY:
@@ -4080,14 +4080,14 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                     // local canonical frames we have lobe specific frames because of the anisotropic hack:
                     localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_BASE_LOBEB_IDX]));
                 }
-                float4x3 LS = mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEB_IDX]);
-                ltcValue  = PolygonIrradiance(LS);
+                float4x3 LBS = mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEB_IDX]);
+                ltcValue  = PolygonIrradiance(LBS);
                 // Only apply cookie if there is one
                 if ( lightData.cookieMode != COOKIEMODE_NONE )
                 {
                     // Compute the cookie data for the specular term
-                    float3 formFactorS =  PolygonFormFactor(LS);
-                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
+                    float3 formFactorBS =  PolygonFormFactor(LBS);
+                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LBS, formFactorBS, bsdfData.perceptualRoughnessB);
                 }
     
                 lighting.specular += preLightData.energyCompensationFactor[BASE_LOBEB_IDX] * preLightData.specularFGD[BASE_LOBEB_IDX] * ltcValue;
@@ -4114,7 +4114,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                     {
                         // Compute the cookie data for the specular term
                         float3 formFactorS =  PolygonFormFactor(LSCC);
-                        ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LSCC, formFactorS);
+                        ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LSCC, formFactorS, bsdfData.coatPerceptualRoughness);
                     }
                     lighting.specular += preLightData.energyCompensationFactor[COAT_LOBE_IDX] * preLightData.specularFGD[COAT_LOBE_IDX] * ltcValue;
                 }
