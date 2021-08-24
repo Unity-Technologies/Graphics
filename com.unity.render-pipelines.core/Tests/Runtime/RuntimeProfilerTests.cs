@@ -55,8 +55,8 @@ namespace UnityEngine.Rendering.Tests
     }
 
     // FIXME: Tests are disabled in player builds for now, since there's no API that tells whether frame timing is
-    //        enabled or not. Re-enable when that changes.
-#if UNITY_EDITOR
+    //        enabled or not. Re-enable if that changes.
+#if true//UNITY_EDITOR
     class RuntimeProfilerTests : RuntimeProfilerTestBase
     {
         [UnityTest]
@@ -80,55 +80,5 @@ namespace UnityEngine.Rendering.Tests
                 m_DebugFrameTiming.m_BottleneckHistory.Histogram.PresentLimited > 0);
         }
     }
-
-    enum ExpectedBottleneck
-    {
-        CPU,
-        GPU
-    }
-
-    [TestFixture(ExpectedBottleneck.CPU)]
-    [TestFixture(ExpectedBottleneck.GPU)]
-    class RuntimeProfilerBottleneckTests : RuntimeProfilerTestBase
-    {
-        ExpectedBottleneck m_Bottleneck;
-        string m_TestObjectName;
-
-        public RuntimeProfilerBottleneckTests(ExpectedBottleneck bottleneck)
-        {
-            m_Bottleneck = bottleneck;
-            // *begin-nonstandard-formatting*
-            m_TestObjectName = bottleneck switch
-            {
-                ExpectedBottleneck.CPU => "RuntimeProfilerTest_CPUBound",
-                ExpectedBottleneck.GPU => "RuntimeProfilerTest_GPUBound",
-                _ => throw new ArgumentOutOfRangeException(nameof(bottleneck))
-            };
-            // *end-nonstandard-formatting*
-        }
-
-        [UnityTest]
-        public IEnumerator BottleneckIsCorrectlyDetected()
-        {
-            yield return Warmup();
-
-            m_ToCleanup = GameObject.Instantiate((GameObject)Resources.Load(m_TestObjectName));
-            var camera = GameObject.FindObjectOfType<Camera>();
-
-            for (int i = 0; i < k_NumFramesToRender; i++)
-            {
-                m_DebugFrameTiming.UpdateFrameTiming();
-                camera.Render();
-                yield return new WaitForEndOfFrame();
-            }
-
-            float Threshold = 0.10f; // Accept if even 10% of the frames have the expected bottleneck.
-            if (m_Bottleneck == ExpectedBottleneck.CPU)
-                Assert.True(m_DebugFrameTiming.m_BottleneckHistory.Histogram.CPU > Threshold);
-            if (m_Bottleneck == ExpectedBottleneck.GPU)
-                Assert.True(m_DebugFrameTiming.m_BottleneckHistory.Histogram.GPU > Threshold);
-        }
-    }
-
 #endif
 }
