@@ -44,8 +44,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 
             foreach (var portReader in reader.GetPorts())
             {
-                var isInput = portReader.GetFlags().isInput;
-                var orientation = portReader.GetFlags().isHorizontal
+                var isInput = portReader.IsInput();
+                var orientation = portReader.IsHorizontal()
                     ? PortOrientation.Horizontal
                     : PortOrientation.Vertical;
 

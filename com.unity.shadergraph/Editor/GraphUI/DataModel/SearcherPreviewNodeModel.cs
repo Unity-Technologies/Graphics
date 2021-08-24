@@ -38,8 +38,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         void AddPortFromReader(GraphDelta.IPortReader portReader)
         {
-            var isInput = portReader.GetFlags().isInput;
-            var orientation = portReader.GetFlags().isHorizontal
+            var isInput = portReader.IsInput();
+            var orientation = portReader.IsHorizontal()
                 ? PortOrientation.Horizontal
                 : PortOrientation.Vertical;
 

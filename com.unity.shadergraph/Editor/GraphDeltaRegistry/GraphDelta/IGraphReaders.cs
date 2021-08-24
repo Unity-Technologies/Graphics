@@ -26,7 +26,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
     public interface IPortReader : IDisposable, IDataReader
     {
-        public PortFlagsStruct GetFlags();
+        public bool IsInput();
+
+        public bool IsHorizontal();
 
         public IEnumerable<IFieldReader> GetFields();
 
