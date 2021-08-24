@@ -1,0 +1,12 @@
+<UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="container" pickingMode="Ignore" >
+        <ui:Button name="Attach" text="Attach" style="margin-top:4px;height:24px;"/>
+        <ui:VisualElement style="flex-direction:Row;margin-top:4px;" pickingMode="Ignore" >
+            <ui:Label text="Pick object" style="-unity-text-align:middle-left;margin-left:4px;" pickingMode="Ignore" />
+            <ui:TextField name="PickLabel" style="flex-grow:1;margin-left:4px;" pickingMode="Ignore" />
+            <ui:Button name="PickButton" style="width:24px;height:24px;justify-content:center;align-items:center">
+                <ui:Image name="PickIcon" style="width:16px;height:16px;"/>
+            </ui:Button>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</UXML>

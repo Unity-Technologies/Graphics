@@ -1,87 +1,96 @@
-using System;
-using System.Linq;
+using UnityEditor.Search;
 
 using UnityEngine;
+using UnityEngine.UIElements;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXAttachPanel : PopupWindowContent
+    class VFXAttachPanel : EditorWindow
     {
-        private readonly VFXView m_vfxView;
+        public VFXView m_vfxView;
 
-        public VFXAttachPanel(VFXView vfxView)
+        SearchContext m_searchContext;
+        TextField m_pickedObjectLabel;
+        Button m_AttachButton;
+
+        public Vector2 WindowSize { get; } = new Vector2(250, 60);
+
+        protected void CreateGUI()
         {
-            m_vfxView = vfxView;
+            m_searchContext = Search.SearchService.CreateContext("scene", string.Empty, SearchFlags.None);
+
+            var tpl = VFXView.LoadUXML("VFXAttachPanel");
+            var mainContainer = tpl.CloneTree();
+            m_AttachButton = mainContainer.Q<Button>("AttachButton");
+            m_AttachButton.clicked += OnAttach;
+            var button = mainContainer.Q<Button>("PickButton");
+            button.clicked += OnPickObject;
+            m_pickedObjectLabel = mainContainer.Q<TextField>("PickLabel");
+            m_pickedObjectLabel.isReadOnly = true;
+            UpdateAttachedLabel();
+            var icon = mainContainer.Q<Image>("PickIcon");
+            icon.image = EditorGUIUtility.LoadIcon("UIPackageResources/Images/" + "pick.png");
+            rootVisualElement.Add(mainContainer);
         }
 
-        public override Vector2 GetWindowSize()
+        private void OnAttach()
         {
-            return new Vector2(250, 80);
-        }
-
-        public override void OnGUI(Rect rect)
-        {
-            EditorGUILayout.Space(4);
-            var isAttached = m_vfxView.attachedComponent != null;
-            var selectedVisualEffect = Selection.activeGameObject?.GetComponent<VisualEffect>();
-
-            var isCompatible = selectedVisualEffect != null && selectedVisualEffect.visualEffectAsset == m_vfxView.controller.graph.visualEffectResource.asset;
-            GUI.enabled = isAttached || selectedVisualEffect != null && isCompatible;
-            var buttonContent = isAttached
-                ? VFXView.Contents.detach
-                : isCompatible ? VFXView.Contents.attachToSelection : VFXView.Contents.disabledAttachToSelection;
-
-            if (GUILayout.Button(buttonContent, GUILayout.Height(24)))
-            {
-                if (isAttached)
-                {
-                    m_vfxView.Detach();
-                }
-                else
-                {
-                    m_vfxView.AttachToSelection();
-                }
-            }
-
-            GUI.enabled = true;
-            GUILayout.FlexibleSpace();
-            EditorGUILayout.LabelField(VFXView.Contents.pickATarget);
-            //var res = m_vfxView.controller.graph.visualEffectResource;
-            //var s = $"ref:{AssetDatabase.GetAssetPath(res)}";
-            //ObjectSelector.get.searchFilter = s;
-
-            //var position = EditorGUILayout.s_LastRect = EditorGUILayout.GetControlRect(false, 18f, (GUILayoutOption[])null);
-            //int controlId = GUIUtility.GetControlID("s_ObjectFieldHash".GetHashCode(), FocusType.Keyboard, position);
-            //var result = EditorGUI.DoObjectField(
-            //    EditorGUI.IndentedRect(position),
-            //    EditorGUI.IndentedRect(position),
-            //    controlId,
-            //    m_vfxView.attachedComponent,
-            //    null,
-            //    typeof(VisualEffect),
-            //    VFXValidator,
-            //    true);
-            var result = EditorGUILayout.ObjectField(m_vfxView.attachedComponent, typeof(VisualEffect), true, GUILayout.ExpandWidth(true));
-            if (result is VisualEffect visualEffect)
-            {
-                if (visualEffect != m_vfxView.attachedComponent)
-                {
-                    m_vfxView.TryAttachTo(visualEffect);
-                }
-            }
-            else if (result == null)
+            if (m_vfxView.attachedComponent != null)
             {
                 m_vfxView.Detach();
             }
+            else
+            {
+                m_vfxView.AttachToSelection();
+            }
+
+            UpdateAttachedLabel();
         }
 
-        //private UnityEngine.Object VFXValidator(UnityEngine.Object[] references, Type objtype, SerializedProperty property, EditorGUI.ObjectFieldValidatorOptions options)
-        //{
-        //    return references
-        //        .OfType<GameObject>()
-        //        .Select(x => x.GetComponent<VisualEffect>())
-        //        .FirstOrDefault(x => x.visualEffectAsset == this.m_vfxView.controller.graph.visualEffectResource.asset);
-        //}
+        private void OnPickObject()
+        {
+            var path = AssetDatabase.GetAssetPath(m_vfxView.controller?.graph?.visualEffectResource.asset);
+            if (!string.IsNullOrEmpty(path))
+            {
+                m_searchContext.searchText = $"ref=\"{path}\"";
+            }
+            var view = Search.SearchService.ShowPicker(m_searchContext, SelectHandler, TrackingHandler, FilterHandler, null, "Visual Effect");
+            view.itemIconSize = 0f;
+        }
+
+        private void TrackingHandler(SearchItem obj)
+        {
+        }
+
+        private void SelectHandler(SearchItem arg1, bool arg2)
+        {
+            if (arg1?.ToObject<GameObject>() is { } go)
+            {
+                var vfx = go.GetComponent<VisualEffect>();
+                if (m_vfxView.TryAttachTo(vfx))
+                {
+                    UpdateAttachedLabel();
+                }
+            }
+        }
+
+        private bool FilterHandler(SearchItem arg)
+        {
+            return true;
+        }
+
+        private void UpdateAttachedLabel()
+        {
+            var isAttached = m_vfxView.attachedComponent != null;
+            var selectedVisualEffect = Selection.activeGameObject?.GetComponent<VisualEffect>();
+            var isCompatible = selectedVisualEffect != null && selectedVisualEffect.visualEffectAsset == m_vfxView.controller.graph.visualEffectResource.asset;
+            if (!isCompatible && !isAttached)
+            {
+                m_AttachButton.SetEnabled(false);
+            }
+            m_AttachButton.text = isAttached ? "Detach" : "Attach to selection";
+            m_pickedObjectLabel.value = m_vfxView.attachedComponent?.name;
+        }
     }
 }

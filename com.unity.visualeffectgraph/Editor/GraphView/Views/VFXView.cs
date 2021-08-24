@@ -383,16 +383,14 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
+        readonly VisualElement m_Toolbar;
+        readonly ToolbarToggle m_LockToggle;
+        readonly EditorToolbarDropdown m_AttachDropDownButton;
+
         VFXNodeProvider m_NodeProvider;
-        VisualElement m_Toolbar;
         ToolbarButton m_SaveButton;
-        ToolbarToggle m_LockToggle;
-        VFXAttachPanel m_attachPopupContent;
-        EditorToolbarDropdown m_AttachDropDownButton;
-
-
-        private bool m_IsRuntimeMode = false;
-        private bool m_ForceShaderValidation = false;
+        bool m_IsRuntimeMode;
+        bool m_ForceShaderValidation;
 
 
         public static StyleSheet LoadStyleSheet(string text)
@@ -478,8 +476,6 @@ namespace UnityEditor.VFX.UI
             m_SaveButton.text = "Save";
             m_Toolbar.Add(m_SaveButton);
 
-
-            m_attachPopupContent = new VFXAttachPanel(this);
             m_AttachDropDownButton = new EditorToolbarDropdown(Contents.attach.text, OnOpenAttachMenu);
             m_AttachDropDownButton.name = "attach-toolbar-button";
             m_Toolbar.Add(m_AttachDropDownButton);
@@ -544,7 +540,6 @@ namespace UnityEditor.VFX.UI
             m_NoAssetLabel.style.color = Color.white * 0.75f;
             Add(m_NoAssetLabel);
 
-
             var createButton = new Button() { text = "Create new Visual Effect Graph" };
             m_NoAssetLabel.Add(createButton);
             createButton.clicked += OnCreateAsset;
@@ -560,7 +555,6 @@ namespace UnityEditor.VFX.UI
             m_LockedElement.style.color = Color.white * 0.75f;
             m_LockedElement.style.display = DisplayStyle.None;
             m_LockedElement.focusable = true;
-            //m_LockedElement.RegisterCallback<MouseDownEvent>(e => e.StopPropagation());
             m_LockedElement.RegisterCallback<KeyDownEvent>(e => e.StopPropagation());
 
 
@@ -601,7 +595,11 @@ namespace UnityEditor.VFX.UI
 
         private void OnOpenAttachMenu()
         {
-            PopupWindow.Show(m_AttachDropDownButton.worldBound, m_attachPopupContent, null);
+            var attachPanel = ScriptableObject.CreateInstance<VFXAttachPanel>();
+            attachPanel.m_vfxView = this;
+
+            var bounds = new Rect(ViewToScreenPosition(m_AttachDropDownButton.worldBound.position), m_AttachDropDownButton.worldBound.size);
+            attachPanel.ShowAsDropDown(bounds, attachPanel.WindowSize, new [] { PopupLocation.BelowAlignLeft });
         }
 
         void OnRefreshUI(DropdownMenuAction action)
