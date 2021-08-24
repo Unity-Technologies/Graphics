@@ -14,38 +14,22 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_data = new GraphStorage();
         }
 
-        public INodeWriter AddNode<T>(string name, IRegistry registry) where T : INodeDefinitionBuilder
+        public INodeWriter AddNode<T>(string name, Registry.Registry registry) where T : Registry.Defs.INodeDefinitionBuilder
         {
-            var nodeWriter = AddNodeToLayer(GraphStorage.k_user, name);
-            var builder = registry.ResolveBuilder<T>();
-            var key = builder.GetRegistryKey();
-
-            nodeWriter.TryAddField<RegistryKey>(kRegistryKeyName, out var fieldWriter);
-            fieldWriter.TryWriteData(key);
-
-            // Type nodes by default should have an output port of their own type.
-            if (builder.GetRegistryFlags() == RegistryFlags.IsType)
-            {
-                nodeWriter.AddPort<T>("Out", false, true, registry);
-            }
-
-            var nodeReader = GetNodeReader(name);
-            var transientWriter = AddNodeToLayer(GraphStorage.k_concrete, name);
-            builder.BuildNode(nodeReader, transientWriter, registry);
-
-            return nodeWriter;
+            var key = Registry.Registry.ResolveKey<T>();
+            return AddNode(key, name, registry);
         }
 
-        public INodeWriter AddNode(RegistryKey key, string name, IRegistry registry) 
+        public INodeWriter AddNode(RegistryKey key, string name, Registry.Registry registry)
         {
             var nodeWriter = AddNodeToLayer(GraphStorage.k_user, name);
-            var builder = registry.GetBuilder(key);
+            var builder = registry.GetNodeBuilder(key);
 
             nodeWriter.TryAddField<RegistryKey>(kRegistryKeyName, out var fieldWriter);
             fieldWriter.TryWriteData(key);
 
             // Type nodes by default should have an output port of their own type.
-            if (builder.GetRegistryFlags() == RegistryFlags.IsType)
+            if (builder.GetRegistryFlags() == RegistryFlags.Type)
             {
                 nodeWriter.TryAddPort("Out", false, true, out var portWriter);
                 portWriter.TryAddField<RegistryKey>(kRegistryKeyName, out var portFieldWriter);
@@ -57,6 +41,19 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             builder.BuildNode(nodeReader, transientWriter, registry);
 
             return nodeWriter;
+        }
+
+        public bool ReconcretizeNode(string name, Registry.Registry registry)
+        {
+            var nodeReader = GetNodeReader(name);
+            var key = nodeReader.GetRegistryKey();
+            var builder = registry.GetNodeBuilder(key);
+
+            // How do we clear out previously concretized data?
+            var transientWriter = AddNodeToLayer(GraphStorage.k_concrete, name);
+
+            builder.BuildNode(nodeReader, transientWriter, registry);
+            return builder != null;
         }
 
 
@@ -86,7 +83,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return m_data.GetNodes();
         }
 
-        
+
         public void RemoveNode(string id)
         {
             m_data.RemoveNode(id);

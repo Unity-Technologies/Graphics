@@ -14,22 +14,47 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             var graph = GraphDelta.GraphUtil.CreateGraph();
             var registry = new Registry();
 
-            registry.RegisterNodeBuilder<Exploration.GraphTypeDefinition>();
-            registry.RegisterNodeBuilder<Exploration.AddDefinition>();
+            registry.RegisterBuilder<Types.GraphType>();
+            registry.RegisterBuilder<Types.AddNode>();
+            registry.RegisterBuilder<Types.GraphTypeAssignment>();
 
-            graph.AddNode<Exploration.GraphTypeDefinition>("vecA", registry);
-            graph.AddNode<Exploration.GraphTypeDefinition>("vecB", registry);
-            graph.AddNode<Exploration.AddDefinition>("Add1", registry);
+            graph.AddNode<Types.AddNode>("Add1", registry);
 
-            Assert.IsTrue(graph.TestConnection("Add1", "A", "vecA", "Out", registry));
-            Assert.IsTrue(graph.TestConnection("Add1", "B", "vecB", "Out", registry));
+            // Default init should set length to 4.
+            var reader = graph.GetNodeReader("Add1");
+            reader.GetField("In1.Length", out int len);
+            Assert.AreEqual(4, len);
 
-            Assert.IsTrue(graph.TryConnect("Add1", "A", "vecA", "Out", registry));
-            Assert.IsTrue(graph.TryConnect("Add1", "B", "vecB", "Out", registry));
+            // Set the length of input port 1 to 1.
+            var nodeWriter = graph.GetNodeWriter("Add1");
+            nodeWriter.SetField("In1.Length", 1);
 
-            Assert.AreEqual(3, graph.GetNodeReader("Add1").GetPorts().Count());
-            Assert.AreEqual(1, graph.GetNodeReader("vecA").GetPorts().Count());
-            // GetConnections not implemented
+            // We just set this field to 1, it should be 1.
+            reader = graph.GetNodeReader("Add1");
+            reader.GetField("In1.Length", out len);
+            Assert.AreEqual(1, len);
+
+            // After reconcretization, the node definition should propagate the length.
+            graph.ReconcretizeNode("Add1", registry);
+
+            // the remaining ports should have length 1.
+            reader = graph.GetNodeReader("Add1");
+            reader.GetField("In2.Length", out len);
+            Assert.AreEqual(1, len);
+            reader.GetField("Out.Length", out len);
+            Assert.AreEqual(1, len);
+
+            // Add a second Add Node, with length 2 this time.
+            var node2 = graph.AddNode<Types.AddNode>("Add2", registry);
+            node2.SetField("In1.Length", 2);
+            graph.ReconcretizeNode("Add2", registry); // Out should now also be 2.
+
+            // Connecting Out to In should clobber the inlined length with the new length.
+            graph.TryConnect("Add2", "Out", "Add1", "In1", registry);
+            graph.ReconcretizeNode("Add1", registry);
+
+            graph.GetNodeReader("Add1").GetField("Out.Length", out len);
+            Assert.AreEqual(2, len);
         }
     }
 }

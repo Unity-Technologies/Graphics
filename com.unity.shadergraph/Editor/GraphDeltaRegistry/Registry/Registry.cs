@@ -2,13 +2,14 @@ using System;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph.Registry
 {
     /*
-    Namespaces:
-        Namespaces for definitions and supported by keys.
-        -- Ability to specify an active context/namespace, and get overrides.
+    TODOs:
+        Namespaces and Context local overrides.
+
     Search:
         Categories, search hierachy, tooltips, etc-- how should these be handled?
     Registry:
@@ -60,52 +61,37 @@ namespace UnityEditor.ShaderGraph.Registry
 
     [Flags] public enum RegistryFlags
     {
-        IsType = 1, // The corresponding node definition is allowed to be a port.
-        isFunc = 2, // Cannot be a port.
+        Type = 1, // The corresponding node definition is allowed to be a port.
+        Func = 2, // Cannot be a port.
+        Cast = 3,
     }
 
 
-    public class Registry : IRegistry
+    public class Registry
     {
-        Dictionary<RegistryKey, INodeDefinitionBuilder> builders = new Dictionary<RegistryKey, INodeDefinitionBuilder>();
+        Dictionary<RegistryKey, Defs.IRegistryEntry> builders = new Dictionary<RegistryKey, Defs.IRegistryEntry>();
         GraphDelta.IGraphHandler defaultTopologies = GraphUtil.CreateGraph();
-
         public IEnumerable<RegistryKey> BrowseRegistryKeys() => builders.Keys;
-
-        public INodeDefinitionBuilder GetBuilder(RegistryKey key)
-        {
-            builders.TryGetValue(key, out var builder);
-            return builder;
-        }
-
         public INodeReader GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNodeReader(key.ToString());
 
-        public RegistryFlags GetFlags(RegistryKey key) => GetBuilder(key).GetRegistryFlags();
+        public bool CastExists(RegistryKey from, RegistryKey to) => builders.Values.OfType<Defs.ICastDefinitionBuilder>().Any(e => e.GetTypeConversionMapping().Equals((from,to)));
 
-        public bool RegisterNodeBuilder<T>() where T : INodeDefinitionBuilder
+        public bool RegisterBuilder<T>() where T : Defs.IRegistryEntry
         {
             var builder = Activator.CreateInstance<T>();
             var key = builder.GetRegistryKey();
-            if (builders.ContainsKey(key))
-                return false;
+            if (builders.ContainsKey(key)) return false;
+            if (typeof(T) is Defs.INodeDefinitionBuilder) defaultTopologies.AddNode(key, key.ToString(), this);
             builders.Add(key, builder);
-            defaultTopologies.AddNode<T>(key.ToString(), this);
             return true;
         }
 
-        public RegistryKey ResolveKey<T>() where T : INodeDefinitionBuilder
-        {
-            var builder = Activator.CreateInstance<T>();
-            return builder.GetRegistryKey();
-        }
+        public Defs.INodeDefinitionBuilder GetNodeBuilder(RegistryKey key) => (Defs.INodeDefinitionBuilder)GetBuilder(key);
+        public Defs.ITypeDefinitionBuilder GetTypeBuilder(RegistryKey key) => (Defs.ITypeDefinitionBuilder)GetBuilder(key);
+        public Defs.ICastDefinitionBuilder GetCastBuilder(RegistryKey key) => (Defs.ICastDefinitionBuilder)GetBuilder(key);
 
-        public RegistryFlags ResolveFlags<T>() where T : INodeDefinitionBuilder => GetFlags(ResolveKey<T>());
-
-        public INodeDefinitionBuilder ResolveBuilder<T>() where T : INodeDefinitionBuilder
-        {
-            RegisterNodeBuilder<T>();
-            var key = ResolveKey<T>();
-            return GetBuilder(key);
-        }
+        private Defs.IRegistryEntry GetBuilder(RegistryKey key) => builders.TryGetValue(key, out var builder) ? builder : null;
+        public static RegistryKey ResolveKey<T>() where T : Defs.IRegistryEntry => Activator.CreateInstance<T>().GetRegistryKey();
+        public static RegistryFlags ResolveFlags<T>() where T : Defs.IRegistryEntry => Activator.CreateInstance<T>().GetRegistryFlags();
     }
 }

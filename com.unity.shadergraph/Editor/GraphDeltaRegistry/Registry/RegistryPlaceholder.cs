@@ -1,3 +1,6 @@
+using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEditor.ShaderGraph.Registry;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Registry
@@ -9,64 +12,120 @@ namespace UnityEditor.ShaderGraph.Registry
         public RegistryPlaceholder(int d) { data = d; }
     }
 
-    namespace Exploration
+    namespace Types
     {
-        public class GraphTypeDefinition : INodeDefinitionBuilder
+        public class MakeNode : Defs.INodeDefinitionBuilder
         {
-            public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GraphType", Version = 1 };
-            public RegistryFlags GetRegistryFlags() => RegistryFlags.IsType;
+            public RegistryKey GetRegistryKey() => new RegistryKey { Name = "MakeType", Version = 1 };
+            public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
-            enum Precision { Fixed, Half, Full }
-
-
-
-            public void BuildNode(GraphDelta.INodeReader userData, GraphDelta.INodeWriter concreteData, IRegistry registry)
+            public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
             {
-                // TODO: Promote to ports-- but also, reconsider a TypeDefinition interface-- yes the data is the same,
-                // but conceptually we're working with fields instead of ports-- even though each field is promoted to a port,
-                // it could also be a serialized value directly. Need to investigate this further with liz. I could see Type definitions
-                // instead using PortWriter- since Types are specifically port associative. That means that node definitions that work with types,
-                // such as a constructor node- can work with _any_ type and just promote fields to ports (or ultimately inline values).
+                // We just have a field for now that indicates what our type is.
+                userData.GetField("Type", out RegistryKey key);
 
-                // TODO: Some type local extensions for interacting with this node/port type would be powerful- some sort of extension cast for writers,
-                // but it can't ultimately be type strong in the storage, since the typing information is just storing the RegistryKey.
-                // (That's important because it allows for indirection by the registry, which gives us overrides and versioning)
-                concreteData.SetField("Precision", Precision.Full);
-                concreteData.SetField("Length", 4);
-                concreteData.SetField("x", 0f);
-                concreteData.SetField("y", 0f);
-                concreteData.SetField("z", 0f);
-                concreteData.SetField("w", 0f);
-            }
+                // Erroneous if Key is default or not a Type, but we have no error msging yet.
 
-            public bool CanAcceptConnection(GraphDelta.INodeReader thisNode, GraphDelta.IPortReader thisPort, GraphDelta.IPortReader candidatePort)
-            {
-                // For now, we can only have outgoing connections, since this isn't a CTOR style node.
-                return false;
+                var inport = nodeWriter.AddPort(userData, "In", true, key, registry);
+                var outport = nodeWriter.AddPort(userData, "Out", false, key, registry);
+                inport.TryAddConnection(outport);
+
+                // To be able to support nested types (eg. TypeDefs of TypeDefs),
+                // we'll need to be able to concretize and iterate over fields to promote them to ports properly,
+                // iterating over fields would mean reading from the concretized layer-- don't currently have a way to get a reader from that in the builder.
             }
         }
 
-        public class AddDefinition : INodeDefinitionBuilder
+        public class AddNode : Defs.INodeDefinitionBuilder
         {
-            public RegistryKey GetRegistryKey() => new RegistryKey { Name = "AddNode", Version = 1 };
-            public RegistryFlags GetRegistryFlags() => RegistryFlags.isFunc;
+            public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Add", Version = 1 };
+            public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
-            public void BuildNode(GraphDelta.INodeReader userData, GraphDelta.INodeWriter concreteData, IRegistry registry)
+            public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
             {
-                concreteData.AddPort<GraphTypeDefinition>("A", true, true, registry);
-                concreteData.AddPort<GraphTypeDefinition>("B", true, true, registry);
-                concreteData.AddPort<GraphTypeDefinition>("Out", false, true, registry);
-                // If we wanted to inline some defaults here for the ports, they would realistically need to come from a builder interface that works with ports.
-                // Data-wise ports/types/nodes are the same thing, but for API purposes, separating node builder (Nodes) and port builder (Types) seems necessary.
-                // -- Then a Node definition that works off of ITypeDefinitions can just walk the fields and promote them to ports for a CTOR or a Break style accessor.
-            }
+                int operands = 0;
+                int resolvedLength = 4;
+                int resolvedHeight = 1; // bump this to 4 to support matrices, but inlining a matrix on a port value is weird.
+                var resolvedPrimitive = GraphType.Primitive.Float;
+                var resolvedPrecision = GraphType.Precision.Full;
 
-            public bool CanAcceptConnection(GraphDelta.INodeReader thisNode, GraphDelta.IPortReader thisPort, GraphDelta.IPortReader candidatePort)
-            {
-                // any graph type is acceptable for connection purposes in this case-- but this is not how these functions should be written usually.
-                // Also-- type system should have an option to automagic just based on the RegistryKey typing alone.
-                return thisPort.GetRegistryKey().ToString() == candidatePort.GetRegistryKey().ToString();
+                // UserData ports only exist if a user inlines a value or makes a connection.
+                foreach (var port in userData.GetPorts())
+                {
+                    if (!port.IsInput()) continue;
+                    operands++;
+                    // UserData is allowed to have holes, so we should ignore what's missing.
+                    bool hasLength = port.GetField(GraphType.kLength, out int length);
+                    bool hasHeight = port.GetField(GraphType.kHeight, out int height);
+                    bool hasPrimitive = port.GetField(GraphType.kPrimitive, out GraphType.Primitive primitive);
+                    bool hasPrecision = port.GetField(GraphType.kPrecision, out GraphType.Precision precision);
+
+                    // Legacy DynamicVector's default behavior is to use the most constrained typing.
+                    resolvedLength = hasLength ? Mathf.Min(resolvedLength, length) : resolvedLength;
+                    resolvedHeight = hasHeight ? Mathf.Min(resolvedHeight, height) : resolvedHeight;
+                    resolvedPrimitive = hasPrimitive ? (GraphType.Primitive)Mathf.Min((int)resolvedPrimitive, (int)primitive) : resolvedPrimitive;
+                    resolvedPrecision = hasPrecision ? (GraphType.Precision)Mathf.Min((int)resolvedPrecision, (int)precision) : resolvedPrecision;
+                }
+                // We need at least 2 input ports or 1 more than the existing number of connections.
+                operands = Mathf.Max(1, operands) + 1;
+
+                // Need to concretize each port so that they exist.
+                for (int i = 0; i < operands + 1; ++i)
+                {
+                    // Output port gets constrained the same way.
+                    var port = i == 0
+                            ? nodeWriter.AddPort<GraphType>(userData, "Out", false, registry)
+                            : nodeWriter.AddPort<GraphType>(userData, $"In{i}", true, registry);
+
+                    // Then constrain them so that type conversion in code gen can resolve the values properly.
+                    port.SetField(GraphType.kLength, resolvedLength);
+                    port.SetField(GraphType.kHeight, resolvedHeight);
+                    port.SetField(GraphType.kPrimitive, resolvedPrimitive);
+                    port.SetField(GraphType.kPrecision, resolvedPrecision);
+                }
             }
+        }
+
+        public class GraphType : Defs.ITypeDefinitionBuilder
+        {
+            public static RegistryKey kRegistryKey => new RegistryKey { Name = "GraphType", Version = 1 };
+            public RegistryKey GetRegistryKey() => kRegistryKey;
+            public RegistryFlags GetRegistryFlags() => RegistryFlags.Type;
+
+            public enum Precision {Fixed, Half, Full };
+            public enum Primitive { Bool, Int, Float };
+
+            public const string kPrimitive = "Primitive";
+            public const string kPrecision = "Precision";
+            public const string kLength = "Length";
+            public const string kHeight = "Height";
+
+            public void BuildType(IFieldReader userData, IFieldWriter typeWriter, Registry registry)
+            {
+                // default initialize to a float4.
+                typeWriter.SetField(kPrecision, Precision.Full);
+                typeWriter.SetField(kPrimitive, Primitive.Float);
+                typeWriter.SetField(kLength, 4);
+                typeWriter.SetField(kHeight, 1);
+
+                // read userdata and make sure we have enough fields.
+                if (!userData.GetField(kLength, out int length))
+                    length = 4;
+                if (!userData.GetField(kHeight, out int height))
+                    height = 1;
+
+                // ensure that enough subfield values exist to represent userdata's current data.
+                for (int i = 0; i < length * height; ++i)
+                    typeWriter.SetField<float>($"c{i}", 0);
+            }
+        }
+
+        public class GraphTypeAssignment : Defs.ICastDefinitionBuilder
+        {
+            public RegistryKey GetRegistryKey() => new RegistryKey { Name = "GraphTypeAssignment", Version = 1 };
+            public RegistryFlags GetRegistryFlags() => RegistryFlags.Cast;
+            public (RegistryKey, RegistryKey) GetTypeConversionMapping() => (GraphType.kRegistryKey, GraphType.kRegistryKey);
+            public bool CanConvert(IFieldReader src, IFieldReader dst) => true;
         }
     }
 }
