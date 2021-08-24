@@ -241,7 +241,6 @@ namespace UnityEditor
             ShaderPropertiesGUI(material);
         }
 
-        //TODOPAUL : See with URP team how to handle it properly
         protected virtual uint materialFilter
         {
             get
@@ -252,7 +251,6 @@ namespace UnityEditor
 
         public virtual void OnOpenGUI(Material material, MaterialEditor materialEditor)
         {
-            //TODOPAUL : Double check diff here, I had to resolve conflicts manually.
             var filter = (Expandable)materialFilter;
 
             // Generate the foldouts
@@ -524,7 +522,9 @@ namespace UnityEditor
                 material.SetTextureScale("_MainTex", material.GetTextureScale("_BaseMap"));
                 material.SetTextureOffset("_MainTex", material.GetTextureOffset("_BaseMap"));
             }
-            if (material.HasProperty("_Color")) //TODOPAUL : _BaseColor if we have exposed a property in VFX name "Color" it fails
+            //TODOPAUL : _BaseColor if we have exposed a property in VFX name "Color" it fails
+            //Not sure how to prevent side effect of this behavior in VFX
+            if (material.HasProperty("_Color") && material.HasColor("_BaseColor"))
                 material.SetColor("_Color", material.GetColor("_BaseColor"));
 
             // Emission
