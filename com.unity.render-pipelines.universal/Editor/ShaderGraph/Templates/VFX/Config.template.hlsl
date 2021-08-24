@@ -167,9 +167,7 @@ $OutputType.Mesh:            $include("VFX/ConfigMesh.template.hlsl")
 $OutputType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
 
 // Loads the element-specific attribute data, as well as fills any interpolator.
-//TODOPAUL : this define is specific to URP
-#define VaryingsMeshType Varyings
-bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout AttributesElement element)
+bool GetInterpolatorAndElementData(inout Varyings output, inout AttributesElement element)
 {
     GetElementData(element);
 
@@ -186,7 +184,7 @@ bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout Attribut
 }
 
 // Reconstruct the VFX/World to Element matrix provided by interpolator.
-void BuildWorldToElement(VaryingsMeshType input)
+void BuildWorldToElement(Varyings input)
 {
 #ifdef VARYINGS_NEED_WORLD_TO_ELEMENT
     UNITY_MATRIX_I_M[0] = input.worldToElement0;
@@ -196,7 +194,7 @@ void BuildWorldToElement(VaryingsMeshType input)
 #endif
 }
 
-void BuildElementToWorld(VaryingsMeshType input)
+void BuildElementToWorld(Varyings input)
 {
 #ifdef VARYINGS_NEED_ELEMENT_TO_WORLD
     UNITY_MATRIX_M[0] = input.elementToWorld0;
@@ -226,7 +224,7 @@ float4x4 GetRawUnityWorldToObject()
 //End TODOPAUL
 
 
-void SetupVFXMatrices(AttributesElement element, inout VaryingsMeshType output)
+void SetupVFXMatrices(AttributesElement element, inout Varyings output)
 {
     // Due to a very stubborn compiler bug we cannot refer directly to the redefined UNITY_MATRIX_M / UNITY_MATRIX_I_M here, due to a rare case where the matrix alias
     // is potentially still the constant object matrices (thus complaining about l-value specifying const object). Note even judicious use of preprocessors seems to
