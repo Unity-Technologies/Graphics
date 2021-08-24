@@ -1,5 +1,6 @@
 import os
 from .shared_utils import load_json, find_matching_patterns
+from .shared_utils import *
 
 class UTR_log():
     ''''Handles parsing UTR logs (TestResults.json) against known error patterns'''
