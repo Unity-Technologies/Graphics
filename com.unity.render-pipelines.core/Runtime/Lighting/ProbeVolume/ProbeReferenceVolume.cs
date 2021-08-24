@@ -615,7 +615,6 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_MemoryBudget = parameters.memoryBudget;
-            // Temporarily reverting recent change to always allocate L2 (which is still required for dilation/debug right now)
             m_SHBands = parameters.shBands;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
             InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_SHBands);
