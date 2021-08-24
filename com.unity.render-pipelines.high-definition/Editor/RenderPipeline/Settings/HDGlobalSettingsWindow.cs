@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDGlobalSettingsPanelIMGUI.Styles>()
                 .Concat(OverridableFrameSettingsArea.frameSettingsKeywords);
 
-            keywords = RenderPipelineSettingsUtilities.Case1358409Workaround(keywords);
+            keywords = RenderPipelineSettingsUtilities.RemoveDLSSKeywords(keywords);
 
             return new SettingsProvider("Project/Graphics/HDRP Global Settings", SettingsScope.Project)
             {
