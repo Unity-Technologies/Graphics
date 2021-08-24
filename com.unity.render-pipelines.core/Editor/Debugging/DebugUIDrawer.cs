@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering
         /// <param name="widget">Widget that is going to be rendered.</param>
         /// <param name="state">Debug State associated with the Debug Item.</param>
         public virtual void Begin(DebugUI.Widget widget, DebugState state)
-        {}
+        { }
 
         /// <summary>
         /// Implement this to execute UI rendering.
@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering
         /// <param name="widget">Widget that is going to be rendered.</param>
         /// <param name="state">Debug State associated with the Debug Item.</param>
         public virtual void End(DebugUI.Widget widget, DebugState state)
-        {}
+        { }
 
         /// <summary>
         /// Applies a value to the widget and the Debug State of the Debug Item.

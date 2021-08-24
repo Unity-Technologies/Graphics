@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering
         /// Default Constructor.
         /// </summary>
         public ObservableList()
-            : this(0) {}
+            : this(0) { }
 
         /// <summary>
         /// Constructor.

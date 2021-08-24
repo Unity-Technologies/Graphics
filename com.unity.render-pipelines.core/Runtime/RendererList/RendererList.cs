@@ -21,23 +21,23 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// True if the renderer list is valid.
         /// </summary>
-        public bool                 isValid { get; private set; }
+        public bool isValid { get; private set; }
         /// <summary>
         /// CullingResults associated with the renderer list.
         /// </summary>
-        public CullingResults       cullingResult;
+        public CullingResults cullingResult;
         /// <summary>
         /// DrawingSettings associated with the renderer list.
         /// </summary>
-        public DrawingSettings      drawSettings;
+        public DrawingSettings drawSettings;
         /// <summary>
         /// FilteringSettings associated with the renderer list.
         /// </summary>
-        public FilteringSettings    filteringSettings;
+        public FilteringSettings filteringSettings;
         /// <summary>
         /// Optional RenderStateBlock associated with the renderer list.
         /// </summary>
-        public RenderStateBlock?    stateBlock;
+        public RenderStateBlock? stateBlock;
 
         /// <summary>
         /// Creates a new renderer list.

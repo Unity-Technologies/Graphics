@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Bilinear upscaling filter. Obsolete and not supported.
         /// </summary>
-        [Obsolete("Bilinear upscale filter is considered obsolete and is not supported anymore, please use CatmullRom for a very cheap, but blurry filter.", false)]  Bilinear,
+        [Obsolete("Bilinear upscale filter is considered obsolete and is not supported anymore, please use CatmullRom for a very cheap, but blurry filter.", false)] Bilinear,
         /// <summary>
         /// Bicubic Catmull-Rom upscaling filter.
         /// </summary>
@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Lanczos upscaling filter. Obsolete and not supported.
         /// </summary>
-        [Obsolete("Lanczos upscale filter is considered obsolete and is not supported anymore, please use Contrast Adaptive Sharpening for very sharp filter or FidelityFX Super Resolution 1.0.", false)]  Lanczos,
+        [Obsolete("Lanczos upscale filter is considered obsolete and is not supported anymore, please use Contrast Adaptive Sharpening for very sharp filter or FidelityFX Super Resolution 1.0.", false)] Lanczos,
         /// <summary>
         /// Contrast Adaptive Sharpening upscaling filter.
         /// </summary>

@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
 
         public VFXExpressionSampleCurve(VFXExpression curve, VFXExpression time)
             : base(Flags.None, new VFXExpression[2] { curve, time })
-        {}
+        { }
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.SampleCurve; } }
 

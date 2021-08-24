@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
-namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
+namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(SampleVirtualTextureNode))]
     public class SampleVirtualTextureNodePropertyDrawer : IPropertyDrawer
