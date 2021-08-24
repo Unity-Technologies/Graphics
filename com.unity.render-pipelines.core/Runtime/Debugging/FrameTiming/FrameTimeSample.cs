@@ -107,5 +107,10 @@ namespace UnityEngine.Rendering
             while (m_Samples.Count >= sampleHistorySize)
                 m_Samples.RemoveAt(0);
         }
+
+        internal void Clear()
+        {
+            m_Samples.Clear();
+        }
     }
 }

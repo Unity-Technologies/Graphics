@@ -22,7 +22,6 @@ namespace UnityEngine.Rendering.UI
         float m_Timer;
         static readonly Color k_ZeroColor = new Color(0.5f, 0.5f, 0.5f, 1f);
 
-
         /// <summary>
         /// OnEnable implementation.
         /// </summary>

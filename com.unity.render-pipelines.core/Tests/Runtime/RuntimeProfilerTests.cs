@@ -13,9 +13,9 @@ namespace UnityEngine.Rendering.Tests
     class RuntimeProfilerTestBase
     {
         protected const int k_NumWarmupFrames = 10;
-        protected const int k_NumFramesToRender = 100;
+        protected const int k_NumFramesToRender = 30;
 
-        protected FrameTimingData m_FrameTimingData;
+        protected DebugFrameTiming m_DebugFrameTiming;
         protected GameObject m_ToCleanup;
 
         [SetUp]
@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Tests
                     CoreUtils.Destroy(o);
             }
 
-            m_FrameTimingData = DebugManager.instance.FrameTimingData;
+            m_DebugFrameTiming = new DebugFrameTiming();
         }
 
         [TearDown]
@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.Tests
             for (int i = 0; i < k_NumWarmupFrames; i++)
                 yield return new WaitForEndOfFrame();
 
-            m_FrameTimingData.Reset();
+            m_DebugFrameTiming.Reset();
         }
     }
 
@@ -68,15 +68,16 @@ namespace UnityEngine.Rendering.Tests
             var camera = m_ToCleanup.AddComponent<Camera>();
             for (int i = 0; i < k_NumFramesToRender; i++)
             {
+                m_DebugFrameTiming.UpdateFrameTiming();
                 camera.Render();
                 yield return new WaitForEndOfFrame();
             }
 
             Assert.True(
-                m_FrameTimingData.BottleneckStats.Balanced > 0 ||
-                m_FrameTimingData.BottleneckStats.CPU > 0 ||
-                m_FrameTimingData.BottleneckStats.GPU > 0 ||
-                m_FrameTimingData.BottleneckStats.PresentLimited > 0);
+                m_DebugFrameTiming.m_BottleneckHistory.Histogram.Balanced > 0 ||
+                m_DebugFrameTiming.m_BottleneckHistory.Histogram.CPU > 0 ||
+                m_DebugFrameTiming.m_BottleneckHistory.Histogram.GPU > 0 ||
+                m_DebugFrameTiming.m_BottleneckHistory.Histogram.PresentLimited > 0);
         }
     }
 
@@ -116,15 +117,16 @@ namespace UnityEngine.Rendering.Tests
 
             for (int i = 0; i < k_NumFramesToRender; i++)
             {
+                m_DebugFrameTiming.UpdateFrameTiming();
                 camera.Render();
                 yield return new WaitForEndOfFrame();
             }
 
             float Threshold = 0.10f; // Accept if even 10% of the frames have the expected bottleneck.
             if (m_Bottleneck == ExpectedBottleneck.CPU)
-                Assert.True(m_FrameTimingData.BottleneckStats.CPU > Threshold);
+                Assert.True(m_DebugFrameTiming.m_BottleneckHistory.Histogram.CPU > Threshold);
             if (m_Bottleneck == ExpectedBottleneck.GPU)
-                Assert.True(m_FrameTimingData.BottleneckStats.GPU > Threshold);
+                Assert.True(m_DebugFrameTiming.m_BottleneckHistory.Histogram.GPU > Threshold);
         }
     }
 

@@ -112,5 +112,11 @@ namespace UnityEngine.Rendering
 
             return PerformanceBottleneck.Balanced;
         }
+
+        internal void Clear()
+        {
+            m_Bottlenecks.Clear();
+            Histogram = new BottleneckHistogram();
+        }
     }
 }

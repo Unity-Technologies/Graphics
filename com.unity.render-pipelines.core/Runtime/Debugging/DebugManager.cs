@@ -36,9 +36,6 @@ namespace UnityEngine.Rendering
         ReadOnlyCollection<DebugUI.Panel> m_ReadOnlyPanels;
         readonly List<DebugUI.Panel> m_Panels = new List<DebugUI.Panel>();
 
-        // TODO: Should this live somewhere else? Right now it's the first instance of
-        // "SRP-agnostic debug data" that we have.
-
         void UpdateReadOnlyCollection()
         {
             m_Panels.Sort();

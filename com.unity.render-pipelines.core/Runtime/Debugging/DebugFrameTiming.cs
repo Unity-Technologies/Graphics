@@ -13,8 +13,8 @@ namespace UnityEngine.Rendering
         const string k_MsFormatString = "{0:F2}ms";
         const float k_RefreshRate = 1f / 5f;
 
-        FrameTimeSampleHistory m_FrameHistory = new();
-        BottleneckHistory m_BottleneckHistory = new();
+        internal FrameTimeSampleHistory m_FrameHistory = new();
+        internal BottleneckHistory m_BottleneckHistory = new();
 
         /// <summary>
         /// Size of the Bottleneck History Window in number of samples.
@@ -25,7 +25,6 @@ namespace UnityEngine.Rendering
         /// Size of the Sample History Window in number of samples.
         /// </summary>
         public int SampleHistorySize { get; set; } = 30;
-
 
         /// <summary>
         /// Update timing data from profiling counters.
@@ -189,6 +188,12 @@ namespace UnityEngine.Rendering
                 }
             });
 #endif
+        }
+
+        internal void Reset()
+        {
+            m_BottleneckHistory.Clear();
+            m_FrameHistory.Clear();
         }
     }
 }

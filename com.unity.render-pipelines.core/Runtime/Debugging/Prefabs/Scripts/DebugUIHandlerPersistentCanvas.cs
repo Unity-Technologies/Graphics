@@ -11,16 +11,17 @@ namespace UnityEngine.Rendering.UI
 
         List<DebugUIHandlerValue> m_Items = new List<DebugUIHandlerValue>();
 
+        // Toggles persistent value widget on/off.
         internal void Toggle(DebugUI.Value widget, string displayName = null)
         {
-            int existingItemIndex = m_Items.FindIndex(x => x.GetWidget() == widget);
+            int index = m_Items.FindIndex(x => x.GetWidget() == widget);
 
             // Remove
-            if (existingItemIndex > -1)
+            if (index > -1)
             {
-                var item = m_Items[existingItemIndex];
+                var item = m_Items[index];
                 CoreUtils.Destroy(item.gameObject);
-                m_Items.RemoveAt(existingItemIndex);
+                m_Items.RemoveAt(index);
                 return;
             }
 
@@ -33,6 +34,9 @@ namespace UnityEngine.Rendering.UI
         }
 
         List<DebugUI.ValueTuple> m_ValueTupleWidgets = new();
+
+        // For ValueTuples (multiple values on one row), we cycle through the columns, and turn the widget
+        // off after the last column.
         internal void Toggle(DebugUI.ValueTuple widget, int? forceTupleIndex = null)
         {
             var val = m_ValueTupleWidgets.Find(x => x == widget);
