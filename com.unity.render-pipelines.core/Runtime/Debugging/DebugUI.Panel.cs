@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Callback used when the panel is set dirty.
             /// </summary>
-            public event Action<Panel> onSetDirty = delegate {};
+            public event Action<Panel> onSetDirty = delegate { };
 
             /// <summary>
             /// Constructor.

@@ -168,7 +168,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUILayout.HorizontalScope())
             {
                 EditorGUI.BeginChangeCheck();
-                var newAsset = (HDRenderPipelineGlobalSettings)EditorGUILayout.ObjectField(settingsSerialized , typeof(HDRenderPipelineGlobalSettings), false);
+                var newAsset = (HDRenderPipelineGlobalSettings)EditorGUILayout.ObjectField(settingsSerialized, typeof(HDRenderPipelineGlobalSettings), false);
                 if (EditorGUI.EndChangeCheck())
                 {
                     HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
@@ -257,9 +257,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static private bool[] m_ShowFrameSettings_Rendering      = { false, false, false };
-        static private bool[] m_ShowFrameSettings_Lighting       = { false, false, false };
-        static private bool[] m_ShowFrameSettings_AsyncCompute   = { false, false, false };
+        static private bool[] m_ShowFrameSettings_Rendering = { false, false, false };
+        static private bool[] m_ShowFrameSettings_Lighting = { false, false, false };
+        static private bool[] m_ShowFrameSettings_AsyncCompute = { false, false, false };
         static private bool[] m_ShowFrameSettings_LightLoopDebug = { false, false, false };
 
         static void DrawFrameSettingsSubsection(int index, SerializedFrameSettings serialized, Editor owner)

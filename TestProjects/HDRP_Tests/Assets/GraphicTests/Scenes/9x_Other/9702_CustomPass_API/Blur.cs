@@ -5,7 +5,7 @@ using UnityEngine.Experimental.Rendering;
 
 class Blur : CustomPass
 {
-    RTHandle    halfResTarget;
+    RTHandle halfResTarget;
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {

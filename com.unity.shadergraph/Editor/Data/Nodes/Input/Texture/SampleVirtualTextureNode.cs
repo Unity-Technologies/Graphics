@@ -180,11 +180,12 @@ namespace UnityEditor.ShaderGraph
         }
 
         public SampleVirtualTextureNode() : this(false, false)
-        {}
+        { }
 
         public SampleVirtualTextureNode(bool isLod = false, bool noResolve = false)
         {
             name = "Sample Virtual Texture";
+            synonyms = new string[] { "buffer" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -346,10 +347,10 @@ namespace UnityEditor.ShaderGraph
             sb.TryAppendIndentation();
             sb.Append(outputVariableName); sb.Append(" = ");
             sb.Append("SampleVTLayerWithTextureType(");
-            sb.Append(propertiesName);          sb.Append(", ");
-            sb.Append(vtInputVariable);         sb.Append(", ");
-            sb.Append(infoVariable);            sb.Append(", ");
-            sb.Append(layerIndex.ToString());   sb.Append(");");
+            sb.Append(propertiesName); sb.Append(", ");
+            sb.Append(vtInputVariable); sb.Append(", ");
+            sb.Append(infoVariable); sb.Append(", ");
+            sb.Append(layerIndex.ToString()); sb.Append(");");
             sb.AppendNewLine();
         }
 
