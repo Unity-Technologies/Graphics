@@ -14,11 +14,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetHLSLVariableName(bool isSubgraphProperty)
         {
-            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
-            if (decl == HLSLDeclaration.HybridPerInstance)
-                return $"UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT({concretePrecision.ToShaderString()}{vectorDimension}, {referenceName})";
-            else
-                return referenceName;
+            return referenceName;
         }
 
         internal override string GetPropertyBlockString()

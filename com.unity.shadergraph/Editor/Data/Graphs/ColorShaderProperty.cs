@@ -26,12 +26,12 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             this.sgVersion = version;
         }
-        
+
         public override PropertyType propertyType => PropertyType.Color;
-        
+
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
-        
+
         internal string hdrTagString => colorMode == ColorMode.HDR ? "[HDR]" : "";
 
         internal override string GetPropertyBlockString()
@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             return $"Color_{objectId}";
         }
-        
+
         [SerializeField]
         ColorMode m_ColorMode;
 
@@ -89,15 +89,11 @@ namespace UnityEditor.ShaderGraph.Internal
                 vector4Value = propColor
             };
 
-        }        
+        }
 
         internal override string GetHLSLVariableName(bool isSubgraphProperty)
         {
-            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
-            if (decl == HLSLDeclaration.HybridPerInstance)
-                return $"UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT({concretePrecision.ToShaderString()}4, {referenceName})";
-            else
-                return referenceName;
+            return referenceName;
         }
 
         internal override ShaderInput Copy()
