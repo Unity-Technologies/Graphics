@@ -21,6 +21,8 @@
 
 #define VFX_FLT_MIN 1.175494351e-38
 #define VFX_EPSILON 1e-5
+#define VFX_INFINITY  (1.0f/0.0f)
+#define VFX_NAN       asfloat(~0u)
 
 #pragma warning(disable : 3557) // disable warning for auto unrolling of single iteration loop
 
@@ -488,11 +490,12 @@ float4x4 VFXInverseTRSMatrix(float4x4 input)
 
     //Multiply by reciprocal determinant
     float det = determinant((float3x3)input);
-    output *= rcp(det);
+    const bool degenerate = (det * det) < 1e-25 ; //Condition consistent with C++ InvertMatrix4x4_General3D()
+    output *= degenerate ? 0.0f :  rcp(det) ;
 
     // Do the translation part
     output._m03_m13_m23 = -mul((float3x3)output, input._m03_m13_m23);
-    output._m33 = 1.0f;
+    output._m33 = degenerate ? 0.0f : 1.0f;
 
     return output;
 }

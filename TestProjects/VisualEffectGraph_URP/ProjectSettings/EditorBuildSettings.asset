@@ -63,6 +63,9 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/015_FixedTime.unity
     guid: 30c9fe15b8e87e04f9a524d5c01aa810
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/018_CollisionScaledPrimitive.unity
+    guid: 237617e9908930149bc849c4ac0b9b8e
+  - enabled: 1
     path: Assets/GraphicsTests/100_Fog.unity
     guid: b288e123b6536de40bc86452b3811b20
   - enabled: 1

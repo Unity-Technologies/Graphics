@@ -2,10 +2,9 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Collision")]
-    class CollisionCylinder : CollisionBase
+    class CollisionCylinderDeprecated : CollisionBase
     {
-        public override string name { get { return "Collide with Cylinder"; } }
+        public override string name { get { return "Collide with Cylinder (deprecated)"; } }
 
         public class InputProperties
         {
@@ -43,6 +42,13 @@ bool collision = abs(dir.y) > halfHeight || sqrLength > cylinderRadius * cylinde
     n *= distToSide > distToCap ? float3(1,0,1) : float3(0,1,0);
 ";
             }
+        }
+
+        public override void Sanitize(int version)
+        {
+            var newCollisionCone = ScriptableObject.CreateInstance<CollisionCone>();
+            SanitizeHelper.MigrateBlockTShapeFromShape(newCollisionCone, this);
+            ReplaceModel(newCollisionCone, this);
         }
 
         public override string source
