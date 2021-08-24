@@ -793,6 +793,10 @@ namespace UnityEditor.VFX
 
                             if (graphCode.requirements.requiresScreenPosition)
                                 callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(VFXTransformPositionWorldToClip(i.VFX_VARYING_POSWS), _ProjectionParams.x);");
+                            if (graphCode.requirements.requiresNDCPosition)
+                                callSG.builder.AppendLine("INSG.NDCPosition = INSG.ScreenPosition.xy / INSG.ScreenPosition.w;");
+                            if (graphCode.requirements.requiresPixelPosition)
+                                callSG.builder.AppendLine("INSG.PixelPosition = INSG.NDCPosition.xy * _ScreenParams.xy;");
 
                             if (graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
                             {
