@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.LookDev
             };
 #else
             m_EnvironmentList.onItemChosen += obj =>
-                EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary ? [(int)obj]);
+                EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary?[(int)obj]);
 #endif
             m_NoEnvironmentList = new Label(Style.k_DragAndDropLibrary);
             m_NoEnvironmentList.style.flexGrow = 1;
@@ -217,10 +217,10 @@ namespace UnityEditor.Rendering.LookDev
             environmentListCreationToolbar.Add(m_LibraryField);
             environmentListCreationToolbar.Add(new ToolbarButton(()
                 => EnvironmentLibraryCreator.CreateAndAssignTo(m_LibraryField))
-                {
-                    text = "New",
-                    tooltip = "Create a new EnvironmentLibrary"
-                });
+            {
+                text = "New",
+                tooltip = "Create a new EnvironmentLibrary"
+            });
 
             m_EnvironmentContainer.Add(listContainer);
             m_EnvironmentContainer.Add(m_NoEnvironmentList);
@@ -306,7 +306,7 @@ namespace UnityEditor.Rendering.LookDev
 
         void EndDragging(DraggingContext context, Vector2 mouseWorldPosition)
         {
-            Environment environment = LookDev.currentContext.environmentLibrary ? [context.draggedIndex];
+            Environment environment = LookDev.currentContext.environmentLibrary?[context.draggedIndex];
             if (environment == null)
                 return;
 

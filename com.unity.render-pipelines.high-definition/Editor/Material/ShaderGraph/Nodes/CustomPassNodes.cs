@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new ScreenPositionMaterialSlot(kUvInputSlotId, kUvInputSlotName, kUvInputSlotName, ScreenSpaceType.Default));
-            AddSlot(new Vector4MaterialSlot(kColorOutputSlotId, kColorOutputSlotName, kColorOutputSlotName , SlotType.Output, Vector4.zero));
+            AddSlot(new Vector4MaterialSlot(kColorOutputSlotId, kColorOutputSlotName, kColorOutputSlotName, SlotType.Output, Vector4.zero));
 
             RemoveSlotsNameNotMatching(new[]
             {
@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new ScreenPositionMaterialSlot(kUvInputSlotId, kUvInputSlotName, kUvInputSlotName, ScreenSpaceType.Default));
-            AddSlot(new Vector1MaterialSlot(kDepthOutputSlotId, kDepthOutputSlotName, kDepthOutputSlotName , SlotType.Output, 0));
+            AddSlot(new Vector1MaterialSlot(kDepthOutputSlotId, kDepthOutputSlotName, kDepthOutputSlotName, SlotType.Output, 0));
 
             RemoveSlotsNameNotMatching(new[]
             {

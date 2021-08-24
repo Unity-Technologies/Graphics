@@ -13,7 +13,7 @@ ShaderGraph_BuiltIn_Lighting_OSX_OpenGLCore_playmode_mono_Linear_trunk:
     name: ShaderGraph_BuiltIn_Lighting on OSX_OpenGLCore_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::osx
-        image: graphics-foundation/mac-10.15:v0.0.1-672710
+        image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -32,6 +32,8 @@ ShaderGraph_BuiltIn_Lighting_OSX_OpenGLCore_playmode_mono_Linear_trunk:
          retries: 2
       -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/BuiltInGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Lighting --zero-tests-are-ok=1
          retries: 2
+    after:
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -44,7 +46,7 @@ ShaderGraph_BuiltIn_Lighting_OSX_OpenGLCore_playmode_mono_Linear_2021.2:
     name: ShaderGraph_BuiltIn_Lighting on OSX_OpenGLCore_playmode_mono_Linear on version 2021.2
     agent:
         type: Unity::VM::osx
-        image: graphics-foundation/mac-10.15:v0.0.1-672710
+        image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -63,6 +65,8 @@ ShaderGraph_BuiltIn_Lighting_OSX_OpenGLCore_playmode_mono_Linear_2021.2:
          retries: 2
       -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/BuiltInGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Lighting --zero-tests-are-ok=1
          retries: 2
+    after:
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -75,7 +79,7 @@ ShaderGraph_BuiltIn_Lighting_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION
     name: ShaderGraph_BuiltIn_Lighting on OSX_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
-        image: graphics-foundation/mac-10.15:v0.0.1-672710
+        image: graphics-foundation/mac-10.15:v0.1.0-841394
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -94,6 +98,8 @@ ShaderGraph_BuiltIn_Lighting_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION
          retries: 2
       -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/BuiltInGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Lighting --zero-tests-are-ok=1
          retries: 2
+    after:
+      -  command: python3 .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:

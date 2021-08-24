@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float specularOcclusion;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true, checkIsNormalized = true)]
+            [SurfaceDataAttributes(new string[] { "Normal", "Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3 normalWS;
 
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, checkIsNormalized = true)]
@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float perceptualRoughness;
 
             public Vector3 transmittance;
-            public float   rimTransmissionIntensity;
+            public float rimTransmissionIntensity;
 
             // Anisotropic
             [SurfaceDataAttributes("", true)]
@@ -117,8 +117,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Path tracer assumes this anisotropic fields generally exist (even though we don't use them).
             public Vector3 tangentWS;
             public Vector3 bitangentWS;
-            public float   roughnessT;
-            public float   roughnessB;
+            public float roughnessT;
+            public float roughnessB;
 
             // Kajiya kay
             public float secondaryPerceptualRoughness;
@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private Texture2D m_PreIntegratedAzimuthalScatteringLUT;
 
-        public Hair() {}
+        public Hair() { }
 
         public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
         {
