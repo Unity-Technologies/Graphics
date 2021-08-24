@@ -32,8 +32,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var refVolume = ProbeReferenceVolume.instance;
 
             // Do this only if the framesetting is on, otherwise there is some hidden cost
-            var refVolume = ProbeReferenceVolume.instance;
-
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
             {
                 ProbeReferenceVolume.RuntimeResources rr = refVolume.GetRuntimeResources();
