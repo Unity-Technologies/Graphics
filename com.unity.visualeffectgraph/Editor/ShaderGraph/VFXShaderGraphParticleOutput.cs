@@ -191,9 +191,7 @@ namespace UnityEditor.VFX
                 if (materialSettings.NeedsSync())
                 {
                     materialSettings.SyncFromMaterial(material);
-                    //TODOPAUL : Probably an incorrect integration, this invalidation is causing an infinite compilation loop
-                    //Check why m_PropertyMap remains empty
-                    //Invalidate(InvalidationCause.kSettingChanged);
+                    Invalidate(InvalidationCause.kSettingChanged);
                     return;
                 }
 
