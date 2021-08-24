@@ -547,7 +547,12 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
-        internal bool isInitialized => m_ProbeReferenceVolumeInit;
+
+        /// <summary>
+        ///  Returns whether the Probe Volume system has been initialized.
+        /// </summary>
+        /// <returns>Whether the Probe Volume system has been initialized.<returns>
+        public bool isInitialized => m_ProbeReferenceVolumeInit;
 
         struct InitInfo
         {

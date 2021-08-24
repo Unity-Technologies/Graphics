@@ -772,7 +772,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             }
 
-            if (IsAPVEnabled())
+            if (IsAPVEnabled() && ProbeReferenceVolume.instance.isInitialized)
             {
                 ProbeReferenceVolume.instance.Cleanup();
             }
