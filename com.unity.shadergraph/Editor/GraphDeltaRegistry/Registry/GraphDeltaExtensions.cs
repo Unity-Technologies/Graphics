@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph.Registry
 
         public static bool TestConnection(this GraphDelta.INodeReader dstNode, GraphDelta.IPortReader dstPort, GraphDelta.IPortReader srcPort, IRegistry registry)
         {
-            if (srcPort.GetFlags().isInput != dstPort.GetFlags().isInput)
+            if (srcPort.IsInput() != dstPort.IsInput())
             {
                 var key = dstNode.GetRegistryKey();
                 var builder = registry.GetBuilder(key);

@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.Registry
             {
                 concreteData.AddPort<GraphTypeDefinition>("A", true, true, registry);
                 concreteData.AddPort<GraphTypeDefinition>("B", true, true, registry);
-                concreteData.AddPort<GraphTypeDefinition>("Out", true, true, registry);
+                concreteData.AddPort<GraphTypeDefinition>("Out", false, true, registry);
                 // If we wanted to inline some defaults here for the ports, they would realistically need to come from a builder interface that works with ports.
                 // Data-wise ports/types/nodes are the same thing, but for API purposes, separating node builder (Nodes) and port builder (Types) seems necessary.
                 // -- Then a Node definition that works off of ITypeDefinitions can just walk the fields and promote them to ports for a CTOR or a Break style accessor.
