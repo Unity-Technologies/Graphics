@@ -69,16 +69,6 @@ Pass
     $splice(GraphDefines)
     $splice(DotsInstancingVars)
 
-    /*
-    FragInputsVFX structure isn't needed in URP (struct FragInputs doesn't exist)
-    #ifdef HAVE_VFX_MODIFICATION
-    struct FragInputsVFX
-    {
-        $splice(FragInputsVFX)
-    };
-    #endif
-    */
-
     // Includes
     $splice(CustomInterpolatorPreInclude)
 

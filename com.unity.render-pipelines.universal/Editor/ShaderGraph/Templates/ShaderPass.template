@@ -30,16 +30,6 @@ $splice(GraphKeywords)
 // Defines
 $features.graphVFX: #define HAVE_VFX_MODIFICATION
 
-/*
-FragInputsVFX structure isn't needed in URP (struct FragInputs doesn't exist)
-#ifdef HAVE_VFX_MODIFICATION
-struct FragInputsVFX
-{
-    $splice(FragInputsVFX)
-};
-#endif
-*/
-
 $Normal: #define _NORMALMAP 1
 $NormalDropOffTS: #define _NORMAL_DROPOFF_TS 1
 $NormalDropOffOS: #define _NORMAL_DROPOFF_OS 1
