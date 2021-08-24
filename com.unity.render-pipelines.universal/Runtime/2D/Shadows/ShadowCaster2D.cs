@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.Universal
             return m_ApplyToSortingLayers != null ? Array.IndexOf(m_ApplyToSortingLayers, layer) >= 0 : false;
         }
 
-       private void Awake()
+        private void Awake()
         {
             if (m_ApplyToSortingLayers == null)
                 m_ApplyToSortingLayers = SetDefaultSortingLayers();
@@ -186,14 +186,13 @@ namespace UnityEngine.Rendering.Universal
 
         protected void OnEnable()
         {
-            if (m_Mesh == null || m_InstanceId != GetInstanceID())
+            //if (m_Mesh == null || m_InstanceId != GetInstanceID())
             {
                 m_Mesh = new Mesh();
-
                 if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
-                    m_ShadowShape.CreateShape(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
-                
-                m_ShadowShape.GenerateShadowMesh(ref m_Mesh, ref m_ProjectedBoundingSphere);
+                    m_ShadowShape.SetShape(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
+
+                m_ShadowShape.GenerateShadowMesh(m_Mesh, ref m_ProjectedBoundingSphere, m_ShadowShapeContract);
                 m_InstanceId = GetInstanceID();
             }
 
@@ -218,9 +217,9 @@ namespace UnityEngine.Rendering.Universal
             if (rebuildMesh)
             {
                 if(m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
-                    m_ShadowShape.CreateShape(shapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
+                    m_ShadowShape.SetShape(shapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
 
-                m_ShadowShape.GenerateShadowMesh(m_ShadowShapeContract, ref m_Mesh, ref m_ProjectedBoundingSphere);
+                m_ShadowShape.GenerateShadowMesh(m_Mesh, ref m_ProjectedBoundingSphere, m_ShadowShapeContract);
             }
 
             m_PreviousShadowCasterGroup = m_ShadowCasterGroup;
@@ -249,22 +248,21 @@ namespace UnityEngine.Rendering.Universal
                     ShadowCasterGroup2DManager.RemoveGroup(this);
             }
 
+            //if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider && m_ShadowShapeProvider != null)
+            //{
+            //    IShadowShape2DProvider shadowShapeProvider = (IShadowShape2DProvider)m_ShadowShapeProvider;
+            //    shadowShapeProvider?.OnShapeObjectCreated(m_ShadowShape);
 
-            if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider && m_ShadowShapeProvider != null)
-            {
-                IShadowShape2DProvider shadowShapeProvider = (IShadowShape2DProvider)m_ShadowShapeProvider;
-                shadowShapeProvider?.OnShapeObjectCreated(m_ShadowShape);
-
-                m_ShadowShape.GetEdges(m_ShadowShapeContract, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
-                DrawDebugShadowShapes();
-            }
-            else if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
-            {
-                m_ShadowShape.CreateShape(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
-                //m_ShadowShape.CreateShape(0, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
+            //    m_ShadowShape.GetEdges(m_ShadowShapeContract, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
+            //    DrawDebugShadowShapes();
+            //}
+            //else if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
+            //{
+            //    m_ShadowShape.CreateShape(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
+            //    //m_ShadowShape.CreateShape(0, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
                 
-                DrawDebugShadowShapes();
-            }
+            //    DrawDebugShadowShapes();
+            //}
         }
 
         // Delete this code later...

@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void CreateShape<V,I>(V vertices, I indices, VertexValueGetter<V> vertexGetter, LengthGetter<V> vertexLengthGetter, IndexValueGetter<I> indexGetter, LengthGetter<I> indexLengthGetter, IShadowShape2DProvider.OutlineTopology outlineTopology)
+        private void SetShape<V,I>(V vertices, I indices, VertexValueGetter<V> vertexGetter, LengthGetter<V> vertexLengthGetter, IndexValueGetter<I> indexGetter, LengthGetter<I> indexLengthGetter, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
             if (m_ProvidedVertices.IsCreated)
                 m_ProvidedVertices.Dispose();
@@ -252,19 +252,19 @@ namespace UnityEngine.Rendering.Universal
                 m_ProvidedVertices[i] = vertexGetter(ref vertices, i);
         }
 
-        public override void CreateShape(Vector2[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
+        public override void SetShape(Vector2[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
-            CreateShape<Vector2[], ushort[]>(vertices, indices, Vector2ArrayGetter, Vector2ArrayLengthGetter, UShortArrayGetter, UShortArrayLengthGetter, outlineTopology);
+            SetShape<Vector2[], ushort[]>(vertices, indices, Vector2ArrayGetter, Vector2ArrayLengthGetter, UShortArrayGetter, UShortArrayLengthGetter, outlineTopology);
         }
 
-        public override void CreateShape(Vector3[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
+        public override void SetShape(Vector3[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
-            CreateShape<Vector3[], ushort[]>(vertices, indices, Vector3ArrayGetter, Vector3ArrayLengthGetter, UShortArrayGetter, UShortArrayLengthGetter, outlineTopology);
+            SetShape<Vector3[], ushort[]>(vertices, indices, Vector3ArrayGetter, Vector3ArrayLengthGetter, UShortArrayGetter, UShortArrayLengthGetter, outlineTopology);
         }
 
-        public override void CreateShape(NativeArray<Vector2> vertices, NativeArray<int> indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
+        public override void SetShape(NativeArray<Vector2> vertices, NativeArray<int> indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
-            CreateShape<NativeArray<Vector2>, NativeArray<int>>(vertices, indices, NativeArrayGetter<Vector2>, NativeArrayLengthGetter<Vector2>, NativeArrayGetter<int>, NativeArrayLengthGetter<int>, outlineTopology);
+            SetShape<NativeArray<Vector2>, NativeArray<int>>(vertices, indices, NativeArrayGetter<Vector2>, NativeArrayLengthGetter<Vector2>, NativeArrayGetter<int>, NativeArrayLengthGetter<int>, outlineTopology);
         }
 
         public override void UpdateVertices(Vector2[] vertices)
@@ -298,9 +298,9 @@ namespace UnityEngine.Rendering.Universal
             edgeMap.Dispose();
         }
 
-        public void GenerateShadowMesh(float contractionDistance, ref Mesh mesh, ref BoundingSphere boundingSphere)
+        public void GenerateShadowMesh(Mesh mesh, ref BoundingSphere boundingSphere, float contractionDistance)
         {
-
+            ShadowUtility.GenerateShadowMesh(mesh, m_ProvidedVertices, m_ProvidedEdges, contractionDistance);
         }
 
         ~ShadowShape2D()
