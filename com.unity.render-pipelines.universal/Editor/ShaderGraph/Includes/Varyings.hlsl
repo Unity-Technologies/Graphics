@@ -195,7 +195,6 @@ Varyings BuildVaryings(Attributes input)
     return output;
 }
 
-//TODOPAUL maybe Move it somewhere else
 SurfaceDescription BuildSurfaceDescription(Varyings varyings)
 {
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(varyings);
