@@ -30,14 +30,15 @@ $splice(GraphKeywords)
 // Defines
 $features.graphVFX: #define HAVE_VFX_MODIFICATION
 
-// TODO: Merge FragInputsVFX substruct with CustomInterpolators.
-// TODOPAUL: FragIinputsVFX is really specific to HDRP
+/*
+FragInputsVFX structure isn't needed in URP (struct FragInputs doesn't exist)
 #ifdef HAVE_VFX_MODIFICATION
 struct FragInputsVFX
 {
     $splice(FragInputsVFX)
 };
 #endif
+*/
 
 $Normal: #define _NORMALMAP 1
 $NormalDropOffTS: #define _NORMAL_DROPOFF_TS 1

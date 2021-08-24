@@ -54,8 +54,8 @@ Pass
     $Varyings.texCoord2:                    #define VARYINGS_NEED_TEXCOORD2
     $Varyings.texCoord3:                    #define VARYINGS_NEED_TEXCOORD3
     $Varyings.color:                        #define VARYINGS_NEED_COLOR
-    $Varyings.elementToWorld0:          #define VARYINGS_NEED_ELEMENT_TO_WORLD
-    $Varyings.worldToElement0:          #define VARYINGS_NEED_WORLD_TO_ELEMENT
+    $Varyings.elementToWorld0:              #define VARYINGS_NEED_ELEMENT_TO_WORLD
+    $Varyings.worldToElement0:              #define VARYINGS_NEED_WORLD_TO_ELEMENT
     $Varyings.vertexID:                     #define VARYINGS_NEED_VERTEXID
     $Varyings.viewDirectionWS:              #define VARYINGS_NEED_VIEWDIRECTION_WS
     $Varyings.bitangentWS:                  #define VARYINGS_NEED_BITANGENT_WS
@@ -69,13 +69,15 @@ Pass
     $splice(GraphDefines)
     $splice(DotsInstancingVars)
 
-    // TODO: Merge FragInputsVFX substruct with CustomInterpolators.
+    /*
+    FragInputsVFX structure isn't needed in URP (struct FragInputs doesn't exist)
     #ifdef HAVE_VFX_MODIFICATION
     struct FragInputsVFX
     {
         $splice(FragInputsVFX)
     };
     #endif
+    */
 
     // Includes
     $splice(CustomInterpolatorPreInclude)

@@ -4,7 +4,6 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
 #ifdef HAVE_VFX_MODIFICATION
-    //There isn't fragInput in URP N.B from TODOPAUL
     // FragInputs from VFX come from two places: Interpolator or CBuffer.
     $splice(VFXSetFragInputs)
 
