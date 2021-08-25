@@ -6,16 +6,16 @@ namespace UnityEditor.VFX.UI
 {
     class VFXAttachPanel : EditorWindow
     {
-        VFXView m_vfxView;
         TextField m_pickedObjectLabel;
         Button m_AttachButton;
         VisualElement m_VFXIcon;
+        VFXView m_VFXView;
 
         public Vector2 WindowSize { get; } = new Vector2(250, 60);
 
         protected void CreateGUI()
         {
-            m_vfxView = VFXViewWindow.currentWindow.graphView;
+            m_VFXView = VFXViewWindow.currentWindow.graphView;
             rootVisualElement.styleSheets.Add(VFXView.LoadStyleSheet("VFXAttachPanel"));
 
             var tpl = VFXView.LoadUXML("VFXAttachPanel");
@@ -31,50 +31,60 @@ namespace UnityEditor.VFX.UI
             rootVisualElement.Add(mainContainer);
         }
 
-        private void OnAttach()
+        void OnAttach()
         {
-            if (m_vfxView.attachedComponent != null)
+            if (m_VFXView.attachedComponent != null)
             {
-                m_vfxView.Detach();
+                m_VFXView.Detach();
             }
             else
             {
-                m_vfxView.AttachToSelection();
+                m_VFXView.AttachToSelection();
             }
 
             UpdateAttachedLabel();
         }
 
-        private void OnPickObject()
+        void OnPickObject()
         {
-            VFXPicker.Pick(m_vfxView.controller?.graph?.visualEffectResource.asset, SelectHandler);
+            VFXPicker.Pick(m_VFXView.controller?.graph?.visualEffectResource.asset, SelectHandler);
         }
 
-        private void SelectHandler(VisualEffect vfx)
+        void SelectHandler(VisualEffect vfx)
         {
-            if (m_vfxView.TryAttachTo(vfx))
+            if (vfx != null)
             {
-                UpdateAttachedLabel();
-            }
-        }
-
-        private void UpdateAttachedLabel()
-        {
-            var isAttached = m_vfxView.attachedComponent != null;
-            var selectedVisualEffect = Selection.activeGameObject?.GetComponent<VisualEffect>();
-            var isCompatible = selectedVisualEffect != null && selectedVisualEffect.visualEffectAsset == m_vfxView.controller.graph.visualEffectResource.asset;
-            m_AttachButton.SetEnabled(isAttached || isCompatible);
-            m_AttachButton.text = isAttached ? "Detach" : "Attach to selection";
-            m_pickedObjectLabel.value = m_vfxView.attachedComponent?.name;
-
-            if (isAttached)
-            {
-                m_VFXIcon.style.display = DisplayStyle.Flex;
-                m_VFXIcon.style.backgroundImage = VFXView.LoadImage(EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark" : "vfx_graph_icon_gray_light");
+                m_VFXView.TryAttachTo(vfx);
             }
             else
             {
-                m_VFXIcon.style.display = DisplayStyle.None;
+                m_VFXView.Detach();
+            }
+
+            UpdateAttachedLabel();
+        }
+
+        void UpdateAttachedLabel()
+        {
+            if (m_VFXView.controller?.graph != null)
+            {
+                var isAttached = m_VFXView.attachedComponent != null;
+                VisualEffect selectedVisualEffect = null;
+                Selection.activeGameObject?.TryGetComponent(out selectedVisualEffect);
+                var isCompatible = selectedVisualEffect != null && selectedVisualEffect.visualEffectAsset == m_VFXView.controller.graph.visualEffectResource.asset;
+                m_AttachButton.SetEnabled(isAttached || isCompatible);
+                m_AttachButton.text = isAttached ? "Detach" : "Attach to selection";
+                m_pickedObjectLabel.value = m_VFXView.attachedComponent?.name;
+
+                if (isAttached)
+                {
+                    m_VFXIcon.style.display = DisplayStyle.Flex;
+                    m_VFXIcon.style.backgroundImage = VFXView.LoadImage(EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark" : "vfx_graph_icon_gray_light");
+                }
+                else
+                {
+                    m_VFXIcon.style.display = DisplayStyle.None;
+                }
             }
         }
     }
