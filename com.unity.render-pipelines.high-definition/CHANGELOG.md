@@ -233,6 +233,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disable TAA sharpening on alpha channel.
 - Default black texture XR is now opaque (alpha = 1).
 - Changed default sidedness to double, when a mesh with a mix of single and double-sided materials is added to the ray tracing acceleration structure (case 1323451).
+- DoF is using now the min depth of the per-pixel MSAA samples when MSAA is enabled. This removes 1-pixel ringing from in focus objects (case 1347291).
 
 ## [10.3.0] - 2020-12-01
 

@@ -475,9 +475,23 @@ namespace UnityEditor.VFX
             foreach (var expression in expressionPerSpawnToProcess)
                 CollectParentExpressionRecursively(expression, allExpressions);
 
-            var expressionIndexes = allExpressions.Select(o => graph.GetFlattenedIndex(o)).OrderBy(i => i);
-            var processChunk = new List<ProcessChunk>();
+            var expressionIndexes = allExpressions.
+                Where(o => o.Is(VFXExpression.Flags.PerSpawn)) //Filter only per spawn part of graph
+                .Select(o => graph.GetFlattenedIndex(o))
+                .OrderBy(i => i);
 
+            //Additional verification of appropriate expected expression index
+            //In flatten expression, all common expressions are sorted first, then, we have chunk of additional preprocess
+            //We aren't supposed to happen a chunk which is running common expression here.
+            if (expressionIndexes.Any(i => i < graph.CommonExpressionCount))
+            {
+                var expressionInCommon = allExpressions
+                    .Where(o => graph.GetFlattenedIndex(o) < graph.CommonExpressionCount)
+                    .OrderBy(o => graph.GetFlattenedIndex(o));
+                Debug.LogErrorFormat("Unexpected preprocess expression detected : {0} (count)", expressionInCommon.Count());
+            }
+
+            var processChunk = new List<ProcessChunk>();
             int previousIndex = int.MinValue;
             foreach (var indice in expressionIndexes)
             {
@@ -701,7 +715,7 @@ namespace UnityEditor.VFX
                 new { eventName = VisualEffectAsset.StopEventName, playSystems = new List<uint>(), stopSystems = allStopNotLinked },
             }.ToList();
 
-            var specialNames = new HashSet<string>(new string[] {VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName});
+            var specialNames = new HashSet<string>(new string[] { VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName });
 
 
             var events = contexts.Where(o => o.contextType == VFXContextType.Event);
@@ -914,7 +928,7 @@ namespace UnityEditor.VFX
         {
             private VFXExpressionMapper mapper;
 
-            public VFXImplicitContextOfExposedExpression() : base(VFXContextType.None, VFXDataType.None, VFXDataType.None) {}
+            public VFXImplicitContextOfExposedExpression() : base(VFXContextType.None, VFXDataType.None, VFXDataType.None) { }
 
             private static void CollectExposedExpression(List<VFXExpression> expressions, VFXSlot slot)
             {
@@ -953,7 +967,7 @@ namespace UnityEditor.VFX
             var property = typeof(VisualEffectResource).GetProperty("compileInitialVariants");
             if (property != null)
             {
-                return delegate(VisualEffectResource rsc, bool value)
+                return delegate (VisualEffectResource rsc, bool value)
                 {
                     property.SetValue(rsc, value, null);
                 };
@@ -984,7 +998,7 @@ namespace UnityEditor.VFX
                     m_Graph.visualEffectResource.ClearRuntimeData();
 
                 m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
+                m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
                 return;
             }
 
@@ -1180,7 +1194,7 @@ namespace UnityEditor.VFX
                     m_Graph.visualEffectResource.ClearRuntimeData();
 
                 m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
+                m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
             }
             finally
             {

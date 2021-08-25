@@ -48,7 +48,6 @@ MonoBehaviour:
   m_ImportDependencies: []
   m_GraphVersion: 6
   m_ResourceVersion: 1
-  m_saved: 1
   m_SubgraphDependencies:
   - {fileID: 5371698748595113096, guid: 0faa6012b1dc5a54482fe2461828b05c, type: 3}
   - {fileID: 5371698745253816930, guid: f41c031954f42aa4dbdc514c975a0079, type: 3}

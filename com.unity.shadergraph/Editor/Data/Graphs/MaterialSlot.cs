@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     abstract class MaterialSlot : JsonObject
     {
-        const string k_NotInit =  "Not Initilaized";
+        const string k_NotInit = "Not Initilaized";
 
         [SerializeField]
         int m_Id;
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph
 
         bool m_HasError;
 
-        protected MaterialSlot() {}
+        protected MaterialSlot() { }
 
         protected MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
         {
@@ -323,7 +323,7 @@ namespace UnityEditor.ShaderGraph
 
         // this tracks old CustomFunctionNode slots that are expecting the old bare resource inputs
         // rather than the new structure-based inputs
-        internal virtual bool bareResource { get { return false; } set {} }
+        internal virtual bool bareResource { get { return false; } set { } }
 
         public virtual void CopyDefaultValue(MaterialSlot other)
         {

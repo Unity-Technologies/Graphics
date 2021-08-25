@@ -9,7 +9,8 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Contains properties and helper functions that you can use when rendering.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public static class RenderingUtils
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public static class RenderingUtils
     {
         static List<ShaderTagId> m_LegacyShaderPassNames = new List<ShaderTagId>()
         {
@@ -91,7 +92,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         s_ErrorMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/FallbackError"));
                     }
-                    catch {}
+                    catch { }
                 }
 
                 return s_ErrorMaterial;

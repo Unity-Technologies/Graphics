@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal sealed class LeakMitigationModeParameter : VolumeParameter<LeakMitigationMode>
         {
             public LeakMitigationModeParameter(LeakMitigationMode value, bool overrideState = false)
-                : base(value, overrideState) {}
+                : base(value, overrideState) { }
         }
 
         [SerializeField, Tooltip("Selects the heuristic used for mitigating light leaking and self-shadowing artifacts when sampling from the probe volumes.")]

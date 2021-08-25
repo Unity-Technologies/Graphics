@@ -3,14 +3,14 @@ float4 GetFlipbookMotionVectors(VFX_VARYING_PS_INPUTS i, float4 uvs, float blend
     float4 mvs = (float4)0;
 #if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)
     #if USE_FLIPBOOK_ARRAY_LAYOUT
-    float2 mvPrev = -(SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.xy, uvs.z).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * blend;
-    float2 mvNext = (SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.xy, uvs.w).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * (1.0 - blend);
+    float2 mvPrev = SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.xy, uvs.z).rg * 2 - 1;
+    float2 mvNext = SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.xy, uvs.w).rg * 2 - 1;
     #else
-    float2 mvPrev = -(SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.xy).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * blend;
-    float2 mvNext = (SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.zw).rg * 2 - 1) * i.VFX_VARYING_MOTIONVECTORSCALE * (1.0-blend);
+    float2 mvPrev = SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.xy).rg * 2 - 1;
+    float2 mvNext = SampleTexture(VFX_SAMPLER(motionVectorMap), uvs.zw).rg * 2 - 1;
     #endif
-    mvs.xy = mvPrev;
-    mvs.zw = mvNext;
+    mvs.xy = mvPrev * (-i.VFX_VARYING_MOTIONVECTORSCALE * blend);
+    mvs.zw = mvNext * (i.VFX_VARYING_MOTIONVECTORSCALE * (1.0 - blend));
 #endif
     return mvs;
 }
@@ -129,7 +129,7 @@ float4 VFXGetTextureColorWithProceduralUV(VFXSampler2DArray s, VFX_VARYING_PS_IN
 
 float3 VFXGetTextureNormal(VFXSampler2D s,float2 uv)
 {
-    float4 packedNormal = s.t.Sample(s.s,uv);
+    float4 packedNormal = SampleTexture(s, uv);
     packedNormal.w *= packedNormal.x;
     float3 normal;
     normal.xy = packedNormal.wy * 2.0 - 1.0;

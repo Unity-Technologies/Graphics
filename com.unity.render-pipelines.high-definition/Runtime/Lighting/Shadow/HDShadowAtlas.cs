@@ -57,21 +57,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected List<HDShadowRequest> m_ShadowRequests = new List<HDShadowRequest>();
 
-        public int                  width { get; private set; }
-        public int                  height  { get; private set; }
+        public int width { get; private set; }
+        public int height { get; private set; }
 
-        Material                    m_ClearMaterial;
-        LightingDebugSettings       m_LightingDebugSettings;
-        FilterMode                  m_FilterMode;
-        DepthBits                   m_DepthBufferBits;
-        RenderTextureFormat         m_Format;
-        string                      m_Name;
-        string                      m_MomentName;
-        string                      m_MomentCopyName;
-        string                      m_IntermediateSummedAreaName;
-        string                      m_SummedAreaName;
-        int                         m_AtlasShaderID;
-        RenderPipelineResources     m_RenderPipelineResources;
+        Material m_ClearMaterial;
+        LightingDebugSettings m_LightingDebugSettings;
+        FilterMode m_FilterMode;
+        DepthBits m_DepthBufferBits;
+        RenderTextureFormat m_Format;
+        string m_Name;
+        string m_MomentName;
+        string m_MomentCopyName;
+        string m_IntermediateSummedAreaName;
+        string m_SummedAreaName;
+        int m_AtlasShaderID;
+        RenderPipelineResources m_RenderPipelineResources;
 
         // Moment shadow data
         BlurAlgorithm m_BlurAlgorithm;
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // if false we filter only for dynamic)
         protected bool m_IsACacheForShadows;
 
-        public HDShadowAtlas() {}
+        public HDShadowAtlas() { }
 
         public virtual void InitAtlas(HDShadowAtlasInitParameters initParams)
         {
@@ -133,18 +133,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct RenderShadowsParameters
         {
-            public ShaderVariablesGlobal    globalCB;
-            public List<HDShadowRequest>    shadowRequests;
-            public Material                 clearMaterial;
-            public bool                     debugClearAtlas;
-            public int                      atlasShaderID;
-            public BlurAlgorithm            blurAlgorithm;
+            public ShaderVariablesGlobal globalCB;
+            public List<HDShadowRequest> shadowRequests;
+            public Material clearMaterial;
+            public bool debugClearAtlas;
+            public int atlasShaderID;
+            public BlurAlgorithm blurAlgorithm;
 
             // EVSM
-            public ComputeShader            evsmShadowBlurMomentsCS;
+            public ComputeShader evsmShadowBlurMomentsCS;
 
             // IM
-            public ComputeShader            imShadowBlurMomentsCS;
+            public ComputeShader imShadowBlurMomentsCS;
         }
 
         RenderShadowsParameters PrepareRenderShadowsParameters(in ShaderVariablesGlobal globalCB)
@@ -166,13 +166,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void RenderShadows(in RenderShadowsParameters  parameters,
-            RTHandle                    atlasRenderTexture,
-            ShadowDrawingSettings       shadowDrawSettings,
-            ScriptableRenderContext     renderContext,
-            bool                        renderingOnAShadowCache,
+        static void RenderShadows(in RenderShadowsParameters parameters,
+            RTHandle atlasRenderTexture,
+            ShadowDrawingSettings shadowDrawSettings,
+            ScriptableRenderContext renderContext,
+            bool renderingOnAShadowCache,
             ConstantBuffer<ShaderVariablesGlobal> constantBuffer,
-            CommandBuffer               cmd)
+            CommandBuffer cmd)
         {
             cmd.SetRenderTarget(atlasRenderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 

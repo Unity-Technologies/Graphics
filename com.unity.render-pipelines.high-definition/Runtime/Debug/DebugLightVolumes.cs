@@ -52,15 +52,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public struct RenderLightVolumesParameters
         {
-            public HDCamera         hdCamera;
-            public CullingResults   cullResults;
-            public Material         debugLightVolumeMaterial;
-            public ComputeShader    debugLightVolumeCS;
-            public int              debugLightVolumeKernel;
-            public int              maxDebugLightCount;
-            public float            borderRadius;
-            public Texture2D        colorGradientTexture;
-            public bool             lightOverlapEnabled;
+            public HDCamera hdCamera;
+            public CullingResults cullResults;
+            public Material debugLightVolumeMaterial;
+            public ComputeShader debugLightVolumeCS;
+            public int debugLightVolumeKernel;
+            public int maxDebugLightCount;
+            public float borderRadius;
+            public Texture2D colorGradientTexture;
+            public bool lightOverlapEnabled;
         }
 
         public RenderLightVolumesParameters PrepareLightVolumeParameters(HDCamera hdCamera, LightingDebugSettings lightDebugSettings, CullingResults cullResults)
@@ -82,15 +82,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        public static void RenderLightVolumes(CommandBuffer                   cmd,
+        public static void RenderLightVolumes(CommandBuffer cmd,
             in RenderLightVolumesParameters parameters,
-            RenderTargetIdentifier[]        accumulationMRT,                                                                         // [0] = m_LightCountBuffer, [1] m_ColorAccumulationBuffer
-            RTHandle                        lightCountBuffer,
-            RTHandle                        colorAccumulationBuffer,
-            RTHandle                        debugLightVolumesTexture,
-            RTHandle                        depthBuffer,
-            RTHandle                        destination,
-            MaterialPropertyBlock           mpb)
+            RenderTargetIdentifier[] accumulationMRT,                                                                         // [0] = m_LightCountBuffer, [1] m_ColorAccumulationBuffer
+            RTHandle lightCountBuffer,
+            RTHandle colorAccumulationBuffer,
+            RTHandle debugLightVolumesTexture,
+            RTHandle depthBuffer,
+            RTHandle destination,
+            MaterialPropertyBlock mpb)
         {
             if (parameters.lightOverlapEnabled)
             {

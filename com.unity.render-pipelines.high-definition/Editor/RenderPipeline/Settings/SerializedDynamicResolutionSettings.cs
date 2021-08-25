@@ -19,13 +19,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             this.root = root;
 
-            enabled                  = root.Find((GlobalDynamicResolutionSettings s) => s.enabled);
-            maxPercentage            = root.Find((GlobalDynamicResolutionSettings s) => s.maxPercentage);
-            minPercentage            = root.Find((GlobalDynamicResolutionSettings s) => s.minPercentage);
-            dynamicResType           = root.Find((GlobalDynamicResolutionSettings s) => s.dynResType);
+            enabled = root.Find((GlobalDynamicResolutionSettings s) => s.enabled);
+            maxPercentage = root.Find((GlobalDynamicResolutionSettings s) => s.maxPercentage);
+            minPercentage = root.Find((GlobalDynamicResolutionSettings s) => s.minPercentage);
+            dynamicResType = root.Find((GlobalDynamicResolutionSettings s) => s.dynResType);
             softwareUpsamplingFilter = root.Find((GlobalDynamicResolutionSettings s) => s.upsampleFilter);
-            forcePercentage          = root.Find((GlobalDynamicResolutionSettings s) => s.forceResolution);
-            forcedPercentage         = root.Find((GlobalDynamicResolutionSettings s) => s.forcedPercentage);
+            forcePercentage = root.Find((GlobalDynamicResolutionSettings s) => s.forceResolution);
+            forcedPercentage = root.Find((GlobalDynamicResolutionSettings s) => s.forcedPercentage);
         }
     }
 }

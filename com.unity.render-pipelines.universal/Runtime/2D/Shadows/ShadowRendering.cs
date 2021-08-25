@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_ShadowRadiusID = Shader.PropertyToID("_ShadowRadius");
 
         private static RenderTargetHandle[] m_RenderTargets = null;
-        public static  uint maxTextureCount { get; private set; }
+        public static uint maxTextureCount { get; private set; }
 
         public static void InitializeBudget(uint maxTextureCount)
         {

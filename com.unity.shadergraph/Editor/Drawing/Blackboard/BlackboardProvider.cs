@@ -213,7 +213,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             var shaderInputTypes = TypeCache.GetTypesWithAttribute<BlackboardInputInfo>().ToList();
 
             // Sort the ShaderInput by priority using the BlackboardInputInfo attribute
-            shaderInputTypes.Sort((s1, s2) => {
+            shaderInputTypes.Sort((s1, s2) =>
+            {
                 var info1 = Attribute.GetCustomAttribute(s1, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
                 var info2 = Attribute.GetCustomAttribute(s2, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
 
@@ -371,7 +372,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 {
                     var icon = (m_Graph.isSubGraph || keyword.isExposed) ? exposedIcon : null;
 
-                    string typeText = keyword.keywordType.ToString()  + " Keyword";
+                    string typeText = keyword.keywordType.ToString() + " Keyword";
                     typeText = keyword.isBuiltIn ? "Built-in " + typeText : typeText;
 
                     field = new BlackboardFieldView(m_Graph, keyword, icon, keyword.displayName, typeText) { userData = keyword };

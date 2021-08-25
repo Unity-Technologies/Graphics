@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: MaximumLODLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "Sets the Maximum Level Of Detail Level or the Offset on it.")]
         MaximumLODLevel = 63,
         /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
-        [FrameSettingsField(0,  displayedName: "Quality Level", type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 102, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
+        [FrameSettingsField(0, displayedName: "Quality Level", type: FrameSettingsFieldAttribute.DisplayType.Others, customOrderInGroup: 102, positiveDependencies: new[] { MaximumLODLevelMode }, tooltip: "The quality level to use when fetching the value from the quality settings.")]
         MaximumLODLevelQualityLevel = 65,
         /// <summary>The quality level to use when fetching the value from the quality settings.</summary>
         [FrameSettingsField(0, autoName: MaterialQualityLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, tooltip: "The material quality level to use.")]
@@ -449,8 +449,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.MSAA
             }),
             lodBias = 1,
-            sssQualityMode        = SssQualityMode.FromQualitySettings,
-            sssQualityLevel       = 0,
+            sssQualityMode = SssQualityMode.FromQualitySettings,
+            sssQualityLevel = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
         };
         internal static FrameSettings NewDefaultRealtimeReflectionProbe() => new FrameSettings()
@@ -507,8 +507,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
-            sssQualityMode        = SssQualityMode.FromQualitySettings,
-            sssQualityLevel       = 0,
+            sssQualityMode = SssQualityMode.FromQualitySettings,
+            sssQualityLevel = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
         };
         internal static FrameSettings NewDefaultCustomOrBakeReflectionProbe() => new FrameSettings()
@@ -562,8 +562,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
-            sssQualityMode        = SssQualityMode.FromQualitySettings,
-            sssQualityLevel       = 0,
+            sssQualityMode = SssQualityMode.FromQualitySettings,
+            sssQualityLevel = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
         };
 
@@ -678,7 +678,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var source = hdrp.currentPlatformRenderPipelineSettings.sssSampleBudget;
             switch (sssQualityMode)
             {
-                case SssQualityMode.FromQualitySettings:     return source[sssQualityLevel];
+                case SssQualityMode.FromQualitySettings: return source[sssQualityLevel];
                 case SssQualityMode.OverrideQualitySettings: return sssCustomSampleBudget;
                 default: throw new ArgumentOutOfRangeException(nameof(maximumLODLevelMode));
             }
@@ -873,18 +873,18 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="a">First frame settings.</param>
         /// <param name="b">Second frame settings.</param>
         /// <returns>True if both settings are equal.</returns>
-        public static bool operator==(FrameSettings a, FrameSettings b)
-            => a.bitDatas                    == b.bitDatas
-            && a.sssQualityMode              == b.sssQualityMode
-            && a.sssQualityLevel             == b.sssQualityLevel
-            && a.sssCustomSampleBudget       == b.sssCustomSampleBudget
-            && a.lodBias                     == b.lodBias
-            && a.lodBiasMode                 == b.lodBiasMode
-            && a.lodBiasQualityLevel         == b.lodBiasQualityLevel
-            && a.maximumLODLevel             == b.maximumLODLevel
-            && a.maximumLODLevelMode         == b.maximumLODLevelMode
+        public static bool operator ==(FrameSettings a, FrameSettings b)
+            => a.bitDatas == b.bitDatas
+            && a.sssQualityMode == b.sssQualityMode
+            && a.sssQualityLevel == b.sssQualityLevel
+            && a.sssCustomSampleBudget == b.sssCustomSampleBudget
+            && a.lodBias == b.lodBias
+            && a.lodBiasMode == b.lodBiasMode
+            && a.lodBiasQualityLevel == b.lodBiasQualityLevel
+            && a.maximumLODLevel == b.maximumLODLevel
+            && a.maximumLODLevelMode == b.maximumLODLevelMode
             && a.maximumLODLevelQualityLevel == b.maximumLODLevelQualityLevel
-            && a.materialQuality             == b.materialQuality;
+            && a.materialQuality == b.materialQuality;
 
         /// <summary>
         /// Inequality operator between two FrameSettings. Return `true` if different. (comparison of content).
@@ -892,7 +892,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="a">First frame settings.</param>
         /// <param name="b">Second frame settings.</param>
         /// <returns>True if settings are not equal.</returns>
-        public static bool operator!=(FrameSettings a, FrameSettings b) => !(a == b);
+        public static bool operator !=(FrameSettings a, FrameSettings b) => !(a == b);
 
         /// <summary>
         /// Equality operator between two FrameSettings. Return `true` if equivalent. (comparison of content).

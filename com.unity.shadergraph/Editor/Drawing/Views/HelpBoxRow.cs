@@ -19,9 +19,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         public HelpBoxRow(MessageType type)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/HelpBoxRow"));
-            VisualElement container = new VisualElement {name = "container"};
-            m_ContentContainer = new VisualElement { name = "content"  };
-            m_LabelContainer = new VisualElement {name = "label" };
+            VisualElement container = new VisualElement { name = "container" };
+            m_ContentContainer = new VisualElement { name = "content" };
+            m_LabelContainer = new VisualElement { name = "label" };
 
             switch (type)
             {
@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             string depString = $"The {deprecatedTypeName} has new updates. This version maintains the old behavior. " +
                 $"If you update a {deprecatedTypeName}, you can use Undo to change it back. See the {deprecatedTypeName} " +
                 $"documentation for more information.";
-            Button upgradeButton = new Button(upgradeAction) { text = "Update" , tooltip = depString};
+            Button upgradeButton = new Button(upgradeAction) { text = "Update", tooltip = depString };
             if (!ShaderGraphPreferences.allowDeprecatedBehaviors)
             {
                 HelpBoxRow help = new HelpBoxRow(MessageType.Warning);

@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class DynamicResolutionHandler
     {
-        private bool  m_Enabled;
+        private bool m_Enabled;
         private float m_MinScreenFraction;
         private float m_MaxScreenFraction;
         private float m_CurrentFraction;
@@ -348,7 +348,7 @@ namespace UnityEngine.Rendering
         /// <returns>True: Hardware dynamic resolution is enabled</returns>
         public bool HardwareDynamicResIsEnabled()
         {
-            return !m_ForceSoftwareFallback && m_CurrentCameraRequest && m_Enabled &&  type == DynamicResolutionType.Hardware;
+            return !m_ForceSoftwareFallback && m_CurrentCameraRequest && m_Enabled && type == DynamicResolutionType.Hardware;
         }
 
         /// <summary>
