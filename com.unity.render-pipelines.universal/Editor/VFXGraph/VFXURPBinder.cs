@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.URP
                 StructFields.Attributes.indices,
 
                 // VertexID without the Preprocessor.
-                new FieldDescriptor(StructFields.Attributes.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint, "SV_VertexID")
+                new FieldDescriptor(StructFields.Attributes.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint, "VERTEXID_SEMANTIC")
             }
         };
 
@@ -187,6 +187,10 @@ namespace UnityEditor.VFX.URP
                 },
 
                 fieldDependencies = ElementSpaceDependencies,
+                pragmasReplacement = new (PragmaDescriptor, PragmaDescriptor)[]
+                {
+                    ( Pragma.Vertex("vert"), Pragma.Vertex("VertVFX") )
+                },
                 useFragInputs = false
             };
         }

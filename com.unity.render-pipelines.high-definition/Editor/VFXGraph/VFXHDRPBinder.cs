@@ -130,7 +130,7 @@ namespace UnityEditor.VFX.HDRP
                 HDStructFields.AttributesMesh.indices,
 
                 // VertexID without the Preprocessor.
-                new FieldDescriptor(HDStructFields.AttributesMesh.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint, "SV_VertexID")
+                new FieldDescriptor(HDStructFields.AttributesMesh.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint, "VERTEXID_SEMANTIC")
             }
         };
 

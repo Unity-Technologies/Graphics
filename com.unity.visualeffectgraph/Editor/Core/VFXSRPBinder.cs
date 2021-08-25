@@ -18,6 +18,7 @@ namespace UnityEditor.VFX
         {
             public StructCollection structs;
             public DependencyCollection fieldDependencies;
+            public (PragmaDescriptor oldDesc, PragmaDescriptor newDesc)[] pragmasReplacement;
             public bool useFragInputs;
         }
 

@@ -231,6 +231,25 @@ namespace UnityEditor.VFX
             return new AdditionalCommandDescriptor("FragInputsVFX", builder.ToString());
         }
 
+        static PragmaCollection ApplyPragmaReplacement(PragmaCollection pragmas, VFXSRPBinder.ShaderGraphBinder shaderGraphSRPInfo)
+        {
+            if (shaderGraphSRPInfo.pragmasReplacement != null)
+            {
+                var overridenPragmas = new PragmaCollection();
+                foreach (var pragma in pragmas)
+                {
+                    var currentPragma = pragma;
+                    var replacement = shaderGraphSRPInfo.pragmasReplacement.FirstOrDefault(o => o.oldDesc.value == pragma.descriptor.value);
+                    if (!string.IsNullOrEmpty(replacement.newDesc.value))
+                        currentPragma = new PragmaCollection.Item(replacement.newDesc, pragma.fieldConditions);
+
+                    overridenPragmas.Add(currentPragma.descriptor, currentPragma.fieldConditions);
+                }
+                return overridenPragmas;
+            }
+            return pragmas;
+        }
+
         internal static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXContextCompiledData data)
         {
             var srp = VFXLibrary.currentSRPBinder;
@@ -279,6 +298,8 @@ namespace UnityEditor.VFX
             for (int i = 0; i < passes.Length; i++)
             {
                 var passDescriptor = passes[i].descriptor;
+
+                passDescriptor.pragmas = ApplyPragmaReplacement(passDescriptor.pragmas, shaderGraphSRPInfo);
 
                 // Warning: We are replacing the struct provided in the regular pass. It is ok as for now the VFX editor don't support
                 // tessellation or raytracing

@@ -1,10 +1,13 @@
 // Output Type: Planar Primitive (Triangle, Quad, Octagon)
+//TODOPAUL : Factorize this file with HDRP moving it in VFX
 
 #if defined(HAS_STRIPS) && !defined(VFX_PRIMITIVE_QUAD)
 #error VFX_PRIMITIVE_QUAD must be defined when HAS_STRIPS is.
 #endif
 
 #define VFX_NON_UNIFORM_SCALE VFX_LOCAL_SPACE
+
+#define HAVE_VFX_PLANAR_PRIMITIVE
 
 bool GetMeshAndElementIndex(inout Attributes input, inout AttributesElement element)
 {
