@@ -146,7 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
 
         [InitializeOnLoadMethod]
-        static void Bobby()
+        static void InitializeEntryList()
         {
             if (EditorWindow.HasOpenInstances<HDWizard>())
             {
@@ -228,7 +228,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal void ReBuildEntryList()
         {
-            m_Entries = null;
             m_Entries = BuildEntryList();
         }
 
