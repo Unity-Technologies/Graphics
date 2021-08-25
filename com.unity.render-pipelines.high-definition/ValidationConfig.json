@@ -26,6 +26,17 @@
 				]
 			},
 			{
+				"Targets": "+PS5",
+				"Files":
+				[
+					"Editor/Material/ShaderGraph/HDTarget.cs"
+				],
+				"Patterns":
+				[
+					"Pragma\\.OnlyRenderers.*Platform\\.PS5"
+				]
+			},
+			{
 				"Targets": "+XboxOne",
 				"Files":
 				[
