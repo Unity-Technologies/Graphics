@@ -34,13 +34,25 @@ VFXView #no-asset *
 #lock-auto-attach
 {
     width: 16px;
-    height: 16px;
-    padding:0 4px;
+    height: 17px; /* Don't know why the real height is one pixel less than specified here */
+    padding:1px 0 4px 0;
     align-self: center;
     border-left-width: 0;
+    background-image: var(--unity-icons-lock);
+}
+
+#lock-auto-attach:checked
+{
+    background-color: var(--unity-colors-toolbar_button-background-checked);
+    background-image: var(--unity-icons-lock-checked);
 }
 
 #attach-toolbar-button
 {
     border-right-width: 0;
+}
+
+#attach-toolbar-button.checked
+{
+    background-color: var(--unity-colors-toolbar_button-background-checked);
 }
