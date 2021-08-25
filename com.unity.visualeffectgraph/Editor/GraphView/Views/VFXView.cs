@@ -373,6 +373,7 @@ namespace UnityEditor.VFX.UI
 
         private bool m_IsRuntimeMode = false;
         private bool m_ForceShaderValidation = false;
+        internal const string _EDITOR_PREFS_VFX_AUTO_SAVE = "VFXGraph.AutoSave";
 
 
         public static StyleSheet LoadStyleSheet(string text)
@@ -436,10 +437,11 @@ namespace UnityEditor.VFX.UI
 
             m_Toolbar = new UnityEditor.UIElements.Toolbar();
 
+            var autoCompile = EditorPrefs.GetBool(_EDITOR_PREFS_VFX_AUTO_SAVE, true);
             var toggleAutoCompile = new ToolbarToggle();
             toggleAutoCompile.text = "Auto";
             toggleAutoCompile.style.unityTextAlign = TextAnchor.MiddleRight;
-            toggleAutoCompile.SetValueWithoutNotify(true);
+            toggleAutoCompile.SetValueWithoutNotify(autoCompile);
             toggleAutoCompile.RegisterCallback<ChangeEvent<bool>>(OnToggleCompile);
             m_Toolbar.Add(toggleAutoCompile);
 
@@ -1414,6 +1416,7 @@ namespace UnityEditor.VFX.UI
         void OnToggleCompile(ChangeEvent<bool> e)
         {
             VFXViewWindow.currentWindow.autoCompile = !VFXViewWindow.currentWindow.autoCompile;
+            EditorPrefs.SetBool(_EDITOR_PREFS_VFX_AUTO_SAVE, VFXViewWindow.currentWindow.autoCompile);
         }
 
         void OnCompile()
