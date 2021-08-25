@@ -15,10 +15,16 @@
 
 #define UNINITIALIZED_GI float3((1 << 11), 1, (1 << 10))
 
-bool IsUninitializedGI(float3 bakedGI)
+bool IsUninitializedGI(BuiltinData builtinData)
 {
-    const float3 unitializedGI = UNINITIALIZED_GI;
-    return all(bakedGI == unitializedGI);
+    return all(builtinData.bakeDiffuseLighting == UNINITIALIZED_GI);
+}
+
+bool TryClearUninitializedGI(inout BuiltinData builtinData)
+{
+    bool isUninitializedGI = IsUninitializedGI(builtinData);
+    builtinData.bakeDiffuseLighting = isUninitializedGI ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
+    return isUninitializedGI;
 }
 #endif
 

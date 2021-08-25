@@ -360,8 +360,6 @@ float3 ProbeVolumeComputeTexel3DFromBilateralFilter(
     float3 obbExtents,
     float3 obbCenter)
 {
-    if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_NORMAL_BIAS) { return probeVolumeTexel3D; }
-
     float3 probeVolumeTexel3DMin = floor(probeVolumeTexel3D - 0.5) + 0.5;
 
     float weights[8]; for (uint i = 0; i < 8; ++i) { weights[i] = 1.0; }
@@ -420,11 +418,6 @@ float3 ProbeVolumeComputeTexel3DFromBilateralFilter(
         );
     }
 #endif
-    else
-    {
-        // Fallback to no bilateral filter if _ProbeVolumeLeakMitigationMode is configured to a mode unsupported in ShaderConfig.
-        return probeVolumeTexel3D;
-    }
 
     ProbeVolumeEvaluateAndAccumulateTrilinearWeights(weights, probeVolumeTexel3D, probeVolumeTexel3DMin);
 
