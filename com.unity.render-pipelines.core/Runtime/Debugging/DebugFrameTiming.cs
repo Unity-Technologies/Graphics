@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering
             if (timing.Length > 0)
             {
                 sample.FullFrameTime = (float)timing.First().cpuFrameTime;
-                sample.FramesPerSecond = 1000f / sample.FullFrameTime;
+                sample.FramesPerSecond = sample.FullFrameTime > 0f ? 1000f / sample.FullFrameTime : 0f;
                 sample.MainThreadCPUFrameTime = (float)timing.First().cpuMainThreadFrameTime;
                 sample.MainThreadCPUPresentWaitTime = (float)timing.First().cpuMainThreadPresentWaitTime;
                 sample.RenderThreadCPUFrameTime = (float)timing.First().cpuRenderThreadFrameTime;

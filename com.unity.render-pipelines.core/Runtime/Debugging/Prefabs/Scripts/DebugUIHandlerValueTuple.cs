@@ -63,10 +63,16 @@ namespace UnityEngine.Rendering.UI
             float columnOffset = k_XOffset / (float)numElements;
             for (int index = 1; index < numElements; ++index)
             {
-                var valueElement = Instantiate(valueLabel, transform);
-                Vector3 pos = valueElement.transform.position;
-                pos.x += index * columnOffset;
-                valueElement.transform.position = pos;
+                var valueElement = Instantiate(valueLabel.gameObject, transform);
+                valueElement.AddComponent<LayoutElement>().ignoreLayout = true;
+                var rectTransform = valueElement.transform as RectTransform;
+                var originalTransform = nameLabel.transform as RectTransform;
+                rectTransform.anchorMax = rectTransform.anchorMin = new Vector2(0, 1);
+                rectTransform.sizeDelta = new Vector2(100, 26);
+                Vector3 pos = originalTransform.anchoredPosition;
+                pos.x += (index + 1) * columnOffset + 200f;
+                rectTransform.anchoredPosition = pos;
+                rectTransform.pivot = new Vector2(0, 1);
                 valueElements[index] = valueElement.GetComponent<Text>();
             }
         }
