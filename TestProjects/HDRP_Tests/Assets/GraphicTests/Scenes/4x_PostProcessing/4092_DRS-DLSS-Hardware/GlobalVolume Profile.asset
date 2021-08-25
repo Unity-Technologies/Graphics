@@ -20,14 +20,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
   skyAmbientMode:
-    m_OverrideState: 1
-    m_Value: 0
-  windOrientation:
     m_OverrideState: 0
     m_Value: 0
-  windSpeed:
-    m_OverrideState: 0
-    m_Value: 100
   fogType:
     m_OverrideState: 0
     m_Value: 0
@@ -233,9 +227,6 @@ MonoBehaviour:
   focusDistance:
     m_OverrideState: 0
     m_Value: 10
-  focusDistanceMode:
-    m_OverrideState: 0
-    m_Value: 0
   nearFocusStart:
     m_OverrideState: 1
     m_Value: 0.72
@@ -337,9 +328,6 @@ MonoBehaviour:
   focusDistance:
     m_OverrideState: 0
     m_Value: 10
-  focusDistanceMode:
-    m_OverrideState: 0
-    m_Value: 0
   nearFocusStart:
     m_OverrideState: 1
     m_Value: 1.47
@@ -412,12 +400,6 @@ MonoBehaviour:
   skyAmbientMode:
     m_OverrideState: 0
     m_Value: 0
-  windOrientation:
-    m_OverrideState: 0
-    m_Value: 0
-  windSpeed:
-    m_OverrideState: 0
-    m_Value: 100
   fogType:
     m_OverrideState: 0
     m_Value: 0
