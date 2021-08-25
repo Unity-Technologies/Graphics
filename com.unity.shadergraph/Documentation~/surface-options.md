@@ -14,7 +14,7 @@ Enable **Allow Material Override** to modify a specific set of properties for Un
 
 <tr><td><b>Cast Shadows</b></td><td colspan="2">This property is only exposed if <b>Allow Material Override</b> is enabled for this Shader Graph. Enable this property to make it possible for a GameObject using this shader to cast shadows onto itself and other GameObjects. This corresponds to the <a href="https://docs.unity3d.com/2021.1/Documentation/Manual/SL-SubShaderTags.html">SubShader Tag</a> <a href="https://docs.unity3d.com/2021.1/Documentation/Manual/SL-SubShaderTags.html">ForceNoShadowCasting</a>.</td><td>Not applicable.</td></tr>
 
-<tr><td><b>Surface Type</b></td><td colspan="2" rowspan="3">See the URP documentation for the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/manual/lit-shader.html">Lit</a> and <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@11.0/manual/unlit-shader.html">Unlit Shaders</a>.</td><td>In the Built-In Render Pipeline, this feature has the same behavior as in URP. Consult the URP documentation.</td></tr>
+<tr><td><b>Surface Type</b></td><td colspan="2" rowspan="3">See the URP documentation for the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/manual/lit-shader.html">Lit</a> and <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/manual/unlit-shader.html">Unlit Shaders</a>.</td><td>In the Built-In Render Pipeline, this feature has the same behavior as in URP. Consult the URP documentation.</td></tr>
 
 <tr><td><b>Render Face</b></td><td>In the Built-In Render Pipeline, this feature has the same behavior as in URP. Consult the URP documentation.</td></tr>
 

@@ -45,13 +45,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public CameraClampModeParameter(CameraClampMode value, bool overrideState = false) : base(value, overrideState) {}
+        public CameraClampModeParameter(CameraClampMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>
     /// A volume component that holds settings for the Motion Blur effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Motion Blur")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Motion Blur", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Post-Processing-Motion-Blur")]
     public sealed class MotionBlur : VolumeComponentWithQuality, IPostProcessComponent
     {

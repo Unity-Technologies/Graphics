@@ -226,7 +226,7 @@ Shader "Universal Render Pipeline/Lit"
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
@@ -332,8 +332,9 @@ Shader "Universal Render Pipeline/Lit"
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
-            #pragma fragment UniversalFragmentMeta
+            #pragma fragment UniversalFragmentMetaLit
 
+            #pragma shader_feature EDITOR_VISUALIZATION
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
@@ -564,8 +565,9 @@ Shader "Universal Render Pipeline/Lit"
             #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
-            #pragma fragment UniversalFragmentMeta
+            #pragma fragment UniversalFragmentMetaLit
 
+            #pragma shader_feature EDITOR_VISUALIZATION
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP

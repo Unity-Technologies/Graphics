@@ -97,6 +97,10 @@ PrefabInstance:
       propertyPath: m_LightmapParameters
       value: 
       objectReference: {fileID: 111300000, guid: 8a7260d6525209b4eb583d373f12a307, type: 2}
+    - target: {fileID: -1172089551164539538, guid: d2564ebb3beeaca47b554810141df024, type: 3}
+      propertyPath: m_StitchLightmapSeams
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -927199367670048503, guid: d2564ebb3beeaca47b554810141df024, type: 3}
       propertyPath: m_Name
       value: FR_SectionA_01
@@ -107,7 +111,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -418863233244835431, guid: d2564ebb3beeaca47b554810141df024, type: 3}
       propertyPath: m_StaticEditorFlags
-      value: 2147483647
+      value: 126
       objectReference: {fileID: 0}
     - target: {fileID: 1318949605540873887, guid: d2564ebb3beeaca47b554810141df024, type: 3}
       propertyPath: m_PreserveUVs

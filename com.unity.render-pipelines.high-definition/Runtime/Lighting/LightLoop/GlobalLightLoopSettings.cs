@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cookieAtlasLastValidMip = 0,
 
-// We must keep this value for migration purpose (when we create a new HDRP asset it is migrated to the last version)
+            // We must keep this value for migration purpose (when we create a new HDRP asset it is migrated to the last version)
 #pragma warning disable 618 // Type or member is obsolete
             cookieTexArraySize = 1,
 #pragma warning restore 618

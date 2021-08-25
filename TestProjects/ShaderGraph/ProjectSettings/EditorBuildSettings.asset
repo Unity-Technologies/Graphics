@@ -44,4 +44,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SamplerStateTests.unity
     guid: ed2fd0ccb16dc6645a13091bfa602856
+  - enabled: 1
+    path: Assets/Scenes/URP_InstancingTest.unity
+    guid: 4229d44b837011e48b0f123903ea0ea5
   m_configObjects: {}

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
@@ -10,8 +11,8 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class CustomPassListSearchWindow : ScriptableObject, ISearchWindowProvider
     {
-        Texture2D           icon;
-        Action<Type>        createCustomPassCallback;
+        Texture2D icon;
+        Action<Type> createCustomPassCallback;
 
         public void Initialize(Action<Type> createCustomPassCallback)
             => this.createCustomPassCallback = createCustomPassCallback;
@@ -46,9 +47,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (customPassType.IsAbstract)
                     continue;
 
+                if (customPassType.GetCustomAttribute<HideInInspector>() != null)
+                    continue;
+
                 tree.Add(new SearchTreeEntry(new GUIContent(customPassType.Name, icon))
                 {
-                    level    = 1,
+                    level = 1,
                     userData = customPassType
                 });
             }

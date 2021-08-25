@@ -113,6 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             Migrate();
 
+            systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
             var inspector = TargetsVFX() ? VFXHDRPSubTarget.Inspector : customInspector;
@@ -200,7 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return subShaderDescriptor;
         }
 
-        protected virtual void CollectPassKeywords(ref PassDescriptor pass) {}
+        protected virtual void CollectPassKeywords(ref PassDescriptor pass) { }
 
         public override void GetFields(ref TargetFieldContext context)
         {

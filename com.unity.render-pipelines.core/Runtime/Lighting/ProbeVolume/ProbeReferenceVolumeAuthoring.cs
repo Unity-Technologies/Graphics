@@ -20,6 +20,13 @@ namespace UnityEngine.Experimental.Rendering
         public float brickSize;   // Not really a dilation setting, but used during dilation.
     }
 
+    internal struct VirtualOffsetSettings
+    {
+        public bool useVirtualOffset;
+        public float outOfGeoOffset;
+        public float searchMultiplier;
+    }
+
     [ExecuteAlways]
     [AddComponentMenu("Light/Probe Reference Volume (Experimental)")]
     internal class ProbeReferenceVolumeAuthoring : MonoBehaviour
@@ -88,6 +95,14 @@ namespace UnityEngine.Experimental.Rendering
 
         [SerializeField]
         bool m_EnableDilation = true;
+
+        // Virtual offset proof of concept.
+        [SerializeField]
+        bool m_EnableVirtualOffset = true;
+        [SerializeField]
+        float m_VirtualOffsetGeometrySearchMultiplier = 0.2f;
+        [SerializeField]
+        float m_VirtualOffsetBiasOutOfGeometry = 0.01f;
 
         // Field used for the realtime subdivision preview
         [NonSerialized]
@@ -323,6 +338,16 @@ namespace UnityEngine.Experimental.Rendering
             settings.dilationIterations = m_DilationIterations;
             settings.squaredDistWeighting = m_DilationInvSquaredWeight;
             settings.brickSize = brickSize;
+
+            return settings;
+        }
+
+        public VirtualOffsetSettings GetVirtualOffsetSettings()
+        {
+            VirtualOffsetSettings settings;
+            settings.useVirtualOffset = m_EnableVirtualOffset;
+            settings.searchMultiplier = m_VirtualOffsetGeometrySearchMultiplier;
+            settings.outOfGeoOffset = m_VirtualOffsetBiasOutOfGeometry;
 
             return settings;
         }

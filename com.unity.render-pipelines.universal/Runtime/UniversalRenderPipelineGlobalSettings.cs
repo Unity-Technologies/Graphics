@@ -12,24 +12,26 @@ namespace UnityEngine.Rendering.Universal
     {
         #region Version system
 
-        #pragma warning disable CS0414
+#pragma warning disable CS0414
         [SerializeField] int k_AssetVersion = 1;
         [SerializeField] int k_AssetPreviousVersion = 1;
-        #pragma warning restore CS0414
+#pragma warning restore CS0414
 
         public void OnAfterDeserialize()
         {
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
-                EditorApplication.delayCall += () => UpgradeAsset(this);
+                EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
             }
 #endif
         }
 
 #if UNITY_EDITOR
-        static void UpgradeAsset(UniversalRenderPipelineGlobalSettings asset)
+        static void UpgradeAsset(int assetInstanceID)
         {
+            UniversalRenderPipelineAsset asset = EditorUtility.InstanceIDToObject(assetInstanceID) as UniversalRenderPipelineAsset;
+
             EditorUtility.SetDirty(asset);
         }
 
@@ -44,7 +46,11 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
+#if !UNITY_EDITOR
+                // The URP Global Settings could have been changed by script, undo/redo (case 1342987), or file update - file versioning, let us make sure we display the correct one
+                // In a Player, we do not need to worry about those changes as we only support loading one
                 if (cachedInstance == null)
+#endif
                     cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<UniversalRenderPipeline>() as UniversalRenderPipelineGlobalSettings;
                 return cachedInstance;
             }
@@ -52,9 +58,12 @@ namespace UnityEngine.Rendering.Universal
 
         static internal void UpdateGraphicsSettings(UniversalRenderPipelineGlobalSettings newSettings)
         {
-            if (newSettings == null || newSettings == cachedInstance)
+            if (newSettings == cachedInstance)
                 return;
-            GraphicsSettings.RegisterRenderPipelineSettings<UniversalRenderPipeline>(newSettings as RenderPipelineGlobalSettings);
+            if (newSettings != null)
+                GraphicsSettings.RegisterRenderPipelineSettings<UniversalRenderPipeline>(newSettings as RenderPipelineGlobalSettings);
+            else
+                GraphicsSettings.UnregisterRenderPipelineSettings<UniversalRenderPipeline>();
             cachedInstance = newSettings;
         }
 
@@ -152,17 +161,28 @@ namespace UnityEngine.Rendering.Universal
             get
             {
                 if (m_RenderingLayerNames == null)
-                {
                     UpdateRenderingLayerNames();
-                }
-
                 return m_RenderingLayerNames;
+            }
+        }
+        [System.NonSerialized]
+        string[] m_PrefixedRenderingLayerNames;
+        string[] prefixedRenderingLayerNames
+        {
+            get
+            {
+                if (m_PrefixedRenderingLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_PrefixedRenderingLayerNames;
             }
         }
         /// <summary>Names used for display of rendering layer masks.</summary>
         public string[] renderingLayerMaskNames => renderingLayerNames;
+        /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
+        public string[] prefixedRenderingLayerMaskNames => prefixedRenderingLayerNames;
 
-        void UpdateRenderingLayerNames()
+        /// <summary>Regenerate Rendering Layer names and their prefixed versions.</summary>
+        internal void UpdateRenderingLayerNames()
         {
             if (m_RenderingLayerNames == null)
                 m_RenderingLayerNames = new string[32];
@@ -181,6 +201,34 @@ namespace UnityEngine.Rendering.Universal
             for (int i = index; i < m_RenderingLayerNames.Length; ++i)
             {
                 m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
+            }
+
+            // Update prefixed
+            if (m_PrefixedRenderingLayerNames == null)
+                m_PrefixedRenderingLayerNames = new string[32];
+            if (m_PrefixedLightLayerNames == null)
+                m_PrefixedLightLayerNames = new string[8];
+            for (int i = 0; i < m_PrefixedRenderingLayerNames.Length; ++i)
+            {
+                m_PrefixedRenderingLayerNames[i] = string.Format("{0}: {1}", i, m_RenderingLayerNames[i]);
+                if (i < 8)
+                    m_PrefixedLightLayerNames[i] = m_PrefixedRenderingLayerNames[i];
+            }
+        }
+
+        [System.NonSerialized]
+        string[] m_PrefixedLightLayerNames = null;
+        /// <summary>
+        /// Names used for display of light layers with Layer's index as prefix.
+        /// For example: "0: Light Layer Default"
+        /// </summary>
+        public string[] prefixedLightLayerNames
+        {
+            get
+            {
+                if (m_PrefixedLightLayerNames == null)
+                    UpdateRenderingLayerNames();
+                return m_PrefixedLightLayerNames;
             }
         }
 
@@ -243,6 +291,15 @@ namespace UnityEngine.Rendering.Universal
             lightLayerName6 = k_DefaultLightLayerNames[6];
             lightLayerName7 = k_DefaultLightLayerNames[7];
         }
+
+        #endregion
+
+        #region Misc Settings
+
+        /// <summary>
+        /// Controls whether debug display shaders for Rendering Debugger are available in Player builds.
+        /// </summary>
+        public bool supportRuntimeDebugDisplay = false;
 
         #endregion
     }
