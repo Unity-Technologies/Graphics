@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph
         }
 
 
-        public StickyNoteData() : base() {}
+        public StickyNoteData() : base() { }
         public StickyNoteData(string title, string content, Rect position)
         {
             m_Title = title;

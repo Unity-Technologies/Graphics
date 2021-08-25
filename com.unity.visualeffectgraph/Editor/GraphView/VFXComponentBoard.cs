@@ -833,14 +833,14 @@ namespace UnityEditor.VFX.UI
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
         }
 
-        void IVFXResizable.OnStartResize() {}
+        void IVFXResizable.OnStartResize() { }
         public void OnResized()
         {
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
         }
     }
     class VFXComponentBoardEventUIFactory : UxmlFactory<VFXComponentBoardEventUI>
-    {}
+    { }
     class VFXComponentBoardEventUI : VisualElement
     {
         public VFXComponentBoardEventUI()
@@ -888,9 +888,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        string      m_Name;
-        TextField   m_EventName;
-        Button      m_EventSend;
+        string m_Name;
+        TextField m_EventName;
+        Button m_EventSend;
 
         void OnSend()
         {
@@ -903,7 +903,7 @@ namespace UnityEditor.VFX.UI
     }
 
     class VFXComponentBoardBoundsSystemUIFactory : UxmlFactory<VFXComponentBoardBoundsSystemUI>
-    {}
+    { }
 
     class VFXComponentBoardBoundsSystemUI : VisualElement
     {
@@ -948,7 +948,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private List<string> m_BoundsModes = new List<string> {"Manual", "Recorded", "Automatic"};
+        private List<string> m_BoundsModes = new List<string> { "Manual", "Recorded", "Automatic" };
 
         void OnBoundsModeMenu()
         {

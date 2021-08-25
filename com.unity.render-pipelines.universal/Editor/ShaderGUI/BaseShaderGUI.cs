@@ -325,7 +325,7 @@ namespace UnityEditor
                 materialEditor.IntSliderShaderProperty(queueOffsetProp, -queueOffsetRange, queueOffsetRange, Styles.queueSlider);
         }
 
-        public virtual void FillAdditionalFoldouts(MaterialHeaderScopeList materialScopesList) {}
+        public virtual void FillAdditionalFoldouts(MaterialHeaderScopeList materialScopesList) { }
 
         public virtual void DrawBaseProperties(Material material)
         {

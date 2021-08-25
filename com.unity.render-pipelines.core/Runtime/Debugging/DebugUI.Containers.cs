@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Constructor.
             /// </summary>
-            public Foldout() : base() {}
+            public Foldout() : base() { }
             /// <summary>
             /// Constructor.
             /// </summary>
