@@ -664,8 +664,11 @@ namespace UnityEditor.VFX
 
             if (HasSorting() && !needsOwnSort)
             {
-                var modifiedAttributes = children.SelectMany(b => b.attributes)
-                    .Where(a => a.mode.HasFlag(VFXAttributeMode.Write)).Select(a => a.attrib);
+                var modifiedAttributes = children
+                    .Where(c => c.enabled)
+                    .SelectMany(b => b.attributes)
+                    .Where(a => a.mode.HasFlag(VFXAttributeMode.Write))
+                    .Select(a => a.attrib);
                 bool isCriterionModified = false;
 
                 if (HasCustomSortingCriterion())
