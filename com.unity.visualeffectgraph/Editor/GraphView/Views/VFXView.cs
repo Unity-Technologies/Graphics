@@ -599,7 +599,7 @@ namespace UnityEditor.VFX.UI
             attachPanel.m_vfxView = this;
 
             var bounds = new Rect(ViewToScreenPosition(m_AttachDropDownButton.worldBound.position), m_AttachDropDownButton.worldBound.size);
-            attachPanel.ShowAsDropDown(bounds, attachPanel.WindowSize, new [] { PopupLocation.BelowAlignLeft });
+            attachPanel.ShowAsDropDown(bounds, attachPanel.WindowSize, new[] { PopupLocation.BelowAlignLeft });
         }
 
         void OnRefreshUI(DropdownMenuAction action)

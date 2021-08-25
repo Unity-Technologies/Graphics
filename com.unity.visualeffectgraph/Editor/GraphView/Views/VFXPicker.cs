@@ -28,7 +28,7 @@ static class VFXPicker
     static void SelectItem(SearchItem item, bool canceled, Action<VisualEffect> selectHandler)
     {
         if (!canceled
-            && item?.ToObject<GameObject>() is { } go
+            && item?.ToObject<GameObject>() is {} go
             && go.TryGetComponent(typeof(VisualEffect), out var component)
             && component is VisualEffect vfx)
         {
@@ -57,8 +57,8 @@ static class VFXPicker
     static bool IsValidItem(in SearchItem item, VisualEffectAsset vfxAsset)
     {
         return item.ToObject<GameObject>().TryGetComponent(typeof(VisualEffect), out var component)
-               && component is VisualEffect vfx
-               && vfx.visualEffectAsset == vfxAsset;
+            && component is VisualEffect vfx
+            && vfx.visualEffectAsset == vfxAsset;
     }
 
     static string BuildQuery(in string refPath, in string userQuery)
