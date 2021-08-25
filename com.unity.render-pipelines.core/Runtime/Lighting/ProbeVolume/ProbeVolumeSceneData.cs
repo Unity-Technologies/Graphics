@@ -9,8 +9,8 @@ using UnityEngine.SceneManagement;
 namespace UnityEngine.Experimental.Rendering
 {
     [System.Serializable]
-    /// <summary> A class containing info about the bounds defined by the probe volumes in various scenes. </summary>
-    public class ProbeVolumeSceneBounds : ISerializationCallbackReceiver
+    /// <summary> A class containing scene info about related to probe volumes. </summary>
+    public class ProbeVolumeSceneData : ISerializationCallbackReceiver
     {
         [System.Serializable]
         struct SerializableBoundItem
@@ -34,9 +34,9 @@ namespace UnityEngine.Experimental.Rendering
         public Dictionary<string, Bounds> sceneBounds;
         internal Dictionary<string, bool> hasProbeVolumes;
 
-        /// <summary>Constructor for ProbeVolumeSceneBounds. </summary>
-        /// <param name="parentAsset">The asset holding this ProbeVolumeSceneBounds, it will be dirtied every time scene bounds are updated. </param>
-        public ProbeVolumeSceneBounds(Object parentAsset)
+        /// <summary>Constructor for ProbeVolumeSceneData. </summary>
+        /// <param name="parentAsset">The asset holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds are updated or an asset is changed. </param>
+        public ProbeVolumeSceneData(Object parentAsset)
         {
             m_ParentAsset = parentAsset;
             sceneBounds = new Dictionary<string, Bounds>();
@@ -45,8 +45,8 @@ namespace UnityEngine.Experimental.Rendering
             serializedHasVolumes = new List<SerializableHasPVItem>();
         }
 
-        /// <summary>Set a reference to the object holding this ProbeVolumeSceneBounds.</summary>
-        /// <param name="parentAsset">The object holding this ProbeVolumeSceneBounds, it will be dirtied every time scene bounds are updated. </param>
+        /// <summary>Set a reference to the object holding this ProbeVolumeSceneData.</summary>
+        /// <param name="parentAsset">The object holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds are updated. </param>
         public void SetParentObject(Object parent)
         {
             m_ParentAsset = parent;
