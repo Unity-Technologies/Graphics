@@ -128,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering
             m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
         }
 
-        internal void Allocate(int numberOfBrickChunks, List<BrickChunkAlloc> outAllocations)
+        internal bool Allocate(int numberOfBrickChunks, List<BrickChunkAlloc> outAllocations)
         {
             while (m_FreeList.Count > 0 && numberOfBrickChunks > 0)
             {
@@ -140,8 +140,8 @@ namespace UnityEngine.Experimental.Rendering
             {
                 if (m_NextFreeChunk.z >= m_Pool.depth)
                 {
-                    Debug.Assert(false, "Cannot allocate more brick chunks, probevolume brick pool is full.");
-                    break; // failure case, pool is full
+                    Debug.LogError("Cannot allocate more brick chunks, probe volume brick pool is full.");
+                    return false; // failure case, pool is full
                 }
 
                 outAllocations.Add(m_NextFreeChunk);
@@ -158,6 +158,8 @@ namespace UnityEngine.Experimental.Rendering
                     }
                 }
             }
+
+            return true;
         }
 
         internal void Deallocate(List<BrickChunkAlloc> allocations)

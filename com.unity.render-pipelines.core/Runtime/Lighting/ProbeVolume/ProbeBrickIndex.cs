@@ -229,7 +229,11 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            if (firstValidChunk < 0) return false;
+            if (firstValidChunk < 0)
+            {
+                Debug.LogError("APV Index Allocation failed.");
+                return false;
+            }
 
             // This assert will need to go away or do something else when streaming is allowed (we need to find holes in available chunks or stream out stuff)
             cellUpdateInfo.firstChunkIndex = firstValidChunk;
