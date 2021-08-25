@@ -27,13 +27,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">SSR Algo Type parameter.</param>
         /// <param name="overrideState">Initial override state.</param>
         public SSRAlgoParameter(ScreenSpaceReflectionAlgorithm value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
     /// A volume component that holds settings for screen space reflection and ray traced reflections.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Screen Space Reflection", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Override-Screen-Space-Reflection")]
     public class ScreenSpaceReflection : VolumeComponentWithQuality
     {
@@ -94,14 +94,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [SerializeField, FormerlySerializedAs("smoothnessFadeStart")]
         private ClampedFloatParameter m_SmoothnessFadeStart = new ClampedFloatParameter(0.9f, 0.0f, 1.0f);
+        #endregion
 
+        #region Ray Marching
         /// <summary>
         /// When enabled, SSR handles sky reflection.
         /// </summary>
         public BoolParameter reflectSky = new BoolParameter(true);
-        #endregion
 
-        #region Ray Marching
         /// <summary>Screen Space Reflections Algorithm used.</summary>
         public SSRAlgoParameter usedAlgorithm = new SSRAlgoParameter(ScreenSpaceReflectionAlgorithm.Approximation);
 
@@ -141,6 +141,19 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Ray Tracing
+        /// <summary>
+        /// Controls which sources are used to fallback on when the traced ray misses.
+        /// </summary>
+        [FormerlySerializedAs("fallbackHierachy")]
+        [AdditionalProperty]
+        public RayTracingFallbackHierachyParameter rayMiss = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
+
+        /// <summary>
+        /// Controls the fallback hierarchy for lighting the last bounce.
+        /// </summary>
+        [AdditionalProperty]
+        public RayTracingFallbackHierachyParameter lastBounceFallbackHierarchy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
+
         /// <summary>
         /// Layer mask used to include the objects for screen space reflection.
         /// </summary>

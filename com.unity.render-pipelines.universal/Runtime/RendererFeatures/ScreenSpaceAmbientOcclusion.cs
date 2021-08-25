@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [DisallowMultipleRendererFeature]
+    [Tooltip("The Ambient Occlusion effect darkens creases, holes, intersections and surfaces that are close to each other.")]
     internal class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
     {
         // Serialized Fields
@@ -312,10 +313,10 @@ namespace UnityEngine.Rendering.Universal
                 m_FinalDescriptor.colorFormat = m_SupportsR8RenderTextureFormat ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
 
                 // Get temporary render textures
-                cmd.GetTemporaryRT(s_SSAOTexture1ID,     m_AOPassDescriptor,      FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTexture2ID,     m_BlurPassesDescriptor,  FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTexture3ID,     m_BlurPassesDescriptor,  FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTextureFinalID, m_FinalDescriptor,       FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTexture1ID, m_AOPassDescriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTexture2ID, m_BlurPassesDescriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTexture3ID, m_BlurPassesDescriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(s_SSAOTextureFinalID, m_FinalDescriptor, FilterMode.Bilinear);
 
                 // Configure targets and clear color
                 ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTarget : s_SSAOTexture2ID);

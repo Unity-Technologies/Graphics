@@ -3,7 +3,7 @@ project:
   folder: URP-Update-Testing/Top-URP-Assets
   variables:
     ASSETSTORE_UPDATE_PROJECT_BRANCH: master
-    ASSETSTORE_UPDATE_PROJECT_REVISION: 818b6345d6bf46cf3e5644aceff134e866c6150e
+    ASSETSTORE_UPDATE_PROJECT_REVISION: 263537e22614f3b98eba4f56cea3fd4519312b2f
 
 reuse_blocks:
   setup_with_utr:
@@ -32,8 +32,7 @@ test_platforms:
   - type: editmode
     commands:
       - <reuse_blocks.setup_with_utr>
-expression_trigger:
-  expression: ""
+
 platforms:
   - name: Win
     apis:
@@ -51,16 +50,21 @@ platforms:
 #      - name: mono
 #    color_spaces:
 #      - Linear
-pr:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - editmode
-        - playmode
-nightly:
-  dependencies:
-    - project: URPUpdate_Top_Asset_Store
-      pr: true
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - editmode
+          - playmode
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      []
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

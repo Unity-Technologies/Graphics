@@ -23,8 +23,10 @@ namespace UnityEngine.Rendering.HighDefinition
         private Vector3 m_CachedDirectionalForward;
         private Vector3 m_CachedDirectionalAngles;
 
+        internal const int k_MinSlotSize = 64;
+
         // Helper array used to check what has been tmp filled.
-        private (int, int)[] m_TempFilled = new(int, int)[6];
+        private (int, int)[] m_TempFilled = new (int, int)[6];
 
         // Cached atlas
         internal HDCachedShadowAtlas punctualShadowAtlas;
@@ -32,43 +34,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Cache here to be able to compute resolutions.
         private HDShadowInitParameters m_InitParams;
 
-        // ------------------------ Debug API -------------------------------
-#if UNITY_EDITOR
-        internal void PrintLightStatusInCachedAtlas()
-        {
-            bool headerPrinted = false;
-            var lights = GameObject.FindObjectsOfType<HDAdditionalLightData>();
-            foreach (var light in lights)
-            {
-                ShadowMapType shadowMapType = light.GetShadowMapType(light.type);
-                if (instance.LightIsPendingPlacement(light, shadowMapType))
-                {
-                    if (!headerPrinted)
-                    {
-                        Debug.Log(" ===== Lights pending placement in the cached shadow atlas: ===== ");
-                        headerPrinted = true;
-                    }
-                    Debug.Log("\t Name: " + light.name + " Type: " + light.type + " Resolution: " + light.GetResolutionFromSettings(shadowMapType, m_InitParams));
-                }
-            }
-
-            headerPrinted = false;
-            foreach (var light in lights)
-            {
-                ShadowMapType shadowMapType = light.GetShadowMapType(light.type);
-                if (!(instance.LightIsPendingPlacement(light, light.GetShadowMapType(light.type))) && light.lightIdxForCachedShadows != -1)
-                {
-                    if (!headerPrinted)
-                    {
-                        Debug.Log("===== Lights placed in cached shadow atlas: ===== ");
-                        headerPrinted = true;
-                    }
-                    Debug.Log("\t Name: " + light.name + " Type: " + light.type + " Resolution: " + light.GetResolutionFromSettings(shadowMapType, m_InitParams));
-                }
-            }
-        }
-
-#endif
         // ------------------------ Public API -------------------------------
 
         /// <summary>

@@ -4,7 +4,7 @@ This effect allows you to perform three-way color grading. The **Lift Gamma Gain
 
 ## Using Lift Gamma Gain
 
-**Lift Gamma Gain** uses the [Volume](Volumes.html) framework, so to enable and modify the lift, gamma, or gain of the render, you must add a **Lift Gamma Gain** override to a [Volume](Volumes.html) in your Scene. To add **Lift Gamma Gain** to a Volume:
+**Lift Gamma Gain** uses the [Volume](Volumes.md) framework, so to enable and modify the lift, gamma, or gain of the render, you must add a **Lift Gamma Gain** override to a [Volume](Volumes.md) in your Scene. To add **Lift Gamma Gain** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Lift Gamma Gain**. URP now applies **Lift Gamma Gain** to any Camera this Volume affects.

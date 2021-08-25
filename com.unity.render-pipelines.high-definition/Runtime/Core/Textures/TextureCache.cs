@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Function that allows us to do the mapping between a texture value and an identifier
         public uint GetTextureHash(Texture texture)
         {
-            uint textureHash  = texture.updateCount;
+            uint textureHash = texture.updateCount;
             // For baked probes in the editor we need to factor in the actual hash of texture because we can't increment the update count of a texture that's baked on the disk.
             // This code leaks logic from reflection probe baking into the texture cache which is not good... TODO: Find a way to do that outside of the texture cache.
 #if UNITY_EDITOR
@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_LocatorInSliceDictionnary.TryGetValue(texId, out sliceIndex))
             {
                 // Compute the new hash of the texture
-                var textureHash  = GetTextureHash(texture);
+                var textureHash = GetTextureHash(texture);
 
                 // We need to update the texture if the hash does not match the one in the slice
                 needUpdate |= (m_SliceArray[sliceIndex].sliceEntryHash != textureHash);

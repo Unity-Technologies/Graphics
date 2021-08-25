@@ -95,6 +95,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 material.SetFloat(Property.ZTest, (float)target.zTestMode);
             }
 
+            // We always need these properties regardless of whether the material is allowed to override
+            // Queue control & offset enable correct automatic render queue behavior
+            // Control == 0 is automatic, 1 is user-specified render queue
+            material.SetFloat(Property.QueueOffset, 0.0f);
+            material.SetFloat(Property.QueueControl, (float)BaseShaderGUI.QueueControl.Auto);
+
             // call the full unlit material setup function
             ShaderGraphLitGUI.UpdateMaterial(material, MaterialUpdateType.CreatedNewMaterial);
         }
@@ -104,10 +110,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var descs = context.blocks.Select(x => x.descriptor);
 
             // Lit -- always controlled by subtarget
-            context.AddField(UniversalFields.NormalDropOffOS,       normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddField(UniversalFields.NormalDropOffTS,       normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddField(UniversalFields.NormalDropOffWS,       normalDropOffSpace == NormalDropOffSpace.World);
-            context.AddField(UniversalFields.Normal,                descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
+            context.AddField(UniversalFields.NormalDropOffOS, normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddField(UniversalFields.NormalDropOffTS, normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddField(UniversalFields.NormalDropOffWS, normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddField(UniversalFields.Normal, descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
                 descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
                 descs.Contains(BlockFields.SurfaceDescription.NormalWS));
             // Complex Lit
@@ -119,22 +125,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalOS,           normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalTS,           normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalWS,           normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalOS, normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalTS, normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalWS, normalDropOffSpace == NormalDropOffSpace.World);
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
 
             // when the surface options are material controlled, we must show all of these blocks
             // when target controlled, we can cull the unnecessary blocks
-            context.AddBlock(BlockFields.SurfaceDescription.Specular,           (workflowMode == WorkflowMode.Specular) || target.allowMaterialOverride);
-            context.AddBlock(BlockFields.SurfaceDescription.Metallic,           (workflowMode == WorkflowMode.Metallic) || target.allowMaterialOverride);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              (target.surfaceType == SurfaceType.Transparent || target.alphaClip) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.Specular, (workflowMode == WorkflowMode.Specular) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.Metallic, (workflowMode == WorkflowMode.Metallic) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha, (target.surfaceType == SurfaceType.Transparent || target.alphaClip) || target.allowMaterialOverride);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, (target.alphaClip) || target.allowMaterialOverride);
 
             // always controlled by subtarget clearCoat checkbox (no Material control)
-            context.AddBlock(BlockFields.SurfaceDescription.CoatMask,           clearCoat);
-            context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,     clearCoat);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatMask, clearCoat);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness, clearCoat);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -157,6 +163,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
                 collector.AddFloatProperty(Property.CullMode, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
             }
+
+            // We always need these properties regardless of whether the material is allowed to override other shader properties.
+            // Queue control & offset enable correct automatic render queue behavior.  Control == 0 is automatic, 1 is user-specified.
+            // We initialize queue control to -1 to indicate to UpdateMaterial that it needs to initialize it properly on the material.
+            collector.AddFloatProperty(Property.QueueOffset, 0.0f);
+            collector.AddFloatProperty(Property.QueueControl, -1.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -278,17 +290,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // cull the shadowcaster pass if we know it will never be used
                 if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target),   CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
 
                 if (target.mayWriteDepth)
-                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target),      CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced));
 
                 if (complexLit)
                     result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
                 else
                     result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.DOTSInstanced));
-                result.passes.Add(PassVariant(LitPasses.Meta(target),            CorePragmas.DOTSDefault));
-                result.passes.Add(PassVariant(LitPasses._2D(target),             CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(LitPasses.Meta(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DOTSDefault));
 
                 return result;
             }
@@ -328,6 +342,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.passes.Add(CorePasses.DepthNormal(target));
                 result.passes.Add(LitPasses.Meta(target));
                 result.passes.Add(LitPasses._2D(target));
+                result.passes.Add(CorePasses.SceneSelection(target));
+                result.passes.Add(CorePasses.ScenePicking(target));
 
                 return result;
             }
@@ -511,7 +527,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.Meta,
                     pragmas = CorePragmas.Default,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
-                    keywords = new KeywordCollection(),
+                    keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
                     includes = LitIncludes.Meta,
 
                     // Custom Interpolator Support
@@ -719,8 +735,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly FieldCollection Meta = new FieldCollection()
             {
+                StructFields.Attributes.positionOS,
+                StructFields.Attributes.normalOS,
+                StructFields.Attributes.uv0,                            //
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
-                StructFields.Attributes.uv2,                            //needed for meta vertex position
+                StructFields.Attributes.uv2,                            // needed for meta UVs
+                StructFields.Attributes.instanceID,                     // needed for rendering instanced terrain
+                StructFields.Varyings.positionCS,
+                StructFields.Varyings.texCoord0,                        // needed for meta UVs
+                StructFields.Varyings.texCoord1,                        // VizUV
+                StructFields.Varyings.texCoord2,                        // LightCoord
             };
         }
         #endregion

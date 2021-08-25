@@ -109,7 +109,7 @@ bool IsDistantLightActive(DirectionalLightData lightData, float3 normal)
     return dot(normal, lightData.forward) <= sin(lightData.angularDiameter * 0.5);
 }
 
-LightList CreateLightList(float3 position, float3 normal, uint lightLayers, bool withLocal = true, bool withDistant = true)
+LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEFAULT_LIGHT_LAYERS, bool withLocal = true, bool withDistant = true)
 {
     LightList list;
     uint i;
@@ -692,7 +692,7 @@ float GetLocalLightsInterval(float3 rayOrigin, float3 rayDirection, out float tM
 
 LightList CreateLightList(float3 position, bool sampleLocalLights)
 {
-    return CreateLightList(position, 0.0, ~0, sampleLocalLights, !sampleLocalLights);
+    return CreateLightList(position, 0.0, DEFAULT_LIGHT_LAYERS, sampleLocalLights, !sampleLocalLights);
 }
 
 #endif // UNITY_PATH_TRACING_LIGHT_INCLUDED

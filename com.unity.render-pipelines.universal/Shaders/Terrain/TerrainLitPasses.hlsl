@@ -6,31 +6,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl"
 
-#if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
-    #define ENABLE_TERRAIN_PERPIXEL_NORMAL
-#endif
-
-#ifdef UNITY_INSTANCING_ENABLED
-    TEXTURE2D(_TerrainHeightmapTexture);
-    TEXTURE2D(_TerrainNormalmapTexture);
-    SAMPLER(sampler_TerrainNormalmapTexture);
-#endif
-
-UNITY_INSTANCING_BUFFER_START(Terrain)
-    UNITY_DEFINE_INSTANCED_PROP(float4, _TerrainPatchInstanceData)  // float4(xBase, yBase, skipScale, ~)
-UNITY_INSTANCING_BUFFER_END(Terrain)
-
-#ifdef _ALPHATEST_ON
-TEXTURE2D(_TerrainHolesTexture);
-SAMPLER(sampler_TerrainHolesTexture);
-
-void ClipHoles(float2 uv)
-{
-    float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
-    clip(hole == 0.0f ? -1 : 1);
-}
-#endif
-
 struct Attributes
 {
     float4 positionOS : POSITION;
@@ -87,14 +62,14 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
         half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
         inputData.tangentToWorld = half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz);
         inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentToWorld);
-        half3 SH = SampleSH(inputData.normalWS.xyz);
+        half3 SH = 0;
     #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
         float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
         half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
         half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
         inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
-        half3 SH = SampleSH(inputData.normalWS.xyz);
+        half3 SH = 0;
     #else
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
         inputData.normalWS = IN.normal;
@@ -251,33 +226,6 @@ void SplatmapFinalColor(inout half4 color, half fogCoord)
     #endif
 
     #endif
-}
-
-void TerrainInstancing(inout float4 positionOS, inout float3 normal, inout float2 uv)
-{
-#ifdef UNITY_INSTANCING_ENABLED
-    float2 patchVertex = positionOS.xy;
-    float4 instanceData = UNITY_ACCESS_INSTANCED_PROP(Terrain, _TerrainPatchInstanceData);
-
-    float2 sampleCoords = (patchVertex.xy + instanceData.xy) * instanceData.z; // (xy + float2(xBase,yBase)) * skipScale
-    float height = UnpackHeightmap(_TerrainHeightmapTexture.Load(int3(sampleCoords, 0)));
-
-    positionOS.xz = sampleCoords * _TerrainHeightmapScale.xz;
-    positionOS.y = height * _TerrainHeightmapScale.y;
-
-    #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
-        normal = float3(0, 1, 0);
-    #else
-        normal = _TerrainNormalmapTexture.Load(int3(sampleCoords, 0)).rgb * 2 - 1;
-    #endif
-    uv = sampleCoords * _TerrainHeightmapRecipSize.zw;
-#endif
-}
-
-void TerrainInstancing(inout float4 positionOS, inout float3 normal)
-{
-    float2 uv = { 0, 0 };
-    TerrainInstancing(positionOS, normal, uv);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -488,18 +436,14 @@ struct AttributesLean
 {
     float4 position     : POSITION;
     float3 normalOS       : NORMAL;
-#ifdef _ALPHATEST_ON
     float2 texcoord     : TEXCOORD0;
-#endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct VaryingsLean
 {
     float4 clipPos      : SV_POSITION;
-#ifdef _ALPHATEST_ON
     float2 texcoord     : TEXCOORD0;
-#endif
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -507,7 +451,7 @@ VaryingsLean ShadowPassVertex(AttributesLean v)
 {
     VaryingsLean o = (VaryingsLean)0;
     UNITY_SETUP_INSTANCE_ID(v);
-    TerrainInstancing(v.position, v.normalOS);
+    TerrainInstancing(v.position, v.normalOS, v.texcoord);
 
     float3 positionWS = TransformObjectToWorld(v.position.xyz);
     float3 normalWS = TransformObjectToWorldNormal(v.normalOS);
@@ -528,9 +472,7 @@ VaryingsLean ShadowPassVertex(AttributesLean v)
 
     o.clipPos = clipPos;
 
-#ifdef _ALPHATEST_ON
     o.texcoord = v.texcoord;
-#endif
 
     return o;
 }
@@ -552,9 +494,7 @@ VaryingsLean DepthOnlyVertex(AttributesLean v)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
     TerrainInstancing(v.position, v.normalOS);
     o.clipPos = TransformObjectToHClip(v.position.xyz);
-#ifdef _ALPHATEST_ON
     o.texcoord = v.texcoord;
-#endif
     return o;
 }
 

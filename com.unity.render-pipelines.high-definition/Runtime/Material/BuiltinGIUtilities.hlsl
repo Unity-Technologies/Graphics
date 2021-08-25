@@ -170,7 +170,10 @@ void SampleBakedGI(
     // If probe volumes are evaluated in the lightloop, we place a sentinel value to detect that no lightmap data is present at the current pixel,
     // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
 #if !SAMPLE_LIGHTMAP
-    SetAsUninitializedGI(bakeDiffuseLighting);
+    if (_EnableProbeVolumes)
+        SetAsUninitializedGI(bakeDiffuseLighting);
+    else
+        EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
     return;
 #endif
 

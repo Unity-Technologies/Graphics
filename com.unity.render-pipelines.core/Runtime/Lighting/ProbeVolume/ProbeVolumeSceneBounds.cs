@@ -102,6 +102,61 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
+        private int FindInflatingBrickSize(Vector3 size)
+        {
+            var refVol = ProbeReferenceVolume.instance;
+            float minSizedDim = Mathf.Min(size.x, Mathf.Min(size.y, size.z));
+
+            float minBrickSize = refVol.MinBrickSize();
+
+            float minSideInBricks = Mathf.CeilToInt(minSizedDim / minBrickSize);
+            int subdivLevel = Mathf.FloorToInt(Mathf.Log(minSideInBricks, 3));
+
+            return subdivLevel;
+        }
+
+        private void InflateBound(ref Bounds bounds)
+        {
+            Bounds originalBounds = bounds;
+            // Round the probe volume bounds to cell size
+            float cellSize = ProbeReferenceVolume.instance.MaxBrickSize();
+
+            // Expand the probe volume bounds to snap on the cell size grid
+            bounds.Encapsulate(new Vector3(cellSize * Mathf.Floor(bounds.min.x / cellSize),
+                cellSize * Mathf.Floor(bounds.min.y / cellSize),
+                cellSize * Mathf.Floor(bounds.min.z / cellSize)));
+            bounds.Encapsulate(new Vector3(cellSize * Mathf.Ceil(bounds.max.x / cellSize),
+                cellSize * Mathf.Ceil(bounds.max.y / cellSize),
+                cellSize * Mathf.Ceil(bounds.max.z / cellSize)));
+
+            // calculate how much padding we need to remove according to the brick generation in ProbePlacement.cs:
+            var cellSizeVector = new Vector3(cellSize, cellSize, cellSize);
+            var minPadding = (bounds.min - originalBounds.min);
+            var maxPadding = (bounds.max - originalBounds.max);
+            minPadding = cellSizeVector - new Vector3(Mathf.Abs(minPadding.x), Mathf.Abs(minPadding.y), Mathf.Abs(minPadding.z));
+            maxPadding = cellSizeVector - new Vector3(Mathf.Abs(maxPadding.x), Mathf.Abs(maxPadding.y), Mathf.Abs(maxPadding.z));
+
+            // Find the size of the brick we can put for every axis given the padding size
+            float rightPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(maxPadding.x, originalBounds.size.y, originalBounds.size.z)));
+            float leftPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(minPadding.x, originalBounds.size.y, originalBounds.size.z)));
+            float topPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, maxPadding.y, originalBounds.size.z)));
+            float bottomPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, minPadding.y, originalBounds.size.z)));
+            float forwardPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, originalBounds.size.y, maxPadding.z)));
+            float backPaddingSubdivLevel = ProbeReferenceVolume.instance.BrickSize(FindInflatingBrickSize(new Vector3(originalBounds.size.x, originalBounds.size.y, minPadding.z)));
+
+            // Remove the extra padding caused by cell rounding
+            bounds.min = bounds.min + new Vector3(
+                leftPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.x - originalBounds.min.x) / (float)leftPaddingSubdivLevel),
+                bottomPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.y - originalBounds.min.y) / (float)bottomPaddingSubdivLevel),
+                backPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.min.z - originalBounds.min.z) / (float)backPaddingSubdivLevel)
+            );
+            bounds.max = bounds.max - new Vector3(
+                rightPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.max.x - originalBounds.max.x) / (float)rightPaddingSubdivLevel),
+                topPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.max.y - originalBounds.max.y) / (float)topPaddingSubdivLevel),
+                forwardPaddingSubdivLevel * Mathf.Floor(Mathf.Abs(bounds.max.z - originalBounds.max.z) / (float)forwardPaddingSubdivLevel)
+            );
+        }
+
         internal void UpdateSceneBounds(Scene scene)
         {
             var volumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
@@ -109,12 +164,18 @@ namespace UnityEngine.Experimental.Rendering
             Bounds newBound = new Bounds();
             foreach (var volume in volumes)
             {
+                if (volume.globalVolume)
+                    volume.UpdateGlobalVolume(scene);
+
                 var scenePath = volume.gameObject.scene.path;
                 if (scenePath == scene.path)
                 {
                     var pos = volume.gameObject.transform.position;
                     var extent = volume.GetExtents();
+
                     Bounds localBounds = new Bounds(pos, extent);
+
+                    InflateBound(ref localBounds);
 
                     if (!boundFound)
                     {
@@ -135,6 +196,7 @@ namespace UnityEngine.Experimental.Rendering
                     sceneBounds = new Dictionary<string, Bounds>();
                     hasProbeVolumes = new Dictionary<string, bool>();
                 }
+
                 if (sceneBounds.ContainsKey(scene.path))
                 {
                     sceneBounds[scene.path] = newBound;

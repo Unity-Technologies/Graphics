@@ -19,12 +19,17 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // The shader graph can require to export the geometry normal. We thus need to initialize this variable
     surfaceData.normalWS = 0.0;
 
+#if defined(_ENABLE_SHADOW_MATTE) && (SHADERPASS == SHADERPASS_PATH_TRACING)
+    // Also initialize shadow tint to avoid warning (although it won't be used in that context)
+    surfaceData.shadowTint = 0.0;
+#endif
+
 #ifdef _ALPHATEST_ON
     GENERIC_ALPHA_TEST(alpha, _AlphaCutoff);
 #endif
 
     // Builtin Data
-    ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+    ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
     builtinData.opacity = alpha;
 
 #ifdef _ALPHATEST_ON
@@ -67,7 +72,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;
 #endif
 
-#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
+#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
         surfaceData.color = GetTextureDataDebug(_DebugMipMapMode, unlitColorMapUv, _UnlitColorMap, _UnlitColorMap_TexelSize, _UnlitColorMap_MipInfo, surfaceData.color);

@@ -167,6 +167,13 @@ For more information, including the full list of light properties, see the [Ligh
 
 HDRP supports the Illuminating Engineering Society's (IES) file format for describing the distribution of light from a light source. HDRP supports the IES profile for Point, Spot (Cone, Pyramid, and Box), and rectangular Area [Lights](Light-Component.md). You can also mix the IES profile with [cookies](https://docs.unity3d.com/Manual/Cookies.html) and even use the profile and cookie mix for [light map baking](https://docs.unity3d.com/Manual/LightMode-Baked.html).
 
+### Lens Flare
+
+![](Images/LensFlareSamples2.png)
+
+From HDRP 12.0, HDRP (and URP) introduces a new Lens Flare system. You can attach a Lens Flare (SRP) component to any GameObject.
+Some Lens Flare properties only appear when you attach this component to a light. Each Lens Flare can have multiple elements that you can control individually. HDRP also provides a [new asset](lens-flare-data-driven-asset.md) and a [new component](lens-flare-data-driven-component.md) which you can attach to any GameObject.
+
 ### Reflection probes
 
 ![](Images/HDRPFeatures-ReflectionProbes.png)
@@ -233,6 +240,8 @@ To decrease aliasing for the main cascade shadow maps, you can apply different f
 
 For punctual and area light shadows, HDRP allows for dynamic resolution based on how much screen the light covers. HDRP rescales the content of the shadow atlas when it would be otherwise full.  For more information on the filtering algorithms that HDRP uses, see the [filtering qualities documentation](HDRP-Asset.md#filtering-qualities).
 
+HDRP also allows you to cache shadow maps. This means you can update shadow maps when you request an update or update them for dynamic objects only. This method can improve performance significantly. For more information, see [Shadows](Shadows-in-HDRP.md#ShadowUpdateMode).
+
 In the advanced settings of the shadow maps, there is also the possibility to apply a tint on the shadow or the penumbra of the shadow.
 
 ### Sky
@@ -263,13 +272,19 @@ In HDRP, you set up clouds inside a [Volume](Volumes.md), so you can change clou
 In HDRP, you set up fog, inside a [Volume](Volumes.md), so you can change fog settings, or even the fog type itself, depending on the position of the Camera in the Scene. You can set the color of the fog yourself or use the color of the sky. HDRP fog affects Materials with both opaque and transparent surfaces. HDRP implements an exponential [fog](Override-Fog.md) with optional volumetric effects.
 
 
+### Local Volumetric Fog
+
+![](Images/LocalVolumetricFog.png)
+
+In addition to fog, HDRP also supports local volumetric fog. You can use this to control the density of fog in an area. For more detailed control, you can use a 3D Mask texture to control the color and the density inside the volume itself. For more information see the [Local Volumetric Fog section](Local-Volumetric-Fog.md)
+
 ### Light Layers
 
 ![](Images/HDRPFeatures-LightLayers.png)
 
 Light Layers are LayerMasks that you specify for Lights and Meshes. Lights only illuminate Meshes that are on Light Layers that you enable on the Light. You can also use Light Layers in the shadow map settings to decouple shadows from lighting. For more information on Light Layers, see the [Light Layers documentation](Light-Layers.md).
 
-Light layers In the shadow map dropdown can also be used to control which object receives a shadow from which light. By default both Light Layers and Shadow Map Light Layers are synchronized so the result is coherent (When an object receives light it also casts shadows). For more information on Shadow Map Light Layers, see the [Shadow Light Layer section](Light-Layers.md#ShadowLightLayers)
+You can use Light layers in the shadow map dropdown to control which GameObject receives a shadow from which light. By default, both Light Layers and Shadow Map Light Layers are synchronized so the result is coherent. This means that when a GameObject receives light it also casts shadows. For more information on Shadow Map Light Layers, see the [Shadow Light Layer section](Light-Layers.md#ShadowLightLayers).
 
 ### Screen space ambient occlusion
 
@@ -407,9 +422,9 @@ When path tracing is enabled, objects that use non-HDRP Materials won't appear i
 
 To help you set up HDRP quickly and correctly, HDRP provides the Render Pipeline Wizard. Use the wizard to fix configuration issues with a single button click, and create a template Scene that is already configured with default Scene settings. For more information on the Render Pipeline Wizard, including a description of how to use it, see the [Render Pipeline Wizard documentation](Render-Pipeline-Wizard.md).
 
-### Render Pipeline Debugger
+### Rendering Debugger
 
-The Render Pipeline Debugger contains many debugging and visualization tools to help you to understand and solve any issues quickly. For more information on the Render Pipeline Debugger, including a description of how to use it, see the [Render Pipeline Debugger documentation](Render-Pipeline-Debug-Window.md).
+The Rendering Debugger contains many debugging and visualization tools to help you to understand and solve any issues quickly. For more information on the Rendering Debugger, including a description of how to use it, see the [Rendering Debugger documentation](Render-Pipeline-Debug-Window.md).
 
 ### LookDev
 ![](Images/HDRPFeatures-LookDev.png)
@@ -435,15 +450,15 @@ To help you to debug lighting in your Scene, HDRP includes various lighting debu
 
 HDRP includes a [light layer](Light-Layers.md) debug mode that displays the light layers assigned to each GameObject or highlights GameObjects that match the light layers of a specific Light.
 
-For more information, see the Lighting panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md).
+For more information, see the Lighting panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md).
 
 #### Volume debug mode
 
-The Render Pipeline Debugger window has a Volume panel which you can use to visualize the Volume components that affect a specific Camera.
+The [Rendering Debugger](Render-Pipeline-Debug-Window.md) has a Volume panel that you can use to visualize the Volume components that affect a specific Camera.
 
 For each Volume that contributes to the final interpolated value, the Volume panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance.
 
-For more information, see the Volume panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md#VolumePanel).
+For more information, see the Volume panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md#VolumePanel).
 
 #### Quad Overdraw and Vertex Density
 
@@ -464,6 +479,11 @@ In MatCap mode, HDRP replaces the functionality of the Scene window's Lighting b
 
 From the [HDRI Sky](Override-HDRI-Sky.md), you can directly project the bottom part onto a plane with various shapes such as a Rectangle, Circle, Ellipse, or Infinite plane.
 To match the scale of the GameObjects in your Scene, you can vary the pixel footprint.
+
+### LichrAnchor
+![](Images/lightanchor0.png)
+
+From HDRP 12.0, HDRP (and URP) introduces a new [Light Anchor](light-anchor.md) component. You can attach this component to any light to control the light in Main Camera view.
 
 ### Light Explorer
 

@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.Universal
     {
         public override string name => "Material Upgrade";
         public override string info => "This will upgrade your materials.";
-        public override int priority => - 1000;
+        public override int priority => -1000;
         public override Type container => typeof(BuiltInToURPConverterContainer);
 
         List<string> m_AssetsToConvert = new List<string>();
@@ -20,6 +20,8 @@ namespace UnityEditor.Rendering.Universal
 
         static List<MaterialUpgrader> m_Upgraders;
         private static HashSet<string> m_ShaderNamesToIgnore;
+
+        public IReadOnlyList<MaterialUpgrader> upgraders => m_Upgraders;
         static UniversalRenderPipelineMaterialUpgrader()
         {
             m_Upgraders = new List<MaterialUpgrader>();
@@ -29,7 +31,6 @@ namespace UnityEditor.Rendering.Universal
             GetShaderNamesToIgnore(ref m_ShaderNamesToIgnore);
         }
 
-        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority)]
         private static void UpgradeProjectMaterials()
         {
             m_Upgraders = new List<MaterialUpgrader>();
@@ -43,7 +44,6 @@ namespace UnityEditor.Rendering.Universal
             AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(m_Upgraders, "Upgrade Animation Clips to URP Materials");
         }
 
-        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 1)]
         private static void UpgradeSelectedMaterials()
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
@@ -203,7 +203,7 @@ namespace UnityEditor.Rendering.Universal
             return !shaderNamesToIgnore.Contains(material.shader.name);
         }
 
-        public override void OnInitialize(InitializeConverterContext context, Action calback)
+        public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
             foreach (string path in AssetDatabase.GetAllAssetPaths())
             {
@@ -230,7 +230,7 @@ namespace UnityEditor.Rendering.Universal
                     context.AddAssetToConvert(desc);
                 }
             }
-            calback.Invoke();
+            callback.Invoke();
         }
 
         public override void OnRun(ref RunItemContext context)
