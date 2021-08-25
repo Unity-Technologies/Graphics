@@ -86,7 +86,7 @@ void frag(ps_input i
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
     #if defined(WRITE_NORMAL_BUFFER)
     , out float4 outNormalBuffer : SV_Target0
-    , out float4 outDepthColor : SV_Depth
+    , out float4 outDepthColor : SV_Target1
     #else
     , out float4 outDepthColor : SV_Target0
     #endif
