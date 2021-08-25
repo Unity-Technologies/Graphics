@@ -689,31 +689,7 @@ namespace UnityEngine.Experimental.Rendering
 
         void LoadCell(CellInfo cellInfo)
         {
-            var cell = cellInfo.cell;
-            bool compressed = false;
-            int allocatedBytes = 0;
-
-            if (GetCellIndexUpdate(cell, out var cellUpdateInfo))
-            {
-                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, m_SHBands, out allocatedBytes);
-                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, m_SHBands);
-
-                var regId = AddBricks(cell.bricks, dataLocation, cellUpdateInfo, out var chunkList);
-                if (regId.IsValid())
-                {
-                    cellInfo.regId = regId;
-                    cellInfo.updateInfo = cellUpdateInfo;
-                    cellInfo.chunkList = chunkList;
-                    cellInfo.loaded = true;
-
-                    m_CellIndices.UpdateCell(cellInfo.flatIdxInCellIndices, cellUpdateInfo);
-
-                    ClearDebugData();
-                }
-
-                dataLocation.Cleanup();
-            }
-            else
+            if (!UploadCellGPUData(cellInfo))
             {
                 // We need to first remove something to fit, can't load things further.
                 return;
@@ -1089,18 +1065,36 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        bool UploadCellGPUData(CellInfo cellInfo)
+        {
+            if (GetCellIndexUpdate(cellInfo.cell, out var cellUpdateInfo)) // Allocate indices
+            {
+                return AddBricks(cellInfo, cellUpdateInfo);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         // Runtime API starts here
-        RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo, out List<Chunk> ch_list)
+        bool AddBricks(CellInfo cellInfo, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
         {
             Profiler.BeginSample("AddBricks");
 
-            RegId id = new RegId();
+            var cell = cellInfo.cell;
+            var bricks = cell.bricks;
 
             // calculate the number of chunks necessary
             int ch_size = m_Pool.GetChunkSize();
-            ch_list = new List<Chunk>((bricks.Count + ch_size - 1) / ch_size);
+            var ch_list = new List<Chunk>((bricks.Count + ch_size - 1) / ch_size);
+
+            // Try to allocate texture space
             if (!m_Pool.Allocate(ch_list.Capacity, ch_list))
-                return id; // Invalid RegId
+                return false;
+
+            var dataloc = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed: false, m_SHBands, out var allocatedBytes);
+            ProbeBrickPool.FillDataLocation(ref dataloc, cell.sh, m_SHBands);
 
             // copy chunks into pool
             m_TmpSrcChunks.Clear();
@@ -1127,12 +1121,15 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            // Update the pool and index and ignore any potential frame latency related issues for now
+            // Update textures with incoming SH data and index and ignore any potential frame latency related issues for now
             m_Pool.Update(dataloc, m_TmpSrcChunks, ch_list, m_SHBands);
+
+            dataloc.Cleanup();
 
             m_BricksLoaded = true;
 
             // create a registry entry for this request
+            RegId id;
             m_ID++;
             id.id = m_ID;
             m_Registry.Add(id, ch_list);
@@ -1140,9 +1137,20 @@ namespace UnityEngine.Experimental.Rendering
             // Build index
             m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);
 
+            // Update CellInfo
+            cellInfo.regId = id;
+            cellInfo.updateInfo = cellUpdateInfo;
+            cellInfo.chunkList = ch_list;
+            cellInfo.loaded = true;
+
+            // Update indirection buffer
+            m_CellIndices.UpdateCell(cellInfo.flatIdxInCellIndices, cellUpdateInfo);
+
+            ClearDebugData();
+
             Profiler.EndSample();
 
-            return id;
+            return true;
         }
 
         void ReleaseBricks(CellInfo cellInfo)
