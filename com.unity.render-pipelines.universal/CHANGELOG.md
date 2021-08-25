@@ -4,6 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.8.0] - 2021-07-23
+
+### Fixed
+- Fixed an issue where 2D Renderer was generating garbage in editor.
+- Fixed an issue where soft particles were rendered opaque on OpenGL. [case 1226288](https://issuetracker.unity3d.com/issues/urp-objects-that-are-using-soft-particles-are-rendered-opaque-when-opengl-is-used)
+
 ## [7.7.0] - 2021-04-28
 
 ### Changed
@@ -15,7 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where SMAA did not work for OpenGL [case 1318214](https://issuetracker.unity3d.com/issues/urp-there-is-no-effect-when-using-smaa-in-urp-with-opengles-api)
 - Fixed Opacity as Density blending artifacts on Terrain that that caused Terrain to have modified splat weights of zero in some areas and greater than one in others.
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1339084]
-- Fixed an issue where soft particles were rendered opaque on OpenGL. [case 1226288](https://issuetracker.unity3d.com/issues/urp-objects-that-are-using-soft-particles-are-rendered-opaque-when-opengl-is-used)
+- Drawing order of SRPDefaultUnlit is now the same as the Built-in Render Pipeline. [case 1325883](https://issuetracker.unity3d.com/product/unity/issues/guid/1325883/)
 
 ## [7.6.0] - 2021-03-25
 

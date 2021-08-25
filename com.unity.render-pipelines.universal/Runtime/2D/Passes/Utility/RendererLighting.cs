@@ -138,6 +138,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             cmd.GetTemporaryRT(s_LightRenderTargets[blendStyleIndex].id, descriptor, FilterMode.Bilinear);
             s_LightRenderTargetsDirty[blendStyleIndex] = true;
+            s_Renderer2DData.lightBlendStyles[blendStyleIndex].hasRenderTarget = true;
         }
 
         static public void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
@@ -176,6 +177,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
+                s_Renderer2DData.lightBlendStyles[i].hasRenderTarget = false;
                 cmd.ReleaseTemporaryRT(s_LightRenderTargets[i].id);
             }
 
