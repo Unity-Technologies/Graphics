@@ -984,19 +984,25 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         for (int i = 0; i < passData.computeLocalVolumes.Count; i++)
                         {
-                            var v = m_VisibleComputeLocalVolumes[i];
-                            passData.kernel = v.localVolumetricFogCompute.FindKernel("CSMain");
+                            var v = data.computeLocalVolumes[i];
+                            passData.kernel = v.kernelIndex;
+                            var compute = v.localVolumetricFogCompute;
 
-                            var m = Matrix4x4.TRS(v.transform.position, v.transform.rotation, v.transform.lossyScale);
+                            var m = Matrix4x4.TRS(v.transform.position, v.transform.rotation, v.parameters.size);
 
                             ctx.cmd.SetGlobalVector("VolumeTime", Vector4.one * Time.realtimeSinceStartup);
-                            ctx.cmd.SetComputeTextureParam(data.computeLocalVolumes[i].localVolumetricFogCompute, data.kernel, HDShaderIDs._VBufferDensity, data.vBuffer);
+                            ctx.cmd.SetComputeTextureParam(compute, data.kernel, HDShaderIDs._VBufferDensity, data.vBuffer);
 
-                            ConstantBuffer.Push(ctx.cmd, data.volumetricCB, data.computeLocalVolumes[i].localVolumetricFogCompute, HDShaderIDs._ShaderVariablesVolumetric);
-                            ConstantBuffer.Set<ShaderVariablesLightList>(ctx.cmd, data.computeLocalVolumes[i].localVolumetricFogCompute, HDShaderIDs._ShaderVariablesLightList);
-                            ctx.cmd.SetComputeMatrixParam(data.computeLocalVolumes[i].localVolumetricFogCompute, "VolumeMatrix", m);
-                            ctx.cmd.SetComputeMatrixParam(data.computeLocalVolumes[i].localVolumetricFogCompute, "InvVolumeMatrix", m.inverse);
-                            ctx.cmd.DispatchCompute(data.computeLocalVolumes[i].localVolumetricFogCompute, data.kernel, ((int)data.resolution.x + 7) / 8, ((int)data.resolution.y + 7) / 8, data.viewCount);
+                            ConstantBuffer.Push(ctx.cmd, data.volumetricCB, compute, HDShaderIDs._ShaderVariablesVolumetric);
+                            ConstantBuffer.Set<ShaderVariablesLightList>(ctx.cmd, compute, HDShaderIDs._ShaderVariablesLightList);
+                            ctx.cmd.SetComputeMatrixParam(compute, "VolumeMatrix", m);
+                            ctx.cmd.SetComputeMatrixParam(compute, "InvVolumeMatrix", m.inverse);
+
+                            if (v.setup != null)
+                                v.setup.Invoke(ctx.cmd, v.localVolumetricFogCompute, passData.kernel);
+
+                            ctx.cmd.DispatchCompute(compute, data.kernel, ((int)data.resolution.x + 7) / 8, ((int)data.resolution.y + 7) / 8, data.viewCount);
+                            //v.cleanup(ctx.cmd);
                         }
                     });
             }

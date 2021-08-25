@@ -172,12 +172,27 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("Rendering/Local Volumetric Fog")]
     public partial class LocalVolumetricFog : MonoBehaviour
     {
+        private static string kernelName = "CSMain";
+
+        /// <summary>Local Volumetric Fog Type.</summary>
         public LocalVolumetricFogType localVolumetricFogType = LocalVolumetricFogType.Texture;
 
         /// <summary>Local Volumetric Fog parameters.</summary>
         public LocalVolumetricFogArtistParameters parameters = new LocalVolumetricFogArtistParameters(Color.white, 10.0f, 0.0f);
 
+        /// <summary>Local Volumetric Fog ComputeShader.</summary>
         public ComputeShader localVolumetricFogCompute;
+
+        public Action<CommandBuffer, ComputeShader, int> setup;
+        public Action<CommandBuffer, ComputeShader, int> cleanup;
+        private int m_kernelIndex = -1;
+        public int kernelIndex
+        {
+            get
+            {
+                return m_kernelIndex;
+            }
+        }
 
         private Texture previousVolumeMask = null;
 #if UNITY_EDITOR
@@ -223,6 +238,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnEnable()
         {
+            if (localVolumetricFogCompute != null)
+                m_kernelIndex = localVolumetricFogCompute.FindKernel(kernelName);
+
             LocalVolumetricFogManager.manager.RegisterVolume(this);
 
 #if UNITY_EDITOR
