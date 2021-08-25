@@ -376,6 +376,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lens flare not rendering correctly with TAAU or DLSS.
 - Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
+- Fixed shadow sampling artifact when using the spot light shadow option 'custom spot angle'
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
