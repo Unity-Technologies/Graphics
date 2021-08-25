@@ -77,6 +77,15 @@ MonoBehaviour:
   cloudThickness:
     m_OverrideState: 1
     m_Value: 100
+  fadeInMode:
+    m_OverrideState: 0
+    m_Value: 0
+  fadeInStart:
+    m_OverrideState: 0
+    m_Value: 0
+  fadeInDistance:
+    m_OverrideState: 0
+    m_Value: 0
   numPrimarySteps:
     m_OverrideState: 0
     m_Value: 48
@@ -285,8 +294,8 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
   ambientLightProbeDimmer:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 0
   erosionOcclusion:
     m_OverrideState: 0
     m_Value: 0.1
