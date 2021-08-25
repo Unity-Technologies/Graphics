@@ -9,7 +9,8 @@ using UnityEditor.Rendering.HighDefinition;
 
 public class ResetMaterialProperties : MonoBehaviour
 {
-    static readonly string[] floatPropertiesToReset = {
+    static readonly string[] floatPropertiesToReset =
+    {
         "_StencilRef", "_StencilWriteMask",
         "_StencilRefDepth", "_StencilWriteMaskDepth",
         "_StencilRefMV", "_StencilWriteMaskMV",
@@ -24,20 +25,21 @@ public class ResetMaterialProperties : MonoBehaviour
         "_TransparentBackfaceEnable", "_ReceivesSSR", "_RequireSplitLighting"
     };
 
-    static readonly string[] vectorPropertiesToReset = {
+    static readonly string[] vectorPropertiesToReset =
+    {
         "_DoubleSidedConstants",
     };
 
     [MenuItem("Edit/Render Pipeline/Reset All ShaderGraph Material Properties %g")]
     static void ResetShaderGraphMaterialProperties()
     {
-        var materials = Resources.FindObjectsOfTypeAll< Material >();
+        var materials = Resources.FindObjectsOfTypeAll<Material>();
 
         foreach (var mat in materials)
         {
             Type graphUtilType = Type.GetType("UnityEditor.ShaderGraph.GraphUtil, Unity.ShaderGraph.Editor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
             var isShaderGraph = graphUtilType.GetMethod("IsShaderGraph", BindingFlags.Public | BindingFlags.Static);
-            if ((bool)isShaderGraph.Invoke(null, new []{mat}))
+            if ((bool)isShaderGraph.Invoke(null, new[] { mat }))
             {
                 var defaultProperties = new Material(mat.shader);
 

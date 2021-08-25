@@ -11,3 +11,9 @@ The section contains the following settings.
 ## Light Layer Names (3D)
 
 Use this section to define the names of Light Layers. Light Layers only work with 3D Renderers.
+
+## Miscellaneous
+
+| **Property**              | **Description**                                              |
+| --------------------------| ------------------------------------------------------------ |
+| Runtime Debug Shaders     | When disabled, all debug display shader variants are removed when you build for the Unity Player. This decreases build time, but prevents the use of Rendering Debugger in Player builds. |

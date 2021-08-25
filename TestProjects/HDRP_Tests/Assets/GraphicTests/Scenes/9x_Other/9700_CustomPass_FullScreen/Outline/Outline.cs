@@ -1,21 +1,21 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
 class Outline : CustomPass
 {
-    public LayerMask    outlineLayer = 0;
+    public LayerMask outlineLayer = 0;
     [ColorUsage(false, true)]
-    public Color        outlineColor = Color.black;
-    public float        threshold = 1;
+    public Color outlineColor = Color.black;
+    public float threshold = 1;
 
     // To make sure the shader will ends up in the build, we keep it's reference in the custom pass
     [SerializeField, HideInInspector]
-    Shader                  outlineShader;
+    Shader outlineShader;
 
-    Material                fullscreenOutline;
-    RTHandle                outlineBuffer;
+    Material fullscreenOutline;
+    RTHandle outlineBuffer;
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {

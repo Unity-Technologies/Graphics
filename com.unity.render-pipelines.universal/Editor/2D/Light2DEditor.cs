@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIContent deprecatedParametricLightWarningSingle = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Light to a Freeform Light to enjoy similar light functionality.", MessageType.Warning);
             public static GUIContent deprecatedParametricLightWarningMulti = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Lights to Freeform Lights to enjoy similar light functionality.", MessageType.Warning);
-            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade from the menu. Edit > Rendering > Lights > Upgrade Project/Scene URP Parametric Lights to Freeform");
+            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade from the menu. Window > Rendering > Render Pipeline Converter > URP 2D Converters");
             public static GUIContent deprecatedParametricLightButtonSingle = EditorGUIUtility.TrTextContent("Upgrade Parametric Light");
             public static GUIContent deprecatedParametricLightButtonMulti = EditorGUIUtility.TrTextContent("Upgrade Parametric Lights");
 
@@ -113,12 +113,12 @@ namespace UnityEditor.Rendering.Universal
             public static string deprecatedParametricLightDialogCancel = "Cancel";
         }
 
-        const float     k_GlobalLightGizmoSize      = 1.2f;
-        const float     k_AngleCapSize              = 0.16f * k_GlobalLightGizmoSize;
-        const float     k_AngleCapOffset            = 0.08f * k_GlobalLightGizmoSize;
-        const float     k_AngleCapOffsetSecondary   = -0.05f;
-        const float     k_RangeCapSize              = 0.025f * k_GlobalLightGizmoSize;
-        const float     k_InnerRangeCapSize         = 0.08f * k_GlobalLightGizmoSize;
+        const float k_GlobalLightGizmoSize = 1.2f;
+        const float k_AngleCapSize = 0.16f * k_GlobalLightGizmoSize;
+        const float k_AngleCapOffset = 0.08f * k_GlobalLightGizmoSize;
+        const float k_AngleCapOffsetSecondary = -0.05f;
+        const float k_RangeCapSize = 0.025f * k_GlobalLightGizmoSize;
+        const float k_InnerRangeCapSize = 0.08f * k_GlobalLightGizmoSize;
 
         SerializedProperty m_LightType;
         SerializedProperty m_LightColor;
@@ -151,15 +151,15 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShapeLightParametricSides;
         SerializedProperty m_ShapeLightSprite;
 
-        SavedBool          m_BlendingSettingsFoldout;
-        SavedBool          m_ShadowsSettingsFoldout;
-        SavedBool          m_VolumetricSettingsFoldout;
-        SavedBool          m_NormalMapsSettingsFoldout;
+        SavedBool m_BlendingSettingsFoldout;
+        SavedBool m_ShadowsSettingsFoldout;
+        SavedBool m_VolumetricSettingsFoldout;
+        SavedBool m_NormalMapsSettingsFoldout;
 
 
-        int[]           m_BlendStyleIndices;
-        GUIContent[]    m_BlendStyleNames;
-        bool            m_AnyBlendStyleEnabled  = false;
+        int[] m_BlendStyleIndices;
+        GUIContent[] m_BlendStyleNames;
+        bool m_AnyBlendStyleEnabled = false;
 
         SortingLayerDropDown m_SortingLayerDropDown;
 
@@ -486,7 +486,7 @@ namespace UnityEditor.Rendering.Universal
                         Light2D light = (Light2D)targets[i];
 
                         if (light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric)
-                            Renderer2DUpgrader.UpgradeParametricLight(light);
+                            ParametricToFreeformLightUpgrader.UpgradeParametricLight(light);
                     }
                 }
             }

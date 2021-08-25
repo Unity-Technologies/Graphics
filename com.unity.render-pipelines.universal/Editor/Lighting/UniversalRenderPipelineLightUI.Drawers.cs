@@ -113,6 +113,16 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawGeneralContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
+            DrawGeneralContentInternal(serializedLight, owner, isInPreset: false);
+        }
+
+        static void DrawGeneralContentPreset(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
+        {
+            DrawGeneralContentInternal(serializedLight, owner, isInPreset: true);
+        }
+
+        static void DrawGeneralContentInternal(UniversalRenderPipelineSerializedLight serializedLight, Editor owner, bool isInPreset)
+        {
             // To the user, we will only display it as a area light, but under the hood, we have Rectangle and Disc. This is not to confuse people
             // who still use our legacy light inspector.
 
@@ -157,7 +167,7 @@ namespace UnityEditor.Rendering.Universal
                     serializedLight.Apply();
                 }
 
-                if (lightType != LightType.Rectangle && !serializedLight.settings.isCompletelyBaked && UniversalRenderPipeline.asset.supportsLightLayers)
+                if (lightType != LightType.Rectangle && !serializedLight.settings.isCompletelyBaked && UniversalRenderPipeline.asset.supportsLightLayers && !isInPreset)
                 {
                     EditorGUI.BeginChangeCheck();
                     DrawLightLayerMask(serializedLight.lightLayerMask, Styles.LightLayer);
@@ -194,7 +204,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginProperty(controlRect, style, property);
 
             EditorGUI.BeginChangeCheck();
-            lightLayer = EditorGUI.MaskField(controlRect, style, lightLayer, UniversalRenderPipeline.asset.lightLayerMaskNames);
+            lightLayer = EditorGUI.MaskField(controlRect, style, lightLayer, UniversalRenderPipelineGlobalSettings.instance.prefixedLightLayerNames);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = lightLayer;
 

@@ -6,7 +6,7 @@ You can use the Blackboard to define, order, and categorize the [Properties](Pro
 ![image](images/blackboardcategories1.png)
 
 ## Accessing the Blackboard
-The Blackboard is visible by default, and you cannot hide it. However, you are able to position it anywhere in the [Shader Graph Window](Shader-Graph-Window). It always maintains the same distance from the nearest corner, even if you resize the window.
+The Blackboard is visible by default, and you cannot drag it off the graph and lose it. However, you are able to position it anywhere in the [Shader Graph Window](Shader-Graph-Window). It always maintains the same distance from the nearest corner, even if you resize the window.
 
 ## Adding properties and keywords to the Blackboard
 To create a new property or keyword, click the **Add (+)** button on the Blackboard's title bar and select a type. For a full list of property types, see [Property Types](Property-Types).

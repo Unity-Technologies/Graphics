@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
             // TODO Deactivate mv and shadow passes if needed
         }
 
-        protected VFXStaticMeshOutput() : base(VFXContextType.Output, VFXDataType.Mesh, VFXDataType.None) {}
+        protected VFXStaticMeshOutput() : base(VFXContextType.Output, VFXDataType.Mesh, VFXDataType.None) { }
 
         public override void OnEnable()
         {

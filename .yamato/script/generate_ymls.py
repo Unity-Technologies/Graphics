@@ -1,6 +1,7 @@
 import os
 import subprocess
 import ruamel.yaml as yml
+import sys
 
 # This script calls the ruamel build.py script, with an argument pointing to current GIT repo
 # i.e. when this is called within Graphics repo, then build.py will edit the files in Graphics repo 
@@ -30,16 +31,18 @@ if __name__== "__main__":
     gfx_sdet_tools_dir = config["gfx_sdet_tools_path"]
     build_py = os.path.join(gfx_sdet_tools_dir,'yml-generator','ruamel','build.py')
 
-    cmd = f'python "{build_py}" --yamato-dir "{current_yamato_dir}"'
-    print(f'Calling [{cmd}]')
-    
+    cmd = [sys.executable, build_py,
+           '--yamato-dir', current_yamato_dir]
+    print(f'Calling {cmd}')
+
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
     for stdout_line in iter(process.stdout.readline, ""):
         print(stdout_line.strip())
     process.stdout.close()
     process.wait()
 
-    gfx_sdet_tools_rev = subprocess.check_output('git rev-parse HEAD', stderr=subprocess.STDOUT, universal_newlines=True, cwd=gfx_sdet_tools_dir)
+    gfx_sdet_tools_rev = subprocess.check_output(
+        ['git', 'rev-parse', 'HEAD'], stderr=subprocess.STDOUT, universal_newlines=True, cwd=gfx_sdet_tools_dir)
     with open(gfx_sdet_tools_rev_file, 'w') as f:
         f.write(gfx_sdet_tools_rev)
     
