@@ -237,31 +237,33 @@ Shader "Hidden/HDRP/DebugExposure"
     {
         float2 borderSize = 2 * _ScreenSize.zw * _RTHandleScale.xy;
 
-        if (uv.y > frameHeight) return false;
+        bool res = false;
 
-        // ---- Draw General frame ---- 
-        if (uv.x < borderSize.x || uv.x >(1.0f - borderSize.x))
+        if (uv.y <= frameHeight)
         {
-            outColor = 0.0;
-            return false;
-        }
-        else if (uv.y > frameHeight - borderSize.y)
-        {
-            outColor = 0.0;
-            return false;
-        }
-        else
-        {
-            outColor = lerp(outColor, frameColor, frameAlpha);
-        }
+            // ---- Draw General frame ---- 
+            if (uv.x < borderSize.x || uv.x >(1.0f - borderSize.x))
+            {
+                outColor = 0.0;
+            }
+            else if (uv.y > frameHeight - borderSize.y)
+            {
+                outColor = 0.0;
+            }
+            else
+            {
+                outColor = lerp(outColor, frameColor, frameAlpha);
+                res = true;
+            }
 
-        // ----  Draw label bar -----
-        if (uv.y < heightLabelBar)
-        {
-            outColor = outColor * 0.075f;
-        }
+            // ----  Draw label bar -----
+            if (uv.y < heightLabelBar)
+            {
+                outColor = outColor * 0.075f;
+            }
+        } 
 
-        return true;
+        return res;
     }
 
     float2 GetMinMaxLabelRange(float currEV)

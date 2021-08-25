@@ -16,12 +16,7 @@ bool IsFarFromCamera(float3 worldPosition, float rangeInFrontOfCamera, float ran
 {
     float3 V = (worldPosition - _WorldSpaceCameraPos.xyz);
     float distAlongV = dot(GetViewForwardDir(), V);
-    if (!(distAlongV < rangeInFrontOfCamera && distAlongV > -rangeBehindCamera))
-    {
-        return true;
-    }
-
-    return false;
+    return !(distAlongV < rangeInFrontOfCamera && distAlongV > -rangeBehindCamera);
 }
 
 float3 ReadPreviousPropagationAxis(uint probeIndex, uint axisIndex)
@@ -29,12 +24,8 @@ float3 ReadPreviousPropagationAxis(uint probeIndex, uint axisIndex)
     const uint index = probeIndex * NEIGHBOR_AXIS_COUNT + axisIndex;
 
     // TODO: remove this if check with stricter checks on construction side in C#
-    if(index < (uint)_RadianceCacheAxisCount)
-    {
-        return _PreviousRadianceCacheAxis[index];
-    }
+    return (index < (uint)_RadianceCacheAxisCount) ? _PreviousRadianceCacheAxis[index] : 0;
 
-    return 0;
 }
 
 float3 NormalizeOutputRadiance(float4 lightingAndWeight, float probeValidity)

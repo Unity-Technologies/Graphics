@@ -1,3 +1,6 @@
+// warning X4714: sum of temp registers and indexable temp registers times 64 threads exceeds the recommended total 16384.
+#pragma warning(disable: 4714)
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Hammersley.hlsl"

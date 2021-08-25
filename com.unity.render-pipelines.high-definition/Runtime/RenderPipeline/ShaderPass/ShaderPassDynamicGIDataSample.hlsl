@@ -71,6 +71,9 @@ void Frag(  Varyings varInput,
 
     int localIdx = input.positionSS.y * quadLen + input.positionSS.x;
 
+    // Silence compiler warning about potentially uninitialized variable.
+    dummy = 0.0;
+
     if (localIdx < _RequestCount)
     {
         ExtraDataRequest req = _RequestsInputData[localIdx];
