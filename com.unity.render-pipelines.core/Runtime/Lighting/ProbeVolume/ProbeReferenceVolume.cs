@@ -1208,5 +1208,10 @@ namespace UnityEngine.Experimental.Rendering
             m_ProbeReferenceVolumeInit = false;
             ClearDebugData();
         }
+
+        public void Update()
+        {
+
+        }
     }
 }
