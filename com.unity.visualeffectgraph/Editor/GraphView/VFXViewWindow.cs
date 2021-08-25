@@ -174,7 +174,7 @@ namespace  UnityEditor.VFX.UI
                 }
             };
 
-            autoCompile = true;
+            autoCompile = EditorPrefs.GetBool(VFXView._EDITOR_PREFS_VFX_AUTO_SAVE, true);
 
             graphView.RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             graphView.RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
