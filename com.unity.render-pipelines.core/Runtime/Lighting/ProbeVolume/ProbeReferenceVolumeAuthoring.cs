@@ -132,7 +132,11 @@ namespace UnityEngine.Experimental.Rendering
         internal ProbeVolumeAsset GrabRelevantAsset()
         {
             var scenePath = gameObject.scene.path;
-            return ProbeReferenceVolume.instance.sceneData.GetActiveAsset(scenePath);
+            if (ProbeReferenceVolume.instance.sceneData != null)
+            {
+                return ProbeReferenceVolume.instance.sceneData.GetActiveAsset(scenePath);
+            }
+            return null;
         }
 
         internal void QueueAssetLoading()
