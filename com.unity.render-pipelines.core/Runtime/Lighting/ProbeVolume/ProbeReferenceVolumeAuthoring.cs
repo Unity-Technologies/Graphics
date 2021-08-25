@@ -111,15 +111,9 @@ namespace UnityEngine.Experimental.Rendering
         MeshGizmo brickGizmos;
         MeshGizmo cellGizmo;
 
-        // In some cases Unity will magically popuplate this private field with a correct value even though it should not be serialized.
-        // The [NonSerialized] attribute allows to force the asset to be null in case a domain reload happens.
-        [NonSerialized]
-        ProbeVolumeAsset m_PrevAsset = null;
 #endif
         [SerializeField]
         float m_DilationValidityThreshold = 0.25f;
-
-        public ProbeVolumeAsset volumeAsset = null;
 
         internal void LoadProfileInformation()
         {
@@ -132,16 +126,26 @@ namespace UnityEngine.Experimental.Rendering
             refVol.dilationValidtyThreshold = m_DilationValidityThreshold;
         }
 
+        // TODO: When Probe reference volume is gone altogether the loading shouldn't happen here (well because this will all be gone :P).
+        // This will be even more so when we'll have different states, how does this trigger a specific state?
+        // Keeping it here to have a gradual transition and because we don't have metadata for states yet.
+        internal ProbeVolumeAsset GrabRelevantAsset()
+        {
+            var scenePath = gameObject.scene.path;
+            return ProbeReferenceVolume.instance.sceneData.GetActiveAsset(scenePath);
+        }
+
         internal void QueueAssetLoading()
         {
             LoadProfileInformation();
-
+            var volumeAsset = GrabRelevantAsset();
             if (volumeAsset != null)
                 ProbeReferenceVolume.instance.AddPendingAssetLoading(volumeAsset);
         }
 
         internal void QueueAssetRemoval()
         {
+            var volumeAsset = GrabRelevantAsset();
             if (volumeAsset == null)
                 return;
 
@@ -150,8 +154,6 @@ namespace UnityEngine.Experimental.Rendering
             brickGizmos = null;
             cellGizmo?.Dispose();
             cellGizmo = null;
-
-            m_PrevAsset = null;
 #endif
 
             ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
@@ -177,18 +179,6 @@ namespace UnityEngine.Experimental.Rendering
             {
                 m_PrevProfile = m_Profile;
             }
-
-            if (volumeAsset != m_PrevAsset && m_PrevAsset != null)
-            {
-                ProbeReferenceVolume.instance.AddPendingAssetRemoval(m_PrevAsset);
-            }
-
-            if (volumeAsset != m_PrevAsset)
-            {
-                QueueAssetLoading();
-            }
-
-            m_PrevAsset = volumeAsset;
         }
 
         void OnDisable()

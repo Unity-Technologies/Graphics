@@ -91,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (!refVolAuthoring.enabled || !refVolAuthoring.gameObject.activeSelf)
                     continue;
 
-                refVolAuthoring.volumeAsset = null;
+                ProbeReferenceVolume.instance.sceneData.ClearAsset(refVolAuthoring.gameObject.scene.path);
 
                 var refVol = ProbeReferenceVolume.instance;
                 refVol.Clear();
@@ -325,10 +325,11 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var refVol in refVols)
             {
-                if (refVol.volumeAsset != null)
+                var refVolAsset = refVol.GrabRelevantAsset();
+                if (refVolAsset != null)
                 {
-                    string assetPath = refVol.volumeAsset.GetSerializedFullPath();
-                    foreach (var cell in refVol.volumeAsset.cells)
+                    string assetPath = refVolAsset.GetSerializedFullPath();
+                    foreach (var cell in refVolAsset.cells)
                     {
                         if (!cell2Assets.ContainsKey(cell.index))
                         {
@@ -361,9 +362,11 @@ namespace UnityEngine.Experimental.Rendering
 
                     foreach (var refVol in refVols)
                     {
-                        if (refVol != null && refVol.volumeAsset != null)
+                        if (refVol != null)
                         {
-                            ProbeReferenceVolume.instance.AddPendingAssetRemoval(refVol.volumeAsset);
+                            var refVolAsset = refVol.GrabRelevantAsset();
+                            if (refVolAsset != null)
+                                ProbeReferenceVolume.instance.AddPendingAssetRemoval(refVolAsset);
                         }
                     }
 
@@ -376,9 +379,9 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         foreach (var refVol in refVols)
                         {
-                            if (refVol.volumeAsset == null) continue;
+                            var asset = refVol.GrabRelevantAsset();
+                            if (asset == null) continue;
 
-                            var asset = refVol.volumeAsset;
                             var assetPath = asset.GetSerializedFullPath();
                             bool valueFound = false;
                             if (!assetCleared.TryGetValue(assetPath, out valueFound))
@@ -532,7 +535,9 @@ namespace UnityEngine.Experimental.Rendering
             var refVol2Asset = new Dictionary<ProbeReferenceVolumeAuthoring, ProbeVolumeAsset>();
             foreach (var refVol in scene2RefVol.Values)
             {
-                refVol2Asset[refVol] = ProbeVolumeAsset.CreateAsset(refVol.gameObject.scene);
+                var asset = ProbeVolumeAsset.CreateAsset(refVol.gameObject.scene);
+                ProbeReferenceVolume.instance.sceneData.AddAsset(refVol.gameObject.scene.path, asset);
+                refVol2Asset[refVol] = asset;
             }
 
             // Put cells into the respective assets
@@ -558,12 +563,12 @@ namespace UnityEngine.Experimental.Rendering
                 var refVol = pair.Key;
                 var asset = pair.Value;
 
-                refVol.volumeAsset = asset;
+                ProbeReferenceVolume.instance.sceneData.AddAsset(refVol.gameObject.scene.path, asset);
 
                 if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
                 {
                     UnityEditor.EditorUtility.SetDirty(refVol);
-                    UnityEditor.EditorUtility.SetDirty(refVol.volumeAsset);
+                    UnityEditor.EditorUtility.SetDirty(asset);
                 }
             }
 

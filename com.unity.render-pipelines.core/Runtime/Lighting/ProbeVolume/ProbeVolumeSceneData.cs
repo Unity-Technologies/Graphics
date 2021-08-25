@@ -26,13 +26,44 @@ namespace UnityEngine.Experimental.Rendering
             [SerializeField] public bool hasProbeVolumes;
         }
 
+        [System.Serializable]
+        struct SerializableAssetItem
+        {
+            [SerializeField] public string scenePath;
+            [SerializeField] public APVSceneAssets assets;
+        }
+
         [SerializeField] List<SerializableBoundItem> serializedBounds;
         [SerializeField] List<SerializableHasPVItem> serializedHasVolumes;
+        [SerializeField] List<SerializableAssetItem> serializedAssets;
 
         Object m_ParentAsset = null;
         /// <summary> A dictionary containing the Bounds defined by probe volumes for each scene (scene path is the key of the dictionary). </summary>
         public Dictionary<string, Bounds> sceneBounds;
         internal Dictionary<string, bool> hasProbeVolumes;
+
+        // !! IMPORTANT !! At the moment we are assuming only one asset per scene. This is an assumption propagated throughout the system a fair bit
+        // and this imposes a strong constraint about it. This will not be the case as we'd want to do blending between different assets or simply having different states.
+        // When this will be the case we need to change this so the dictionary should include the state metadata and a way to know which one is the one considered "active" (i.e. to be actually loaded).
+        // This is why the abstraction away in a class that at the moment just returns a single asset.
+        internal class APVSceneAssets
+        {
+            public ProbeVolumeAsset asset;
+
+            // This will need to take some metadata input to check if we already have an asset with a given metadata set in the collection to decide whether to replace or add.
+            // Currently always replacing.
+            public void AddAsset(ProbeVolumeAsset asset)
+            {
+                this.asset = asset;
+            }
+
+            // This is very temp. It will need to take as input the active meta data settings and grab from the collection the right asset.
+            public ProbeVolumeAsset GetActiveAsset()
+            {
+                return asset;
+            }
+        }
+        internal Dictionary<string, APVSceneAssets> sceneAssets;
 
         /// <summary>Constructor for ProbeVolumeSceneData. </summary>
         /// <param name="parentAsset">The asset holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds are updated or an asset is changed. </param>
@@ -41,8 +72,11 @@ namespace UnityEngine.Experimental.Rendering
             m_ParentAsset = parentAsset;
             sceneBounds = new Dictionary<string, Bounds>();
             hasProbeVolumes = new Dictionary<string, bool>();
+            sceneAssets = new Dictionary<string, APVSceneAssets>();
+
             serializedBounds = new List<SerializableBoundItem>();
             serializedHasVolumes = new List<SerializableHasPVItem>();
+            serializedAssets = new List<SerializableAssetItem>();
         }
 
         /// <summary>Set a reference to the object holding this ProbeVolumeSceneData.</summary>
@@ -57,11 +91,13 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public void OnAfterDeserialize()
         {
-            // We haven't initialized the bounds, no need to do anything here.
-            if (serializedBounds == null || serializedHasVolumes == null) return;
+            // We haven't initialized the data, no need to do anything here.
+            if (serializedBounds == null || serializedHasVolumes == null || serializedAssets == null) return;
 
             sceneBounds = new Dictionary<string, Bounds>();
             hasProbeVolumes = new Dictionary<string, bool>();
+            sceneAssets = new Dictionary<string, APVSceneAssets>();
+
             foreach (var boundItem in serializedBounds)
             {
                 sceneBounds.Add(boundItem.scenePath, boundItem.bounds);
@@ -71,6 +107,11 @@ namespace UnityEngine.Experimental.Rendering
             {
                 hasProbeVolumes.Add(boundItem.scenePath, boundItem.hasProbeVolumes);
             }
+
+            foreach (var assetItem in serializedAssets)
+            {
+                sceneAssets.Add(assetItem.scenePath, assetItem.assets);
+            }
         }
 
         /// <summary>
@@ -79,11 +120,12 @@ namespace UnityEngine.Experimental.Rendering
         public void OnBeforeSerialize()
         {
             // We haven't initialized the bounds, no need to do anything here.
-            if (sceneBounds == null || hasProbeVolumes == null ||
-                serializedBounds == null || serializedHasVolumes == null) return;
+            if (sceneBounds == null || hasProbeVolumes == null || sceneAssets == null ||
+                serializedBounds == null || serializedHasVolumes == null || serializedAssets == null) return;
 
             serializedBounds.Clear();
             serializedHasVolumes.Clear();
+            serializedAssets.Clear();
             foreach (var k in sceneBounds.Keys)
             {
                 SerializableBoundItem item;
@@ -98,6 +140,15 @@ namespace UnityEngine.Experimental.Rendering
                 item.scenePath = k;
                 item.hasProbeVolumes = hasProbeVolumes[k];
                 serializedHasVolumes.Add(item);
+            }
+
+
+            foreach (var k in sceneAssets.Keys)
+            {
+                SerializableAssetItem item;
+                item.scenePath = k;
+                item.assets = sceneAssets[k];
+                serializedAssets.Add(item);
             }
         }
 
@@ -216,6 +267,44 @@ namespace UnityEngine.Experimental.Rendering
             {
                 EditorUtility.SetDirty(m_ParentAsset);
             }
+        }
+
+        // IMPORTANT TODO: This will require a metadata item together with the asset to make sure the asset is inserted correctly in the list of assets belonging to a scene.+
+        internal void AddAsset(string scenePath, ProbeVolumeAsset asset)
+        {
+            if (sceneAssets == null)
+            {
+                sceneAssets = new Dictionary<string, APVSceneAssets>();
+            }
+
+            if (!sceneAssets.ContainsKey(scenePath))
+            {
+                sceneAssets.Add(scenePath, new APVSceneAssets());
+            }
+
+            sceneAssets[scenePath].AddAsset(asset);
+
+            if (m_ParentAsset != null)
+            {
+                EditorUtility.SetDirty(m_ParentAsset);
+            }
+        }
+
+        internal void ClearAsset(string scenePath)
+        {
+            if (sceneAssets != null && sceneAssets.ContainsKey(scenePath))
+            {
+                sceneAssets.Remove(scenePath);
+            }
+        }
+
+        internal ProbeVolumeAsset GetActiveAsset(string scenePath)
+        {
+            if (sceneAssets != null && sceneAssets.ContainsKey(scenePath))
+            {
+                return sceneAssets[scenePath].GetActiveAsset();
+            }
+            return null;
         }
 
 #endif
