@@ -1,5 +1,3 @@
-using UnityEditor.Search;
-
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.VFX;
@@ -10,7 +8,6 @@ namespace UnityEditor.VFX.UI
     {
         public VFXView m_vfxView;
 
-        SearchContext m_searchContext;
         TextField m_pickedObjectLabel;
         Button m_AttachButton;
 
@@ -18,8 +15,6 @@ namespace UnityEditor.VFX.UI
 
         protected void CreateGUI()
         {
-            m_searchContext = Search.SearchService.CreateContext("scene", string.Empty, SearchFlags.None);
-
             var tpl = VFXView.LoadUXML("VFXAttachPanel");
             var mainContainer = tpl.CloneTree();
             m_AttachButton = mainContainer.Q<Button>("AttachButton");
@@ -50,39 +45,15 @@ namespace UnityEditor.VFX.UI
 
         private void OnPickObject()
         {
-            var path = AssetDatabase.GetAssetPath(m_vfxView.controller?.graph?.visualEffectResource.asset);
-            if (!string.IsNullOrEmpty(path))
-            {
-                m_searchContext.searchText = $"ref=\"{path}\"";
-            }
-            var view = Search.SearchService.ShowPicker(m_searchContext, SelectHandler, TrackingHandler, FilterHandler, null, "Visual Effect");
-            view.itemIconSize = 0f;
+            VFXPicker.Pick(m_vfxView.controller?.graph?.visualEffectResource.asset, SelectHandler);
         }
 
-        private void TrackingHandler(SearchItem obj)
+        private void SelectHandler(VisualEffect vfx)
         {
-        }
-
-        private void SelectHandler(SearchItem arg1, bool arg2)
-        {
-            if (arg1?.ToObject<GameObject>() is { } go)
+            if (m_vfxView.TryAttachTo(vfx))
             {
-                var vfx = go.GetComponent<VisualEffect>();
-                if (m_vfxView.TryAttachTo(vfx))
-                {
-                    UpdateAttachedLabel();
-                }
+                UpdateAttachedLabel();
             }
-        }
-
-        private bool FilterHandler(SearchItem arg)
-        {
-            if (arg.ToObject<GameObject>().TryGetComponent(typeof(VisualEffect), out var component) && component is VisualEffect vfx)
-            {
-                return vfx.visualEffectAsset == m_vfxView.controller?.graph?.visualEffectResource.asset;
-            }
-
-            return false;
         }
 
         private void UpdateAttachedLabel()
@@ -90,10 +61,7 @@ namespace UnityEditor.VFX.UI
             var isAttached = m_vfxView.attachedComponent != null;
             var selectedVisualEffect = Selection.activeGameObject?.GetComponent<VisualEffect>();
             var isCompatible = selectedVisualEffect != null && selectedVisualEffect.visualEffectAsset == m_vfxView.controller.graph.visualEffectResource.asset;
-            if (!isCompatible && !isAttached)
-            {
-                m_AttachButton.SetEnabled(false);
-            }
+            m_AttachButton.SetEnabled(isAttached || isCompatible);
             m_AttachButton.text = isAttached ? "Detach" : "Attach to selection";
             m_pickedObjectLabel.value = m_vfxView.attachedComponent?.name;
         }
