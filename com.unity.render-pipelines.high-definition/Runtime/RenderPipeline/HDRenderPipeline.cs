@@ -1119,8 +1119,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Update();
 #endif
-            if (Debug.isDebugBuild && DebugManager.instance.isAnyDebugUIActive)
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (DebugManager.instance.isAnyDebugUIActive)
                 m_DebugDisplaySettings.debugFrameTiming.UpdateFrameTiming();
+#endif
 
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 

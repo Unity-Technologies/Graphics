@@ -5,6 +5,7 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.InputSystem.EnhancedTouch;
 #endif
 using System.Collections;
+using System.Diagnostics;
 using UnityEngine.EventSystems;
 
 namespace UnityEngine.Rendering
@@ -14,9 +15,10 @@ namespace UnityEngine.Rendering
         ScreenOrientation m_Orientation;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         static void RuntimeInit()
         {
-            if (!Debug.isDebugBuild || FindObjectOfType<DebugUpdater>() != null)
+            if (FindObjectOfType<DebugUpdater>() != null)
                 return;
 
             var go = new GameObject { name = "[Debug Updater]" };

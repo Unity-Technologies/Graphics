@@ -250,8 +250,11 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 #endif
-            if (Debug.isDebugBuild && DebugManager.instance.isAnyDebugUIActive)
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (DebugManager.instance.isAnyDebugUIActive)
                 m_DebugDisplaySettingsUI.UpdateFrameTiming();
+#endif
 
             SortCameras(cameras);
 #if UNITY_2021_1_OR_NEWER
