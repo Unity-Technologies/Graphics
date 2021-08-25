@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
     [VFXInfo(variantProvider = typeof(InitializeVariantProvider))]
     class VFXBasicInitialize : VFXContext
     {
-        public VFXBasicInitialize() : base(VFXContextType.Init, VFXDataType.SpawnEvent, VFXDataType.None) {}
+        public VFXBasicInitialize() : base(VFXContextType.Init, VFXDataType.SpawnEvent, VFXDataType.None) { }
         public override string name { get { return "Initialize " + ObjectNames.NicifyVariableName(ownedType.ToString()); } }
         public override string codeGeneratorTemplate { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/Shaders/VFXInit"; } }
         public override bool codeGeneratorCompute { get { return true; } }
@@ -57,7 +57,7 @@ namespace UnityEditor.VFX
         {
             [Tooltip(
                 "The culling bounds of this system. The Visual Effect is only visible if the bounding box specified here is visible to the camera.")]
-            public AABox bounds = new AABox() {size = Vector3.one};
+            public AABox bounds = new AABox() { size = Vector3.one };
         }
 
         public class InputPropertiesPadding

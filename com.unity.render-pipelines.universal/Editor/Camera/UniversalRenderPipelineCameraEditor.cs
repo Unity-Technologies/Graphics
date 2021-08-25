@@ -90,7 +90,7 @@ namespace UnityEditor.Rendering.Universal
             rect.height = EditorGUIUtility.singleLineHeight;
             rect.y += 1;
 
-            (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera)overlayCamera = m_SerializedCamera[index];
+            (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera) overlayCamera = m_SerializedCamera[index];
             Camera cam = overlayCamera.camera;
             if (cam != null)
             {
@@ -250,7 +250,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_SerializedCamera.Refresh();
 
-            (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera)overlayCamera = m_SerializedCamera[m_SerializedCamera.numCameras - 1];
+            (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera) overlayCamera = m_SerializedCamera[m_SerializedCamera.numCameras - 1];
             UpdateStackCameraOutput(overlayCamera.camera, overlayCamera.serializedCamera);
         }
 
@@ -318,7 +318,7 @@ namespace UnityEditor.Rendering.Universal
             int cameraCount = m_SerializedCamera.cameras.arraySize;
             for (int i = 0; i < cameraCount; ++i)
             {
-                (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera)overlayCamera = m_SerializedCamera[i];
+                (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera) overlayCamera = m_SerializedCamera[i];
                 if (overlayCamera.camera != null)
                     UpdateStackCameraOutput(overlayCamera.camera, overlayCamera.serializedCamera);
             }

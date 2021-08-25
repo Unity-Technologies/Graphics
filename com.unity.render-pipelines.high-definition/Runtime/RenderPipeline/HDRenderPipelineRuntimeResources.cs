@@ -149,11 +149,11 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Sky/PhysicallyBasedSky/InScatteredRadiancePrecomputation.compute")]
             public ComputeShader inScatteredRadiancePrecomputationCS;
             [Reload("Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSky.shader")]
-            public Shader        physicallyBasedSkyPS;
+            public Shader physicallyBasedSkyPS;
             [Reload("Runtime/Lighting/PlanarReflectionFiltering.compute")]
             public ComputeShader planarReflectionFilteringCS;
             [Reload("Runtime/Sky/CloudSystem/CloudLayer/CloudLayer.shader")]
-            public Shader        cloudLayerPS;
+            public Shader cloudLayerPS;
             [Reload("Runtime/Sky/CloudSystem/CloudLayer/BakeCloudTexture.compute")]
             public ComputeShader bakeCloudTextureCS;
             [Reload("Runtime/Sky/CloudSystem/CloudLayer/BakeCloudShadows.compute")]
@@ -442,15 +442,15 @@ namespace UnityEngine.Rendering.HighDefinition
             })]
             public Texture2D[] filmGrainTex;
             [Reload("Runtime/RenderPipelineResources/Texture/SMAA/SearchTex.tga")]
-            public Texture2D   SMAASearchTex;
+            public Texture2D SMAASearchTex;
             [Reload("Runtime/RenderPipelineResources/Texture/SMAA/AreaTex.tga")]
-            public Texture2D   SMAAAreaTex;
+            public Texture2D SMAAAreaTex;
 
             [Reload("Runtime/RenderPipelineResources/Texture/DefaultHDRISky.exr")]
-            public Cubemap     defaultHDRISky;
+            public Cubemap defaultHDRISky;
 
             [Reload("Runtime/RenderPipelineResources/Texture/DefaultCloudMap.png")]
-            public Texture2D    defaultCloudMap;
+            public Texture2D defaultCloudMap;
         }
 
         [Serializable, ReloadGroup]
