@@ -3040,6 +3040,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public LensFlareParameters parameters;
             public TextureHandle source;
             public HDCamera hdCamera;
+            public Vector2Int viewport;
         }
 
         TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
@@ -3050,14 +3051,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.source = builder.WriteTexture(source);
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
+                    passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
-                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Lens Flare Destination");
+                    TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Lens Flare Destination");
 
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
-                            float width = (float)data.hdCamera.actualWidth;
-                            float height = (float)data.hdCamera.actualHeight;
+                            float width = (float)data.viewport.x;
+                            float height = (float)data.viewport.y;
 
                             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
                                 data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, width, height,

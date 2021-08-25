@@ -130,6 +130,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the BuiltIn Target to perform shader variant stripping [1345580] (https://issuetracker.unity3d.com/product/unity/issues/guid/1345580/)
 - Fixed incorrect warning while using VFXTarget
 - Fixed a bug with Sprite Targets in ShaderGraph not rendering correctly in game view [1352225]
+- Fixed compilation problems on preview shader when using hybrid renderer v2 and property desc override Hybrid Per Instance
 
 ## [11.0.0] - 2020-10-21
 
