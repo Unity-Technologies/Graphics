@@ -374,7 +374,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reduced the volumetric clouds pattern repetition frequency (case 1358717).
 - Fixed the clouds missing in the ambient probe and in the static and dynamic sky.
 - Fixed lens flare not rendering correctly with TAAU or DLSS.
-- Fixed undo operation on Probe Volume fitting to scene or selection.
 - Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
 

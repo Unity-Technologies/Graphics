@@ -2,8 +2,8 @@
 // This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
-#ifndef VOLUMETRICLIGHTING_CS_HLSL
-#define VOLUMETRICLIGHTING_CS_HLSL
+#ifndef HDRENDERPIPELINE_VOLUMETRICLIGHTING_CS_HLSL
+#define HDRENDERPIPELINE_VOLUMETRICLIGHTING_CS_HLSL
 //
 // UnityEngine.Rendering.HighDefinition.LocalVolumetricFogFalloffMode:  static fields
 //

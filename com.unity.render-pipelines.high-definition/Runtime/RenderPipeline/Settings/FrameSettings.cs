@@ -385,6 +385,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP uses material variant classification to compute lighting.</summary>
         [FrameSettingsField(3, autoName: ComputeMaterialVariants, positiveDependencies: new[] { DeferredTile }, tooltip: "When enabled, HDRP uses material variant classification to compute lighting.")]
         ComputeMaterialVariants = 125,
+        /// <summary>When enabled, HDRP uses probe volumes for baked lighting.</summary>
+        [FrameSettingsField(1, customOrderInGroup: 3, autoName: ProbeVolume, tooltip: "Enable to debug and make HDRP process Probe Volumes. Enabling this feature causes HDRP to process Probe Volumes for this Camera/Reflection Probe.")]
+        ProbeVolume = 127,
+        /// <summary>When enabled, HDRP uses probe volumes to normalize the data sampled from reflection probes so they better match the lighting at the sampling location.</summary>
+        [FrameSettingsField(1, customOrderInGroup: 4, displayedName: "Normalize Reflection Probes", positiveDependencies: new[] { ProbeVolume })]
+        NormalizeReflectionProbeWithProbeVolume = 126,
 
         //only 128 booleans saved. For more, change the BitArray used
     }
