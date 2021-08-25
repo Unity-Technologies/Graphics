@@ -394,8 +394,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         float reflectionProbeNormalizationWeight = 0.0f;
 
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
-    bool uninitialized = IsUninitializedGI(builtinData.bakeDiffuseLighting);
-    builtinData.bakeDiffuseLighting = uninitialized ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
+    bool uninitialized = TryClearUninitializedGI(builtinData);
 
     // If probe volume feature is enabled, this bit is enabled for all tiles to handle ambient probe fallback.
     // No need to branch internally on _EnableProbeVolumes uniform.
@@ -442,15 +441,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #endif
                 ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinDataProbeVolumes);
 
-#endif
-
-#if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING)
-            // If we are deferred we should apply baked AO here as it was already apply for lightmap.
-            // But in deferred ambientOcclusion is white so we should use specularOcclusion instead. It is the
-            // same case than for Microshadow so we can reuse this function. It should not be apply in forward
-            // as in this case the baked AO is correctly apply in PostBSDF()
-            // This is apply only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
-            builtinDataProbeVolumes.bakeDiffuseLighting *= GetAmbientOcclusionForMicroShadowing(bsdfData);
 #endif
 
             ApplyDebugToBuiltinData(builtinDataProbeVolumes);

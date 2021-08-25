@@ -71,16 +71,19 @@
 
 #if PROBE_VOLUMES_BILATERAL_FILTERING_MODE != PROBEVOLUMESBILATERALFILTERINGMODES_DISABLED
 #if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_SAMPLE_MODE == PROBEVOLUMESBILATERALFILTERINGSAMPLEMODES_APPROXIMATE_SAMPLE
-        probeVolumeTexel3D = ProbeVolumeComputeTexel3DFromBilateralFilter(
-            probeVolumeTexel3D,
-            probeVolumeData,
-            posInput.positionWS, // unbiased
-            samplePositionWS, // biased
-            normalWS,
-            obbFrame,
-            obbExtents,
-            obbCenter
-        );
+        if (_ProbeVolumeLeakMitigationMode != LEAKMITIGATIONMODE_NORMAL_BIAS)
+        {
+            probeVolumeTexel3D = ProbeVolumeComputeTexel3DFromBilateralFilter(
+                probeVolumeTexel3D,
+                probeVolumeData,
+                posInput.positionWS, // unbiased
+                samplePositionWS, // biased
+                normalWS,
+                obbFrame,
+                obbExtents,
+                obbCenter
+            );
+        }
 #else // SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_SAMPLE_MODE == PROBEVOLUMESBILATERALFILTERINGSAMPLEMODES_PRECISE_LOAD
         float weights[8];
         ProbeVolumeComputeWeightsFromBilateralFilter(
