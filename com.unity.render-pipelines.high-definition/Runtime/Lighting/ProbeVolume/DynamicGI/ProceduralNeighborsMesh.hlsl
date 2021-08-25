@@ -18,17 +18,11 @@ float3 _ProbeVolumeDGIBoundsCenter;
 
 void OrhoNormalAxis(float3 n, out float3 b1, out float3 b2)
 {
-    if(n.z <  -0.9999999)
-    {
-        b1 = float3( 0.0,  -1.0, 0.0);
-        b2 = float3 (-1.0,   0.0, 0.0);
-        return;
-    }
-
-    const float a = 1.0/(1.0 + n.z);
-    const float b = -n.x*n.y*a;
-    b1 = float3 (1.0 - n.x*n.x*a, b, -n.x);
-    b2 = float3(b, 1.0 - n.y*n.y*a, -n.y);
+    float a = 1.0 / (1.0 + n.z);
+    float b = -n.x * n.y * a;
+    bool isNegativeZFrame = n.z < -0.9999999;
+    b1 = isNegativeZFrame ? float3(0.0, -1.0, 0.0) : float3(1.0 - n.x * n.x * a, b, -n.x);
+    b2 = isNegativeZFrame ? float3(-1.0, 0.0, 0.0) : float3(b, 1.0 - n.y * n.y * a, -n.y);
 }
 
 float3 ProbeIndexToProbeCoordinates(uint probeIndex)
@@ -77,7 +71,7 @@ VaryingsType VertMeshProcedural(uint vertexID, uint instanceID)
 
     float3 normal = UnpackNormal(neighborData.normalAxis);
     float4 albedoDistance = UnpackAlbedoAndDistance(neighborData.albedoDistance, _ProbeVolumeDGIMaxNeighborDistance);
-    float3 axis = UnpackAxis(neighborData.normalAxis);
+    float3 axis = UnpackAxis(neighborData.normalAxis).xyz;
 
     float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
     axis = mul(axis, probeVolumeLtw);

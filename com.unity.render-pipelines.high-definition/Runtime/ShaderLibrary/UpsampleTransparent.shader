@@ -69,7 +69,7 @@ Shader "Hidden/HDRP/UpsampleTransparent"
             float minDiff = 1e12f;
             float relativeDepthThresh = 0.1f * linearFullResDepth;
 
-            float2 nearestUV;
+            float2 nearestUV = 0.0f; // silence compiler warnings.
             int countBelowThresh = 0;
 
             [unroll]

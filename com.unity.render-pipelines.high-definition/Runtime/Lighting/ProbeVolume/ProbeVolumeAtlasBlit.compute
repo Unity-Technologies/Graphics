@@ -1,3 +1,6 @@
+// warning X4714: sum of temp registers and indexable temp registers times 64 threads exceeds the recommended total 16384.
+#pragma warning(disable: 4714)
+
 #pragma kernel ProbeVolumeAtlasBlitKernel PROBE_VOLUME_ATLAS_BLIT_KERNEL=ProbeVolumeAtlasBlitKernel
 
 #ifdef SHADER_API_PSSL

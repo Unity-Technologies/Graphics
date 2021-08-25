@@ -1,6 +1,10 @@
 #pragma kernel Deferred_Direct_Fptl                                SHADE_OPAQUE_ENTRY=Deferred_Direct_Fptl
 #pragma kernel Deferred_Direct_Fptl_DebugDisplay                   SHADE_OPAQUE_ENTRY=Deferred_Direct_Fptl_DebugDisplay             DEBUG_DISPLAY
 
+// warning X4714: sum of temp registers and indexable temp registers times 64 threads exceeds the recommended total 16384.
+// This warning has been around since we started using HDRP if I remember correctly. Going to silent it so we can get to zero warnings.
+#pragma warning(disable: 4714)
+
 // Variant with and without shadowmask
 #pragma kernel Deferred_Indirect_Fptl_Variant0      SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant0      USE_INDIRECT    VARIANT=0
 #pragma kernel Deferred_Indirect_Fptl_Variant1      SHADE_OPAQUE_ENTRY=Deferred_Indirect_Fptl_Variant1      USE_INDIRECT    VARIANT=1
