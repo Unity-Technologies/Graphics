@@ -115,14 +115,11 @@ namespace UnityEditor.VFX.UI
 
         internal static class Contents
         {
-            public static readonly GUIContent attach =  EditorGUIUtility.TrTextContent("Attach");
-            public static readonly GUIContent detach =  EditorGUIUtility.TrTextContent("Detach");
-            public static readonly GUIContent attachToSelection =  EditorGUIUtility.TrTextContent("Attach to selection");
-            public static readonly GUIContent disabledAttachToSelection =  EditorGUIUtility.TrTextContent(attachToSelection.text, "Select a GameObject that uses the currently edited VFX to attach");
-            public static readonly GUIContent clickToUnlock =  EditorGUIUtility.TrTextContent("Click to enable auto-attachment to selection");
-            public static readonly GUIContent clickToLock =  EditorGUIUtility.TrTextContent("Click to disable auto-attachment to selection");
-            public static readonly GUIContent pickATarget =  EditorGUIUtility.TrTextContent("Select a target GameObject");
-            public static readonly GUIContent noSelection =  EditorGUIUtility.TrTextContent("No selection");
+            public static readonly GUIContent attach = EditorGUIUtility.TrTextContent("Attach");
+            public static readonly GUIContent detach = EditorGUIUtility.TrTextContent("Detach");
+            public static readonly GUIContent clickToUnlock = EditorGUIUtility.TrTextContent("Click to enable auto-attachment to selection");
+            public static readonly GUIContent clickToLock = EditorGUIUtility.TrTextContent("Click to disable auto-attachment to selection");
+            public static readonly GUIContent noSelection = EditorGUIUtility.TrTextContent("No selection");
             public static readonly GUIContent attachedToGameObject = EditorGUIUtility.TrTextContent("Attached to {0}");
             public static readonly GUIContent notAttached = EditorGUIUtility.TrTextContent("Select a Game Object running this VFX to attach it");
         }

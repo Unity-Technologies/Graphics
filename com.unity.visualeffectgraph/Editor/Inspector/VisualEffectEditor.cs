@@ -548,7 +548,7 @@ namespace UnityEditor.VFX
 
         void SetPlayRate(object value)
         {
-            float rate = (int)value  * VisualEffectControl.valueToPlayRate;
+            float rate = (int)value * VisualEffectControl.valueToPlayRate;
             foreach (var visualEffect in targets.OfType<VisualEffect>())
             {
                 visualEffect.playRate = rate;

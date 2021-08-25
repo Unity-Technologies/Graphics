@@ -27,7 +27,7 @@ static class VFXPicker
     static void SelectItem(SearchItem item, bool canceled, Action<VisualEffect> selectHandler)
     {
         if (!canceled
-            && item?.ToObject<GameObject>() is {} go
+            && item?.ToObject<GameObject>() is { } go
             && go.TryGetComponent(typeof(VisualEffect), out var component)
             && component is VisualEffect vfx)
         {
