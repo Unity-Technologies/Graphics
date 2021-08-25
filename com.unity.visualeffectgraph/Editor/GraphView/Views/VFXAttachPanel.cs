@@ -6,15 +6,18 @@ namespace UnityEditor.VFX.UI
 {
     class VFXAttachPanel : EditorWindow
     {
-        public VFXView m_vfxView;
-
+        VFXView m_vfxView;
         TextField m_pickedObjectLabel;
         Button m_AttachButton;
+        VisualElement m_VFXIcon;
 
         public Vector2 WindowSize { get; } = new Vector2(250, 60);
 
         protected void CreateGUI()
         {
+            m_vfxView = VFXViewWindow.currentWindow.graphView;
+            rootVisualElement.styleSheets.Add(VFXView.LoadStyleSheet("VFXAttachPanel"));
+
             var tpl = VFXView.LoadUXML("VFXAttachPanel");
             var mainContainer = tpl.CloneTree();
             m_AttachButton = mainContainer.Q<Button>("AttachButton");
@@ -23,9 +26,8 @@ namespace UnityEditor.VFX.UI
             button.clicked += OnPickObject;
             m_pickedObjectLabel = mainContainer.Q<TextField>("PickLabel");
             m_pickedObjectLabel.isReadOnly = true;
+            m_VFXIcon = mainContainer.Q<VisualElement>("VFXIcon");
             UpdateAttachedLabel();
-            var icon = mainContainer.Q<Image>("PickIcon");
-            icon.image = EditorGUIUtility.LoadIcon("UIPackageResources/Images/" + "pick.png");
             rootVisualElement.Add(mainContainer);
         }
 
@@ -64,6 +66,16 @@ namespace UnityEditor.VFX.UI
             m_AttachButton.SetEnabled(isAttached || isCompatible);
             m_AttachButton.text = isAttached ? "Detach" : "Attach to selection";
             m_pickedObjectLabel.value = m_vfxView.attachedComponent?.name;
+
+            if (isAttached)
+            {
+                m_VFXIcon.style.display = DisplayStyle.Flex;
+                m_VFXIcon.style.backgroundImage = VFXView.LoadImage(EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark" : "vfx_graph_icon_gray_light");
+            }
+            else
+            {
+                m_VFXIcon.style.display = DisplayStyle.None;
+            }
         }
     }
 }

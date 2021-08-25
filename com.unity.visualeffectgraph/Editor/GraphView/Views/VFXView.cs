@@ -596,9 +596,8 @@ namespace UnityEditor.VFX.UI
         private void OnOpenAttachMenu()
         {
             var attachPanel = ScriptableObject.CreateInstance<VFXAttachPanel>();
-            attachPanel.m_vfxView = this;
-
             var bounds = new Rect(ViewToScreenPosition(m_AttachDropDownButton.worldBound.position), m_AttachDropDownButton.worldBound.size);
+            bounds.xMin++;
             attachPanel.ShowAsDropDown(bounds, attachPanel.WindowSize, new[] { PopupLocation.BelowAlignLeft });
         }
 

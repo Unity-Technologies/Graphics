@@ -1,0 +1,53 @@
+#AttachButton
+{
+    margin-top:4px;
+    height:20px;
+}
+
+#PickTitle
+{
+    -unity-text-align:middle-left;
+    margin-left:4px;
+}
+
+#PickLabel
+{
+    margin-right: 0;
+}
+
+#PickIcon
+{
+    background-image: var(--unity-icons-picker);
+}
+
+#PickButton
+{
+    margin: 2px 1px 2px -25px;
+    border-width: 0;
+    border-bottom-left-radius: 0px;
+    border-top-left-radius: 0px;
+    width:20px;
+    height:20px;
+    justify-content:center;
+    align-items:center;
+    background-color: var(--unity-colors-object_field_button-background);
+}
+
+#PickLabel
+{
+    width: 174px;
+}
+
+#PickLabel > TextInput
+{
+    margin-right: 4px;
+    padding: 0 22px 0 18px;
+}
+
+#VFXIcon
+{
+    margin-left: 2px;
+    position: absolute;
+    align-self: center;
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/vfx_graph_icon_gray_dark.png");
+}

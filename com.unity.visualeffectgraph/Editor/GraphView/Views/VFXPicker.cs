@@ -11,7 +11,6 @@ using UnityEngine.VFX;
 
 static class VFXPicker
 {
-    [MenuItem("Window/Search/Pick scene refs")]
     internal static void Pick(VisualEffectAsset vfxAsset, Action<VisualEffect> selectHandler)
     {
         var view = SearchService.ShowPicker(
