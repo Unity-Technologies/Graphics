@@ -692,23 +692,26 @@ namespace UnityEngine.Experimental.Rendering
             var cell = cellInfo.cell;
             bool compressed = false;
             int allocatedBytes = 0;
-            var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, m_SHBands, out allocatedBytes);
-            ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, m_SHBands);
 
             if (GetCellIndexUpdate(cell, out var cellUpdateInfo))
             {
+                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed, m_SHBands, out allocatedBytes);
+                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh, m_SHBands);
+
                 var regId = AddBricks(cell.bricks, dataLocation, cellUpdateInfo, out var chunkList);
+                if (regId.IsValid())
+                {
+                    cellInfo.regId = regId;
+                    cellInfo.updateInfo = cellUpdateInfo;
+                    cellInfo.chunkList = chunkList;
+                    cellInfo.loaded = true;
 
-                cellInfo.regId = regId;
-                cellInfo.updateInfo = cellUpdateInfo;
-                cellInfo.chunkList = chunkList;
-                cellInfo.loaded = true;
+                    m_CellIndices.UpdateCell(cellInfo.flatIdxInCellIndices, cellUpdateInfo);
 
-                m_CellIndices.UpdateCell(cellInfo.flatIdxInCellIndices, cellUpdateInfo);
+                    ClearDebugData();
+                }
 
                 dataLocation.Cleanup();
-
-                ClearDebugData();
             }
             else
             {
@@ -1091,10 +1094,13 @@ namespace UnityEngine.Experimental.Rendering
         {
             Profiler.BeginSample("AddBricks");
 
+            RegId id = new RegId();
+
             // calculate the number of chunks necessary
             int ch_size = m_Pool.GetChunkSize();
             ch_list = new List<Chunk>((bricks.Count + ch_size - 1) / ch_size);
-            m_Pool.Allocate(ch_list.Capacity, ch_list);
+            if (!m_Pool.Allocate(ch_list.Capacity, ch_list))
+                return id; // Invalid RegId
 
             // copy chunks into pool
             m_TmpSrcChunks.Clear();
@@ -1127,7 +1133,6 @@ namespace UnityEngine.Experimental.Rendering
             m_BricksLoaded = true;
 
             // create a registry entry for this request
-            RegId id;
             m_ID++;
             id.id = m_ID;
             m_Registry.Add(id, ch_list);
