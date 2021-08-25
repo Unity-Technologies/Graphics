@@ -740,6 +740,8 @@ namespace UnityEditor.VFX.UI
             {
                 anchor.ForceUpdate();
             }
+
+            this.m_Blackboard.ForceUpdate();
         }
 
         void ToggleBlackboard(ChangeEvent<bool> e)

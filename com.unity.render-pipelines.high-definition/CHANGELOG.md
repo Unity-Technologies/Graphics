@@ -81,6 +81,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added warning for when a light is not fitting in the cached shadow atlas and added option to set maximum resolution that would fit.
 - Added a custom post process injection point AfterPostProcessBlurs executing after depth of field and motion blur.
 - Added the support of volumetric clouds for baked and realtime reflection probes.
+- Added a property to control the fallback of the last bounce of a RTGI, RTR, RR ray to keep a previously existing side effect on user demand (case 1350590).
+- Added a parameter to control the vertical shape offset of the volumetric clouds (case 1358528).
 - Added a built-in custom pass to draw object IDs.
 
 ### Fixed
@@ -360,6 +362,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed incorrect light list indexing when TAA is enabled (case 1352444).
 - Fixed Additional Velocity for Alembic not taking correctly into account vertex animation
 - Fixed wrong LUT initialization in Wireframe mode.
+- Support undo of HDRP Global Settings asset assignation (case 13429870).
+- Fixed an inconsistency between perf mode and quality mode for sky lighting (case 1350590).
+- Fixed an inconsistency between perf mode and quality mode for material simplification in RTGI (case 1350590).
+- Fixed an issue that clamped the volumetric clouds offset value (case 1357318).
+- Fixed the volumetric clouds having no control over the vertical wind (case 1354920).
+- Fixed the fallback sun for volumetric clouds having a non null intensity (case 1353955).
+- Removed unsupported fields from Presets of Light, Camera, and Reflection Probes (case 1335979).
+- Added a new property to control the ghosting reduction for volumetric clouds (case 1357702).
+- Fixed the earth curvature not being properly taken into account when evaluating the sun attenuation (case 1357927).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -462,6 +473,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed upscaling issue that is exagerated by DLSS (case 1347250).
 - Improvements to the RTGI denoising.
 - Remove Bilinear and Lanczos upscale filter.
+- Make some volumetric clouds properties additional to reduce the number default parameters (case 1357926).
+- Renamed the Cloud Offset to Cloud Map Offset in the volumetric clouds volume component (case 1358528).
 
 ## [11.0.0] - 2020-10-21
 

@@ -68,6 +68,15 @@ namespace UnityEditor.Rendering.HighDefinition
             static void Draw_Rendering_Advanced(SerializedHDCamera p, Editor owner)
             {}
 
+            public static readonly CED.IDrawer DrawerPreset = CED.FoldoutGroup(
+                CameraUI.Rendering.Styles.header,
+                Expandable.Rendering,
+                k_ExpandedState,
+                FoldoutOption.Indent,
+                CameraUI.Rendering.Drawer_Rendering_CullingMask,
+                CameraUI.Rendering.Drawer_Rendering_OcclusionCulling
+            );
+
             static void Drawer_Rendering_AllowDynamicResolution(SerializedHDCamera p, Editor owner)
             {
                 CameraUI.Output.Drawer_Output_AllowDynamicResolution(p, owner);
