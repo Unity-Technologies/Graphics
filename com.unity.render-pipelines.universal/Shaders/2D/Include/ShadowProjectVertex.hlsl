@@ -37,11 +37,11 @@ Varyings ProjectShadow(Attributes v)
     float3 avgLightDir = normalize(lightDir0 + lightDir1);
 
     float  shadowLength = _ShadowRadius / dot(lightDir0, avgLightDir);
-    float3 normalOS = float3(v.tangent.xy, 0); // the normal is stored in xy
+    float3 tangentOS = float3(v.tangent.xy, 0); // the normal is stored in xy
     
     // Tests to make sure the light is between 0-90 degrees to the normal. Will be one if it is, zero if not.
     float3 shadowDir = lightDir0;
-    float  shadowTest = ceil(dot(-lightDir0, normalOS) < 0);
+    float  shadowTest = dot(tangentOS, tangentOS) > 0;    // This tests to see to see if its a vertex that can be projected. The tangent will be 0 if the vertex is fixed
     float3 shadowOffset = shadowLength * shadowDir;
     
     // If we are suppose to extrude this point, then 

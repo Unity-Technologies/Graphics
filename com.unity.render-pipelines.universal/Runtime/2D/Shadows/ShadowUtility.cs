@@ -10,6 +10,8 @@ namespace UnityEngine.Rendering.Universal
         const int k_TrianglesPerEdge = 2;
         const int k_MinimumEdges = 3;
 
+        static public int debugVert = 0;
+
         [StructLayout(LayoutKind.Sequential)]
         struct ShadowMeshVertex
         {
@@ -56,12 +58,14 @@ namespace UnityEngine.Rendering.Universal
             {
                 int v0 = inEdges[i].v0;
                 int v1 = inEdges[i].v1;
+                int v2 = inEdges[(i + 1) % inEdges.Length].v1;
 
-                int tangent0Index = 2 * i + inVertices.Length;
-                int tangent1Index = (2 * i + 2) % inEdges.Length + inVertices.Length;
+                Vector3 pt0 = inVertices[v0];
+                Vector3 pt1 = inVertices[v1];
+                Vector3 pt2 = inVertices[v2];
 
-                Vector3 tangent0 = inTangents[tangent0Index];
-                Vector3 tangent1 = inTangents[tangent1Index];
+                Vector3 tangent0 = Vector3.Cross(Vector3.Normalize(pt1-pt0), -Vector3.forward).normalized;
+                Vector3 tangent1 = Vector3.Cross(Vector3.Normalize(pt2-pt1), -Vector3.forward).normalized;
 
                 Vector3 reductionDir = (-0.5f * (tangent0 + tangent1)).normalized;
 
@@ -76,12 +80,12 @@ namespace UnityEngine.Rendering.Universal
                 int v0 = inEdges[i].v0;
                 int v1 = inEdges[i].v1;
 
-                ShadowMeshVertex originalShadowMesh = new ShadowMeshVertex(inVertices[v1], inTangents[v1]);
-                outMeshVertices[v1] = originalShadowMesh;
+                ShadowMeshVertex originalShadowMesh = new ShadowMeshVertex(inVertices[v0], inTangents[v0]);
+                outMeshVertices[v0] = originalShadowMesh;
 
                 int additionalVerticesStart = 2 * i + inVertices.Length;
                 ShadowMeshVertex additionalVertex0 = new ShadowMeshVertex(inVertices[v0], inTangents[additionalVerticesStart]);
-                ShadowMeshVertex additionalVertex1 = new ShadowMeshVertex(inVertices[v1], inTangents[additionalVerticesStart]);
+                ShadowMeshVertex additionalVertex1 = new ShadowMeshVertex(inVertices[v1], inTangents[additionalVerticesStart + 1]);
 
                 outMeshVertices[additionalVerticesStart] = additionalVertex0;
                 outMeshVertices[additionalVerticesStart + 1] = additionalVertex1;
