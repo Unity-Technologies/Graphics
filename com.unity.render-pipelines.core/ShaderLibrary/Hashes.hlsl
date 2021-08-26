@@ -22,6 +22,7 @@ void Hash_Tchou_3_3_float(float3 i, out float3 o)
 
 void Hash_Tchou_2_1_uint(uint2 v, out uint o)
 {
+    // 6 (2 mul)
     v.y ^= 1103515245U;     // 1 (break symmetry)
     v.x += v.y;             // 1
     v.x *= v.y;             // 1 mul
@@ -48,19 +49,17 @@ void Hash_Tchou_2_1_half(half2 i, out half o)
 
 void Hash_Tchou_2_3_uint(uint2 q, out uint3 o)
 {
-	// 13 ALU (3 mul)
-	uint3 v = uint3(q, q.x ^ q.y);	// TODO can we do without this?
-
-	v.x *= v.y * v.z;       // 2 (1 mul)
-	v.x *= 0x27d4eb2du;     // 1 (1 mul)   
-	v.x ^= v.x >> 4u;       // 2
-	v.y += v.z ^ v.x;       // 2
-	v.y ^= v.y >> 15u;      // 2
-	v.y *= 0x27d4eb2du;     // 1 (1 mul)
-	v.z += v.x ^ v.y;       // 2
-	v.x += v.z;             // 1
-
-	o = v;
+    // 10 ALU (2 mul)
+    uint3 v;
+    v.xy = q;
+    v.y ^= 1103515245U;       // 1 (break symmetry)
+    v.x += v.y;               // 1
+    v.x *= v.y;               // 1 mul
+    v.x ^= v.x >> 5u;         // 2
+    v.x *= 0x27d4eb2du;       // 1 mul
+    v.y ^= (v.x << 3u);       // 2
+    v.z = v.x ^ (v.y << 5u);  // 2
+    o = v;
 }
 
 void Hash_Tchou_2_3_float(float2 i, out float3 o)
