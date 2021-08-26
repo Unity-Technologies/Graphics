@@ -94,7 +94,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
         int sourceIndex = eventList[id];
 #endif
 		uint particleIndex = id + currentSpawnIndex;
-		
+
 #if !VFX_USE_SPAWNER_FROM_GPU
         int sourceIndex = 0;
 
@@ -103,28 +103,13 @@ void CSMain(uint3 groupId          : SV_GroupID,
         #endif
 
         #if USE_PREFIX_SUM
-            uint left = 0;
-            uint right = max(nbEvents, 1) - 1;
-            while (left <= right)
-            {
-                sourceIndex = (int)((left + right) / 2);
-                if (id.x < prefixSumSpawnCount[sourceIndex])
-                {
-                    if (sourceIndex == 0 || id.x >= prefixSumSpawnCount[max(sourceIndex - 1, 0)])
-                        break;
-                    right = sourceIndex - 1;
-                }
-                else
-                {
-                    left = sourceIndex + 1;
-                }
-            }
+            BinarySearchPrefixSum(id, prefixSumSpawnCount, nbEvents, sourceIndex);
         #endif
 #endif
 
 		Attributes attributes = (Attributes)0;
 		SourceAttributes sourceAttributes = (SourceAttributes)0;
-		
+
         ${VFXLoadAttributes}
 #if VFX_USE_PARTICLEID_CURRENT
          attributes.particleId = particleIndex;
@@ -150,12 +135,12 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		InitStripAttributesWithSpawn(maxThreadId, particleIndex, attributes, stripData);
 		// TODO Change seed to be sure we're deterministic on random with strip
 #endif
-        
+
         ${VFXProcessBlocks}
-		
+
 #if VFX_USE_ALIVE_CURRENT
         if (attributes.alive)
-#endif       
+#endif
         {
 #if USE_DEAD_LIST
 	        uint deadIndex = deadListIn.DecrementCounter();
