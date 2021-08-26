@@ -10,6 +10,6 @@
         <ui:Toggle name="shaderValidation" text="Shader Validation" tooltip="Performs a forced Shader compilation when the effect recompiles" />
     </ui:Box>
     <ui:Box class="alternate">
-        <ui:Button name="resyncMaterial" text="Resync Material" />
+        <ui:Button name="resyncMaterial" text="Resync Material" tooltip="Resync material" />
     </ui:Box>
 </UXML>

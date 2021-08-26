@@ -38,10 +38,18 @@ namespace UnityEditor.VFX.UI
 
         protected override void OnOpenPopup()
         {
-            // Disable checkout button if perforce is not available
             if (m_VFXView.controller?.model?.visualEffectObject != null)
             {
-                m_CheckoutButton.style.display = CanCheckout() ? DisplayStyle.Flex : DisplayStyle.None;
+                // Hide checkout button if perforce is not available and disable it if the asset is already checked out
+                if (CanCheckout())
+                {
+                    var isAllReadyCheckedOut = m_VFXView.IsAssetEditable();
+                    m_CheckoutButton.SetEnabled(!isAllReadyCheckedOut);
+                }
+                else
+                {
+                    m_CheckoutButton.style.display = DisplayStyle.None;
+                }
             }
         }
 
@@ -50,7 +58,7 @@ namespace UnityEditor.VFX.UI
             m_VFXView.OnSave();
         }
 
-        bool CanCheckout() => !this.m_VFXView.IsAssetEditable() && Provider.isActive && Provider.enabled;
+        bool CanCheckout() => Provider.isActive && Provider.enabled;
 
         void OnSaveAs()
         {
