@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
 
@@ -79,7 +80,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                     Assert.IsNotNull(input);
                     Assert.IsTrue(output.TryAddConnection(input));
                 }
-                var thruEdge = graphHandler.m_data.Search("Foo.Out.A");
+                var thruEdge = (graphHandler.m_data.Search("Foo.Out._Output") as Element<List<Element>>).data[0];
                 var normSearch = graphHandler.m_data.Search("Bar.A");
                 Assert.NotNull(thruEdge);
                 Assert.NotNull(normSearch);

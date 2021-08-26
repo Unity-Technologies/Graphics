@@ -50,7 +50,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var builder = registry.GetNodeBuilder(key);
 
             // How do we clear out previously concretized data?
-            var transientWriter = AddNodeToLayer(GraphStorage.k_concrete, name);
+            var transientWriter = GetNodeFromLayer(GraphStorage.k_concrete, name);
+            if(transientWriter != null)
+            {
+                transientWriter.TryRemove();
+            }
+            transientWriter = AddNodeToLayer(GraphStorage.k_concrete, name);
+
 
             builder.BuildNode(nodeReader, transientWriter, registry);
             return builder != null;
@@ -66,6 +72,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal INodeWriter AddNodeToLayer(string layerName, string id)
         {
             return m_data.AddNodeWriterToLayer(layerName, id);
+        }
+
+        internal INodeWriter GetNodeFromLayer(string layerName, string id)
+        {
+            return m_data.GetNodeWriterFromLayer(layerName, id);
         }
 
         public INodeReader GetNodeReader(string id)
