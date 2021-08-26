@@ -10,6 +10,7 @@
     float3 _LightPosition;
 #endif
 
+#if defined(FEATURES_GRAPH_VERTEX)
 #if defined(HAVE_VFX_MODIFICATION)
 VertexDescription BuildVertexDescription(Attributes input, AttributesElement element)
 {
@@ -31,6 +32,7 @@ VertexDescription BuildVertexDescription(Attributes input)
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
     return vertexDescription;
 }
+#endif
 #endif
 
 Varyings BuildVaryings(Attributes input)
