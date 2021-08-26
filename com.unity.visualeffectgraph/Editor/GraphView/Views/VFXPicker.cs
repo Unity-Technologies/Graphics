@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 using UnityEditor;
 using UnityEditor.Search;
 
 using UnityEngine;
+using UnityEngine.Search;
 using UnityEngine.VFX;
 
 
@@ -22,6 +24,14 @@ static class VFXPicker
             "Visual Effect",
             0f);
         view.itemIconSize = 0f;
+
+        // Until the "viewState" API is made public (should be in 2022.1) we use reflexion to remove the inspector button
+        var quickSearchType = typeof(SearchService).Assembly.GetType("UnityEditor.Search.QuickSearch");
+        var fieldInfo = quickSearchType?.GetProperty("viewState", BindingFlags.Instance | BindingFlags.NonPublic);
+        if (fieldInfo?.GetValue(view) is SearchViewState state)
+        {
+            state.flags = SearchViewFlags.DisableInspectorPreview;
+        }
     }
 
     static void SelectItem(SearchItem item, bool canceled, Action<VisualEffect> selectHandler)
