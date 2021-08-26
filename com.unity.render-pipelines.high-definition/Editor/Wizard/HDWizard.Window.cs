@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly string installConfigPackageInfoInProgress = L10n.Tr("The config package is being embedded in your project.");
             public static readonly string installConfigPackageInfoFinished = L10n.Tr("The config package is already embedded in your project.");
 
+            public static readonly string checkSceneRtxButton = L10n.Tr("Check Scene Content For Ray Tracing Issues");
             public static readonly string migrateAllButton = L10n.Tr("Convert All Built-in Materials to HDRP");
             public static readonly string migrateSelectedButton = L10n.Tr("Convert Selected Built-in Materials to HDRP");
             public static readonly string migrateMaterials = L10n.Tr("Upgrade HDRP Materials to Latest Version");
@@ -47,7 +48,9 @@ namespace UnityEditor.Rendering.HighDefinition
             //configuration debugger
             public static readonly string global = L10n.Tr("Global");
             public static readonly string currentQuality = L10n.Tr("Current Quality");
+            public static readonly string currentScene = L10n.Tr("Current Scene");
 
+            public static readonly string check = L10n.Tr("Check");
             public static readonly string resolve = L10n.Tr("Fix");
             public static readonly string resolveAll = L10n.Tr("Fix All");
             public static readonly string resolveAllQuality = L10n.Tr("Fix All Qualities");
@@ -199,6 +202,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle dxrResources = new ConfigStyle(
                 label: L10n.Tr("DXR resources"),
                 error: L10n.Tr("There is an issue with the DXR resources! Alternatively, Direct3D is not set as API (can be fixed with option above) or your hardware and/or OS cannot be used for DXR! (unfixable)"));
+            public static readonly ConfigStyle checkForRTX = new ConfigStyle(
+                label: L10n.Tr("Check Scene Content For Ray Tracing Issues"),
+                error: L10n.Tr("This checks if any of the meshes in the current scene has null material, null mesh or mesh filters, more than 32 sub-meshes, both transparent and opaque sub-meshes, both double sided and single sided sub-meshes or missing renderer on LODs."),
+                button: Style.check,
+                messageType: MessageType.Info);
 
             public static readonly string hdrpAssetDisplayDialogTitle = L10n.Tr("Create or Load HDRenderPipelineAsset");
             public static readonly string hdrpAssetDisplayDialogContent = L10n.Tr("Do you want to create a fresh HDRenderPipelineAsset in the default resource folder and automatically assign it?");
@@ -406,9 +414,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             ScopeBox globalScope = new ScopeBox(Style.global);
             ScopeBox currentQualityScope = new ScopeBox(Style.currentQuality);
+            ScopeBox currentSceneScope = new ScopeBox(Style.currentScene);
 
             m_BaseUpdatable.Add(globalScope);
             m_BaseUpdatable.Add(currentQualityScope);
+            m_BaseUpdatable.Add(currentSceneScope);
 
             AddHDRPConfigInfo(globalScope, QualityScope.Global);
 
@@ -437,6 +447,8 @@ namespace UnityEditor.Rendering.HighDefinition
             AddDXRConfigInfo(dxrScopeCurrentQuality, QualityScope.CurrentQuality);
             dxrScopeCurrentQuality.Init();
             currentQualityScope.Add(dxrScopeCurrentQuality);
+
+            AddDXRConfigInfo(currentSceneScope, QualityScope.Scene);
 
             container.Add(CreateTitle(Style.migrationTitle));
             container.Add(CreateLargeButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));

@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
         DXROptional = DXR | 1 << 4,
     }
 
-    enum QualityScope { Global, CurrentQuality }
+    enum QualityScope { Global, CurrentQuality, Scene }
 
     static class InclusiveScopeExtention
     {
@@ -221,6 +221,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrTransparentReflectionsFS, IsDXRTransparentReflectionsFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
                 new Entry(QualityScope.CurrentQuality, InclusiveMode.DXROptional, Style.dxrGI, IsDXRGICorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: true),
                 new Entry(QualityScope.Global, InclusiveMode.DXROptional, Style.dxrGIFS, IsDXRGIFSCorrect, null, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
+                new Entry(QualityScope.Scene, InclusiveMode.DXROptional, Style.checkForRTX, CheckForRTX, CheckSceneContentForRayTracing, forceDisplayCheck: true, skipErrorIcon: true, displayAssetName: false),
             });
 
             return entryList.ToArray();
@@ -858,6 +859,11 @@ namespace UnityEditor.Rendering.HighDefinition
             return defaultCameraFS.IsEnabled(FrameSettingsField.SSGI);
         }
 
+        bool CheckForRTX()
+        {
+            return false;
+        }
+
         bool IsValidBuildTarget()
         {
             return (EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64)
@@ -892,6 +898,11 @@ namespace UnityEditor.Rendering.HighDefinition
             var propertySupportRayTracing = serializedObject.FindProperty("m_RenderPipelineSettings.supportRayTracing");
             propertySupportRayTracing.boolValue = true;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        void CheckSceneContentForRayTracing(bool fromAsyncUnused)
+        {
+            HDRenderPipelineMenuItems.CheckSceneContentForRayTracing(null);
         }
 
         #endregion

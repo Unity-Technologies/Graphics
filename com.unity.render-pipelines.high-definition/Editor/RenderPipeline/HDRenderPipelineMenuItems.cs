@@ -471,7 +471,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [MenuItem("Edit/Rendering/Check Scene Content for HDRP Ray Tracing", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.editMenuPriority + 3)]
-        static void CheckSceneContentForRayTracing(MenuCommand menuCommand)
+        static internal void CheckSceneContentForRayTracing(MenuCommand menuCommand)
         {
             // Flag that holds
             bool generalErrorFlag = false;
