@@ -38,7 +38,8 @@ namespace UnityEditor.VFX.URP
                         case BaseShaderGUI.BlendMode.Alpha: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Alpha; break;
                         case BaseShaderGUI.BlendMode.Premultiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.AlphaPremultiplied; break;
                         case BaseShaderGUI.BlendMode.Additive: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
-                        //Actually, BlendMode multiply isn't officially supported by the VFX (TODOPAUL : Test it)
+                        //Actually, BlendMode multiply isn't officially supported by the VFX
+                        //but when using generatesWithShaderGraph, the shaderGraph generates the appropriate blendState.
                         case BaseShaderGUI.BlendMode.Multiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
                     }
                 }
