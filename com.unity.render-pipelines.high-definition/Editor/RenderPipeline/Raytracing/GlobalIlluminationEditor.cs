@@ -162,7 +162,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportSSGI ?? false)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Screen Space Global illumination.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Screen Space Global illumination.", MessageType.Error,
+                    HDRenderPipelineUI.Expandable.Reflection, "m_RenderPipelineSettings.supportSSGI");
                 return;
             }
 
