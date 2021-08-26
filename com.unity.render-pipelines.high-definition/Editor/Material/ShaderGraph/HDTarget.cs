@@ -591,7 +591,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,                    StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
 
             // pixel shader: pixel position read from vpos, then used to calculate NDC position.  Screen position calculated separately from world space position
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.PixelPosition,                                HDStructFields.FragInputs.PixelPosition),   // TODO  :)
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.PixelPosition,                                HDStructFields.FragInputs.positionPixel),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.NDCPosition,                                  StructFields.SurfaceDescriptionInputs.PixelPosition),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ScreenPosition,                               StructFields.SurfaceDescriptionInputs.WorldSpacePosition),
 

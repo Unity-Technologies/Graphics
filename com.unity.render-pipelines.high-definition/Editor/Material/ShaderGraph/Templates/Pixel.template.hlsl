@@ -34,7 +34,7 @@ SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, 
     $SurfaceDescriptionInputs.ViewSpacePositionPredisplacement:             output.ViewSpacePositionPredisplacement =           TransformWorldToView(input.positionPredisplacementRWS);
     $SurfaceDescriptionInputs.TangentSpacePositionPredisplacement:          output.TangentSpacePositionPredisplacement =        float3(0.0f, 0.0f, 0.0f);
     $SurfaceDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement:    output.AbsoluteWorldSpacePositionPredisplacement =  GetAbsolutePositionWS(input.positionPredisplacementRWS);
-    $SurfaceDescriptionInputs.PixelPosition:                                output.PixelPosition =                              input.positionCS.xy; // badly named, positionCS is not in clip space in fragment shader
+    $SurfaceDescriptionInputs.PixelPosition:                                output.PixelPosition =                              input.positionPixel.xy;
     $SurfaceDescriptionInputs.NDCPosition:                                  output.NDCPosition =                                output.PixelPosition.xy / _ScreenParams.xy;
     $SurfaceDescriptionInputs.ScreenPosition:                               output.ScreenPosition =                             ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x);
     $SurfaceDescriptionInputs.uv0:                                          output.uv0 =                                        input.texCoord0;

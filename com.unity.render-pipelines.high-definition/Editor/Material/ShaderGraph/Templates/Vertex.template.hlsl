@@ -111,6 +111,7 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     output.positionSS = input.positionCS;       // input.positionCS is SV_Position
 
     $FragInputs.positionRWS:                    output.positionRWS =                input.positionRWS;
+    $FragInputs.positionPixel:                  output.positionPixel =              input.positionCS.xy; // NOTE: this is not actually in clip space, it is the VPOS pixel coordinate value
     $FragInputs.positionPredisplacementRWS:     output.positionPredisplacementRWS = input.positionPredisplacementRWS;
     $FragInputs.tangentToWorld:                 output.tangentToWorld =             BuildTangentToWorld(input.tangentWS, input.normalWS);
     $FragInputs.texCoord0:                      output.texCoord0 =                  input.texCoord0;
