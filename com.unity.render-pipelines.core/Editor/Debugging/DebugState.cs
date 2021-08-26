@@ -132,53 +132,53 @@ namespace UnityEditor.Rendering
     /// Boolean Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.BoolField), typeof(DebugUI.Foldout), typeof(DebugUI.HistoryBoolField))]
-    public sealed class DebugStateBool : DebugState<bool> {}
+    public sealed class DebugStateBool : DebugState<bool> { }
 
     /// <summary>
     /// Integer Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.IntField), typeof(DebugUI.EnumField), typeof(DebugUI.HistoryEnumField))]
-    public sealed class DebugStateInt : DebugState<int> {}
+    public sealed class DebugStateInt : DebugState<int> { }
 
     /// <summary>
     /// Flags Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.BitField))]
-    public sealed class DebugStateFlags : DebugState<Enum> {}
+    public sealed class DebugStateFlags : DebugState<Enum> { }
 
     /// <summary>
     /// Unsigned Integer Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.UIntField))]
-    public sealed class DebugStateUInt : DebugState<uint> {}
+    public sealed class DebugStateUInt : DebugState<uint> { }
 
     /// <summary>
     /// Float Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.FloatField))]
-    public sealed class DebugStateFloat : DebugState<float> {}
+    public sealed class DebugStateFloat : DebugState<float> { }
 
     /// <summary>
     /// Color Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.ColorField))]
-    public sealed class DebugStateColor : DebugState<Color> {}
+    public sealed class DebugStateColor : DebugState<Color> { }
 
     /// <summary>
     /// Vector2 Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.Vector2Field))]
-    public sealed class DebugStateVector2 : DebugState<Vector2> {}
+    public sealed class DebugStateVector2 : DebugState<Vector2> { }
 
     /// <summary>
     /// Vector3 Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.Vector3Field))]
-    public sealed class DebugStateVector3 : DebugState<Vector3> {}
+    public sealed class DebugStateVector3 : DebugState<Vector3> { }
 
     /// <summary>
     /// Vector4 Debug State.
     /// </summary>
     [Serializable, DebugState(typeof(DebugUI.Vector4Field))]
-    public sealed class DebugStateVector4 : DebugState<Vector4> {}
+    public sealed class DebugStateVector4 : DebugState<Vector4> { }
 }

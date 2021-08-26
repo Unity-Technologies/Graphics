@@ -58,6 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_ProbeVolumesL1;
         protected ShaderKeyword m_ProbeVolumesL2;
         protected ShaderKeyword m_DecalSurfaceGradient;
+        protected ShaderKeyword m_EditorVisualization;
 
         protected ShadowKeywords m_ShadowKeywords;
 
@@ -91,6 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
             m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
             m_DecalSurfaceGradient = new ShaderKeyword("DECAL_SURFACE_GRADIENT");
+            m_EditorVisualization = new ShaderKeyword("EDITOR_VISUALIZATION");
             m_ShadowKeywords = new ShadowKeywords();
         }
 

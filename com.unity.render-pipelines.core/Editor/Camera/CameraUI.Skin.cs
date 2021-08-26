@@ -33,12 +33,12 @@ namespace UnityEditor.Rendering
             /// <summary>
             /// FOV content
             /// </summary>
-            public static readonly GUIContent fieldOfViewContent = EditorGUIUtility.TrTextContent("Field of View", "The height of the Camera’s view angle, measured in degrees along the local Y axis.");
+            public static readonly GUIContent fieldOfViewContent = EditorGUIUtility.TrTextContent("Field of View", "The height of the Camera's view angle, measured in degrees along the specified axis.");
 
             /// <summary>
             /// FOV Axis content
             /// </summary>
-            public static readonly GUIContent FOVAxisModeContent = EditorGUIUtility.TrTextContent("Field of View Axis", "Field of view axis.");
+            public static readonly GUIContent FOVAxisModeContent = EditorGUIUtility.TrTextContent("Field of View Axis", "The axis the Camera's view angle is measured along.");
 
             /// <summary>
             /// Physical camera content
@@ -54,6 +54,11 @@ namespace UnityEditor.Rendering
             /// Far plane content
             /// </summary>
             public static readonly GUIContent farPlaneContent = EditorGUIUtility.TrTextContent("Far", "The furthest point relative to the camera that drawing occurs.");
+
+            /// <summary>
+            /// Message displayed about unsupported fields for Camera Presets
+            /// </summary>
+            public static readonly string unsupportedPresetPropertiesMessage = L10n.Tr("When using Preset of Camera Component, only a subset of properties are supported.  Unsupported properties are hidden.");
         }
     }
 }

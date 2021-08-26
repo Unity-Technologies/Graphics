@@ -22,6 +22,8 @@
   * [6.x to 7.x](Upgrading-from-2019.2-to-2019.3.md)
   * [7.x to 8.x](Upgrading-from-2019.3-to-2020.1.md)
   * [8.x to 9.x-preview/10.x](Upgrading-from-2020.1-to-2020.2.md)
+  * [10.x-preview to 11.x](Upgrading-from-2020.2-to-2021.1.md)
+  * [11.x to 12.x](Upgrading-from-2021.1-to-2021.2.md)
 * Volume Framework
   * [Volumes](Volumes.md)
   * [Volume Profiles](Volume-Profile.md)
@@ -189,7 +191,7 @@
     * [User Options](Compositor-User-Options.md)
 * Debugging
   * [MatCap](MatCap.md)
-  * [Render Pipeline Debugger Window](Render-Pipeline-Debug-Window.md)
+  * [Rendering Debugger](Render-Pipeline-Debug-Window.md)
 * Virtual Reality
   * [VR Overview](VR-Overview.md)
 * Consoles

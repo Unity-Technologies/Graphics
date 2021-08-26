@@ -97,9 +97,9 @@ namespace UnityEditor.Rendering
             var firstControl = GUIUtility.GetControlID(s_PointLightHandle.GetHashCode(), FocusType.Passive) - 6; // BoxBoundsHandle allocates 6 control IDs
             if (Event.current.type != EventType.Repaint)
                 return;
-//            var firstControl = GUIUtility.GetControlID(k_RadiusHandleHash, FocusType.Passive) - 6;
-//            if (Event.current.type != EventType.Repaint)
-//                return;
+            //            var firstControl = GUIUtility.GetControlID(k_RadiusHandleHash, FocusType.Passive) - 6;
+            //            if (Event.current.type != EventType.Repaint)
+            //                return;
 
             // Adding label /////////////////////////////////////
             Vector3 labelPosition = Vector3.zero;
@@ -312,7 +312,7 @@ namespace UnityEditor.Rendering
         {
             Vector3 labelPosition = Vector3.zero;
 
-            var style = new GUIStyle {normal = {background = Texture2D.whiteTexture}};
+            var style = new GUIStyle { normal = { background = Texture2D.whiteTexture } };
             GUI.color = new Color(0.82f, 0.82f, 0.82f, 1);
 
             labelPosition = handlePosition + Handles.inverseMatrix.MultiplyVector(Vector3.up) * HandleUtility.GetHandleSize(handlePosition) * offsetFromHandle;

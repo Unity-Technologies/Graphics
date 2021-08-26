@@ -1,6 +1,6 @@
-# Render Pipeline Debugger
+# Rendering Debugger
 
-The **Render Pipeline Debug** window is a specific window for the Scriptable Render Pipeline that contains debugging and visualization tools. You can use these tools to quickly understand and solve any issues you might encounter. It contains mostly graphics-related tools but you can extend it to include tools for any other field, such as animation. The **Render Pipeline Debug** window separates debug items into different sections as follows:
+The **Rendering Debugger** is a specific window for the Scriptable Render Pipeline that contains debugging and visualization tools. You can use these tools to quickly understand and solve any issues you might encounter. It contains mostly graphics-related tools but you can extend it to include tools for any other field, such as animation. The **Rendering Debugger** separates debug items into different sections as follows:
 
 - [Decals](#DecalsPanel)
 - [Display Stats](#StatsPanel)
@@ -12,13 +12,13 @@ The **Render Pipeline Debug** window is a specific window for the Scriptable Ren
 
 ![](Images/RenderPipelineDebug1.png)
 
-The Render Pipeline Debugger window.
+The Rendering Debugger.
 
-## Using the Render Pipeline Debugger window
+## Using the Rendering Debugger
 
-To open the Render Pipeline Debugger window in the Editor, go to  **Window > Analysis > Rendering Debugger**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window.
+To open the Rendering Debugger in the Editor, go to  **Window > Analysis > Rendering Debugger**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window. You can disable the shortcut through the [enableWindowHotkey variable](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@12.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableWindowHotkey).
 
-You can display read-only items such as the FPS counter independently of the **Render Pipeline Debugger** window. This means that when you disable the **Render Pipeline Debugger** window, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
+You can display read-only items such as the FPS counter independently of the **Rendering Debugger**. This means that when you disable the **Rendering Debugger** window, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
 
 ### Navigation at runtime
 
@@ -138,17 +138,19 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **- Filter Layers**                   | Use the drop-down to filter light layers that you want to visialize. Objects having a matching layer will be displayed in a specific color. |
 | **- Layers Color**                    | Use the color pickers to select the display color of each light layer. |
 
-| **Material Overrides**               | **Description**                                              |
-| ------------------------------------ | ------------------------------------------------------------ |
-| **Override Smoothness**              | Enable the checkbox to override the smoothness for the entire Scene. |
-| **- Smoothness**                     | Use the slider to set the smoothness override value that HDRP uses for the entire Scene. |
-| **Override Albedo**                  | Enable the checkbox to override the albedo for the entire Scene. |
-| **- Albedo**                         | Use the color picker to set the albedo color that HDRP uses for the entire Scene. |
-| **Override Normal**                  | Enable the checkbox to override the normals for the entire Scene with object normals for lighting debug. |
-| **Override Specular Color**          | Enable the checkbox to override the specular color for the entire Scene. |
-| **- Specular Color**                 | Use the color picker to set the specular color that HDRP uses for the entire Scene. |
-| **Override Emissive Color**          | Enable the checkbox to override the emissive color for the entire Scene. |
-| **- Emissive Color**                 | Use the color picker to set the emissive color that HDRP uses for the entire Scene. |
+| **Material Overrides**         | **Description**                                              |
+| ------------------------------ | ------------------------------------------------------------ |
+| **Override Smoothness**        | Enable the checkbox to override the smoothness for the entire Scene. |
+| **- Smoothness**               | Use the slider to set the smoothness override value that HDRP uses for the entire Scene. |
+| **Override Albedo**            | Enable the checkbox to override the albedo for the entire Scene. |
+| **- Albedo**                   | Use the color picker to set the albedo color that HDRP uses for the entire Scene. |
+| **Override Normal**            | Enable the checkbox to override the normals for the entire Scene with object normals for lighting debug. |
+| **Override Specular Color**    | Enable the checkbox to override the specular color for the entire Scene. |
+| **- Specular Color**           | Use the color picker to set the specular color that HDRP uses for the entire Scene. |
+| **Override Ambient Occlusion** | Enable the checkbox to override the ambient occlusion for the entire Scene. |
+| **- Ambient Occlusion**        | Use the slider to set the Ambient Occlusion override value that HDRP uses for the entire Scene. |
+| **Override Emissive Color**    | Enable the checkbox to override the emissive color for the entire Scene. |
+| **- Emissive Color**           | Use the color picker to set the emissive color that HDRP uses for the entire Scene. |
 
 | **Debug Option**                     | **Description**                                              |
 | ------------------------------------ | ------------------------------------------------------------ |
@@ -241,7 +243,7 @@ The **NVIDIA device debug view** is a panel that shows a list of the current fea
 
 ## Camera panels
 
-In the **Render Pipeline Debugger** window , each active Camera in the Scene has its own debug window. Use the Camera's debug window to temporarily change that Camera's [Frame Settings](Frame-Settings.md) without altering the Camera data in the Scene. The Camera window helps you to understand why a specific feature does not work correctly. You can access all of the information that HDRP uses the render the Camera you select.
+In the **Rendering Debugger** , each active Camera in the Scene has its own debug window. Use the Camera's debug window to temporarily change that Camera's [Frame Settings](Frame-Settings.md) without altering the Camera data in the Scene. The Camera window helps you to understand why a specific feature does not work correctly. You can access all of the information that HDRP uses the render the Camera you select.
 
 **Note**: The Camera debug window is only available for Cameras, not Reflection Probes.
 

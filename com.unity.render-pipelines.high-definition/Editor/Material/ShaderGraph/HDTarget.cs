@@ -161,8 +161,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (m_ActiveSubTarget.value == null)
                 return;
 
-            context.globalIndentLevel++;
-
             // Core properties
             m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
             context.AddProperty("Material", m_SubTargetField, (evt) =>
@@ -195,7 +193,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 m_CustomEditorGUI = m_CustomGUIField.value;
                 onChange();
             });
-            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => { });
 
             if (VFXViewPreference.generateOutputContextWithShaderGraph)
             {
@@ -213,8 +211,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     });
                 }
             }
-
-            context.globalIndentLevel--;
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -370,7 +366,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return scriptableRenderPipeline?.GetType() == typeof(HDRenderPipelineAsset);
         }
 
-        public bool SupportsVFX()
+        public bool CanSupportVFX()
         {
             if (m_ActiveSubTarget.value == null)
                 return false;
@@ -378,7 +374,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
                 return false;
 
-            return m_SupportVFX;
+            return true;
+        }
+
+        public bool SupportsVFX()
+        {
+            if (CanSupportVFX())
+                return m_SupportVFX;
+            return false;
         }
 
         public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
@@ -438,144 +441,158 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DependencyCollection Varying = new DependencyCollection
         {
             //Standard Varying Dependencies
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.positionRWS,                         HDStructFields.AttributesMesh.positionOS),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.normalWS,                            HDStructFields.AttributesMesh.normalOS),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.tangentWS,                           HDStructFields.AttributesMesh.tangentOS),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord0,                           HDStructFields.AttributesMesh.uv0),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord1,                           HDStructFields.AttributesMesh.uv1),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord2,                           HDStructFields.AttributesMesh.uv2),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord3,                           HDStructFields.AttributesMesh.uv3),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.color,                               HDStructFields.AttributesMesh.color),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.instanceID,                          HDStructFields.AttributesMesh.instanceID),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.positionRWS,                                        HDStructFields.AttributesMesh.positionOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.positionPredisplacementRWS,                         HDStructFields.AttributesMesh.positionOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.normalWS,                                           HDStructFields.AttributesMesh.normalOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.tangentWS,                                          HDStructFields.AttributesMesh.tangentOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord0,                                          HDStructFields.AttributesMesh.uv0),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord1,                                          HDStructFields.AttributesMesh.uv1),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord2,                                          HDStructFields.AttributesMesh.uv2),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord3,                                          HDStructFields.AttributesMesh.uv3),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.color,                                              HDStructFields.AttributesMesh.color),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.instanceID,                                         HDStructFields.AttributesMesh.instanceID),
         };
 
         public static DependencyCollection Tessellation = new DependencyCollection
         {
             //Tessellation Varying Dependencies
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.positionRWS,                         HDStructFields.VaryingsMeshToDS.positionRWS),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.normalWS,                            HDStructFields.VaryingsMeshToDS.normalWS),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.tangentWS,                           HDStructFields.VaryingsMeshToDS.tangentWS),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord0,                           HDStructFields.VaryingsMeshToDS.texCoord0),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord1,                           HDStructFields.VaryingsMeshToDS.texCoord1),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord2,                           HDStructFields.VaryingsMeshToDS.texCoord2),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord3,                           HDStructFields.VaryingsMeshToDS.texCoord3),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.color,                               HDStructFields.VaryingsMeshToDS.color),
-            new FieldDependency(HDStructFields.VaryingsMeshToPS.instanceID,                          HDStructFields.VaryingsMeshToDS.instanceID),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.positionRWS,                                        HDStructFields.VaryingsMeshToDS.positionRWS),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.positionPredisplacementRWS,                         HDStructFields.VaryingsMeshToDS.positionPredisplacementRWS),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.normalWS,                                           HDStructFields.VaryingsMeshToDS.normalWS),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.tangentWS,                                          HDStructFields.VaryingsMeshToDS.tangentWS),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord0,                                          HDStructFields.VaryingsMeshToDS.texCoord0),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord1,                                          HDStructFields.VaryingsMeshToDS.texCoord1),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord2,                                          HDStructFields.VaryingsMeshToDS.texCoord2),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord3,                                          HDStructFields.VaryingsMeshToDS.texCoord3),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.color,                                              HDStructFields.VaryingsMeshToDS.color),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.instanceID,                                         HDStructFields.VaryingsMeshToDS.instanceID),
 
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.positionRWS,                         HDStructFields.AttributesMesh.positionOS),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.normalWS,                            HDStructFields.AttributesMesh.normalOS),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.tangentWS,                           HDStructFields.AttributesMesh.tangentOS),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord0,                           HDStructFields.AttributesMesh.uv0),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord1,                           HDStructFields.AttributesMesh.uv1),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord2,                           HDStructFields.AttributesMesh.uv2),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord3,                           HDStructFields.AttributesMesh.uv3),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.color,                               HDStructFields.AttributesMesh.color),
-            new FieldDependency(HDStructFields.VaryingsMeshToDS.instanceID,                          HDStructFields.AttributesMesh.instanceID),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.positionRWS,                                        HDStructFields.AttributesMesh.positionOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.positionPredisplacementRWS,                         HDStructFields.AttributesMesh.positionOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.normalWS,                                           HDStructFields.AttributesMesh.normalOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.tangentWS,                                          HDStructFields.AttributesMesh.tangentOS),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord0,                                          HDStructFields.AttributesMesh.uv0),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord1,                                          HDStructFields.AttributesMesh.uv1),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord2,                                          HDStructFields.AttributesMesh.uv2),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord3,                                          HDStructFields.AttributesMesh.uv3),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.color,                                              HDStructFields.AttributesMesh.color),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.instanceID,                                         HDStructFields.AttributesMesh.instanceID),
         };
 
         public static DependencyCollection FragInput = new DependencyCollection
         {
             //FragInput dependencies
-            new FieldDependency(HDStructFields.FragInputs.positionRWS,                               HDStructFields.VaryingsMeshToPS.positionRWS),
-            new FieldDependency(HDStructFields.FragInputs.tangentToWorld,                            HDStructFields.VaryingsMeshToPS.tangentWS),
-            new FieldDependency(HDStructFields.FragInputs.tangentToWorld,                            HDStructFields.VaryingsMeshToPS.normalWS),
-            new FieldDependency(HDStructFields.FragInputs.texCoord0,                                 HDStructFields.VaryingsMeshToPS.texCoord0),
-            new FieldDependency(HDStructFields.FragInputs.texCoord1,                                 HDStructFields.VaryingsMeshToPS.texCoord1),
-            new FieldDependency(HDStructFields.FragInputs.texCoord2,                                 HDStructFields.VaryingsMeshToPS.texCoord2),
-            new FieldDependency(HDStructFields.FragInputs.texCoord3,                                 HDStructFields.VaryingsMeshToPS.texCoord3),
-            new FieldDependency(HDStructFields.FragInputs.color,                                     HDStructFields.VaryingsMeshToPS.color),
+            new FieldDependency(HDStructFields.FragInputs.positionRWS,                                              HDStructFields.VaryingsMeshToPS.positionRWS),
+            new FieldDependency(HDStructFields.FragInputs.positionPredisplacementRWS,                               HDStructFields.VaryingsMeshToPS.positionPredisplacementRWS),
+            new FieldDependency(HDStructFields.FragInputs.tangentToWorld,                                           HDStructFields.VaryingsMeshToPS.tangentWS),
+            new FieldDependency(HDStructFields.FragInputs.tangentToWorld,                                           HDStructFields.VaryingsMeshToPS.normalWS),
+            new FieldDependency(HDStructFields.FragInputs.texCoord0,                                                HDStructFields.VaryingsMeshToPS.texCoord0),
+            new FieldDependency(HDStructFields.FragInputs.texCoord1,                                                HDStructFields.VaryingsMeshToPS.texCoord1),
+            new FieldDependency(HDStructFields.FragInputs.texCoord2,                                                HDStructFields.VaryingsMeshToPS.texCoord2),
+            new FieldDependency(HDStructFields.FragInputs.texCoord3,                                                HDStructFields.VaryingsMeshToPS.texCoord3),
+            new FieldDependency(HDStructFields.FragInputs.color,                                                    HDStructFields.VaryingsMeshToPS.color),
         };
 
         public static DependencyCollection VertexDescription = new DependencyCollection
         {
             //Vertex Description Dependencies
-            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceNormal,              HDStructFields.AttributesMesh.normalOS),
-            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceNormal,               HDStructFields.AttributesMesh.normalOS),
-            new FieldDependency(StructFields.VertexDescriptionInputs.ViewSpaceNormal,                StructFields.VertexDescriptionInputs.WorldSpaceNormal),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceNormal,                             HDStructFields.AttributesMesh.normalOS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceNormal,                              HDStructFields.AttributesMesh.normalOS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ViewSpaceNormal,                               StructFields.VertexDescriptionInputs.WorldSpaceNormal),
 
-            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceTangent,             HDStructFields.AttributesMesh.tangentOS),
-            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceTangent,              HDStructFields.AttributesMesh.tangentOS),
-            new FieldDependency(StructFields.VertexDescriptionInputs.ViewSpaceTangent,               StructFields.VertexDescriptionInputs.WorldSpaceTangent),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceTangent,                            HDStructFields.AttributesMesh.tangentOS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceTangent,                             HDStructFields.AttributesMesh.tangentOS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ViewSpaceTangent,                              StructFields.VertexDescriptionInputs.WorldSpaceTangent),
 
-            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent,           HDStructFields.AttributesMesh.normalOS),
-            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent,           HDStructFields.AttributesMesh.tangentOS),
-            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceBiTangent,            StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent),
-            new FieldDependency(StructFields.VertexDescriptionInputs.ViewSpaceBiTangent,             StructFields.VertexDescriptionInputs.WorldSpaceBiTangent),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent,                          HDStructFields.AttributesMesh.normalOS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent,                          HDStructFields.AttributesMesh.tangentOS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceBiTangent,                           StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ViewSpaceBiTangent,                            StructFields.VertexDescriptionInputs.WorldSpaceBiTangent),
 
-            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpacePosition,            HDStructFields.AttributesMesh.positionOS),
-            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpacePosition,             HDStructFields.AttributesMesh.positionOS),
-            new FieldDependency(StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePosition,     HDStructFields.AttributesMesh.positionOS),
-            new FieldDependency(StructFields.VertexDescriptionInputs.ViewSpacePosition,              StructFields.VertexDescriptionInputs.WorldSpacePosition),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpacePosition,                           HDStructFields.AttributesMesh.positionOS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpacePosition,                            HDStructFields.AttributesMesh.positionOS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePosition,                    HDStructFields.AttributesMesh.positionOS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ViewSpacePosition,                             StructFields.VertexDescriptionInputs.WorldSpacePosition),
 
-            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceViewDirection,        StructFields.VertexDescriptionInputs.WorldSpacePosition),
-            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceViewDirection,       StructFields.VertexDescriptionInputs.WorldSpaceViewDirection),
-            new FieldDependency(StructFields.VertexDescriptionInputs.ViewSpaceViewDirection,         StructFields.VertexDescriptionInputs.WorldSpaceViewDirection),
-            new FieldDependency(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,      StructFields.VertexDescriptionInputs.WorldSpaceViewDirection),
-            new FieldDependency(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,      StructFields.VertexDescriptionInputs.WorldSpaceTangent),
-            new FieldDependency(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,      StructFields.VertexDescriptionInputs.WorldSpaceBiTangent),
-            new FieldDependency(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,      StructFields.VertexDescriptionInputs.WorldSpaceNormal),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpacePositionPredisplacement,            HDStructFields.AttributesMesh.positionOS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpacePositionPredisplacement,             HDStructFields.AttributesMesh.positionOS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement,     HDStructFields.AttributesMesh.positionOS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ViewSpacePositionPredisplacement,              StructFields.VertexDescriptionInputs.WorldSpacePosition),
 
-            new FieldDependency(StructFields.VertexDescriptionInputs.ScreenPosition,                 StructFields.VertexDescriptionInputs.WorldSpacePosition),
-            new FieldDependency(StructFields.VertexDescriptionInputs.uv0,                            HDStructFields.AttributesMesh.uv0),
-            new FieldDependency(StructFields.VertexDescriptionInputs.uv1,                            HDStructFields.AttributesMesh.uv1),
-            new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                            HDStructFields.AttributesMesh.uv2),
-            new FieldDependency(StructFields.VertexDescriptionInputs.uv3,                            HDStructFields.AttributesMesh.uv3),
-            new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                    HDStructFields.AttributesMesh.color),
+            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceViewDirection,                       StructFields.VertexDescriptionInputs.WorldSpacePosition),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceViewDirection,                      StructFields.VertexDescriptionInputs.WorldSpaceViewDirection),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ViewSpaceViewDirection,                        StructFields.VertexDescriptionInputs.WorldSpaceViewDirection),
+            new FieldDependency(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,                     StructFields.VertexDescriptionInputs.WorldSpaceViewDirection),
+            new FieldDependency(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,                     StructFields.VertexDescriptionInputs.WorldSpaceTangent),
+            new FieldDependency(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,                     StructFields.VertexDescriptionInputs.WorldSpaceBiTangent),
+            new FieldDependency(StructFields.VertexDescriptionInputs.TangentSpaceViewDirection,                     StructFields.VertexDescriptionInputs.WorldSpaceNormal),
 
-            new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                    HDStructFields.AttributesMesh.weights),
-            new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                    HDStructFields.AttributesMesh.indices),
-            new FieldDependency(StructFields.VertexDescriptionInputs.VertexID,                       HDStructFields.AttributesMesh.vertexID),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ScreenPosition,                                StructFields.VertexDescriptionInputs.WorldSpacePosition),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv0,                                           HDStructFields.AttributesMesh.uv0),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv1,                                           HDStructFields.AttributesMesh.uv1),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                                           HDStructFields.AttributesMesh.uv2),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv3,                                           HDStructFields.AttributesMesh.uv3),
+            new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                                   HDStructFields.AttributesMesh.color),
+
+            new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                                   HDStructFields.AttributesMesh.weights),
+            new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                                   HDStructFields.AttributesMesh.indices),
+            new FieldDependency(StructFields.VertexDescriptionInputs.VertexID,                                      HDStructFields.AttributesMesh.vertexID),
         };
 
         public static DependencyCollection VertexDescriptionTessellation = new DependencyCollection
         {
             //Vertex Description Dependencies
-            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceTangent,             HDStructFields.VaryingsMeshToDS.tangentWS),
-            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceTangent,              HDStructFields.VaryingsMeshToDS.tangentWS),
-            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent,           HDStructFields.VaryingsMeshToDS.tangentWS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceTangent,                            HDStructFields.VaryingsMeshToDS.tangentWS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.WorldSpaceTangent,                             HDStructFields.VaryingsMeshToDS.tangentWS),
+            new FieldDependency(StructFields.VertexDescriptionInputs.ObjectSpaceBiTangent,                          HDStructFields.VaryingsMeshToDS.tangentWS),
 
-            new FieldDependency(StructFields.VertexDescriptionInputs.uv0,                            HDStructFields.VaryingsMeshToDS.texCoord0),
-            new FieldDependency(StructFields.VertexDescriptionInputs.uv1,                            HDStructFields.VaryingsMeshToDS.texCoord1),
-            new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                            HDStructFields.VaryingsMeshToDS.texCoord2),
-            new FieldDependency(StructFields.VertexDescriptionInputs.uv3,                            HDStructFields.VaryingsMeshToDS.texCoord3),
-            new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                    HDStructFields.VaryingsMeshToDS.color),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv0,                                           HDStructFields.VaryingsMeshToDS.texCoord0),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv1,                                           HDStructFields.VaryingsMeshToDS.texCoord1),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                                           HDStructFields.VaryingsMeshToDS.texCoord2),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv3,                                           HDStructFields.VaryingsMeshToDS.texCoord3),
+            new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                                   HDStructFields.VaryingsMeshToDS.color),
         };
 
         public static DependencyCollection SurfaceDescription = new DependencyCollection
         {
             //Surface Description Dependencies
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceNormal,              HDStructFields.FragInputs.tangentToWorld),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,             StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpaceNormal,               StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceNormal,                             HDStructFields.FragInputs.tangentToWorld),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,                            StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpaceNormal,                              StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
 
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceTangent,             HDStructFields.FragInputs.tangentToWorld),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceTangent,            StructFields.SurfaceDescriptionInputs.WorldSpaceTangent),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpaceTangent,              StructFields.SurfaceDescriptionInputs.WorldSpaceTangent),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceTangent,                            HDStructFields.FragInputs.tangentToWorld),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceTangent,                           StructFields.SurfaceDescriptionInputs.WorldSpaceTangent),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpaceTangent,                             StructFields.SurfaceDescriptionInputs.WorldSpaceTangent),
 
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent,           HDStructFields.FragInputs.tangentToWorld),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceBiTangent,          StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpaceBiTangent,            StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent,                          HDStructFields.FragInputs.tangentToWorld),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceBiTangent,                         StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpaceBiTangent,                           StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent),
 
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpacePosition,            HDStructFields.FragInputs.positionRWS),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.AbsoluteWorldSpacePosition,    HDStructFields.FragInputs.positionRWS),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpacePosition,           HDStructFields.FragInputs.positionRWS),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpacePosition,             HDStructFields.FragInputs.positionRWS),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpacePosition,                           HDStructFields.FragInputs.positionRWS),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.AbsoluteWorldSpacePosition,                   HDStructFields.FragInputs.positionRWS),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpacePosition,                          HDStructFields.FragInputs.positionRWS),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpacePosition,                            HDStructFields.FragInputs.positionRWS),
 
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection,       HDStructFields.FragInputs.positionRWS),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,      StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpaceViewDirection,        StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,     StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,     StructFields.SurfaceDescriptionInputs.WorldSpaceTangent),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,     StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,     StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpacePositionPredisplacement,            HDStructFields.FragInputs.positionPredisplacementRWS),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement,    HDStructFields.FragInputs.positionPredisplacementRWS),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpacePositionPredisplacement,           HDStructFields.FragInputs.positionPredisplacementRWS),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpacePositionPredisplacement,             HDStructFields.FragInputs.positionPredisplacementRWS),
 
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.ScreenPosition,                StructFields.SurfaceDescriptionInputs.WorldSpacePosition),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.uv0,                           HDStructFields.FragInputs.texCoord0),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.uv1,                           HDStructFields.FragInputs.texCoord1),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.uv2,                           HDStructFields.FragInputs.texCoord2),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.uv3,                           HDStructFields.FragInputs.texCoord3),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.VertexColor,                   HDStructFields.FragInputs.color),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.FaceSign,                      HDStructFields.FragInputs.IsFrontFace),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection,                      HDStructFields.FragInputs.positionRWS),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,                     StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpaceViewDirection,                       StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,                    StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,                    StructFields.SurfaceDescriptionInputs.WorldSpaceTangent),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,                    StructFields.SurfaceDescriptionInputs.WorldSpaceBiTangent),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,                    StructFields.SurfaceDescriptionInputs.WorldSpaceNormal),
+
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ScreenPosition,                               StructFields.SurfaceDescriptionInputs.WorldSpacePosition),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.uv0,                                          HDStructFields.FragInputs.texCoord0),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.uv1,                                          HDStructFields.FragInputs.texCoord1),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.uv2,                                          HDStructFields.FragInputs.texCoord2),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.uv3,                                          HDStructFields.FragInputs.texCoord3),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.VertexColor,                                  HDStructFields.FragInputs.color),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.FaceSign,                                     HDStructFields.FragInputs.IsFrontFace),
         };
 
         public static DependencyCollection Default = new DependencyCollection
@@ -595,12 +612,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static FieldCollection Meta = new FieldCollection()
         {
+            HDStructFields.AttributesMesh.positionOS,
             HDStructFields.AttributesMesh.normalOS,
-            HDStructFields.AttributesMesh.tangentOS,
             HDStructFields.AttributesMesh.uv0,
             HDStructFields.AttributesMesh.uv1,
-            HDStructFields.AttributesMesh.color,
             HDStructFields.AttributesMesh.uv2,
+            HDStructFields.AttributesMesh.uv3,
+            HDStructFields.FragInputs.positionRWS,
+            HDStructFields.FragInputs.positionPredisplacementRWS,
+            HDStructFields.FragInputs.texCoord0,
+            HDStructFields.FragInputs.texCoord1,
+            HDStructFields.FragInputs.texCoord2,
+            HDStructFields.FragInputs.texCoord3,
         };
 
         public static FieldCollection Basic = new FieldCollection()
@@ -806,7 +829,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static PragmaCollection BasicTessellation = new PragmaCollection
         {
-            { Pragma.NeverUseDXC(PragmaRenderers.GetNeverUseDXCPlatformArray()) },
             { Pragma.Target(ShaderModel.Target50) },
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
@@ -820,7 +842,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { Pragma.Target(ShaderModel.Target50) },
             { Pragma.Raytracing("surface_shader") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
+            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS5}) },
         };
 
         // Here are the Pragma Collection we can add on top of the Basic one
@@ -1537,6 +1559,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             referenceName = "MULTI_BOUNCE_INDIRECT",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor EditorVisualization = new KeywordDescriptor
+        {
+            displayName = "Editor Visualization",
+            referenceName = "EDITOR_VISUALIZATION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
         };
     }

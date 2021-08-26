@@ -224,7 +224,6 @@ void RayGenAreaShadows()
         // Create and init the RayIntersection structure for this
         RayIntersection rayIntersection;
         rayIntersection.color = float3(0.0, 0.0, 0.0);
-        rayIntersection.incidentDirection = rayDescriptor.Direction;
 
         // Evaluate the ray visibility term and PDF
         TraceRay(_RaytracingAccelerationStructure, rayFlag | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
@@ -351,7 +350,6 @@ void RayGenAreaShadowSingle()
     // Create and init the RayIntersection structure for this
     RayIntersection rayIntersection;
     rayIntersection.color = float3(0.0, 0.0, 0.0);
-    rayIntersection.incidentDirection = rayDescriptor.Direction;
 
     // Evaluate the ray visibility term and PDF
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
@@ -590,7 +588,6 @@ void RayGenShadowSegmentSingle()
     // Create and init the RayIntersection structure for this
     RayIntersection rayIntersection;
     rayIntersection.color = float3(0.0, 0.0, 0.0);
-    rayIntersection.incidentDirection = rayDescriptor.Direction;
     rayIntersection.velocity = 0.0;
     rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
 
@@ -679,7 +676,6 @@ void RayGenSemiTransparentShadowSegmentSingle()
     // Create and init the RayIntersection structure for this
     RayIntersection rayIntersection;
     rayIntersection.color = float3(0.0, 0.0, 0.0);
-    rayIntersection.incidentDirection = rayDescriptor.Direction;
     rayIntersection.velocity = 0.0;
     rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
 

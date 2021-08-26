@@ -33,6 +33,7 @@ namespace UnityEditor.ShaderGraph
         public NoiseNode()
         {
             name = "Simple Noise";
+            synonyms = new string[] { "value noise" };
             UpdateNodeAfterDeserialization();
         }
 
