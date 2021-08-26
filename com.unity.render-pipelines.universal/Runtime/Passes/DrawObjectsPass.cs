@@ -46,9 +46,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
             : this(profilerTag,
-            new ShaderTagId[] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForward"), new ShaderTagId("UniversalForwardOnly")},
+            new ShaderTagId[] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForward"), new ShaderTagId("UniversalForwardOnly") },
             opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
-        {}
+        { }
 
         internal DrawObjectsPass(URPProfileId profileId, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
             : this(profileId.GetType().Name, opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
@@ -104,13 +104,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 var filterSettings = m_FilteringSettings;
 
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 // When rendering the preview camera, we want the layer mask to be forced to Everything
                 if (renderingData.cameraData.isPreviewCamera)
                 {
                     filterSettings.layerMask = -1;
                 }
-                #endif
+#endif
 
                 DrawingSettings drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
 

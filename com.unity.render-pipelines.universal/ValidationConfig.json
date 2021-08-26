@@ -15,6 +15,17 @@
 				]
 			},
 			{
+				"Targets": "+PS5",
+				"Files":
+				[
+					"Documentation~/Building-For-Consoles.md"
+				],
+				"Patterns":
+				[
+					"com\\.unity\\.render-pipelines\\.ps5"
+				]
+			},
+			{
 				"Targets": "+XboxOne",
 				"Files":
 				[

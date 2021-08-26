@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.PostProcessing
             // Negative anamorphic ratio values distort vertically - positive is horizontal
             float ratio = Mathf.Clamp(settings.anamorphicRatio, -1, 1);
             float rw = ratio < 0 ? -ratio : 0f;
-            float rh = ratio > 0 ?  ratio : 0f;
+            float rh = ratio > 0 ? ratio : 0f;
 
             // Do bloom on a half-res buffer, full-res doesn't bring much and kills performances on
             // fillrate limited platforms

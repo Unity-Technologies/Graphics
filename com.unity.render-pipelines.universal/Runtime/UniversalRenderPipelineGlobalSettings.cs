@@ -12,10 +12,10 @@ namespace UnityEngine.Rendering.Universal
     {
         #region Version system
 
-        #pragma warning disable CS0414
+#pragma warning disable CS0414
         [SerializeField] int k_AssetVersion = 1;
         [SerializeField] int k_AssetPreviousVersion = 1;
-        #pragma warning restore CS0414
+#pragma warning restore CS0414
 
         public void OnAfterDeserialize()
         {
@@ -46,7 +46,11 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
+#if !UNITY_EDITOR
+                // The URP Global Settings could have been changed by script, undo/redo (case 1342987), or file update - file versioning, let us make sure we display the correct one
+                // In a Player, we do not need to worry about those changes as we only support loading one
                 if (cachedInstance == null)
+#endif
                     cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<UniversalRenderPipeline>() as UniversalRenderPipelineGlobalSettings;
                 return cachedInstance;
             }
@@ -54,9 +58,12 @@ namespace UnityEngine.Rendering.Universal
 
         static internal void UpdateGraphicsSettings(UniversalRenderPipelineGlobalSettings newSettings)
         {
-            if (newSettings == null || newSettings == cachedInstance)
+            if (newSettings == cachedInstance)
                 return;
-            GraphicsSettings.RegisterRenderPipelineSettings<UniversalRenderPipeline>(newSettings as RenderPipelineGlobalSettings);
+            if (newSettings != null)
+                GraphicsSettings.RegisterRenderPipelineSettings<UniversalRenderPipeline>(newSettings as RenderPipelineGlobalSettings);
+            else
+                GraphicsSettings.UnregisterRenderPipelineSettings<UniversalRenderPipeline>();
             cachedInstance = newSettings;
         }
 

@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [DisallowMultipleRendererFeature]
+    [Tooltip("Screen Space Shadows")]
     internal class ScreenSpaceShadows : ScriptableRendererFeature
     {
         // Serialized Fields

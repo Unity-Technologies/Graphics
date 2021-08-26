@@ -12,7 +12,8 @@
 URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
     name: URP_Terrain on Android_OpenGLES3_Standalone_il2cpp_Linear on version trunk
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -22,15 +23,12 @@ URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
-                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
@@ -38,6 +36,9 @@ URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -69,12 +70,14 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
       -  command: |5-
-                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -89,7 +92,8 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
 URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_trunk:
     name: URP_Terrain on Android_OpenGLES3_Standalone_XR_il2cpp_Linear on version trunk
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -99,15 +103,12 @@ URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
-                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
@@ -115,6 +116,9 @@ URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_trunk:
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --extra-editor-arg="-xr-reuse-tests" --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -146,12 +150,14 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_trunk:
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
       -  command: |5-
-                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-xr-reuse-tests" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -166,7 +172,8 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_trunk:
 URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_2021.2:
     name: URP_Terrain on Android_OpenGLES3_Standalone_il2cpp_Linear on version 2021.2
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -176,15 +183,12 @@ URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_2021.2:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
-                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
@@ -192,6 +196,9 @@ URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_2021.2:
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -223,12 +230,14 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_2021.2:
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
       -  command: |5-
-                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -243,7 +252,8 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_2021.2:
 URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_2021.2:
     name: URP_Terrain on Android_OpenGLES3_Standalone_XR_il2cpp_Linear on version 2021.2
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -253,15 +263,12 @@ URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_2021.2:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
-                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
@@ -269,6 +276,9 @@ URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_2021.2:
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --extra-editor-arg="-xr-reuse-tests" --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -300,12 +310,14 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_2021.2:
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
       -  command: |5-
-                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-xr-reuse-tests" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -320,7 +332,8 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_2021.2:
 URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Terrain on Android_OpenGLES3_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -330,15 +343,12 @@ URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
-                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
@@ -346,6 +356,9 @@ URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -377,12 +390,14 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
       -  command: |5-
-                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -397,7 +412,8 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
 URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Terrain on Android_OpenGLES3_Standalone_XR_il2cpp_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s10e-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -407,15 +423,12 @@ URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-         retries: 2
       -  command: powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
          retries: 2
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
-                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
@@ -423,6 +436,9 @@ URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
                 utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --extra-editor-arg="-xr-reuse-tests" --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:
@@ -454,12 +470,14 @@ Build_URP_Terrain_Android_OpenGLES3_Standalone_XR_il2cpp_Linear_CUSTOM-REVISION:
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
       -  command: |5-
-                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
                 del revdate.tmp
                 utr %CACHE_ARGS% --architecture=ARM64 --artifacts_path=TestProjects/UniversalGraphicsTest_Terrain/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-xr-reuse-tests" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_Terrain --timeout=3000
+    after:
+      -  command: pip install requests --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  command: python .yamato/script/log_scripts/log_parser.py
     artifacts:
         logs:
             paths:

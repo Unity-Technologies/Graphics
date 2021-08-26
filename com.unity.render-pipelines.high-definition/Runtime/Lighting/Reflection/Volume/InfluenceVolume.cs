@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Offset of sub volume defining fading.</summary>
         public Vector3 boxBlendOffset => (boxBlendDistanceNegative - boxBlendDistancePositive) * 0.5f;
         /// <summary>Size of sub volume defining fading.</summary>
-        public Vector3 boxBlendSize => - (boxBlendDistancePositive + boxBlendDistanceNegative);
+        public Vector3 boxBlendSize => -(boxBlendDistancePositive + boxBlendDistanceNegative);
         /// <summary>
         /// Position of fade sub volume maxOffset point relative to InfluenceVolume max corner.
         /// Values between 0 (on InfluenceVolume hull) to half of boxSize corresponding axis.
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Offset of sub volume defining fading relative to normal orientation.</summary>
         public Vector3 boxBlendNormalOffset => (boxBlendNormalDistanceNegative - boxBlendNormalDistancePositive) * 0.5f;
         /// <summary>Size of sub volume defining fading relative to normal orientation.</summary>
-        public Vector3 boxBlendNormalSize => - (boxBlendNormalDistancePositive + boxBlendNormalDistanceNegative);
+        public Vector3 boxBlendNormalSize => -(boxBlendNormalDistancePositive + boxBlendNormalDistanceNegative);
         /// <summary>
         /// Position of normal fade sub volume maxOffset point relative to InfluenceVolume max corner.
         /// Values between 0 (on InfluenceVolume hull) to half of boxSize corresponding axis (on origin for this axis).

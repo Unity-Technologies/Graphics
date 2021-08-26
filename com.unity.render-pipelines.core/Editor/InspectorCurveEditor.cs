@@ -238,7 +238,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <seealso cref="Settings.defaultSettings"/>
         public InspectorCurveEditor()
-            : this(Settings.defaultSettings) {}
+            : this(Settings.defaultSettings) { }
 
         /// <summary>
         /// Creates a curve editor with the given settings.
