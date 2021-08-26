@@ -14,27 +14,27 @@ namespace UnityEditor.ShaderGraph.Registry
 
     namespace Types
     {
-        public class MakeNode : Defs.INodeDefinitionBuilder
-        {
-            public RegistryKey GetRegistryKey() => new RegistryKey { Name = "MakeType", Version = 1 };
-            public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
+        ////public class MakeNode : Defs.INodeDefinitionBuilder
+        ////{
+        ////    public RegistryKey GetRegistryKey() => new RegistryKey { Name = "MakeType", Version = 1 };
+        ////    public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
 
-            public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
-            {
-                // We just have a field for now that indicates what our type is.
-                userData.GetField("Type", out RegistryKey key);
+        ////    public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
+        ////    {
+        ////        // We just have a field for now that indicates what our type is.
+        ////        userData.GetField("Type", out RegistryKey key);
 
-                // Erroneous if Key is default or not a Type, but we have no error msging yet.
+        ////        // Erroneous if Key is default or not a Type, but we have no error msging yet.
 
-                var inport = nodeWriter.AddPort(userData, "In", true, key, registry);
-                var outport = nodeWriter.AddPort(userData, "Out", false, key, registry);
-                inport.TryAddConnection(outport);
+        ////        var inport = nodeWriter.AddPort(userData, "In", true, key, registry);
+        ////        var outport = nodeWriter.AddPort(userData, "Out", false, key, registry);
+        ////        inport.TryAddConnection(outport);
 
-                // To be able to support nested types (eg. TypeDefs of TypeDefs),
-                // we'll need to be able to concretize and iterate over fields to promote them to ports properly,
-                // iterating over fields would mean reading from the concretized layer-- don't currently have a way to get a reader from that in the builder.
-            }
-        }
+        ////        // To be able to support nested types (eg. TypeDefs of TypeDefs),
+        ////        // we'll need to be able to concretize and iterate over fields to promote them to ports properly,
+        ////        // iterating over fields would mean reading from the concretized layer-- don't currently have a way to get a reader from that in the builder.
+        ////    }
+        ////}
 
         public class AddNode : Defs.INodeDefinitionBuilder
         {
@@ -84,6 +84,38 @@ namespace UnityEditor.ShaderGraph.Registry
                     port.SetField(GraphType.kPrecision, resolvedPrecision);
                 }
             }
+
+            public ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+            {
+                data.TryGetPort("Out", out var outPort);
+                var typeBuilder = registry.GetTypeBuilder(GraphType.kRegistryKey);
+
+                var shaderType = typeBuilder.GetShaderType((IFieldReader)outPort, container, registry);
+                int count = data.GetPorts().Count() - 1;
+
+                string funcName = $"Add{count}_{shaderType.Name}";
+
+                var builder = new ShaderFoundry.ShaderFunction.Builder(funcName);
+                string body = "";
+                foreach (var port in data.GetPorts())
+                {
+                    var name = port.GetName();
+                    if (port.IsInput())
+                    {
+                        builder.AddInput(shaderType, name);
+                        body += body == "" ? name : " + " + name;
+                    }
+                    else
+                    {
+                        builder.AddOutput(shaderType, name);
+                        body = name + " = " + body;
+                    }
+                }
+                body += ";";
+
+                builder.AddLine(body);
+                return builder.Build(container);
+            }
         }
 
         public class GraphType : Defs.ITypeDefinitionBuilder
@@ -118,7 +150,47 @@ namespace UnityEditor.ShaderGraph.Registry
                 for (int i = 0; i < length * height; ++i)
                     typeWriter.SetField<float>($"c{i}", 0);
             }
+
+            public ShaderFoundry.ShaderType GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+            {
+                data.GetField(kPrimitive, out Primitive primitive);
+                data.GetField(kPrecision, out Precision precision);
+                data.GetField(kLength, out int length);
+                data.GetField(kHeight, out int height);
+                length = Mathf.Clamp(length, 1, 4);
+                height = Mathf.Clamp(height, 1, 4);
+
+                string name = "float";
+
+                switch(primitive)
+                {
+                    case Primitive.Bool: name = "bool"; break;
+                    case Primitive.Int: name = "int"; break;
+                    case Primitive.Float:
+                        switch (precision)
+                        {
+                            case Precision.Fixed: name = "fixed"; break;
+                            case Precision.Half: name = "half"; break;
+                        }
+                        break;
+                }
+
+                var shaderType = ShaderFoundry.ShaderType.Scalar(container, name);
+
+                if (height != 1 && length != 1)
+                {
+                    shaderType = ShaderFoundry.ShaderType.Matrix(container, shaderType, length, height);
+                }
+                else
+                {
+                    length = Mathf.Max(length, height);
+                    shaderType = ShaderFoundry.ShaderType.Vector(container, shaderType, length);
+                }
+                return shaderType;
+            }
         }
+
+
 
         public class GraphTypeAssignment : Defs.ICastDefinitionBuilder
         {
@@ -126,6 +198,57 @@ namespace UnityEditor.ShaderGraph.Registry
             public RegistryFlags GetRegistryFlags() => RegistryFlags.Cast;
             public (RegistryKey, RegistryKey) GetTypeConversionMapping() => (GraphType.kRegistryKey, GraphType.kRegistryKey);
             public bool CanConvert(IFieldReader src, IFieldReader dst) => true;
+
+
+            private static string MatrixCompNameFromIndex(int i, int d)
+            {
+                return $"_mm{ i / d }{ i % d }";
+            }
+            private static string VectorCompNameFromIndex(int i)
+            {
+                switch(i)
+                {
+                    case 0: return "x";
+                    case 1: return "y";
+                    case 2: return "z";
+                    default: return "w";
+                }
+            }
+
+
+            public ShaderFoundry.ShaderFunction GetShaderCast(IFieldReader src, IFieldReader dst, ShaderFoundry.ShaderContainer container, Registry registry)
+            {
+                // In this case, we can determine a casting operation purely from the built types. We don't actually need to analyze field data.
+                // We will get precision truncation warnings though...
+                var srcType = registry.GetTypeBuilder(src.GetRegistryKey()).GetShaderType(src, container, registry);
+                var dstType = registry.GetTypeBuilder(dst.GetRegistryKey()).GetShaderType(dst, container, registry);
+
+                string castName = $"Cast{srcType.Name}_{dstType.Name}";
+                var builder = new ShaderFoundry.ShaderFunction.Builder(castName);
+                builder.AddInput(srcType, "In");
+                builder.AddOutput(dstType, "Out");
+
+                var srcSize = srcType.IsVector ? srcType.VectorDimension : srcType.IsMatrix ? srcType.MatrixColumns * srcType.MatrixRows : 1;
+                var dstSize = dstType.IsVector ? dstType.VectorDimension : dstType.IsMatrix ? dstType.MatrixColumns * dstType.MatrixRows : 1;
+
+                string body = $"Out = {srcType.Name} {{ ";
+
+                for (int i = 0; i < dstSize; ++i)
+                {
+                    if (i < srcSize)
+                    {
+                        if (dstType.IsMatrix) body += $"In.{MatrixCompNameFromIndex(i, dstType.MatrixColumns)}"; // are we row or column major?
+                        if (dstType.IsVector) body += $"In.{VectorCompNameFromIndex(i)}";
+                        if (dstType.IsScalar) body += $"In";
+                    }
+                    else body += "0";
+                    if (i != dstSize - 1) body += ", ";
+                }
+                body += " };";
+
+                builder.AddLine(body);
+                return builder.Build(container);
+            }
         }
     }
 }
