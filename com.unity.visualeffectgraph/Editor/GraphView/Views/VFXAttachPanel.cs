@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.UI
         VisualElement m_VFXIcon;
         VFXView m_VFXView;
 
-        public Vector2 WindowSize { get; } = new Vector2(250, 60);
+        public Vector2 WindowSize { get; } = new Vector2(250, 50);
 
         protected void CreateGUI()
         {
@@ -74,15 +74,17 @@ namespace UnityEditor.VFX.UI
                 var isCompatible = selectedVisualEffect != null && selectedVisualEffect.visualEffectAsset == m_VFXView.controller.graph.visualEffectResource.asset;
                 m_AttachButton.SetEnabled(isAttached || isCompatible);
                 m_AttachButton.text = isAttached ? "Detach" : "Attach to selection";
-                m_pickedObjectLabel.value = m_VFXView.attachedComponent?.name;
+                m_pickedObjectLabel.value = m_VFXView.attachedComponent?.name ?? "None (Visual Effect Asset)";
 
                 if (isAttached)
                 {
                     m_VFXIcon.style.display = DisplayStyle.Flex;
+                    m_pickedObjectLabel[0].style.paddingLeft = 18;
                     m_VFXIcon.style.backgroundImage = VFXView.LoadImage(EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark" : "vfx_graph_icon_gray_light");
                 }
                 else
                 {
+                    m_pickedObjectLabel[0].style.paddingLeft = 3;
                     m_VFXIcon.style.display = DisplayStyle.None;
                 }
             }
