@@ -915,8 +915,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             return 1.0f;
         }
-        // Cache Func<> to avoid allocs
-        private static System.Func<Light, Camera, Vector3, float> m_CachedGetLensFlareLightAttenuationFunc = GetLensFlareLightAttenuation;
 
         void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
         {
@@ -931,7 +929,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 true,
                 gpuVP,
                 cmd, source,
-                m_CachedGetLensFlareLightAttenuationFunc,
+                (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
                 ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
                 false);

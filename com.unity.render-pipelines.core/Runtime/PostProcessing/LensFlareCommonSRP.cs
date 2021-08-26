@@ -403,8 +403,6 @@ namespace UnityEngine.Rendering
                         continue;
                 }
 
-                //Vector4 modulationByColor = Vector4.one;
-                //Vector4 modulationAttenuation = Vector4.one;
                 Vector3 diffToObject = positionWS - cam.transform.position;
                 float distToObject = diffToObject.magnitude;
                 float coefDistSample = distToObject / comp.maxAttenuationDistance;
@@ -458,7 +456,6 @@ namespace UnityEngine.Rendering
 
                     Color curColor = colorModulation;
                     Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
-                    //Vector2 translationScale = new Vector2(element.translationScale.x, element.translationScale.y);
                     Texture texture = element.lensFlareTexture;
                     float usedAspectRatio;
                     if (element.flareType == SRPLensFlareType.Image)
@@ -467,7 +464,6 @@ namespace UnityEngine.Rendering
                         usedAspectRatio = 1.0f;
 
                     float rotation = element.rotation;
-                    //Vector4 tint = Vector4.Scale(element.tint, curColor);
                     Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
                     float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
                     float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
@@ -492,8 +488,6 @@ namespace UnityEngine.Rendering
                     Vector2 size = new Vector2(elemSizeXY.x, elemSizeXY.y);
                     float combinedScale = scaleByDistance * scaleSize * element.uniformScale * comp.scale;
                     size *= combinedScale;
-
-                    //Vector4 gradientModulation = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
                     float currentIntensity = comp.intensity * element.localIntensity * radialsScaleRadius * distanceAttenuation;
 
