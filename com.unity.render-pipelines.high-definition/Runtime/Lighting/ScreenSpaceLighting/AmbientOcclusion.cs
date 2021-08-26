@@ -380,8 +380,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                parameters.runningRes = new Vector2(camera.actualWidth, camera.actualHeight) * 0.5f;
-                cb._AOBufferSize = new Vector4(camera.actualWidth * 0.5f, camera.actualHeight * 0.5f, 2.0f / camera.actualWidth, 2.0f / camera.actualHeight);
+                parameters.runningRes = new Vector2(Mathf.RoundToInt(camera.actualWidth * 0.5f), Mathf.RoundToInt(camera.actualHeight * 0.5f));
+                cb._AOBufferSize = new Vector4(parameters.runningRes.x, parameters.runningRes.y, 1.0f / parameters.runningRes.x, 1.0f / parameters.runningRes.y);
             }
 
             float invHalfTanFOV = -camera.mainViewConstants.projMatrix[1, 1];
