@@ -217,6 +217,7 @@ float GetKeyWithCheck(uint index)
 void MERGE_PASS(uint3 groupId           : SV_GroupID,
                 uint3 groupThreadId     : SV_GroupThreadID)
 {
+    //TODO : Use VFXInstancing, but need to provide ALIGNED_SYSTEM_CAPACITY. For now, no sorting
     uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP_MERGE_PASS + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP_MERGE_PASS;
 
     if (id >= GetElementCount())

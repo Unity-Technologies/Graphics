@@ -37,8 +37,10 @@ ${VFXGeneratedBlockFunction}
 void CSMain(uint3 groupId          : SV_GroupID,
             uint3 groupThreadId    : SV_GroupThreadID)
 {
-	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
-	uint index = id;
+	uint id = GetThreadId(groupId, groupThreadId, NB_THREADS_PER_GROUP, dispatchWidth);
+	uint instanceIndex = GetInstanceIndexFromThreadId(id, nbMax);
+	uint indexInInstance = GetIndexInInstance(id, instanceIndex, nbMax);
+	uint index = GetIndexInAttributeBuffer(instanceIndex, indexInInstance);
 #if VFX_COMPUTE_BOUNDS
 	uint tid = groupThreadId.x;
 #endif
@@ -75,7 +77,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 				indirectBuffer[indirectIndex] = index;
 #endif
 
-#if HAS_STRIPS			
+#if HAS_STRIPS
 				uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
 				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE, stripData.stripIndex), relativeIndexInStrip);
 				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE, stripData.stripIndex), relativeIndexInStrip);
@@ -93,13 +95,13 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if USE_DEAD_LIST && VFX_USE_STRIPALIVE_CURRENT
         else if (attributes.stripAlive)
         {
-            if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle the particle 
+            if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle the particle
             {
                 uint deadIndex = deadListOut.IncrementCounter();
 				deadListOut[deadIndex] = index;
                 attributes.stripAlive = false;
                 ${VFXStoreAttributes:{stripAlive}}
-            }            
+            }
         }
 #endif
 #else

@@ -35,21 +35,22 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if USE_DEAD_LIST_COUNT
 	threshold -= deadListCount.Load(0);
 #endif
-	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+	uint id = GetThreadId(groupId, groupThreadId, NB_THREADS_PER_GROUP, dispatchWidth);
 	if (id < threshold)
 	{
+	    //TODO : Is this still okay with instancing ?
 		uint index = inputBuffer[id];
-		
+
 		Attributes attributes = (Attributes)0;
 		${VFXLoadAttributes:{position}}
-		
+
 #if VFX_LOCAL_SPACE
 		float3 wPos = mul(localToWorld,float4(attributes.position,1.0f)).xyz;
 #else
 		float3 wPos = attributes.position;
 #endif
 		float3 camToPos = wPos - cameraPosition;
-		
+
 		Kvp kvp;
 		kvp.sortKey = dot(camToPos,camToPos); // sqr distance to the camera
 		kvp.index = index;

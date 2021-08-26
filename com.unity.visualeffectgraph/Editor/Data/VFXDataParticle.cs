@@ -302,6 +302,7 @@ namespace UnityEditor.VFX
                     yield return "#define STRIP_COUNT " + stripCapacity + "u";
                     yield return "#define PARTICLE_PER_STRIP_COUNT " + particlePerStripCount + "u";
                 }
+                yield return "#define ALIGNED_SYSTEM_CAPACITY " + alignedCapacity + "u";
             }
         }
 
