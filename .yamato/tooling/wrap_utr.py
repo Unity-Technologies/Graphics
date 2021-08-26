@@ -9,14 +9,21 @@ from os import listdir
 if __name__ == "__main__":
     cur_sys = platform.system()
     if cur_sys == 'Windows':
-        subprocess.call(["utr.bat"] + sys.argv)
+        print(sys.argv[1:])
+        args = [path.join(getcwd(), "utr.bat")] + sys.argv[1:]
+        print(" ".join(args))
+        subprocess.call(["utr.bat"] + sys.argv[1:])
     elif cur_sys == 'Linux':
-        subprocess.call(["utr"] + sys.argv)
+        subprocess.call(["utr"] + sys.argv[1:])
     else:
         cwd = path.abspath('.')
         # expanduser("~") is the same as ~
         utr_path = path.join(expanduser("~"), "Graphics/utr")
         if path.exists(utr_path):
-            output = subprocess.call([utr_path] + sys.argv)
+            args = [path.join(getcwd(), utr_path)] + sys.argv[1:]
+            print(args)
+            output = subprocess.call()
         else:
-            output = subprocess.call([path.join(getcwd(), "utr")] + sys.argv)
+            args = [path.join(getcwd(), "utr")] + sys.argv[1:]
+            print(argv[1:])
+            output = subprocess.call(args)
