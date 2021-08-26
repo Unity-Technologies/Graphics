@@ -130,11 +130,6 @@ namespace UnityEditor.Rendering
         {
             var window = GetWindow<DebugWindow>();
             window.titleContent = Styles.windowTitle;
-
-            if (OnDebugWindowToggled == null)
-                OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
-
-            open = true;
         }
 
         [MenuItem("Window/Analysis/Rendering Debugger", validate = true)]
@@ -145,6 +140,11 @@ namespace UnityEditor.Rendering
 
         void OnEnable()
         {
+            if (OnDebugWindowToggled == null)
+                OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
+
+            open = true;
+
             DebugManager.instance.refreshEditorRequested = false;
 
             hideFlags = HideFlags.HideAndDontSave;
