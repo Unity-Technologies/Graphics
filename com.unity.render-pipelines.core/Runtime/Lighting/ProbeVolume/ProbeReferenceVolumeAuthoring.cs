@@ -147,20 +147,14 @@ namespace UnityEngine.Experimental.Rendering
                 ProbeReferenceVolume.instance.AddPendingAssetLoading(volumeAsset);
         }
 
-        internal void QueueAssetRemoval()
+        internal void DisposeGizmos()
         {
-            var volumeAsset = GrabRelevantAsset();
-            if (volumeAsset == null)
-                return;
-
 #if UNITY_EDITOR
             brickGizmos?.Dispose();
             brickGizmos = null;
             cellGizmo?.Dispose();
             cellGizmo = null;
 #endif
-
-            ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
         }
 
         void OnEnable()
@@ -169,7 +163,7 @@ namespace UnityEngine.Experimental.Rendering
             if (m_Profile == null)
                 m_Profile = CreateReferenceVolumeProfile(gameObject.scene, gameObject.name);
 #endif
-            QueueAssetLoading();
+            LoadProfileInformation();
         }
 
 #if UNITY_EDITOR
@@ -179,6 +173,8 @@ namespace UnityEngine.Experimental.Rendering
             if (!enabled || !gameObject.activeSelf)
                 return;
 
+            LoadProfileInformation();
+
             if (m_Profile != null)
             {
                 m_PrevProfile = m_Profile;
@@ -187,12 +183,12 @@ namespace UnityEngine.Experimental.Rendering
 
         void OnDisable()
         {
-            QueueAssetRemoval();
+            DisposeGizmos();
         }
 
         void OnDestroy()
         {
-            QueueAssetRemoval();
+            DisposeGizmos();
         }
 
         internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))

@@ -622,12 +622,16 @@ namespace UnityEngine.Experimental.Rendering
             m_IsInitialized = true;
             m_NeedsIndexRebuild = true;
             sceneData = parameters.sceneData;
-#if UNITY_EDITOR
             if (sceneData != null)
             {
+
+#if UNITY_EDITOR
                 UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.UpdateSceneBounds;
-            }
+                UnityEditor.SceneManagement.EditorSceneManager.sceneClosed += sceneData.OnSceneUnloaded;
 #endif
+                SceneManager.sceneUnloaded += sceneData.OnSceneUnloaded;
+            }
+
         }
 
         /// <summary>
@@ -752,6 +756,21 @@ namespace UnityEngine.Experimental.Rendering
                 m_PendingAssetsToBeUnloaded.Remove(key);
             }
             m_PendingAssetsToBeUnloaded.Add(asset.GetSerializedFullPath(), asset);
+        }
+
+        internal void AddPendingRemovalOfAllAssets()
+        {
+            foreach (var activeAsset in m_ActiveAssets)
+            {
+                m_PendingAssetsToBeUnloaded[activeAsset.Key] = activeAsset.Value;
+            }
+
+            foreach (var pendingAssets in m_PendingAssetsToBeLoaded)
+            {
+                m_PendingAssetsToBeUnloaded[pendingAssets.Key] = pendingAssets.Value;
+            }
+
+            m_PendingAssetsToBeLoaded.Clear();
         }
 
         internal void RemovePendingAsset(ProbeVolumeAsset asset)
@@ -963,6 +982,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name ="loadAllCells"> True when all cells are to be immediately loaded..</param>
         public void PerformPendingOperations(bool loadAllCells = false)
         {
+            sceneData.FlushPendingAssets();
             PerformPendingDeletion();
             PerformPendingIndexChangeAndInit();
             PerformPendingLoading();

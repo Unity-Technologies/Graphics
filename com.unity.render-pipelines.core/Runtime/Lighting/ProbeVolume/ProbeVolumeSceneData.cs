@@ -6,6 +6,9 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+
+// TODO! TO CONSIDER: All this referencing scenes via their path, is that reliable? Shall we use some other thing? What happens upon renaming? Do we have a persistent value?
+
 namespace UnityEngine.Experimental.Rendering
 {
     [System.Serializable]
@@ -46,6 +49,7 @@ namespace UnityEngine.Experimental.Rendering
         // and this imposes a strong constraint about it. This will not be the case as we'd want to do blending between different assets or simply having different states.
         // When this will be the case we need to change this so the dictionary should include the state metadata and a way to know which one is the one considered "active" (i.e. to be actually loaded).
         // This is why the abstraction away in a class that at the moment just returns a single asset.
+        [System.Serializable]
         internal class APVSceneAssets
         {
             public ProbeVolumeAsset asset;
@@ -65,6 +69,10 @@ namespace UnityEngine.Experimental.Rendering
         }
         internal Dictionary<string, APVSceneAssets> sceneAssets;
 
+        // !! IMPORTANT !! This is a binary loaded or not value, however when we have states, this will need to also store what state is actually loaded and upon state change we need to verify if
+        // we have the right state loaded for a given scene. Essentially instead of bool we'll need to store the current state, whatever representation it'll take.
+        internal Dictionary<string, bool> sceneAssetLoadingStatus;
+
         /// <summary>Constructor for ProbeVolumeSceneData. </summary>
         /// <param name="parentAsset">The asset holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds are updated or an asset is changed. </param>
         public ProbeVolumeSceneData(Object parentAsset)
@@ -73,6 +81,7 @@ namespace UnityEngine.Experimental.Rendering
             sceneBounds = new Dictionary<string, Bounds>();
             hasProbeVolumes = new Dictionary<string, bool>();
             sceneAssets = new Dictionary<string, APVSceneAssets>();
+            sceneAssetLoadingStatus = new Dictionary<string, bool>();
 
             serializedBounds = new List<SerializableBoundItem>();
             serializedHasVolumes = new List<SerializableHasPVItem>();
@@ -308,5 +317,50 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #endif
+        // The logic to check if scene needs their asset loading can be optimized.
+
+        // TODO: This status will be a state whenever we introduce them instead of a binary yes/no.
+        internal void SetSceneAssetLoaded(string scenePath, bool status)
+        {
+            if (sceneAssetLoadingStatus == null)
+                sceneAssetLoadingStatus = new Dictionary<string, bool>();
+
+            sceneAssetLoadingStatus[scenePath] = status;
+        }
+
+        // TODO: Add a state here when we have it.
+        internal void FlushPendingAssets()
+        {
+            if (sceneAssetLoadingStatus == null)
+                sceneAssetLoadingStatus = new Dictionary<string, bool>();
+
+            int sceneCount = SceneManagement.SceneManager.sceneCount;
+            for (int i = 0; i < sceneCount; ++i)
+            {
+                var scenePath = SceneManagement.SceneManager.GetSceneAt(i).path;
+                if (sceneAssets.ContainsKey(scenePath))
+                {
+                    var asset = sceneAssets[scenePath].GetActiveAsset();
+
+                    if (!sceneAssetLoadingStatus.ContainsKey(scenePath) || !sceneAssetLoadingStatus[scenePath])
+                    {
+                        ProbeReferenceVolume.instance.AddPendingAssetLoading(asset);
+                        SetSceneAssetLoaded(scenePath, true); // Assume we are loading the assets before calling the flushing again.
+                    }
+                }
+            }
+        }
+
+        internal void OnSceneUnloaded(Scene scene)
+        {
+            Debug.Log("WUT WUT");
+            var scenePath = scene.path;
+            if (sceneAssets.ContainsKey(scenePath))
+            {
+                var asset = sceneAssets[scenePath].GetActiveAsset();
+                ProbeReferenceVolume.instance.AddPendingAssetRemoval(asset);
+                SetSceneAssetLoaded(scenePath, false);
+            }
+        }
     }
 }

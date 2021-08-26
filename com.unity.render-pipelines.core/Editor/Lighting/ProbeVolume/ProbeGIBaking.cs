@@ -360,15 +360,7 @@ namespace UnityEngine.Experimental.Rendering
                         dilatedCells.Add(cell);
                     }
 
-                    foreach (var refVol in refVols)
-                    {
-                        if (refVol != null)
-                        {
-                            var refVolAsset = refVol.GrabRelevantAsset();
-                            if (refVolAsset != null)
-                                ProbeReferenceVolume.instance.AddPendingAssetRemoval(refVolAsset);
-                        }
-                    }
+                    ProbeReferenceVolume.instance.AddPendingRemovalOfAllAssets();
 
                     // Make sure unloading happens.
                     ProbeReferenceVolume.instance.PerformPendingOperations();
