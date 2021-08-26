@@ -28,7 +28,6 @@ Pass
     $splice(GraphKeywords)
 
     // Defines
-    $features.graphVFX:                     #define HAVE_VFX_MODIFICATION
     $SurfaceType.Transparent:               #define _SURFACE_TYPE_TRANSPARENT 1
     $AlphaClip:                             #define _AlphaClip 1
     $Normal:                                #define _NORMALMAP 1
@@ -54,8 +53,6 @@ Pass
     $Varyings.texCoord2:                    #define VARYINGS_NEED_TEXCOORD2
     $Varyings.texCoord3:                    #define VARYINGS_NEED_TEXCOORD3
     $Varyings.color:                        #define VARYINGS_NEED_COLOR
-    $Varyings.elementToWorld0:              #define VARYINGS_NEED_ELEMENT_TO_WORLD
-    $Varyings.worldToElement0:              #define VARYINGS_NEED_WORLD_TO_ELEMENT
     $Varyings.vertexID:                     #define VARYINGS_NEED_VERTEXID
     $Varyings.viewDirectionWS:              #define VARYINGS_NEED_VIEWDIRECTION_WS
     $Varyings.bitangentWS:                  #define VARYINGS_NEED_BITANGENT_WS
@@ -118,7 +115,7 @@ Pass
 
     // --------------------------------------------------
     // Build Graph Inputs
-    $features.graphVFX:     $include("VFX/Config.template.hlsl")
+
     $features.graphVertex:  $include("BuildVertexDescriptionInputs.template.hlsl")
     $features.graphPixel:   $include("BuildSurfaceDescriptionInputs.template.hlsl")
 
@@ -126,13 +123,6 @@ Pass
     // Main
 
     $splice(PostGraphIncludes)
-
-    // --------------------------------------------------
-    //TODOPAUL : This is an explicit include from urp in shaderGraph, find a better way to include it.
-    // Visual Effect Vertex Invocations
-    #ifdef HAVE_VFX_MODIFICATION
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/VisualEffectVertex.hlsl"
-    #endif
 
     ENDHLSL
 }
