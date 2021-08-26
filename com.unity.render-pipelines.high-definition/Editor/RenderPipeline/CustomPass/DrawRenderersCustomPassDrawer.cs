@@ -91,6 +91,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool customDepthIsNone => (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue == CustomPass.TargetBuffer.None;
 
+        protected bool showMaterialOverride = true;
+
         protected override void Initialize(SerializedProperty customPass)
         {
             // Header bools
@@ -227,40 +229,45 @@ namespace UnityEditor.Rendering.HighDefinition
         void DoMaterialOverride(ref Rect rect)
         {
             //Override material
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.PropertyField(rect, m_OverrideMaterial, Styles.overrideMaterial);
-            if (EditorGUI.EndChangeCheck())
+            if (showMaterialOverride)
             {
-                var mat = m_OverrideMaterial.objectReferenceValue as Material;
-                // Fixup pass name in case the shader/material changes
-                if (mat != null && mat.FindPass(m_OverrideMaterialPassName.stringValue) == -1)
-                    m_OverrideMaterialPassName.stringValue = mat.GetPassName(0);
-            }
-
-            rect.y += Styles.defaultLineSpace;
-            EditorGUI.indentLevel++;
-            if (m_OverrideMaterial.objectReferenceValue)
-            {
-                EditorGUI.BeginProperty(rect, Styles.overrideMaterialPass, m_OverrideMaterialPassName);
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.PropertyField(rect, m_OverrideMaterial, Styles.overrideMaterial);
+                if (EditorGUI.EndChangeCheck())
                 {
                     var mat = m_OverrideMaterial.objectReferenceValue as Material;
-                    EditorGUI.BeginChangeCheck();
-                    int index = mat.FindPass(m_OverrideMaterialPassName.stringValue);
-                    index = EditorGUI.IntPopup(rect, Styles.overrideMaterialPass, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
-                    if (EditorGUI.EndChangeCheck())
-                        m_OverrideMaterialPassName.stringValue = mat.GetPassName(index);
+                    // Fixup pass name in case the shader/material changes
+                    if (mat != null && mat.FindPass(m_OverrideMaterialPassName.stringValue) == -1)
+                        m_OverrideMaterialPassName.stringValue = mat.GetPassName(0);
                 }
-                EditorGUI.EndProperty();
-            }
-            else
-            {
-                EditorGUI.BeginProperty(rect, Styles.renderQueueFilter, m_RenderQueue);
-                EditorGUI.PropertyField(rect, m_ShaderPass, Styles.shaderPass);
-                EditorGUI.EndProperty();
-            }
-            EditorGUI.indentLevel--;
 
-            rect.y += Styles.defaultLineSpace;
+                rect.y += Styles.defaultLineSpace;
+
+                EditorGUI.indentLevel++;
+                if (m_OverrideMaterial.objectReferenceValue)
+                {
+                    EditorGUI.BeginProperty(rect, Styles.overrideMaterialPass, m_OverrideMaterialPassName);
+                    {
+                        var mat = m_OverrideMaterial.objectReferenceValue as Material;
+                        EditorGUI.BeginChangeCheck();
+                        int index = mat.FindPass(m_OverrideMaterialPassName.stringValue);
+                        index = EditorGUI.IntPopup(rect, Styles.overrideMaterialPass, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
+                        if (EditorGUI.EndChangeCheck())
+                            m_OverrideMaterialPassName.stringValue = mat.GetPassName(index);
+                    }
+                    EditorGUI.EndProperty();
+                }
+                else
+                {
+                    EditorGUI.BeginProperty(rect, Styles.renderQueueFilter, m_RenderQueue);
+                    EditorGUI.PropertyField(rect, m_ShaderPass, Styles.shaderPass);
+                    EditorGUI.EndProperty();
+                }
+                EditorGUI.indentLevel--;
+
+                rect.y += Styles.defaultLineSpace;
+            }
+
             EditorGUI.BeginProperty(rect, Styles.overrideDepth, m_OverrideDepthState);
             {
                 if (customDepthIsNone)
@@ -339,7 +346,8 @@ namespace UnityEditor.Rendering.HighDefinition
             height += Styles.defaultLineSpace; // add line for overrides dropdown
             if (m_RendererFoldout.boolValue)
             {
-                height += Styles.defaultLineSpace * m_MaterialLines;
+                if (showMaterialOverride)
+                    height += Styles.defaultLineSpace * m_MaterialLines;
                 height += Styles.defaultLineSpace * (m_OverrideDepthState.boolValue && !customDepthIsNone ? 3 : 1);
                 var mat = m_OverrideMaterial.objectReferenceValue as Material;
 
