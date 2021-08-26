@@ -8,6 +8,7 @@ namespace UnityEditor.ShaderGraph
         public SmoothstepNode()
         {
             name = "Smoothstep";
+            synonyms = new string[] { "curve" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             return ((uint)(c.a * 255) << 24)
                 | ((uint)(c.r * 255) << 16)
-                | ((uint)(c.g * 255) <<  8)
+                | ((uint)(c.g * 255) << 8)
                 | ((uint)(c.b * 255));
         }
 
@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             return new Color(
                 ((hex >> 16) & 0xff) / 255f, // r
-                ((hex >>  8) & 0xff) / 255f, // g
+                ((hex >> 8) & 0xff) / 255f, // g
                 ((hex) & 0xff) / 255f,       // b
                 ((hex >> 24) & 0xff) / 255f  // a
             );

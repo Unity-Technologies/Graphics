@@ -277,6 +277,12 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.HandlePrefixLabel(totalPosition, labelPosition, label);
         }
 
+        // IsPreset is an internal API - lets reuse the usable part of this function
+        // 93 is a "magic number" and does not represent a combination of other flags here
+        internal static bool IsPresetEditor(UnityEditor.Editor editor)
+        {
+            return (int)((editor.target as Component).gameObject.hideFlags) == 93;
+        }?
         internal static void QualitySettingsHelpBox(string message, MessageType type, HDRenderPipelineUI.Expandable uiSection, string propertyPath)
         {
             if (CoreEditorUtils.HelpBoxWithButton(message, type))

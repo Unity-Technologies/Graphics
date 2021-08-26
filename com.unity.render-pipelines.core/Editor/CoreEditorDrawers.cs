@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering
         public static readonly IDrawer space = Group((data, owner) => EditorGUILayout.Space());
 
         /// <summary> Use it when IDrawer required but no operation should be done </summary>
-        public static readonly IDrawer noop = Group((data, owner) => {});
+        public static readonly IDrawer noop = Group((data, owner) => { });
 
         internal static bool DefaultExpand(ActionDrawer[] actionDrawers, int mask)
         {
@@ -865,8 +865,10 @@ namespace UnityEditor.Rendering
         /// <param name="owner">The editor drawing</param>
         public static void Draw<TData>(this IEnumerable<CoreEditorDrawer<TData>.IDrawer> drawers, TData data, Editor owner)
         {
+            EditorGUILayout.BeginVertical();
             foreach (var drawer in drawers)
                 drawer.Draw(data, owner);
+            EditorGUILayout.EndVertical();
         }
 
         internal static bool Expand<TData>(this IEnumerable<CoreEditorDrawer<TData>.IDrawer> drawers, int mask)

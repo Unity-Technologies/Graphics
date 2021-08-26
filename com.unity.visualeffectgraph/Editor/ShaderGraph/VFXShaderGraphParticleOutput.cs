@@ -218,7 +218,7 @@ namespace UnityEditor.VFX
                 dependencies.Add(shaderGraph.GetInstanceID());
         }
 
-        protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) {}
+        protected VFXShaderGraphParticleOutput(bool strip = false) : base(strip) { }
         static Type GetSGPropertyType(AbstractShaderProperty property)
         {
             switch (property.propertyType)
@@ -816,6 +816,11 @@ namespace UnityEditor.VFX
                         if (graphCode.requirements.requiresTime)
                         {
                             callSG.builder.AppendLine("INSG.TimeParameters = _TimeParameters.xyz;");
+                        }
+
+                        if (graphCode.requirements.requiresFaceSign)
+                        {
+                            callSG.builder.AppendLine("INSG.FaceSign = frontFace ? 1.0f : -1.0f;");
                         }
 
                         if (taskType == VFXTaskType.ParticleMeshOutput)
