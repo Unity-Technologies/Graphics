@@ -503,9 +503,9 @@ namespace UnityEngine.Rendering
                     curColor *= element.tint;
                     curColor *= currentIntensity;
 
-                    float angularOffset = SystemInfo.graphicsUVStartsAtTop ? -element.angularOffset : element.angularOffset;
-                    float globalCos0 = Mathf.Cos(angularOffset * Mathf.Deg2Rad);
-                    float globalSin0 = Mathf.Sin(angularOffset * Mathf.Deg2Rad);
+                    float angularOffset = SystemInfo.graphicsUVStartsAtTop ? element.angularOffset : -element.angularOffset;
+                    float globalCos0 = Mathf.Cos(-angularOffset * Mathf.Deg2Rad);
+                    float globalSin0 = Mathf.Sin(-angularOffset * Mathf.Deg2Rad);
 
                     float position = 2.0f * element.position;
 
