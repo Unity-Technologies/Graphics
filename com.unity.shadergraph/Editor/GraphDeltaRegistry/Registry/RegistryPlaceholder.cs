@@ -35,13 +35,12 @@ namespace UnityEditor.ShaderGraph.Registry
         ////        // iterating over fields would mean reading from the concretized layer-- don't currently have a way to get a reader from that in the builder.
         ////    }
         ////}
+        ///
 
-        public class AddNode : Defs.INodeDefinitionBuilder
+        public static class NodeHelpers
         {
-            public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Add", Version = 1 };
-            public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
-
-            public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
+            // all common math operations can probably use the same resolver.
+            public static void MathNodeDynamicResolver(INodeReader userData, INodeWriter nodeWriter, Registry registry)
             {
                 int operands = 0;
                 int resolvedLength = 4;
@@ -85,7 +84,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 }
             }
 
-            public ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+            public static ShaderFoundry.ShaderFunction MathNodeFunctionBuilder(string OpName, string Op, INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
             {
                 data.TryGetPort("Out", out var outPort);
                 var typeBuilder = registry.GetTypeBuilder(GraphType.kRegistryKey);
@@ -93,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 var shaderType = typeBuilder.GetShaderType((IFieldReader)outPort, container, registry);
                 int count = data.GetPorts().Count() - 1;
 
-                string funcName = $"Add{count}_{shaderType.Name}";
+                string funcName = $"{OpName}{count}_{shaderType.Name}";
 
                 var builder = new ShaderFoundry.ShaderFunction.Builder(funcName);
                 string body = "";
@@ -103,7 +102,7 @@ namespace UnityEditor.ShaderGraph.Registry
                     if (port.IsInput())
                     {
                         builder.AddInput(shaderType, name);
-                        body += body == "" ? name : " + " + name;
+                        body += body == "" ? name : $" {Op} {name}";
                     }
                     else
                     {
@@ -115,6 +114,22 @@ namespace UnityEditor.ShaderGraph.Registry
 
                 builder.AddLine(body);
                 return builder.Build(container);
+            }
+        }
+
+        public class AddNode : Defs.INodeDefinitionBuilder
+        {
+            public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Add", Version = 1 };
+            public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
+
+            public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
+            {
+                NodeHelpers.MathNodeDynamicResolver(userData, nodeWriter, registry);
+            }
+
+            public ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+            {
+                return NodeHelpers.MathNodeFunctionBuilder("Add", "+", data, container, registry);
             }
         }
 
@@ -189,8 +204,6 @@ namespace UnityEditor.ShaderGraph.Registry
                 return shaderType;
             }
         }
-
-
 
         public class GraphTypeAssignment : Defs.ICastDefinitionBuilder
         {
