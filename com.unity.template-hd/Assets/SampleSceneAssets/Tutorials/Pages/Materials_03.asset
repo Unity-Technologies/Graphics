@@ -20,7 +20,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: 291314cf660f5b047bacb4dafc9ae4ef, type: 3}
+      m_Image: {fileID: 2800000, guid: f78c5d62e9ccb934496ceac26e92f93a, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
