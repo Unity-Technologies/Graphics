@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph
         // Local state
         public enum HashType
         {
+            Tchou_2_1,
             Tchou_2_3,
             Tchou_3_3,
             PCG_2_3,
@@ -50,6 +51,7 @@ namespace UnityEditor.ShaderGraph
 
         static Description[] k_hashDescriptions =
         {
+            new Description("Hash_Tchou_2_1_float", 2, 1),
             new Description("Hash_Tchou_2_3_float", 2, 3),
             new Description("Hash_Tchou_3_3_float", 3, 3),
             new Description("Hash_PCG_2_3_float", 2, 3),
