@@ -22,8 +22,8 @@ void Hash_Tchou_3_3_float(float3 i, out float3 o)
 
 void Hash_Tchou_2_1_uint(uint2 v, out uint o)
 {
-    v.y ^= 1103515245U;     // break symmetry
-    v.x += v.y;
+    v.y ^= 1103515245U;     // 1 (break symmetry)
+    v.x += v.y;             // 1
     v.x *= v.y;             // 1 mul
     v.x ^= v.x >> 5u;       // 2
     v.x *= 0x27d4eb2du;     // 1 mul
