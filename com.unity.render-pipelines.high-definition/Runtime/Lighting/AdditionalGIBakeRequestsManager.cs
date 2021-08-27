@@ -14,9 +14,8 @@ namespace UnityEngine.Rendering.HighDefinition
     public class AdditionalGIBakeRequestsManager
     {
         // The baking ID for the extra requests
-        // TODO: Need to ensure this never conflicts with bake IDs from others interacting with the API.
-        // In our project, this is ProbeVolumes.
-        internal static readonly int s_BakingID = 912345678;
+        private static int s_AdditionalGIBakeRequestsBakingID = 0;
+        private static readonly int s_LightmapperBakeIDStart = 1;
 
         private static AdditionalGIBakeRequestsManager s_Instance = new AdditionalGIBakeRequestsManager();
         /// <summary>
@@ -28,6 +27,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!Application.isPlaying)
             {
+                lightmapperBakeIDFromBakeID.Clear();
+                lightmapperBakeIDNext = 0;
+
                 SubscribeOnBakeStarted();
             }
         }
@@ -37,6 +39,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!Application.isPlaying)
             {
                 UnsubscribeOnBakeStarted();
+
+                lightmapperBakeIDFromBakeID.Clear();
+                lightmapperBakeIDNext = 0;
             }
         }
 
@@ -47,6 +52,94 @@ namespace UnityEngine.Rendering.HighDefinition
         private static bool m_RequestToLightmapperIsSet = false;
 
         private static readonly Vector2 s_FreelistSentinel = new Vector2(float.MaxValue, float.MaxValue);
+
+        // Lightmapper API uses ints as keys, but we want to use full, stable, GlobalObjectIds as keys.
+        // Rather than hashing and hoping we don't collide, lets handle this robustly by
+        // keeping a dictionary of ProbeVolumeGlobalUniqueID->int bit keys.
+        private Dictionary<ProbeVolumeGlobalUniqueID, int> lightmapperBakeIDFromBakeID = new Dictionary<ProbeVolumeGlobalUniqueID, int>(32);
+        private int lightmapperBakeIDNext = s_LightmapperBakeIDStart;
+
+        internal void SetAdditionalBakedProbes(ProbeVolumeGlobalUniqueID bakeID, Vector3[] positions)
+        {
+            if (TryGetLightmapperBakeIDFromBakeID(bakeID, out int lightmapperBakeID))
+            {
+                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(lightmapperBakeID, null);
+
+                // When baking, the lightmapper hashes its state (i.e: the list of all AdditionalBakedProbes requests)
+                // and only bakes data if this hash is not changed.
+                // By storing a generation ID inside of our lightmapperBakeID, we ensure that Sets will always look like a completely new bake request to the lightmapper.
+                // The lightmapper will always bake it.
+                // Without storing this generation index, if we clear our bake request by setting positions to NULL, then set our bake request with valid data,
+                // then bake, the lightmapper will treat the new bake request as an already completed old one, and skip doing any work.
+                // In the future, after proving out this generation based approach, it would be a good idea to move this generation tracking code into the lightmapper,
+                // so that users dont need to do this bookkeeping for the lightmapper - they can simply set and clear requests and always get the correct, fresh results.
+                IncrementLightmapperBakeIDGeneration(bakeID, out lightmapperBakeID);
+
+                if (positions != null)
+                {
+                    UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(lightmapperBakeID, positions);
+                }                
+            }
+        }
+
+        internal bool GetAdditionalBakedProbes(ProbeVolumeGlobalUniqueID bakeID, NativeArray<SphericalHarmonicsL2> outBakedProbeSH, NativeArray<float> outBakedProbeValidity, NativeArray<float> outBakedProbeOctahedralDepth)
+        {
+            bool success = false;
+            if (TryGetLightmapperBakeIDFromBakeID(bakeID, out int lightmapperBakeID))
+            {
+                success = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(lightmapperBakeID, outBakedProbeSH, outBakedProbeValidity, outBakedProbeOctahedralDepth);
+            }
+            return success;
+        }
+
+        private bool TryGetLightmapperBakeIDFromBakeID(ProbeVolumeGlobalUniqueID bakeID, out int lightmapperBakeID)
+        {
+            bool success = false;
+            if (lightmapperBakeIDFromBakeID.TryGetValue(bakeID, out lightmapperBakeID))
+            {
+                success = true;
+            }
+            // Leave the whole top bit free. We shouldn't encounter it in practice, avoiding it allows us to not worry about handling the signed case.
+            else if (lightmapperBakeIDNext == ((1 << 23) - 1))
+            {
+                success = false;
+                lightmapperBakeID = -1;
+                Debug.LogWarningFormat("Error: Used up all lightmapper bake IDs. This should never happen. Somehow all {0} ids have been used up. This must be the result of a bug. Unlikely that you created and baked {0} unique bake requests. Quit and reopen unity to flush all IDs.", (1 << 23) - 1);
+            }
+            else
+            {
+                success = true;
+                lightmapperBakeID = lightmapperBakeIDNext << 8;
+                ++lightmapperBakeIDNext;
+                lightmapperBakeIDFromBakeID.Add(bakeID, lightmapperBakeID);
+            }
+
+            return success;
+        }
+
+        private void IncrementLightmapperBakeIDGeneration(ProbeVolumeGlobalUniqueID bakeID, out int lightmapperBakeID)
+        {
+            lightmapperBakeID = -1;
+            if (lightmapperBakeIDFromBakeID.TryGetValue(bakeID, out lightmapperBakeID))
+            {
+                IncrementLightmapperBakeIDGeneration(ref lightmapperBakeID);
+                lightmapperBakeIDFromBakeID[bakeID] = lightmapperBakeID;
+            }
+            else
+            {
+                Debug.Assert(false);
+            }
+        }
+
+        private static void IncrementLightmapperBakeIDGeneration(ref int lightmapperBakeID)
+        {
+            const int MASK = 255;
+            int generationIndex = lightmapperBakeID & MASK;
+            generationIndex = (generationIndex == MASK) ? 0 : (generationIndex + 1);
+
+            lightmapperBakeID &= ~MASK;
+            lightmapperBakeID |= generationIndex;
+        }
 
         /// <summary>
         /// Enqueue a request for probe rendering at the specified location.
@@ -180,7 +273,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             EnsureRequestPositionsSanitized();
 
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, m_RequestPositionsSanitized);
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_AdditionalGIBakeRequestsBakingID, null);
+            IncrementLightmapperBakeIDGeneration(ref s_AdditionalGIBakeRequestsBakingID);
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_AdditionalGIBakeRequestsBakingID, m_RequestPositionsSanitized);
             m_RequestToLightmapperIsSet = true;
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
@@ -189,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void RemoveRequestsFromLightmapper()
         {
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_BakingID, null);
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(s_AdditionalGIBakeRequestsBakingID, null);
             m_RequestToLightmapperIsSet = false;
         }
 
@@ -203,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var validity = new NativeArray<float>(m_RequestPositions.Count, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var bakedProbeOctahedralDepth = new NativeArray<float>(m_RequestPositions.Count * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            if (UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(s_BakingID, sh, validity, bakedProbeOctahedralDepth))
+            if (UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(s_AdditionalGIBakeRequestsBakingID, sh, validity, bakedProbeOctahedralDepth))
             {
                 SetSHCoefficients(sh);
                 PushSHCoefficientsToReflectionProbes();

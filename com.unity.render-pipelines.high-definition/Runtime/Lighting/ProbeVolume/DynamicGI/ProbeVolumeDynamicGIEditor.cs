@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ClearContent();
         }
 
-        internal void DebugDrawNeighborhood(ProbeVolumeHandle probeVolume)
+        internal void DebugDrawNeighborhood(ProbeVolumeHandle probeVolume, Camera camera)
         {
             if (probeVolume.HasNeighbors()
                 && probeVolume.GetProbeVolumeEngineDataIndex() >= 0)
@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         bounds.center = Vector3.zero;
                         bounds.Expand(10000000.0f);
 
-                        Graphics.DrawProcedural(material, bounds, MeshTopology.Triangles, numVerticesPerAxis, probeVolume.propagationBuffers.neighborHits.count, null, null, ShadowCastingMode.Off, false);
+                        Graphics.DrawProcedural(material, bounds, MeshTopology.Triangles, numVerticesPerAxis, probeVolume.propagationBuffers.neighborHits.count, camera, null, ShadowCastingMode.Off, false);
                     }
                 }
             }

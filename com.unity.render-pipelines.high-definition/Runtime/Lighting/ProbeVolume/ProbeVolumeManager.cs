@@ -201,11 +201,11 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.Lightmapping.BakeAsync();
         }
 
-        internal void DebugDrawNeighborhood(ProbeVolume probeVolume)
+        internal void DebugDrawNeighborhood(ProbeVolume probeVolume, Camera camera)
         {
             var index = m_Volumes.IndexOf(probeVolume);
             if (index != -1)
-                ProbeVolumeDynamicGI.instance.DebugDrawNeighborhood(new ProbeVolumeHandle(this, index));
+                ProbeVolumeDynamicGI.instance.DebugDrawNeighborhood(new ProbeVolumeHandle(this, index), camera);
         }
 #endif
 
@@ -219,8 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector3 IProbeVolumeList.GetPosition(int i) => m_Volumes[i].transform.position;
         Quaternion IProbeVolumeList.GetRotation(int i) => m_Volumes[i].transform.rotation;
         ref ProbeVolumeArtistParameters IProbeVolumeList.GetParameters(int i) => ref m_Volumes[i].parameters;
-        int IProbeVolumeList.GetAtlasID(int i) => m_Volumes[i].GetAtlasID();
-        int IProbeVolumeList.GetBakeID(int i) => m_Volumes[i].GetBakeID();
+        ProbeVolumeGlobalUniqueID IProbeVolumeList.GetAtlasID(int i) => m_Volumes[i].GetAtlasID();
         ProbeVolume.ProbeVolumeAtlasKey IProbeVolumeList.ComputeProbeVolumeAtlasKey(int i) => m_Volumes[i].ComputeProbeVolumeAtlasKey();
         ProbeVolume.ProbeVolumeAtlasKey IProbeVolumeList.GetProbeVolumeAtlasKeyPrevious(int i) => m_Volumes[i].GetProbeVolumeAtlasKeyPrevious();
         void IProbeVolumeList.SetProbeVolumeAtlasKeyPrevious(int i, ProbeVolume.ProbeVolumeAtlasKey key) => m_Volumes[i].SetProbeVolumeAtlasKeyPrevious(key);

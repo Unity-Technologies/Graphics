@@ -7,6 +7,8 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty debugColor;
         internal SerializedProperty supportDynamicGI;
         internal SerializedProperty drawProbes;
+        internal SerializedProperty drawValidity;
+        internal SerializedProperty highlightRinging;
         internal SerializedProperty drawNeighbors;
         internal SerializedProperty neighborsQuadScale;
         internal SerializedProperty drawOctahedralDepthRays;
@@ -56,6 +58,8 @@ namespace UnityEditor.Rendering.HighDefinition
             debugColor = probeVolumeParams.FindPropertyRelative("debugColor");
             supportDynamicGI = probeVolumeParams.FindPropertyRelative("supportDynamicGI");
             drawProbes = probeVolumeParams.FindPropertyRelative("drawProbes");
+            drawValidity = probeVolumeParams.FindPropertyRelative("drawValidity");
+            highlightRinging = probeVolumeParams.FindPropertyRelative("highlightRinging");
             drawNeighbors = probeVolumeParams.FindPropertyRelative("drawNeighbors");
             neighborsQuadScale = probeVolumeParams.FindPropertyRelative("neighborsQuadScale");
 
