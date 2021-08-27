@@ -417,6 +417,8 @@ namespace UnityEngine.Rendering.HighDefinition
     internal struct ProbeVolumeArtistParameters
     {
         public bool drawProbes;
+        public bool highlightRinging;
+        public bool drawValidity;
         public bool drawNeighbors;
         public bool drawOctahedralDepthRays;
         public float neighborsQuadScale;
@@ -501,6 +503,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             this.debugColor = debugColor;
             this.drawProbes = false;
+            this.highlightRinging = false;
+            this.drawValidity = false;
             this.drawNeighbors = false;
             this.drawOctahedralDepthRays = false;
             this.neighborsQuadScale = 1;
@@ -639,24 +643,6 @@ namespace UnityEngine.Rendering.HighDefinition
     [AddComponentMenu("Light/Experimental/Probe Volume")]
     internal class ProbeVolume : MonoBehaviour
     {
-#if UNITY_EDITOR
-        // Debugging code
-        private static Material s_DebugMaterial = null;
-        private static Mesh s_DebugMesh = null;
-
-        private static Material GetDebugMaterial()
-        {
-            return (s_DebugMaterial != null) ? s_DebugMaterial : new Material(Shader.Find("HDRP/Lit"));
-        }
-
-        private static Mesh GetDebugMesh()
-        {
-            return (s_DebugMesh != null) ? s_DebugMesh : s_DebugMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
-        }
-
-        private List<Matrix4x4[]> m_DebugProbeMatricesList;
-        private List<Mesh> m_DebugProbePointMeshList;
-#endif
         internal Vector3[] m_ProbePositions;
         internal int m_ProbeVolumeEngineDataIndex = -1;
         internal OrientedBBox m_BoundingBox;
@@ -1400,8 +1386,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorApplication.isPlaying)
                 return;
 
-            float debugProbeSize = Gizmos.probeSize;
-
             int probeCount = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
             m_ProbePositions = new Vector3[probeCount];
 
@@ -1416,25 +1400,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 - obb.up      * (parameters.size.y - probeSteps.y) * 0.5f
                 + obb.forward * (parameters.size.z - probeSteps.z) * 0.5f;
 
-            Quaternion rotation = Quaternion.identity;
-            Vector3 scale = new Vector3(debugProbeSize, debugProbeSize, debugProbeSize);
-
-            // Debugging objects start here
-            int maxBatchSize = 1023;
-            int probesInCurrentBatch = System.Math.Min(maxBatchSize, probeCount);
-            int indexInCurrentBatch = 0;
-
-            // Everything around cached matrices for the probe spheres
-            m_DebugProbeMatricesList = new List<Matrix4x4[]>();
-            Matrix4x4[] currentprobeMatrices = new Matrix4x4[probesInCurrentBatch];
-
-            // Everything around point meshes for non-selected ProbeVolumes
-            m_DebugProbePointMeshList = new List<Mesh>();
-            int[] currentProbeDebugIndices = new int[probesInCurrentBatch];
-            Vector3[] currentProbeDebugPositions = new Vector3[probesInCurrentBatch];
-
             int processedProbes = 0;
-
             for (int z = 0; z < parameters.resolutionZ; ++z)
             {
                 for (int y = 0; y < parameters.resolutionY; ++y)
@@ -1443,40 +1409,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Vector3 position = probeStartPosition + (probeSteps.x * x * obb.right) + (probeSteps.y * y * obb.up) + (probeSteps.z * z * -obb.forward);
                         m_ProbePositions[processedProbes] = position;
-
-                        currentProbeDebugIndices[indexInCurrentBatch] = indexInCurrentBatch;
-                        currentProbeDebugPositions[indexInCurrentBatch] = position;
-
-                        Matrix4x4 matrix = new Matrix4x4();
-                        matrix.SetTRS(position, rotation, scale);
-                        currentprobeMatrices[indexInCurrentBatch] = matrix;
-
-                        indexInCurrentBatch++;
-                        processedProbes++;
-
-                        int probesLeft = probeCount - processedProbes;
-
-                        if (indexInCurrentBatch >= 1023 || probesLeft == 0)
-                        {
-                            Mesh currentProbeDebugMesh = new Mesh();
-                            currentProbeDebugMesh.SetVertices(currentProbeDebugPositions);
-                            currentProbeDebugMesh.SetIndices(currentProbeDebugIndices, MeshTopology.Points, 0);
-
-                            m_DebugProbePointMeshList.Add(currentProbeDebugMesh);
-                            m_DebugProbeMatricesList.Add(currentprobeMatrices);
-
-                            // More sets follow, reallocate
-                            if (probesLeft > 0)
-                            {
-                                probesInCurrentBatch = System.Math.Min(maxBatchSize, probesLeft);
-
-                                currentProbeDebugPositions = new Vector3[probesInCurrentBatch];
-                                currentProbeDebugIndices = new int[probesInCurrentBatch];
-                                currentprobeMatrices = new Matrix4x4[probesInCurrentBatch];
-
-                                indexInCurrentBatch = 0;
-                            }
-                        }
                     }
                 }
             }
@@ -1485,8 +1417,10 @@ namespace UnityEngine.Rendering.HighDefinition
             bakingEnabled = true;
         }
 
-        private static bool ShouldDrawGizmos(ProbeVolume probeVolume)
+        private static bool ShouldDrawGizmos(ProbeVolume probeVolume, out Camera camera)
         {
+            camera = null;
+
             if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
                 return false;
 
@@ -1494,6 +1428,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (sceneView == null)
                 sceneView = UnityEditor.SceneView.lastActiveSceneView;
+
+            if (sceneView == null)
+                return false;
 
             if (sceneView != null && !sceneView.drawGizmos)
                 return false;
@@ -1505,70 +1442,91 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorApplication.isPlaying)
                 return false;
 
+            camera = sceneView.camera;
             return true;
-        }
-
-        [UnityEditor.DrawGizmo(UnityEditor.GizmoType.NotInSelectionHierarchy)]
-        private static void DrawProbes(ProbeVolume probeVolume, UnityEditor.GizmoType gizmoType)
-        {
-            if (!ShouldDrawGizmos(probeVolume))
-                return;
-
-            if (!probeVolume.parameters.drawProbes)
-                return;
-
-            probeVolume.OnValidate();
-
-            var pointMeshList = probeVolume.m_DebugProbePointMeshList;
-
-            ProbeVolume.GetDebugMaterial().SetPass(8);
-            foreach (Mesh debugMesh in pointMeshList)
-                Graphics.DrawMeshNow(debugMesh, Matrix4x4.identity);
         }
 
         internal void DrawSelectedProbes()
         {
-            if (!ShouldDrawGizmos(this))
+            if (!ShouldDrawGizmos(this, out Camera camera))
+            {
                 return;
+            }
 
             DrawOctahedralDepthRays(this);
 
             if (parameters.supportDynamicGI && parameters.drawNeighbors)
             {
                 OnValidate();
-                ProbeVolumeManager.manager.DebugDrawNeighborhood(this);
+                ProbeVolumeManager.manager.DebugDrawNeighborhood(this, camera);
             }
 
-            if (!parameters.drawProbes)
-                return;
+            if (parameters.drawProbes && HDRenderPipeline.currentPipeline != null)
+            {
+                OnValidate();
+                HDRenderPipeline.currentPipeline.DrawProbeVolumeDebugSHPreview(this, camera);
+            }
+        }
 
-            OnValidate();
+        internal static Bounds ComputeBoundsWS(ProbeVolume probeVolume)
+        {
+            // Unity Bounds class has guards that will break assignment of Positive/Negative infinity.
+            // In our case, we want these assignments to force the first iteration of the loop to assign the first position as the min and max.
+            // Just using temporary vector3s and assigning to the Bounds class at the end once we have valid bounds.
+            Vector3 boundsMin = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+            Vector3 boundsMax = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
 
-            int layer = 0;
+            for (uint i = 0; i < 8u; ++i)
+            {
+                Vector3 positionOS = new Vector3(
+                    (float)(i & 1u),
+                    (float)((i >> 1) & 1u),
+                    (float)((i >> 2) & 1u)
+                );
+                positionOS.x = positionOS.x * probeVolume.parameters.size.x - 0.5f * probeVolume.parameters.size.x;
+                positionOS.y = positionOS.y * probeVolume.parameters.size.y - 0.5f * probeVolume.parameters.size.y;
+                positionOS.z = positionOS.z * probeVolume.parameters.size.z - 0.5f * probeVolume.parameters.size.z;
 
-            Material material = ProbeVolume.GetDebugMaterial();
+                Vector3 positionWS = (probeVolume.transform.rotation * positionOS) + probeVolume.transform.position;
 
-            if (!material)
-                return;
+                boundsMin = Vector3.Min(boundsMin, positionWS);
+                boundsMax = Vector3.Max(boundsMax, positionWS);
+            }
 
-            material.enableInstancing = true;
+            Bounds bounds = new Bounds();
+            bounds.min = boundsMin;
+            bounds.max = boundsMax;
+            return bounds;
+        }
 
-            Mesh mesh = GetDebugMesh();
+        internal static Matrix4x4 ComputeProbeIndex3DToPositionWSMatrix(ProbeVolume probeVolume)
+        {
+            Vector3 scale = ComputeCellSizeWS(probeVolume);
 
-            if (!mesh)
-                return;
+            // Handle half probe offset from bounds.
+            Vector3 translation = (probeVolume.transform.rotation * new Vector3(
+                        0.5f * scale.x - probeVolume.parameters.size.x * 0.5f,
+                        0.5f * scale.y - probeVolume.parameters.size.y * 0.5f,
+                        0.5f * scale.z - probeVolume.parameters.size.z * 0.5f
+                    )
+                )
+                + probeVolume.transform.position;
 
-            int submeshIndex = 0;
-            MaterialPropertyBlock properties = null;
-            ShadowCastingMode castShadows = ShadowCastingMode.Off;
-            bool receiveShadows = false;
+            return Matrix4x4.TRS(translation, probeVolume.transform.rotation, scale);
+        }
 
-            Camera emptyCamera = null;
-            LightProbeUsage lightProbeUsage = LightProbeUsage.Off;
-            LightProbeProxyVolume lightProbeProxyVolume = null;
+        internal static Vector3 ComputeCellSizeWS(ProbeVolume probeVolume)
+        {
+            return new Vector3(
+                probeVolume.parameters.size.x / probeVolume.parameters.resolutionX,
+                probeVolume.parameters.size.y / probeVolume.parameters.resolutionY,
+                probeVolume.parameters.size.z / probeVolume.parameters.resolutionZ
+            );
+        }
 
-            foreach (Matrix4x4[] matrices in m_DebugProbeMatricesList)
-                Graphics.DrawMeshInstanced(mesh, submeshIndex, material, matrices, matrices.Length, properties, castShadows, receiveShadows, layer, emptyCamera, lightProbeUsage, lightProbeProxyVolume);
+        internal static int ComputeProbeCount(ProbeVolume probeVolume)
+        {
+            return probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionZ;
         }
 
         private static void DrawOctahedralDepthRays(ProbeVolume probeVolume)
