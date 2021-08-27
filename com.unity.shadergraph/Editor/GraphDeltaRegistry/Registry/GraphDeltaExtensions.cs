@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.Registry
 
         public static void SetPortField<T>(this GraphDelta.INodeWriter node, string portName, string fieldName, T value)
         {
-            if (!node.TryGetPort(portName,A out var pw))
+            if (!node.TryGetPort(portName, out var pw))
                 node.TryAddPort(portName, true, true, out pw);
 
             pw.SetField(fieldName, value);
