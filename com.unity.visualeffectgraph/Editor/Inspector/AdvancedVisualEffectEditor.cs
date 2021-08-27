@@ -130,7 +130,7 @@ namespace UnityEditor.VFX
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
             // Check if the component is attach in the editor. If So do not call base.OnDisable() because we don't want to reset the playrate or pause
-            VFXViewWindow window = VFXViewWindow.currentWindow;
+            VFXViewWindow window = VFXViewWindow.GetWindow(effect.visualEffectAsset.GetResource().GetOrCreateGraph());
             if (window == null || window.graphView == null || window.graphView.attachedComponent != effect)
             {
                 base.OnDisable();
