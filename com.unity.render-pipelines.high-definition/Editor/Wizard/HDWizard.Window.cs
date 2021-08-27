@@ -418,7 +418,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_BaseUpdatable.Add(globalScope);
             m_BaseUpdatable.Add(currentQualityScope);
 
-            var addCurrentScene = new HiddableUpdatableContainer(() => m_Configuration == Configuration.HDRP_DXR);
+            var addCurrentScene = new HiddableUpdatableContainer(
+                () => m_Configuration == Configuration.HDRP_DXR);
             addCurrentScene.Add(currentSceneScope);
             addCurrentScene.Init();
             m_BaseUpdatable.Add(addCurrentScene);
