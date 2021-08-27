@@ -201,11 +201,11 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.Lightmapping.BakeAsync();
         }
 
-        internal void DebugDrawNeighborhood(ProbeVolume probeVolume)
+        internal void DebugDrawNeighborhood(ProbeVolume probeVolume, Camera camera)
         {
             var index = m_Volumes.IndexOf(probeVolume);
             if (index != -1)
-                ProbeVolumeDynamicGI.instance.DebugDrawNeighborhood(new ProbeVolumeHandle(this, index));
+                ProbeVolumeDynamicGI.instance.DebugDrawNeighborhood(new ProbeVolumeHandle(this, index), camera);
         }
 #endif
 

@@ -126,6 +126,21 @@ namespace UnityEngine.Rendering.HighDefinition
         // Preallocated scratch memory for storing ambient probe packed SH coefficients, which are used as a fallback when probe volume weight < 1.0.
         static Vector4[] s_AmbientProbeFallbackPackedCoeffs = new Vector4[7];
 
+#if UNITY_EDITOR
+        private static Material s_DebugSHPreviewMaterial = null;
+        private static MaterialPropertyBlock s_DebugSHPreviewMaterialPropertyBlock = null;
+
+        private static Material GetDebugSHPreviewMaterial()
+        {
+            return (s_DebugSHPreviewMaterial != null) ? s_DebugSHPreviewMaterial : new Material(Shader.Find("Hidden/Debug/ProbeVolumeSHPreview"));
+        }
+
+        private static MaterialPropertyBlock GetDebugSHPreviewMaterialPropertyBlock()
+        {
+            return (s_DebugSHPreviewMaterialPropertyBlock != null) ? s_DebugSHPreviewMaterialPropertyBlock : new MaterialPropertyBlock();
+        }
+#endif
+
         void InitializeProbeVolumes()
         {
             if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
@@ -1116,6 +1131,39 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DrawProcedural(Matrix4x4.identity, parameters.material, parameters.material.FindPass("ProbeVolume"), MeshTopology.Triangles, 3, 1, propertyBlock);
             debugOverlay.Next();
         }
+
+#if UNITY_EDITOR
+        internal void DrawProbeVolumeDebugSHPreview(ProbeVolume probeVolume, Camera camera)
+        {
+            Material debugMaterial = GetDebugSHPreviewMaterial();
+            if (debugMaterial == null) { return; }
+
+            MaterialPropertyBlock debugMaterialPropertyBlock = GetDebugSHPreviewMaterialPropertyBlock();
+            debugMaterialPropertyBlock.SetVector("_ProbeVolumeResolution", new Vector3(probeVolume.parameters.resolutionX, probeVolume.parameters.resolutionY, probeVolume.parameters.resolutionZ));
+            debugMaterialPropertyBlock.SetMatrix("_ProbeIndex3DToPositionWSMatrix", ProbeVolume.ComputeProbeIndex3DToPositionWSMatrix(probeVolume));
+            debugMaterialPropertyBlock.SetFloat("_ProbeVolumeProbeDisplayRadiusWS", Gizmos.probeSize);
+
+            bool probeVolumeIsResidentInAtlas = probeVolumeAtlas.TryGetScaleBias(out Vector3 probeVolumeScaleUnused, out Vector3 probeVolumeBias, probeVolume.ComputeProbeVolumeAtlasKey());
+            if (probeVolumeIsResidentInAtlas)
+            {
+                // Note: The system is not aware of slice packing in Z.
+                // Need to modify scale and bias terms just before uploading to GPU.
+                // TODO: Should we make it aware earlier up the chain?
+                probeVolumeBias.z /= m_ProbeVolumeAtlasSHRTDepthSliceCount;
+            }
+            else
+            {
+                probeVolumeBias = Vector3.zero;
+            }
+
+            debugMaterialPropertyBlock.SetVector("_ProbeVolumeAtlasBias", probeVolumeBias);
+            debugMaterialPropertyBlock.SetInt("_ProbeVolumeIsResidentInAtlas", probeVolumeIsResidentInAtlas ? 1 : 0);
+            debugMaterialPropertyBlock.SetInt("_ProbeVolumeHighlightNegativeRinging", probeVolume.parameters.highlightRinging ? 1 : 0);
+            debugMaterialPropertyBlock.SetInt("_ProbeVolumeDrawValidity", probeVolume.parameters.drawValidity ? 1 : 0);
+            debugMaterial.SetPass(0);
+            Graphics.DrawProcedural(debugMaterial, ProbeVolume.ComputeBoundsWS(probeVolume), MeshTopology.Triangles, 3 * 2 * ProbeVolume.ComputeProbeCount(probeVolume), 1, camera, debugMaterialPropertyBlock, ShadowCastingMode.Off, receiveShadows: false, layer: 0);
+        }
+#endif
 
     } // class ProbeVolumeLighting
 } // namespace UnityEngine.Experimental.Rendering.HDPipeline
