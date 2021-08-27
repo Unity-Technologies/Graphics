@@ -35,7 +35,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly string installConfigPackageInfoInProgress = L10n.Tr("The config package is being embedded in your project.");
             public static readonly string installConfigPackageInfoFinished = L10n.Tr("The config package is already embedded in your project.");
 
-            public static readonly string checkSceneRtxButton = L10n.Tr("Check Scene Content For Ray Tracing Issues");
             public static readonly string migrateAllButton = L10n.Tr("Convert All Built-in Materials to HDRP");
             public static readonly string migrateSelectedButton = L10n.Tr("Convert Selected Built-in Materials to HDRP");
             public static readonly string migrateMaterials = L10n.Tr("Upgrade HDRP Materials to Latest Version");
