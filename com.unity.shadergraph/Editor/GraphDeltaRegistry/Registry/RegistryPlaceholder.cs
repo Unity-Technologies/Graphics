@@ -65,6 +65,7 @@ namespace UnityEditor.ShaderGraph.Registry
                     resolvedPrimitive = hasPrimitive ? (GraphType.Primitive)Mathf.Min((int)resolvedPrimitive, (int)primitive) : resolvedPrimitive;
                     resolvedPrecision = hasPrecision ? (GraphType.Precision)Mathf.Min((int)resolvedPrecision, (int)precision) : resolvedPrecision;
                 }
+
                 // We need at least 2 input ports or 1 more than the existing number of connections.
                 operands = Mathf.Max(1, operands) + 1;
 
