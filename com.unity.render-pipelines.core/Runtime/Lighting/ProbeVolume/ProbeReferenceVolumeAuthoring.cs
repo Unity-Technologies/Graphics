@@ -132,6 +132,14 @@ namespace UnityEngine.Experimental.Rendering
             refVol.dilationValidtyThreshold = m_DilationValidityThreshold;
         }
 
+        // TEMP! THIS NEEDS TO BE REMOVED WHEN WE HAVE THE SETTINGS PANEL.
+        void SendSceneData()
+        {
+            if (ProbeReferenceVolume.instance.sceneData == null) return;
+            ProbeReferenceVolume.instance.sceneData.SetBakeSettingsForScene(gameObject.scene, GetDilationSettings(), GetVirtualOffsetSettings());
+            ProbeReferenceVolume.instance.sceneData.SetProfileForScene(gameObject.scene, m_Profile);
+        }
+
         internal void QueueAssetLoading()
         {
             LoadProfileInformation();
@@ -163,6 +171,7 @@ namespace UnityEngine.Experimental.Rendering
             if (m_Profile == null)
                 m_Profile = CreateReferenceVolumeProfile(gameObject.scene, gameObject.name);
 #endif
+            SendSceneData();
             QueueAssetLoading();
         }
 
@@ -189,6 +198,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_PrevAsset = volumeAsset;
+            SendSceneData();
         }
 
         void OnDisable()

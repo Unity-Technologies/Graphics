@@ -66,6 +66,28 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        internal void StoreAssetForState(ProbeVolumeState state, ProbeVolumeAsset asset)
+        {
+            assets[state] = asset;
+        }
+
+        internal void InvalidateAllAssets()
+        {
+            foreach (var asset in assets.Values)
+            {
+                if (asset != null)
+                    ProbeReferenceVolume.instance.AddPendingAssetRemoval(asset);
+            }
+
+            assets.Clear();
+        }
+
+        internal ProbeVolumeAsset GetCurrentStateAsset()
+        {
+            if (assets.ContainsKey(m_CurrentState)) return assets[m_CurrentState];
+            else return null;
+        }
+
         internal void QueueAssetLoading()
         {
             if (assets.ContainsKey(m_CurrentState) && assets[m_CurrentState] != null)
