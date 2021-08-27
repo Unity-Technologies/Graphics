@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEditor.VFX
 {
@@ -60,6 +61,31 @@ namespace UnityEditor.VFX
         public static bool IsPerCamera(SortCriteria criteria)
         {
             return criteria is SortCriteria.CameraDepth or SortCriteria.DistanceToCamera;
+        }
+        internal class SortKeySlotComparer : IEqualityComparer<VFXSlot>
+        {
+            public bool Equals(VFXSlot x, VFXSlot y)
+            {
+                return x.GetExpression().Equals(y.GetExpression());
+            }
+
+            public int GetHashCode(VFXSlot obj)
+            {
+                return obj.GetExpression().GetHashCode();
+            }
+        }
+
+        internal static TResult MajorityVote<TResult, TVoter>(IEnumerable<TVoter> voterContainer, Func<TVoter, TResult> getVoteFunc)
+        {
+            Dictionary<TResult, int> voteCounts = new Dictionary<TResult, int>();
+            foreach (var voter in voterContainer)
+            {
+                TResult vote = getVoteFunc(voter);
+                voteCounts.TryGetValue(vote, out var currentCount);
+                voteCounts[vote] = currentCount + 1;
+            }
+            //Return result with the most votes
+            return voteCounts.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
         }
     }
 }
