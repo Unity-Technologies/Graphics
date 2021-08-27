@@ -73,7 +73,8 @@ namespace UnityEditor.VFX.Block
                     t.name != "Camera_fieldOfView" &&
                     t.name != "Camera_aspectRatio" &&
                     t.name != "Camera_transform" &&
-                    t.name != "Camera_colorBuffer");
+                    t.name != "Camera_colorBuffer" &&
+                    t.name != "Camera_orthographicSize");
 
                 foreach (var e in expressions)
                     yield return e;
@@ -107,7 +108,17 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
     const float n = Camera_nearPlane;
     const float f = Camera_farPlane;
-    float linearEyeDepth = n * f / (depth * (n - f) + f);";
+    float linearEyeDepth, offset;
+    if (!Camera_orthographic)
+    {
+        linearEyeDepth = n * f / (depth * (n - f) + f);
+        offset = 2.0f;
+    }
+    else
+    {
+        linearEyeDepth = n + depth * (f-n);
+        offset = 32.0f; //Orthographic depth requires a larger offset to give out correct normals
+    }";
 
                 if (surfaceThickness == SurfaceThickness.Infinite)
                     Source += @"
@@ -118,7 +129,7 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
                 Source += @"
     {
-        const float2 pixelOffset = 2.0f / Camera_pixelDimensions;
+        const float2 pixelOffset = offset / Camera_pixelDimensions;
 
         float2 projPos10 = projPos.xy + float2(pixelOffset.x,0.0f);
         float2 projPos01 = projPos.xy + float2(0.0f,pixelOffset.y);
@@ -139,14 +150,27 @@ if (aProjPos.x < 1.0f && aProjPos.y < 1.0f) // visible on screen
 
         vPos10.xyz /= vPos10.w;
         vPos01.xyz /= vPos01.w;
-
-        viewPos *= linearEyeDepth / viewPos.z; // Position on depth surface
+        float r = 0.0f;
+        if(!Camera_orthographic)
+        {
+            r = linearEyeDepth / viewPos.z;
+        }
+        else
+        {
+            // Will work for planar surface, not curved, because the normal nEstimate is evaluated away from the real projection point
+            float3 pSurface = viewPos;
+            pSurface.z = linearEyeDepth;
+            float3 nEstimate = normalize(cross(vPos01.xyz - pSurface,vPos10.xyz - pSurface));
+            r = dot(pSurface,nEstimate)/dot(viewPos,nEstimate);
+        }
+        viewPos *= r; // Position on depth surface
 
         float3 n = normalize(cross(vPos01.xyz - viewPos,vPos10.xyz - viewPos));
         n = normalize(mul((float3x3)ViewToVFX,n));
 
         viewPos *= 1.0f - radius / linearEyeDepth; // Push based on radius
-        position = mul(ViewToVFX,float4(viewPos,1.0f)).xyz;";
+        position = mul(ViewToVFX,float4(viewPos,1.0f)).xyz;
+";
 
                 Source += collisionResponseSource;
                 Source += @"

@@ -14,6 +14,7 @@ namespace UnityEditor.VFX.HDRP
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
         public override bool supportsUV { get { return true; } }
+        public override bool implementsMotionVector { get { return true; } }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, a Normal Bending Factor slider becomes available in the output which can be used to adjust the curvature of the normals.")]
         protected bool normalBending = false;

@@ -19,12 +19,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support of direct link event to initialize context (which support several event within the same frame)
 - Structured Graphics Buffer support as exposed type
 - Added HDRP Decal output context.
+- Motion vectors enabled for particle strips
+- Added Is Inside subgraph into VFX Graph additions package
+
 
 ### Changed
 - Allow remaking an existing link.
 - Sphere and Cube outputs are now experimental
 - Property Binder : Handle Remove Component removing linked hidden scriptable objectfields
 - Property Binder : Prevent multiple VFXPropertyBinder within the same game object
+- Transform integrated to VFXTypes : Circle, ArcCircle, Sphere, ArcSphere, Torus, ArcTorus, Cone, ArcCone
 
 ### Fixed
 - VFXEventBinderBase throwing a null reference exception in runtime
@@ -78,6 +82,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Inspector group headers now have a better indentation and alignment
 - Zoom and warning icons were blurry in the "Play Controls" and "Visual Effect Model" scene overlays
 - Random crash using subgraph [Case 1345426](https://issuetracker.unity3d.com/product/unity/issues/guid/1345426/)
+- Fixed Collision with Depth Buffer when using Orthographic camera [Case 1309958](https://issuetracker.unity3d.com/product/unity/issues/guid/1309958/)
+- Fix culling of point output [Case 1225764](https://issuetracker.unity3d.com/product/unity/issues/guid/1225764/)
+- Compilation issue when normal is used in shadergraph for opacity with unlit output
+- Fix Exception on trying to invert a degenerate TRS matrix [Case 1307068](https://issuetracker.unity3d.com/product/unity/issues/guid/1307068/)
+- Fix IsFrontFace shader graph node for VFX.
+- Fix crash when loading SDF Baker settings holding a mesh prefab [Case 1343898](https://issuetracker.unity3d.com/product/unity/issues/guid/1343898/)
+- Exception using gizmo on exposed properties [Case 1340818](https://issuetracker.unity3d.com/product/unity/issues/guid/1340818/)
+- GPU hang on some initialize dispatch during dichotomy (platform specific)
+- Compilation error undeclared identifier 'Infinity' [Case 1328592](https://issuetracker.unity3d.com/product/unity/issues/guid/1328592/)
+- Exposed Parameter placement can be moved after sanitize
 
 ## [11.0.0] - 2020-10-21
 ### Added
