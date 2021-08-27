@@ -87,5 +87,14 @@ namespace UnityEditor.VFX
             //Return result with the most votes
             return voteCounts.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
         }
+
+        internal static bool OutputNeedsOwnSort(VFXAbstractParticleOutput abstractParticleOutput, bool needsGlobalSort,
+            SortCriteria globalSortCriterion, VFXSlot globalSortKeySlot, SortKeySlotComparer comparer)
+        {
+            return abstractParticleOutput.HasSorting() && needsGlobalSort &&
+                   (abstractParticleOutput.GetSortCriterion() != globalSortCriterion
+                    || abstractParticleOutput.GetSortCriterion() == SortCriteria.Custom
+                    && !comparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"), globalSortKeySlot));
+        }
     }
 }

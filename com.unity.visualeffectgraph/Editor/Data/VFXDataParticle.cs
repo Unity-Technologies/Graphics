@@ -586,15 +586,6 @@ namespace UnityEditor.VFX
             return implicitContext;
         }
 
-        private static bool OutputNeedsOwnSort(VFXAbstractParticleOutput abstractParticleOutput, bool needsGlobalSort,
-            SortCriteria globalSortCriterion, VFXSlot globalSortKeySlot, SortKeySlotComparer comparer)
-        {
-            return abstractParticleOutput.HasSorting() && needsGlobalSort &&
-                   (abstractParticleOutput.GetSortCriterion() != globalSortCriterion
-                    || abstractParticleOutput.GetSortCriterion() == SortCriteria.Custom
-                    && !comparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"), globalSortKeySlot));
-        }
-
         public bool NeedsIndirectBuffer()
         {
             return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw());
