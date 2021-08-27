@@ -16,15 +16,13 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
     public interface INodeDefinitionBuilder : IRegistryEntry
     {
         void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry);
+        ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry);
     }
 
     public interface ITypeDefinitionBuilder : IRegistryEntry
     {
         void BuildType(IFieldReader userData, IFieldWriter generatedData, Registry registry);
-
-        // Are these relevant?
-        // void BuildProperty(IFieldReader userData, IFieldWriter generatedData, IRegistry registry);
-        // void BuildPort(IFieldReader userData, IFieldWriter generatedData, IRegistry registry);
+        ShaderFoundry.ShaderType GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry);
     }
 
     public interface ICastDefinitionBuilder : IRegistryEntry
@@ -36,5 +34,7 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
         // which may mean that incompatibilities within their data could be inconvertible. Types with static fields should
         // implement an ITypeConversion with itself to ensure that static concepts can be represented.
         bool CanConvert(IFieldReader src, IFieldReader dst);
+
+        ShaderFoundry.ShaderFunction GetShaderCast(IFieldReader src, IFieldReader dst, ShaderFoundry.ShaderContainer container, Registry registry);
     }
 }
