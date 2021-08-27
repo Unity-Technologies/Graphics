@@ -126,18 +126,6 @@ namespace UnityEngine.Experimental.Rendering
             refVol.dilationValidtyThreshold = m_DilationValidityThreshold;
         }
 
-        // TODO: When Probe reference volume is gone altogether the loading shouldn't happen here (well because this will all be gone :P).
-        // This will be even more so when we'll have different states, how does this trigger a specific state?
-        // Keeping it here to have a gradual transition and because we don't have metadata for states yet.
-        internal ProbeVolumeAsset GrabRelevantAsset()
-        {
-            if (ProbeReferenceVolume.instance.sceneData != null)
-            {
-                return ProbeReferenceVolume.instance.sceneData.GetActiveAsset(gameObject.scene);
-            }
-            return null;
-        }
-
         internal void DisposeGizmos()
         {
 #if UNITY_EDITOR

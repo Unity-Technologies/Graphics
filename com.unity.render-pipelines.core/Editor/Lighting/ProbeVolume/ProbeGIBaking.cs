@@ -278,7 +278,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
             m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
-            m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
             if (m_BakingReferenceVolumeAuthoring == null) return;
 
             var dilationSettings = m_BakingReferenceVolumeAuthoring.GetDilationSettings();
@@ -323,9 +322,9 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            foreach (var refVol in refVols)
+            var activeAssets = ProbeReferenceVolume.instance.sceneData.GetAssetsForLoadedScenes(out var sceneGUIDs);
+            foreach (var refVolAsset in activeAssets)
             {
-                var refVolAsset = refVol.GrabRelevantAsset();
                 if (refVolAsset != null)
                 {
                     string assetPath = refVolAsset.GetSerializedFullPath();
@@ -369,9 +368,8 @@ namespace UnityEngine.Experimental.Rendering
                     // Put back cells
                     foreach (var cell in dilatedCells)
                     {
-                        foreach (var refVol in refVols)
+                        foreach (var asset in activeAssets)
                         {
-                            var asset = refVol.GrabRelevantAsset();
                             if (asset == null) continue;
 
                             var assetPath = asset.GetSerializedFullPath();

@@ -344,6 +344,30 @@ namespace UnityEngine.Experimental.Rendering
             sceneAssetLoadingStatus[sceneGUID] = status;
         }
 
+        // IMPORTANT TODO: This is now returning the active asset, when we have state it will need to return the asset for the scene and a given state.
+        internal List<ProbeVolumeAsset> GetAssetsForLoadedScenes(out List<string> sceneGUIDs)
+        {
+            sceneGUIDs = new List<string>();
+            List<ProbeVolumeAsset> assets = new List<ProbeVolumeAsset>();
+            int sceneCount = SceneManagement.SceneManager.sceneCount;
+            for (int i = 0; i < sceneCount; ++i)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                if (scene.isLoaded)
+                {
+                    var sceneGUID = GetSceneGUID(scene);
+                    if (sceneAssets.ContainsKey(sceneGUID))
+                    {
+                        var asset = sceneAssets[sceneGUID].GetActiveAsset();
+                        sceneGUIDs.Add(sceneGUID);
+                        assets.Add(asset);
+                    }
+                }
+            }
+
+            return assets;
+        }
+
         // TODO: Add a state here when we have it.
         internal void FlushPendingAssets()
         {
@@ -352,19 +376,16 @@ namespace UnityEngine.Experimental.Rendering
             if (sceneAssetLoadingStatus == null)
                 sceneAssetLoadingStatus = new Dictionary<string, bool>();
 
-            int sceneCount = SceneManagement.SceneManager.sceneCount;
-            for (int i = 0; i < sceneCount; ++i)
-            {
-                var sceneGUID = GetSceneGUID(SceneManager.GetSceneAt(i));
-                if (sceneAssets.ContainsKey(sceneGUID))
-                {
-                    var asset = sceneAssets[sceneGUID].GetActiveAsset();
+            List<ProbeVolumeAsset> assetsToAdd = GetAssetsForLoadedScenes(out List<string> sceneGUIDs);
 
-                    if (!sceneAssetLoadingStatus.ContainsKey(sceneGUID) || !sceneAssetLoadingStatus[sceneGUID])
-                    {
-                        ProbeReferenceVolume.instance.AddPendingAssetLoading(asset);
-                        SetSceneAssetLoaded(sceneGUID, true); // Assume we are loading the assets before calling the flushing again.
-                    }
+            for (int i = 0; i < assetsToAdd.Count; ++i)
+            {
+                var sceneGUID = sceneGUIDs[i];
+                var asset = assetsToAdd[i];
+                if (!sceneAssetLoadingStatus.ContainsKey(sceneGUID) || !sceneAssetLoadingStatus[sceneGUID])
+                {
+                    ProbeReferenceVolume.instance.AddPendingAssetLoading(asset);
+                    SetSceneAssetLoaded(sceneGUID, true); // Assume we are loading the assets before calling the flushing again.
                 }
             }
         }
