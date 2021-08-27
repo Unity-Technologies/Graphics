@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.GlobalSort; } }
 
-        public SortCriteria sortCriterion = SortCriteria.Distance;
+        public SortCriteria sortCriterion = SortCriteria.DistanceToCamera;
         public VFXSlot customSortingSlot;
 
         public override IEnumerable<VFXAttributeInfo> attributes

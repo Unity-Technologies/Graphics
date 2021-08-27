@@ -45,7 +45,7 @@ namespace UnityEditor.VFX
 
         private Features features = Features.None;
 
-        private SortCriteria sortCriterion = SortCriteria.Distance;
+        private SortCriteria sortCriterion = SortCriteria.DistanceToCamera;
 
         public static bool HasFeature(Features flags, Features feature)
         {

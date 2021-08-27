@@ -98,7 +98,7 @@ namespace UnityEditor.VFX
         protected SortActivationMode sort = SortActivationMode.Auto;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the draw order of particles. They can be sorted by their distance, age, depth, or by a custom value.")]
-        protected SortCriteria sortMode = SortCriteria.Distance;
+        protected SortCriteria sortMode = SortCriteria.DistanceToCamera;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the system will only output alive particles, as opposed to rendering all particles and culling dead ones in the vertex shader. Enable to improve performance when the system capacity is not reached or a high number of vertices per particle are used.")]
         protected bool indirectDraw = false;

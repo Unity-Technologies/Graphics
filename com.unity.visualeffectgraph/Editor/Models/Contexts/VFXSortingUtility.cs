@@ -7,10 +7,10 @@ namespace UnityEditor.VFX
     {
         public enum SortCriteria
         {
-            Distance,
+            DistanceToCamera,
             YoungestInFront,
             OldestInFront,
-            Depth,
+            CameraDepth,
             Custom,
         }
 
@@ -21,10 +21,10 @@ namespace UnityEditor.VFX
                 case SortCriteria.Custom:
                     yield return "VFX_CUSTOM_SORT_KEY";
                     break;
-                case SortCriteria.Depth:
+                case SortCriteria.CameraDepth:
                     yield return "VFX_DEPTH_SORT_KEY";
                     break;
-                case SortCriteria.Distance:
+                case SortCriteria.DistanceToCamera:
                     yield return "VFX_DISTANCE_SORT_KEY";
                     break;
                 case SortCriteria.YoungestInFront:
@@ -44,8 +44,8 @@ namespace UnityEditor.VFX
             {
                 case SortCriteria.Custom:
                     break;
-                case SortCriteria.Depth:
-                case SortCriteria.Distance:
+                case SortCriteria.CameraDepth:
+                case SortCriteria.DistanceToCamera:
                     yield return VFXAttribute.Position;
                     break;
                 case SortCriteria.YoungestInFront:
@@ -59,7 +59,7 @@ namespace UnityEditor.VFX
 
         public static bool IsPerCamera(SortCriteria criteria)
         {
-            return criteria is SortCriteria.Depth or SortCriteria.Distance;
+            return criteria is SortCriteria.CameraDepth or SortCriteria.DistanceToCamera;
         }
     }
 }

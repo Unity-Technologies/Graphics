@@ -543,7 +543,7 @@ namespace UnityEditor.VFX
             }
 
             var implicitContext = new List<VFXContext>();
-            SortCriteria globalSortCriterion = SortCriteria.Distance; //TODO :Initialize differently ?
+            SortCriteria globalSortCriterion = SortCriteria.DistanceToCamera; //TODO :Initialize differently ?
             bool needsGlobalSort = NeedsGlobalSort();
             VFXSlot globalSortKeySlot = null;
             if (needsGlobalSort) //Issues a global sort, when it affects at least one output. If others don't match the criterion, or have a compute cull pass, they need a per output sort.
