@@ -795,6 +795,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             ClearDebugData();
+            sceneData.SetAssetAsUnloaded(asset);
         }
 
         void PerformPendingIndexChangeAndInit()

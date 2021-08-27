@@ -138,14 +138,6 @@ namespace UnityEngine.Experimental.Rendering
             return null;
         }
 
-        internal void QueueAssetLoading()
-        {
-            LoadProfileInformation();
-            var volumeAsset = GrabRelevantAsset();
-            if (volumeAsset != null)
-                ProbeReferenceVolume.instance.AddPendingAssetLoading(volumeAsset);
-        }
-
         internal void DisposeGizmos()
         {
 #if UNITY_EDITOR

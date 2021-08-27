@@ -395,8 +395,9 @@ namespace UnityEngine.Experimental.Rendering
                     foreach (var refVol in refVols)
                     {
                         if (refVol.enabled && refVol.gameObject.activeSelf)
-                            refVol.QueueAssetLoading();
+                            refVol.LoadProfileInformation();
                     }
+                    ProbeReferenceVolume.instance.sceneData.FlushPendingAssets();
                 }
             }
         }
@@ -573,12 +574,6 @@ namespace UnityEngine.Experimental.Rendering
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
             probeRefVolume.clearAssetsOnVolumeClear = false;
-
-            foreach (var refVol in refVol2Asset.Keys)
-            {
-                if (refVol.enabled && refVol.gameObject.activeSelf)
-                    refVol.QueueAssetLoading();
-            }
 
             // ---- Perform dilation ---
             PerformDilation();

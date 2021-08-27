@@ -136,7 +136,6 @@ namespace UnityEngine.Experimental.Rendering
 
         private SerializedProperty m_Profile;
 
-        internal static readonly GUIContent s_DataAssetLabel = new GUIContent("Data asset", "The asset which serializes all probe related data in this volume.");
         internal static readonly GUIContent s_ProfileAssetLabel = new GUIContent("Profile", "The asset which determines the characteristics of the probe reference volume.");
 
         private static bool DilationGroupEnabled;

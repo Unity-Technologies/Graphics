@@ -316,6 +316,10 @@ namespace UnityEngine.Experimental.Rendering
             {
                 sceneAssets.Remove(sceneGUID);
             }
+            if (sceneAssetLoadingStatus != null && sceneAssetLoadingStatus.ContainsKey(sceneGUID))
+            {
+                sceneAssetLoadingStatus.Remove(sceneGUID);
+            }
         }
 
         internal ProbeVolumeAsset GetActiveAsset(Scene scene)
@@ -361,6 +365,20 @@ namespace UnityEngine.Experimental.Rendering
                         ProbeReferenceVolume.instance.AddPendingAssetLoading(asset);
                         SetSceneAssetLoaded(sceneGUID, true); // Assume we are loading the assets before calling the flushing again.
                     }
+                }
+            }
+        }
+
+        // TODO: This needs to be optimized, it is dumb to loop through all. But this is not going to happen often, so can push the optimization to later.
+        // But needs to be done.
+        internal void SetAssetAsUnloaded(ProbeVolumeAsset asset)
+        {
+            if (sceneAssets == null) return;
+            foreach (var assetDictionaryEntry in sceneAssets)
+            {
+                if (asset.GetSerializedFullPath() == assetDictionaryEntry.Value.GetActiveAsset().GetSerializedFullPath())
+                {
+                    SetSceneAssetLoaded(assetDictionaryEntry.Key, false);
                 }
             }
         }
