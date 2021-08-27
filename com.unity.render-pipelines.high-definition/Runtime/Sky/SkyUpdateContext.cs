@@ -14,6 +14,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int skyParametersHash = -1;
         public float currentUpdateTime = 0.0f;
 
+        VolumetricClouds m_VolumetricClouds;
+
         public bool settingsHadBigDifferenceWithPrev { get; private set; }
 
         public SkySettings skySettings
@@ -77,6 +79,25 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public VolumetricClouds volumetricClouds
+        {
+            get { return m_VolumetricClouds; }
+            set
+            {
+                if (m_VolumetricClouds == value)
+                    return;
+
+                m_VolumetricClouds = value;
+
+                if (m_CloudSettings != null && cloudRenderer == null)
+                {
+                    var rendererType = m_CloudSettings.GetCloudRendererType();
+                    cloudRenderer = (CloudRenderer)Activator.CreateInstance(rendererType);
+                    cloudRenderer.Build();
+                }
+            }
+        }
+
         public void Cleanup()
         {
             if (skyRenderer != null)
@@ -99,6 +120,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool HasClouds()
         {
             return m_CloudSettings != null;
+        }
+
+        public bool HasVolumetricClouds()
+        {
+            return m_VolumetricClouds != null;
         }
     }
 }

@@ -3,9 +3,9 @@ using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX.HDRP
 {
-    internal static class VFXHDRPSettingsUtility
+    static class VFXHDRPSettingsUtility
     {
-        internal static void RefreshVfxErrorsIfNeeded(ref bool needRefreshVfxErrors)
+        public static void RefreshVfxErrorsIfNeeded(ref bool needRefreshVfxErrors)
         {
             if (needRefreshVfxErrors)
             {

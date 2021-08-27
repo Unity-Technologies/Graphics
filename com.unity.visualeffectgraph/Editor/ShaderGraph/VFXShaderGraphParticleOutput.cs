@@ -818,6 +818,11 @@ namespace UnityEditor.VFX
                             callSG.builder.AppendLine("INSG.TimeParameters = _TimeParameters.xyz;");
                         }
 
+                        if (graphCode.requirements.requiresFaceSign)
+                        {
+                            callSG.builder.AppendLine("INSG.FaceSign = frontFace ? 1.0f : -1.0f;");
+                        }
+
                         if (taskType == VFXTaskType.ParticleMeshOutput)
                         {
                             for (UVChannel uv = UVChannel.UV1; uv <= UVChannel.UV3; ++uv)
