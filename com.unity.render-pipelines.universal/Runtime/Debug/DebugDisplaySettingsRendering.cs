@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly NameAndTooltip MapOverlays = new() { name = "Map Overlays", tooltip = "Overlays render pipeline textures to validate the scene." };
             public static readonly NameAndTooltip MapSize = new() { name = "Map Size", tooltip = "Set the size of the render pipeline texture in the scene." };
             public static readonly NameAndTooltip AdditionalWireframeModes = new() { name = "Additional Wireframe Modes", tooltip = "Debug the scene with additional wireframe shader views that are different from those in the scene view." };
-            public static readonly NameAndTooltip WireframeNotSupportedWarning = new() { name = "Warning: Wireframe may not be supported on this platform", tooltip = "Some platforms, for example OpenGL ES and Vulkan on mobile, may not support wireframe rendering." };
+            public static readonly NameAndTooltip WireframeNotSupportedWarning = new() { name = "Warning: this platform might not support wireframe rendering.", tooltip = "Some platforms, for example, mobile platforms using OpenGL ES and Vulkan, might not support wireframe rendering." };
             public static readonly NameAndTooltip Overdraw = new() { name = "Overdraw", tooltip = "Debug anywhere pixels are overdrawn on top of each other." };
             public static readonly NameAndTooltip PostProcessing = new() { name = "Post-processing", tooltip = "Override the controls for Post Processing in the scene." };
             public static readonly NameAndTooltip MSAA = new() { name = "MSAA", tooltip = "Use the checkbox to disable MSAA in the scene." };
