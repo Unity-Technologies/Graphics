@@ -581,6 +581,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             Undo.RecordObject(lightData, "Changed contact shadow override");
                             useContactShadow.@override = overrideUseContactShadows;
+
+                            //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                            if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                                SceneView.RepaintAll();
                         }
                     }
                     else
@@ -640,6 +644,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         Undo.RecordObject(lightData, "Changed affects diffuse");
                         lightData.affectDiffuse = affectDiffuse;
+
+                        //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                        if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                            SceneView.RepaintAll();
                     }
                 }, (lprop, rprop) =>
                     {
@@ -674,6 +682,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         Undo.RecordObject(lightData, "Changed affects specular");
                         lightData.affectSpecular = affectSpecular;
+
+                        //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                        if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                            SceneView.RepaintAll();
                     }
                 }, (lprop, rprop) =>
                     {
