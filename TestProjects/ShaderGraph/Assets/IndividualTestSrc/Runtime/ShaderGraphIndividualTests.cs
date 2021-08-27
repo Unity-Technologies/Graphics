@@ -72,7 +72,7 @@ public class ShaderGraphIndividualTests
                 UpdatedTestAssetMessage updatedMessage = new UpdatedTestAssetMessage();
                 updatedMessage.testData = data;
                 updatedMessage.expectsResultImage = false;
-                Debug.Log($"Sending player connection for data: {updatedMessage.Serialize}");
+                //Debug.Log($"Sending player connection for data: {updatedMessage.Serialize}");
                 PlayerConnection.instance.Send(UpdatedTestAssetMessage.MessageId, updatedMessage.Serialize());
 #endif
             }
