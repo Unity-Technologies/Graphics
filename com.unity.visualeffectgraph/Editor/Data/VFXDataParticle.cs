@@ -609,7 +609,7 @@ namespace UnityEditor.VFX
 
         }
 
-        public bool GetGlobalSortCriterionAndSlotIfCustom(out SortCriteria globalSortCriteria, out VFXSlot globalSortKeySlot)
+        bool GetGlobalSortCriterionAndSlotIfCustom(out SortCriteria globalSortCriteria, out VFXSlot globalSortKeySlot)
         {
             var globalSortedCandidates = compilableOwners.OfType<VFXAbstractParticleOutput>()
                 .Where(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
@@ -618,7 +618,7 @@ namespace UnityEditor.VFX
             {
                 globalSortedCandidates = globalSortedCandidates.Where(o => o.GetSortCriterion() == SortCriteria.Custom);
                 globalSortKeySlot = MajorityVote(globalSortedCandidates,
-                    output => output.inputSlots.First(s => s.name == "sortKey"));
+                    output => output.inputSlots.First(s => s.name == "sortKey"), new SortKeySlotComparer());
                 return true;
             }
             globalSortKeySlot = null;
