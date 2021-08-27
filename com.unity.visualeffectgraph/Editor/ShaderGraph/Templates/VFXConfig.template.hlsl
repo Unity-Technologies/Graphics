@@ -1,4 +1,3 @@
-
 //VFXDefineSpace splice
 $splice(VFXDefineSpace)
 
@@ -55,7 +54,7 @@ CBUFFER_END
     #define VFX_GET_INSTANCE_ID(i)      input.instanceID
 #endif
 
-#include "Packages/com.unity.render-pipelines.universal/Runtime/VFXGraph/Shaders/VFXCommon.hlsl"
+$splice(VFXSRPCommonInclude)
 #include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
 
 $splice(VFXParameterBuffer)
@@ -162,11 +161,11 @@ void GetElementData(inout AttributesElement element)
 }
 
 // Configure the output type-spcific mesh definition and index calculation for the rest of the element data.
-$OutputType.Mesh:            $include("VFX/ConfigMesh.template.hlsl")
-$OutputType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
+$OutputType.Mesh:            $include("VFXConfigMesh.template.hlsl")
+$OutputType.PlanarPrimitive: $include("VFXConfigPlanarPrimitive.template.hlsl")
 
 // Loads the element-specific attribute data, as well as fills any interpolator.
-bool GetInterpolatorAndElementData(inout Varyings output, inout AttributesElement element)
+bool GetInterpolatorAndElementData(inout VFX_SRP_VARYINGS output, inout AttributesElement element)
 {
     GetElementData(element);
 
@@ -183,27 +182,27 @@ bool GetInterpolatorAndElementData(inout Varyings output, inout AttributesElemen
 }
 
 // Reconstruct the VFX/World to Element matrix provided by interpolator.
-void BuildWorldToElement(Varyings input)
+void BuildWorldToElement(VFX_SRP_VARYINGS input)
 {
 #ifdef VARYINGS_NEED_WORLD_TO_ELEMENT
-    UNITY_MATRIX_I_M[0] = input.worldToElement0;
-    UNITY_MATRIX_I_M[1] = input.worldToElement1;
-    UNITY_MATRIX_I_M[2] = input.worldToElement2;
-    UNITY_MATRIX_I_M[3] = float4(0,0,0,1);
+    worldToElement[0] = input.worldToElement0;
+    worldToElement[1] = input.worldToElement1;
+    worldToElement[2] = input.worldToElement2;
+    worldToElement[3] = float4(0,0,0,1);
 #endif
 }
 
-void BuildElementToWorld(Varyings input)
+void BuildElementToWorld(VFX_SRP_VARYINGS input)
 {
 #ifdef VARYINGS_NEED_ELEMENT_TO_WORLD
-    UNITY_MATRIX_M[0] = input.elementToWorld0;
-    UNITY_MATRIX_M[1] = input.elementToWorld1;
-    UNITY_MATRIX_M[2] = input.elementToWorld2;
-    UNITY_MATRIX_M[3] = float4(0,0,0,1);
+    elementToWorld[0] = input.elementToWorld0;
+    elementToWorld[1] = input.elementToWorld1;
+    elementToWorld[2] = input.elementToWorld2;
+    elementToWorld[3] = float4(0,0,0,1);
 #endif
 }
 
-void SetupVFXMatrices(AttributesElement element, inout Varyings output)
+void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
 {
     // Due to a very stubborn compiler bug we cannot refer directly to the redefined UNITY_MATRIX_M / UNITY_MATRIX_I_M here, due to a rare case where the matrix alias
     // is potentially still the constant object matrices (thus complaining about l-value specifying const object). Note even judicious use of preprocessors seems to
@@ -220,9 +219,9 @@ void SetupVFXMatrices(AttributesElement element, inout Varyings output)
         element.attributes.position);
 
 #if VFX_LOCAL_SPACE
-    elementToWorld = mul(VFXApplyCameraTranslationToMatrix(VFXGetRawUnityObjectToWorld()), elementToWorld);
+    elementToWorld = mul(ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld()), elementToWorld);
 #else
-    elementToWorld = VFXApplyCameraTranslationToMatrix(elementToWorld);
+    elementToWorld = ApplyCameraTranslationToMatrix(elementToWorld);
 #endif
 
     // World -> Element
@@ -237,9 +236,9 @@ void SetupVFXMatrices(AttributesElement element, inout Varyings output)
     );
 
 #if VFX_LOCAL_SPACE
-    worldToElement = mul(worldToElement, VFXApplyCameraTranslationToInverseMatrix(VFXGetRawUnityWorldToObject()));
+    worldToElement = mul(worldToElement, ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject()));
 #else
-    worldToElement = VFXApplyCameraTranslationToInverseMatrix(worldToElement);
+    worldToElement = ApplyCameraTranslationToInverseMatrix(worldToElement);
 #endif
 
     // Pack matrices into interpolator if requested by any node.
@@ -256,7 +255,7 @@ void SetupVFXMatrices(AttributesElement element, inout Varyings output)
 #endif
 }
 
-Attributes TransformMeshToPreviousElement(Attributes input, AttributesElement element)
+VFX_SRP_ATTRIBUTES TransformMeshToPreviousElement(VFX_SRP_ATTRIBUTES input, AttributesElement element)
 {
 #if VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS
     uint elementToVFXBaseIndex = element.index * 13;
@@ -286,7 +285,7 @@ void GetElementVertexProperties(AttributesElement element, inout GraphProperties
     $splice(VFXVertexPropertiesAssign)
 }
 
-void GetElementPixelProperties(SurfaceDescriptionInputs fragInputs, inout GraphProperties properties)
+void GetElementPixelProperties(VFX_SRP_SURFACE_INPUTS fragInputs, inout GraphProperties properties)
 {
     $splice(VFXPixelPropertiesAssign)
 }

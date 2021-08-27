@@ -113,7 +113,8 @@ namespace UnityEditor.VFX
             };
         }
 
-        static void GenerateVFXAdditionalCommands(VFXContext context, VFXSRPBinder.ShaderGraphBinder shaderGraphBinder, VFXContextCompiledData contextData,
+        static void GenerateVFXAdditionalCommands(VFXContext context, VFXSRPBinder srp, VFXSRPBinder.ShaderGraphBinder shaderGraphBinder, VFXContextCompiledData contextData,
+            out AdditionalCommandDescriptor srpCommonInclude,
             out AdditionalCommandDescriptor loadAttributeDescriptor,
             out AdditionalCommandDescriptor blockFunctionDescriptor,
             out AdditionalCommandDescriptor blockCallFunctionDescriptor,
@@ -130,6 +131,9 @@ namespace UnityEditor.VFX
             out AdditionalCommandDescriptor vertexPropertiesAssignDescriptor)
         {
             // TODO: Clean all of this up. Currently just an adapter between VFX Code Gen + SG Code Gen and *everything* has been stuffed here.
+
+            // SRP Common Include
+            srpCommonInclude = new AdditionalCommandDescriptor("VFXSRPCommonInclude", string.Format("#include \"{0}\"", srp.runtimePath + "/VFXCommon.hlsl"));
 
             // Load Attributes
             loadAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadAttribute", VFXCodeGenerator.GenerateLoadAttribute(".", context).ToString());
@@ -265,7 +269,8 @@ namespace UnityEditor.VFX
             // We use the AdditionalCommand descriptors for ShaderGraph generation to splice these in.
             // ( i.e. VFX Graph Block Function declaration + calling, Property Mapping, etc. )
             GenerateVFXAdditionalCommands(
-                context, shaderGraphSRPInfo, data,
+                context, srp, shaderGraphSRPInfo, data,
+                out var srpCommonInclude,
                 out var loadAttributeDescriptor,
                 out var blockFunctionDescriptor,
                 out var blockCallFunctionDescriptor,
@@ -314,6 +319,7 @@ namespace UnityEditor.VFX
 
                 passDescriptor.additionalCommands = new AdditionalCommandCollection
                 {
+                    srpCommonInclude,
                     loadAttributeDescriptor,
                     blockFunctionDescriptor,
                     blockCallFunctionDescriptor,

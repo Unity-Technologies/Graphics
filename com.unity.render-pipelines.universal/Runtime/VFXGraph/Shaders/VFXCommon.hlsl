@@ -81,29 +81,30 @@ float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
     return posWS;
 }
 
-//Compatibility function for ShaderGraph integration
-float4x4 VFXApplyCameraTranslationToMatrix(float4x4 modelMatrix)
+//Compatibility functions for the common ShaderGraph integration
+float4x4 ApplyCameraTranslationToMatrix(float4x4 modelMatrix)
 {
     return modelMatrix;
 }
-float4x4 VFXApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
+float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
 {
     return inverseModelMatrix;
 }
-float4x4 VFXGetRawUnityObjectToWorld()
+float4x4 GetRawUnityObjectToWorld()
 {
     return unity_ObjectToWorld;
 }
-float4x4 VFXGetRawUnityWorldToObject()
+float4x4 GetRawUnityWorldToObject()
 {
     return unity_WorldToObject;
 }
+//End of compatibility functions
 
 float4x4 VFXGetObjectToWorldMatrix()
 {
     // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
 #ifdef HAVE_VFX_MODIFICATION
-    return VFXGetRawUnityObjectToWorld();
+    return GetRawUnityObjectToWorld();
 #else
     return GetObjectToWorldMatrix();
 #endif
@@ -113,7 +114,7 @@ float4x4 VFXGetWorldToObjectMatrix()
 {
     // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_I_M)
 #ifdef HAVE_VFX_MODIFICATION
-    return VFXGetRawUnityWorldToObject();
+    return GetRawUnityWorldToObject();
 #else
     return GetWorldToObjectMatrix();
 #endif

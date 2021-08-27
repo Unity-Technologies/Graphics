@@ -1,8 +1,8 @@
 // Output Type: Mesh
 
-bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement element)
+bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElement element)
 {
-    uint index = VFX_GET_INSTANCE_ID(input);;
+    uint index = VFX_GET_INSTANCE_ID(input);
 
     if (ShouldCullElement(index))
         return false;

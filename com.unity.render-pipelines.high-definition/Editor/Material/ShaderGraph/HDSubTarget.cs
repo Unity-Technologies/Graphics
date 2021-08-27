@@ -130,6 +130,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
+        private static readonly string[] s_SharedTemplatePath =
+        {
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/",
+            "Packages/com.unity.visualeffectgraph/Editor/ShaderGraph/Templates"
+        };
+
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
             if (TargetsVFX())
@@ -144,7 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var passDescriptor = passes[i].descriptor;
                 passDescriptor.passTemplatePath = templatePath;
-                passDescriptor.sharedTemplateDirectories = templateMaterialDirectories;
+                passDescriptor.sharedTemplateDirectories = s_SharedTemplatePath.Concat(templateMaterialDirectories).ToArray();
 
                 // Add the subShader to enable fields that depends on it
                 var originalRequireFields = passDescriptor.requiredFields;
