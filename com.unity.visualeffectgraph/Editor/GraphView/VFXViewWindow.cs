@@ -1,24 +1,22 @@
 #define USE_EXIT_WORKAROUND_FOGBUGZ_1062258
 using System;
 using System.Linq;
-using UnityEditor.UIElements;
+using System.Collections.Generic;
+
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.VersionControl;
+
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEditor.VFX;
 using UnityEngine.UIElements;
-using System.Collections.Generic;
-using UnityEditor;
-using UnityObject = UnityEngine.Object;
-using System.IO;
-using UnityEditor.VersionControl;
+
 
 namespace UnityEditor.VFX.UI
 {
     [Serializable]
     class VFXViewWindow : EditorWindow
     {
-        static VisualEffect s_LastAttachedComponent;
+        static Dictionary<VFXView, VFXViewWindow> s_windows = new Dictionary<VFXView, VFXViewWindow>();
 
         ShortcutHandler m_ShortcutHandler;
 
@@ -44,8 +42,6 @@ namespace UnityEditor.VFX.UI
                 });
         }
 
-        public static VFXViewWindow currentWindow => WindowLayout.FindEditorWindowOfType(typeof(VFXViewWindow)) as VFXViewWindow;
-
         [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3011)]
         public static void ShowWindow()
         {
@@ -54,10 +50,39 @@ namespace UnityEditor.VFX.UI
             GetWindow<VFXViewWindow>();
         }
 
-        public VFXView graphView
+        public static void ShowWindow(VFXView vfxView)
         {
-            get; private set;
+            VFXLibrary.LogUnsupportedSRP();
+
+            if (!s_windows.TryGetValue(vfxView, out var window))
+            {
+                window = GetWindow<VFXViewWindow>();
+                s_windows[vfxView] = window;
+            }
+
+            window?.Show();
         }
+
+        public static VFXViewWindow ShowWindow(VisualEffectAsset vfxAsset)
+        {
+            return ShowWindowGeneric(x => x.controller.graph.visualEffectResource.asset == vfxAsset);
+        }
+
+        public static VFXViewWindow ShowWindow(VisualEffectResource vfxResource)
+        {
+            return ShowWindowGeneric(x => x.controller.graph.visualEffectResource == vfxResource);
+        }
+
+        public static VFXViewWindow GetWindow(VFXGraph vfxGraph)
+        {
+            return s_windows.SingleOrDefault(x => x.Key.controller.graph == vfxGraph).Value;
+        }
+
+        public static VFXViewWindow GetWindow(VFXView vfxView) => s_windows.TryGetValue(vfxView, out var window) ? window : null;
+        public static IEnumerable<VFXViewWindow> GetAllWindows() => s_windows.Values.ToArray();
+
+        public VFXView graphView { get; private set; }
+
         public void LoadAsset(VisualEffectAsset asset, VisualEffect effectToAttach)
         {
             VFXLibrary.LogUnsupportedSRP();
@@ -174,6 +199,7 @@ namespace UnityEditor.VFX.UI
                 m_ResourceHistory = new List<VisualEffectResource>();
 
             graphView = new VFXView();
+            s_windows[graphView] = this;
             graphView.StretchToParentSize();
             SetupFramingShortcutHandler(graphView);
 
@@ -233,6 +259,23 @@ namespace UnityEditor.VFX.UI
                 graphView.Dispose();
                 graphView = null;
             }
+
+            if (graphView != null)
+            {
+                s_windows.Remove(graphView);
+            }
+        }
+
+        static VFXViewWindow ShowWindowGeneric(Func<VFXView, bool> action)
+        {
+            var window = s_windows.SingleOrDefault(x => action(x.Key)).Value;
+            if (window == null)
+            {
+                window = CreateInstance<VFXViewWindow>();
+                window.Show(true);
+            }
+
+            return window;
         }
 
         void OnEnterPanel(AttachToPanelEvent e)

@@ -23,7 +23,7 @@ class VFXParameterEditor : VFXSlotContainerEditor
     {
         base.OnEnable();
 
-        VFXViewWindow current = VFXViewWindow.currentWindow;
+        VFXViewWindow current = VFXViewWindow.GetWindow(controller.graph);
         if (current != null)
         {
             controller = current.graphView.controller;

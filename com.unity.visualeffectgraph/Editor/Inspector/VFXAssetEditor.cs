@@ -115,16 +115,16 @@ class VisualEffectAssetEditor : Editor
             Selection.activeInstanceID = instanceID;
             return true;
         }
-        else if (obj is VisualEffectAsset)
+        else if (obj is VisualEffectAsset vfxAsset)
         {
-            VFXViewWindow.GetWindow<VFXViewWindow>().LoadAsset(obj as VisualEffectAsset, null);
+            VFXViewWindow.ShowWindow(vfxAsset).LoadAsset(obj as VisualEffectAsset, null);
             return true;
         }
         else if (obj is VisualEffectSubgraph)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(obj));
 
-            VFXViewWindow.GetWindow<VFXViewWindow>().LoadResource(resource, null);
+            VFXViewWindow.ShowWindow(resource).LoadResource(resource, null);
             return true;
         }
         else if (obj is Material || obj is ComputeShader)

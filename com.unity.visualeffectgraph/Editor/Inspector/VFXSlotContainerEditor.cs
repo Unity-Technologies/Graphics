@@ -169,9 +169,10 @@ class VFXSlotContainerEditor : Editor
         try // make sure we don't break the whole scene
         {
             var slotContainer = targets[0] as VFXModel;
-            if (VFXViewWindow.currentWindow != null)
+            var window = VFXViewWindow.GetWindow(slotContainer.GetGraph());
+            if (window != null)
             {
-                VFXView view = VFXViewWindow.currentWindow.graphView;
+                VFXView view = window.graphView;
                 if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
                 {
                     if (slotContainer is VFXParameter)
@@ -233,15 +234,16 @@ class VFXSlotContainerEditor : Editor
             {
                 m_CurrentController.currentGizmoable = gizmoableAnchors[result];
             }
-            var slotContainer = targets[0] as VFXModel;
-            bool hasvfxViewOpened = VFXViewWindow.currentWindow != null && VFXViewWindow.currentWindow.graphView.controller != null && VFXViewWindow.currentWindow.graphView.controller.graph == slotContainer.GetGraph();
+            var graph = (targets[0] as VFXModel)?.GetGraph();
+            var window = VFXViewWindow.GetWindow(graph);
+            bool hasvfxViewOpened = window != null && window.graphView.controller != null && window.graphView.controller.graph == graph;
 
 
             if (m_CurrentController.gizmoIndeterminate)
             {
                 GUILayout.Label(Contents.gizmoIndeterminateWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
             }
-            else if (m_CurrentController.gizmoNeedsComponent && (!hasvfxViewOpened || VFXViewWindow.currentWindow.graphView.attachedComponent == null))
+            else if (m_CurrentController.gizmoNeedsComponent && (!hasvfxViewOpened || window.graphView.attachedComponent == null))
             {
                 GUILayout.Label(Contents.gizmoLocalWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
             }
@@ -249,10 +251,10 @@ class VFXSlotContainerEditor : Editor
             {
                 if (GUILayout.Button(Contents.gizmoFrame, Styles.frameButtonStyle, GUILayout.Width(16), GUILayout.Height(16)))
                 {
-                    if (m_CurrentController != null && VFXViewWindow.currentWindow != null)
+                    if (m_CurrentController != null && window != null)
                     {
-                        VFXView view = VFXViewWindow.currentWindow.graphView;
-                        if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
+                        VFXView view = window.graphView;
+                        if (view.controller != null && view.controller.model && view.controller.graph == graph)
                         {
                             Bounds b = m_CurrentController.GetGizmoBounds(view.attachedComponent);
                             var sceneView = SceneView.lastActiveSceneView;

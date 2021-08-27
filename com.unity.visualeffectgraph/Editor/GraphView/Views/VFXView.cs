@@ -480,7 +480,7 @@ namespace UnityEditor.VFX.UI
             {
                 VisualEffectAssetEditorUtility.CreateTemplateAsset(filePath);
 
-                VFXViewWindow.currentWindow.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath), null);
+                VFXViewWindow.GetWindow(this).LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath), null);
             }
         }
 
@@ -1565,9 +1565,9 @@ namespace UnityEditor.VFX.UI
             {
                 VFXDataEdge edge = picked.OfType<VFXDataEdge>().FirstOrDefault();
                 if (edge != null)
-                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new Type[] { typeof(VFXOperator) }));
+                    VFXFilterWindow.Show(VFXViewWindow.GetWindow(this), point, ctx.screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new Type[] { typeof(VFXOperator) }));
                 else
-                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
+                    VFXFilterWindow.Show(VFXViewWindow.GetWindow(this), point, ctx.screenMousePosition, m_NodeProvider);
             }
         }
 
@@ -1584,6 +1584,11 @@ namespace UnityEditor.VFX.UI
 
                 templateController.useCount--;
             }
+        }
+
+        void OnToggleCompile(ChangeEvent<bool> e)
+        {
+            VFXViewWindow.GetWindow(this).autoCompile = !VFXViewWindow.GetWindow(this).autoCompile;
         }
 
         void OnResyncMaterial()
@@ -2318,7 +2323,7 @@ namespace UnityEditor.VFX.UI
         void OnCreateNodeInGroupNode(DropdownMenuAction e)
         {
             //The targeted groupnode will be determined by a PickAll later
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), m_NodeProvider);
+            VFXFilterWindow.Show(VFXViewWindow.GetWindow(this), e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), m_NodeProvider);
         }
 
         void OnEnterSubgraph(DropdownMenuAction e)
@@ -2326,21 +2331,21 @@ namespace UnityEditor.VFX.UI
             var node = e.userData as VFXModel;
             if (node is VFXSubgraphOperator subGraph)
             {
-                VFXViewWindow.currentWindow.PushResource(subGraph.subgraph.GetResource());
+                VFXViewWindow.GetWindow(this).PushResource(subGraph.subgraph.GetResource());
             }
             else if (node is VFXSubgraphBlock subGraph2)
             {
-                VFXViewWindow.currentWindow.PushResource(subGraph2.subgraph.GetResource());
+                VFXViewWindow.GetWindow(this).PushResource(subGraph2.subgraph.GetResource());
             }
             else if (node is VFXSubgraphContext subGraph3)
             {
-                VFXViewWindow.currentWindow.PushResource(subGraph3.subgraph.GetResource());
+                VFXViewWindow.GetWindow(this).PushResource(subGraph3.subgraph.GetResource());
             }
         }
 
         void OnCreateNodeOnEdge(DropdownMenuAction e)
         {
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, e.userData as VFXDataEdgeController), null, new Type[] { typeof(VFXOperator) }));
+            VFXFilterWindow.Show(VFXViewWindow.GetWindow(this), e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, e.userData as VFXDataEdgeController), null, new Type[] { typeof(VFXOperator) }));
         }
 
         void AddNodeOnEdge(VFXNodeProvider.Descriptor desc, Vector2 position, VFXDataEdgeController edge)
@@ -2416,9 +2421,10 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                if (VFXViewWindow.currentWindow != null && VFXViewWindow.currentWindow.resourceHistory.Count() > 0)
+                var window = VFXViewWindow.GetWindow(this);
+                if (window != null && window.resourceHistory.Any())
                 {
-                    evt.menu.AppendAction(" Back To Parent Graph", e => VFXViewWindow.currentWindow.PopResource());
+                    evt.menu.AppendAction(" Back To Parent Graph", e => window.PopResource());
                 }
             }
 
