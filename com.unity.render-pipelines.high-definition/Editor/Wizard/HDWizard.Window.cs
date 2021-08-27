@@ -423,8 +423,6 @@ namespace UnityEditor.Rendering.HighDefinition
             addCurrentScene.Init();
             m_BaseUpdatable.Add(addCurrentScene);
 
-            //m_BaseUpdatable.Add( ? currentSceneScope : null);
-
             AddHDRPConfigInfo(globalScope, QualityScope.Global);
 
             var vrScopeGlobal = new HiddableUpdatableContainer(()
