@@ -203,8 +203,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 label: L10n.Tr("DXR resources"),
                 error: L10n.Tr("There is an issue with the DXR resources! Alternatively, Direct3D is not set as API (can be fixed with option above) or your hardware and/or OS cannot be used for DXR! (unfixable)"));
             public static readonly ConfigStyle checkForRTX = new ConfigStyle(
-                label: L10n.Tr("Check Scene Content For Ray Tracing Issues"),
-                error: L10n.Tr("This checks if any of the meshes in the current scene has null material, null mesh or mesh filters, more than 32 sub-meshes, both transparent and opaque sub-meshes, both double sided and single sided sub-meshes or missing renderer on LODs."),
+                label: L10n.Tr("Check Scene Content for HDRP Ray Tracing"),
+                error: L10n.Tr("Checks scene content for Ray Tracing issues. This includes checking if any Renderer has null Materials, null Meshes or Mesh Filters, more than 32 sub-Meshes in a Mesh, both Transparent and Opaque Materials in sub-Meshes, both Double-Sided and Single-Sided sub-Meshes or missing Renderers on LODs.\nResults will show in Console.\nThis check is also available in Edit > Rendering menu."),
                 button: Style.check,
                 messageType: MessageType.Info);
 
@@ -418,7 +418,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_BaseUpdatable.Add(globalScope);
             m_BaseUpdatable.Add(currentQualityScope);
-            m_BaseUpdatable.Add(currentSceneScope);
+
+            var addCurrentScene = new HiddableUpdatableContainer(() => m_Configuration == Configuration.HDRP_DXR);
+            addCurrentScene.Add(currentSceneScope);
+            addCurrentScene.Init();
+            m_BaseUpdatable.Add(addCurrentScene);
+
+            //m_BaseUpdatable.Add( ? currentSceneScope : null);
 
             AddHDRPConfigInfo(globalScope, QualityScope.Global);
 
@@ -448,7 +454,11 @@ namespace UnityEditor.Rendering.HighDefinition
             dxrScopeCurrentQuality.Init();
             currentQualityScope.Add(dxrScopeCurrentQuality);
 
-            AddDXRConfigInfo(currentSceneScope, QualityScope.Scene);
+            var dxrScopeCurrentScene = new HiddableUpdatableContainer(()
+                => m_Configuration == Configuration.HDRP_DXR);
+            AddDXRConfigInfo(dxrScopeCurrentScene, QualityScope.Scene);
+            dxrScopeCurrentScene.Init();
+            currentSceneScope.Add(dxrScopeCurrentScene);
 
             container.Add(CreateTitle(Style.migrationTitle));
             container.Add(CreateLargeButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
