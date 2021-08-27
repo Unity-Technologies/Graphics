@@ -18,6 +18,7 @@ namespace UnityEditor.VFX
 
         public SortCriteria sortCriterion = SortCriteria.DistanceToCamera;
         public VFXSlot customSortingSlot;
+        public bool revertSorting;
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {

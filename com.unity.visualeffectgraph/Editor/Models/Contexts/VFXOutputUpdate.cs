@@ -213,6 +213,7 @@ namespace UnityEditor.VFX
                     yield return d;
 
                 yield return "INDIRECT_BUFFER_COUNT " + bufferCount;
+                yield return "SORTING_SIGN " + (output.revertSorting ? -1 : 1);
 
                 if (HasFeature(Features.MotionVector))
                 {
