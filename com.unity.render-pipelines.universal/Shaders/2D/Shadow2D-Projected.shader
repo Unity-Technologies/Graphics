@@ -20,11 +20,11 @@ Shader "Hidden/ShadowProjected2D"
             // Bit 0: Not Composite Shadows, Bit 1: Global Shadow
             Stencil
             {
-                Ref         1     
-                ReadMask    3           // If no composite shadows and no global shadows set
-                WriteMask   1           // Write to bit 0
-                Comp        GEqual
-                Pass        Zero        // Write composite shadow value
+                Ref         0     
+                ReadMask    3              // If no composite shadows and no global shadows set
+                WriteMask   1              // Write to bit 0
+                Comp        Always
+                Pass        Replace        // Write composite shadow value
                 Fail        Keep
             }
 
