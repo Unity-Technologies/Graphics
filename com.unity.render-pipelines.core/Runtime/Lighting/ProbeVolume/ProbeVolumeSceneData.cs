@@ -5,13 +5,21 @@ using UnityEditor;
 #endif
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Reflection;
 
 namespace UnityEngine.Experimental.Rendering
 {
     [System.Serializable]
     /// <summary> A class containing info about the bounds defined by the probe volumes in various scenes. </summary>
-    public class ProbeVolumeSceneBounds : ISerializationCallbackReceiver
+    public class ProbeVolumeSceneData : ISerializationCallbackReceiver
     {
+        static PropertyInfo s_SceneGUID = typeof(Scene).GetProperty("guid", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
+        string GetSceneGUID(Scene scene)
+        {
+            Debug.Assert(s_SceneGUID != null, "Reflection for scene GUID failed");
+            return (string)s_SceneGUID.GetValue(scene);
+        }
+
         [System.Serializable]
         struct SerializableBoundItem
         {
@@ -34,9 +42,9 @@ namespace UnityEngine.Experimental.Rendering
         public Dictionary<string, Bounds> sceneBounds;
         internal Dictionary<string, bool> hasProbeVolumes;
 
-        /// <summary>Constructor for ProbeVolumeSceneBounds. </summary>
-        /// <param name="parentAsset">The asset holding this ProbeVolumeSceneBounds, it will be dirtied every time scene bounds are updated. </param>
-        public ProbeVolumeSceneBounds(Object parentAsset)
+        /// <summary>Constructor for ProbeVolumeSceneData. </summary>
+        /// <param name="parentAsset">The asset holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
+        public ProbeVolumeSceneData(Object parentAsset)
         {
             m_ParentAsset = parentAsset;
             sceneBounds = new Dictionary<string, Bounds>();
@@ -45,8 +53,8 @@ namespace UnityEngine.Experimental.Rendering
             serializedHasVolumes = new List<SerializableHasPVItem>();
         }
 
-        /// <summary>Set a reference to the object holding this ProbeVolumeSceneBounds.</summary>
-        /// <param name="parentAsset">The object holding this ProbeVolumeSceneBounds, it will be dirtied every time scene bounds are updated. </param>
+        /// <summary>Set a reference to the object holding this ProbeVolumeSceneData.</summary>
+        /// <param name="parentAsset">The object holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
         public void SetParentObject(Object parent)
         {
             m_ParentAsset = parent;
@@ -216,6 +224,40 @@ namespace UnityEngine.Experimental.Rendering
             {
                 EditorUtility.SetDirty(m_ParentAsset);
             }
+        }
+
+        // It is important this is called after UpdateSceneBounds is called!
+        internal void EnsurePerSceneData(Scene scene)
+        {
+            if (hasProbeVolumes.ContainsKey(scene.path) && hasProbeVolumes[scene.path])
+            {
+                var perSceneData = UnityEngine.GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
+                var sceneGUID = GetSceneGUID(scene);
+
+                bool foundPerSceneData = false;
+                foreach (var data in perSceneData)
+                {
+                    if (GetSceneGUID(data.gameObject.scene) == sceneGUID)
+                    {
+                        foundPerSceneData = true;
+                    }
+                }
+
+                if (!foundPerSceneData)
+                {
+                    GameObject go = new GameObject("ProbeVolumePerSceneData");
+                    go.hideFlags |= HideFlags.HideInHierarchy;
+                    go.AddComponent<ProbeVolumePerSceneData>();
+                    SceneManager.MoveGameObjectToScene(go, scene);
+                }
+            }
+
+        }
+
+        internal void OnSceneSaved(Scene scene)
+        {
+            UpdateSceneBounds(scene);
+            EnsurePerSceneData(scene);
         }
 
 #endif

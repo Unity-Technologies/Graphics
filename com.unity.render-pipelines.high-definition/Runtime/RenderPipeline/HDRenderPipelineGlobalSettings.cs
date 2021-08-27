@@ -821,12 +821,12 @@ namespace UnityEngine.Rendering.HighDefinition
         #region APV
         // This is temporarily here until we have a core place to put it shared between pipelines.
         [SerializeField]
-        internal ProbeVolumeSceneBounds apvScenesBounds;
+        internal ProbeVolumeSceneData apvScenesBounds;
 
-        internal ProbeVolumeSceneBounds GetOrCreateAPVSceneBounds()
+        internal ProbeVolumeSceneData GetOrCreateAPVSceneData()
         {
             if (apvScenesBounds == null)
-                apvScenesBounds = new ProbeVolumeSceneBounds((Object)this);
+                apvScenesBounds = new ProbeVolumeSceneData((Object)this);
 
 
             apvScenesBounds.SetParentObject((Object)this);
