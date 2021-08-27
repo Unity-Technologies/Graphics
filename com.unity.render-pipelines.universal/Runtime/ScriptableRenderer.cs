@@ -695,6 +695,12 @@ namespace UnityEngine.Rendering.Universal
 
                 // In the opaque and transparent blocks the main rendering executes.
 
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                cmd.SetFoveatedRendering(FoveatedRenderingMode.EnableAndDistort, renderingData.cameraData.xr.foveatedRenderingInfo);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
                 // Opaque blocks...
                 if (renderBlocks.GetLength(RenderPassBlock.MainRenderingOpaque) > 0)
                 {
@@ -711,6 +717,12 @@ namespace UnityEngine.Rendering.Universal
                     using var profScope = new ProfilingScope(null, Profiling.RenderBlock.mainRenderingTransparent);
                     ExecuteBlock(RenderPassBlock.MainRenderingTransparent, in renderBlocks, context, ref renderingData);
                 }
+
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                cmd.SetFoveatedRendering(FoveatedRenderingMode.Off, IntPtr.Zero);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
                 // Draw Gizmos...
                 if (drawGizmos)

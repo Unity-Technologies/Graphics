@@ -95,6 +95,8 @@ namespace UnityEngine.Rendering.Universal
         internal int viewCount { get => views.Count; }
         internal bool singlePassEnabled { get => viewCount > 1; }
 
+        internal IntPtr foveatedRenderingInfo { get; private set; }
+
         // Occlusion mesh rendering
         Material occlusionMeshMaterial = null;
         Mesh occlusionMeshCombined = null;
@@ -192,6 +194,7 @@ namespace UnityEngine.Rendering.Universal
             passInfo.multipassId = multipassId;
             passInfo.cullingPassId = xrRenderPass.cullingPassIndex;
             passInfo.cullingParams = cullingParameters;
+            passInfo.foveatedRenderingInfo = xrRenderPass.foveatedRenderingInfo;
             passInfo.views.Clear();
 
             // URP ScriptableRenderer does not track current active depth slice state. We make sure to set all texture slices(-1) across the pipeline to ensure consistency.
