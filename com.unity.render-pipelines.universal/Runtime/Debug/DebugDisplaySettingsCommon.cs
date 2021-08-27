@@ -66,6 +66,7 @@ namespace UnityEngine.Rendering.Universal
                         DebugDisplaySettingsRendering.WidgetFactory.CreateMSAA(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreatePostProcessing(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateAdditionalWireframeShaderViews(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateWireframeNotSupportedWarning(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateOverdraw(renderingSettingsData)
                     },
                     contextMenuItems = new List<DebugUI.Foldout.ContextMenuItem>()
