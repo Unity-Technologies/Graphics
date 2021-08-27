@@ -8,16 +8,15 @@ namespace UnityEditor.ShaderGraph
 {
     enum HashType
     {
-        Original,
-        Fastest,
-        Deterministic
+        Deterministic,
+        LegacySine,
     };
 
     [Title("Procedural", "Noise", "Simple Noise")]
     class NoiseNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV
     {
         // 0 original version
-        // 1 add better looking / deterministic noise options
+        // 1 add deterministic noise option
         public override int latestVersion => 1;
 
         public override IEnumerable<int> allowedNodeVersions => new int[] { 1 };
@@ -67,13 +66,16 @@ namespace UnityEditor.ShaderGraph
         static readonly string[] kHashFunctionPrefix =
         {
             "Hash_LegacySine_2_1_",
-            "Hash_BetterSine_2_1_",
             "Hash_Tchou_2_1_"
         };
 
         void IGeneratesFunction.GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.RequiresIncludePath("Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl");
+
+            var hashType = this.hashType;
+            if (((int) hashType < 0) || ((int) hashType >= kHashFunctionPrefix.Length))
+                hashType = (HashType) 0;
 
             var hashTypeString = hashType.ToString();
             var HashFunction = kHashFunctionPrefix[(int) hashType];
@@ -155,8 +157,8 @@ namespace UnityEditor.ShaderGraph
         {
             if (sgVersion < 1)
             {
-                // old nodes should select "Original" to replicate old behavior
-                hashType = HashType.Original;
+                // old nodes should select "LegacySine" to replicate old behavior
+                hashType = HashType.LegacySine;
                 ChangeVersion(1);
             }
         }
