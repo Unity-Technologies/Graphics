@@ -10,9 +10,9 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 ### Fixed
 - Fixed terrain hole shadowing [case 1349305]
-
-### Fixed
 - Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
+- VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
+- VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
 
 ## [10.6.0] - 2021-04-29
 
@@ -113,8 +113,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue with upgrading material set to cutout didn't properly set alpha clipping. [case 1235516](https://issuetracker.unity3d.com/issues/urp-upgrade-material-utility-does-not-set-the-alpha-clipping-when-material-was-using-a-shader-with-rendering-mode-set-to-cutout)
 - Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
 - Fixed an error where multisampled texture being bound to a non-multisampled sampler in XR. 
-- VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
-- VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
 
 ## [10.1.0] - 2020-10-12
 ### Added
