@@ -28,7 +28,8 @@ static class VFXPicker
         // Until the "viewState" API is made public (should be in 2022.1) we use reflection to remove the inspector button
         var quickSearchType = typeof(SearchService).Assembly.GetType("UnityEditor.Search.QuickSearch");
         var viewStateInfo = quickSearchType?.GetProperty("viewState", BindingFlags.Instance | BindingFlags.NonPublic);
-        if (viewStateInfo?.GetValue(view) is SearchViewState state)
+        var state = viewStateInfo?.GetValue(view);
+        if (state != null)
         {
             var flagsInfo = state.GetType().GetField("flags", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             flagsInfo?.SetValue(state, SearchViewFlags.DisableInspectorPreview);

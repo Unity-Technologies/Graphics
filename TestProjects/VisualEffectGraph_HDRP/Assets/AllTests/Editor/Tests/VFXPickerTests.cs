@@ -2,8 +2,6 @@ using System.Reflection;
 
 using NUnit.Framework;
 
-using UnityEditor.Search;
-
 namespace UnityEditor.VFX.Test
 {
     [TestFixture]
@@ -18,7 +16,8 @@ namespace UnityEditor.VFX.Test
             var viewStateInfo = quickSearchType?.GetProperty("viewState", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(viewStateInfo);
 
-            var flagsInfo = typeof(SearchViewState).GetField("flags", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            var searchViewStateType = typeof(Search.SearchService).Assembly.GetType("UnityEditor.Search.SearchViewState");
+            var flagsInfo = searchViewStateType.GetField("flags", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             Assert.NotNull(flagsInfo);
         }
     }
