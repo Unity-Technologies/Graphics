@@ -85,6 +85,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a parameter to control the vertical shape offset of the volumetric clouds (case 1358528).
 - Added an option to render screen space global illumination in half resolution to achieve real-time compatible performance in high resolutions (case 1353727).
 - Added a built-in custom pass to draw object IDs.
+- Added a button in the HDRP+DXR Wizard to check scene content for Ray Tracing setup issues. 
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
