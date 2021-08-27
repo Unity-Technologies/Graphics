@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.Utilities;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
@@ -114,6 +115,58 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             }
 
             graphUpdater.MarkDeleted(deletedModels);
+
+            if (state is ShaderGraphState shaderGraphState)
+            {
+                using var previewUpdater = shaderGraphState.GraphPreviewState.UpdateScope;
+                {
+                    foreach (var nodeModel in command.Models)
+                    {
+                        previewUpdater.UpdateNodeState(nodeModel.Guid.ToString(), changeNodeStateCommand.Value);
+                    }
+                }
+            }
+
+        }
+
+        // Currently this is unused because we don't take advantage of GTFs ability for models to be enabled/disabled
+        public static void HandleNodeStateChanged(GraphToolState graphToolState, ChangeNodeStateCommand changeNodeStateCommand)
+        {
+            if (graphToolState is ShaderGraphState shaderGraphState)
+            {
+                using var previewUpdater = shaderGraphState.GraphPreviewState.UpdateScope;
+                {
+                    foreach (var nodeModel in changeNodeStateCommand.Models)
+                    {
+                        previewUpdater.UpdateNodeState(nodeModel.Guid.ToString(), changeNodeStateCommand.Value);
+                    }
+                }
+            }
+        }
+
+        public static void HandleGraphElementRenamed(GraphToolState graphToolState, RenameElementCommand renameElementCommand)
+        {
+            if (graphToolState is ShaderGraphState shaderGraphState)
+            {
+                using var previewUpdater = shaderGraphState.GraphPreviewState.UpdateScope;
+                {
+                    if (renameElementCommand.Model is IVariableDeclarationModel variableDeclarationModel)
+                    {
+                        previewUpdater.MarkElementNeedingRecompile(variableDeclarationModel.Guid.ToString());
+
+                        // React to property being renamed by finding all linked property nodes and marking them as requiring recompile and also needing constant value update
+                        var graphNodes = graphToolState.GraphViewState.GraphModel.NodeModels;
+                        foreach (var graphNode in graphNodes)
+                        {
+                            if (graphNode is IVariableNodeModel variableNodeModel && Equals(variableNodeModel.VariableDeclarationModel, variableDeclarationModel))
+                            {
+                                previewUpdater.MarkElementNeedingRecompile(variableNodeModel.Guid.ToString());
+                                previewUpdater.UpdateVariableConstantValue(variableNodeModel.Guid.ToString(), variableDeclarationModel.InitializationModel.ObjectValue);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

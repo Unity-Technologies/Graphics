@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 {
                     if (addedModel is GraphDataNodeModel graphDataNodeModel)
                     {
-                        state.GraphPreviewState.OnNodeAdded(graphDataNodeModel);
+                        state.GraphPreviewState.OnGraphDataNodeAdded(graphDataNodeModel);
                     }
                 }
             }

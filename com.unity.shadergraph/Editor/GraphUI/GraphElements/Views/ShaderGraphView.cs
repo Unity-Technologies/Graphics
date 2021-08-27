@@ -19,6 +19,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Views
         protected override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             base.BuildContextualMenu(evt);
+
+            for (var i = 0; i < evt.menu.MenuItems().Count; ++i)
+            {
+                var menuItem = evt.menu.MenuItems()[i];
+                if (menuItem is DropdownMenuAction { name: "Disable Nodes" })
+                    evt.menu.RemoveItemAt(i);
+            }
+
             evt.menu.AppendSeparator();
         }
 

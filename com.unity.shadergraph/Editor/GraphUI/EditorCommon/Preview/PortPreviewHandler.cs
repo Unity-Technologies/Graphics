@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
 {
     public enum DefaultTextureType { White, Black, NormalMap }
 
-    struct PortPreviewHandler
+    public struct PortPreviewHandler
     {
         string m_Name;
 
@@ -20,15 +20,30 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
 
         IPortReader m_PortReader;
 
+        object m_PortConstantValue;
+
+        public object PortConstantValue
+        {
+            get => m_PortConstantValue;
+            set => m_PortConstantValue = value;
+        }
+
         public PortPreviewHandler(IPortReader portReader)
             : this()
         {
-            Name = portReader.GetName();
+            Name = Mock_GetHLSLParameterName(portReader);
             m_PortReader = portReader;
         }
 
         const string k_SetErrorMessage = "Cannot set a {0} property on a PreviewProperty with type {1}.";
         const string k_GetErrorMessage = "Cannot get a {0} property on a PreviewProperty with type {1}.";
+
+        string Mock_GetHLSLParameterName(IPortReader portReader)
+        {
+            // TODO: How to get the actual type of a port?
+            // Explore once Esme finishes merging in types
+            return String.Empty;
+        }
 
         Type Mock_GetMaterialPropertyTypeOfPort(IPortReader portReader)
         {
@@ -41,6 +56,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
         {
             // TODO: How to get the actual value of a port?
             // Esme/Liz will add generic object getters, we just need type to cast down to concrete types
+            object portValueFromReader = null;
+            PortConstantValue = portValueFromReader;
             return null;
         }
 

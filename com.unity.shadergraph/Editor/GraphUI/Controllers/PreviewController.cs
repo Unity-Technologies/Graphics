@@ -29,13 +29,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.Controllers
             {
                 using var previewUpdater = shaderGraphState.GraphPreviewState.UpdateScope;
                 {
-                    foreach (var graphDataNodeModel in command.Models)
-                    {
-                        previewUpdater.ChangePreviewExpansionState(graphDataNodeModel.Guid.ToString(), command.m_IsPreviewExpanded);
-                    }
+                    previewUpdater.UpdatePortConstantValue(command.PortModel.ToString(), null);
                 }
             }
-            
+
             Debug.Log("Command issued: " + command);
 
 

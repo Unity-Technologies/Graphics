@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Editor.GraphUI.Utilities;
+using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview;
@@ -29,19 +32,23 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
     struct PreviewRenderData
     {
         public string Guid;
+        public bool isPreviewEnabled;
         public bool isPreviewExpanded;
         public PreviewShaderData shaderData;
         public RenderTexture renderTexture;
         public Texture texture;
         public PreviewMode previewMode;
-        public List<PortPreviewHandler> previewPropertyHandlers;
     }
 
     public class GraphPreviewStateComponent : ViewStateComponent<GraphPreviewStateComponent.PreviewStateUpdater>
     {
         Dictionary<string, PreviewRenderData> KeyToPreviewDataMap = new ();
 
+        Dictionary<string, PortPreviewHandler> KeyToPreviewPropertyHandlerMap = new();
+
         MaterialPropertyBlock m_PreviewMaterialPropertyBlock = new ();
+
+        List<string> m_TimedPreviewKeys;
 
         ShaderGraphModel m_ShaderGraphModel;
 
@@ -54,20 +61,86 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
         {
             public void ChangePreviewExpansionState(string changedElementGuid, bool isPreviewExpanded)
             {
-                if(m_State.KeyToPreviewDataMap.ContainsKey(changedElementGuid))
+                if(m_State.KeyToPreviewDataMap.TryGetValue(changedElementGuid, out var previewRenderData))
                 {
-                    m_State.KeyToPreviewDataMap.TryGetValue(changedElementGuid, out var previewRenderData);
+                    // Update value of flag
                     previewRenderData.isPreviewExpanded = isPreviewExpanded;
+                    // Make sure the struct in the state component is up-to-date also (it's a value type not a reference type as its a struct)
                     m_State.KeyToPreviewDataMap[changedElementGuid] = previewRenderData;
                     m_State.SetUpdateType(UpdateType.Partial);
                 }
             }
 
-            public void UpdatePortConstantValue(string changedElementGuid, bool isPreviewExpanded)
+            public void UpdateNodeState(string changedElementGuid, ModelState changedNodeState)
             {
-                // Get the changed port guid/port-reader or some other GUID we can get to compare
+                if(m_State.KeyToPreviewDataMap.TryGetValue(changedElementGuid, out var previewRenderData))
+                {
+                    // Update value of flag
+                    previewRenderData.isPreviewEnabled = changedNodeState == ModelState.Enabled;
+                    // Make sure the struct in the state component is up-to-date also (it's a value type not a reference type as its a struct)
+                    m_State.KeyToPreviewDataMap[changedElementGuid] = previewRenderData;
+                    m_State.SetUpdateType(UpdateType.Partial);
+                }
+            }
 
-                // Then set preview property in MPB from that
+            public void MarkElementNeedingRecompile(string elementNeedingRecompileGuid)
+            {
+                if(m_State.KeyToPreviewDataMap.TryGetValue(elementNeedingRecompileGuid, out var previewRenderData))
+                {
+                    // Update value of flag
+                    previewRenderData.shaderData.isOutOfDate = true;
+                    // Make sure the struct in the state component is up-to-date also (it's a value type not a reference type as its a struct)
+                    m_State.KeyToPreviewDataMap[elementNeedingRecompileGuid] = previewRenderData;
+                    m_State.SetUpdateType(UpdateType.Partial);
+                }
+            }
+
+            public void UpdatePortConstantValue(string changedElementGuid, object newPortConstantValue)
+            {
+                if (m_State.KeyToPreviewPropertyHandlerMap.TryGetValue(changedElementGuid, out var portPreviewHandler))
+                {
+                    // Update value of port constant
+                    portPreviewHandler.PortConstantValue = newPortConstantValue;
+                    // Make sure the struct in the state component is up-to-date also (it's a value type not a reference type as its a struct)
+                    m_State.KeyToPreviewPropertyHandlerMap[changedElementGuid] = portPreviewHandler;
+                    // TODO: Handle Virtual Texture case
+                    // Then set preview property in MPB from that
+                    m_State.UpdatePortPreviewPropertyBlock(portPreviewHandler);
+                    m_State.SetUpdateType(UpdateType.Partial);
+                }
+            }
+
+            // TODO: Figure out how we're going to handle preview property gathering from property types on both the blackboard properties and their variable nodes
+            // Maybe we need a new VariablePreviewHandler, but subclassing from IPreviewHandler so preview manager can abstract away details of both
+            public void UpdateVariableConstantValue(string changedElementGuid, object newPortConstantValue)
+            {
+                if (m_State.KeyToPreviewPropertyHandlerMap.TryGetValue(changedElementGuid, out var portPreviewHandler))
+                {
+                    // Update value of port constant
+                    portPreviewHandler.PortConstantValue = newPortConstantValue;
+                    // Make sure the struct in the state component is up-to-date also (it's a value type not a reference type as its a struct)
+                    m_State.KeyToPreviewPropertyHandlerMap[changedElementGuid] = portPreviewHandler;
+                    // TODO: Handle Virtual Texture case
+                    // Then set preview property in MPB from that
+                    m_State.UpdatePortPreviewPropertyBlock(portPreviewHandler);
+                    m_State.SetUpdateType(UpdateType.Partial);
+                }
+            }
+
+            // TODO: Use this to respond to the graph elements added command
+            public void OnGraphDataNodeAdded(GraphDataNodeModel nodeModel)
+            {
+
+            }
+
+            public void OnGraphDataNodeRemoved(GraphDataNodeModel nodeModel)
+            {
+
+            }
+
+            public void GraphWindowTick()
+            {
+                m_State.Tick();
             }
         }
 
@@ -76,7 +149,34 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             Dispose();
         }
 
-        public void OnNodeAdded(GraphDataNodeModel nodeModel)
+        public void UpdatePortPreviewPropertyBlock(PortPreviewHandler portPreviewHandler)
+        {
+            portPreviewHandler.SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock);
+        }
+
+        void Tick()
+        {
+            // TODO: Figure out proper initialization for the shader graph model
+            if (m_ShaderGraphModel == null)
+                return;
+
+            using (var timedNodes = PooledHashSet<GraphDataNodeModel>.Get())
+            {
+                m_ShaderGraphModel.GetTimeDependentNodesOnGraph(timedNodes);
+
+                m_TimedPreviewKeys.Clear();
+
+                // Get guids of the time dependent nodes and add to list of time-dependent nodes requiring rendering/updating this frame
+                foreach (var nodeModel in timedNodes)
+                {
+                    m_TimedPreviewKeys.Add(nodeModel.graphDataName);
+                }
+            }
+
+            // TODO: Skip any previews that are currently collapsed
+        }
+
+        public void OnGraphDataNodeAdded(GraphDataNodeModel nodeModel)
         {
             // Make sure the model has been assigned
             m_ShaderGraphModel ??= nodeModel.GraphModel as ShaderGraphModel;
@@ -91,7 +191,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 {
                     hideFlags = HideFlags.HideAndDontSave
                 },
-                previewPropertyHandlers = new List<PortPreviewHandler>()
             };
 
             var shaderData = new PreviewShaderData
@@ -104,23 +203,80 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 
             renderData.shaderData = shaderData;
 
-            CollectPreviewPropertiesFromNode(nodeModel, ref renderData);
+            CollectPreviewPropertiesFromGraphDataNode(nodeModel, ref renderData);
 
             KeyToPreviewDataMap.Add(nodeGuid, renderData);
         }
 
-        void CollectPreviewPropertiesFromNode(GraphDataNodeModel nodeModel, ref PreviewRenderData previewRenderData)
+        void CollectPreviewPropertiesFromGraphDataNode(GraphDataNodeModel nodeModel, ref PreviewRenderData previewRenderData)
         {
-            // TODO: Collect preview properties from the newly added graph element
             // For a node: Get the input ports for the node, get fields from the ports, and get values from the fields
-            // For a property/keyword: Ask Esme and Liz
             var nodeInputPorts = m_ShaderGraphModel.GetInputPortsOnNode(nodeModel);
+
             foreach (var inputPort in nodeInputPorts)
             {
                 var portPreviewHandler = new PortPreviewHandler(inputPort);
                 portPreviewHandler.SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock);
-                previewRenderData.previewPropertyHandlers.Add(portPreviewHandler);
+
+                // For each port on the node, find the matching port model in its port mappings
+                nodeModel.PortMappings.TryGetValue(inputPort, out var matchingPortModel);
+                if (matchingPortModel != null)
+                {
+                    KeyToPreviewPropertyHandlerMap.Add(matchingPortModel.Guid.ToString(), portPreviewHandler);
+                }
             }
+        }
+
+        // TODO: Once Esme integrates types, figure out how we're representing them as nodes, will we use VariableNodeModel or GraphDataNodeModel?
+        public void OnVariableNodeAdded(VariableNodeModel nodeModel)
+        {
+            // Make sure the model has been assigned
+            m_ShaderGraphModel ??= nodeModel.GraphModel as ShaderGraphModel;
+
+            var nodeGuid = nodeModel.Guid.ToString();
+
+            var renderData = new PreviewRenderData
+            {
+                Guid = nodeGuid,
+                renderTexture =
+                    new RenderTexture(200, 200, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default)
+                    {
+                        hideFlags = HideFlags.HideAndDontSave
+                    },
+            };
+
+            var shaderData = new PreviewShaderData
+            {
+                Guid = nodeGuid,
+                passesCompiling = 0,
+                isOutOfDate = true,
+                hasError = false,
+            };
+
+            renderData.shaderData = shaderData;
+
+            CollectPreviewPropertiesFromVariableNode(nodeModel, ref renderData);
+
+            KeyToPreviewDataMap.Add(nodeGuid, renderData);
+        }
+
+        void CollectPreviewPropertiesFromVariableNode(VariableNodeModel nodeModel, ref PreviewRenderData previewRenderData)
+        {
+            // TODO: Collect preview properties from the newly added variable node
+            /* var nodeInputPorts = m_ShaderGraphModel.GetInputPortsOnNode(nodeModel);
+
+            foreach (var inputPort in nodeInputPorts)
+            {
+                var portPreviewHandler = new PortPreviewHandler(inputPort);
+                portPreviewHandler.SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock);
+
+                // For each port on the node, find the matching port model in its port mappings
+                nodeModel.PortMappings.TryGetValue(inputPort, out var matchingPortModel);
+                if (matchingPortModel != null)
+                {
+                    KeyToPreviewPropertyHandlerMap.Add(matchingPortModel.Guid.ToString(), portPreviewHandler);
+                }
+            }*/
         }
 
         public void OnElementWithPreviewRemoved(string elementGuid)

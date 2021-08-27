@@ -55,9 +55,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
                 CommandDispatcher.Dispatch(new ChangePreviewExpandedCommand(false, new [] {m_GraphDataNodeModel}));
             });
 
-            base.BuildContextualMenu(evt);
-
             // TODO: Add preview mode 2D/3D change submenu options to menu
+
+            base.BuildContextualMenu(evt);
         }
     }
 }

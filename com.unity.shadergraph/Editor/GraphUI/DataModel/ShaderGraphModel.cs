@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Editor.GraphUI.Utilities;
+using Unity.Profiling;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -11,6 +14,12 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 {
+    public enum PropagationDirection
+    {
+        Upstream,
+        Downstream
+    }
+
     public class ShaderGraphModel : GraphModel
     {
         IGraphHandler m_GraphHandler;
@@ -106,9 +115,141 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 
         public IEnumerable<IPortReader> GetInputPortsOnNode(GraphDataNodeModel nodeModel)
         {
-            var nodeInstanceReader = m_GraphHandler.GetNode(nodeModel.Guid.ToString());
+            var nodeInstanceReader = m_GraphHandler.GetNode(nodeModel.graphDataName);
             var nodeInstanceInputPorts = m_GraphHandler.GetInputPorts(nodeInstanceReader);
             return nodeInstanceInputPorts;
+        }
+
+        public void GetTimeDependentNodesOnGraph(PooledHashSet<GraphDataNodeModel> timeDependentNodes)
+        {
+            var nodesOnGraph = NodeModels;
+            foreach (var nodeModel in nodesOnGraph)
+            {
+                var graphDataNodeModel = nodeModel as GraphDataNodeModel;
+                if(DoesNodeRequireTime(graphDataNodeModel))
+                    timeDependentNodes.Add(graphDataNodeModel);
+            }
+
+            PropagateNodes(timeDependentNodes, PropagationDirection.Downstream, timeDependentNodes);
+        }
+
+        // cache the Action to avoid GC
+        static Action<GraphDataNodeModel> AddNextLevelNodesToWave =
+            nextLevelNode =>
+            {
+                if (!m_TempAddedToNodeWave.Contains(nextLevelNode))
+                {
+                    m_TempNodeWave.Push(nextLevelNode);
+                    m_TempAddedToNodeWave.Add(nextLevelNode);
+                }
+            };
+
+        // Temp structures that are kept around statically to avoid GC churn (not thread safe)
+        static Stack<GraphDataNodeModel> m_TempNodeWave = new ();
+        static HashSet<GraphDataNodeModel> m_TempAddedToNodeWave = new ();
+        // ADDs all nodes in sources, and all nodes in the given direction relative to them, into result
+        // sources and result can be the same HashSet
+        private static readonly ProfilerMarker PropagateNodesMarker = new ProfilerMarker("PropagateNodes");
+        static void PropagateNodes(HashSet<GraphDataNodeModel> sources, PropagationDirection dir, HashSet<GraphDataNodeModel> result)
+        {
+            using (PropagateNodesMarker.Auto())
+                if (sources.Count > 0)
+                {
+                    // NodeWave represents the list of nodes we still have to process and add to result
+                    m_TempNodeWave.Clear();
+                    m_TempAddedToNodeWave.Clear();
+                    foreach (var node in sources)
+                    {
+                        m_TempNodeWave.Push(node);
+                        m_TempAddedToNodeWave.Add(node);
+                    }
+
+                    while (m_TempNodeWave.Count > 0)
+                    {
+                        var node = m_TempNodeWave.Pop();
+                        if (node == null)
+                            continue;
+
+                        result.Add(node);
+
+                        // grab connected nodes in propagation direction, add them to the node wave
+                        ForeachConnectedNode(node, dir, AddNextLevelNodesToWave);
+                    }
+
+                    // clean up any temp data
+                    m_TempNodeWave.Clear();
+                    m_TempAddedToNodeWave.Clear();
+                }
+        }
+
+        static void ForeachConnectedNode(GraphDataNodeModel node, PropagationDirection dir, Action<GraphDataNodeModel> action)
+        {
+            node.TryGetNodeReader(out var nodeReader);
+            // TODO: What are edges in graph delta? Can see ConnectionRef in graphHandler class
+            /* using (var tempEdges = PooledList<ConnectionRef>.Get())
+            using (var tempSlots = PooledList<IPortReader>.Get())
+            {
+                // Loop through all nodes that the node feeds into.
+                if (dir == PropagationDirection.Downstream)
+                    node.GetOutputSlots(tempSlots);
+                else
+                    node.GetInputSlots(tempSlots);
+
+                foreach (var slot in tempSlots)
+                {
+                    // get the edges out of each slot
+                    tempEdges.Clear();                            // and here we serialize another list, ouch!
+                    node.owner.GetEdges(slot.slotReference, tempEdges);
+                    foreach (var edge in tempEdges)
+                    {
+                        // We look at each node we feed into.
+                        var connectedSlot = (dir == PropagationDirection.Downstream) ? edge.inputSlot : edge.outputSlot;
+                        var connectedNode = connectedSlot.node;
+
+                        action(connectedNode);
+                    }
+                }
+            }
+
+            /* Custom Interpolator Blocks have implied connections to their Custom Interpolator Nodes...
+            if (dir == PropagationDirection.Downstream && node is BlockNode bnode && bnode.isCustomBlock)
+            {
+                foreach (var cin in CustomInterpolatorUtils.GetCustomBlockNodeDependents(bnode))
+                {
+                    action(cin);
+                }
+            }
+            // ... Just as custom Interpolator Nodes have implied connections to their custom interpolator blocks
+            if (dir == PropagationDirection.Upstream && node is CustomInterpolatorNode ciNode && ciNode.e_targetBlockNode != null)
+            {
+                action(ciNode.e_targetBlockNode);
+            } */
+        }
+
+
+        public IEnumerable<GraphDataNodeModel> GetNodesInHierarchyFromSources(IEnumerable<GraphDataNodeModel> nodeSources, PropagationDirection propagationDirection)
+        {
+            var nodesInHierarchy = new HashSet<GraphDataNodeModel>();
+            PropagateNodes(new HashSet<GraphDataNodeModel>(nodeSources), propagationDirection, nodesInHierarchy);
+            return nodesInHierarchy;
+        }
+
+        public static bool DoesNodeRequireTime(GraphDataNodeModel graphDataNodeModel)
+        {
+            graphDataNodeModel.TryGetNodeReader(out var nodeReader);
+
+            bool nodeRequiresTime = false;
+            if (nodeReader != null)
+            {
+                // TODO: Some way of making nodes be marked as requiring time or not
+                // According to Esme, dependencies on globals/properties etc. will exist as RefNodes,
+                // which are other INodeReaders/IPortReaders that exist as hidden/internal connections on a node
+                //nodeReader.TryGetField("requiresTime", out var fieldReader);
+                //if(fieldReader != null)
+                //    fieldReader.TryGetValue(out nodeRequiresTime);
+            }
+
+            return nodeRequiresTime;
         }
     }
 }
