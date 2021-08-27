@@ -686,6 +686,43 @@ VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
     return GetUVData(flipBookSize, 1.0f / flipBookSize, uv, texIndex);
 }
 
+////////////////
+// Prefix Sum //
+////////////////
+
+//Binary search in Inclusive Prefix sum
+//Returns the index among the found group
+uint BinarySearchPrefixSum(uint id, StructuredBuffer<uint> prefixSum, uint bufferSize, inout uint foundId)
+{
+    uint left = 0;
+    uint right = max(bufferSize, 1) - 1;
+    while (left <= right)
+    {
+        foundId = (int)((left + right) / 2);
+        if (id < prefixSum[foundId])
+        {
+            if (foundId == 0 || id >= prefixSum[max(foundId - 1, 0)])
+                break;
+            right = foundId - 1;
+        }
+        else
+        {
+            left = foundId + 1;
+        }
+    }
+
+    //return prefixSum[foundId] - (foundId > 0 ? prefixSum[foundId-1] : 0); //group size
+    return id - (foundId > 0 ? prefixSum[foundId-1] : 0);
+}
+
+/////////////////////
+// Thread indexing //
+/////////////////////
+
+uint GetThreadId(uint3 groupId, uint3 groupThreadId, uint nbThreadPerGroup, uint dispatchWidth)
+{
+    return groupThreadId.x + groupId.x * nbThreadPerGroup + groupId.y * dispatchWidth * nbThreadPerGroup;
+}
 
 ///////////
 // Noise //
