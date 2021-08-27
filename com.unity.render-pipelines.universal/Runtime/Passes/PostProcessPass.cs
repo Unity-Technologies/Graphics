@@ -485,7 +485,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Setup other effects constants
                 SetupLensDistortion(m_Materials.uber, isSceneViewCamera);
                 SetupChromaticAberration(m_Materials.uber);
-                SetupVignette(m_Materials.uber);
+                SetupVignette(m_Materials.uber, cameraData.xr);
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
 
                 // Only apply dithering & grain if there isn't a final pass.
@@ -1235,7 +1235,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         #region Vignette
 
-        void SetupVignette(Material material)
+        void SetupVignette(Material material, XRPass xrPass)
         {
             var color = m_Vignette.color.value;
             var center = m_Vignette.center.value;
@@ -1250,9 +1250,35 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_Vignette.intensity.value * 3f,
                 m_Vignette.smoothness.value * 5f
             );
+#if ENABLE_VR && ENABLE_XR_MODULE
+            var v3 = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+            if (xrPass != null && xrPass.enabled)
+            {
+                float centerDeltaX = 0.5f - center.x;
+                float centerDeltaY = 0.5f - center.y;
+
+                XRView view0 = xrPass.views[0];
+                v2.x = view0.eyeCenterUV.x + centerDeltaX;
+                v2.y = view0.eyeCenterUV.y + centerDeltaY;
+                if (xrPass.views.Count == 1)
+                {
+                    v3.z = v2.x;
+                    v3.w = v2.y;
+                }
+                else
+                {
+                    XRView view1 = xrPass.views[1];
+                    v3.x = view1.eyeCenterUV.x + centerDeltaX;
+                    v3.y = view1.eyeCenterUV.y + centerDeltaY;
+                }
+            }
+#endif
 
             material.SetVector(ShaderConstants._Vignette_Params1, v1);
             material.SetVector(ShaderConstants._Vignette_Params2, v2);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            material.SetVector(ShaderConstants._Vignette_Params3, v3);
+#endif
         }
 
         #endregion
@@ -1502,6 +1528,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _Chroma_Params = Shader.PropertyToID("_Chroma_Params");
             public static readonly int _Vignette_Params1 = Shader.PropertyToID("_Vignette_Params1");
             public static readonly int _Vignette_Params2 = Shader.PropertyToID("_Vignette_Params2");
+            public static readonly int _Vignette_Params3 = Shader.PropertyToID("_Vignette_Params3");
             public static readonly int _Lut_Params = Shader.PropertyToID("_Lut_Params");
             public static readonly int _UserLut_Params = Shader.PropertyToID("_UserLut_Params");
             public static readonly int _InternalLut = Shader.PropertyToID("_InternalLut");
