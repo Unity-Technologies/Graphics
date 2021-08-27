@@ -136,6 +136,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     // Blit has logic to flip projection matrix when rendering to render texture.
                     // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
+                    // However special exception is done by Overlay camera which doesn't have _ProjectionParams.x set up
                     // If you replace this Blit with a Draw* that sets projection matrix double check
                     // to also update shader.
                     // scaleBias.x = flipSign
@@ -144,7 +145,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // scaleBias.w = unused
                     // In game view final target acts as back buffer were target is not flipped
                     bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination == RenderTargetHandle.CameraTarget);
-                    bool yflip = (cameraData.IsCameraProjectionMatrixFlipped()) && !isGameViewFinalTarget;
+                    bool yflip = (cameraData.IsCameraProjectionMatrixFlipped() && cameraData.renderType != CameraRenderType.Overlay) && !isGameViewFinalTarget;
                     float flipSign = yflip ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
                         ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
