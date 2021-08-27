@@ -42,18 +42,21 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
 #if VFX_USE_INSTANCING
     uint nbInstancesInDispatch = 1; //TODO :nbDrawnInstances is supposed to be a uniform in the future
-    /*VFX*/SetInstancingIndices(
-    #if VFX_INSTANCING_VARIABLE_SIZE
-    nbInstancesInDispatch,
-    instancePrefixSum,
-    #else
-    nbMax,
-    #endif
-    #if VFX_INSTANCING_INDIRECTION
-    instanceIndirectionBuffer,
-    #endif
-    index, particleIndex)
-    #endif
+#if VFX_INSTANCING_VARIABLE_SIZE
+#if VFX_INSTANCING_INDIRECTION
+SetInstancingIndices(nbInstancesInDispatch,instancePrefixSum,instanceIndirectionBuffer,index, particleIndex);
+#else
+SetInstancingIndices(nbInstancesInDispatch,instancePrefixSum,index, particleIndex);
+#endif
+#else
+#if VFX_INSTANCING_INDIRECTION
+SetInstancingIndices(nbMax,instanceIndirectionBuffer,index, particleIndex);
+#else
+SetInstancingIndices(nbMax,index, particleIndex);
+#endif
+#endif
+#endif
+
 
 #if VFX_COMPUTE_BOUNDS
 	uint tid = groupThreadId.x;
