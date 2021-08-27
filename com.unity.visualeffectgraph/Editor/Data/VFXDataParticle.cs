@@ -568,10 +568,8 @@ namespace UnityEditor.VFX
                 if (abstractParticleOutput == null)
                     continue;
 
-                abstractParticleOutput.needsOwnSort = abstractParticleOutput.HasSorting() && needsGlobalSort &&
-                    (abstractParticleOutput.GetSortCriterion() != globalSortCriterion
-                        || abstractParticleOutput.GetSortCriterion() == SortCriteria.Custom
-                        && !comparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"), globalSortKeySlot));
+                abstractParticleOutput.needsOwnSort = OutputNeedsOwnSort(abstractParticleOutput, needsGlobalSort,
+                    globalSortCriterion, globalSortKeySlot, comparer);
                 if (abstractParticleOutput.NeedsOutputUpdate())
                 {
                     var update = VFXContext.CreateImplicitContext<VFXOutputUpdate>(this);
@@ -586,6 +584,15 @@ namespace UnityEditor.VFX
                 m_Contexts.Add(contexts[index]);
 
             return implicitContext;
+        }
+
+        private static bool OutputNeedsOwnSort(VFXAbstractParticleOutput abstractParticleOutput, bool needsGlobalSort,
+            SortCriteria globalSortCriterion, VFXSlot globalSortKeySlot, SortKeySlotComparer comparer)
+        {
+            return abstractParticleOutput.HasSorting() && needsGlobalSort &&
+                   (abstractParticleOutput.GetSortCriterion() != globalSortCriterion
+                    || abstractParticleOutput.GetSortCriterion() == SortCriteria.Custom
+                    && !comparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"), globalSortKeySlot));
         }
 
         public bool NeedsIndirectBuffer()
