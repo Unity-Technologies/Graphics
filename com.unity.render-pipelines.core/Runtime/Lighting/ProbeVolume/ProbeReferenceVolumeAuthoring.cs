@@ -131,10 +131,9 @@ namespace UnityEngine.Experimental.Rendering
         // Keeping it here to have a gradual transition and because we don't have metadata for states yet.
         internal ProbeVolumeAsset GrabRelevantAsset()
         {
-            var scenePath = gameObject.scene.path;
             if (ProbeReferenceVolume.instance.sceneData != null)
             {
-                return ProbeReferenceVolume.instance.sceneData.GetActiveAsset(scenePath);
+                return ProbeReferenceVolume.instance.sceneData.GetActiveAsset(gameObject.scene);
             }
             return null;
         }

@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+using System.Reflection;
 
 // TODO! TO CONSIDER: All this referencing scenes via their path, is that reliable? Shall we use some other thing? What happens upon renaming? Do we have a persistent value?
 
@@ -15,6 +16,14 @@ namespace UnityEngine.Experimental.Rendering
     /// <summary> A class containing scene info about related to probe volumes. </summary>
     public class ProbeVolumeSceneData : ISerializationCallbackReceiver
     {
+
+        static PropertyInfo s_SceneGUID = typeof(Scene).GetProperty("guid", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
+        string GetSceneGUID(Scene scene)
+        {
+            Debug.Assert(s_SceneGUID != null, "Reflection for scene GUID failed");
+            return (string)s_SceneGUID.GetValue(scene);
+        }
+
         [System.Serializable]
         struct SerializableBoundItem
         {
@@ -32,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering
         [System.Serializable]
         struct SerializableAssetItem
         {
-            [SerializeField] public string scenePath;
+            [SerializeField] public string sceneGUID;
             [SerializeField] public APVSceneAssets assets;
         }
 
@@ -119,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var assetItem in serializedAssets)
             {
-                sceneAssets.Add(assetItem.scenePath, assetItem.assets);
+                sceneAssets.Add(assetItem.sceneGUID, assetItem.assets);
             }
         }
 
@@ -155,7 +164,7 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var k in sceneAssets.Keys)
             {
                 SerializableAssetItem item;
-                item.scenePath = k;
+                item.sceneGUID = k;
                 item.assets = sceneAssets[k];
                 serializedAssets.Add(item);
             }
@@ -278,20 +287,21 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        // IMPORTANT TODO: This will require a metadata item together with the asset to make sure the asset is inserted correctly in the list of assets belonging to a scene.+
-        internal void AddAsset(string scenePath, ProbeVolumeAsset asset)
+        // IMPORTANT TODO: This will require a metadata item together with the asset to make sure the asset is inserted correctly in the list of assets belonging to a scene.
+        internal void AddAsset(Scene scene, ProbeVolumeAsset asset)
         {
+            var sceneGUID = GetSceneGUID(scene);
             if (sceneAssets == null)
             {
                 sceneAssets = new Dictionary<string, APVSceneAssets>();
             }
 
-            if (!sceneAssets.ContainsKey(scenePath))
+            if (!sceneAssets.ContainsKey(sceneGUID))
             {
-                sceneAssets.Add(scenePath, new APVSceneAssets());
+                sceneAssets.Add(sceneGUID, new APVSceneAssets());
             }
 
-            sceneAssets[scenePath].AddAsset(asset);
+            sceneAssets[sceneGUID].AddAsset(asset);
 
             if (m_ParentAsset != null)
             {
@@ -299,19 +309,21 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        internal void ClearAsset(string scenePath)
+        internal void ClearAsset(Scene scene)
         {
-            if (sceneAssets != null && sceneAssets.ContainsKey(scenePath))
+            var sceneGUID = GetSceneGUID(scene);
+            if (sceneAssets != null && sceneAssets.ContainsKey(sceneGUID))
             {
-                sceneAssets.Remove(scenePath);
+                sceneAssets.Remove(sceneGUID);
             }
         }
 
-        internal ProbeVolumeAsset GetActiveAsset(string scenePath)
+        internal ProbeVolumeAsset GetActiveAsset(Scene scene)
         {
-            if (sceneAssets != null && sceneAssets.ContainsKey(scenePath))
+            var sceneGUID = GetSceneGUID(scene);
+            if (sceneAssets != null && sceneAssets.ContainsKey(sceneGUID))
             {
-                return sceneAssets[scenePath].GetActiveAsset();
+                return sceneAssets[sceneGUID].GetActiveAsset();
             }
             return null;
         }
@@ -320,32 +332,34 @@ namespace UnityEngine.Experimental.Rendering
         // The logic to check if scene needs their asset loading can be optimized.
 
         // TODO: This status will be a state whenever we introduce them instead of a binary yes/no.
-        internal void SetSceneAssetLoaded(string scenePath, bool status)
+        internal void SetSceneAssetLoaded(string sceneGUID, bool status)
         {
             if (sceneAssetLoadingStatus == null)
                 sceneAssetLoadingStatus = new Dictionary<string, bool>();
 
-            sceneAssetLoadingStatus[scenePath] = status;
+            sceneAssetLoadingStatus[sceneGUID] = status;
         }
 
         // TODO: Add a state here when we have it.
         internal void FlushPendingAssets()
         {
+            if (sceneAssets == null) return;
+
             if (sceneAssetLoadingStatus == null)
                 sceneAssetLoadingStatus = new Dictionary<string, bool>();
 
             int sceneCount = SceneManagement.SceneManager.sceneCount;
             for (int i = 0; i < sceneCount; ++i)
             {
-                var scenePath = SceneManagement.SceneManager.GetSceneAt(i).path;
-                if (sceneAssets.ContainsKey(scenePath))
+                var sceneGUID = GetSceneGUID(SceneManager.GetSceneAt(i));
+                if (sceneAssets.ContainsKey(sceneGUID))
                 {
-                    var asset = sceneAssets[scenePath].GetActiveAsset();
+                    var asset = sceneAssets[sceneGUID].GetActiveAsset();
 
-                    if (!sceneAssetLoadingStatus.ContainsKey(scenePath) || !sceneAssetLoadingStatus[scenePath])
+                    if (!sceneAssetLoadingStatus.ContainsKey(sceneGUID) || !sceneAssetLoadingStatus[sceneGUID])
                     {
                         ProbeReferenceVolume.instance.AddPendingAssetLoading(asset);
-                        SetSceneAssetLoaded(scenePath, true); // Assume we are loading the assets before calling the flushing again.
+                        SetSceneAssetLoaded(sceneGUID, true); // Assume we are loading the assets before calling the flushing again.
                     }
                 }
             }
@@ -353,13 +367,12 @@ namespace UnityEngine.Experimental.Rendering
 
         internal void OnSceneUnloaded(Scene scene)
         {
-            Debug.Log("WUT WUT");
-            var scenePath = scene.path;
-            if (sceneAssets.ContainsKey(scenePath))
+            var sceneGUID = GetSceneGUID(scene);
+            if (sceneAssets.ContainsKey(sceneGUID))
             {
-                var asset = sceneAssets[scenePath].GetActiveAsset();
+                var asset = sceneAssets[sceneGUID].GetActiveAsset();
                 ProbeReferenceVolume.instance.AddPendingAssetRemoval(asset);
-                SetSceneAssetLoaded(scenePath, false);
+                SetSceneAssetLoaded(sceneGUID, false);
             }
         }
     }

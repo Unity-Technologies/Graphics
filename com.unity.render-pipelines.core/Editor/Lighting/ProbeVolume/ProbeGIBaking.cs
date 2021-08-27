@@ -91,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (!refVolAuthoring.enabled || !refVolAuthoring.gameObject.activeSelf)
                     continue;
 
-                ProbeReferenceVolume.instance.sceneData.ClearAsset(refVolAuthoring.gameObject.scene.path);
+                ProbeReferenceVolume.instance.sceneData.ClearAsset(refVolAuthoring.gameObject.scene);
 
                 var refVol = ProbeReferenceVolume.instance;
                 refVol.Clear();
@@ -528,7 +528,7 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var refVol in scene2RefVol.Values)
             {
                 var asset = ProbeVolumeAsset.CreateAsset(refVol.gameObject.scene);
-                ProbeReferenceVolume.instance.sceneData.AddAsset(refVol.gameObject.scene.path, asset);
+                ProbeReferenceVolume.instance.sceneData.AddAsset(refVol.gameObject.scene, asset);
                 refVol2Asset[refVol] = asset;
             }
 
@@ -555,7 +555,7 @@ namespace UnityEngine.Experimental.Rendering
                 var refVol = pair.Key;
                 var asset = pair.Value;
 
-                ProbeReferenceVolume.instance.sceneData.AddAsset(refVol.gameObject.scene.path, asset);
+                ProbeReferenceVolume.instance.sceneData.AddAsset(refVol.gameObject.scene, asset);
 
                 if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
                 {
