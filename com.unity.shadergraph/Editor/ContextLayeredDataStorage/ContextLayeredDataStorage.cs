@@ -210,15 +210,12 @@ namespace UnityEditor.ContextLayeredDataStorage
         [NonSerialized]
         protected readonly LayerList m_layerList;
         [NonSerialized]
-        protected Element m_flatStructure;
-        [NonSerialized]
-        protected Dictionary<string, Element<Element>> m_flatStructureLookup;
+        protected Dictionary<string, Element> m_flatStructureLookup;
 
         public ContextLayeredDataStorage()
         {
             m_layerList = new LayerList(this);
-            m_flatStructure = new Element(this);
-            m_flatStructureLookup = new Dictionary<string, Element<Element>>();
+            m_flatStructureLookup = new Dictionary<string, Element>();
             AddDefaultLayers();
         }
 
@@ -403,19 +400,14 @@ namespace UnityEditor.ContextLayeredDataStorage
             {
                 RemoveData(elem);
             }
+            RemoveData(root);
         }
 
         public IDataElement Search(string lookup)
         {
-            if(m_flatStructureLookup.TryGetValue(lookup, out Element<Element> reference))
+            if(m_flatStructureLookup.TryGetValue(lookup, out Element reference))
             {
-                return reference.data;
-            }
-
-            var pathSearch = SearchRelative(m_flatStructure, lookup) as Element<Element>;
-            if(pathSearch != null)
-            {
-                return pathSearch.data;
+                return reference;
             }
             return null;
         }
@@ -653,19 +645,16 @@ namespace UnityEditor.ContextLayeredDataStorage
         protected void UpdateFlattenedStructureAdd(Element addedElement)
         {
             string id = addedElement.GetFullPath();
-            if(m_flatStructureLookup.TryGetValue(id, out Element<Element> flatRefElem))
+            if(m_flatStructureLookup.TryGetValue(id, out Element elem))
             {
-                if(GetHierarchyValue(addedElement) > GetHierarchyValue(flatRefElem.data))
+                if(GetHierarchyValue(addedElement) > GetHierarchyValue(elem))
                 {
-                    flatRefElem.data = addedElement;
+                    m_flatStructureLookup[id] = addedElement;
                 }
             }
             else
             {
-                EvaluateParentAndId(in m_flatStructure, id, out Element parent, out string newId);
-                Element<Element> newFlatRefElem = new Element<Element>(newId, addedElement, this);
-                AddChild(parent, newFlatRefElem);
-                m_flatStructureLookup.Add(id, newFlatRefElem);
+                m_flatStructureLookup.Add(id, addedElement);
             }
         }
 
@@ -674,13 +663,10 @@ namespace UnityEditor.ContextLayeredDataStorage
             var replacement = SearchInternal(removedElementId);
             if(replacement != null)
             {
-                var flatRefElem = m_flatStructureLookup[removedElementId];
-                flatRefElem.data = replacement;
+                m_flatStructureLookup[removedElementId] = replacement;
             }
             else
             {
-                var refElem = m_flatStructureLookup[removedElementId];
-                RemoveInternal(refElem);
                 m_flatStructureLookup.Remove(removedElementId);
             }
         }

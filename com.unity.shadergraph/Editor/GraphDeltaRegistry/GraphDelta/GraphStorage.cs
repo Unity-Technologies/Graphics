@@ -17,7 +17,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return HasSubData(element, "_isInput", "_isHorizontal");
             }
 
-            public WeakReference<Element<Element>> elementReference;
+            private string path;
+            public WeakReference<Element> elementReference;
             public GraphStorage storageReference;
             public void Dispose()
             {
@@ -27,17 +28,31 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public GraphReader(Element element, GraphStorage storage)
             {
-                this.elementReference = new WeakReference<Element<Element>>(storage.m_flatStructureLookup[element.GetFullPath()]);
+                this.path = element.GetFullPath();
+                this.elementReference = new WeakReference<Element>(storage.m_flatStructureLookup[path]);
                 this.storageReference = storage;
             }
 
             private IEnumerable<Element> GetSubElements()
             {
-                if (elementReference.TryGetTarget(out Element<Element> element))
+                foreach(var kvp in storageReference.m_flatStructureLookup)
                 {
-                    return element.children;
+                    string id = kvp.Key;
+                    Element elem = kvp.Value;
+                    if (id.StartsWith(path))
+                    {
+                        var relativePath = id.Substring(path.Length);
+                        if(relativePath.StartsWith("."))
+                        {
+                            relativePath = relativePath.TrimStart('.');
+                            if(!relativePath.Contains("."))
+                            {
+                                yield return elem;
+                            }
+                        }
+                    }
                 }
-                return null;
+
             }
 
             public IEnumerator<GraphReader> GetChildren()
@@ -50,7 +65,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool TryGetValue<T>(out T value)
             {
-                if (elementReference.TryGetTarget(out Element<Element> element) && element.data is Element<T> typeElement)
+                if (elementReference.TryGetTarget(out Element element) && element is Element<T> typeElement)
                 {
                     value = typeElement.data;
                     return true;
@@ -64,14 +79,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             private bool TryGetSubReader(string searchKey, out GraphReader graphReader)
             {
-                if (elementReference.TryGetTarget(out Element<Element> element))
+                if (storageReference.m_flatStructureLookup.TryGetValue($"{path}.{searchKey}", out Element element))
                 {
-                    Element maybeElement = storageReference.SearchRelative(element, searchKey);
-                    if (maybeElement != null)
-                    {
-                        graphReader = new GraphReader(maybeElement, this.storageReference);
-                        return true;
-                    }
+                    graphReader = new GraphReader(element, this.storageReference);
+                    return true;
                 }
                 graphReader = null;
                 return false;
@@ -141,12 +152,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool TryGetPort(string portKey, out IPortReader portReader)
             {
-                if (elementReference.TryGetTarget(out Element<Element> element))
+                if (TryGetSubReader(portKey, out GraphReader graphReader))
                 {
-                    Element maybePort = storageReference.SearchRelative(element, portKey);
-                    if (IsPortReader(maybePort))
+                    if (graphReader.elementReference.TryGetTarget(out Element element) && IsPortReader(element))
                     {
-                        portReader = new GraphReader(maybePort, this.storageReference);
+                        portReader = graphReader;
                         return true;
                     }
                 }
@@ -156,12 +166,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             bool INodeReader.TryGetField(string fieldKey, out IFieldReader fieldReader)
             {
-                if (elementReference.TryGetTarget(out Element<Element> element))
+                if (TryGetSubReader(fieldKey, out GraphReader graphReader))
                 {
-                    Element maybeField = storageReference.SearchRelative(element, fieldKey);
-                    if (!IsPortReader(maybeField))
+                    if (graphReader.elementReference.TryGetTarget(out Element element) && !IsPortReader(element))
                     {
-                        fieldReader = new GraphReader(maybeField, this.storageReference);
+                        fieldReader = graphReader;
                         return true;
                     }
                 }
@@ -460,17 +469,35 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     {
                         if (HasSubData(child, "_isInput", "_isHorizontal"))
                         {
-                            output &= (new GraphWriter(child, storageReference) as IPortWriter).TryRemove();
-                        }
-                        else
-                        {
-                            output &= (new GraphWriter(child, storageReference) as IFieldWriter).TryRemove();
+                            DisconnectAll(child);
                         }
                     }
                     storageReference.RemoveDataBranch(element);
                     return output;
                 }
                 return false;
+            }
+
+            private void DisconnectAll(Element element)
+            {
+                foreach (var child in element.children)
+                {
+                    if (child.id.CompareTo("_Input") == 0)
+                    {
+                        var outputPort = (child as Element<Element>).data;
+                        DisconnectPorts(new GraphWriter(outputPort, storageReference), this);
+                        break;
+                    }
+                    else if (child.id.CompareTo("_Output") == 0)
+                    {
+                        var connections = (child as Element<List<Element>>).data;
+                        foreach (var connection in connections)
+                        {
+                            DisconnectPorts(this, new GraphWriter(connection, storageReference));
+                        }
+                        break;
+                    }
+                }
             }
 
             bool IPortWriter.TryRemove()
@@ -484,6 +511,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                         {
                             var outputPort = (child as Element<Element>).data;
                             DisconnectPorts(new GraphWriter(outputPort, storageReference), this);
+                            break;
                         }
                         else if (child.id.CompareTo("_Output") == 0)
                         {
@@ -492,14 +520,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                             {
                                 DisconnectPorts(this, new GraphWriter(connection, storageReference));
                             }
-                        }
-                        else if (HasSubData(child, "_isInput", "_isHorizontal"))
-                        {
-                            output &= (new GraphWriter(child, storageReference) as IPortWriter).TryRemove();
-                        }
-                        else
-                        {
-                            output &= (new GraphWriter(child, storageReference) as IFieldWriter).TryRemove();
+                            break;
                         }
                     }
                     storageReference.RemoveDataBranch(element);
@@ -514,17 +535,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 if (elementReference.TryGetTarget(out Element element))
                 {
                     bool output = true;
-                    foreach (var child in element.children)
-                    {
-                        if (HasSubData(child, "_isInput", "_isHorizontal"))
-                        {
-                            output &= (new GraphWriter(child, storageReference) as IPortWriter).TryRemove();
-                        }
-                        else
-                        {
-                            output &= (new GraphWriter(child, storageReference) as IFieldWriter).TryRemove();
-                        }
-                    }
                     storageReference.RemoveDataBranch(element);
                     return output;
                 }

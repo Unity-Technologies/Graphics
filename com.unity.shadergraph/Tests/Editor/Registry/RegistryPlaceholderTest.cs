@@ -27,7 +27,8 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
 
             // Set the length of input port 1 to 1.
             var nodeWriter = graph.GetNodeWriter("Add1");
-            nodeWriter.SetField("In1.Length", 1);
+            nodeWriter.TryAddPort("In1", true, true, out var portWriter);
+            portWriter.SetField("Length", 1);
 
             // We just set this field to 1, it should be 1.
             reader = graph.GetNodeReader("Add1");
