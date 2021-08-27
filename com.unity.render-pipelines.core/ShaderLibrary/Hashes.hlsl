@@ -1,16 +1,16 @@
 void Hash_Tchou_3_3_uint(uint3 v, out uint3 o)
 {
-	// 16 alu (3 mul)
-	v.y ^= v.x + v.z;        // 2			issue:   v.x + v.z == v.y --- result is always zero in this plane
-	v.y = v.y * 134775813;   // 1 (1 mul)
-	v.z += v.x ^ v.y;        // 2
-	v.y += v.x ^ v.z;        // 2
-	v.x += v.y * v.z;        // 2 (1 mul)
-	v.x = v.x * 0x27d4eb2du; // 1 (1 mul)
-	v.x ^= v.x << 16;        // 2
-	v.z ^= v.x << 3;         // 2
-	v.y += v.z << 3;         // 2
-	o = v;
+    // 15 alu (3 mul)
+    v.x ^= 1103515245U;      // 1 (break symmetry)
+    v.y ^= v.x + v.z;        // 2
+    v.y = v.y * 134775813;   // 1 (1 mul)
+    v.z += v.x ^ v.y;        // 2
+    v.y += v.x ^ v.z;        // 2
+    v.x += v.y * v.z;        // 2 (1 mul)
+    v.x = v.x * 0x27d4eb2du; // 1 (1 mul)
+    v.z ^= v.x << 3;         // 2
+    v.y += v.z << 3;         // 2
+    o = v;
 }
 
 void Hash_Tchou_3_3_float(float3 i, out float3 o)
