@@ -736,10 +736,14 @@ uint GetThreadId(uint3 groupId, uint3 groupThreadId, uint nbThreadPerGroup, uint
 
 #include "VFXParticleStripCommon.hlsl"
 
-
-
 ////////////////////////////
 // Bounds reduction utils //
 ////////////////////////////
 
 #include "VFXBoundsReduction.hlsl"
+
+
+//////////////////////
+// Instancing Utils //
+//////////////////////
+#include "VFXInstancing.hlsl"

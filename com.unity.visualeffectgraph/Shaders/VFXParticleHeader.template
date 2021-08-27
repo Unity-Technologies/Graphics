@@ -40,24 +40,18 @@ ByteAddressBuffer elementToVFXBufferPrevious;
 
 #endif
 
-#define VFX_USE_INSTANCING_INDIRECTION (!VFX_HAS_INDIRECT_DRAW)
-#if VFX_USE_INSTANCING_INDIRECTION
-StructuredBuffer<uint> instancePrefixSum;
-StructuredBuffer<uint> instanceIndirectionBuffer;
+#define VFX_USE_INSTANCING 1
+#define VFX_INSTANCING_INDIRECTION 1
+#define VFX_INSTANCING_VARIABLE_SIZE 1
 
-//Creates and sets :
-// * the "index" to access the attribute buffer
-// * the "indexInInstance"
-// * the "instanceIndex" giving which instance is being drawn
-//TODO :nbDrawnInstances is supposed to be a uniform in the future
-#define VFXSetInstancingIndices(index) \
-{ \
-       uint nbDrawnInstances = 1;  \
-       uint instanceIdInDrawCall; \
-       uint indexInInstance = BinarySearchPrefixSum(index, instancePrefixSum, nbDrawnInstances,instanceIdInDrawCall);  \
-       uint instanceIndex = instanceIndirectionBuffer[instanceIdInDrawCall];  \
-       index = GetIndexInAttributeBuffer(instanceIndex, indexInInstance);  \
-}
+#if VFX_INSTANCING_INDIRECTION
+StructuredBuffer<uint> instanceIndirectionBuffer;
+#endif
+#if VFX_INSTANCING_VARIABLE_SIZE
+StructuredBuffer<uint> instancePrefixSum;
+#endif
+
+#if VFX_USE_INSTANCING
 
 #endif
 

@@ -604,7 +604,6 @@ namespace UnityEditor.VFX
             string renderPipeCommon = context.doesIncludeCommonCompute ? "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.hlsl" : renderRuntimePipePath + "/VFXCommon.hlsl";
             perPassIncludeContent.WriteLine("#include \"" + renderPipeCommon + "\"");
             perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl\"");
-            perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXInstancing.hlsl\""); //Should it go in Global Includes ?
             if (!context.codeGeneratorCompute)
             {
                 perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl\"");

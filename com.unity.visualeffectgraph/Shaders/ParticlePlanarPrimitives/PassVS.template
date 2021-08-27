@@ -43,7 +43,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	uint index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
 #endif
 
-#if VFX_USE_INSTANCING_INDIRECTION
+#if VFX_INSTANCING_INDIRECTION
     VFXSetInstancingIndices(index);
 #endif
 

@@ -38,9 +38,23 @@ void CSMain(uint3 groupId          : SV_GroupID,
             uint3 groupThreadId    : SV_GroupThreadID)
 {
 	uint id = GetThreadId(groupId, groupThreadId, NB_THREADS_PER_GROUP, dispatchWidth);
-	uint instanceIndex = GetInstanceIndexFromThreadId(id, nbMax);
-	uint indexInInstance = GetIndexInInstance(id, instanceIndex, nbMax);
-	uint index = GetIndexInAttributeBuffer(instanceIndex, indexInInstance);
+	uint index = id;
+
+#if VFX_USE_INSTANCING
+    uint nbInstancesInDispatch = 1; //TODO :nbDrawnInstances is supposed to be a uniform in the future
+    /*VFX*/SetInstancingIndices(
+    #if VFX_INSTANCING_VARIABLE_SIZE
+    nbInstancesInDispatch,
+    instancePrefixSum,
+    #else
+    nbMax,
+    #endif
+    #if VFX_INSTANCING_INDIRECTION
+    instanceIndirectionBuffer,
+    #endif
+    index, particleIndex)
+    #endif
+
 #if VFX_COMPUTE_BOUNDS
 	uint tid = groupThreadId.x;
 #endif

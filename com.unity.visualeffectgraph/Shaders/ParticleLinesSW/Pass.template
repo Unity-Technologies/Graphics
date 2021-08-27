@@ -29,7 +29,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
 	uint index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
-	#if VFX_USE_INSTANCING_INDIRECTION
+	#if VFX_INSTANCING_INDIRECTION
         VFXSetInstancingIndices(index);
     #endif
 
