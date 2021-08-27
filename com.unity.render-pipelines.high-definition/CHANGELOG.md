@@ -23,7 +23,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed tiled artifacts in refraction at borders between two reflection probes.
 - Fixed the FreeCamera and SimpleCameraController mouse rotation unusable at low framerate (case 1340344).
 - Fixed warning "Releasing render texture that is set to be RenderTexture.active!" on pipeline disposal / hdrp live editing.
-- Fixed a null ref exception when adding a new environment to the Look Dev library.
 - Fixed a nullref in volume system after deleting a volume object (case 1348374).
 
 ## [10.6.0] - 2021-04-29
