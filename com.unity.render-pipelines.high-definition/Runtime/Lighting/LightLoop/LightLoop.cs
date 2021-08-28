@@ -3361,7 +3361,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var proj = hdCamera.xr.enabled ? hdCamera.xr.GetProjMatrix(viewIndex) : camera.projectionMatrix;
                 // Note: we need to take into account the TAA jitter when indexing the light list
-                proj = (hdCamera.antialiasing == AntialiasingMode.TemporalAntialiasing) ? hdCamera.GetJitteredProjectionMatrix(proj) : proj;
+                proj = (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing) ? hdCamera.GetJitteredProjectionMatrix(proj) : proj;
 
                 m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
 

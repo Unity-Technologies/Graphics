@@ -389,7 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // This can happen if a script disables and re-enables the camera (case 1337843).
             if (!hdCamera.isPersistent && hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing) == null)
             {
-                m_SubFrameManager.Reset(camID);
+                m_SubFrameManager.Reset(hdCamera.camera.GetInstanceID());
             }
 
             if (!m_SubFrameManager.isRecording)
