@@ -146,7 +146,7 @@ ShaderGraph_ref_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_trunk:
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
                   python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     artifacts:
@@ -334,7 +334,7 @@ ShaderGraph_ref_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_2021.2:
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
                   python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     artifacts:
@@ -522,7 +522,7 @@ ShaderGraph_ref_Android_Vulkan_Standalone_cache_ref_images_il2cpp_Linear_CUSTOM-
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
                   python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --architecture=ARM64 --artifacts_path=TestProjects/ShaderGraph/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
     artifacts:
