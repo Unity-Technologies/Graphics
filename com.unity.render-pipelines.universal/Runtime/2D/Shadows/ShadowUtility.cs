@@ -73,6 +73,16 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+
+        static void ReorderVertices(ref NativeArray<Vector3> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector3> outVertices)
+        {
+            for(int i=0;i<inEdges.Length;i++)
+            {
+                int index = inEdges[i].v0;
+                outVertices[i] = inVertices[index];
+            }
+        }
+
         static void CalculateVertices(ref NativeArray<Vector3> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector4> inTangents, ref NativeArray<ShadowMeshVertex> outMeshVertices)
         {
             for (int i = 0; i < inEdges.Length; i++)
@@ -185,5 +195,31 @@ namespace UnityEngine.Rendering.Universal
 
             return retBoundingSphere;
         }
+
+        static public void GenerateShadowOutline(NativeArray<Vector2> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, float contractionDistance, out NativeArray<Vector3> outline)
+        {
+            Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
+
+            outline = new NativeArray<Vector3>(inVertices.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            // Setup our buffers
+            int meshVertexCount = inVertices.Length + 2 * inEdges.Length;                       // Each vertex will have a duplicate that can be extruded.
+            int meshIndexCount = inEdges.Length * k_VerticesPerTriangle * k_TrianglesPerEdge;  // There are two triangles per edge making a degenerate rectangle (0 area)
+
+            NativeArray<Vector4> meshTangents = new NativeArray<Vector4>(meshVertexCount, Allocator.Temp);
+            NativeArray<int> meshIndices = new NativeArray<int>(meshIndexCount, Allocator.Temp);
+            NativeArray<Vector3> contractedVertices = new NativeArray<Vector3>(inVertices.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            // Get vertex reduction directions
+            CalculateTangents(ref inVertices, ref inEdges, ref meshTangents);                            // meshVertices contain a normal component
+            CalculateContraction(ref inVertices, ref inEdges, ref meshTangents, contractionDistance, ref contractedVertices);
+            ReorderVertices(ref contractedVertices, ref inEdges, ref outline);
+
+            meshTangents.Dispose();
+            meshIndices.Dispose();
+            contractedVertices.Dispose();
+        }
+
+
     }
 }

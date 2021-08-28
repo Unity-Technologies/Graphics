@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.Universal
                 Edge edge2 = new Edge(v2Index, v0Index);
 
 
-                // When a contains key comparison is made edges (A, B) and (B, A) are equal (see EdgeComparer)
+                // When a key comparison is made edges (A, B) and (B, A) are equal (see EdgeComparer)
                 if (m_EdgeDictionary.ContainsKey(edge0))
                     m_EdgeDictionary[edge0] = m_EdgeDictionary[edge0] + 1;
                 else
@@ -180,43 +180,6 @@ namespace UnityEngine.Rendering.Universal
             SortEdges(unsortedEdges, m_ProvidedEdges);
         }
 
-        private void CalculateContractionDirection()
-        {
-            m_ContractionDirection = new NativeArray<Vector2>(m_ProvidedVertices.Length, Allocator.Persistent);
-            m_ContractionMaximum = new NativeArray<float>(m_ProvidedVertices.Length, Allocator.Persistent);
-
-            for (int i = 0; i < m_ProvidedEdges.Length; i++)
-            {
-                Edge currentEdge = m_ProvidedEdges[i];
-                Edge nextEdge = m_ProvidedEdges[m_ProvidedEdges[i].v1];
-
-                int currentVertexIndex = currentEdge.v1;
-
-                Vector3 v0 = m_ProvidedVertices[currentEdge.v0];
-                Vector3 v1 = m_ProvidedVertices[currentEdge.v1];
-                Vector3 v2 = m_ProvidedVertices[nextEdge.v1];
-
-                Vector3 normal1 = Vector3.Normalize(Vector3.Cross(Vector3.Normalize(v1-v0), Vector3.forward));
-                Vector3 normal2 = Vector3.Normalize(Vector3.Cross(Vector3.Normalize(v2 -v1), Vector3.forward));
-
-                m_ContractionDirection[currentVertexIndex] = 0.5f * (normal1 + normal2);
-            }
-        }
-
-        private void CalculateContractedVertices(float contractionDistance)
-        {
-
-            if (m_ContractedVertices.IsCreated)
-                m_ContractedVertices.Dispose();
-
-            m_ContractedVertices = new NativeArray<Vector2>(m_ProvidedVertices.Length, Allocator.Persistent);
-
-            for(int i=0;i<m_ProvidedVertices.Length;i++)
-            {
-                m_ContractedVertices[i] = m_ProvidedVertices[i] + contractionDistance * m_ContractionDirection[i];
-            }
-        }
-
         private void SetShape<V,I>(V vertices, I indices, VertexValueGetter<V> vertexGetter, LengthGetter<V> vertexLengthGetter, IndexValueGetter<I> indexGetter, LengthGetter<I> indexLengthGetter, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
             if (m_ProvidedVertices.IsCreated)
@@ -231,6 +194,7 @@ namespace UnityEngine.Rendering.Universal
                 Debug.Assert(indices != null, "Indices array cannot be null for Triangles topology");
 
                 m_ProvidedVertices = new NativeArray<Vector2>(vertexLengthGetter(ref vertices), Allocator.Persistent);
+
                 CalculateEdgesFromTriangles<I>(indices, indexGetter, indexLengthGetter);
             }
             else if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Lines)
@@ -301,6 +265,11 @@ namespace UnityEngine.Rendering.Universal
         public void GenerateShadowMesh(Mesh mesh, ref BoundingSphere boundingSphere, float contractionDistance)
         {
             ShadowUtility.GenerateShadowMesh(mesh, m_ProvidedVertices, m_ProvidedEdges, contractionDistance);
+        }
+
+        internal void GenerateShadowOutline(float contractionDistance, out NativeArray<Vector3> outline)
+        {
+            ShadowUtility.GenerateShadowOutline(m_ProvidedVertices, m_ProvidedEdges, contractionDistance, out outline);
         }
 
         ~ShadowShape2D()

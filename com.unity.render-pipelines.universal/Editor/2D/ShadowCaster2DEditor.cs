@@ -89,16 +89,7 @@ namespace UnityEditor.Rendering.Universal
             ShadowCaster2D shadowCaster = target as ShadowCaster2D;
 
             Transform t = shadowCaster.transform;
-            Vector3[] shape = shadowCaster.shapePath;
-            Handles.color = Color.white;
-
-            for (int i = 0; i < shape.Length - 1; ++i)
-            {
-                Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(shape[i]), t.TransformPoint(shape[i + 1]) });
-            }
-
-            if (shape.Length > 1)
-                Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(shape[shape.Length - 1]), t.TransformPoint(shape[0]) });
+            shadowCaster.DrawPreviewOutline();
         }
 
         public void ShadowCaster2DInspectorGUI<T>() where T : ShadowCaster2DShapeTool
@@ -140,8 +131,6 @@ namespace UnityEditor.Rendering.Universal
             }
 
             EditorGUILayout.PropertyField(m_CastingSource, Styles.castingSource);
-
-            //EditorGUILayout.PropertyField(m_CastsShadows, Styles.castsShadows);
             EditorGUILayout.PropertyField(m_SelfShadows, Styles.selfShadows);
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel, null);
@@ -150,6 +139,10 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.PropertyField(m_ShadowShapeProvider, Styles.shadowShapeProvider);
                 EditorGUILayout.PropertyField(m_ShadowShapeContract, Styles.shadowShapeContract);
+                if (m_ShadowShapeContract.floatValue < 0)
+                    m_ShadowShapeContract.floatValue = 0;
+
+                ToolManager.RestorePreviousTool();
             }
             else if ((ShadowCaster2D.ShadowCastingSources)m_CastingSource.intValue == ShadowCaster2D.ShadowCastingSources.ShapeEditor)
                 ShadowCaster2DInspectorGUI<ShadowCaster2DShadowCasterShapeTool>();

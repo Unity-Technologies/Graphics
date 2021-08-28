@@ -3,6 +3,10 @@ using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
 using Unity.Collections;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -47,6 +51,7 @@ namespace UnityEngine.Rendering.Universal
         internal ShadowShape2D        m_ShadowShape;
         internal ShadowCasterGroup2D  m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D  m_PreviousShadowCasterGroup = null;
+        internal int                  m_PreviousShadowCastingSource;
         internal NativeArray<Vector2> m_ShadowShapeVertices;
         internal NativeArray<ShadowShape2D.Edge> m_ShadowShapeEdges;
 
@@ -152,9 +157,19 @@ namespace UnityEngine.Rendering.Universal
                 m_ShadowShape = new ShadowShape2D();
 
             if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
+            {
                 m_ShadowShape.SetShape(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
-
-            m_ShadowShape.GenerateShadowMesh(m_Mesh, ref m_ProjectedBoundingSphere, m_ShadowShapeContract);
+                m_ShadowShape.GenerateShadowMesh(m_Mesh, ref m_ProjectedBoundingSphere, 0);
+            }
+            if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider)
+            {
+                IShadowShape2DProvider shapeProvider = m_ShadowShapeProvider as IShadowShape2DProvider;
+                if(shapeProvider != null)
+                {
+                    shapeProvider.OnPersistantDataCreated(m_ShadowShape);
+                    m_ShadowShape.GenerateShadowMesh(m_Mesh, ref m_ProjectedBoundingSphere, m_ShadowShapeContract);
+                }
+            }
         }
 
         private void Awake()
@@ -219,8 +234,16 @@ namespace UnityEngine.Rendering.Universal
             Renderer renderer;
             m_HasRenderer = TryGetComponent<Renderer>(out renderer);
 
-            bool rebuildMesh = LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
-            if (rebuildMesh)
+            bool rebuildMesh = LightUtility.CheckForChange((int)m_ShadowCastingSource, ref m_PreviousShadowCastingSource);
+            if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
+            {
+                rebuildMesh |= LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
+                if (rebuildMesh)
+                {
+                    SetShadowShape();
+                }
+            }
+            else
             {
                 SetShadowShape();
             }
@@ -250,38 +273,30 @@ namespace UnityEngine.Rendering.Universal
                 else
                     ShadowCasterGroup2DManager.RemoveGroup(this);
             }
-
-            //if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider && m_ShadowShapeProvider != null)
-            //{
-            //    IShadowShape2DProvider shadowShapeProvider = (IShadowShape2DProvider)m_ShadowShapeProvider;
-            //    shadowShapeProvider?.OnShapeObjectCreated(m_ShadowShape);
-
-            //    m_ShadowShape.GetEdges(m_ShadowShapeContract, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
-            //    DrawDebugShadowShapes();
-            //}
-            //else if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
-            //{
-            //    m_ShadowShape.CreateShape(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
-            //    //m_ShadowShape.CreateShape(0, out m_ShadowShapeVertices, out m_ShadowShapeEdges);
-                
-            //    DrawDebugShadowShapes();
-            //}
         }
 
-        // Delete this code later...
-        void DrawDebugShadowShapes()
-        {
-            for(int i=0;i<m_ShadowShapeEdges.Length;i++)
-            {
-                ShadowShape2D.Edge edge = m_ShadowShapeEdges[i];
-                Vector2 pt0 = transform.TransformPoint(m_ShadowShapeVertices[edge.v0]);
-                Vector2 pt1 = transform.TransformPoint(m_ShadowShapeVertices[edge.v1]);
-
-                Debug.DrawLine(pt0, pt1, Color.red);
-            }
-        }
 
 #if UNITY_EDITOR
+        internal void DrawPreviewOutline()
+        {
+            NativeArray<Vector3> outline;
+            float contractionDistance = m_ShadowCastingSource == ShadowCastingSources.ShapeProvider ? m_ShadowShapeContract : 0;
+
+            m_ShadowShape.GenerateShadowOutline(contractionDistance, out outline);
+            Transform t = transform;
+
+            Handles.color = Color.white;
+            for (int i = 0; i < outline.Length - 1; ++i)
+            {
+                Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(outline[i]), t.TransformPoint(outline[i + 1]) });
+            }
+
+            if (outline.Length > 1)
+                Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(outline[outline.Length - 1]), t.TransformPoint(outline[0]) });
+
+            outline.Dispose();
+        }
+
         void Reset()
         {
             Awake();
