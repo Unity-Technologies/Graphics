@@ -54,8 +54,8 @@ namespace UnityEditor.ShaderGraph.Registry
         public static bool TryConnect(this GraphDelta.IGraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry registry)
         {
             var dstNodeWriter = handler.GetNodeWriter(dstNode);
-            dstNodeWriter.TryGetPort(dstPort, out var dstPortWriter);
-            handler.GetNodeWriter(srcNode).TryGetPort(srcPort, out var srcPortWriter);
+            var dstPortWriter = dstNodeWriter.GetPort(dstPort);
+            var srcPortWriter = handler.GetNodeWriter(srcNode).GetPort(srcPort);
             return dstPortWriter.TryAddConnection(srcPortWriter);
         }
 
@@ -71,46 +71,52 @@ namespace UnityEditor.ShaderGraph.Registry
 
         public static void SetField<T>(this GraphDelta.INodeWriter node, string fieldName, T value)
         {
-            GraphDelta.IFieldWriter<Box<T>> fieldWriter;
+            GraphDelta.IFieldWriter<T> fieldWriter;
             if (!node.TryGetField(fieldName, out fieldWriter))
                 node.TryAddField(fieldName, out fieldWriter);
-            fieldWriter.TryWriteData(new Box<T> { data = value });
+            fieldWriter.TryWriteData(value);
         }
         public static void SetField<T>(this GraphDelta.IPortWriter port, string fieldName, T value)
         {
-            GraphDelta.IFieldWriter<Box<T>> fieldWriter;
+            GraphDelta.IFieldWriter<T> fieldWriter;
             if (!port.TryGetField(fieldName, out fieldWriter))
                 port.TryAddField(fieldName, out fieldWriter);
-            fieldWriter.TryWriteData(new Box<T> { data = value });
+            fieldWriter.TryWriteData(value);
         }
         public static void SetField<T>(this GraphDelta.IFieldWriter field, string fieldName, T value)
         {
-            GraphDelta.IFieldWriter<Box<T>> fieldWriter;
+            GraphDelta.IFieldWriter<T> fieldWriter;
             if (!field.TryGetSubField(fieldName, out fieldWriter))
                 field.TryAddSubField(fieldName, out fieldWriter);
-            fieldWriter.TryWriteData(new Box<T> { data = value });
+            fieldWriter.TryWriteData(value);
         }
 
         public static bool GetField<T>(this GraphDelta.INodeReader node, string fieldName, out T value)
         {
-            node.TryGetField(fieldName, out var fieldReader);
-            bool result = fieldReader.TryGetValue<Box<T>>(out var boxedValue);
-            value = boxedValue.data;
-            return result;
+            if (node.TryGetField(fieldName, out var fieldReader) && fieldReader.TryGetValue(out value))
+            {
+                return true;
+            }
+            value = default;
+            return false;
         }
         public static bool GetField<T>(this GraphDelta.IPortReader port, string fieldName, out T value)
         {
-            port.TryGetField(fieldName, out var fieldReader);
-            bool result = fieldReader.TryGetValue<Box<T>>(out var boxedValue);
-            value = boxedValue.data;
-            return result;
+            if (port.TryGetField(fieldName, out var fieldReader) && fieldReader.TryGetValue(out value))
+            {
+                return true;
+            }
+            value = default;
+            return false;
         }
         public static bool GetField<T>(this GraphDelta.IFieldReader field, string fieldName, out T value)
         {
-            field.TryGetSubField(fieldName, out var fieldReader);
-            bool result = fieldReader.TryGetValue<Box<T>>(out var boxedValue);
-            value = boxedValue.data;
-            return result;
+            if (field.TryGetSubField(fieldName, out var fieldReader) && fieldReader.TryGetValue(out value))
+            {
+                return true;
+            }
+            value = default;
+            return false;
         }
 
         public static GraphDelta.IPortWriter AddPort<T>(this GraphDelta.INodeWriter node, GraphDelta.INodeReader userData, string name, bool isInput, Registry registry) where T : Defs.ITypeDefinitionBuilder

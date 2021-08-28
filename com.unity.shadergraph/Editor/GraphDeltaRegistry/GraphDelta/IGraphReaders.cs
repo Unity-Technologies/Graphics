@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public IEnumerable<IPortReader> GetConnectedPorts();
 
-        public bool TryGetField(string fieldKey, out IFieldReader fieldReader);
+        public bool TryGetField(string fieldKey, out IFieldReader fieldReader, bool throughConnection = true);
 
     }
 

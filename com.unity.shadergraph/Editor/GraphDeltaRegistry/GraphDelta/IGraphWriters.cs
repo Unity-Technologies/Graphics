@@ -20,6 +20,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public bool TryGetField(string fieldKey, out IFieldWriter fieldWriter);
 
+        public IPortWriter GetPort(string portKey);
+
         public bool TryRemove();
     }
 

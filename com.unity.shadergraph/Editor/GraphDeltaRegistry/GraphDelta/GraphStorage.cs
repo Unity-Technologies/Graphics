@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         private class GraphReader : IDisposable, INodeReader, IPortReader, IFieldReader, IDataReader
         {
 
-            
             private bool IsPortReader(Element element)
             {
                 return HasSubData(element, "_isInput", "_isHorizontal");
@@ -44,11 +43,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                         var relativePath = id.Substring(path.Length);
                         if(relativePath.StartsWith("."))
                         {
-                            relativePath = relativePath.TrimStart('.');
-                            if(!relativePath.Contains("."))
-                            {
-                                yield return elem;
-                            }
+                            yield return elem;
                         }
                     }
                 }
@@ -77,9 +72,17 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
             }
 
-            private bool TryGetSubReader(string searchKey, out GraphReader graphReader)
+            private bool TryGetSubReader(string searchKey, out GraphReader graphReader, bool thruConnection = true)
             {
-                if (storageReference.m_flatStructureLookup.TryGetValue($"{path}.{searchKey}", out Element element))
+                if(thruConnection && storageReference.m_flatStructureLookup.TryGetValue($"{path}._Input", out Element element) && element is Element<Element> conneciton)
+                {
+                    if(storageReference.m_flatStructureLookup.TryGetValue($"{conneciton.data.GetFullPath()}.{searchKey}", out Element connected))
+                    {
+                        graphReader = new GraphReader(connected, this.storageReference);
+                        return true;
+                    }
+                }
+                if (storageReference.m_flatStructureLookup.TryGetValue($"{path}.{searchKey}", out element))
                 {
                     graphReader = new GraphReader(element, this.storageReference);
                     return true;
@@ -178,9 +181,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return false;
             }
 
-            public bool TryGetField(string fieldKey, out IFieldReader fieldReader)
+            public bool TryGetField(string fieldKey, out IFieldReader fieldReader, bool thruConnection = true)
             {
-                bool output = TryGetSubReader(fieldKey, out GraphReader reader);
+                bool output = TryGetSubReader(fieldKey, out GraphReader reader, thruConnection);
                 fieldReader = reader;
                 return output;
             }
@@ -195,7 +198,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool IsInput()
             {
-                if(TryGetField("_isInput", out var reader) && reader.TryGetValue(out bool isInput))
+                if(TryGetField("_isInput", out var reader, false) && reader.TryGetValue(out bool isInput))
                 {
                     return isInput;
                 }
@@ -204,7 +207,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool IsHorizontal()
             {
-                if (TryGetField("_isHorizontal", out var reader) && reader.TryGetValue(out bool isInput))
+                if (TryGetField("_isHorizontal", out var reader, false) && reader.TryGetValue(out bool isInput))
                 {
                     return isInput;
                 }
@@ -414,33 +417,21 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool TryGetField<T>(string fieldKey, out IFieldWriter<T> fieldWriter) 
             {
-                bool output = true;
-                if(!TryGetSubWriter(fieldKey, out GraphWriter<T> subWriter))
-                {
-                    output = TryAddSubWriter(fieldKey, out subWriter);
-                }
+                bool output = TryGetSubWriter(fieldKey, out GraphWriter<T> subWriter);
                 fieldWriter = subWriter;
                 return output;
             }
 
             public bool TryGetField(string fieldKey, out IFieldWriter fieldWriter)
             {
-                bool output = true;
-                if (!TryGetSubWriter(fieldKey, out GraphWriter subWriter))
-                {
-                    output = TryAddSubWriter(fieldKey, out subWriter);
-                }
+                bool output = TryGetSubWriter(fieldKey, out var subWriter);
                 fieldWriter = subWriter;
                 return output;
             }
 
             public bool TryGetPort(string portKey, out IPortWriter portWriter)
             {
-                bool output = true;
-                if (!TryGetSubWriter(portKey, out GraphWriter subWriter))
-                {
-                    output = TryAddSubWriter(portKey, out subWriter);
-                }
+                bool output = TryGetSubWriter(portKey, out var subWriter);
                 portWriter = subWriter;
                 return output;
             }
@@ -541,6 +532,22 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return false;
 
             }
+
+            public IPortWriter GetPort(string portKey)
+            {
+                if(!TryGetPort(portKey, out var pw))
+                {
+                    var reader = GetCorrespondingReader();
+                    if(reader.TryGetPort(portKey, out var portReader))
+                    {
+                        TryAddPort(portKey, portReader.IsInput(), portReader.IsHorizontal(), out pw);
+                    }
+                }
+                return pw;
+            }
+
+
+
 
             #endregion
         }
