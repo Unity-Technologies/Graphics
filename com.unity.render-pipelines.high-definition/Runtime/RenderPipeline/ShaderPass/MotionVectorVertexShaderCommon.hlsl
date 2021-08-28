@@ -117,7 +117,7 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
         previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz);
 
 #if defined(_ADD_PRECOMPUTED_VELOCITY)
-        previousMesh.positionOS -= inputPass.precomputedVelocity
+        previousMesh.positionOS -= inputPass.precomputedVelocity;
 #endif
 
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
