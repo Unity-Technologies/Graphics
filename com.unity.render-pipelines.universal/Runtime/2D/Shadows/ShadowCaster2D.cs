@@ -143,6 +143,20 @@ namespace UnityEngine.Rendering.Universal
             return m_ApplyToSortingLayers != null ? Array.IndexOf(m_ApplyToSortingLayers, layer) >= 0 : false;
         }
 
+        void SetShadowShape()
+        {
+            if (m_Mesh == null)
+                m_Mesh = new Mesh();
+
+            if (m_ShadowShape == null)
+                m_ShadowShape = new ShadowShape2D();
+
+            if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
+                m_ShadowShape.SetShape(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
+
+            m_ShadowShape.GenerateShadowMesh(m_Mesh, ref m_ProjectedBoundingSphere, m_ShadowShapeContract);
+        }
+
         private void Awake()
         {
             if (m_ApplyToSortingLayers == null)
@@ -186,13 +200,9 @@ namespace UnityEngine.Rendering.Universal
 
         protected void OnEnable()
         {
-            //if (m_Mesh == null || m_InstanceId != GetInstanceID())
+            if (m_Mesh == null || m_InstanceId != GetInstanceID())
             {
-                m_Mesh = new Mesh();
-                if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
-                    m_ShadowShape.SetShape(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
-
-                m_ShadowShape.GenerateShadowMesh(m_Mesh, ref m_ProjectedBoundingSphere, m_ShadowShapeContract);
+                SetShadowShape();
                 m_InstanceId = GetInstanceID();
             }
 
@@ -206,20 +216,13 @@ namespace UnityEngine.Rendering.Universal
 
         public void Update()
         {
-            if(m_ShadowShape == null)
-                m_ShadowShape = new ShadowShape2D();
-
-
             Renderer renderer;
             m_HasRenderer = TryGetComponent<Renderer>(out renderer);
 
             bool rebuildMesh = LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
             if (rebuildMesh)
             {
-                if(m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
-                    m_ShadowShape.SetShape(shapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
-
-                m_ShadowShape.GenerateShadowMesh(m_Mesh, ref m_ProjectedBoundingSphere, m_ShadowShapeContract);
+                SetShadowShape();
             }
 
             m_PreviousShadowCasterGroup = m_ShadowCasterGroup;
