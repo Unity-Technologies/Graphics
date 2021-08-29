@@ -24,6 +24,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the FreeCamera and SimpleCameraController mouse rotation unusable at low framerate (case 1340344).
 - Fixed warning "Releasing render texture that is set to be RenderTexture.active!" on pipeline disposal / hdrp live editing.
 - Fixed a nullref in volume system after deleting a volume object (case 1348374).
+- Fixed update order in Graphics Compositor causing jumpy camera updates (case 1345566).
+- Fixed material inspector that allowed setting intensity to an infinite value.
+- Fixed issue when switching between non-persistent cameras when path tarcing is enabled (case 1337843).
+- Fixed issue with the LayerMaskParameter class storing an erroneous mask value (case 1345515).
+- Fixed issue with vertex color defaulting to 0.0 when not defined, in ray/path tracing (case 1348821).
+- Fixed issue with a compute dispatch being with 0 threads on extremely small resolutions.
+- Fixed incorrect light list indexing when TAA is enabled (case 1352444).
+- Fixed Additional Velocity for Alembic not taking correctly into account vertex animation
+- Fixed wrong LUT initialization in Wireframe mode.
+- Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
 
 ## [10.6.0] - 2021-04-29
 
