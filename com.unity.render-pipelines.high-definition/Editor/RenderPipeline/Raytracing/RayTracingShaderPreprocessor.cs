@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class RayTracingShaderPreprocessor : BaseShaderPreprocessor
     {
-        public RayTracingShaderPreprocessor() {}
+        public RayTracingShaderPreprocessor() { }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {

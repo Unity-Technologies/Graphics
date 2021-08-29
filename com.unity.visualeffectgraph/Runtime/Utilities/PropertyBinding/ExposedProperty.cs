@@ -70,7 +70,7 @@ namespace UnityEngine.VFX.Utility
         /// <param name="self"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static ExposedProperty operator+(ExposedProperty self, ExposedProperty other)
+        public static ExposedProperty operator +(ExposedProperty self, ExposedProperty other)
         {
             return new ExposedProperty(self.m_Name + other.m_Name);
         }

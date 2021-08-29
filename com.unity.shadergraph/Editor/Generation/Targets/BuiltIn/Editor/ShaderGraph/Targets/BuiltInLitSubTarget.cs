@@ -84,11 +84,11 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             var descs = context.blocks.Select(x => x.descriptor);
 
             // Lit
-            context.AddField(BuiltInFields.NormalDropOffOS,     normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddField(BuiltInFields.NormalDropOffTS,     normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddField(BuiltInFields.NormalDropOffWS,     normalDropOffSpace == NormalDropOffSpace.World);
-            context.AddField(BuiltInFields.SpecularSetup,       workflowMode == WorkflowMode.Specular);
-            context.AddField(BuiltInFields.Normal,              descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
+            context.AddField(BuiltInFields.NormalDropOffOS, normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddField(BuiltInFields.NormalDropOffTS, normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddField(BuiltInFields.NormalDropOffWS, normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddField(BuiltInFields.SpecularSetup, workflowMode == WorkflowMode.Specular);
+            context.AddField(BuiltInFields.Normal, descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
                 descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
                 descs.Contains(BlockFields.SurfaceDescription.NormalWS));
         }
@@ -96,15 +96,15 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalOS,           normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalTS,           normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalWS,           normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalOS, normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalTS, normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalWS, normalDropOffSpace == NormalDropOffSpace.World);
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
 
-            context.AddBlock(BlockFields.SurfaceDescription.Specular,           (workflowMode == WorkflowMode.Specular) || target.allowMaterialOverride);
-            context.AddBlock(BlockFields.SurfaceDescription.Metallic,           (workflowMode == WorkflowMode.Metallic) || target.allowMaterialOverride);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              (target.surfaceType == SurfaceType.Transparent || target.alphaClip) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.Specular, (workflowMode == WorkflowMode.Specular) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.Metallic, (workflowMode == WorkflowMode.Metallic) || target.allowMaterialOverride);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha, (target.surfaceType == SurfaceType.Transparent || target.alphaClip) || target.allowMaterialOverride);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, (target.alphaClip) || target.allowMaterialOverride);
         }
 
@@ -245,7 +245,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.Default(target),
-                    pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
+                    pragmas = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
                     defines = new DefineCollection() { CoreDefines.BuiltInTargetAPI },
                     keywords = new KeywordCollection { LitKeywords.Forward },
                     includes = LitIncludes.Forward,
@@ -282,7 +282,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.ForwardAdd(target),
-                    pragmas  = CorePragmas.ForwardAdd,     // NOTE: SM 2.0 only GL
+                    pragmas = CorePragmas.ForwardAdd,     // NOTE: SM 2.0 only GL
                     defines = new DefineCollection() { CoreDefines.BuiltInTargetAPI },
                     keywords = new KeywordCollection { LitKeywords.ForwardAdd },
                     includes = LitIncludes.ForwardAdd,
@@ -320,7 +320,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.Default(target),
-                    pragmas  = CorePragmas.Forward,    // NOTE: SM 2.0 only GL
+                    pragmas = CorePragmas.Forward,    // NOTE: SM 2.0 only GL
                     defines = new DefineCollection() { CoreDefines.BuiltInTargetAPI },
                     keywords = new KeywordCollection { LitKeywords.Forward },
                     includes = LitIncludes.Forward,
@@ -357,7 +357,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.Default(target),
-                    pragmas  = CorePragmas.Deferred,    // NOTE: SM 2.0 only GL
+                    pragmas = CorePragmas.Deferred,    // NOTE: SM 2.0 only GL
                     defines = new DefineCollection() { CoreDefines.BuiltInTargetAPI },
                     keywords = new KeywordCollection { LitKeywords.Deferred },
                     includes = LitIncludes.Deferred,
