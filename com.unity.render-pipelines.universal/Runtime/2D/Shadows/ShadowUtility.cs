@@ -31,7 +31,8 @@ namespace UnityEngine.Rendering.Universal
             new VertexAttributeDescriptor(VertexAttribute.Tangent,  VertexAttributeFormat.Float32, 4)
         };
 
-        static void CalculateTangents(ref NativeArray<Vector2> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector4> outTangents)
+
+        static void CalculateTangents(ref NativeArray<Vector3> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector4> outTangents)
         {
             for (int i = 0; i < inEdges.Length; i++)
             {
@@ -50,6 +51,27 @@ namespace UnityEngine.Rendering.Universal
                 outTangents[additionalVerticesStart + 1] = new Vector4(tangent.x, tangent.y, start.x, start.y);
             }
         }
+
+        static void CalculateTangents(ref NativeArray<Vector2> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector4> outTangents)
+        {
+            for (int i = 0; i < inEdges.Length; i++)
+            {
+                int v0 = inEdges[i].v0;
+                int v1 = inEdges[i].v1;
+
+                Vector3 start = inVertices[v0];
+                Vector3 end = inVertices[v1];
+
+                outTangents[v0] = new Vector4(0, 0, end.x, end.y);
+
+                Vector4 tangent = Vector3.Cross(Vector3.Normalize(end - start), -Vector3.forward).normalized;
+
+                int additionalVerticesStart = 2 * i + inVertices.Length;
+                outTangents[additionalVerticesStart] = new Vector4(tangent.x, tangent.y, end.x, end.y);
+                outTangents[additionalVerticesStart + 1] = new Vector4(tangent.x, tangent.y, start.x, start.y);
+            }
+        }
+
 
         static void CalculateContraction(ref NativeArray<Vector2> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector4> inTangents, float contractionDistance, ref NativeArray<Vector3> outReducedVertices)
         {
@@ -171,8 +193,8 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<ShadowMeshVertex> meshFinalVertices = new NativeArray<ShadowMeshVertex>(meshVertexCount, Allocator.Temp);
 
             // Get vertex reduction directions
-            CalculateTangents(ref inVertices, ref inEdges, ref meshTangents);                            // meshVertices contain a normal component
             CalculateContraction(ref inVertices, ref inEdges, ref meshTangents, contractionDistance, ref meshReducedVertices);
+            CalculateTangents(ref meshReducedVertices, ref inEdges, ref meshTangents);                            // meshVertices contain a normal component
             CalculateVertices(ref meshReducedVertices, ref inEdges, ref meshTangents, ref meshFinalVertices);
             CalculateTriangles(ref inVertices, ref inEdges, ref meshIndices);
 

@@ -52,10 +52,6 @@ namespace UnityEngine.Rendering.Universal
         static Dictionary<Edge, int> m_EdgeDictionary = new Dictionary<Edge, int>(new EdgeComparer());  // This is done so we don't create garbage allocating and deallocating a dictionary object
         NativeArray<Vector2>         m_ProvidedVertices;
         NativeArray<Edge>            m_ProvidedEdges;
-
-        NativeArray<Vector2>         m_ContractionDirection;
-        NativeArray<float>           m_ContractionMaximum;
-        NativeArray<Vector2>         m_ContractedVertices;
         bool                         m_SupportsContraction;
 
         public override bool supportsContraction
@@ -276,8 +272,6 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ProvidedVertices.Dispose();
             m_ProvidedEdges.Dispose();
-            m_ContractionDirection.Dispose();
-            m_ContractedVertices.Dispose();
         }
     }
 }
