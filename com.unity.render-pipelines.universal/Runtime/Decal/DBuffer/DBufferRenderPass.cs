@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class DecalDrawDBufferSystem : DecalDrawSystem
     {
-        public DecalDrawDBufferSystem(DecalEntityManager entityManager) : base("DecalDrawIntoDBufferSystem.Execute", entityManager) {}
+        public DecalDrawDBufferSystem(DecalEntityManager entityManager) : base("DecalDrawIntoDBufferSystem.Execute", entityManager) { }
         protected override int GetPassIndex(DecalCachedChunk decalCachedChunk) => decalCachedChunk.passIndexDBuffer;
     }
 
@@ -93,8 +93,8 @@ namespace UnityEngine.Rendering.Universal
             if (!isDeferred)
             {
                 var depthDesc = renderingData.cameraData.cameraTargetDescriptor;
-                depthDesc.graphicsFormat = GraphicsFormat.DepthAuto;
-                depthDesc.depthBufferBits = depthDesc.depthBufferBits;
+                depthDesc.graphicsFormat = GraphicsFormat.None; //Depth only rendering
+                depthDesc.depthStencilFormat = renderingData.cameraData.cameraTargetDescriptor.depthStencilFormat;
                 depthDesc.msaaSamples = 1;
 
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferDepthName), depthDesc);

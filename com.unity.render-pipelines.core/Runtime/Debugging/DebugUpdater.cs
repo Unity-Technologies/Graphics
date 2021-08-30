@@ -1,5 +1,5 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
-    #define USE_INPUT_SYSTEM
+#define USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.InputSystem.EnhancedTouch;
@@ -80,7 +80,8 @@ namespace UnityEngine.Rendering
             if (debugManager.GetAction(DebugAction.EnableDebugMenu) != 0.0f ||
                 debugManager.GetActionToggleDebugMenuWithTouch())
             {
-                debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
+                if (debugManager.enableWindowHotkey)
+                    debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
             }
 
             if (debugManager.displayRuntimeUI)

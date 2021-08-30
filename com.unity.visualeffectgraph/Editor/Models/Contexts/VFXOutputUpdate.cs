@@ -11,20 +11,22 @@ namespace UnityEditor.VFX
         public enum Features
         {
             None = 0,
-            MotionVector    = 1 << 0,
-            IndirectDraw    = 1 << 1,
-            Culling         = 1 << 2 | IndirectDraw,
-            MultiMesh       = 1 << 3 | Culling,
-            LOD             = 1 << 4 | Culling,
-            Sort            = 1 << 5 | IndirectDraw,
-            FrustumCulling  = 1 << 6 | IndirectDraw,
+            MotionVector = 1 << 0,
+            IndirectDraw = 1 << 1,
+            Culling = 1 << 2 | IndirectDraw,
+            MultiMesh = 1 << 3 | Culling,
+            LOD = 1 << 4 | Culling,
+            Sort = 1 << 5 | IndirectDraw,
+            FrustumCulling = 1 << 6 | IndirectDraw,
         }
 
-        public VFXOutputUpdate() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) {}
+        public VFXOutputUpdate() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) { }
         public override string name => "OutputUpdate";
 
         private VFXAbstractParticleOutput m_Output;
         public VFXAbstractParticleOutput output => m_Output;
+        public override VFXDataType ownedType => output != null ? output.ownedType : base.ownedType;
+
         public void SetOutput(VFXAbstractParticleOutput output)
         {
             if (m_Output != null)
@@ -199,6 +201,8 @@ namespace UnityEditor.VFX
                     yield return "VFX_FEATURE_SORT";
                 if (HasFeature(Features.FrustumCulling))
                     yield return "VFX_FEATURE_FRUSTUM_CULL";
+                if (output.HasStrips(false))
+                    yield return "HAS_STRIPS";
             }
         }
 
@@ -210,7 +214,26 @@ namespace UnityEditor.VFX
                 {
                     string motionVectorVerts = null;
 
-                    if (output is VFXLineOutput)
+                    if (output.HasStrips(false))
+                    {
+                        switch (output.taskType)
+                        {
+                            case VFXTaskType.ParticleQuadOutput:
+                                motionVectorVerts = @"float3 verts[] =
+{
+    mul(elementToVFX, float4(0.0f, -0.5f, 0.0f, 1.0f)).xyz,
+    mul(elementToVFX, float4(0.0f,  0.5f, 0.0f, 1.0f)).xyz
+};";
+                                break;
+                            case VFXTaskType.ParticleLineOutput:
+                                motionVectorVerts = @"float3 verts[] =
+{
+    attributes.position
+};";
+                                break;
+                        }
+                    }
+                    else if (output is VFXLineOutput)
                     {
                         bool useTargetOffset = (bool)output.GetSettingValue("useTargetOffset");
                         string targetPosition = useTargetOffset ? "mul(elementToVFX, float4(targetOffset, 1)).xyz" : "attributes.targetPosition";

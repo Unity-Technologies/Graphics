@@ -57,11 +57,11 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Callback called when the runtime UI changed.
         /// </summary>
-        public event Action<bool> onDisplayRuntimeUIChanged = delegate {};
+        public event Action<bool> onDisplayRuntimeUIChanged = delegate { };
         /// <summary>
         /// Callback called when the debug window is dirty.
         /// </summary>
-        public event Action onSetDirty = delegate {};
+        public event Action onSetDirty = delegate { };
 
         event Action resetData;
 
@@ -85,6 +85,10 @@ namespace UnityEngine.Rendering
         /// Is the debug editor window open.
         /// </summary>
         public bool displayEditorUI => m_EditorOpen;
+        /// <summary>
+        /// Controls whether the hotkey for opening and closing the debug window is enabled.
+        /// </summary>
+        public bool enableWindowHotkey = true;
         /// <summary>
         /// Toggle the debug window.
         /// </summary>

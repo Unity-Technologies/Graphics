@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RenderTextureDescriptor depthDescriptor { get; set; }
         internal bool allocateDepth { get; set; } = true;
         internal bool allocateNormal { get; set; } = true;
-        internal List<ShaderTagId> shaderTagIds { get;  set; }
+        internal List<ShaderTagId> shaderTagIds { get; set; }
 
         private RenderTargetHandle depthHandle { get; set; }
         private RenderTargetHandle normalHandle { get; set; }

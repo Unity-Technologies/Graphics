@@ -61,15 +61,14 @@ public sealed class GrayScale : CustomPostProcessVolumeComponent, IPostProcessCo
             return;
 
         m_Material.SetFloat("_Intensity", intensity.value);
-        m_Material.SetTexture("_InputTexture", source);
-        HDUtils.DrawFullScreen(cmd, m_Material, destination);
+        cmd.Blit(source, destination, m_Material, 0);
     }
 
     public override void Cleanup() => CoreUtils.Destroy(m_Material);
 
 }
 ```
-Firstly, the example code uses a ClampedFloatParameter which is a type that you may not be familiar with. This type is a float which you can clamp to a range. In the constructor:
+This example code uses a `ClampedFloatParameter` that you can clamp to a range. In the constructor:
 
 * The first parameter is the default value of the property.
 
@@ -77,22 +76,32 @@ Firstly, the example code uses a ClampedFloatParameter which is a type that you 
 
 * The third parameter represents the maximum value to clamp the property to.
 
-Next, there is the **IsActive()** function. HDRP calls this function before the **Render** function make sure it is possible to process the effect. If this function returns `false`, HDRP does not process the effect. It is good practice to check every property configuration where the effect either breaks or does nothing. In this example, **IsActive()** makes sure that it can find the **GrayScale.shader** and that the intensity is greater than 0.
+HDRP calls the `IsActive()`function before the `Render` function to process the effect. If this function returns `false`, HDRP does not process the effect. It is good practice to check every property configuration where the effect either breaks or does nothing. In this example, `IsActive()` makes sure that HDRP can find the `GrayScale.shader` and that the intensity is greater than 0.
 
-The **injectionPoint** override allows you to specify where in the pipeline HDRP executes the effect. There are currently three injection points:
+The **injectionPoint** override allows you to specify where in the pipeline HDRP executes the effect. There are currently five injection points:
 
-* **AfterOpaqueAndSky.**
+* **AfterOpaqueAndSky**
 
-* **BeforeTAA.**
+* **BeforeTAA**
 
-* **BeforePostProcess.**
+* **BeforePostProcess**
 
-* **AfterPostProcess**.
+* **AfterPostProcessBlurs.**
 
-For more detailed information on where HDRP injects the custom post-process passes, see the following diagram:
+* **AfterPostProcess.**
+
+The following diagram gives more information on where HDRP injects custom post-process passes:
 ![](Images/HDRP-frame-graph-diagram.png)
 
-Now there are the **Setup**, **Render**, and **Cleanup** functions. These are here to respectively allocate, use, and release the resources that the effect needs. The only resource that the example uses is a single Material. The example creates the Material in **Setup** and, in **Cleanup**, uses CoreUtils.Destroy() to release the Material. In the **Render** function, you have access to a [CommandBuffer](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.html) which you can use to enqueue tasks for HDRP to execute. Here you can use HDUtils.DrawFullScreen to render a fullscreen quad. It uses the CommandBuffer and Material that you pass in then blits the result to the destination RTHandle.
+
+
+**Note**: When you enable [Temporal anti-aliasing (TAA)](Anti-Aliasing.md#TAA), HDRP applies TAA between the injection points **BeforeTAA** and **beforePostProcess**. When you use [Depth Of Field](Post-Processing-Depth-of-Field.md) and enable its **Physically Based** property, HDRP performs a second TAA pass to perform temporal accumulation for this effect.
+
+The `Setup`, `Render`, and `Cleanup` functions allocate, use, and release the resources that the effect needs. The only resource that the above script example uses is a single Material. This example creates the Material in `Setup` and, in `Cleanup`, uses `CoreUtils.Destroy()` to release the Material.
+
+In the `Render` function, you have access to a [CommandBuffer](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.html) which you can use to enqueue tasks for HDRP to execute. You can use [CommandBuffer.Blit](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.Blit.html) here to render a fullscreen quad. When you use the `Blit` function, Unity binds the source buffer in parameter to the `_MainTex` property in the shader. For this to happen, you need to declare the `_MainTex` property in the [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) section of the shader.
+
+**Note**: You can also use the [HDUtils.DrawFullscreen](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/api/UnityEngine.Rendering.HighDefinition.HDUtils.html#UnityEngine_Rendering_HighDefinition_HDUtils_DrawFullScreen_UnityEngine_Rendering_CommandBuffer_UnityEngine_Material_UnityEngine_Rendering_RTHandle_UnityEngine_MaterialPropertyBlock_System_Int32_) method. To do this, you need to multiply the `input.texcoord` by the `_RTHandleScale.xy` property to account for dynamic scaling.
 
 <a name="Shader"></a>
 
@@ -102,6 +111,12 @@ HDRP gives you total control over the vertex and fragment Shader so you can edit
 ```glsl
 Shader "Hidden/Shader/GrayScale"
 {
+    Properties
+    {
+        // This property is necessary to make the CommandBuffer.Blit bind the source texture to _MainTex
+        _MainTex("Main Texture", 2DArray) = "grey" {}
+    }
+
     HLSLINCLUDE
 
     #pragma target 4.5
@@ -142,18 +157,18 @@ Shader "Hidden/Shader/GrayScale"
 
     // List of properties to control your post process effect
     float _Intensity;
-    TEXTURE2D_X(_InputTexture);
+    TEXTURE2D_X(_MainTex);
 
     float4 CustomPostProcess(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-        uint2 positionSS = input.texcoord * _ScreenSize.xy;
-        float3 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xyz;
+        float3 sourceColor = SAMPLE_TEXTURE2D_X(_MainTex, s_linear_clamp_sampler, input.texcoord).xyz;
 
-        // We do the blending manually instead of relying on the hardware blend
-        // It's necessary because the color buffer contains garbage from the previous post process effect.
-        return float4(lerp(outColor, Luminance(outColor).xxx, _Intensity), 1);
+        // Apply greyscale effect
+        float3 color = lerp(sourceColor, Luminance(sourceColor), _Intensity);
+
+        return float4(color, 1);
     }
 
     ENDHLSL
@@ -213,13 +228,15 @@ HDRP allows you to customize the order of your custom post-processing effect at 
 
 HDRP processes effects from the top of the list to the bottom and the order of execution for each list is:
 
-1. Before Transparent.
+1. After Opaque And Sky.
 
-2. Before TAA
+2. Before TAA.
 
 3. Before Post Process.
 
-4. After Post Process.
+4. After Post Process Blurs.
+
+5. After Post Process.
 
 <a name="CustomEditor"></a>
 
@@ -272,6 +289,20 @@ sealed class GrayScaleEditor : VolumeComponentEditor
 ```
 This custom editor is not really useful as it produces the same result as the editor that Unity creates. Custom Volume component editors also support an [additonal properties toggle](More-Options.md). To add it, you have to set hasAdvancedMode override to true. Then, inside the OnInspectorGUI, you can use the isInAdvancedMode boolean to display more properties.
 
+## Dynamic resolution and DLSS support
+
+If you want to use DLSS and/or dynamic resolution on your pass, and you need to interpolate or sample UVs from color / normal or velocity, you must use the following functions to calculate the correct UVs:
+
+```glsl
+#include "Packages/com.unity.render-pipelines.high-dynamic/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+//...
+
+float2 UVs = ... //the uvs coming from the interpolator
+float2 correctUvs = ClampAndScaleUVForBilinearPostProcessTexture(UV); // use these uvs to sample color / normal and velocity
+
+```
+
 ## TroubleShooting
 
 If your effect does not display correctly:
@@ -283,6 +314,8 @@ If your effect does not display correctly:
 * In the Volume that contains your post process, make sure that it has a high enough priority and that your Camera is inside its bounds.
 
 * Check that your shader doesn't contain any **clip()** instructions, that the blend mode is set to Off and the output alpha is always 1.
+
+* If your effect does not work with dynamic resolution, use the _PostProcessScreenSize constant to make it fit the size of the screen correctly. You only need to do this when you use dynamic resolution scaling (DRS), and you need normal / velocity and color.
 
 ## Known issues and Limitations
 

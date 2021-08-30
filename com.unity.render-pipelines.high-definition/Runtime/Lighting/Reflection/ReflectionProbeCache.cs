@@ -11,19 +11,19 @@ namespace UnityEngine.Rendering.HighDefinition
             Ready
         }
 
-        int                     m_ProbeSize;
-        int                     m_CacheSize;
-        IBLFilterBSDF[]         m_IBLFilterBSDF;
-        TextureCacheCubemap     m_TextureCache;
-        RenderTexture           m_TempRenderTexture;
-        RenderTexture[]         m_ConvolutionTargetTextureArray;
-        ProbeFilteringState[]   m_ProbeBakingState;
-        Material                m_ConvertTextureMaterial;
-        Material                m_CubeToPano;
-        MaterialPropertyBlock   m_ConvertTextureMPB;
-        bool                    m_PerformBC6HCompression;
+        int m_ProbeSize;
+        int m_CacheSize;
+        IBLFilterBSDF[] m_IBLFilterBSDF;
+        TextureCacheCubemap m_TextureCache;
+        RenderTexture m_TempRenderTexture;
+        RenderTexture[] m_ConvolutionTargetTextureArray;
+        ProbeFilteringState[] m_ProbeBakingState;
+        Material m_ConvertTextureMaterial;
+        Material m_CubeToPano;
+        MaterialPropertyBlock m_ConvertTextureMPB;
+        bool m_PerformBC6HCompression;
 
-        GraphicsFormat          m_ProbeFormat;
+        GraphicsFormat m_ProbeFormat;
 
         public ReflectionProbeCache(HDRenderPipelineRuntimeResources defaultResources, IBLFilterBSDF[] iblFilterBSDFArray, int cacheSize, int probeSize, GraphicsFormat probeFormat, bool isMipmaped)
         {
