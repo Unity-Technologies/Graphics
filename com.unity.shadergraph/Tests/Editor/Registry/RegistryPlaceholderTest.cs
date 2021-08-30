@@ -14,9 +14,9 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             var graph = GraphDelta.GraphUtil.CreateGraph();
             var registry = new Registry();
 
-            registry.RegisterBuilder<Types.GraphType>();
-            registry.RegisterBuilder<Types.AddNode>();
-            registry.RegisterBuilder<Types.GraphTypeAssignment>();
+            registry.Register<Types.GraphType>();
+            registry.Register<Types.AddNode>();
+            registry.Register<Types.GraphTypeAssignment>();
 
             // should default concretize length to 4.
             graph.AddNode<Types.AddNode>("Add1", registry);

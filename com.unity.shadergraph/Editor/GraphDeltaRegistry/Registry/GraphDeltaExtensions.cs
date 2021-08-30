@@ -41,7 +41,16 @@ namespace UnityEditor.ShaderGraph.Registry
 
         }
 
-
+        public static void SetupContext(this GraphDelta.IGraphHandler handler, IEnumerable<Defs.IContextDescriptor> contexts, Registry registry)
+        {
+            GraphDelta.INodeWriter previousContext = null;
+            foreach(var context in contexts)
+            {
+                var node = handler.AddNode<Defs.ContextBuilder>(context.GetRegistryKey().Name + "_Context", registry);
+                node.SetField("_contextDescriptor", context.GetRegistryKey());
+                registry.GetNodeBuilder(Defs.ContextBuilder.kRegistryKey).BuildNode(null, node, registry);
+            }
+        }
 
         public static bool TestConnection(this GraphDelta.IGraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry registry)
         {
