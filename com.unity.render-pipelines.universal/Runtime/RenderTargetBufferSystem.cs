@@ -17,9 +17,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             public int msaa;
         }
         SwapBuffer m_A, m_B;
-        bool m_AisBackBuffer = true;
+        static bool m_AisBackBuffer = true;
 
-        RenderTextureDescriptor m_Desc;
+        static RenderTextureDescriptor m_Desc;
         FilterMode m_FilterMode;
         bool m_AllowMSAA = true;
         bool m_RTisAllocated = false;
@@ -117,6 +117,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void SetCameraSettings(CommandBuffer cmd, RenderTextureDescriptor desc, FilterMode filterMode)
         {
+            Clear(cmd); //SetCameraSettings is called when new stack starts rendering. Make sure the targets are updated to use the new descriptor.
+
             m_Desc = desc;
             m_FilterMode = filterMode;
 
