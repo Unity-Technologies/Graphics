@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
                 return true;
             }
 
-            reader = graphHandler.GetNode(graphDataName);
+            reader = graphHandler.GetNodeReader(graphDataName);
             return reader != null;
         }
 
@@ -110,8 +110,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             // TODO: Convert this to a NodePortsPart maybe?
             foreach (var portReader in reader.GetPorts())
             {
-                var isInput = portReader.GetFlags().isInput;
-                var orientation = portReader.GetFlags().isHorizontal
+                var isInput = portReader.IsInput();
+                var orientation = portReader.IsHorizontal()
                     ? PortOrientation.Horizontal
                     : PortOrientation.Vertical;
 

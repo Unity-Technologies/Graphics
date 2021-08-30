@@ -1,11 +1,14 @@
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Registry;
 
 namespace UnityEditor.ShaderGraph.GraphDelta
 {
     public interface IGraphHandler
     {
-        public INodeWriter AddNode(string name);
-        public INodeReader GetNode(string name);
+        public INodeWriter AddNode<T>(string name, Registry.Registry registry) where T : Registry.Defs.INodeDefinitionBuilder;
+        public INodeWriter AddNode(RegistryKey key, string name, Registry.Registry registry);
+        public bool ReconcretizeNode(string name, Registry.Registry registry);
+        public INodeReader GetNodeReader(string name);
         public INodeWriter GetNodeWriter(string name);
         public void RemoveNode(string name);
         public IEnumerable<INodeReader> GetNodes();

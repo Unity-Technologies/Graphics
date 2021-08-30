@@ -1,5 +1,5 @@
 {
-    "name": "Unity.ShaderGraph.GraphUI",
+    "name": "Unity.ShaderFoundry.Editor",
     "rootNamespace": "",
     "references": [
         "Unity.ShaderGraph.Registry",
@@ -14,7 +14,8 @@
         "Unity.GraphToolsFoundation.Searcher.Editor",
         "Unity.GraphTools.Foundation.Searcher",
         "Unity.RenderPipelines.Core.Runtime",
-        "Unity.ShaderGraph.GraphDeltaRegistry"
+        "Unity.ShaderGraph.Utilities",
+        "Unity.ShaderGraph.Editor"
     ],
     "includePlatforms": [
         "Editor"
