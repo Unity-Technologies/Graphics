@@ -25,36 +25,55 @@ uint GetInstanceIndexFromGroupID(uint3 groupId,uint nbThreadPerGroup, uint dispa
     return (groupId.x + dispatchWidth * groupId.y) * nbThreadPerGroup / alignedSystemCapacity;
 }
 
-void SetInstancingIndices(
+void VFXSetComputeInstancingIndices(
+                            uint nbParticlesPerInstance,
+                            uint3 groupId,
+                            uint nbThreadPerGroup,
+                            uint dispatchWidth,
+                            #if VFX_INSTANCING_INDIRECTION
+                            StructuredBuffer<uint> indirectionBufferInstances,
+                            #endif
+                            uint alignedSystemCapacity,
+                            inout uint index,
+                            inout uint particleIndex
+                            )
+{
+    uint instanceIndex = GetInstanceIndexFromGroupID(groupId, nbThreadPerGroup, dispatchWidth, alignedSystemCapacity);
+    particleIndex = index - instanceIndex * nbParticlesPerInstance;
+    #if VFX_INSTANCING_INDIRECTION
+        instanceIndex = indirectionBufferInstances[instanceIndex];
+    #endif
+    index = GetIndexInAttributeBuffer(instanceIndex, particleIndex,alignedSystemCapacity);
+}
+
+
+void VFXSetOutputInstancingIndices(
                             #if VFX_INSTANCING_VARIABLE_SIZE
                             uint nbInstancesInDispatch,
                             StructuredBuffer<uint> prefixSumInstances,
                             #else
                             uint nbParticlesPerInstance,
-                            uint3 groupId,
-                            uint nbThreadPerGroup,
-                            uint dispatchWidth,
                             #endif
                             #if VFX_INSTANCING_INDIRECTION
                             StructuredBuffer<uint> indirectionBufferInstances,
                             #endif
+                            uint alignedSystemCapacity,
                             inout uint index,
-                            inout uint particleIndex,
-                            uint alignedSystemCapacity
+                            inout uint particleIndex
                             )
 {
     uint instanceIndex;
-#if VFX_INSTANCING_VARIABLE_SIZE
-    particleIndex = BinarySearchPrefixSum(index, prefixSumInstances, nbInstancesInDispatch,instanceIndex);
-    #if VFX_INSTANCING_INDIRECTION
-        instanceIndex = indirectionBufferInstances[instanceIndex];
+    #if VFX_INSTANCING_VARIABLE_SIZE
+        particleIndex = BinarySearchPrefixSum(index, prefixSumInstances, nbInstancesInDispatch,instanceIndex);
+        #if VFX_INSTANCING_INDIRECTION
+            instanceIndex = indirectionBufferInstances[instanceIndex];
+        #endif
+    #else
+        instanceIndex = index / nbParticlesPerInstance;
+        particleIndex = index - instanceIndex * nbParticlesPerInstance;
+        #if VFX_INSTANCING_INDIRECTION
+            instanceIndex = indirectionBufferInstances[instanceIndex];
+        #endif
     #endif
-#else
-    instanceIndex = GetInstanceIndexFromGroupID(groupId, nbThreadPerGroup, dispatchWidth, alignedSystemCapacity);
-    particleIndex = index - instanceIndex * nbParticlesPerInstance;
-    #if VFX_INSTANCING_INDIRECTION
-        instanceIndex = indirectionBufferInstances[instanceIndex];
-    #endif
-#endif
     index = GetIndexInAttributeBuffer(instanceIndex, particleIndex,alignedSystemCapacity);
 }

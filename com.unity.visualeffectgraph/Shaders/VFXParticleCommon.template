@@ -323,27 +323,31 @@ float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData st
 }
 ${VFXEnd}
 
-${VFXBegin:VFXSetInstancingIndices}
+${VFXBegin:VFXSetOutputInstancingIndices}
     uint nbInstancesInDispatch = 1; //TODO :nbInstancesInDispatch is supposed to be a uniform in the future
 
 #if VFX_INSTANCING_VARIABLE_SIZE
-#if VFX_INSTANCING_INDIRECTION
-    SetInstancingIndices(nbInstancesInDispatch, prefixSumInstances, indirectionBufferInstances, index, particleIndex, ALIGNED_SYSTEM_CAPACITY);
+    #if VFX_INSTANCING_INDIRECTION
+        VFXSetOutputInstancingIndices(nbInstancesInDispatch, prefixSumInstances, indirectionBufferInstances,ALIGNED_SYSTEM_CAPACITY, index, particleIndex);
+    #else
+        VFXSetOutputInstancingIndices(nbInstancesInDispatch, prefixSumInstances, ALIGNED_SYSTEM_CAPACITY, index, particleIndex);
+    #endif
 #else
-    SetInstancingIndices(nbInstancesInDispatch, prefixSumInstances, index, particleIndex, ALIGNED_SYSTEM_CAPACITY);
+    #if VFX_INSTANCING_INDIRECTION
+        VFXSetOutputInstancingIndices(asuint(nbMax), indirectionBufferInstances, ALIGNED_SYSTEM_CAPACITY, index, particleIndex);
+    #else
+        VFXSetOutputInstancingIndices(asuint(nbMax), ALIGNED_SYSTEM_CAPACITY, index, particleIndex);
+    #endif
 #endif
-#else
+${VFXEnd}
+
+${VFXBegin:VFXSetComputeInstancingIndices}
+    uint nbInstancesInDispatch = 1; //TODO :nbInstancesInDispatch is supposed to be a uniform in the future
+
 #if VFX_INSTANCING_INDIRECTION
-    SetInstancingIndices(nbMax,groupId,
-                                NB_THREADS_PER_GROUP,
-                               dispatchWidth,
-                               indirectionBufferInstances,index, particleIndex, ALIGNED_SYSTEM_CAPACITY);
+    VFXSetComputeInstancingIndices(nbMax, groupId, NB_THREADS_PER_GROUP, dispatchWidth, indirectionBufferInstances, ALIGNED_SYSTEM_CAPACITY, index, particleIndex);
 #else
-    SetInstancingIndices(nbMax,groupId,
-                                NB_THREADS_PER_GROUP,
-                               dispatchWidth,
-                               index, particleIndex, ALIGNED_SYSTEM_CAPACITY);
-#endif
+    VFXSetComputeInstancingIndices(nbMax, groupId, NB_THREADS_PER_GROUP, dispatchWidth, ALIGNED_SYSTEM_CAPACITY, index, particleIndex);
 #endif
 ${VFXEnd}
 

@@ -83,7 +83,7 @@ void CSMain(uint3 groupId		: SV_GroupID,
 		uint index = id;
 #if VFX_USE_INSTANCING
 	    uint particleIndex;
-        ${VFXSetInstancingIndices}
+        ${VFXSetComputeInstancingIndices}
 #endif
 
 
