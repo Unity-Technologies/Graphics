@@ -108,13 +108,16 @@ void CSMain(uint3 groupId          : SV_GroupID,
             while (left <= right)
             {
                 sourceIndex = (int)((left + right) / 2);
-                if (id < prefixSumSpawnCount[sourceIndex] && (sourceIndex == 0 || id >= prefixSumSpawnCount[sourceIndex-1]))
-                    break;
-
-                if (id < prefixSumSpawnCount[sourceIndex])
+                if (id.x < prefixSumSpawnCount[sourceIndex])
+                {
+                    if (sourceIndex == 0 || id.x >= prefixSumSpawnCount[max(sourceIndex - 1, 0)])
+                        break;
                     right = sourceIndex - 1;
+                }
                 else
+                {
                     left = sourceIndex + 1;
+                }
             }
         #endif
 #endif

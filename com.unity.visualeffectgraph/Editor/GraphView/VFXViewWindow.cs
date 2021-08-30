@@ -13,7 +13,7 @@ using UnityObject = UnityEngine.Object;
 using System.IO;
 using UnityEditor.VersionControl;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     [Serializable]
     class VFXViewWindow : EditorWindow
@@ -154,7 +154,7 @@ namespace  UnityEditor.VFX.UI
 
         Action m_OnUpdateAction;
 
-        protected void OnEnable()
+        protected void CreateGUI()
         {
             VFXManagerEditor.CheckVFXManager();
 

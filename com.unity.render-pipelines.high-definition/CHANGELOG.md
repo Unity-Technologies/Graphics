@@ -81,6 +81,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added warning for when a light is not fitting in the cached shadow atlas and added option to set maximum resolution that would fit.
 - Added a custom post process injection point AfterPostProcessBlurs executing after depth of field and motion blur.
 - Added the support of volumetric clouds for baked and realtime reflection probes.
+- Added a property to control the fallback of the last bounce of a RTGI, RTR, RR ray to keep a previously existing side effect on user demand (case 1350590).
+- Added a parameter to control the vertical shape offset of the volumetric clouds (case 1358528).
+- Added an option to render screen space global illumination in half resolution to achieve real-time compatible performance in high resolutions (case 1353727).
+- Added a built-in custom pass to draw object IDs.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -172,7 +176,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Decal projector edge on Metal (case 1286074)
 - Fixed Exposure Frame Settings control issues on Planar reflection probes (case 1312153). Dynamic reflections now keep their own exposure relative to their parent camera.
 - Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
-- Fixed Render Graph Debug UI not refreshing correctly in the Render Pipeline Debugger.
+- Fixed Render Graph Debug UI not refreshing correctly in the Rendering Debugger.
 - Fixed SSS materials in planar reflections (case 1319027).
 - Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
 - Fixed missing Update in Wizard's DXR Documentation
@@ -359,6 +363,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed incorrect light list indexing when TAA is enabled (case 1352444).
 - Fixed Additional Velocity for Alembic not taking correctly into account vertex animation
 - Fixed wrong LUT initialization in Wireframe mode.
+- Support undo of HDRP Global Settings asset assignation (case 13429870).
+- Fixed an inconsistency between perf mode and quality mode for sky lighting (case 1350590).
+- Fixed an inconsistency between perf mode and quality mode for material simplification in RTGI (case 1350590).
+- Fixed an issue that clamped the volumetric clouds offset value (case 1357318).
+- Fixed the volumetric clouds having no control over the vertical wind (case 1354920).
+- Fixed the fallback sun for volumetric clouds having a non null intensity (case 1353955).
+- Removed unsupported fields from Presets of Light, Camera, and Reflection Probes (case 1335979).
+- Added a new property to control the ghosting reduction for volumetric clouds (case 1357702).
+- Fixed the earth curvature not being properly taken into account when evaluating the sun attenuation (case 1357927).
+- Reduced the volumetric clouds pattern repetition frequency (case 1358717).
+- Fixed the clouds missing in the ambient probe and in the static and dynamic sky.
+- Fixed lens flare not rendering correctly with TAAU or DLSS.
+- Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
+- Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -461,6 +479,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed upscaling issue that is exagerated by DLSS (case 1347250).
 - Improvements to the RTGI denoising.
 - Remove Bilinear and Lanczos upscale filter.
+- Make some volumetric clouds properties additional to reduce the number default parameters (case 1357926).
+- Renamed the Cloud Offset to Cloud Map Offset in the volumetric clouds volume component (case 1358528).
+- Made debug panel mip bias functions internal, not public.
 
 ## [11.0.0] - 2020-10-21
 
@@ -975,10 +996,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added XR single-pass setting into HDRP asset
 - Added a penumbra tint option for lights
 - Added support for depth copy with XR SDK
-- Added debug setting to Render Pipeline Debug Window to list the active XR views
+- Added debug setting to Rendering Debugger Window to list the active XR views
 - Added an option to filter the result of the volumetric lighting (off by default).
 - Added a transmission multiplier for directional lights
-- Added XR single-pass test mode to Render Pipeline Debug Window
+- Added XR single-pass test mode to Rendering Debugger Window
 - Added debug setting to Render Pipeline Window to list the active XR views
 - Added a new refraction mode for the Lit shader (thin). Which is a box refraction with small thickness values
 - Added the code to support Barn Doors for Area Lights based on a shaderconfig option.
@@ -1583,7 +1604,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
 - Fixed issue with sceneview camera settings not being saved after Editor restart.
 - Fixed issue when switching back to custom sensor type in physical camera settings (case 1244350).
-- Fixed a null ref exception when running playmode tests with the render pipeline debug window opened.
+- Fixed a null ref exception when running playmode tests with the Rendering Debugger window opened.
 - Fixed some GCAlloc in the debug window.
 - Fixed shader graphs not casting semi-transparent and color shadows (case 1242617)
 - Fixed thin refraction mode not working properly.
@@ -2373,7 +2394,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Debug mode for validation of material albedo and metalness/specularColor values
 - Added a new dynamic mode for ambient probe and renamed BakingSky to StaticLightingSky
 - Added command buffer parameter to all Bind() method of material
-- Added Material validator in Render Pipeline Debug
+- Added Material validator in Rendering Debugger
 - Added code to future support of DXR (not enabled)
 - Added support of multiviewport
 - Added HDRenderPipeline.RequestSkyEnvironmentUpdate function to force an update from script when sky is set to OnDemand
@@ -2805,7 +2826,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replace the sampler used for density volumes for correct wrap mode handling
 
 ### Changed
-- Move Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
+- Move Rendering Debugger "Windows from Windows->General-> Rendering Debugger windows" to "Windows from Windows->Analysis-> Rendering Debugger windows"
 - Update detail map formula for smoothness and albedo, goal it to bright and dark perceptually and scale factor is use to control gradient speed
 - Refactor the Upgrade material system. Now a material can be update from older version at any time. Call Edit/Render Pipeline/Upgrade all Materials to newer version
 - Change name EnableDBuffer to EnableDecals at several place (shader, hdrp asset...), this require a call to Edit/Render Pipeline/Upgrade all Materials to newer version to have up to date material.
@@ -2913,7 +2934,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed versioning variable name in HDAdditionalXXXData from m_version to version
 - Create unique name when creating a game object in the rendering menu (i.e Density Volume(2))
 - Re-organize various files and folder location to clean the repository
-- Change Debug windows name and location. Now located at:  Windows -> General -> Render Pipeline Debug
+- Change Debug windows name and location. Now located at:  Windows -> General -> Rendering Debugger
 
 ### Removed
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize

@@ -342,8 +342,14 @@ namespace UnityEngine.Experimental.Rendering
 
             var dilationSettings = m_BakingReferenceVolumeAuthoring.GetDilationSettings();
 
+
             if (dilationSettings.dilationDistance > 0.0f)
             {
+                // Force maximum sh bands to perform dilation, we need to store what sh bands was selected from the settings as we need to restore
+                // post dilation.
+                var prevSHBands = ProbeReferenceVolume.instance.shBands;
+                ProbeReferenceVolume.instance.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
+
                 // TODO: This loop is very naive, can be optimized, but let's first verify if we indeed want this or not.
                 for (int iterations = 0; iterations < dilationSettings.dilationIterations; ++iterations)
                 {
@@ -403,7 +409,11 @@ namespace UnityEngine.Experimental.Rendering
                             refVol.QueueAssetLoading();
                     }
                 }
+
+                // Need to restore the original sh bands
+                ProbeReferenceVolume.instance.ForceSHBand(prevSHBands);
             }
+
         }
 
         static void OnAdditionalProbesBakeCompleted()

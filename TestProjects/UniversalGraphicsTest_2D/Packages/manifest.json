@@ -11,6 +11,7 @@
         "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
         "com.unity.render-pipelines.universal": "file:../../../com.unity.render-pipelines.universal",
         "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
+        "com.unity.testing.urp": "file:../../../com.unity.testing.urp",
         "com.unity.test-framework": "1.1.18",
         "com.unity.test-framework.build": "0.0.1-preview.14",
         "com.unity.test-framework.utp-reporter": "1.0.2-preview",
@@ -53,6 +54,7 @@
         "com.unity.render-pipelines.core",
         "com.unity.render-pipelines.universal",
         "com.unity.testframework.graphics",
-        "com.unity.testing.xr"
+        "com.unity.testing.xr",
+        "com.unity.testing.urp"
     ]
 }

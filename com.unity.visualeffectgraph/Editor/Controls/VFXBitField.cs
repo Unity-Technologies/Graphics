@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
             Add(m_Label);
 
             Add(m_Background);
-            var buttonContainer = new VisualElement() { name = "button-container" , pickingMode = PickingMode.Ignore};
+            var buttonContainer = new VisualElement() { name = "button-container", pickingMode = PickingMode.Ignore };
             Add(buttonContainer);
             for (int i = 0; i < m_Buttons.Length; ++i)
             {

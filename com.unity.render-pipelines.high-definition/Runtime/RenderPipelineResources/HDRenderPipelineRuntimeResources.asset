@@ -281,6 +281,9 @@ MonoBehaviour:
     SMAAAreaTex: {fileID: 2800000, guid: 92e0d85ab4eca874098e7fcf6f8f674e, type: 3}
     defaultHDRISky: {fileID: 8900000, guid: 8253d41e6e8b11a4cbe77a4f8f82934d, type: 3}
     defaultCloudMap: {fileID: 2800000, guid: 57a33fc2476a01644865bfde5f06e2f4, type: 3}
+  shaderGraphs:
+    objectIDPS: {fileID: -6465566751694194690, guid: 89daf81f8e8f6634da726cbca859ca38,
+      type: 3}
   assets:
     defaultDiffusionProfile: {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
     emissiveCylinderMesh: {fileID: 2534964839176971238, guid: accb6d90f0d50fe4ca0f68159b4323de, type: 3}

@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal.Converters
 {
     internal class RenderSettingsConverter : RenderPipelineConverter
     {
-        public override int priority => - 9000;
+        public override int priority => -9000;
         public override string name => "Rendering Settings";
 
         public override string info =>
@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.Universal.Converters
                 m_SettingsItems.Add(projectSettings);
 
                 var setting = QualitySettings.GetRenderPipelineAssetAt(id);
-                var item = new ConverterItemDescriptor {name = $"Quality Level {id}: {levelName}"};
+                var item = new ConverterItemDescriptor { name = $"Quality Level {id}: {levelName}" };
 
                 if (setting != null)
                 {
@@ -282,7 +282,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             public RenderingPath RenderingPath;
         }
 
-        private class SettingsItem {}
+        private class SettingsItem { }
 
         private class RenderSettingItem : SettingsItem
         {

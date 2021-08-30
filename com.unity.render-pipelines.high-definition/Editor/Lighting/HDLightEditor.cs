@@ -2,6 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -72,15 +73,22 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
             m_SerializedHDLight.Update();
-
             // Add space before the first collapsible area
             EditorGUILayout.Space();
 
             ApplyAdditionalComponentsVisibility(true);
 
             EditorGUI.BeginChangeCheck();
-            using (new EditorGUILayout.VerticalScope())
-                HDLightUI.Inspector.Draw(m_SerializedHDLight, this);
+
+            if (HDEditorUtils.IsPresetEditor(this))
+            {
+                HDLightUI.PresetInspector.Draw(m_SerializedHDLight, this);
+            }
+            else
+            {
+                using (new EditorGUILayout.VerticalScope())
+                    HDLightUI.Inspector.Draw(m_SerializedHDLight, this);
+            }
             if (EditorGUI.EndChangeCheck())
             {
                 m_SerializedHDLight.Apply();

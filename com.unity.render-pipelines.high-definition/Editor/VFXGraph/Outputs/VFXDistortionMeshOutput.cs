@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.HDRP
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDistortionMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsUV { get { return true; } }
-        public override CullMode defaultCullMode { get { return CullMode.Back;  } }
+        public override CullMode defaultCullMode { get { return CullMode.Back; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
