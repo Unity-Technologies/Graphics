@@ -11,11 +11,17 @@ public class AutoLoadPipelineAsset : MonoBehaviour
 
     void OnEnable()
     {
-        if (m_PipelineAsset && GraphicsSettings.renderPipelineAsset != m_PipelineAsset)
+        if(m_PipelineAsset)
         {
-            m_PreviousPipelineAsset = GraphicsSettings.renderPipelineAsset;
-            //GraphicsSettings.renderPipelineAsset = m_PipelineAsset;
-            QualitySettings.renderPipeline = m_PipelineAsset;
+            if (QualitySettings.renderPipeline != null && QualitySettings.renderPipeline != m_PipelineAsset)
+            {
+                m_PreviousPipelineAsset = QualitySettings.renderPipeline;
+                QualitySettings.renderPipeline = m_PipelineAsset;
+            } else if (GraphicsSettings.renderPipelineAsset != m_PipelineAsset)
+            {
+                m_PreviousPipelineAsset = GraphicsSettings.renderPipelineAsset;
+                GraphicsSettings.renderPipelineAsset = m_PipelineAsset;
+            }
         }
     }
 
