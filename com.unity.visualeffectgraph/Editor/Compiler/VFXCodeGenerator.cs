@@ -416,6 +416,8 @@ namespace UnityEditor.VFX
             foreach (string vertexParameter in context.vertexParameters)
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => vertexParameter == o.name);
+                if (filteredNamedExpression.exp == null)
+                    throw new InvalidOperationException(string.Format("Cannot find vertex property : {0}", vertexParameter));
 
                 // If the parameter is in the global scope, read from the cbuffer directly (no suffix).
                 if (!(expressionToName.ContainsKey(filteredNamedExpression.exp) && expressionToName[filteredNamedExpression.exp] == filteredNamedExpression.name))
