@@ -600,6 +600,12 @@ namespace UnityEditor.VFX
             }
             globalIncludeContent.WriteLineFormat("#include \"{0}/VFXDefines.hlsl\"", renderRuntimePipePath);
 
+            //I don't know where to put this for now so...
+            globalIncludeContent.WriteLine("#define VFX_USE_INSTANCING 1");
+            globalIncludeContent.WriteLine("#define VFX_INSTANCING_INDIRECTION 1");
+            globalIncludeContent.WriteLine("#define VFX_INSTANCING_VARIABLE_SIZE 1");
+
+
             var perPassIncludeContent = new VFXShaderWriter();
             string renderPipeCommon = context.doesIncludeCommonCompute ? "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.hlsl" : renderRuntimePipePath + "/VFXCommon.hlsl";
             perPassIncludeContent.WriteLine("#include \"" + renderPipeCommon + "\"");

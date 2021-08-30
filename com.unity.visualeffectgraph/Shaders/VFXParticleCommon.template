@@ -323,3 +323,27 @@ float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData st
 }
 ${VFXEnd}
 
+${VFXBegin:VFXSetInstancingIndices}
+    uint nbInstancesInDispatch = 1; //TODO :nbInstancesInDispatch is supposed to be a uniform in the future
+
+#if VFX_INSTANCING_VARIABLE_SIZE
+#if VFX_INSTANCING_INDIRECTION
+    SetInstancingIndices(nbInstancesInDispatch, prefixSumInstances, indirectionBufferInstances, index, particleIndex, ALIGNED_SYSTEM_CAPACITY);
+#else
+    SetInstancingIndices(nbInstancesInDispatch, prefixSumInstances, index, particleIndex, ALIGNED_SYSTEM_CAPACITY);
+#endif
+#else
+#if VFX_INSTANCING_INDIRECTION
+    SetInstancingIndices(nbMax,groupId,
+                                NB_THREADS_PER_GROUP,
+                               dispatchWidth,
+                               indirectionBufferInstances,index, particleIndex, ALIGNED_SYSTEM_CAPACITY);
+#else
+    SetInstancingIndices(nbMax,groupId,
+                                NB_THREADS_PER_GROUP,
+                               dispatchWidth,
+                               index, particleIndex, ALIGNED_SYSTEM_CAPACITY);
+#endif
+#endif
+${VFXEnd}
+

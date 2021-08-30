@@ -23,6 +23,13 @@ RWStructuredBuffer<uint> stripDataBuffer;
 StructuredBuffer<uint> attachedStripDataBuffer;
 #endif
 
+#if VFX_INSTANCING_INDIRECTION
+StructuredBuffer<uint> indirectionBufferInstances;
+#endif
+#if VFX_INSTANCING_VARIABLE_SIZE
+StructuredBuffer<uint> prefixSumInstances;
+#endif
+
 CBUFFER_START(updateParams)
     uint nbMax;
 	uint dispatchWidth;
@@ -41,20 +48,8 @@ void CSMain(uint3 groupId          : SV_GroupID,
 	uint index = id;
 
 #if VFX_USE_INSTANCING
-    uint nbInstancesInDispatch = 1; //TODO :nbDrawnInstances is supposed to be a uniform in the future
-#if VFX_INSTANCING_VARIABLE_SIZE
-#if VFX_INSTANCING_INDIRECTION
-SetInstancingIndices(nbInstancesInDispatch,instancePrefixSum,instanceIndirectionBuffer,index, particleIndex);
-#else
-SetInstancingIndices(nbInstancesInDispatch,instancePrefixSum,index, particleIndex);
-#endif
-#else
-#if VFX_INSTANCING_INDIRECTION
-SetInstancingIndices(nbMax,instanceIndirectionBuffer,index, particleIndex);
-#else
-SetInstancingIndices(nbMax,index, particleIndex);
-#endif
-#endif
+    uint particleIndex;
+${VFXSetInstancingIndices}
 #endif
 
 
