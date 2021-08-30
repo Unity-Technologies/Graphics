@@ -9,9 +9,9 @@ struct VFXIndices
     uint index;
 };
 
-uint GetIndexInInstance(uint threadId, uint instanceIndex, uint nbMax)
+uint GetIndexInInstance(uint rawIndex, uint instanceIndex, uint nbParticlesPerInstance)
 {
-    return threadId - instanceIndex * nbMax;
+    return rawIndex - instanceIndex * nbParticlesPerInstance;
 }
 
 uint GetIndexInAttributeBuffer(uint instanceIndex, uint indexInInstance, uint alignedSystemCapacity)
@@ -40,7 +40,8 @@ void VFXSetComputeInstancingIndices(
                             )
 {
     vfxIndices.instanceIndex = GetInstanceIndexFromGroupID(groupId, nbThreadPerGroup, dispatchWidth, alignedSystemCapacity);
-    vfxIndices.particleIndex = vfxIndices.index - vfxIndices.instanceIndex * nbParticlesPerInstance;
+    vfxIndices.particleIndex = GetIndexInInstance(vfxIndices.index, vfxIndices.instanceIndex, nbParticlesPerInstance);
+
     #if VFX_INSTANCING_INDIRECTION
         vfxIndices.instanceIndex = indirectionBufferInstances[vfxIndices.instanceIndex];
     #endif
@@ -69,7 +70,7 @@ void VFXSetOutputInstancingIndices(
         #endif
     #else
         vfxIndices.instanceIndex = vfxIndices.index / nbParticlesPerInstance;
-        vfxIndices.particleIndex = vfxIndices.index - vfxIndices.instanceIndex * nbParticlesPerInstance;
+        vfxIndices.particleIndex = GetIndexInInstance(vfxIndices.index, vfxIndices.instanceIndex, nbParticlesPerInstance);
         #if VFX_INSTANCING_INDIRECTION
             vfxIndices.instanceIndex = indirectionBufferInstances[vfxIndices.instanceIndex];
         #endif
