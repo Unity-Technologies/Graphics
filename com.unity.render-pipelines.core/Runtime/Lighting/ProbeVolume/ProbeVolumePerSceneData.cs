@@ -13,7 +13,8 @@ namespace UnityEngine.Experimental.Rendering
     // TMP to be moved to ProbeReferenceVolume when we define the concept, here it is just to make stuff compile
     enum ProbeVolumeState
     {
-        Default = 0
+        Default = 0,
+        Invalid = 999
     }
 
     [ExecuteAlways]
@@ -33,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField] List<SerializableAssetItem> serializedAssets;
 
         ProbeVolumeState m_CurrentState = ProbeVolumeState.Default;
-        ProbeVolumeState m_PreviousState = ProbeVolumeState.Default;
+        ProbeVolumeState m_PreviousState = ProbeVolumeState.Invalid;
 
         /// <summary>
         /// OnAfterDeserialize implementation.
@@ -115,11 +116,12 @@ namespace UnityEngine.Experimental.Rendering
             QueueAssetRemoval();
         }
 
-        void OnUpdate()
+        void Update()
         {
             // Query state from ProbeReferenceVolume.instance.
             // This is temporary here until we implement a state system.
             m_CurrentState = ProbeVolumeState.Default;
+
             if (m_PreviousState != m_CurrentState)
             {
                 if (assets.ContainsKey(m_PreviousState) && assets[m_PreviousState] != null)

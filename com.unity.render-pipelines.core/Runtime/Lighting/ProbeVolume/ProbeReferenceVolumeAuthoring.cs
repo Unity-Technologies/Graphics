@@ -143,9 +143,6 @@ namespace UnityEngine.Experimental.Rendering
         internal void QueueAssetLoading()
         {
             LoadProfileInformation();
-
-            if (volumeAsset != null)
-                ProbeReferenceVolume.instance.AddPendingAssetLoading(volumeAsset);
         }
 
         internal void QueueAssetRemoval()
@@ -161,8 +158,6 @@ namespace UnityEngine.Experimental.Rendering
 
             m_PrevAsset = null;
 #endif
-
-            ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
         }
 
         void OnEnable()

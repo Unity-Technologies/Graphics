@@ -131,6 +131,9 @@ namespace UnityEngine.Experimental.Rendering
 
             serializedBounds.Clear();
             serializedHasVolumes.Clear();
+            serializedProfiles.Clear();
+            sceneBakingSettings.Clear();
+
             foreach (var k in sceneBounds.Keys)
             {
                 SerializableBoundItem item;
