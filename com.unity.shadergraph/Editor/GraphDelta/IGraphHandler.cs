@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         //public IEnumerable<INodeReader> GetNodes();
 
-        //public IEnumerable<IPortReader> GetInputPorts(INodeReader nodeRef);
+        public IEnumerable<IPortReader> GetInputPorts(INodeReader nodeRef);
 
         //public IEnumerable<IPortReader> GetOutputPorts(INodeReader nodeRef);
 

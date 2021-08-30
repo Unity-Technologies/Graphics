@@ -1,9 +1,12 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEditor.ShaderGraph.GraphUI.Utilities;
 using UnityEditor.ShaderGraph.Registry;
+using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI.DataModel
@@ -16,52 +19,96 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         //       then, (at least) the following features are broken as a result: reloading assembly, saving, loading.
         public IGraphHandler GraphHandler => m_GraphHandler ??= GraphUtil.CreateGraph();
 
-        protected override Type GetEdgeType(IPortModel toPort, IPortModel fromPort)
+        /// <summary>
+        /// Tests the connection between two GraphData ports at the data level.
+        /// </summary>
+        /// <param name="src">Source port.</param>
+        /// <param name="dst">Destination port.</param>
+        /// <returns>True if the ports can be connected, false otherwise.</returns>
+        bool TestConnection(GraphDataPortModel src, GraphDataPortModel dst)
         {
-            return toPort.PortDataType == fromPort.PortDataType ? typeof(EdgeModel) : typeof(ConversionEdgeModel);
+            return GraphHandler.TestConnection(dst.graphDataNodeModel.graphDataName,
+                dst.graphDataName, src.graphDataNodeModel.graphDataName,
+                src.graphDataName, ((ShaderGraphStencil) Stencil).GetRegistry());
+        }
+
+        /// <summary>
+        /// Tries to connect two GraphData ports at the data level.
+        /// </summary>
+        /// <param name="src">Source port.</param>
+        /// <param name="dst">Destination port.</param>
+        /// <returns>True if the connection was successful, false otherwise.</returns>
+        public bool TryConnect(GraphDataPortModel src, GraphDataPortModel dst)
+        {
+            return GraphHandler.TryConnect(
+                dst.graphDataNodeModel.graphDataName, dst.graphDataName,
+                src.graphDataNodeModel.graphDataName, src.graphDataName,
+                ((ShaderGraphStencil) Stencil).GetRegistry());
+        }
+
+        static bool PortsFormCycle(IPortModel fromPort, IPortModel toPort)
+        {
+            var queue = new Queue<IPortNodeModel>();
+            queue.Enqueue(fromPort.NodeModel);
+
+            while (queue.Count > 0)
+            {
+                var checkNode = queue.Dequeue();
+
+                if (checkNode == toPort.NodeModel) return true;
+
+                foreach (var incomingEdge in checkNode.GetIncomingEdges())
+                {
+                    queue.Enqueue(incomingEdge.FromPort.NodeModel);
+                }
+            }
+
+            return false;
         }
 
         protected override bool IsCompatiblePort(IPortModel startPortModel, IPortModel compatiblePortModel)
         {
-            var srcIsGraphData = startPortModel is GraphDataPortModel;
-            var dstIsGraphData = compatiblePortModel is GraphDataPortModel;
+            if (startPortModel.Direction == compatiblePortModel.Direction) return false;
 
-            if (!srcIsGraphData && !dstIsGraphData) return base.IsCompatiblePort(startPortModel, compatiblePortModel);
+            var fromPort = startPortModel.Direction == PortDirection.Output ? startPortModel : compatiblePortModel;
+            var toPort = startPortModel.Direction == PortDirection.Input ? startPortModel : compatiblePortModel;
 
-            // For now, don't mix data-backed ports with viewmodel-only ones.
-            // TODO: Redirects will presumably change this.
-            if (srcIsGraphData != dstIsGraphData) return false;
+            if (PortsFormCycle(fromPort, toPort)) return false;
 
-            var srcPort = (GraphDataPortModel) startPortModel;
-            var dstPort = (GraphDataPortModel) compatiblePortModel;
+            if (fromPort.NodeModel is RedirectNodeModel fromRedirect)
+            {
+                fromPort = fromRedirect.ResolveSource();
+                if (fromPort == null) return true;
+            }
 
-            // Don't touch nodes missing from graph data
-            if (!srcPort.graphDataNodeModel.existsInGraphData ||
-                !dstPort.graphDataNodeModel.existsInGraphData) return false;
+            if (toPort.NodeModel is RedirectNodeModel toRedirect)
+            {
+                // Only connect to a hanging branch if it's valid for every connection.
+                // Should not recurse more than once. ResolveDestinations returns non-redirect nodes.
+                return toRedirect.ResolveDestinations().All(testPort => IsCompatiblePort(fromPort, testPort));
+            }
 
-            return GraphHandler.TestConnection(dstPort.graphDataNodeModel.graphDataName,
-                dstPort.graphDataName, srcPort.graphDataNodeModel.graphDataName,
-                srcPort.graphDataName, ((ShaderGraphStencil) Stencil).GetRegistry());
+            if ((fromPort, toPort) is (GraphDataPortModel fromDataPort, GraphDataPortModel toDataPort))
+            {
+                return fromDataPort.graphDataNodeModel.existsInGraphData &&
+                       toDataPort.graphDataNodeModel.existsInGraphData &&
+                       TestConnection(fromDataPort, toDataPort);
+            }
+
+            // Don't support connecting GraphDelta-backed ports to UI-only ones.
+            if (fromPort is GraphDataPortModel || toPort is GraphDataPortModel)
+            {
+                return false;
+            }
+
+            return base.IsCompatiblePort(startPortModel, compatiblePortModel);
         }
 
-        protected override IEdgeModel InstantiateEdge(IPortModel toPort, IPortModel fromPort,
-            SerializableGUID guid = default)
+        public IEnumerable<IPortReader> GetInputPortsOnNode(GraphDataNodeModel nodeModel)
         {
-            var srcIsGraphData = fromPort is GraphDataPortModel;
-            var dstIsGraphData = toPort is GraphDataPortModel;
-
-            if (!srcIsGraphData && !dstIsGraphData) return base.InstantiateEdge(toPort, fromPort, guid);
-            if (srcIsGraphData != dstIsGraphData) return null;
-
-            var srcPort = (GraphDataPortModel) fromPort;
-            var dstPort = (GraphDataPortModel) toPort;
-
-            return GraphHandler.TryConnect(
-                dstPort.graphDataNodeModel.graphDataName, dstPort.graphDataName,
-                srcPort.graphDataNodeModel.graphDataName, srcPort.graphDataName,
-                ((ShaderGraphStencil) Stencil).GetRegistry())
-                ? base.InstantiateEdge(toPort, fromPort, guid)
-                : null;
+            var nodeInstanceReader = m_GraphHandler.GetNode(nodeModel.Guid.ToString());
+            var nodeInstanceInputPorts = m_GraphHandler.GetInputPorts(nodeInstanceReader);
+            return nodeInstanceInputPorts;
         }
     }
 }

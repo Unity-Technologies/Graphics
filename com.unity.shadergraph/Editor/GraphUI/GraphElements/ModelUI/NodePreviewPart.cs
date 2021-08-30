@@ -1,0 +1,96 @@
+﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphUI.DataModel;
+using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
+using UnityEditor.ShaderGraph.GraphUI.Utilities;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
+{
+    public class NodePreviewPart : BaseModelUIPart
+    {
+        VisualElement m_Root;
+        VisualElement m_CollapseButton;
+        VisualElement m_ExpandButton;
+        VisualElement m_PreviewContainer;
+        Image m_PreviewImage;
+
+        GraphDataNodeModel m_GraphDataNodeModel;
+        CommandDispatcher m_CommandDispatcher;
+
+        const string ussRootName = "ge-node-preview-part";
+
+        public override VisualElement Root => m_Root;
+
+
+        public NodePreviewPart(CommandDispatcher commandDispatcher, string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName)
+            : base(name, model, ownerElement, parentClassName)
+        {
+            m_CommandDispatcher = commandDispatcher;
+            m_GraphDataNodeModel = model as GraphDataNodeModel;
+        }
+
+        protected override void BuildPartUI(VisualElement parent)
+        {
+            m_Root = new VisualElement();
+            m_Root.name = ussRootName;
+            GraphElementHelper.LoadTemplateAndStylesheet(m_Root, "NodePreviewPart", ussRootName);
+
+            AssertHelpers.IsNotNull(m_Root, "Failed to load UXML for NodePreviewPart");
+
+            m_PreviewImage = m_Root.Q<Image>("preview");
+            if (m_PreviewImage != null)
+            {
+                m_PreviewImage.image = Texture2D.whiteTexture;
+            }
+
+            m_CollapseButton = m_Root.Q<VisualElement>("collapse");
+            m_CollapseButton?.RegisterCallback<MouseDownEvent>(OnCollapseButtonClicked);
+
+            m_ExpandButton = m_Root.Q<VisualElement>("expand");
+            m_ExpandButton?.RegisterCallback<MouseDownEvent>(OnExpandButtonClicked);
+
+            m_PreviewContainer = m_Root.Q<VisualElement>("previewContainer");
+
+            // TODO: Handle preview collapse/expand state serialization
+            HandlePreviewStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
+
+            parent.Add(Root);
+        }
+
+        protected override void UpdatePartFromModel()
+        {
+            // Is this where we handle the preview expansion collapse?
+            Debug.Log("Hello");
+            HandlePreviewStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
+        }
+
+        void OnCollapseButtonClicked(MouseDownEvent mouseDownEvent)
+        {
+            m_CommandDispatcher.Dispatch(new ChangePreviewExpandedCommand(false, new [] { m_GraphDataNodeModel }));
+        }
+
+        void OnExpandButtonClicked(MouseDownEvent mouseDownEvent)
+        {
+            m_CommandDispatcher.Dispatch(new ChangePreviewExpandedCommand(true, new [] { m_GraphDataNodeModel }));
+        }
+
+        void HandlePreviewStateChanged(bool previewExpanded)
+        {
+            if (previewExpanded)
+            {
+                // Hide Preview expand button and show image instead (which also contains the collapse button)
+                m_ExpandButton.RemoveFromHierarchy();
+                if(m_PreviewContainer.Contains(m_PreviewImage) == false)
+                    m_PreviewContainer.Add(m_PreviewImage);
+            }
+            else
+            {
+                // Hide Image and Show Preview expand button instead
+                m_PreviewImage.RemoveFromHierarchy();
+                if(m_PreviewContainer.Contains(m_ExpandButton) == false)
+                    m_PreviewContainer.Add(m_ExpandButton);
+            }
+        }
+    }
+}
