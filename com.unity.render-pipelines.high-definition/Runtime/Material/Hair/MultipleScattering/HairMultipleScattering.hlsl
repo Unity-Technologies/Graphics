@@ -110,7 +110,7 @@ HairScatteringData GetHairScatteringData(BSDFData bsdfData, float3 alpha, float3
 }
 
 // void EvaluateMultipleScattering_Material(float3 V, float3 L, MultipleScatteringData lightScatteringData, inout BSDFData bsdfData)
-float3 EvaluateMultipleScattering(float3 Fs, BSDFData bsdfData, float3 alpha, float3 beta, float thetaH, float cosThetaD, float sinThetaI)
+float3 EvaluateMultipleScattering(float3 Fs, BSDFData bsdfData, float3 alpha, float3 beta, float thetaH, float sinThetaI)
 {
     // Fetch the various preintegrated data.
     HairScatteringData hairScatteringData = GetHairScatteringData(bsdfData, alpha, beta, sinThetaI);
@@ -199,9 +199,7 @@ float3 EvaluateMultipleScattering(float3 Fs, BSDFData bsdfData, float3 alpha, fl
     float3 Sb = ScatteringSpreadGaussian(thetaH - deltaB, sigmaB + sigmaF);
 
     // Resolve the overall local scattering term ( Eq. 9 & 10 ).
-    float3 fsBack  = 2 * Ab * Sb;
-           fsBack /= cosThetaD;
-           fsBack *= db;
+    float3 fsBack  = db * 2 * Ab * Sb;
 
     // Resolve the approximated multiple scattering.
     // ------------------------------------------------------------------------------------
@@ -211,5 +209,5 @@ float3 EvaluateMultipleScattering(float3 Fs, BSDFData bsdfData, float3 alpha, fl
     const float3 Fdirect   = directFraction * (Fs + fsBack);
     const float3 Fscatter  = (Tf - directFraction) * df * (fsScatter + PI * fsBack);
 
-    return Fdirect + Fscatter;
+    return max(Fdirect + Fscatter, 0);
 }

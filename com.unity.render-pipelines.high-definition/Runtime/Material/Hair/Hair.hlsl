@@ -694,7 +694,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     #if _USE_DENSITY_VOLUME_SCATTERING
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING))
         {
-            cbsdf.specR = EvaluateMultipleScattering(cbsdf.specR, bsdfData, alpha, beta, thetaH, cosThetaD, sinThetaI);
+            cbsdf.specR = EvaluateMultipleScattering(cbsdf.specR, bsdfData, alpha, beta, thetaH, sinThetaI);
         }
         else
     #endif

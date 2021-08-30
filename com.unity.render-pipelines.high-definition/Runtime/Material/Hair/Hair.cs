@@ -189,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PreIntegratedAzimuthalScatteringLUT = defaultResources.textures.preintegratedAzimuthalScattering;
 
             // Initialize the dual scattering LUT.
-            m_PreIntegratedFiberScatteringLUT = new RenderTexture(m_DimTheta, m_DimBeta, m_DimAbsorption, GraphicsFormat.R16G16_SFloat)
+            m_PreIntegratedFiberScatteringLUT = new RenderTexture(m_DimTheta, m_DimBeta, 0, GraphicsFormat.R16G16_SFloat)
             {
                 dimension = TextureDimension.Tex3D,
                 volumeDepth = m_DimAbsorption,
@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hideFlags = HideFlags.HideAndDontSave,
                 filterMode = FilterMode.Point,
                 wrapMode = TextureWrapMode.Clamp,
-                name = CoreUtils.GetRenderTargetAutoName(m_DimTheta, m_DimBeta, m_DimAbsorption, GraphicsFormat.R16G16_SFloat, "PreIntegratedFiberScattering")
+                name = CoreUtils.GetRenderTargetAutoName(m_DimTheta, m_DimBeta, 0, GraphicsFormat.R16G16_SFloat, "PreIntegratedFiberScattering")
             };
             m_PreIntegratedFiberScatteringLUT.Create();
 
@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(m_PreIntegratedFiberScatteringCS, 1, _PreIntegratedAverageHairFiberScatteringUAV, m_PreIntegratedFiberAverageScatteringLUT);
                 cmd.DispatchCompute(m_PreIntegratedFiberScatteringCS, 1, HDUtils.DivRoundUp(m_DimTheta, 8), HDUtils.DivRoundUp(m_DimBeta, 8), 1);
 
-                m_PreIntegratedFiberAverageScatteringIsInit = false;
+                m_PreIntegratedFiberAverageScatteringIsInit = true;
             }
         }
 
