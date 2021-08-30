@@ -167,6 +167,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where TerrainLit was rendering color lighter than Lit [case 1340751] (https://issuetracker.unity3d.com/product/unity/issues/guid/1340751/)
 - Fixed Camera rendering when capture action and post processing present. [case 1350313]
 - Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
+- Fix sporadic NaN when using normal maps with XYZ-encoding [case 1351020](https://issuetracker.unity3d.com/issues/android-urp-vulkan-nan-pixels-and-bloom-post-processing-generates-visual-artifacts)
 - Support undo of URP Global Settings asset assignation (case 1342987).
 - Removed unsupported fields from Presets of Light and Camera [case 1335979].
 - Fixed graphical artefact when terrain height map is used with rendering layer mask for lighting.
