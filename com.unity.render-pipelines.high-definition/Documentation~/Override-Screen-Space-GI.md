@@ -76,8 +76,8 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 
 In Deferred rendering mode, Screen Space Global Illumination and Ray-Traced Global Illumination share a buffer with emissive thus overwriting emissive data. 
 There is multiple ways to recover the emissive contribution of the scene materials: 
-* Disabling Receive SSR/SSGI flag on the emissive materials.
-* Using Force Forward Emissive on the emissive materials.
+* Disabling [Receive SSR/SSGI](snippets/shader-properties/surface-options/freceive-ssr.md) flag on the emissive materials.
+* Using [Force Forward Emissive](snippets/shader-properties/advanced-options/force-forward-emissive.md) on the emissive materials.
 * Using Forward rendering.
 
 ### Screen-space global illumination
