@@ -9,10 +9,8 @@ from os import listdir
 if __name__ == "__main__":
     cur_sys = platform.system()
     if cur_sys == 'Windows':
-        print(sys.argv[1:])
         args = [path.join(getcwd(), "utr.bat")] + sys.argv[1:]
-        print(" ".join(args))
-        subprocess.call(["utr.bat"] + sys.argv[1:])
+        subprocess.call(["utr.bat"] + args)
     elif cur_sys == 'Linux':
         subprocess.call(["utr"] + sys.argv[1:])
     else:
@@ -22,8 +20,8 @@ if __name__ == "__main__":
         if path.exists(utr_path):
             args = [path.join(getcwd(), utr_path)] + sys.argv[1:]
             print(args)
-            output = subprocess.call()
+            output = subprocess.call(args)
         else:
             args = [path.join(getcwd(), "utr")] + sys.argv[1:]
-            print(argv[1:])
+            print(args)
             output = subprocess.call(args)
