@@ -1118,6 +1118,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="disposing">Is disposing.</param>
         protected override void Dispose(bool disposing)
         {
+            Graphics.ClearRandomWriteTargets();
+            Graphics.SetRenderTarget(null);
             DisposeProbeCameraPool();
 
             UnsetRenderingFeatures();
@@ -1568,6 +1570,16 @@ namespace UnityEngine.Rendering.HighDefinition
             Render(renderContext, new List<Camera>(cameras));
         }
 #endif
+
+        // Only for internal use, outside of SRP people can call Camera.Render()
+#if UNITY_2021_1_OR_NEWER   
+        internal void InternalRender(ScriptableRenderContext renderContext, List<Camera> cameras)
+#else
+        internal void InternalRender(ScriptableRenderContext renderContext, Camera[] cameras)
+#endif
+        {
+            Render(renderContext, cameras);
+        }
 
         /// <summary>
         /// RenderPipeline Render implementation.
@@ -5573,6 +5585,7 @@ namespace UnityEngine.Rendering.HighDefinition
             mpb.SetFloat(HDShaderIDs._TransparencyOverdrawMaxPixelCost, (float)parameters.debugDisplaySettings.data.transparencyDebugSettings.maxPixelCost);
             mpb.SetFloat(HDShaderIDs._QuadOverdrawMaxQuadCost, (float)parameters.debugDisplaySettings.data.maxQuadCost);
             mpb.SetFloat(HDShaderIDs._VertexDensityMaxPixelCost, (float)parameters.debugDisplaySettings.data.maxVertexDensity);
+            mpb.SetFloat(HDShaderIDs._MinMotionVector, (float)parameters.debugDisplaySettings.data.minMotionVectorLength);
 
             if (fullscreenBuffer != null)
                 cmd.SetRandomWriteTarget(1, fullscreenBuffer);

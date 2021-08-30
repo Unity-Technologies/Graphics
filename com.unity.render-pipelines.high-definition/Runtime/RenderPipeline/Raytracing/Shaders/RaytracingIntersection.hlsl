@@ -106,9 +106,15 @@ void FetchIntersectionVertex(uint vertexIndex, out IntersectionVertex outVertex)
 
 	#ifdef ATTRIBUTES_NEED_COLOR
     outVertex.color      = UnityRayTracingFetchVertexAttribute4(vertexIndex, kVertexAttributeColor);
-	#else
-	outVertex.color  = 0.0;
-	#endif
+
+    // We want to default to white in case there is no specified color, to match the raster behaviour
+    // FIXME: This could be addressed in UnityRayTracingFetchVertexAttribute4(), but until then we use this workaround
+    if (!any(outVertex.color))
+        outVertex.color = 1.0;
+
+    #else
+    outVertex.color  = 0.0;
+    #endif
 }
 
 void GetCurrentIntersectionVertex(AttributeData attributeData, out IntersectionVertex outVertex)

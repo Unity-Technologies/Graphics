@@ -4,6 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.7.0] - 2021-07-02
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed terrain hole shadowing [case 1349305]
+
+### Fixed
+- Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
+
 ## [10.6.0] - 2021-04-29
 
 ### Fixed
@@ -12,6 +22,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1331779]
 - Fixed SRP batcher not working on OpenGL.
 - Fixed an issue where the inspector of Renderer Data would break after adding RenderObjects renderer feature and then adding another renderer feature. [case 1323608](https://issuetracker.unity3d.com/product/unity/issues/guid/1323608/)
+- Fixed an issue with Transparency Sort Mode using the 2D Renderer Data [case 1310652](https://issuetracker.unity3d.com/product/unity/issues/guid/1310652/)
+- Fixed an issue with Transparency Sort Axis using the 2D Renderer Data [case 1312229](https://issuetracker.unity3d.com/product/unity/issues/guid/1312229/)
 
 ## [10.5.0] - 2021-04-19
 
@@ -100,6 +112,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed bloom inconsistencies between Gamma and Linear color-spaces.
 - Fixed an issue with upgrading material set to cutout didn't properly set alpha clipping. [case 1235516](https://issuetracker.unity3d.com/issues/urp-upgrade-material-utility-does-not-set-the-alpha-clipping-when-material-was-using-a-shader-with-rendering-mode-set-to-cutout)
 - Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
+- Fixed an error where multisampled texture being bound to a non-multisampled sampler in XR. 
 
 ## [10.1.0] - 2020-10-12
 ### Added

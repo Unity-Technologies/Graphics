@@ -4,12 +4,44 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.7.0] - 2021-07-02
+
+### Fixed
+- Fixed an issue where bloom filtering was wrong when using multiple cameras
+- Improved a bit the area cookie behavior for higher smoothness values to reduce artifacts.
+- Fixed the incorrect value written to the VT feedback buffer when VT is not used.
+- Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
+- Fixed distortion when resizing the graphics compositor window in builds (case 1328968).
+- Fixed gbuffer depth debug mode for materials not rendered during the prepass.
+- Fixed Vertex Color Mode documentation for layered lit shader.
+- Fixed wobbling/tearing-like artifacts with SSAO.
+- Fixed white flash with SSR when resetting camera history (case 1335263).
+- Fixed VFX flag "Exclude From TAA" not working for some particle types.
+- Prevent any unwanted light sync when not in HDRP (case 1217575)
+- Fixed screen-space shadows with XR single-pass and camera relative rendering (1348260).
+- Fixed objects disappearing from Lookdev window when entering playmode (case 1309368).
+- Fixed tiled artifacts in refraction at borders between two reflection probes.
+- Fixed the FreeCamera and SimpleCameraController mouse rotation unusable at low framerate (case 1340344).
+- Fixed warning "Releasing render texture that is set to be RenderTexture.active!" on pipeline disposal / hdrp live editing.
+- Fixed a nullref in volume system after deleting a volume object (case 1348374).
+- Fixed update order in Graphics Compositor causing jumpy camera updates (case 1345566).
+- Fixed material inspector that allowed setting intensity to an infinite value.
+- Fixed issue when switching between non-persistent cameras when path tarcing is enabled (case 1337843).
+- Fixed issue with the LayerMaskParameter class storing an erroneous mask value (case 1345515).
+- Fixed issue with vertex color defaulting to 0.0 when not defined, in ray/path tracing (case 1348821).
+- Fixed issue with a compute dispatch being with 0 threads on extremely small resolutions.
+- Fixed incorrect light list indexing when TAA is enabled (case 1352444).
+- Fixed Additional Velocity for Alembic not taking correctly into account vertex animation
+- Fixed wrong LUT initialization in Wireframe mode.
+- Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
+
 ## [10.6.0] - 2021-04-29
 
 ### Added
 - Added support for lighting full screen debug mode in automated tests.
 - Added Speed Tree 8 shader graph as default Speed Tree 8 shader for HDRP.
 - Added support of motion vector buffer in custom postprocess
+- Added a minimum motion vector length to the motion vector debug view.
 
 ### Fixed
 - Fixed null reference exception in Raytracing SSS volume component.
@@ -25,7 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed fog precision in some camera positions (case 1329603).
 - Fixed contact shadows tile coordinates calculations.
 - Fixed blocky looking bloom when dynamic resolution scaling was used.
-- Fixrf for wrong cached area light initialization.
+- Fixed for wrong cached area ight initialization.
 - Fixed an issue where auto baking of ambient and reflection probe done for builtin renderer would cause wrong baking in HDRP.
 - Fixed the ray traced sub subsurface scattering debug mode not displaying only the RTSSS Data (case 1332904).
 - Fixed for discrepancies in intensity and saturation between screen space refraction and probe refraction.
@@ -48,6 +80,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error with motion blur and small render targets.
 - Fixed issue with on-demand directional shadow maps looking broken when a reflection probe is updated at the same time.
 - Fixed cropping issue with the compositor camera bridge (case 1340549).
+- Fixed the transparent cutoff not working properly in semi-transparent and color shadows (case 1340234).
+- Fixed object outline flickering with TAA.
+- Fixed the shader graph files that was still dirty after the first save (case 1342039).
+- Fixed cases in which object and camera motion vectors would cancel out, but didn't.
+- Fixed HDRP material upgrade failing when there is a texture inside the builtin resources assigned in the material (case 1339865).
+- Fixed custom pass volume not executed in scene view because of the volume culling mask.
+- Fixed an issue with asymmetric projection matrices and fog / pathtracing. (case 1330290).
 
 ### Changed
 - Display an info box and disable MSAA  asset entry when ray tracing is enabled.
@@ -94,6 +133,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed CustomPassUtils scaling issues when used with RTHandles allocated from a RenderTexture.
 - Fixed undo of some properties on light editor.
 - Fixed material Emission properties not begin animated when recording an animation (case 1328108).
+- Fixed issue with velocity rejection when using physically-based DoF
 
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).

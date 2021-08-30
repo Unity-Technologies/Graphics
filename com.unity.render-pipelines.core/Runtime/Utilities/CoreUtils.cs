@@ -925,7 +925,7 @@ namespace UnityEngine.Rendering
             if (obj != null)
             {
 #if UNITY_EDITOR
-                if (Application.isPlaying)
+                if (Application.isPlaying && !UnityEditor.EditorApplication.isPaused)
                     UnityObject.Destroy(obj);
                 else
                     UnityObject.DestroyImmediate(obj);
