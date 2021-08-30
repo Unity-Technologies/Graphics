@@ -16,6 +16,13 @@
 #define kDebugColorBrightRed    float4(255.0 / 255.0, 67.0  / 255.0, 51.0  / 255.0, 1.0) // #FF4333
 #define kDebugColorDarkRed      float4(132.0 / 255.0, 10.0  / 255.0, 54.0  / 255.0, 1.0) // #840A36
 
+// Shadow cascade debug colors. Keep in sync with the ones in ShadowCascadeGUI.cs.
+// Note: These colors are not 1:1 match to editor UI, in order to provide better contrast in the viewport.
+#define kDebugColorShadowCascade0   float4(0.4, 0.4, 0.9, 1.0)
+#define kDebugColorShadowCascade1   float4(0.4, 0.9, 0.4, 1.0)
+#define kDebugColorShadowCascade2   float4(0.9, 0.9, 0.4, 1.0)
+#define kDebugColorShadowCascade3   float4(0.9, 0.4, 0.4, 1.0)
+
 // UX-verified colorblind-optimized "heat color gradient"
 static const float4 kDebugColorGradient[DEBUG_COLORS_COUNT] = { kDebugColorBlack, kDebugColorLightPurple, kDebugColorDeepBlue,
     kDebugColorSkyBlue, kDebugColorLightBlue, kDebugColorTeal, kDebugColorBrightGreen, kDebugColorBrightYellow,

@@ -93,7 +93,7 @@ namespace UnityEditor.ShaderGraph
 
                 if (!value.procedural)
                 {
-                    // declare regular texture properties (for fallback case)
+                    //declare regular texture properties (for fallback case)
                     for (int i = 0; i < numLayers; i++)
                     {
                         string layerRefName = value.layers[i].layerRefName;

@@ -29,9 +29,9 @@ namespace UnityEngine.Rendering.HighDefinition
         private void BindAPVRuntimeResources(CommandBuffer cmdBuffer, HDCamera hdCamera)
         {
             bool needToBindNeutral = true;
-            // Do this only if the framesetting is on, otherwise there is some hidden cost
             var refVolume = ProbeReferenceVolume.instance;
 
+            // Do this only if the framesetting is on, otherwise there is some hidden cost
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
             {
                 ProbeReferenceVolume.RuntimeResources rr = refVolume.GetRuntimeResources();

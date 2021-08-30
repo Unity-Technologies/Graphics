@@ -87,4 +87,4 @@ When the **Dynamic Render Pass Culling** option is enabled in the HDRP Global Se
 
 ## Dynamic Resolution
 
-From 2021.2, Bilinear and Lanczos upscale filters as they are mostly redundant with other better options. If using those filters also consider the newly added filters TAA Upscale and FidelityFX Super Resolution 1.0.
+From 2021.2, Bilinear and Lanczos upscale filters have been removed as they are mostly redundant with other better options. A project using Bilinear filter will migrate to use Catmull-Rom, if using Lanczos it will migrate to Contrast Adaptive Sharpening (CAS).  If your project was relying on those filters also consider the newly added filters TAA Upscale and FidelityFX Super Resolution 1.0.
