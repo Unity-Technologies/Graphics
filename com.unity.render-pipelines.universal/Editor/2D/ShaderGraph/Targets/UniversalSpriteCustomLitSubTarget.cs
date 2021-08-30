@@ -2,10 +2,11 @@ using System;
 using System.Linq;
 using UnityEditor.ShaderGraph;
 using UnityEditor.UIElements;
+using Unity.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalSpriteCustomLitSubTarget : SubTarget<UniversalTarget>
+    sealed class UniversalSpriteCustomLitSubTarget : UniversalSubTarget
     {
         static readonly GUID kSourceCodeGuid = new GUID("69e608b3e7e0405bbc2f259ad9cfa196"); // UniversalUnlitSubTarget.cs
 
@@ -14,10 +15,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             displayName = "Sprite Custom Lit";
         }
 
+        protected override ShaderUtils.ShaderID shaderID => ShaderUtils.ShaderID.SG_SpriteCustomLit;
+
         public override bool IsActive() => true;
 
         public override void Setup(ref TargetSetupContext context)
         {
+            base.Setup(ref context);
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddSubShader(SubShaders.SpriteLit(target));
         }
