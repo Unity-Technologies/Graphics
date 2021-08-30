@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.Universal
 
             LoadMaterial();
 
-            m_SSShadowsPass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
+            m_SSShadowsPass.renderPassEvent = RenderPassEvent.AfterRenderingGbuffer;
             m_SSShadowsPostPass.renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
         }
 
