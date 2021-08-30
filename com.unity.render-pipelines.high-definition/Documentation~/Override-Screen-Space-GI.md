@@ -74,6 +74,12 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 
 ## Limitations
 
+In Deferred rendering mode, Screen Space Global Illumination and Ray-Traced Global Illumination share a buffer with emissive thus overwriting emissive data. 
+There is multiple ways to recover the emissive contribution of the scene materials: 
+* Disabling Receive SSR/SSGI flag on the emissive materials.
+* Using Force Forward Emissive on the emissive materials.
+* Using Forward rendering.
+
 ### Screen-space global illumination
 
 * When rendering [Reflection Probes](Reflection-Probe.md) screen space global illumination is not supported.
