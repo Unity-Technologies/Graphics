@@ -258,7 +258,6 @@ namespace UnityEditor.Rendering
         {
             // Note: We do not use the editor resource loading mechanism for light unit icons because we need to skin the icon correctly for the editor theme.
             // Maybe the resource reloader can be improved to support icon loading (thus supporting skinning)?
-            // Maybe the resource reloader can be improved to support icon loading (thus supporting skinning)?
             static Texture2D GetLightUnitIcon(string name)
             {
                 return CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/Lighting/Icons/LightUnitIcons", name, ".png");
