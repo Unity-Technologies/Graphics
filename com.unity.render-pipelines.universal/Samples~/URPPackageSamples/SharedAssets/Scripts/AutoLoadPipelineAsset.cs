@@ -8,6 +8,7 @@ public class AutoLoadPipelineAsset : MonoBehaviour
     [SerializeField]
     private UniversalRenderPipelineAsset m_PipelineAsset;
     private RenderPipelineAsset m_PreviousPipelineAsset;
+    private bool m_overrodeQualitySettings;
 
     void OnEnable()
     {
@@ -17,10 +18,12 @@ public class AutoLoadPipelineAsset : MonoBehaviour
             {
                 m_PreviousPipelineAsset = QualitySettings.renderPipeline;
                 QualitySettings.renderPipeline = m_PipelineAsset;
+                m_overrodeQualitySettings = true;
             } else if (GraphicsSettings.renderPipelineAsset != m_PipelineAsset)
             {
                 m_PreviousPipelineAsset = GraphicsSettings.renderPipelineAsset;
                 GraphicsSettings.renderPipelineAsset = m_PipelineAsset;
+                m_overrodeQualitySettings = false;
             }
         }
     }
@@ -29,7 +32,15 @@ public class AutoLoadPipelineAsset : MonoBehaviour
     {
         if (m_PreviousPipelineAsset)
         {
-            QualitySettings.renderPipeline = m_PreviousPipelineAsset;
+            if (m_overrodeQualitySettings)
+            {
+                QualitySettings.renderPipeline = m_PreviousPipelineAsset;
+            }
+            else
+            {
+                GraphicsSettings.renderPipelineAsset = m_PreviousPipelineAsset;
+            }
+            
         }
     }
 }
