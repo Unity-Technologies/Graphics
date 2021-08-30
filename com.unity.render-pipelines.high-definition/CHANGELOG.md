@@ -378,6 +378,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
 - Allow negative wind speed parameter.
+- Surface ReflectionTypeLoadExceptions in HDUtils.GetRenderPipelineMaterialList(). Without surfacing these exceptions, developers cannot act on any underlying reflection errors in the HDRP assembly.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
