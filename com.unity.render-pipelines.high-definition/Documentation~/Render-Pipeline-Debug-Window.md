@@ -16,9 +16,17 @@ The Rendering Debugger.
 
 ## Using the Rendering Debugger
 
-To open the Rendering Debugger in the Editor, go to  **Window > Analysis > Rendering Debugger**. You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window. You can disable the shortcut through the [enableWindowHotkey variable](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@12.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableWindowHotkey).
+To open the Rendering Debugger in the Editor, you must first enable **Runtime Debug Shaders** in **HDRP Global Settings**:
 
-You can display read-only items such as the FPS counter independently of the **Rendering Debugger**. This means that when you disable the **Rendering Debugger** window, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
+1. Go to **Edit > Project Settings > Graphics**
+2. Click **HDRP Settings**
+3. Enable **Runtime Debug Shaders**
+
+To open the Rendering Debugger, go to **Window > Analysis > Rendering Debugger**.
+
+You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window. You can disable the shortcut through the [enableWindowHotkey variable](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@12.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableWindowHotkey).
+
+You can display read-only items such as the FPS counter independently of the **Rendering Debugger**. This means that when you disable the **Rendering Debugger**, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
 
 ### Navigation at runtime
 
@@ -243,7 +251,7 @@ The **NVIDIA device debug view** is a panel that shows a list of the current fea
 
 ## Camera panels
 
-In the **Rendering Debugger** , each active Camera in the Scene has its own debug window. Use the Camera's debug window to temporarily change that Camera's [Frame Settings](Frame-Settings.md) without altering the Camera data in the Scene. The Camera window helps you to understand why a specific feature does not work correctly. You can access all of the information that HDRP uses the render the Camera you select.
+In the **Rendering Debugger**, each active Camera in the Scene has its own debug window. Use the Camera's debug window to temporarily change that Camera's [Frame Settings](Frame-Settings.md) without altering the Camera data in the Scene. The Camera window helps you to understand why a specific feature does not work correctly. You can access all of the information that HDRP uses the render the Camera you select.
 
 **Note**: The Camera debug window is only available for Cameras, not Reflection Probes.
 
