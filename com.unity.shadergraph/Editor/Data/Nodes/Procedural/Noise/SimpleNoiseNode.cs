@@ -6,19 +6,12 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    enum HashType
-    {
-        Deterministic,
-        LegacySine,
-    };
-
     [Title("Procedural", "Noise", "Simple Noise")]
     class NoiseNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV
     {
         // 0 original version
         // 1 add deterministic noise option
         public override int latestVersion => 1;
-
         public override IEnumerable<int> allowedNodeVersions => new int[] { 1 };
 
         public const int UVSlotId = 0;
@@ -36,6 +29,17 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public enum HashType
+        {
+            Deterministic,
+            LegacySine,
+        };
+        static readonly string[] kHashFunctionPrefix =
+        {
+            "Hash_Tchou_2_1_",
+            "Hash_LegacySine_2_1_",
+        };
+
         public override bool hasPreview => true;
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -52,7 +56,12 @@ namespace UnityEditor.ShaderGraph
         [EnumControl("Hash Type")]
         public HashType hashType
         {
-            get { return m_HashType; }
+            get
+            {
+                if (((int)m_HashType < 0) || ((int)m_HashType >= kHashFunctionPrefix.Length))
+                    return (HashType) 0;
+                return m_HashType;
+            }
             set
             {
                 if (m_HashType == value)
@@ -63,20 +72,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static readonly string[] kHashFunctionPrefix =
-        {
-            "Hash_LegacySine_2_1_",
-            "Hash_Tchou_2_1_"
-        };
-
         void IGeneratesFunction.GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.RequiresIncludePath("Packages/com.unity.render-pipelines.core/ShaderLibrary/Hashes.hlsl");
 
             var hashType = this.hashType;
-            if (((int) hashType < 0) || ((int) hashType >= kHashFunctionPrefix.Length))
-                hashType = (HashType) 0;
-
             var hashTypeString = hashType.ToString();
             var HashFunction = kHashFunctionPrefix[(int) hashType];
 
@@ -123,6 +123,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            var hashType = this.hashType;
             var hashTypeString = hashType.ToString();
             string uv = GetSlotValue(UVSlotId, generationMode);
             string scale = GetSlotValue(ScaleSlotId, generationMode);

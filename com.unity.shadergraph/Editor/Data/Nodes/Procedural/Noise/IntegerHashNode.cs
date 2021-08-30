@@ -5,7 +5,8 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Procedural", "Random", "Integer Hash")]
+/*
+    [Title("Procedural", "Noise", "Integer Hash")]
     class IntegerHashNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         public IntegerHashNode()
@@ -18,17 +19,18 @@ namespace UnityEditor.ShaderGraph
 
         // Input slots
         private const int kInputSlotId = 1;
-        private const string kInputSlotName = "coord";
+        private const string kInputSlotName = "Coord";
 
         // Output slots
         private const int kOutputSlotId = 0;
-        private const string kOutputSlotName = "hash";
+        private const string kOutputSlotName = "Hash";
 
         // Local state
         public enum HashType
         {
             Tchou_2_1,
             Tchou_2_3,
+            Tchou_3_1,
             Tchou_3_3,
         };
 
@@ -44,6 +46,7 @@ namespace UnityEditor.ShaderGraph
         {
             new Description("Hash_Tchou_2_1_float", 2, 1),
             new Description("Hash_Tchou_2_3_float", 2, 3),
+            new Description("Hash_Tchou_3_1_float", 3, 1),
             new Description("Hash_Tchou_3_3_float", 3, 3),
         };
 
@@ -124,4 +127,5 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine($"{desc.functionName}({input}, {outputVar});");
         }
     }
+*/
 }
