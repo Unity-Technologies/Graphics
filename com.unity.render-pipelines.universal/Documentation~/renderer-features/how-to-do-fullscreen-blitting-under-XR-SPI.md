@@ -4,8 +4,8 @@ The example on this page describes how to create a custom scriptable rendering f
 
 ## Example overview
 
-This example adds a ScriptableRenderPass that blits ScriptableRenderPassInput.Depth to the CameraColorTarget. It uses the command buffer to draw a full screen mesh for both eyes.
-The example also includes a shader used to perform the GPU side of the rendering, which works by sampling the depth buffer using XR sampler macros.
+This example adds a ScriptableRenderPass that blits ScriptableRenderPassInput.Color to the CameraColorTarget. It uses the command buffer to draw a full screen mesh for both eyes.
+The example also includes a shader used to perform the GPU side of the rendering, which works by sampling the color buffer using XR sampler macros.
 
 ## Prerequisites
 
@@ -29,32 +29,32 @@ Now you have the setup necessary to follow the steps in this example.
 
 This section assumes that you created a Scene as described in section [Example Scene and GameObjects](#example-objects).
 
-The example implementation uses Scriptable Renderer Features: to draw depth buffer information on screen.
+The example implementation uses Scriptable Renderer Features: to draw color buffer information on screen.
 
 ### Create a Renderer Feature and configure both input and output
 
 Follow these steps to create a Renderer Feature
 
-1. Create a new feature under the project asset folder. In this example, we name the file `DepthDebugRendererFeature.cs`.
+1. Create a new feature under the project asset folder. In this example, we name the file `ColorBlitRendererFeature.cs`. 
 ```cs
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-internal class DepthDebugRendererFeature : ScriptableRendererFeature
+internal class ColorBlitRendererFeature : ScriptableRendererFeature
 {
     public Shader m_Shader;
     public float m_Intensity;
 
     Material m_Material;
 
-    DepthDebugPass m_RenderPass = null;
+    ColorBlitPass m_RenderPass = null;
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         if (renderingData.cameraData.cameraType == CameraType.Game)
         {
-            m_RenderPass.ConfigureInput(ScriptableRenderPassInput.Depth);
+            m_RenderPass.ConfigureInput(ScriptableRenderPassInput.Color);
             m_RenderPass.SetTarget(renderer.cameraColorTarget, m_Intensity);
             renderer.EnqueuePass(m_RenderPass);
         }
@@ -65,7 +65,7 @@ internal class DepthDebugRendererFeature : ScriptableRendererFeature
         if (m_Shader != null)
             m_Material = new Material(m_Shader);
 
-        m_RenderPass = new DepthDebugPass(m_Material);
+        m_RenderPass = new ColorBlitPass(m_Material);
     }
 
     protected override void Dispose(bool disposing)
@@ -73,23 +73,24 @@ internal class DepthDebugRendererFeature : ScriptableRendererFeature
         CoreUtils.Destroy(m_Material);
     }
 }
+
 ```
-2. Create the scriptable render pass that issue the custom blit draw call. In this example, we name the file `DepthDebugPass.cs`
-In this example, we use `cmd.DrawMesh` to draw a fullscreen quad. This provides URP more explicit control about this blit pass.
-Do **Not** use the `cmd.Blit` in URP XR as it has serveral compatibility issues with URP XR integration and it may enable/disable XR shader keyword behind the scene.
+2. Create the scriptable render pass that issue the custom blit draw call. In this example, we name the file `ColorBlitPass.cs`
+In this example, we use `cmd.DrawMesh` to draw a fullscreen quad that performs the blit operation.
+Do **Not** use the `cmd.Blit` in URP XR as it has serveral compatibility issues with URP XR integration and it may enable/disable XR shader keyword behind the scene which breaks XR SPI rendering.
 ```cs
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-internal class DepthDebugPass : ScriptableRenderPass
+internal class ColorBlitPass : ScriptableRenderPass
 {
-    ProfilingSampler m_ProfilingSampler = new ProfilingSampler("DepthDebug");
+    ProfilingSampler m_ProfilingSampler = new ProfilingSampler("ColorBlit");
     Material m_Material;
     RenderTargetIdentifier m_CameraColorTarget;
     float m_intensity;
 
-    public DepthDebugPass(Material material)
+    public ColorBlitPass(Material material)
     {
         m_Material = material;
         renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
@@ -109,13 +110,11 @@ internal class DepthDebugPass : ScriptableRenderPass
 
         if (m_Material == null)
             return;
-
+		
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler))
         {
             m_Material.SetFloat("_Intensity", m_intensity);
-            // Note: cmd.Blit is not compatible with XR SPI in URP.
-            // Use cmd.DrawMesh instead
             cmd.SetRenderTarget(new RenderTargetIdentifier(m_CameraColorTarget, 0, CubemapFace.Unknown, -1));
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material);
         }
@@ -126,9 +125,9 @@ internal class DepthDebugPass : ScriptableRenderPass
     }
 }
 ```
-3. Create the shader that performs the blit operation. In this example, we name the file `DepthDebug.shader`
+3. Create the shader that performs the blit operation. In this example, we name the file `ColorBlit.shader`. The vertex stage outputs the fullscreen quad position. The fragment stage samples color buffer and writes out the `color*intencity` value to the render target.
 ```hlsl
-Shader "DepthDebug"
+Shader "ColorBlit"
 {
         SubShader
     {
@@ -137,7 +136,7 @@ Shader "DepthDebug"
         ZTest Always ZWrite Off Cull Off
         Pass
         {
-            Name "DepthDebugPass"
+            Name "ColorBlitPass"
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -166,7 +165,6 @@ Shader "DepthDebug"
 
                 // Note: The pass is setup with a mesh already in CS
                 // Therefore, we can just output vertex position
-                // See RenderingUtils.fullscreenMesh
                 output.positionCS = float4(input.positionHCS.xyz, 1.0);
 
                 #if UNITY_UV_STARTS_AT_TOP
@@ -177,16 +175,16 @@ Shader "DepthDebug"
                 return output;
             }
 
-            TEXTURE2D_X(_CameraDepthTexture);
-            SAMPLER(sampler_CameraDepthTexture);
+            TEXTURE2D_X(_CameraOpaqueTexture);
+            SAMPLER(sampler_CameraOpaqueTexture);
 
             float _Intensity;
 
             half4 frag (Varyings input) : SV_Target
             {
-            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                float4 vel = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, input.uv);
-                return vel * _Intensity;
+			    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                float4 color = SAMPLE_TEXTURE2D_X(_CameraOpaqueTexture, sampler_CameraOpaqueTexture, input.uv);
+                return color * _Intensity;
             }
             ENDHLSL
         }
@@ -197,7 +195,7 @@ Shader "DepthDebug"
 
     ![Select Forward Renderer](../Images/how-to-blit-in-xr/forward-renderer-asset.png)
 
-7. Configure forward renderer to use the new render feature.
+7. Configure forward renderer to use the new render feature and set the intencity to 1.5. 
 
     ![Configure New Renderer Feature](../Images/how-to-blit-in-xr/new-render-feature.png)
 
@@ -205,5 +203,5 @@ Shader "DepthDebug"
 
     ![Configure MockHMD](../Images/how-to-blit-in-xr/mock-hmd-render-mode.png)
 
-The example is complete. When running in playmode, depth buffer is displayed.
-![Depth Debug Output](../Images/how-to-blit-in-xr/render-obj-cube-depth-output.png)
+The example is complete. When running in playmode, color buffer is displayed.
+![Color Output](../Images/how-to-blit-in-xr/render-obj-cube-color-output.png)
