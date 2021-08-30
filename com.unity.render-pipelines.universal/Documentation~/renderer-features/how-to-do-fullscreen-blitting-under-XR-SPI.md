@@ -204,4 +204,4 @@ Shader "ColorBlit"
     ![Configure MockHMD](../Images/how-to-blit-in-xr/mock-hmd-render-mode.png)
 
 The example is complete. When running in playmode, color buffer is displayed.
-![Color Output](../Images/how-to-blit-in-xr/render-obj-cube-color-output.png)
+![Color Output](../Images/how-to-blit-in-xr/render-obj-cube-color-output.PNG)
