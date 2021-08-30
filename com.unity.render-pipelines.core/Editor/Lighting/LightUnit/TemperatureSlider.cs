@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Experimental.Rendering;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     /// <summary>
     /// Formats the provided descriptor into a temperature unit slider with contextual slider markers, tooltips, and icons.
@@ -117,7 +116,10 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
-    internal class TemperatureSliderUIDrawer
+    /// <summary>
+    /// Helper to draw a temperature slider on the inspector
+    /// </summary>
+    public class TemperatureSliderUIDrawer
     {
         static TemperatureSlider k_TemperatureSlider;
 
@@ -127,6 +129,13 @@ namespace UnityEditor.Rendering.HighDefinition
             k_TemperatureSlider = new TemperatureSlider(LightUnitSliderDescriptors.TemperatureDescriptor);
         }
 
+        /// <summary>
+        /// Draws a temperature slider
+        /// </summary>
+        /// <param name="settings">The light settings</param>
+        /// <param name="serializedObject">The serialized object</param>
+        /// <param name="value">The serialized property</param>
+        /// <param name="rect">The rect where the slider will be drawn</param>
         public static void Draw(LightEditor.Settings settings, SerializedObject serializedObject, SerializedProperty value, Rect rect)
         {
             k_TemperatureSlider.SetSerializedObject(serializedObject);

@@ -1,17 +1,38 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
-    struct LightUnitSliderUIDescriptor
+    /// <summary>
+    /// Descriptor for Light Unit
+    /// </summary>
+    public struct LightUnitSliderUIDescriptor
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="valueRanges">The ranges that the value can have</param>
+        /// <param name="sliderDistribution">The distribution</param>
+        /// <param name="cautionTooltip">Tooltip for caution</param>
+        /// <param name="unitName">The name of the unit</param>
+        /// <param name="hasMarkers">If has markers</param>
+        /// <param name="clampValue">If the value will be clamped to the <see cref="valueRanges"></see></param>
         public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution,
                                            string cautionTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
             : this(valueRanges, sliderDistribution, cautionTooltip, cautionTooltip, unitName, hasMarkers, clampValue)
         { }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="valueRanges">The ranges that the value can have</param>
+        /// <param name="sliderDistribution">The distribution</param>
+        /// <param name="belowRangeTooltip">The tooltip if the value goes below the range</param>
+        /// <param name="aboveRangeTooltip">The tooltip if the value goes above the range</param>
+        /// <param name="unitName">The name of the unit</param>
+        /// <param name="hasMarkers">If has markers</param>
+        /// <param name="clampValue">If the value will be clamped to the <see cref="valueRanges"></see></param>
         public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution, string belowRangeTooltip,
                                            string aboveRangeTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
         {
@@ -29,23 +50,63 @@ namespace UnityEditor.Rendering.HighDefinition
             );
         }
 
+        /// <summary>
+        /// The distribution
+        /// </summary>
         public readonly float[] sliderDistribution;
+        /// <summary>
+        /// The ranges that the value can have
+        /// </summary>
         public readonly LightUnitSliderUIRange[] valueRanges;
+        /// <summary>
+        /// The ranges that the slider can have
+        /// </summary>
         public readonly Vector2 sliderRange;
+        /// <summary>
+        /// The tooltip if the value goes below the range
+        /// </summary>
         public readonly string belowRangeTooltip;
+        /// <summary>
+        /// The tooltip if the value goes above the range
+        /// </summary>
         public readonly string aboveRangeTooltip;
+        /// <summary>
+        /// The name of the unit
+        /// </summary>
         public readonly string unitName;
+        /// <summary>
+        /// If has markers
+        /// </summary>
         public readonly bool hasMarkers;
+        /// <summary>
+        /// If the value needs to be clamp
+        /// </summary>
         public readonly bool clampValue;
     }
 
-    struct LightUnitSliderUIRange
+    /// <summary>
+    /// The UI range of the slider
+    /// </summary>
+    public struct LightUnitSliderUIRange
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="icon">The icon</param>
+        /// <param name="tooltip">The tooltip</param>
+        /// <param name="value">The min and max values</param>
         public LightUnitSliderUIRange(Texture2D icon, string tooltip, Vector2 value)
         // If no preset value provided, then by default it is the average of the value range.
             : this(icon, tooltip, value, 0.5f * (value.x + value.y))
         { }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="icon">The icon</param>
+        /// <param name="tooltip">The tooltip</param>
+        /// <param name="value">The min and max values</param>
+        /// <param name="presetValue">The value given by the preset</param>
         public LightUnitSliderUIRange(Texture2D icon, string tooltip, Vector2 value, float presetValue)
         {
             this.content = new GUIContent(icon, tooltip);
@@ -58,6 +119,12 @@ namespace UnityEditor.Rendering.HighDefinition
             this.presetValue = presetValue;
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="tooltip">The tooltip</param>
+        /// <param name="value">The min and max values</param>
+        /// <returns></returns>
         public static LightUnitSliderUIRange CautionRange(string tooltip, float value) => new LightUnitSliderUIRange
         {
             // Load the buildin caution icon with provided tooltip.
@@ -71,9 +138,14 @@ namespace UnityEditor.Rendering.HighDefinition
         public float presetValue;
     }
 
-    static class LightUnitSliderDescriptors
+    /// <summary>
+    /// Bunch of slider predefined descriptors
+    /// </summary>
+    public static class LightUnitSliderDescriptors
     {
-        // Lux
+        /// <summary>
+        /// Lux
+        /// </summary>
         public static LightUnitSliderUIDescriptor LuxDescriptor = new LightUnitSliderUIDescriptor(
             LightUnitValueRanges.LuxValueTable,
             LightUnitSliderDistributions.LuxDistribution,
@@ -81,7 +153,9 @@ namespace UnityEditor.Rendering.HighDefinition
             "Lux"
         );
 
-        // Lumen
+        /// <summary>
+        /// Lumen
+        /// </summary>
         public static LightUnitSliderUIDescriptor LumenDescriptor = new LightUnitSliderUIDescriptor(
             LightUnitValueRanges.LumenValueTable,
             LightUnitSliderDistributions.LumenDistribution,
@@ -89,7 +163,9 @@ namespace UnityEditor.Rendering.HighDefinition
             "Lumen"
         );
 
-        // Exposure
+        /// <summary>
+        /// Exposure
+        /// </summary>
         public static LightUnitSliderUIDescriptor ExposureDescriptor = new LightUnitSliderUIDescriptor(
             LightUnitValueRanges.ExposureValueTable,
             LightUnitSliderDistributions.ExposureDistribution,
@@ -98,7 +174,9 @@ namespace UnityEditor.Rendering.HighDefinition
             "EV"
         );
 
-        // Temperature
+        /// <summary>
+        /// Temperature
+        /// </summary>
         public static LightUnitSliderUIDescriptor TemperatureDescriptor = new LightUnitSliderUIDescriptor(
             LightUnitValueRanges.KelvinValueTableNew,
             LightUnitSliderDistributions.ExposureDistribution,
@@ -178,15 +256,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static class LightUnitIcon
         {
-            static string GetLightUnitIconPath() => HDUtils.GetHDRenderPipelinePath() +
-            "/Editor/RenderPipelineResources/Texture/LightUnitIcons/";
-
             // Note: We do not use the editor resource loading mechanism for light unit icons because we need to skin the icon correctly for the editor theme.
             // Maybe the resource reloader can be improved to support icon loading (thus supporting skinning)?
             static Texture2D GetLightUnitIcon(string name)
             {
-                var path = GetLightUnitIconPath() + name + ".png";
-                return EditorGUIUtility.TrIconContent(path).image as Texture2D;
+                return CoreEditorUtils.LoadIcon(@"Packages/com.unity.render-pipelines.core/Editor/Lighting/Icons/LightUnitIcons", name, ".png");
             }
 
             // TODO: Move all light unit icons from the package into the built-in resources.
