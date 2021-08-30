@@ -7,7 +7,7 @@
     </ui:Box>
     <ui:Box class="section alternate">
         <ui:Label text="Documentation" class="category" />
-        <ui:Button name="gotoManual" text="Manual" tooltip="Open the user manual of Visual Effect Graph" class="indented link" />
+        <ui:Button name="gotoHome" text="VFX Graph Home" tooltip="Open Visual Effect Graph home page" class="indented link" />
         <ui:Button name="gotoForum" text="Forum" tooltip="Open Visual Effect Graph sub-forum" class="indented link" />
     </ui:Box>
     <ui:Box class="section">
