@@ -329,29 +329,21 @@ ${VFXBegin:VFXSetOutputInstancingIndices}
     ZERO_INITIALIZE(VFXIndices, vfxIndices);
     vfxIndices.index = index;
 #if VFX_INSTANCING_VARIABLE_SIZE
-    #if VFX_INSTANCING_INDIRECTION
-        VFXSetOutputInstancingIndices(nbInstancesInDispatch, prefixSumInstances, indirectionBufferInstances,ALIGNED_SYSTEM_CAPACITY, vfxIndices);
-    #else
-        VFXSetOutputInstancingIndices(nbInstancesInDispatch, prefixSumInstances, ALIGNED_SYSTEM_CAPACITY, vfxIndices);
-    #endif
+        VFXSetOutputInstancingIndices(nbInstancesInDispatch, vfxIndices);
 #else
-    #if VFX_INSTANCING_INDIRECTION
-        VFXSetOutputInstancingIndices(asuint(nbMax), indirectionBufferInstances, ALIGNED_SYSTEM_CAPACITY, vfxIndices);
-    #else
-        VFXSetOutputInstancingIndices(asuint(nbMax), ALIGNED_SYSTEM_CAPACITY, vfxIndices);
-    #endif
+        VFXSetOutputInstancingIndices(asuint(nbMax), vfxIndices);
 #endif
+    index = vfxIndices.index;
+    particleIndex = vfxIndices.particleIndex;
 ${VFXEnd}
 
 ${VFXBegin:VFXSetComputeInstancingIndices}
     uint nbInstancesInDispatch = 1; //TODO :nbInstancesInDispatch is supposed to be a uniform in the future
     VFXIndices vfxIndices;
-    vfxIndices.index = index;
     ZERO_INITIALIZE(VFXIndices, vfxIndices);
-#if VFX_INSTANCING_INDIRECTION
-    VFXSetComputeInstancingIndices(nbMax, groupId, NB_THREADS_PER_GROUP, dispatchWidth, indirectionBufferInstances, ALIGNED_SYSTEM_CAPACITY, vfxIndices);
-#else
-    VFXSetComputeInstancingIndices(nbMax, groupId, NB_THREADS_PER_GROUP, dispatchWidth, ALIGNED_SYSTEM_CAPACITY, index, vfxIndices);
-#endif
+    vfxIndices.index = index;
+    VFXSetComputeInstancingIndices(nbMax, groupId, NB_THREADS_PER_GROUP, dispatchWidth, vfxIndices);
+    index = vfxIndices.index;
+    particleIndex = vfxIndices.particleIndex;
 ${VFXEnd}
 

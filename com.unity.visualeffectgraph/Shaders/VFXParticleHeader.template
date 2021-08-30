@@ -40,14 +40,6 @@ ByteAddressBuffer elementToVFXBufferPrevious;
 
 #endif
 
-#if VFX_INSTANCING_INDIRECTION
-StructuredBuffer<uint> indirectionBufferInstances;
-#endif
-#if VFX_INSTANCING_VARIABLE_SIZE
-StructuredBuffer<uint> prefixSumInstances;
-#endif
-
-
 CBUFFER_START(outputParams)
 	float nbMax;
 	float systemSeed;

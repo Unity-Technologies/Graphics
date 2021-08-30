@@ -81,8 +81,9 @@ void CSMain(uint3 groupId		: SV_GroupID,
 		SourceAttributes sourceAttributes = (SourceAttributes)0;
 
 		uint index = id;
+        uint particleIndex = index;
+
 #if VFX_USE_INSTANCING
-	    uint particleIndex;
         ${VFXSetComputeInstancingIndices}
 #endif
 

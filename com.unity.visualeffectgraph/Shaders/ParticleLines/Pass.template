@@ -36,8 +36,9 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	#else
 	uint index = id >> 1;
 	#endif
+
+    uint particleIndex = index;
 	#if VFX_USE_INSTANCING
-	    uint particleIndex;
         ${VFXSetOutputInstancingIndices}
 	#endif
 

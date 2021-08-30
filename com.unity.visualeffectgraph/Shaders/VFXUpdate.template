@@ -23,13 +23,6 @@ RWStructuredBuffer<uint> stripDataBuffer;
 StructuredBuffer<uint> attachedStripDataBuffer;
 #endif
 
-#if VFX_INSTANCING_INDIRECTION
-StructuredBuffer<uint> indirectionBufferInstances;
-#endif
-#if VFX_INSTANCING_VARIABLE_SIZE
-StructuredBuffer<uint> prefixSumInstances;
-#endif
-
 CBUFFER_START(updateParams)
     uint nbMax;
 	uint dispatchWidth;
@@ -46,9 +39,9 @@ void CSMain(uint3 groupId          : SV_GroupID,
 {
 	uint id = GetThreadId(groupId, groupThreadId, NB_THREADS_PER_GROUP, dispatchWidth);
 	uint index = id;
+    uint particleIndex = index;
 
 #if VFX_USE_INSTANCING
-    uint particleIndex;
 ${VFXSetComputeInstancingIndices}
 #endif
 
