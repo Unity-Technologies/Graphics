@@ -282,26 +282,25 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static bool IsPresetEditor(UnityEditor.Editor editor)
         {
             return (int)((editor.target as Component).gameObject.hideFlags) == 93;
-        }?
+        }
+
         internal static void QualitySettingsHelpBox(string message, MessageType type, HDRenderPipelineUI.Expandable uiSection, string propertyPath)
         {
-            if (CoreEditorUtils.HelpBoxWithButton(message, type))
-            {
+            CoreEditorUtils.DrawFixMeBox(message, type, "Open", () => {
                 SettingsService.OpenProjectSettings("Project/Quality/HDRP");
                 HDRenderPipelineUI.Inspector.Expand((int)uiSection);
-                Highlighter.Highlight("Project Settings", propertyPath, HighlightSearchMode.Identifier);
+                CoreEditorUtils.Highlight("Project Settings", propertyPath, HighlightSearchMode.Identifier);
                 GUIUtility.ExitGUI();
-            }
+            });
         }
 
         internal static void GlobalSettingsHelpBox(string message, MessageType type, string propertyPath)
         {
-            if (CoreEditorUtils.HelpBoxWithButton(message, type))
-            {
+            CoreEditorUtils.DrawFixMeBox(message, type, "Open", () => {
                 SettingsService.OpenProjectSettings("Project/Graphics/HDRP Global Settings");
-                Highlighter.Highlight("Project Settings", propertyPath);
+                CoreEditorUtils.Highlight("Project Settings", propertyPath);
                 GUIUtility.ExitGUI();
-            }
+            });
         }
     }
 }

@@ -89,12 +89,63 @@ namespace UnityEditor.Rendering
             return tex2;
         }
 
-        /// <summary>Draw a help box with the Fix button.</summary>
-        /// <param name="text">The message text.</param>
-        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
-        public static void DrawFixMeBox(string text, Action action)
+        const float s_HighlightDuration = 0.7f;
+        static float s_HighlightStart = 0.0f;
+        static void HighlightTimeout()
         {
-            DrawFixMeBox(text, MessageType.Warning, action);
+            if (Highlighter.active)
+            {
+                if (Highlighter.activeVisible)
+                {
+                    if (Time.realtimeSinceStartup - s_HighlightStart > s_HighlightDuration)
+                    {
+                        Highlighter.Stop();
+                        return;
+                    }
+                }
+                else
+                    s_HighlightStart = Time.realtimeSinceStartup;
+
+                EditorApplication.delayCall += HighlightTimeout;
+            }
+        }
+
+        /// <summary>Highlights an element in the editor for a short period of time.</summary>
+        /// <param name="windowTitle">The title of the window the element is inside.</param>
+        /// <param name="text">The text to identify the element with.</param>
+        /// <param name="mode">	Optional mode to specify how to search for the element.</param>
+        public static void Highlight(string windowTitle, string text, HighlightSearchMode mode = HighlightSearchMode.Auto)
+        {
+            s_HighlightStart = Time.realtimeSinceStartup;
+            Highlighter.Highlight(windowTitle, text, mode);
+            EditorApplication.delayCall += HighlightTimeout;
+        }
+
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="message">The message text.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
+        public static void DrawFixMeBox(string message, Action action)
+        {
+            DrawFixMeBox(message, MessageType.Warning, "Fix", action);
+        }
+
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="message">The message text.</param>
+        /// <param name="messageType">The type of the message.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
+        public static void DrawFixMeBox(string message, MessageType messageType, Action action)
+        {
+            DrawFixMeBox(EditorGUIUtility.TrTextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(messageType)), "Fix", action);
+        }
+
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="message">The message text.</param>
+        /// <param name="messageType">The type of the message.</param>
+        /// <param name="buttonLabel">The button text.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
+        public static void DrawFixMeBox(string message, MessageType messageType, string buttonLabel, Action action)
+        {
+            DrawFixMeBox(EditorGUIUtility.TrTextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(messageType)), buttonLabel, action);
         }
 
         /// <summary>Draw a help box with the Fix button.</summary>
@@ -102,34 +153,14 @@ namespace UnityEditor.Rendering
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(GUIContent message, Action action)
         {
-            if (HelpBoxWithButton(message, "Fix"))
-                action();
+            DrawFixMeBox(message, "Fix", action);
         }
 
         /// <summary>Draw a help box with the Fix button.</summary>
-        /// <param name="text">The message text.</param>
-        /// <param name="messageType">The type of the message.</param>
+        /// <param name="message">The message with icon if need.</param>
+        /// <param name="buttonLabel">The button text.</param>
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
-        public static void DrawFixMeBox(string text, MessageType messageType, Action action)
-        {
-            DrawFixMeBox(EditorGUIUtility.TrTextContentWithIcon(text, CoreEditorStyles.GetMessageTypeIcon(messageType)), action);
-        }
-        
-        /// <summary>Draw a help box with a button.</summary>
-        /// <param name="message">The message text.</param>
-        /// <param name="type">The type of the message.</param>
-        /// <param name="buttonLabel">The button text.</param>
-        /// <returns>True if the button is clicked</returns>
-        public static bool HelpBoxWithButton(string message, MessageType type, string buttonLabel = "Open")
-        {
-            return HelpBoxWithButton(EditorGUIUtility.TrTextContentWithIcon(message, CoreEditorStyles.GetMessageTypeIcon(type)), buttonLabel);
-        }
-        
-        /// <summary>Draw a help box with a button.</summary>
-        /// <param name="label">The message text.</param>
-        /// <param name="buttonLabel">The button text.</param>
-        /// <returns>True if the button is clicked</returns>
-        public static bool HelpBoxWithButton(GUIContent label, string buttonLabel = "Open")
+        public static void DrawFixMeBox(GUIContent message, string buttonLabel, Action action)
         {
             EditorGUILayout.BeginHorizontal();
 
@@ -137,7 +168,7 @@ namespace UnityEditor.Rendering
             GUILayoutUtility.GetRect(indent, EditorGUIUtility.singleLineHeight, EditorStyles.helpBox, GUILayout.ExpandWidth(false));
 
             Rect leftRect = GUILayoutUtility.GetRect(new GUIContent(buttonLabel), EditorStyles.miniButton, GUILayout.ExpandWidth(false));
-            Rect rect = GUILayoutUtility.GetRect(label, EditorStyles.helpBox);
+            Rect rect = GUILayoutUtility.GetRect(message, EditorStyles.helpBox);
             Rect boxRect = new Rect(leftRect.x, rect.y, rect.xMax - leftRect.xMin, rect.height);
 
             int oldIndent = EditorGUI.indentLevel;
@@ -147,7 +178,7 @@ namespace UnityEditor.Rendering
                 EditorStyles.helpBox.Draw(boxRect, false, false, false, false);
 
             Rect labelRect = new Rect(boxRect.x + 4, boxRect.y + 3, rect.width - 8, rect.height);
-            EditorGUI.LabelField(labelRect, label, CoreEditorStyles.helpBox);
+            EditorGUI.LabelField(labelRect, message, CoreEditorStyles.helpBox);
 
             var buttonRect = leftRect;
             buttonRect.x += rect.width - 2;
@@ -157,7 +188,8 @@ namespace UnityEditor.Rendering
             EditorGUI.indentLevel = oldIndent;
             EditorGUILayout.EndHorizontal();
 
-            return clicked;
+            if (clicked)
+                action();
         }
 
         /// <summary>

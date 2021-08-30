@@ -42,8 +42,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline))
             {
-                if (CoreEditorUtils.HelpBoxWithButton("Editing HDRP materials is only supported when an HDRP asset assigned in the graphic settings", MessageType.Warning))
-                    SettingsService.OpenProjectSettings("Project/Graphics");
+                CoreEditorUtils.DrawFixMeBox("Editing HDRP materials is only supported when an HDRP asset is assigned in the Graphics Settings", MessageType.Warning, "Open",
+                    () => SettingsService.OpenProjectSettings("Project/Graphics"));
             }
             else
             {

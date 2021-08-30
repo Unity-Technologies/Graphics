@@ -45,14 +45,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             static GUIContent s_CachedGUIContent = new GUIContent();
-            static float s_HighlightDuration = 0.7f;
 
             Vector2 m_HDRPAssetListScrollView = Vector2.zero;
             List<HDRPAssetLocations> m_HDRPAssets = new List<HDRPAssetLocations>();
             ReorderableList m_HDRPAssetsUIList;
             Editor m_Cached;
             int m_SelectedHDRPAssetIndex = -1;
-            float m_HighlightStart = 0.0f;
 
             public QualitySettingsPanelIMGUI()
             {
@@ -73,8 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_HDRPAssets.Clear();
                 PopulateHDRPAssetsFromQualitySettings(m_HDRPAssets);
 
-                var currentAsset = QualitySettings.GetRenderPipelineAssetAt(QualitySettings.GetQualityLevel());
-                m_SelectedHDRPAssetIndex = m_HDRPAssets.FindIndex((asset) => asset.asset == currentAsset);
+                m_SelectedHDRPAssetIndex = m_HDRPAssets.FindIndex((asset) => asset.asset == QualitySettings.renderPipeline);
                 m_HDRPAssetsUIList.index = m_SelectedHDRPAssetIndex;
             }
 
@@ -103,17 +100,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     Editor.CreateCachedEditor(asset.asset, typeof(HDRenderPipelineEditor), ref m_Cached);
                     ((HDRenderPipelineEditor)m_Cached).largeLabelWidth = false;
                     m_Cached.OnInspectorGUI();
-
-                    if (Highlighter.active)
-                    {
-                        if (Highlighter.activeVisible)
-                        {
-                            if (Time.realtimeSinceStartup - m_HighlightStart > s_HighlightDuration)
-                                Highlighter.Stop();
-                        }
-                        else
-                            m_HighlightStart = Time.realtimeSinceStartup;
-                    }
                 }
             }
 
