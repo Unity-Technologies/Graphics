@@ -47,6 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ShapeFactor;
         SerializedDataParameter m_ShapeScale;
         SerializedDataParameter m_ShapeOffsetX;
+        SerializedDataParameter m_ShapeOffsetY;
         SerializedDataParameter m_ShapeOffsetZ;
         SerializedDataParameter m_ErosionFactor;
         SerializedDataParameter m_ErosionScale;
@@ -71,6 +72,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Quality
         SerializedDataParameter m_TemporalAccumulationFactor;
+        SerializedDataParameter m_GhostingReduction;
         SerializedDataParameter m_NumPrimarySteps;
         SerializedDataParameter m_NumLightSteps;
 
@@ -125,6 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShapeFactor = Unpack(o.Find(x => x.shapeFactor));
             m_ShapeScale = Unpack(o.Find(x => x.shapeScale));
             m_ShapeOffsetX = Unpack(o.Find(x => x.shapeOffsetX));
+            m_ShapeOffsetY = Unpack(o.Find(x => x.shapeOffsetY));
             m_ShapeOffsetZ = Unpack(o.Find(x => x.shapeOffsetZ));
             m_ErosionFactor = Unpack(o.Find(x => x.erosionFactor));
             m_ErosionScale = Unpack(o.Find(x => x.erosionScale));
@@ -149,6 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Quality
             m_TemporalAccumulationFactor = Unpack(o.Find(x => x.temporalAccumulationFactor));
+            m_GhostingReduction = Unpack(o.Find(x => x.ghostingReduction));
             m_NumPrimarySteps = Unpack(o.Find(x => x.numPrimarySteps));
             m_NumLightSteps = Unpack(o.Find(x => x.numLightSteps));
 
@@ -161,6 +165,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShadowOpacityFallback = Unpack(o.Find(x => x.shadowOpacityFallback));
         }
 
+        static public readonly GUIContent k_CloudMapTilingText = EditorGUIUtility.TrTextContent("Cloud Map Tiling", "Tiling (x,y) of the cloud map.");
+        static public readonly GUIContent k_CloudMapOffsetText = EditorGUIUtility.TrTextContent("Cloud Map Offset", "Offset (x,y) of the cloud map.");
         static public readonly GUIContent k_GlobalHorizontalWindSpeedText = EditorGUIUtility.TrTextContent("Global Horizontal Wind Speed", "Sets the global horizontal wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
 
         public override void OnInspectorGUI()
@@ -199,15 +205,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_CumulonimbusMapMultiplier);
                     PropertyField(m_RainMap);
                     PropertyField(m_CloudMapResolution);
-                    PropertyField(m_CloudTiling);
-                    PropertyField(m_CloudOffset);
+                    PropertyField(m_CloudTiling, k_CloudMapTilingText);
+                    PropertyField(m_CloudOffset, k_CloudMapOffsetText);
                 }
                 else if (controlMode == VolumetricClouds.CloudControl.Manual)
                 {
                     PropertyField(m_CloudMap);
                     PropertyField(m_CloudLut);
-                    PropertyField(m_CloudTiling);
-                    PropertyField(m_CloudOffset);
+                    PropertyField(m_CloudTiling, k_CloudMapTilingText);
+                    PropertyField(m_CloudOffset, k_CloudMapOffsetText);
                 }
                 else
                 {
@@ -229,6 +235,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_ShapeFactor);
                         PropertyField(m_ShapeScale);
                         PropertyField(m_ShapeOffsetX);
+                        PropertyField(m_ShapeOffsetY);
                         PropertyField(m_ShapeOffsetZ);
                         PropertyField(m_ErosionFactor);
                         PropertyField(m_ErosionScale);
@@ -243,6 +250,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                 {
                     PropertyField(m_ShapeOffsetX);
+                    PropertyField(m_ShapeOffsetY);
                     PropertyField(m_ShapeOffsetZ);
                 }
             }
@@ -253,12 +261,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
             DrawHeader("Wind");
             PropertyField(m_GlobalWindSpeed, k_GlobalHorizontalWindSpeedText);
-            using (new IndentLevelScope())
+            if (showAdditionalProperties)
             {
-                if (hasCloudMap)
-                    PropertyField(m_CloudMapSpeedMultiplier);
-                PropertyField(m_ShapeSpeedMultiplier);
-                PropertyField(m_ErosionSpeedMultiplier);
+                using (new IndentLevelScope())
+                {
+                    if (hasCloudMap)
+                        PropertyField(m_CloudMapSpeedMultiplier);
+                    PropertyField(m_ShapeSpeedMultiplier);
+                    PropertyField(m_ErosionSpeedMultiplier);
+                }
             }
             PropertyField(m_Orientation);
             using (new IndentLevelScope())
@@ -294,6 +305,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader("Quality");
             {
                 PropertyField(m_TemporalAccumulationFactor);
+                PropertyField(m_GhostingReduction);
                 PropertyField(m_NumPrimarySteps);
                 PropertyField(m_NumLightSteps);
                 PropertyField(m_FadeInMode);

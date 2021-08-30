@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            sb.AppendLine(string.Format("$precision {0} = max(0, IN.{1});", GetVariableNameForSlot(OutputSlotId), ShaderGeneratorNames.FaceSign));
+            sb.AppendLine(string.Format("$precision {0} = max(0, IN.{1}.x);", GetVariableNameForSlot(OutputSlotId), ShaderGeneratorNames.FaceSign));
         }
 
         public bool RequiresFaceSign(ShaderStageCapability stageCapability = ShaderStageCapability.Fragment)
