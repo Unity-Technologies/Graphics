@@ -188,7 +188,7 @@ namespace UnityEditor.Rendering.Universal.Converters
                 var converterState = new ConverterState
                 {
                     isEnabled = m_CoreConvertersList[i].isEnabled,
-                    isActive = true,
+                    isActive = false,
                     isInitialized = false,
                     items = new List<ConverterItemState>(),
                     index = i,
@@ -199,7 +199,7 @@ namespace UnityEditor.Rendering.Universal.Converters
                 // This list need to have the same amount of entries as the converters
                 List<ConverterItemDescriptor> converterItemInfos = new List<ConverterItemDescriptor>();
                 //m_ItemsToConvert.Add(converterItemInfos);
-                m_ItemsToConvert.Add(new ConverterItems {itemDescriptors = converterItemInfos});
+                m_ItemsToConvert.Add(new ConverterItems { itemDescriptors = converterItemInfos });
             }
         }
 
@@ -385,7 +385,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             void OnConverterCompleteDataCollection()
             {
                 // Set the item infos list to to the right index
-                m_ItemsToConvert[id] = new ConverterItems {itemDescriptors = converterItemInfos};
+                m_ItemsToConvert[id] = new ConverterItems { itemDescriptors = converterItemInfos };
                 m_ConverterStates[id].items = new List<ConverterItemState>(converterItemInfos.Count);
 
                 // Default all the entries to true

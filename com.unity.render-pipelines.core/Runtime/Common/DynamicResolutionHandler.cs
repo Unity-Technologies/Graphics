@@ -43,8 +43,8 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class DynamicResolutionHandler
     {
-        private bool  m_Enabled;
-        private bool  m_UseMipBias;
+        private bool m_Enabled;
+        private bool m_UseMipBias;
         private float m_MinScreenFraction;
         private float m_MaxScreenFraction;
         private float m_CurrentFraction;
@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering
             m_PrevHWScaleWidth = 1.0f;
             m_PrevHWScaleHeight = 1.0f;
             m_LastScaledSize = new Vector2Int(0, 0);
-            filter = DynamicResUpscaleFilter.Bilinear;
+            filter = DynamicResUpscaleFilter.CatmullRom;
         }
 
         private struct ScalerContainer
@@ -96,7 +96,10 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The filter that is used to upscale the rendering result to the native resolution.
         /// </summary>
-        public DynamicResUpscaleFilter filter { get; set; }
+        public DynamicResUpscaleFilter filter { get; private set; }
+
+        // Used to detect the filters set via user API
+        static Dictionary<int, DynamicResUpscaleFilter> s_CameraUpscaleFilters = new Dictionary<int, DynamicResUpscaleFilter>();
 
         /// <summary>
         /// The viewport of the final buffer. This is likely the resolution the dynamic resolution starts from before any scaling. Note this is NOT the target resolution the rendering will happen in
@@ -176,6 +179,7 @@ namespace UnityEngine.Rendering
                     {
                         instance = recycledInstance;
                         s_CameraInstances.Remove(recycledInstanceKey);
+                        s_CameraUpscaleFilters.Remove(recycledInstanceKey);
                     }
                 }
 
@@ -261,7 +265,10 @@ namespace UnityEngine.Rendering
                 float maxScreenFrac = Mathf.Clamp(settings.maxPercentage / 100.0f, m_MinScreenFraction, 3.0f);
                 m_MaxScreenFraction = maxScreenFrac;
 
-                filter = settings.upsampleFilter;
+                // Check if a filter has been set via user API, if so we use that, otherwise we use the default from the GlobalDynamicResolutionSettings
+                bool hasUserRequestedFilter = s_CameraUpscaleFilters.TryGetValue(s_ActiveCameraId, out DynamicResUpscaleFilter requestedFilter);
+
+                filter = hasUserRequestedFilter ? requestedFilter : settings.upsampleFilter;
                 m_ForcingRes = settings.forceResolution;
 
                 if (m_ForcingRes)
@@ -312,7 +319,7 @@ namespace UnityEngine.Rendering
         /// <param name="scalerType">The type of scaler that is used, this is used to indicate the return type of the scaler to the dynamic resolution system.</param>
         static public void SetDynamicResScaler(PerformDynamicRes scaler, DynamicResScalePolicyType scalerType = DynamicResScalePolicyType.ReturnsMinMaxLerpFactor)
         {
-            s_ScalerContainers[(int)DynamicResScalerSlot.User] = new ScalerContainer() { type = scalerType, method = scaler};
+            s_ScalerContainers[(int)DynamicResScalerSlot.User] = new ScalerContainer() { type = scalerType, method = scaler };
         }
 
         /// <summary>
@@ -343,6 +350,24 @@ namespace UnityEngine.Rendering
             s_ActiveInstance = s_DefaultInstance;
             s_ActiveCameraId = 0;
             s_ActiveInstanceDirty = true;
+        }
+
+        /// <summary>
+        /// Set the Upscale filter used by the camera when dynamic resolution is run.
+        /// </summary>
+        /// <param name="camera">The camera for which the upscale filter is set.</param>
+        /// <param name="filter">The filter to be used by the camera to upscale to final resolution.</param>
+        static public void SetUpscaleFilter(Camera camera, DynamicResUpscaleFilter filter)
+        {
+            var cameraID = camera.GetInstanceID();
+            if (s_CameraUpscaleFilters.ContainsKey(cameraID))
+            {
+                s_CameraUpscaleFilters[cameraID] = filter;
+            }
+            else
+            {
+                s_CameraUpscaleFilters.Add(cameraID, filter);
+            }
         }
 
         /// <summary>
@@ -391,7 +416,7 @@ namespace UnityEngine.Rendering
         {
             ProcessSettings(settings);
 
-            if (!m_Enabled && !s_ActiveInstanceDirty)
+            if (!m_Enabled || !s_ActiveInstanceDirty)
             {
                 s_ActiveInstanceDirty = false;
                 return;
@@ -452,7 +477,7 @@ namespace UnityEngine.Rendering
         /// <returns>True: Hardware dynamic resolution is enabled</returns>
         public bool HardwareDynamicResIsEnabled()
         {
-            return !m_ForceSoftwareFallback && m_CurrentCameraRequest && m_Enabled &&  type == DynamicResolutionType.Hardware;
+            return !m_ForceSoftwareFallback && m_CurrentCameraRequest && m_Enabled && type == DynamicResolutionType.Hardware;
         }
 
         /// <summary>
@@ -487,7 +512,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Applies to the passed size the scale imposed by the dynamic resolution system.
-        /// Note: this function has the side effect of caching the last scale size.
+        /// Note: this function has the side effect of caching the last scale size, and the output is always smaller or equal then the input.
         /// </summary>
         /// <param name="size">The starting size of the render target that will be scaled by dynamic resolution.</param>
         /// <returns>The parameter size scaled by the dynamic resolution system.</returns>
@@ -501,6 +526,7 @@ namespace UnityEngine.Rendering
             }
 
             Vector2Int scaledSize = ApplyScalesOnSize(size);
+
             m_LastScaledSize = scaledSize;
             return scaledSize;
         }
@@ -525,6 +551,9 @@ namespace UnityEngine.Rendering
                 scaledSize.x += (1 & scaledSize.x);
                 scaledSize.y += (1 & scaledSize.y);
             }
+
+            scaledSize.x = Math.Min(scaledSize.x, size.x);
+            scaledSize.y = Math.Min(scaledSize.y, size.y);
 
             return scaledSize;
         }

@@ -241,6 +241,24 @@ namespace UnityEngine.Experimental.Rendering
             RunPlacement();
         }
 
+        static void CellCountInDirections(out Vector3Int minCellPositionXYZ, out Vector3Int maxCellPositionXYZ, float cellSizeInMeters)
+        {
+            minCellPositionXYZ = Vector3Int.zero;
+            maxCellPositionXYZ = Vector3Int.zero;
+
+            Vector3 center = Vector3.zero;
+            var centeredMin = globalBounds.min - center;
+            var centeredMax = globalBounds.max - center;
+
+            minCellPositionXYZ.x = Mathf.FloorToInt(centeredMin.x / cellSizeInMeters);
+            minCellPositionXYZ.y = Mathf.FloorToInt(centeredMin.y / cellSizeInMeters);
+            minCellPositionXYZ.z = Mathf.FloorToInt(centeredMin.z / cellSizeInMeters);
+
+            maxCellPositionXYZ.x = Mathf.CeilToInt(centeredMax.x / cellSizeInMeters);
+            maxCellPositionXYZ.y = Mathf.CeilToInt(centeredMax.y / cellSizeInMeters);
+            maxCellPositionXYZ.z = Mathf.CeilToInt(centeredMax.z / cellSizeInMeters);
+        }
+
         static void BrickCountInDirections(out Vector3Int cellsInXYZ, float brickSizeInMeter)
         {
             cellsInXYZ = Vector3Int.zero;
@@ -324,8 +342,14 @@ namespace UnityEngine.Experimental.Rendering
 
             var dilationSettings = m_BakingReferenceVolumeAuthoring.GetDilationSettings();
 
+
             if (dilationSettings.dilationDistance > 0.0f)
             {
+                // Force maximum sh bands to perform dilation, we need to store what sh bands was selected from the settings as we need to restore
+                // post dilation.
+                var prevSHBands = ProbeReferenceVolume.instance.shBands;
+                ProbeReferenceVolume.instance.ForceSHBand(ProbeVolumeSHBands.SphericalHarmonicsL2);
+
                 // TODO: This loop is very naive, can be optimized, but let's first verify if we indeed want this or not.
                 for (int iterations = 0; iterations < dilationSettings.dilationIterations; ++iterations)
                 {
@@ -385,13 +409,19 @@ namespace UnityEngine.Experimental.Rendering
                             refVol.QueueAssetLoading();
                     }
                 }
+
+                // Need to restore the original sh bands
+                ProbeReferenceVolume.instance.ForceSHBand(prevSHBands);
             }
+
         }
 
         static void OnAdditionalProbesBakeCompleted()
         {
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
             UnityEngine.Profiling.Profiler.BeginSample("OnAdditionalProbesBakeCompleted");
+
+            var probeRefVolume = ProbeReferenceVolume.instance;
             var bakingCells = m_BakingBatch.cells;
             var numCells = bakingCells.Count;
 
@@ -428,11 +458,15 @@ namespace UnityEngine.Experimental.Rendering
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
+                cell.minSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision();
 
                 for (int i = 0; i < numProbes; ++i)
                 {
                     int j = bakingCells[c].probeIndices[i];
                     SphericalHarmonicsL2 shv = sh[j];
+
+                    int brickIdx = i / 64;
+                    cell.minSubdiv = Mathf.Min(cell.minSubdiv, cell.bricks[brickIdx].subdivisionLevel);
 
                     // Compress the range of all coefficients but the DC component to [0..1]
                     // Upper bounds taken from http://ppsloan.org/publications/Sig20_Advances.pptx
@@ -489,7 +523,7 @@ namespace UnityEngine.Experimental.Rendering
                     cell.validity[i] = validity[j];
                 }
 
-                ProbeReferenceVolume.instance.cells[cell.index] = cell;
+                probeRefVolume.cells[cell.index] = cell;
                 UnityEngine.Profiling.Profiler.EndSample();
             }
 
@@ -512,7 +546,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // Put cells into the respective assets
-            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            foreach (var cell in probeRefVolume.cells.Values)
             {
                 foreach (var scene in m_BakingBatch.cellIndex2SceneReferences[cell.index])
                 {
@@ -522,22 +556,8 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         var asset = refVol2Asset[refVol];
                         asset.cells.Add(cell);
-                        if (hasFoundBounds)
-                        {
-                            BrickCountInDirections(out asset.maxCellIndex, refVol.profile.minBrickSize);
-                        }
-                        else
-                        {
-                            foreach (var p in cell.probePositions)
-                            {
-                                float x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.minBrickSize;
-                                float y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.minBrickSize;
-                                float z = Mathf.Abs((float)p.z + refVol.transform.position.z) / refVol.profile.minBrickSize;
-                                asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, Mathf.CeilToInt(x * 2));
-                                asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, Mathf.CeilToInt(y * 2));
-                                asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, Mathf.CeilToInt(z * 2));
-                            }
-                        }
+                        CellCountInDirections(out asset.minCellPosition, out asset.maxCellPosition, refVol.profile.cellSizeInMeters);
+                        asset.globalBounds = globalBounds;
                     }
                 }
             }
@@ -565,7 +585,7 @@ namespace UnityEngine.Experimental.Rendering
 
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
-            ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = false;
+            probeRefVolume.clearAssetsOnVolumeClear = false;
 
             foreach (var refVol in refVol2Asset.Keys)
             {

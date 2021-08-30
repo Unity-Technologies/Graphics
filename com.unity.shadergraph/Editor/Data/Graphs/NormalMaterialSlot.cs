@@ -9,12 +9,12 @@ namespace UnityEditor.ShaderGraph
     class NormalMaterialSlot : SpaceMaterialSlot, IMayRequireNormal
     {
         public NormalMaterialSlot()
-        {}
+        { }
 
         public NormalMaterialSlot(int slotId, string displayName, string shaderOutputName, CoordinateSpace space,
                                   ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, space, stageCapability, hidden)
-        {}
+        { }
 
         public override VisualElement InstantiateControl()
         {

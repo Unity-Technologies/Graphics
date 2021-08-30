@@ -34,7 +34,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float4 tileInfo = _InputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
 
     int2 startIndex = max((int2)dispatchThreadId.xy - int2(1, 1), int2(0, 0));
-    int2 endIndex =  min((int2)dispatchThreadId.xy + int2(1, 1), _ScreenSize.xy / TILE_RES - int2(1, 1));
+    int2 endIndex =  min((int2)dispatchThreadId.xy + int2(1, 1), _PostProcessScreenSize.xy / TILE_RES - int2(1, 1));
 
     for (int i = startIndex.x; i <= endIndex.x; i++)
     {

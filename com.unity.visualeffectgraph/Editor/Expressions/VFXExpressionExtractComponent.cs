@@ -5,7 +5,7 @@ namespace UnityEditor.VFX
 {
     class VFXExpressionExtractComponent : VFXExpressionNumericOperation
     {
-        public VFXExpressionExtractComponent() : this(VFXValue<Vector4>.Default, 0) {}
+        public VFXExpressionExtractComponent() : this(VFXValue<Vector4>.Default, 0) { }
 
         public VFXExpressionExtractComponent(VFXExpression parent, int iChannel)
             : base(new VFXExpression[1] { parent })

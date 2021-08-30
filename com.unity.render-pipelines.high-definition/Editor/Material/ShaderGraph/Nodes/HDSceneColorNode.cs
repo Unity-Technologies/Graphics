@@ -17,15 +17,16 @@ namespace UnityEditor.Rendering.HighDefinition
         public HDSceneColorNode()
         {
             name = "HD Scene Color";
+            synonyms = new string[] { "screen buffer" };
             UpdateNodeAfterDeserialization();
         }
 
         public override string documentationURL => Documentation.GetPageLink("SGNode-HD-Scene-Color");
 
         [SerializeField]
-        bool                m_Exposure;
+        bool m_Exposure;
         [ToggleControl]
-        public ToggleData   exposure
+        public ToggleData exposure
         {
             get => new ToggleData(m_Exposure);
             set
@@ -49,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             AddSlot(new ScreenPositionMaterialSlot(kUvInputSlotId, kUvInputSlotName, kUvInputSlotName, ScreenSpaceType.Default));
             AddSlot(new Vector1MaterialSlot(kLodInputSlotId, kLodInputSlotName, kLodInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
-            AddSlot(new ColorRGBMaterialSlot(kColorOutputSlotId, kColorOutputSlotName, kColorOutputSlotName , SlotType.Output, Color.black, ColorMode.HDR));
+            AddSlot(new ColorRGBMaterialSlot(kColorOutputSlotId, kColorOutputSlotName, kColorOutputSlotName, SlotType.Output, Color.black, ColorMode.HDR));
 
             RemoveSlotsNameNotMatching(new[]
             {

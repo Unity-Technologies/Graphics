@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public abstract class CloudSettings : VolumeComponent
     {
-        static Dictionary<Type, int>  cloudUniqueIDs = new Dictionary<Type, int>();
+        static Dictionary<Type, int> cloudUniqueIDs = new Dictionary<Type, int>();
 
         /// <summary>
         /// Returns the hash code of the cloud parameters.
