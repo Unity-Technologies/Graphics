@@ -1,6 +1,12 @@
 #ifndef UNITY_SPACE_TRANSFORMS_INCLUDED
 #define UNITY_SPACE_TRANSFORMS_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
+
+// Caution: For HDRP, adding a function in this file requires adding the appropriate #define in PickingSpaceTransforms.hlsl
+
 // Return the PreTranslated ObjectToWorld Matrix (i.e matrix with _WorldSpaceCameraPos apply to it if we use camera relative rendering)
 float4x4 GetObjectToWorldMatrix()
 {
@@ -10,6 +16,16 @@ float4x4 GetObjectToWorldMatrix()
 float4x4 GetWorldToObjectMatrix()
 {
     return UNITY_MATRIX_I_M;
+}
+
+float4x4 GetPrevObjectToWorldMatrix()
+{
+    return UNITY_PREV_MATRIX_M;
+}
+
+float4x4 GetPrevWorldToObjectMatrix()
+{
+    return UNITY_PREV_MATRIX_I_M;
 }
 
 float4x4 GetWorldToViewMatrix()
@@ -233,5 +249,9 @@ real3 TransformObjectToTangent(real3 dirOS, real3x3 tangentToWorld)
     // transform from world to tangent
     return TransformWorldToTangent(normalWS, tangentToWorld);
 }
+
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif

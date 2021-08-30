@@ -35,7 +35,7 @@ public class RenderGraphViewer : EditorWindow
         }
     }
 
-    [MenuItem("Window/Render Pipeline/Render Graph Viewer", false, 10006)]
+    [MenuItem("Window/Analysis/Render Graph Viewer", false, 10006)]
     static void Init()
     {
         // Get existing open window or if none, make a new one:
@@ -76,7 +76,8 @@ public class RenderGraphViewer : EditorWindow
         }
     }
 
-    RenderGraph m_CurrentRenderGraph;
+    Dictionary<RenderGraph, HashSet<string>> m_RegisteredGraphs = new Dictionary<RenderGraph, HashSet<string>>();
+    RenderGraphDebugData m_CurrentDebugData;
 
     VisualElement m_Root;
     VisualElement m_HeaderElement;
@@ -113,11 +114,20 @@ public class RenderGraphViewer : EditorWindow
         topRowElement.style.minHeight = passNamesContainerHeight;
     }
 
+    void LastRenderPassLabelChanged(GeometryChangedEvent evt)
+    {
+        var label = evt.currentTarget as Label;
+        Vector2 textSize = label.MeasureTextSize(label.text, 0, VisualElement.MeasureMode.Undefined, 10, VisualElement.MeasureMode.Undefined);
+        float textWidth = Mathf.Max(kRenderPassWidth, textSize.x);
+
+        // Keep a margin on the right of the container to avoid label being clipped.
+        var viewerContainer = m_GraphViewerElement.Q<VisualElement>("GraphViewer.ViewerContainer");
+        viewerContainer.style.marginRight = Mathf.Max(viewerContainer.style.marginRight.value.value, (textWidth - kRenderPassWidth));
+    }
 
     void UpdateResourceLifetimeColor(int passIndex, StyleColor colorRead, StyleColor colorWrite)
     {
-        var debugData = m_CurrentRenderGraph.GetDebugData();
-        var pass = debugData.passList[passIndex];
+        var pass = m_CurrentDebugData.passList[passIndex];
 
         if (pass.culled)
             return;
@@ -152,33 +162,32 @@ public class RenderGraphViewer : EditorWindow
 
     void UpdatePassColor((int index, int resourceType) resInfo, StyleColor colorRead, StyleColor colorWrite)
     {
-        var debugData = m_CurrentRenderGraph.GetDebugData();
-        var resource = debugData.resourceLists[resInfo.resourceType][resInfo.index];
+        var resource = m_CurrentDebugData.resourceLists[resInfo.resourceType][resInfo.index];
 
         foreach (int consumer in resource.consumerList)
         {
-            var passDebugData = debugData.passList[consumer];
+            var passDebugData = m_CurrentDebugData.passList[consumer];
             if (passDebugData.culled)
                 continue;
 
             VisualElement passElement = m_PassElementsInfo[consumer].pass;
             if (passElement != null)
             {
-                VisualElement passButton = passElement.Q("PassCell");
+                VisualElement passButton = passElement.Q("RenderPass.Cell");
                 passButton.style.backgroundColor = colorRead;
             }
         }
 
         foreach (int producer in resource.producerList)
         {
-            var passDebugData = debugData.passList[producer];
+            var passDebugData = m_CurrentDebugData.passList[producer];
             if (passDebugData.culled)
                 continue;
 
             VisualElement passElement = m_PassElementsInfo[producer].pass;
             if (passElement != null)
             {
-                VisualElement passButton = passElement.Q("PassCell");
+                VisualElement passButton = passElement.Q("RenderPass.Cell");
                 passButton.style.backgroundColor = colorWrite;
             }
         }
@@ -207,7 +216,7 @@ public class RenderGraphViewer : EditorWindow
         CellElement resourceLifetime = m_ResourceElementsInfo[info.resourceType][info.index].lifetime as CellElement;
         resourceLifetime.SetColor(m_OriginalResourceLifeColor);
 
-        var resource = m_CurrentRenderGraph.GetDebugData().resourceLists[info.resourceType][info.index];
+        var resource = m_CurrentDebugData.resourceLists[info.resourceType][info.index];
         UpdatePassColor(info, m_OriginalPassColor, m_OriginalPassColor);
         UpdateResourceLabelColor(info, resource.imported ? m_ImportedResourceColor : m_OriginalResourceColor); ;
     }
@@ -215,13 +224,14 @@ public class RenderGraphViewer : EditorWindow
     VisualElement CreateRenderPass(string name, int index, bool culled)
     {
         var container = new VisualElement();
+        container.name = "RenderPass";
         container.style.width = kRenderPassWidth;
         container.style.overflow = Overflow.Visible;
         container.style.flexDirection = FlexDirection.ColumnReverse;
         container.style.minWidth = kRenderPassWidth;
 
         var cell = new Button();
-        cell.name = "PassCell";
+        cell.name = "RenderPass.Cell";
         cell.style.marginBottom = 0.0f;
         cell.style.marginLeft = 0.0f;
         cell.style.marginRight = 0.0f;
@@ -237,6 +247,7 @@ public class RenderGraphViewer : EditorWindow
         container.Add(cell);
 
         var label = new Label(name);
+        label.name = "RenderPass.Label";
         label.transform.rotation = Quaternion.Euler(new Vector3(0.0f, 0.0f, -45.0f));
         container.Add(label);
 
@@ -247,21 +258,24 @@ public class RenderGraphViewer : EditorWindow
 
     void ResourceNamesContainerChanged(GeometryChangedEvent evt)
     {
+        var label = evt.currentTarget as Label;
+        float textWidth = label.MeasureTextSize(label.text, 0, VisualElement.MeasureMode.Undefined, 10, VisualElement.MeasureMode.Undefined).x;
+
         var cornerElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.Corner");
-        cornerElement.style.width = Mathf.Max(evt.newRect.width, cornerElement.style.width.value.value);
-        cornerElement.style.minWidth = Mathf.Max(evt.newRect.width, cornerElement.style.minWidth.value.value);
+        cornerElement.style.width = Mathf.Max(textWidth, cornerElement.style.width.value.value);
+        cornerElement.style.minWidth = Mathf.Max(textWidth, cornerElement.style.minWidth.value.value);
 
         // We need to make sure all resource types have the same width
         m_GraphViewerElement.Query("GraphViewer.Resources.ResourceNames").Build().ForEach((elem) =>
         {
-            elem.style.width = Mathf.Max(evt.newRect.width, elem.style.width.value.value);
-            elem.style.minWidth = Mathf.Max(evt.newRect.width, elem.style.minWidth.value.value);
+            elem.style.width = Mathf.Max(textWidth, elem.style.width.value.value);
+            elem.style.minWidth = Mathf.Max(textWidth, elem.style.minWidth.value.value);
         });
 
         m_GraphViewerElement.Query("GraphViewer.Resources.ResourceTypeName").Build().ForEach((elem) =>
         {
-            elem.style.width = Mathf.Max(evt.newRect.width, elem.style.width.value.value);
-            elem.style.minWidth = Mathf.Max(evt.newRect.width, elem.style.minWidth.value.value);
+            elem.style.width = Mathf.Max(textWidth, elem.style.width.value.value);
+            elem.style.minWidth = Mathf.Max(textWidth, elem.style.minWidth.value.value);
         });
     }
 
@@ -269,6 +283,9 @@ public class RenderGraphViewer : EditorWindow
     {
         var label = new Label(name);
         label.style.height = kResourceHeight;
+        label.style.overflow = Overflow.Hidden;
+        label.style.textOverflow = TextOverflow.Ellipsis;
+        label.style.unityTextOverflowPosition = TextOverflowPosition.End;
         if (imported)
             label.style.color = m_ImportedResourceColor;
         else
@@ -293,6 +310,9 @@ public class RenderGraphViewer : EditorWindow
 
     string RenderGraphPopupCallback(RenderGraph rg)
     {
+        var currentRG = GetCurrentRenderGraph();
+        if (currentRG != null && rg != currentRG)
+            RebuildHeaderExecutionPopup();
         return rg.name;
     }
 
@@ -301,9 +321,46 @@ public class RenderGraphViewer : EditorWindow
         return "NotAvailable";
     }
 
+    string EmptExecutionListCallback(string name)
+    {
+        return "NotAvailable";
+    }
+
     void OnCaptureGraph()
     {
         RebuildGraphViewerUI();
+    }
+
+    void RebuildHeaderExecutionPopup()
+    {
+        var controlsElement = m_HeaderElement.Q("Header.Controls");
+        var existingExecutionPopup = controlsElement.Q("Header.ExecutionPopup");
+        if (existingExecutionPopup != null)
+            controlsElement.Remove(existingExecutionPopup);
+
+        var currentRG = GetCurrentRenderGraph();
+        List<string> executionList = new List<string>();
+        if (currentRG != null)
+        {
+            m_RegisteredGraphs.TryGetValue(currentRG, out var executionSet);
+            Debug.Assert(executionSet != null);
+            executionList.AddRange(executionSet);
+        }
+
+        PopupField<string> executionPopup = null;
+        if (executionList.Count != 0)
+        {
+            executionPopup = new PopupField<string>("Current Execution", executionList, 0);
+        }
+        else
+        {
+            executionList.Add(null);
+            executionPopup = new PopupField<string>("Current Execution", executionList, 0, EmptExecutionListCallback, EmptExecutionListCallback);
+        }
+
+        executionPopup.labelElement.style.minWidth = 0;
+        executionPopup.name = "Header.ExecutionPopup";
+        controlsElement.Add(executionPopup);
     }
 
     void RebuildHeaderUI()
@@ -314,22 +371,26 @@ public class RenderGraphViewer : EditorWindow
         controlsElement.name = "Header.Controls";
         controlsElement.style.flexDirection = FlexDirection.Row;
 
-        var renderGraphList = new List<RenderGraph>(RenderGraph.GetRegisteredRenderGraphs());
+        m_HeaderElement.Add(controlsElement);
 
-        PopupField<RenderGraph> popup = null;
+        var renderGraphList = new List<RenderGraph>(m_RegisteredGraphs.Keys);
+
+        PopupField<RenderGraph> renderGraphPopup = null;
         if (renderGraphList.Count != 0)
         {
-            popup = new PopupField<RenderGraph>("Current Graph", renderGraphList, 0, RenderGraphPopupCallback, RenderGraphPopupCallback);
+            renderGraphPopup = new PopupField<RenderGraph>("Current Graph", renderGraphList, 0, RenderGraphPopupCallback, RenderGraphPopupCallback);
         }
         else
         {
             renderGraphList.Add(null);
-            popup = new PopupField<RenderGraph>("Current Graph", renderGraphList, 0, EmptyRenderGraphPopupCallback, EmptyRenderGraphPopupCallback);
+            renderGraphPopup = new PopupField<RenderGraph>("Current Graph", renderGraphList, 0, EmptyRenderGraphPopupCallback, EmptyRenderGraphPopupCallback);
         }
 
-        popup.labelElement.style.minWidth = 0;
-        popup.name = "Header.RenderGraphPopup";
-        controlsElement.Add(popup);
+        renderGraphPopup.labelElement.style.minWidth = 0;
+        renderGraphPopup.name = "Header.RenderGraphPopup";
+        controlsElement.Add(renderGraphPopup);
+
+        RebuildHeaderExecutionPopup();
 
         var captureButton = new Button(OnCaptureGraph);
         captureButton.text = "Capture Graph";
@@ -344,8 +405,6 @@ public class RenderGraphViewer : EditorWindow
             RebuildGraphViewerUI();
         });
         controlsElement.Add(filters);
-
-        m_HeaderElement.Add(controlsElement);
 
         var legendsElement = new VisualElement();
         legendsElement.name = "Header.Legends";
@@ -364,8 +423,19 @@ public class RenderGraphViewer : EditorWindow
     {
         var popup = m_HeaderElement.Q<PopupField<RenderGraph>>("Header.RenderGraphPopup");
         if (popup != null)
-        {
             return popup.value;
+
+        return null;
+    }
+
+    RenderGraphDebugData GetCurrentDebugData()
+    {
+        var currentRG = GetCurrentRenderGraph();
+        if (currentRG != null)
+        {
+            var popup = m_HeaderElement.Q<PopupField<string>>("Header.ExecutionPopup");
+            if (popup != null && popup.value != null)
+                return currentRG.GetDebugData(popup.value);
         }
 
         return null;
@@ -388,6 +458,7 @@ public class RenderGraphViewer : EditorWindow
 
         int passIndex = 0;
         finalPassCount = 0;
+        int lastValidPassIndex = -1;
         foreach (var pass in debugData.passList)
         {
             if ((pass.culled && !m_Filter.HasFlag(Filter.CulledPasses)) || !pass.generateDebugData)
@@ -401,8 +472,15 @@ public class RenderGraphViewer : EditorWindow
                 m_PassElementsInfo[passIndex].remap = finalPassCount;
                 passNamesElement.Add(passElement);
                 finalPassCount++;
+                lastValidPassIndex = passIndex;
             }
             passIndex++;
+        }
+
+        if (lastValidPassIndex > 0)
+        {
+            var label = m_PassElementsInfo[lastValidPassIndex].pass.Q<Label>("RenderPass.Label");
+            label.RegisterCallback<GeometryChangedEvent>(LastRenderPassLabelChanged);
         }
 
         topRowElement.Add(passNamesElement);
@@ -421,7 +499,6 @@ public class RenderGraphViewer : EditorWindow
         resourceNamesContainer.style.flexDirection = FlexDirection.Column;
         resourceNamesContainer.style.overflow = Overflow.Hidden;
         resourceNamesContainer.style.alignItems = Align.FlexEnd;
-        resourceNamesContainer.RegisterCallback<GeometryChangedEvent>(ResourceNamesContainerChanged);
 
         var resourcesLifeTimeElement = new VisualElement();
         resourcesLifeTimeElement.name = "GraphViewer.Resources.ResourceLifeTime";
@@ -462,26 +539,28 @@ public class RenderGraphViewer : EditorWindow
     {
         m_GraphViewerElement.Clear();
 
-        m_CurrentRenderGraph = GetCurrentRenderGraph();
-        if (m_CurrentRenderGraph == null)
+        m_CurrentDebugData = GetCurrentDebugData();
+        if (m_CurrentDebugData == null)
             return;
 
-        var debugData = m_CurrentRenderGraph.GetDebugData();
-        if (debugData.passList.Count == 0)
+        if (m_CurrentDebugData.passList.Count == 0)
             return;
 
         for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
-            m_ResourceElementsInfo[i].Resize(debugData.resourceLists[i].Count);
-        m_PassElementsInfo.Resize(debugData.passList.Count);
+            m_ResourceElementsInfo[i].Resize(m_CurrentDebugData.resourceLists[i].Count);
+        m_PassElementsInfo.Resize(m_CurrentDebugData.passList.Count);
 
         var horizontalScrollView = new ScrollView(ScrollViewMode.Horizontal);
+        horizontalScrollView.name = "GraphViewer.HorizontalScrollView";
 
         var graphViewerElement = new VisualElement();
+        graphViewerElement.name = "GraphViewer.ViewerContainer";
         graphViewerElement.style.flexDirection = FlexDirection.Column;
 
-        var topRowElement = CreateTopRowWithPasses(debugData, out int finalPassCount);
+        var topRowElement = CreateTopRowWithPasses(m_CurrentDebugData, out int finalPassCount);
 
         var resourceScrollView = new ScrollView(ScrollViewMode.Vertical);
+        resourceScrollView.name = "GraphViewer.ResourceScrollView";
 
         // Has to match RenderGraphModule.RenderGraphResourceType order.
         Filter[] resourceFilterFlags = { Filter.Textures, Filter.ComputeBuffers };
@@ -491,12 +570,13 @@ public class RenderGraphViewer : EditorWindow
         {
             if (m_Filter.HasFlag(resourceFilterFlags[i]))
             {
-                var resourceViewerElement = CreateResourceViewer(debugData, i, finalPassCount);
+                var resourceViewerElement = CreateResourceViewer(m_CurrentDebugData, i, finalPassCount);
                 var resourceNameLabel = new Label(resourceNames[i]);
                 resourceNameLabel.name = "GraphViewer.Resources.ResourceTypeName";
                 resourceNameLabel.style.unityTextAlign = TextAnchor.MiddleRight;
                 resourceNameLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
                 resourceNameLabel.style.fontSize = 13;
+                resourceNameLabel.RegisterCallback<GeometryChangedEvent>(ResourceNamesContainerChanged);
                 resourceScrollView.Add(resourceNameLabel);
                 resourceScrollView.Add(resourceViewerElement);
 
@@ -538,6 +618,7 @@ public class RenderGraphViewer : EditorWindow
 
         m_GraphViewerElement = new VisualElement();
         m_GraphViewerElement.name = "GraphViewer";
+        m_GraphViewerElement.style.marginLeft = 20.0f; // Margin on the left of resource labels.
         m_GraphViewerElement.style.flexDirection = FlexDirection.Column;
 
         RebuildGraphViewerUI();
@@ -549,11 +630,31 @@ public class RenderGraphViewer : EditorWindow
 
     void OnGraphRegistered(RenderGraph graph)
     {
+        m_RegisteredGraphs.Add(graph, new HashSet<string>());
         RebuildHeaderUI();
     }
 
     void OnGraphUnregistered(RenderGraph graph)
     {
+        m_RegisteredGraphs.Remove(graph);
+        RebuildHeaderUI();
+    }
+
+    void OnExecutionRegistered(RenderGraph graph, string name)
+    {
+        m_RegisteredGraphs.TryGetValue(graph, out var executionList);
+        Debug.Assert(executionList != null, $"RenderGraph {graph.name} should be registered before registering its executions.");
+        executionList.Add(name);
+
+        RebuildHeaderUI();
+    }
+
+    void OnExecutionUnregistered(RenderGraph graph, string name)
+    {
+        m_RegisteredGraphs.TryGetValue(graph, out var executionList);
+        Debug.Assert(executionList != null, $"RenderGraph {graph.name} should be registered before unregistering its executions.");
+        executionList.Remove(name);
+
         RebuildHeaderUI();
     }
 
@@ -562,10 +663,19 @@ public class RenderGraphViewer : EditorWindow
         for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
             m_ResourceElementsInfo[i] = new DynamicArray<ResourceElementInfo>();
 
+        var registeredGraph = RenderGraph.GetRegisteredRenderGraphs();
+        foreach (var graph in registeredGraph)
+            m_RegisteredGraphs.Add(graph, new HashSet<string>());
+
         RenderGraph.requireDebugData = true;
         RenderGraph.onGraphRegistered += OnGraphRegistered;
-        RenderGraph.onGraphRegistered += OnGraphUnregistered;
+        RenderGraph.onGraphUnregistered += OnGraphUnregistered;
+        RenderGraph.onExecutionRegistered += OnExecutionRegistered;
+        RenderGraph.onExecutionUnregistered += OnExecutionUnregistered;
+    }
 
+    private void CreateGUI()
+    {
         RebuildUI();
     }
 
@@ -573,6 +683,8 @@ public class RenderGraphViewer : EditorWindow
     {
         RenderGraph.requireDebugData = false;
         RenderGraph.onGraphRegistered -= OnGraphRegistered;
-        RenderGraph.onGraphRegistered -= OnGraphUnregistered;
+        RenderGraph.onGraphUnregistered -= OnGraphUnregistered;
+        RenderGraph.onExecutionRegistered -= OnExecutionRegistered;
+        RenderGraph.onExecutionUnregistered -= OnExecutionUnregistered;
     }
 }

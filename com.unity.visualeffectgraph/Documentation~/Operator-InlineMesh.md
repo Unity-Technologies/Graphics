@@ -18,4 +18,3 @@ The **Mesh** inline Operator allows you to store an instance of a Mesh. This is 
 | **Output** | Mesh   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

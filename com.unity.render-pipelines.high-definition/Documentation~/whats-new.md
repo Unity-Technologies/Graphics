@@ -4,4 +4,6 @@ This section contains information about changes to the High Definition Render Pi
 
 The list of pages is as follows:
 
-* [10](whats-new-10.md)
+* [10 / Unity 2020.2](whats-new-10.md)
+* [11 / Unity 2021.1](whats-new-11.md)
+* [12 / Unity 2021.2](whats-new-12.md)

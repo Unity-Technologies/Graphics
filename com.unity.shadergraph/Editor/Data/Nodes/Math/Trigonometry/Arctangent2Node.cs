@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public Arctangent2Node()
         {
             name = "Arctangent2";
+            synonyms = new string[] { "atan2" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = atan2(A, B);
 }

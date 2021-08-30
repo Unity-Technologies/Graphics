@@ -2,7 +2,7 @@
 
 ## Description
 
-Splits a square matrix defined by input **In** into vectors. Output vector dimension is defined by the dimension of the input matrix. 
+Splits a square matrix defined by input **In** into vectors. Output vector dimension is defined by the dimension of the input matrix.
 
 The dropdown on the node can be used to select whether the output values are taken from the rows or columns of the input matrix.
 

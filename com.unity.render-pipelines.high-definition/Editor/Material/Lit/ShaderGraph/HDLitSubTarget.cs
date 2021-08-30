@@ -41,7 +41,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
-        protected override string customInspector => "Rendering.HighDefinition.LitShaderGraphGUI";
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
@@ -49,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string pathtracingInclude => CoreIncludes.kLitPathtracing;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Lit Subshader", "");
         protected override string subShaderInclude => CoreIncludes.kLit;
+        protected override string customInspector => "Rendering.HighDefinition.LitShaderGraphGUI";
 
         // SubShader features
         protected override bool supportDistortion => true;
@@ -60,10 +60,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             var descriptor = base.GetSubShaderDescriptor();
 
-            descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly());
-            descriptor.passes.Add(HDShaderPasses.GenerateGBuffer());
-            descriptor.passes.Add(HDShaderPasses.GenerateLitForward());
-            descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
+            descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly(TargetsVFX(), systemData.tessellation));
+            descriptor.passes.Add(HDShaderPasses.GenerateGBuffer(TargetsVFX(), systemData.tessellation));
+            descriptor.passes.Add(HDShaderPasses.GenerateLitForward(TargetsVFX(), systemData.tessellation));
+            descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass(TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.EmissionOverriden, true));
+            if (!systemData.tessellation) // Raytracing don't support tessellation neither VFX
+                descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
 
             return descriptor;
         }
@@ -78,13 +80,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return descriptor;
         }
 
-        public static FieldDescriptor ClearCoat =               new FieldDescriptor(kMaterial, "ClearCoat", "_MATERIAL_FEATURE_CLEAR_COAT");
-        public static FieldDescriptor Translucent =             new FieldDescriptor(kMaterial, "Translucent", "_MATERIAL_FEATURE_TRANSLUCENT 1");
-        public static FieldDescriptor Standard =                new FieldDescriptor(kMaterial, "Standard", "_MATERIAL_FEATURE_TRANSMISSION 1");
-        public static FieldDescriptor SpecularColor =           new FieldDescriptor(kMaterial, "SpecularColor", "_MATERIAL_FEATURE_TRANSMISSION 1");
+        public static FieldDescriptor ClearCoat = new FieldDescriptor(kMaterial, "ClearCoat", "_MATERIAL_FEATURE_CLEAR_COAT");
+        public static FieldDescriptor Translucent = new FieldDescriptor(kMaterial, "Translucent", "_MATERIAL_FEATURE_TRANSLUCENT 1");
+        public static FieldDescriptor Standard = new FieldDescriptor(kMaterial, "Standard", "_MATERIAL_FEATURE_TRANSMISSION 1");
+        public static FieldDescriptor SpecularColor = new FieldDescriptor(kMaterial, "SpecularColor", "_MATERIAL_FEATURE_TRANSMISSION 1");
 
         // Refraction
-        public static FieldDescriptor Refraction =              new FieldDescriptor(string.Empty, "Refraction", "");
+        public static FieldDescriptor Refraction = new FieldDescriptor(string.Empty, "Refraction", "");
         public static KeywordDescriptor RefractionKeyword = new KeywordDescriptor()
         {
             displayName = "Refraction Model",
@@ -110,30 +112,42 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
 
             // Lit specific properties
-            context.AddField(DotsProperties,                       context.hasDotsProperties);
+            context.AddField(DotsProperties, context.hasDotsProperties);
 
             // Material
-            context.AddField(Anisotropy,                           litData.materialType == HDLitData.MaterialType.Anisotropy);
-            context.AddField(Iridescence,                          litData.materialType == HDLitData.MaterialType.Iridescence);
-            context.AddField(SpecularColor,                        litData.materialType == HDLitData.MaterialType.SpecularColor);
-            context.AddField(Standard,                             litData.materialType == HDLitData.MaterialType.Standard);
-            context.AddField(SubsurfaceScattering,                 litData.materialType == HDLitData.MaterialType.SubsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
-            context.AddField(Transmission,                         (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering && litData.sssTransmission) ||
-                                                                                (litData.materialType == HDLitData.MaterialType.Translucent));
-            context.AddField(Translucent,                          litData.materialType == HDLitData.MaterialType.Translucent);
+            context.AddField(Anisotropy, litData.materialType == HDLitData.MaterialType.Anisotropy);
+            context.AddField(Iridescence, litData.materialType == HDLitData.MaterialType.Iridescence);
+            context.AddField(SpecularColor, litData.materialType == HDLitData.MaterialType.SpecularColor);
+            context.AddField(Standard, litData.materialType == HDLitData.MaterialType.Standard);
+            context.AddField(SubsurfaceScattering, litData.materialType == HDLitData.MaterialType.SubsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
+            context.AddField(Transmission, (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering && litData.sssTransmission) ||
+                (litData.materialType == HDLitData.MaterialType.Translucent));
+            context.AddField(Translucent, litData.materialType == HDLitData.MaterialType.Translucent);
 
             // Refraction
-            context.AddField(Refraction,                           hasRefraction);
+            context.AddField(Refraction, hasRefraction);
 
             // Misc
-            context.AddField(EnergyConservingSpecular,             litData.energyConservingSpecular);
-            context.AddField(CoatMask,                             descs.Contains(HDBlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && litData.clearCoat);
-            context.AddField(ClearCoat,                            litData.clearCoat); // Enable clear coat material feature
-            context.AddField(RayTracing,                           litData.rayTracing);
+            context.AddField(EnergyConservingSpecular, litData.energyConservingSpecular);
+            context.AddField(CoatMask, descs.Contains(BlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.CoatMask) && litData.clearCoat);
+            context.AddField(ClearCoat, litData.clearCoat); // Enable clear coat material feature
+            context.AddField(RayTracing, litData.rayTracing);
 
             context.AddField(SpecularAA, lightingData.specularAA &&
-                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
-                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
+                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
+                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
+
+            // We need to grab the emission block to check if it is connected, or the default value is non null.
+            // If it is connected then we will generate an ForwardEmissiveForDeferred pass
+            bool emissionEnabled = false;
+            if (!context.connectedBlocks.Contains(BlockFields.SurfaceDescription.Emission))
+                emissionEnabled = !context.blocks.Contains((BlockFields.SurfaceDescription.Emission, true));
+            else
+                emissionEnabled = true;
+
+            // Note: both case are required to be compliant with the ShaderGraph framework
+            litData.emissionOverriden = emissionEnabled;
+            context.AddField(HDFields.EmissionOverriden, emissionEnabled);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -145,12 +159,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetActiveBlocks(ref context);
 
             // Common
-            context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask,             litData.clearCoat);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatMask, litData.clearCoat);
 
             // Refraction
-            context.AddBlock(HDBlockFields.SurfaceDescription.RefractionIndex,      hasRefraction);
-            context.AddBlock(HDBlockFields.SurfaceDescription.RefractionColor,      hasRefraction);
-            context.AddBlock(HDBlockFields.SurfaceDescription.RefractionDistance,   hasRefraction);
+            context.AddBlock(HDBlockFields.SurfaceDescription.RefractionIndex, hasRefraction);
+            context.AddBlock(HDBlockFields.SurfaceDescription.RefractionColor, hasRefraction);
+            context.AddBlock(HDBlockFields.SurfaceDescription.RefractionDistance, hasRefraction);
 
             // Material
 
@@ -168,18 +182,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     break;
             }
 
-            context.AddBlock(tangentBlock,                                          litData.materialType == HDLitData.MaterialType.Anisotropy);
-            context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy,           litData.materialType == HDLitData.MaterialType.Anisotropy);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,       litData.materialType == HDLitData.MaterialType.SubsurfaceScattering);
-            context.AddBlock(HDBlockFields.SurfaceDescription.Thickness,            ((litData.materialType == HDLitData.MaterialType.SubsurfaceScattering || litData.materialType == HDLitData.MaterialType.Translucent) &&
-                                                                                        (litData.sssTransmission || litData.materialType == HDLitData.MaterialType.Translucent)) || hasRefraction);
+            context.AddBlock(tangentBlock, litData.materialType == HDLitData.MaterialType.Anisotropy);
+            context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy, litData.materialType == HDLitData.MaterialType.Anisotropy);
+            context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask, litData.materialType == HDLitData.MaterialType.SubsurfaceScattering);
+            context.AddBlock(HDBlockFields.SurfaceDescription.Thickness, ((litData.materialType == HDLitData.MaterialType.SubsurfaceScattering || litData.materialType == HDLitData.MaterialType.Translucent) &&
+                (litData.sssTransmission || litData.materialType == HDLitData.MaterialType.Translucent)) || hasRefraction);
             context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, litData.materialType == HDLitData.MaterialType.SubsurfaceScattering || litData.materialType == HDLitData.MaterialType.Translucent);
-            context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceMask,      litData.materialType == HDLitData.MaterialType.Iridescence);
+            context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceMask, litData.materialType == HDLitData.MaterialType.Iridescence);
             context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceThickness, litData.materialType == HDLitData.MaterialType.Iridescence);
-            context.AddBlock(BlockFields.SurfaceDescription.Specular,               litData.materialType == HDLitData.MaterialType.SpecularColor);
-            context.AddBlock(BlockFields.SurfaceDescription.Metallic,               litData.materialType == HDLitData.MaterialType.Standard || 
-                                                                                        litData.materialType == HDLitData.MaterialType.Anisotropy ||
-                                                                                        litData.materialType == HDLitData.MaterialType.Iridescence);
+            context.AddBlock(BlockFields.SurfaceDescription.Specular, litData.materialType == HDLitData.MaterialType.SpecularColor);
+            context.AddBlock(BlockFields.SurfaceDescription.Metallic, litData.materialType == HDLitData.MaterialType.Standard ||
+                litData.materialType == HDLitData.MaterialType.Anisotropy ||
+                litData.materialType == HDLitData.MaterialType.Iridescence);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -189,12 +203,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDSubShaderUtilities.AddRayTracingProperty(collector, litData.rayTracing);
 
             // Refraction model property allow the material inspector to check if refraction is enabled in the shader.
-            collector.AddShaderProperty(new Vector1ShaderProperty{
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
                 floatType = FloatType.Enum,
                 hidden = true,
                 value = (int)litData.refractionModel,
                 enumNames = Enum.GetNames(typeof(ScreenSpaceRefraction.RefractionModel)).ToList(),
                 overrideReferenceName = kRefractionModel,
+            });
+
+            // Note: Due to the shader graph framework it is not possible to rely on litData.emissionOverriden
+            // to decide to add the ForceForwardEmissive property or not. The emissionOverriden setup is done after
+            // the call to AddShaderProperty
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = litData.forceForwardEmissive,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = kForceForwardEmissive,
             });
         }
 
@@ -202,14 +229,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.CollectPassKeywords(ref pass);
             pass.keywords.Add(RefractionKeyword);
+            pass.keywords.Add(CoreKeywordDescriptors.ForceForwardEmissive);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
-            blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, litData));
+            blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(litData));
             if (systemData.surfaceType == SurfaceType.Transparent)
                 blockList.AddPropertyBlock(new DistortionPropertyBlock());
-            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
+            blockList.AddPropertyBlock(new LitAdvancedOptionsPropertyBlock(litData));
         }
 
         protected override int ComputeMaterialNeedsUpdateHash()
@@ -220,6 +248,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 bool subsurfaceScattering = litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
                 hash = hash * 23 + subsurfaceScattering.GetHashCode();
+                hash = hash * 23 + litData.emissionOverriden.GetHashCode();
             }
 
             return hash;

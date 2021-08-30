@@ -12,7 +12,7 @@
 //  cookieIndex, the index of the cookie texture in the Texture2DArray
 //  L, the 4 local-space corners of the area light polygon transformed by the LTC M^-1 matrix
 //  F, the *normalized* vector irradiance
-float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
+float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F, float perceptualRoughness)
 {
     // L[0..3] : LL UL UR LR
 
@@ -78,9 +78,19 @@ float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
     float   cookieWidth = cookieScaleOffset.x * _CookieAtlasSize.x; // cookies and atlas are guaranteed to be POT
     float   cookieMipCount = round(log2(cookieWidth));
     float   mipLevel = 0.5 * log2(1e-8 + PI * hitDistance*hitDistance * rsqrt(sqArea)) + cookieMipCount;
-    mipLevel = clamp(mipLevel, 0, cookieMipCount);
+
+    // We want to prevent the texture from accessing to the lower mips when evaluating the specular lobe
+    // when operating on low roughness points. We progressively give access from mip 3 the rest of the mips between the range 0.0 -> 0.3
+    // in the perceptual roughness space
+    float mipTrimming = saturate((0.3 - perceptualRoughness) / 0.3);
+    mipLevel = clamp(mipLevel, 0, lerp(cookieMipCount, 3.0, mipTrimming));
 
     return SampleCookie2D(saturate(hitUV), cookieScaleOffset, mipLevel);
+}
+
+float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
+{
+    return SampleAreaLightCookie(cookieScaleOffset, L, F, 1.0f);
 }
 
 // This function transforms a rectangular area light according the the barn door inputs defined by the user.
@@ -481,22 +491,36 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
 #ifndef LIGHT_EVALUATION_NO_SHADOWS
     float shadow        = 1.0;
     float shadowMask    = 1.0;
-    float NdotL         = dot(N, L); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
 
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
     // Note that we override shadow value (in case we don't have any dynamic shadow)
-    shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
+    shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
+    // When screen space shadows are not supported, this value is stripped out as it is a constant.
+    bool validScreenSpace = false;
 #if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    // For area lights it is complex to define if a fragment is back facing.
+    // In theory, the execution shouldn't reach here, but for now we are not handeling the shadowing properly for the transmittance.
     if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
     {
-        shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
+        float2 screenSpaceAreaShadow = GetScreenSpaceShadowArea(posInput, light.screenSpaceShadowIndex);
+        // If the material has transmission, we want to be able to fallback on an other lighting source outside of the validity of the screen space shadow.
+        // Which is wrong, but less shocking visually than the alternative.
+        #if defined(MATERIAL_INCLUDE_TRANSMISSION)
+        if (screenSpaceAreaShadow.y > 0.0)
+        {
+            validScreenSpace = true;
+            shadow = screenSpaceAreaShadow.x;
+        }
+        #else
+        shadow = screenSpaceAreaShadow.x;
+        #endif
     }
-    else
 #endif
-    if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
+
+    if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0) && !validScreenSpace)
     {
         shadow = GetRectAreaShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, N, light.shadowIndex, L, dist);
 
@@ -588,7 +612,7 @@ float4 SampleEnvWithDistanceBaseRoughness(LightLoopContext lightLoopContext, Pos
     // Only apply distance based roughness for non-sky reflection probe
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES && IsEnvIndexCubemap(lightData.envIndex))
     {
-        perceptualRoughness = ComputeDistanceBaseRoughness(intersectionDistance, length(R), perceptualRoughness);
+        perceptualRoughness = lerp(perceptualRoughness, ComputeDistanceBaseRoughness(intersectionDistance, length(R), perceptualRoughness), lightData.distanceBasedRoughness);
     }
 
     return SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(perceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC, sliceIdx);

@@ -1,8 +1,8 @@
 ## HDR emulation scale
 
-All Lights in the 2D lighting system support HDR. While a typical RGBA32 color channel has the range of zero to one, a HDR channel can go beyond one. 
+All Lights in the 2D lighting system support HDR. While a typical RGBA32 color channel has the range of zero to one, a HDR channel can go beyond one.
 
-| ![Light RGB(1,1,1)](images\image_32.png) | ![HDR Light RGB(1,1,1) + Light RGB(2,2,2)](images\image_33.png) |
+| ![Light RGB(1,1,1)](Images/2D/image_32.png) | ![HDR Light RGB(1,1,1) + Light RGB(2,2,2)](Images/2D/image_33.png) |
 | ---------------------------------------- | ------------------------------------------------------------ |
 | Light RGB(1,1,1)                         | HDR Light RGB(1,1,1) + Light RGB(2,2,2)                      |
 
@@ -10,11 +10,10 @@ However, not all platforms natively support HDR textures. HDR Emulation Scale al
 
 Light Intensity scale examples:
 
-| ![HDR Reference](images\image_34.png)           | ![Light Intensity Scale 1 (No HDR)](images\image_35.png) |
+| ![HDR Reference](Images/2D/image_34.png)           | ![Light Intensity Scale 1 (No HDR)](Images/2D/image_35.png) |
 | ----------------------------------------------- | -------------------------------------------------------- |
 | HDR Reference                                   | Light Intensity Scale 1 (No HDR)                         |
-| ![Light Intensity Scale 4](images\image_36.png) | ![Light Intensity Scale 12](images\image_37.png)         |
+| ![Light Intensity Scale 4](Images/2D/image_36.png) | ![Light Intensity Scale 12](Images/2D/image_37.png)         |
 | Light Intensity Scale 4                         | Light Intensity Scale 12                                 |
 
 When choosing a value for HDR Emulation Scale, the developer should choose the combined maximum brightness for the lights in the scene as the value.
-

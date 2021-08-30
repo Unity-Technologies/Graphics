@@ -10,7 +10,7 @@ Shader "Hidden/HDRP/CombineLighting"
     {
         HLSLINCLUDE
         #pragma target 4.5
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         // #pragma enable_d3d11_debug_symbols
 
         #pragma vertex Vert
@@ -55,12 +55,12 @@ Shader "Hidden/HDRP/CombineLighting"
             }
 
             Cull   Off
-            ZTest  Less	   // Required for XR occlusion mesh optimization
+            ZTest  Less    // Required for XR occlusion mesh optimization
             ZWrite Off
             Blend  One One // Additive
 
             HLSLPROGRAM
-            
+
             float4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);

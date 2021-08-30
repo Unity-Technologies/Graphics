@@ -1,6 +1,6 @@
 # Ceiling
 
-Menu Path : **Operator > Math > Clamp > Ceiling**  
+Menu Path : **Operator > Math > Clamp > Ceiling**
 
 The **Ceiling** Operator rounds the input up to the nearest integer. For example, an input of (4.1, 4, 4.8) outputs (5, 4, 5).
 

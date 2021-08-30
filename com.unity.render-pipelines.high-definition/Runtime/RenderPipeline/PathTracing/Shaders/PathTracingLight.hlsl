@@ -109,7 +109,7 @@ bool IsDistantLightActive(DirectionalLightData lightData, float3 normal)
     return dot(normal, lightData.forward) <= sin(lightData.angularDiameter * 0.5);
 }
 
-LightList CreateLightList(float3 position, float3 normal, uint lightLayers, bool withLocal = true, bool withDistant = true)
+LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEFAULT_LIGHT_LAYERS, bool withLocal = true, bool withDistant = true)
 {
     LightList list;
     uint i;
@@ -169,14 +169,14 @@ if (withLocal)
     // Then filter the active distant lights (directional)
     list.distantCount = 0;
 
-if (withDistant)
-{
-    for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
+    if (withDistant)
     {
-        if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers) && IsDistantLightActive(_DirectionalLightDatas[i], normal))
-            list.distantIndex[list.distantCount++] = i;
+        for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
+        {
+            if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers) && IsDistantLightActive(_DirectionalLightDatas[i], normal))
+                list.distantIndex[list.distantCount++] = i;
+        }
     }
-}
 
     // Compute the weights, used for the lights PDF (we split 50/50 between local and distant, if both are present)
     list.localWeight = list.localCount ? (list.distantCount ? 0.5 : 1.0) : 0.0;
@@ -224,23 +224,23 @@ float GetDistantLightWeight(LightList list)
     return list.distantWeight / list.distantCount;
 }
 
-bool PickLocalLights(LightList list, inout float sample)
+bool PickLocalLights(LightList list, inout float theSample)
 {
-    if (sample < list.localWeight)
+    if (theSample < list.localWeight)
     {
         // We pick local lighting
-        sample /= list.localWeight;
+        theSample /= list.localWeight;
         return true;
     }
 
     // Otherwise, distant lighting
-    sample = (sample - list.localWeight) / list.distantWeight;
+    theSample = (theSample - list.localWeight) / list.distantWeight;
     return false;
  }
 
-bool PickDistantLights(LightList list, inout float sample)
+bool PickDistantLights(LightList list, inout float theSample)
 {
-    return !PickLocalLights(list, sample);
+    return !PickLocalLights(list, theSample);
 }
 
 float3 GetPunctualEmission(LightData lightData, float3 outgoingDir, float dist)
@@ -300,6 +300,7 @@ bool SampleLights(LightList lightList,
                   float3 inputSample,
                   float3 position,
                   float3 normal,
+                  bool isVolume,
               out float3 outgoingDir,
               out float3 value,
               out float pdf,
@@ -308,8 +309,8 @@ bool SampleLights(LightList lightList,
     if (!GetLightCount(lightList))
         return false;
 
-    // Are we lighting a volume or a surface?
-    bool isVolume = !any(normal);
+    // Are we lighting a spherical (e.g. volume) or a hemi-spherical distribution (e.g. opaque surface)?
+    bool isSpherical = isVolume || !any(normal);
 
     if (PickLocalLights(lightList, inputSample.z))
     {
@@ -330,7 +331,7 @@ bool SampleLights(LightList lightList,
             dist = sqrt(sqDist);
             outgoingDir /= dist;
 
-            if (!isVolume && dot(normal, outgoingDir) < 0.001)
+            if (!isSpherical && dot(normal, outgoingDir) < 0.001)
                 return false;
 
             float cosTheta = -dot(outgoingDir, lightData.forward);
@@ -364,7 +365,7 @@ bool SampleLights(LightList lightList,
                 pdf = DELTA_PDF;
             }
 
-            if (!isVolume && dot(normal, outgoingDir) < 0.001)
+            if (!isSpherical && dot(normal, outgoingDir) < 0.001)
                 return false;
 
             value = GetPunctualEmission(lightData, outgoingDir, dist) * pdf;
@@ -400,7 +401,7 @@ bool SampleLights(LightList lightList,
             outgoingDir = -lightData.forward;
         }
 
-        if (!isVolume && (dot(normal, outgoingDir) < 0.001))
+        if (!isSpherical && (dot(normal, outgoingDir) < 0.001))
             return false;
 
         dist = FLT_INF;
@@ -489,32 +490,18 @@ void EvaluateLights(LightList lightList,
 
 // Functions used by volumetric sampling
 
-bool SolvePoly2(float a, float b, float c, out float x1, out float x2)
-{
-    float det = Sq(b) - 4.0 * a * c;
-
-    if (det < 0.0)
-        return false;
-
-    float sqrtDet = sqrt(det);
-    x1 = (-b - sign(a) * sqrtDet) / (2.0 * a);
-    x2 = (-b + sign(a) * sqrtDet) / (2.0 * a);
-
-    return true;
-}
-
 bool GetSphereInterval(float3 lightToRayOrigin, float radius, float3 rayDirection, out float tMin, out float tMax)
 {
     // We consider Direction to be normalized => a = 1
     float b = 2.0 * dot(rayDirection, lightToRayOrigin);
     float c = Length2(lightToRayOrigin) - Sq(radius);
 
-    float t1, t2;
-    if (!SolvePoly2(1.0, b, c, t1, t2))
+    float2 t;
+    if (!SolveQuadraticEquation(1.0, b, c, t))
         return false;
 
-    tMin = max(t1, 0.0);
-    tMax = max(t2, 0.0);
+    tMin = max(t.x, 0.0);
+    tMax = max(t.y, 0.0);
 
     return tMin < tMax;
 }
@@ -656,12 +643,12 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
         float b = 2.0 * (localOrigin.z * localDirection.z - dot(normalizedLocalOrigin, localDirection) * cosTheta2);
         float c = Sq(localOrigin.z) - dot(normalizedLocalOrigin, localOrigin) * cosTheta2;
 
-        float t1, t2;
-        if (!SolvePoly2(a, b, c, t1, t2))
+        float2 t;
+        if (!SolveQuadraticEquation(a, b, c, t))
             return false;
 
         // Check validity of the intersections (we want them only in front of the light)
-        GetFrontInterval(localOrigin.z, localDirection.z, t1, t2, tMin, tMax);
+        GetFrontInterval(localOrigin.z, localDirection.z, t.x, t.y, tMin, tMax);
     }
 
     return tMin < tMax;
@@ -705,7 +692,7 @@ float GetLocalLightsInterval(float3 rayOrigin, float3 rayDirection, out float tM
 
 LightList CreateLightList(float3 position, bool sampleLocalLights)
 {
-    return CreateLightList(position, 0.0, ~0, sampleLocalLights, !sampleLocalLights);
+    return CreateLightList(position, 0.0, DEFAULT_LIGHT_LAYERS, sampleLocalLights, !sampleLocalLights);
 }
 
 #endif // UNITY_PATH_TRACING_LIGHT_INCLUDED

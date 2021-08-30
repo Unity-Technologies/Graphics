@@ -14,6 +14,14 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
     previousPositionCS.xy = previousPositionCS.xy / previousPositionCS.w;
 
     float2 motionVec = (positionCS.xy - previousPositionCS.xy);
+
+#ifdef KILL_MICRO_MOVEMENT
+    motionVec.x = abs(motionVec.x) < MICRO_MOVEMENT_THRESHOLD.x ? 0 : motionVec.x;
+    motionVec.y = abs(motionVec.y) < MICRO_MOVEMENT_THRESHOLD.y ? 0 : motionVec.y;
+#endif
+
+    motionVec = clamp(motionVec, -1.0f + MICRO_MOVEMENT_THRESHOLD, 1.0f - MICRO_MOVEMENT_THRESHOLD);
+
 #if UNITY_UV_STARTS_AT_TOP
     motionVec.y = -motionVec.y;
 #endif
@@ -34,7 +42,7 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
 void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, float3 backNormalWS, float4 texCoord1, float4 texCoord2,
                         out BuiltinData builtinData)
 {
-    ZERO_INITIALIZE(BuiltinData, builtinData);
+    ZERO_BUILTIN_INITIALIZE(builtinData);
 
     builtinData.opacity = alpha;
 
@@ -95,9 +103,14 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
 void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfaceData,
                             inout BuiltinData builtinData)
 {
-#if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
+    {
+#ifdef HAS_PAYLOAD_WITH_UNINIT_GI
+        EncodePayloadWithUninitGI(GetUninitializedGIPayload(surfaceData), builtinData.bakeDiffuseLighting);
+#endif
         return;
+    }
 #else
     // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive
     // color in case of lit deferred for example and avoid material to have to deal with it

@@ -31,6 +31,13 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         internal static readonly string[] foldoutNames = { "Rendering", "Lighting", "Async Compute", "Light Loop" };
         static readonly string[] columnNames = { "Debug", "Sanitized", "Overridden", "Default" };
+        static readonly string[] columnTooltips =
+        {
+            "Displays Frame Setting values you can modify for the selected Camera.",
+            "Displays the Frame Setting values that the selected Camera uses after Unity checks to see if your HDRP Asset supports them.",
+            "Displays the Frame Setting values that the selected Camera overrides.",
+            "Displays the default Frame Setting values in your current HDRP Asset."
+        };
         static readonly Dictionary<FrameSettingsField, FrameSettingsFieldAttribute> attributes;
         static Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>> attributesGroup = new Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>>();
 
@@ -62,12 +69,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 => "Scene Camera";
 
             public MinimalHistoryContainer()
-                => m_FrameSettingsHistory.debug = HDRenderPipeline.defaultAsset?.GetDefaultFrameSettings(FrameSettingsRenderType.Camera) ?? new FrameSettings();
+                => m_FrameSettingsHistory.debug = HDRenderPipelineGlobalSettings.instance?.GetDefaultFrameSettings(FrameSettingsRenderType.Camera) ?? FrameSettings.NewDefaultCamera();
 
             Action IDebugData.GetReset()
-                //caution: we actually need to retrieve the
-                //m_FrameSettingsHistory as it is a struct so no direct
-                // => m_FrameSettingsHistory.TriggerReset
+            //caution: we actually need to retrieve the
+            //m_FrameSettingsHistory as it is a struct so no direct
+            // => m_FrameSettingsHistory.TriggerReset
                 => () => m_FrameSettingsHistory.TriggerReset();
         }
         internal static IFrameSettingsHistoryContainer sceneViewFrameSettingsContainer = new MinimalHistoryContainer();
@@ -108,18 +115,20 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             attributes = new Dictionary<FrameSettingsField, FrameSettingsFieldAttribute>();
             attributesGroup = new Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>>();
+            Dictionary<FrameSettingsField, string> frameSettingsEnumNameMap = FrameSettingsFieldAttribute.GetEnumNameMap();
             Type type = typeof(FrameSettingsField);
-            foreach (FrameSettingsField value in Enum.GetValues(type))
+            foreach (FrameSettingsField enumVal in frameSettingsEnumNameMap.Keys)
             {
-                attributes[value] = type.GetField(Enum.GetName(type, value)).GetCustomAttribute<FrameSettingsFieldAttribute>();
+                attributes[enumVal] = type.GetField(frameSettingsEnumNameMap[enumVal]).GetCustomAttribute<FrameSettingsFieldAttribute>();
             }
         }
+
         /// <summary>Same than FrameSettings.AggregateFrameSettings but keep history of agregation in a collection for DebugMenu.
         /// Aggregation is default with override of the renderer then sanitazed depending on supported features of hdrpasset. Then the DebugMenu override occurs.</summary>
         /// <param name="aggregatedFrameSettings">The aggregated FrameSettings result.</param>
         /// <param name="camera">The camera rendering.</param>
         /// <param name="additionalData">Additional data of the camera rendering.</param>
-        /// <param name="hdrpAsset">HDRenderPipelineAsset contening default FrameSettings.</param>
+        /// <param name="hdrpAsset">HDRenderPipelineAsset contening supported features.</param>
         public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset, HDRenderPipelineAsset defaultHdrpAsset)
             => AggregateFrameSettings(
                 ref aggregatedFrameSettings,
@@ -128,9 +137,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 camera.cameraType == CameraType.SceneView ? sceneViewFrameSettingsContainer :
 #endif
                 additionalData,
-                ref defaultHdrpAsset.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
+                ref HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
                 hdrpAsset.currentPlatformRenderPipelineSettings
-                );
+            );
 
         // Note: this version is the one tested as there is issue getting HDRenderPipelineAsset in batchmode in unit test framework currently.
         /// <summary>Same than FrameSettings.AggregateFrameSettings but keep history of agregation in a collection for DebugMenu.
@@ -176,7 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
             historyContainer.frameSettingsHistory = history;
         }
 
-        static DebugUI.HistoryBoolField GenerateHistoryBoolField(HDRenderPipelineAsset defaultHdrpAsset, IFrameSettingsHistoryContainer frameSettingsContainer, FrameSettingsField field, FrameSettingsFieldAttribute attribute)
+        static DebugUI.HistoryBoolField GenerateHistoryBoolField(IFrameSettingsHistoryContainer frameSettingsContainer, FrameSettingsField field, FrameSettingsFieldAttribute attribute)
         {
             string displayIndent = "";
             for (int indent = 0; indent < attribute.indentLevel; ++indent)
@@ -184,6 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return new DebugUI.HistoryBoolField
             {
                 displayName = displayIndent + attribute.displayedName,
+                tooltip = attribute.tooltip,
                 getter = () => frameSettingsContainer.frameSettingsHistory.debug.IsEnabled(field),
                 setter = value =>
                 {
@@ -195,12 +205,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     () => frameSettingsContainer.frameSettingsHistory.sanitazed.IsEnabled(field),
                     () => frameSettingsContainer.frameSettingsHistory.overridden.IsEnabled(field),
-                    () => defaultHdrpAsset.GetDefaultFrameSettings(frameSettingsContainer.frameSettingsHistory.defaultType).IsEnabled(field)
+                    () => HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(frameSettingsContainer.frameSettingsHistory.defaultType).IsEnabled(field)
                 }
             };
         }
 
-        static DebugUI.HistoryEnumField GenerateHistoryEnumField(HDRenderPipelineAsset defaultHdrpAsset, IFrameSettingsHistoryContainer frameSettingsContainer, FrameSettingsField field, FrameSettingsFieldAttribute attribute, Type autoEnum)
+        static DebugUI.HistoryEnumField GenerateHistoryEnumField(IFrameSettingsHistoryContainer frameSettingsContainer, FrameSettingsField field, FrameSettingsFieldAttribute attribute, Type autoEnum)
         {
             string displayIndent = "";
             for (int indent = 0; indent < attribute.indentLevel; ++indent)
@@ -208,6 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return new DebugUI.HistoryEnumField
             {
                 displayName = displayIndent + attribute.displayedName,
+                tooltip = attribute.tooltip,
                 getter = () => frameSettingsContainer.frameSettingsHistory.debug.IsEnabled(field) ? 1 : 0,
                 setter = value =>
                 {
@@ -226,12 +237,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     () => frameSettingsContainer.frameSettingsHistory.sanitazed.IsEnabled(field) ? 1 : 0,
                     () => frameSettingsContainer.frameSettingsHistory.overridden.IsEnabled(field) ? 1 : 0,
-                    () => defaultHdrpAsset.GetDefaultFrameSettings(frameSettingsContainer.frameSettingsHistory.defaultType).IsEnabled(field) ? 1 : 0
+                    () => HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(frameSettingsContainer.frameSettingsHistory.defaultType).IsEnabled(field) ? 1 : 0
                 }
             };
         }
 
-        static ObservableList<DebugUI.Widget> GenerateHistoryArea(HDRenderPipelineAsset defaultHdrpAsset, IFrameSettingsHistoryContainer frameSettingsContainer, int groupIndex)
+        static ObservableList<DebugUI.Widget> GenerateHistoryArea(IFrameSettingsHistoryContainer frameSettingsContainer, int groupIndex)
         {
             if (!attributesGroup.ContainsKey(groupIndex) || attributesGroup[groupIndex] == null)
                 attributesGroup[groupIndex] = attributes?.Where(pair => pair.Value?.group == groupIndex)?.OrderBy(pair => pair.Value.orderInGroup);
@@ -245,19 +256,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     case FrameSettingsFieldAttribute.DisplayType.BoolAsCheckbox:
                         area.Add(GenerateHistoryBoolField(
-                            defaultHdrpAsset,
                             frameSettingsContainer,
                             field.Key,
                             field.Value));
                         break;
                     case FrameSettingsFieldAttribute.DisplayType.BoolAsEnumPopup:
                         area.Add(GenerateHistoryEnumField(
-                            defaultHdrpAsset,
                             frameSettingsContainer,
                             field.Key,
                             field.Value,
                             RetrieveEnumTypeByField(field.Key)
-                            ));
+                        ));
                         break;
                     case FrameSettingsFieldAttribute.DisplayType.Others: // for now, skip other display settings. Add them if needed
                         break;
@@ -266,21 +275,20 @@ namespace UnityEngine.Rendering.HighDefinition
             return area;
         }
 
-        static DebugUI.Widget[] GenerateFrameSettingsPanelContent(HDRenderPipelineAsset defaultHdrpAsset, IFrameSettingsHistoryContainer frameSettingsContainer)
+        static DebugUI.Widget[] GenerateFrameSettingsPanelContent(IFrameSettingsHistoryContainer frameSettingsContainer)
         {
             var panelContent = new DebugUI.Widget[foldoutNames.Length];
             for (int index = 0; index < foldoutNames.Length; ++index)
             {
-                panelContent[index] = new DebugUI.Foldout(foldoutNames[index], GenerateHistoryArea(defaultHdrpAsset, frameSettingsContainer, index), columnNames);
+                panelContent[index] = new DebugUI.Foldout(foldoutNames[index], GenerateHistoryArea(frameSettingsContainer, index), columnNames, columnTooltips);
             }
             return panelContent;
         }
 
         static void GenerateFrameSettingsPanel(string menuName, IFrameSettingsHistoryContainer frameSettingsContainer)
         {
-            HDRenderPipelineAsset defaultHdrpAsset = HDRenderPipeline.defaultAsset;
             List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
-            widgets.AddRange(GenerateFrameSettingsPanelContent(defaultHdrpAsset, frameSettingsContainer));
+            widgets.AddRange(GenerateFrameSettingsPanelContent(frameSettingsContainer));
             var panel = DebugManager.instance.GetPanel(
                 menuName,
                 createIfNull: true,

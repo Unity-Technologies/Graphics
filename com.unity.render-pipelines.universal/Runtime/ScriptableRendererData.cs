@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEngine.Scripting.APIUpdating;
 
 #if UNITY_EDITOR
 using System.Linq;
@@ -14,10 +13,27 @@ namespace UnityEngine.Rendering.Universal
     /// Class <c>ScriptableRendererData</c> contains resources for a <c>ScriptableRenderer</c>.
     /// <seealso cref="ScriptableRenderer"/>
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")]
     public abstract class ScriptableRendererData : ScriptableObject
     {
         internal bool isInvalidated { get; set; }
+
+        /// <summary>
+        /// Class contains references to shader resources used by Rendering Debugger.
+        /// </summary>
+        [Serializable, ReloadGroup]
+        public sealed class DebugShaderResources
+        {
+            /// <summary>
+            /// Debug shader used to output interpolated vertex attributes.
+            /// </summary>
+            [Reload("Shaders/Debug/DebugReplacement.shader")]
+            public Shader debugReplacementPS;
+        }
+
+        /// <summary>
+        /// Container for shader resources used by Rendering Debugger.
+        /// </summary>
+        public DebugShaderResources debugShaders;
 
         /// <summary>
         /// Creates the instance of the ScriptableRenderer.
@@ -27,6 +43,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] internal List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         [SerializeField] internal List<long> m_RendererFeatureMap = new List<long>(10);
+        [SerializeField] bool m_UseNativeRenderPass = false;
 
         /// <summary>
         /// List of additional render pass features for this renderer.
@@ -63,6 +80,35 @@ namespace UnityEngine.Rendering.Universal
         protected virtual void OnEnable()
         {
             SetDirty();
+        }
+
+        public bool useNativeRenderPass
+        {
+            get => m_UseNativeRenderPass;
+            set
+            {
+                SetDirty();
+                m_UseNativeRenderPass = value;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if contains renderer feature with specified type.
+        /// </summary>
+        /// <typeparam name="T">Renderer Feature type.</typeparam>
+        /// <returns></returns>
+        internal bool TryGetRendererFeature<T>(out T rendererFeature) where T : ScriptableRendererFeature
+        {
+            foreach (var target in rendererFeatures)
+            {
+                if (target.GetType() == typeof(T))
+                {
+                    rendererFeature = target as T;
+                    return true;
+                }
+            }
+            rendererFeature = null;
+            return false;
         }
 
 #if UNITY_EDITOR
@@ -116,11 +162,11 @@ namespace UnityEngine.Rendering.Universal
                     {
                         var localId = m_RendererFeatureMap[i];
                         loadedAssets.TryGetValue(localId, out var asset);
-                        m_RendererFeatures[i] = (ScriptableRendererFeature) asset;
+                        m_RendererFeatures[i] = (ScriptableRendererFeature)asset;
                     }
                     else
                     {
-                        m_RendererFeatures[i] = (ScriptableRendererFeature) GetUnusedAsset(ref linkedIds, ref loadedAssets);
+                        m_RendererFeatures[i] = (ScriptableRendererFeature)GetUnusedAsset(ref linkedIds, ref loadedAssets);
                     }
                 }
 
@@ -168,13 +214,13 @@ namespace UnityEngine.Rendering.Universal
 
             for (int i = 0; i < rendererFeatures.Count; i++)
             {
-                if(m_RendererFeatures[i] == null) continue;
+                if (m_RendererFeatures[i] == null) continue;
                 if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m_RendererFeatures[i], out var guid, out long localId)) continue;
 
                 m_RendererFeatureMap[i] = localId;
             }
         }
+
 #endif
     }
 }
-

@@ -24,7 +24,7 @@ float3 tangentWS = i.VFX_VARYING_TANGENT;
 float3 bitangentWS = cross(i.VFX_VARYING_TANGENT,i.VFX_VARYING_NORMAL);
 
 #if defined(VFX_VARYING_BENTFACTORS) && USE_NORMAL_BENDING	
-float3 bentFactors = float3(i.VFX_VARYING_BENTFACTORS.xy,sqrt(1.0f - dot(i.VFX_VARYING_BENTFACTORS,i.VFX_VARYING_BENTFACTORS)));
+float3 bentFactors = float3(i.VFX_VARYING_BENTFACTORS.xy,sqrt(max(0.0f,1.0f - dot(i.VFX_VARYING_BENTFACTORS,i.VFX_VARYING_BENTFACTORS))));
 normalWS = tangentWS * bentFactors.x + bitangentWS * bentFactors.y + normalWS * bentFactors.z;
 tangentWS = normalize(cross(normalWS,bitangentWS));
 bitangentWS = cross(tangentWS,normalWS);
@@ -44,7 +44,5 @@ normalWS = normalize(lerp(normalWS,mul(n,tbn),normalScale));
 #endif
 #endif
 ${VFXEnd}
-
-${VFXFragmentCommonFunctions}
 
 ${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}

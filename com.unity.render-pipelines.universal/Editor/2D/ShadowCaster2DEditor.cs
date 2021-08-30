@@ -1,17 +1,48 @@
-using System.Collections;
-using System.Collections.Generic;
-
-using UnityEditor;
 using UnityEditor.EditorTools;
-using UnityEditor.Experimental.Rendering.Universal.Path2D;
+using UnityEditor.Rendering.Universal.Path2D;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Universal
+namespace UnityEditor.Rendering.Universal
 {
+    internal class ShadowCasterPath : ScriptablePath
+    {
+        internal Bounds GetBounds()
+        {
+            ShadowCaster2D shadowCaster = (ShadowCaster2D)owner;
+            Renderer m_Renderer = shadowCaster.GetComponent<Renderer>();
+            if (m_Renderer != null)
+            {
+                return m_Renderer.bounds;
+            }
+            else
+            {
+                Collider2D collider = shadowCaster.GetComponent<Collider2D>();
+                if (collider != null)
+                    return collider.bounds;
+            }
+
+            return new Bounds(shadowCaster.transform.position, shadowCaster.transform.lossyScale);
+        }
+
+        public override void SetDefaultShape()
+        {
+            Clear();
+            Bounds bounds = GetBounds();
+
+            AddPoint(new ControlPoint(bounds.min));
+            AddPoint(new ControlPoint(new Vector3(bounds.min.x, bounds.max.y)));
+            AddPoint(new ControlPoint(bounds.max));
+            AddPoint(new ControlPoint(new Vector3(bounds.max.x, bounds.min.y)));
+
+            base.SetDefaultShape();
+        }
+    }
+
+
     [CustomEditor(typeof(ShadowCaster2D))]
     [CanEditMultipleObjects]
-    internal class ShadowCaster2DEditor : PathComponentEditor<ScriptablePath>
+    internal class ShadowCaster2DEditor : PathComponentEditor<ShadowCasterPath>
     {
         [EditorTool("Edit Shadow Caster Shape", typeof(ShadowCaster2D))]
         class ShadowCaster2DShadowCasterShapeTool : ShadowCaster2DShapeTool { };
@@ -24,11 +55,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent sortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply shadows to the specified sorting layers.");
         }
 
-        SerializedProperty m_HasRenderer;
         SerializedProperty m_UseRendererSilhouette;
         SerializedProperty m_CastsShadows;
         SerializedProperty m_SelfShadows;
-        SerializedProperty m_ReceivesShadows;
 
 
         SortingLayerDropDown m_SortingLayerDropDown;
@@ -39,7 +68,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_UseRendererSilhouette = serializedObject.FindProperty("m_UseRendererSilhouette");
             m_SelfShadows = serializedObject.FindProperty("m_SelfShadows");
             m_CastsShadows = serializedObject.FindProperty("m_CastsShadows");
-            m_HasRenderer = serializedObject.FindProperty("m_HasRenderer"); 
 
             m_SortingLayerDropDown = new SortingLayerDropDown();
             m_SortingLayerDropDown.OnEnable(serializedObject, "m_ApplyToSortingLayers");
@@ -69,20 +97,35 @@ namespace UnityEditor.Experimental.Rendering.Universal
             DoSnappingInspector<T>();
         }
 
-
         public void OnSceneGUI()
         {
             if (m_CastsShadows.boolValue)
                 ShadowCaster2DSceneGUI();
         }
 
+        public bool HasRenderer()
+        {
+            if (targets != null)
+            {
+                for (int i = 0; i < targets.Length; i++)
+                {
+                    ShadowCaster2D shadowCaster = (ShadowCaster2D)targets[i];
+                    Renderer renderer = shadowCaster.GetComponent<Renderer>();
+                    if (renderer != null)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
-            using (new EditorGUI.DisabledScope(!m_HasRenderer.boolValue))  // Done to support multiedit
+            using (new EditorGUI.DisabledScope(!HasRenderer()))  // Done to support multiedit
             {
-                EditorGUILayout.PropertyField(m_UseRendererSilhouette, Styles.shadowMode);  
+                EditorGUILayout.PropertyField(m_UseRendererSilhouette, Styles.shadowMode);
             }
 
             EditorGUILayout.PropertyField(m_CastsShadows, Styles.castsShadows);

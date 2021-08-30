@@ -28,10 +28,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   skyType:
     m_OverrideState: 1
     m_Value: 4
+  cloudType:
+    m_OverrideState: 0
+    m_Value: 0
   skyAmbientMode:
     m_OverrideState: 1
     m_Value: 0
@@ -164,12 +166,9 @@ MonoBehaviour:
   m_Name: PhysicallyBasedSky
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   rotation:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
-    max: 360
   skyIntensityMode:
     m_OverrideState: 0
     m_Value: 0
@@ -179,11 +178,9 @@ MonoBehaviour:
   multiplier:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
   upperHemisphereLuxValue:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
   upperHemisphereLuxColor:
     m_OverrideState: 0
     m_Value: {x: 0, y: 0, z: 0}
@@ -196,13 +193,12 @@ MonoBehaviour:
   updatePeriod:
     m_OverrideState: 0
     m_Value: 0
-    min: 0
   includeSunInBaking:
     m_OverrideState: 0
     m_Value: 0
-  earthPreset:
+  type:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 2
   sphericalMode:
     m_OverrideState: 0
     m_Value: 1
@@ -212,66 +208,42 @@ MonoBehaviour:
   planetaryRadius:
     m_OverrideState: 0
     m_Value: 6378759
-    min: 0
   planetCenterPosition:
     m_OverrideState: 0
     m_Value: {x: 0, y: -6378.759, z: 0}
   airDensityR:
     m_OverrideState: 0
     m_Value: 0.04534
-    min: 0
-    max: 1
   airDensityG:
     m_OverrideState: 0
     m_Value: 0.10237241
-    min: 0
-    max: 1
   airDensityB:
     m_OverrideState: 0
     m_Value: 0.23264056
-    min: 0
-    max: 1
   airTint:
     m_OverrideState: 0
     m_Value: {r: 0.9, g: 0.9, b: 1, a: 1}
-    hdr: 0
-    showAlpha: 0
-    showEyeDropper: 1
   airMaximumAltitude:
     m_OverrideState: 0
     m_Value: 58300
-    min: 0
   aerosolDensity:
     m_OverrideState: 0
     m_Value: 0.1
-    min: 0
-    max: 1
   aerosolTint:
     m_OverrideState: 0
     m_Value: {r: 1, g: 0, b: 0.15377235, a: 1}
-    hdr: 0
-    showAlpha: 0
-    showEyeDropper: 1
   aerosolMaximumAltitude:
     m_OverrideState: 0
     m_Value: 8300
-    min: 0
   aerosolAnisotropy:
     m_OverrideState: 0
     m_Value: 0
-    min: -1
-    max: 1
   numberOfBounces:
     m_OverrideState: 0
     m_Value: 8
-    min: 1
-    max: 10
   groundTint:
     m_OverrideState: 1
     m_Value: {r: 1, g: 1, b: 1, a: 1}
-    hdr: 0
-    showAlpha: 0
-    showEyeDropper: 0
   groundColorTexture:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: 703a4570dfe8b8e41aff24d2320bd405, type: 3}
@@ -281,7 +253,6 @@ MonoBehaviour:
   groundEmissionMultiplier:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
   planetRotation:
     m_OverrideState: 1
     m_Value: {x: 180, y: -50, z: 170}
@@ -291,39 +262,28 @@ MonoBehaviour:
   spaceEmissionMultiplier:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
   spaceRotation:
     m_OverrideState: 1
     m_Value: {x: 15, y: 30, z: 45}
   colorSaturation:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
-    max: 1
   alphaSaturation:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
-    max: 1
   alphaMultiplier:
     m_OverrideState: 0
     m_Value: 1
-    min: 0
-    max: 1
   horizonTint:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
-    hdr: 0
-    showAlpha: 0
-    showEyeDropper: 0
   zenithTint:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
-    hdr: 0
-    showAlpha: 0
-    showEyeDropper: 0
   horizonZenithShift:
     m_OverrideState: 0
     m_Value: 0
-    min: -1
-    max: 1
+  m_SkyVersion: 1
+  m_ObsoleteEarthPreset:
+    m_OverrideState: 1
+    m_Value: 0

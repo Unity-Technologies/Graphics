@@ -10,12 +10,12 @@ namespace UnityEditor.ShaderGraph
     class DefaultMaterialSlot : Vector3MaterialSlot
     {
         public DefaultMaterialSlot()
-        {}
+        { }
 
         public DefaultMaterialSlot(int slotId, string displayName, string shaderOutputName,
-                                    ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
+                                   ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector3.zero, stageCapability, hidden: hidden)
-        {}
+        { }
 
         public override VisualElement InstantiateControl()
         {

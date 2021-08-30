@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
         {
             DisplacedIrisUV = Vector3.zero;
             return
-                @"
+@"
                 {
                     DisplacedIrisUV = (IrisUV + IrisOffset);
                 }

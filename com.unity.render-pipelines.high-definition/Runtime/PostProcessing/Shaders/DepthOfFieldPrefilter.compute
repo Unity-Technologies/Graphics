@@ -1,12 +1,12 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 
 #pragma multi_compile _ NEAR
 #pragma multi_compile _ FAR
-#pragma multi_compile _ FULL_RES
+#pragma multi_compile LOW_QUALITY HIGH_QUALITY FULL_RES
 #pragma multi_compile _ ENABLE_ALPHA
 
 #pragma kernel KMain
@@ -36,7 +36,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    float2 texelSize = _ScreenSize.zw * _TargetScale.x;
+    float2 texelSize = _PostProcessScreenSize.zw * _TargetScale.x;
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), texelSize, uint2(GROUP_SIZE, GROUP_SIZE));
     float2 uv = posInputs.positionNDC;
 
@@ -56,7 +56,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 #else
 
-#if 0
+#if LOW_QUALITY
     const uint kTapCount = 1;
 #else
     // Use a rotated grid to minimize artifacts coming from horizontal and vertical boundaries
@@ -85,7 +85,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     {
         float2 tapCoord = texelSize * kTaps[i] + uv;
 
-        CTYPE tapColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(tapCoord, texelSize), 0.0).CTYPE_SWIZZLE;
+        CTYPE tapColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(tapCoord, texelSize), 0.0).CTYPE_SWIZZLE;
         float tapCoC = SAMPLE_TEXTURE2D_X_LOD(_InputCoCTexture, sampler_LinearClamp, min(tapCoord * _CoCTargetScale.xy, maxCoordCoC), 0.0).x;
 
         float nearCoC = saturate(abs(min(tapCoC, 0.0)));

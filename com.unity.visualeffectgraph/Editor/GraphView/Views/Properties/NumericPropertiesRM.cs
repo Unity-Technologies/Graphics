@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
         }
 
         protected VFXBaseSliderField<U> m_Slider;
-        protected TextValueField<U>     m_TextField;
+        protected TextValueField<U> m_TextField;
 
         protected abstract INotifyValueChanged<U> CreateSimpleField(out TextValueField<U> textField);
         protected abstract INotifyValueChanged<U> CreateSliderField(out VFXBaseSliderField<U> slider);
@@ -182,13 +182,15 @@ namespace UnityEditor.VFX.UI
         public UintPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
+
         public override float GetPreferredControlWidth()
         {
             if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
                 return 120;
 
-            return base.GetPreferredControlWidth() ;
+            return base.GetPreferredControlWidth();
         }
+
         protected VFXEnumValuePopup m_EnumPopup;
 
         public override INotifyValueChanged<long> CreateField()
@@ -217,7 +219,7 @@ namespace UnityEditor.VFX.UI
             if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum) == (m_EnumPopup == null))
                 return false;
 
-            if(m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
+            if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
             {
                 string[] enumValues = m_Provider.attributes.FindEnum();
 
@@ -234,7 +236,7 @@ namespace UnityEditor.VFX.UI
                 textField = null;
                 return bitfield;
             }
-            var field =  new VFXLabeledField<LongField, long>(m_Label);
+            var field = new VFXLabeledField<LongField, long>(m_Label);
 
             field.onValueDragFinished = t => ValueDragFinished();
             field.onValueDragStarted = t => ValueDragStarted();

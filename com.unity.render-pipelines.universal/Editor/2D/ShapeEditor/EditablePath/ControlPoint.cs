@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     internal enum TangentMode
     {
@@ -29,6 +29,17 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         public TangentCache continuousCache;
         public TangentCache brokenCache;
         public bool mirrorLeft;
+
+        public ControlPoint(Vector3 pos)
+        {
+            position = pos;
+            localLeftTangent = Vector3.zero;
+            localRightTangent = Vector3.zero;
+            tangentMode = TangentMode.Linear;
+            continuousCache = default(TangentCache);
+            brokenCache = default(TangentCache);
+            mirrorLeft = false;
+        }
 
         public Vector3 leftTangent
         {

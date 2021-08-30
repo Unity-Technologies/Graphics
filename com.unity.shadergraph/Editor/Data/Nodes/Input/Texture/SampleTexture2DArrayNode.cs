@@ -28,15 +28,25 @@ namespace UnityEditor.ShaderGraph
         const string kUVInputName = "UV";
         const string kSamplerInputName = "Sampler";
         const string kIndexInputName = "Index";
+        const string kDefaultSampleMacro = "SAMPLE_TEXTURE2D_ARRAY";
+        const string kSampleMacroNoBias = "PLATFORM_SAMPLE_TEXTURE2D_ARRAY";
 
         public override bool hasPreview { get { return true; } }
 
         public SampleTexture2DArrayNode()
         {
             name = "Sample Texture 2D Array";
+            synonyms = new string[] { "stack", "pile" };
             UpdateNodeAfterDeserialization();
         }
 
+        [SerializeField]
+        private bool m_EnableGlobalMipBias = false;
+        internal bool enableGlobalMipBias
+        {
+            set { m_EnableGlobalMipBias = value; }
+            get { return m_EnableGlobalMipBias; }
+        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -63,12 +73,13 @@ namespace UnityEditor.ShaderGraph
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
             var id = GetSlotValue(TextureInputId, generationMode);
-            var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE2D_ARRAY({1}, {2}, {3}, {4});"
-                    , GetVariableNameForSlot(OutputSlotRGBAId)
-                    , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : "sampler" + id
-                    , uvName
-                    , indexName);
+            var result = string.Format("$precision4 {0} = {1}({2}.tex, {3}.samplerstate, {4}, {5});"
+                , GetVariableNameForSlot(OutputSlotRGBAId)
+                , m_EnableGlobalMipBias ? kDefaultSampleMacro : kSampleMacroNoBias
+                , id
+                , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id
+                , uvName
+                , indexName);
 
             sb.AppendLine(result);
 

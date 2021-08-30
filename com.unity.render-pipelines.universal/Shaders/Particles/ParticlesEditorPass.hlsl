@@ -4,10 +4,6 @@
 #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-#ifdef _ALPHATEST_ON
-half _Cutoff;
-#endif
-
 float _ObjectId;
 float _PassValue;
 float4 _SelectionID;
@@ -26,7 +22,7 @@ VaryingsParticle vertParticleEditor(AttributesParticle input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
 
     output.clipPos = vertexInput.positionCS;
     output.color = GetParticleColor(input.color);

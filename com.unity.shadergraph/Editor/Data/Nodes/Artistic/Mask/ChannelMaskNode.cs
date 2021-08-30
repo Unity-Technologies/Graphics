@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph
         public ChannelMaskNode()
         {
             name = "Channel Mask";
+            synonyms = new string[] { "component mask" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -43,7 +44,8 @@ namespace UnityEditor.ShaderGraph
                 bool alpha = (channelMask & 8) != 0;
                 channelSum = string.Format("{0}{1}{2}{3}", red ? "Red" : "", green ? "Green" : "", blue ? "Blue" : "", alpha ? "Alpha" : "");
             }
-            return $"Unity_ChannelMask_{channelSum}_{FindSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(concretePrecision)}";
+            // NOTE: it's important we use the $precision generic form of the slot type in the name here
+            return $"Unity_ChannelMask_{channelSum}_{FindInputSlot<DynamicVectorMaterialSlot>(InputSlotId).concreteValueType.ToShaderString()}";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -107,45 +109,45 @@ namespace UnityEditor.ShaderGraph
         {
             ValidateChannelCount();
             registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
+                s.AppendLine(GetFunctionPrototype("In", "Out"));
+                using (s.BlockScope())
                 {
-                    int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
-                    s.AppendLine(GetFunctionPrototype("In", "Out"));
-                    using (s.BlockScope())
+                    if (channelMask == 0)
+                        s.AppendLine("Out = 0;");
+                    else if (channelMask == -1)
+                        s.AppendLine("Out = In;");
+                    else
                     {
-                        if (channelMask == 0)
-                            s.AppendLine("Out = 0;");
-                        else if (channelMask == -1)
-                            s.AppendLine("Out = In;");
-                        else
-                        {
-                            bool red = (channelMask & 1) != 0;
-                            bool green = (channelMask & 2) != 0;
-                            bool blue = (channelMask & 4) != 0;
-                            bool alpha = (channelMask & 8) != 0;
+                        bool red = (channelMask & 1) != 0;
+                        bool green = (channelMask & 2) != 0;
+                        bool blue = (channelMask & 4) != 0;
+                        bool alpha = (channelMask & 8) != 0;
 
-                            switch (channelCount)
-                            {
-                                case 1:
-                                    s.AppendLine("Out = In.r;");
-                                    break;
-                                case 2:
-                                    s.AppendLine(string.Format("Out = $precision2({0}, {1});",
-                                        red ? "In.r" : "0", green ? "In.g" : "0"));
-                                    break;
-                                case 3:
-                                    s.AppendLine(string.Format("Out = $precision3({0}, {1}, {2});",
-                                        red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0"));
-                                    break;
-                                case 4:
-                                    s.AppendLine(string.Format("Out = $precision4({0}, {1}, {2}, {3});",
-                                        red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0", alpha ? "In.a" : "0"));
-                                    break;
-                                default:
-                                    throw new ArgumentOutOfRangeException();
-                            }
+                        switch (channelCount)
+                        {
+                            case 1:
+                                s.AppendLine("Out = In.r;");
+                                break;
+                            case 2:
+                                s.AppendLine(string.Format("Out = $precision2({0}, {1});",
+                                    red ? "In.r" : "0", green ? "In.g" : "0"));
+                                break;
+                            case 3:
+                                s.AppendLine(string.Format("Out = $precision3({0}, {1}, {2});",
+                                    red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0"));
+                                break;
+                            case 4:
+                                s.AppendLine(string.Format("Out = $precision4({0}, {1}, {2}, {3});",
+                                    red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0", alpha ? "In.a" : "0"));
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
                         }
                     }
-                });
+                }
+            });
         }
     }
 }

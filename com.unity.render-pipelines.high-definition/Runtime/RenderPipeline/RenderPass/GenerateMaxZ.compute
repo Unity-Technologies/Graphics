@@ -2,15 +2,16 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel ComputeMaxZ MAX_Z_DOWNSAMPLE=1
 #pragma kernel ComputeFinalMask FINAL_MASK=1
 #pragma kernel DilateMask DILATE_MASK=1
 
+#pragma multi_compile _ PLANAR_OBLIQUE_DEPTH
 
 // In some cases we might want to avoid stopping integrating volumetric even if > max distance if the gradient is very big.
-// Realistically, with the dilation step this was never seen as necessary. 
+// Realistically, with the dilation step this was never seen as necessary.
 #define GENERATE_GRADIENT 0
 
 #if GENERATE_GRADIENT
@@ -22,15 +23,16 @@
 #endif
 
 #ifdef PLATFORM_LANE_COUNT
-#define WAVE_SIZE   PLATFORM_LANE_COUNT  
+#define WAVE_SIZE   PLATFORM_LANE_COUNT
 #else
 #define WAVE_SIZE   64
 #endif
 
+
 // ---------------------------------
 CBUFFER_START(cb)
 float4 _SrcOffsetAndLimit;
-float  _DilationWidth; 
+float  _DilationWidth;
 CBUFFER_END
 
 #define _SrcLimit _SrcOffsetAndLimit.xy
@@ -47,14 +49,20 @@ groupshared float gs_maxDepth[GROUP_SIZE * GROUP_SIZE];
 
 RW_TEXTURE2D_X(float, _OutputTexture);
 
+
 float GetDepthToDownsample(uint2 pixCoord)
 {
     float deviceDepth = LoadCameraDepth(pixCoord);
     float outputDepth = 0;
+
     if (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE)
         outputDepth = 1e10f;
     else
+#ifdef PLANAR_OBLIQUE_DEPTH
+        outputDepth = ComputeViewSpacePosition(float2(pixCoord) * _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_P).z;
+#else
         outputDepth = LinearEyeDepth(LoadCameraDepth(pixCoord), _ZBufferParams);
+#endif
 
     return outputDepth;
 }
@@ -68,7 +76,7 @@ float PrepareDepthForOutput(float depth)
 // GetDepthToDownsample should be used to enforce the right depth is used.
 float ParallelReduction(uint gid, uint threadIdx, float depth)
 {
-#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS 
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     return WaveActiveMax(depth);
 #else
     gs_maxDepth[threadIdx] = depth;

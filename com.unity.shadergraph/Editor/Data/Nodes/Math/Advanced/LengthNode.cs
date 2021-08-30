@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public LengthNode()
         {
             name = "Length";
+            synonyms = new string[] { "measure" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     Out = length(In);
 }

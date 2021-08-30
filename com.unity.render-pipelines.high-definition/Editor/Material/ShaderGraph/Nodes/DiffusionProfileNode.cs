@@ -34,14 +34,14 @@ namespace UnityEditor.Rendering.HighDefinition
         private class DiffusionProfileSerializer
         {
             [SerializeField]
-            public DiffusionProfileSettings    diffusionProfileAsset;
+            public DiffusionProfileSettings diffusionProfileAsset;
         }
 
         [SerializeField]
         string m_SerializedDiffusionProfile;
 
         [NonSerialized]
-        DiffusionProfileSettings    m_DiffusionProfileAsset;
+        DiffusionProfileSettings m_DiffusionProfileAsset;
 
         //Hide name to be consistent with Texture2DAsset node
         [ObjectControl("")]
@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
             set
             {
                 if (m_DiffusionProfileAsset == value)
-                    return ;
+                    return;
 
                 var serializedProfile = new DiffusionProfileSerializer();
                 serializedProfile.diffusionProfileAsset = value;
@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_DiffusionProfile.selectedEntry != 0)
             {
                 // Can't reliably retrieve the slot value from here so we warn the user that we probably loose his diffusion profile reference
-                Debug.LogError("Failed to upgrade the diffusion profile node value, reseting to default value."+
+                Debug.LogError("Failed to upgrade the diffusion profile node value, reseting to default value." +
                     "\nTo remove this message save the shader graph with the new diffusion profile reference.");
                 m_DiffusionProfile.selectedEntry = 0;
             }

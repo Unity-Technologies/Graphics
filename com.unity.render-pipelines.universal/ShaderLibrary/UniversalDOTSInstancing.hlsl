@@ -1,4 +1,4 @@
-﻿#ifndef UNIVERSAL_DOTS_INSTANCING_INCLUDED
+#ifndef UNIVERSAL_DOTS_INSTANCING_INCLUDED
 #define UNIVERSAL_DOTS_INSTANCING_INCLUDED
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
@@ -11,6 +11,7 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_WorldToObject)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_WorldTransformParams)
+    UNITY_DOTS_INSTANCED_PROP(float4,   unity_RenderingLayer)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightData)
     UNITY_DOTS_INSTANCED_PROP(float2x4, unity_LightIndices)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
@@ -31,6 +32,7 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 // because of some special handling
 #define unity_LODFade               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LODFade)
 #define unity_WorldTransformParams  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_WorldTransformParams)
+#define unity_RenderingLayer        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_RenderingLayer)
 #define unity_LightData             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightData)
 #define unity_LightIndices          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float2x4, Metadata_unity_LightIndices)
 #define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
@@ -48,4 +50,3 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #endif
 
 #endif
-

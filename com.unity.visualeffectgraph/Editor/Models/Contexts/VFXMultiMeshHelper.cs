@@ -32,7 +32,7 @@ namespace UnityEditor.VFX
             for (int i = 0; i < meshCount; ++i)
             {
                 string id = GetId(meshCount, i);
-   
+
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Mesh), meshName + id, new TooltipAttribute("Specifies the mesh" + id + " used to render the particle.")), VFXResources.defaultResources.mesh);
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), maskName + id, new TooltipAttribute("Defines a bitmask to control which submeshes are rendered for mesh" + id + "."), new BitFieldAttribute()), 0xffffffff);
             }
@@ -65,7 +65,7 @@ namespace UnityEditor.VFX
                 {
                     if (m.name == meshName + id)
                         yield return new VFXMapping(meshName, m.index);
-                }    
+                }
                 else if (m.name.StartsWith(maskName))
                 {
                     if (m.name == maskName + id)

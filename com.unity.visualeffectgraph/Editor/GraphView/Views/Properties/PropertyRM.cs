@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UI
         VFXPropertyAttributes attributes { get; }
         object[] customAttributes { get; }
         Type portType { get; }
-        int depth {get; }
+        int depth { get; }
         bool editable { get; }
 
         IEnumerable<int> filteredOutEnumerators { get; }
@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
             m_Name = name;
         }
 
-        VFXCoordinateSpace IPropertyRMProvider.space { get { return VFXCoordinateSpace.Local; } set {} }
+        VFXCoordinateSpace IPropertyRMProvider.space { get { return VFXCoordinateSpace.Local; } set { } }
 
         bool IPropertyRMProvider.IsSpaceInherited() { return false; }
 
@@ -74,7 +74,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public virtual IEnumerable<int>  filteredOutEnumerators { get { return null; } }
+        public virtual IEnumerable<int> filteredOutEnumerators { get { return null; } }
 
         string IPropertyRMProvider.name
         {
@@ -92,9 +92,9 @@ namespace UnityEditor.VFX.UI
         int IPropertyRMProvider.depth { get { return 0; } }
         bool IPropertyRMProvider.editable { get { return true; } }
         void IPropertyRMProvider.RetractPath()
-        {}
+        { }
         void IPropertyRMProvider.ExpandPath()
-        {}
+        { }
 
 
         void IPropertyRMProvider.StartLiveModification() { }
@@ -105,7 +105,7 @@ namespace UnityEditor.VFX.UI
     {
         public abstract void SetValue(object obj);
         public abstract object GetValue();
-        public virtual void SetMultiplier(object obj) {}
+        public virtual void SetMultiplier(object obj) { }
 
         public VisualElement m_Icon;
         Clickable m_IconClickable;
@@ -156,16 +156,19 @@ namespace UnityEditor.VFX.UI
             if (m_Label.panel == null) return 40;
 
             VisualElement element = this;
-            while (element != null && element.resolvedStyle.unityFont == null)
+            while (element != null && string.IsNullOrEmpty(element.resolvedStyle.unityFontDefinition.ToString()))
             {
                 element = element.parent;
             }
-            if (element != null)
+
+            if (m_Label.style.unityFont == null && element != null)
             {
-                m_Label.style.unityFont = element.resolvedStyle.unityFont;
-                return m_Label.MeasureTextSize(m_Label.text, -1, MeasureMode.Undefined, m_Label.resolvedStyle.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset;
+                m_Label.style.unityFont = element.resolvedStyle.unityFontDefinition.font;
             }
-            return 40 + m_Provider.depth * depthOffset;
+
+            return m_Label.style.unityFont != null
+                ? m_Label.MeasureTextSize(m_Label.text, -1, MeasureMode.Undefined, m_Label.resolvedStyle.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset
+                : 40 + m_Provider.depth * depthOffset;
         }
 
         public abstract float GetPreferredControlWidth();
@@ -306,7 +309,7 @@ namespace UnityEditor.VFX.UI
                     VisualElement line = new VisualElement();
                     line.style.width = 1;
                     line.name = "line";
-                    line.style.marginLeft =  depthOffset + (i == 0 ? -2 : 0);
+                    line.style.marginLeft = depthOffset + (i == 0 ? -2 : 0);
                     line.style.marginRight = ((i == provider.depth - 1) ? 2 : 0);
 
                     Add(line);
@@ -346,7 +349,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static readonly Dictionary<Type, Type> m_TypeDictionary =  new Dictionary<Type, Type>
+        static readonly Dictionary<Type, Type> m_TypeDictionary = new Dictionary<Type, Type>
         {
             {typeof(Vector), typeof(VectorPropertyRM)},
             {typeof(Position), typeof(PositionPropertyRM)},
@@ -460,7 +463,7 @@ namespace UnityEditor.VFX.UI
     abstract class PropertyRM<T> : PropertyRM
     {
         public PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
-        {}
+        { }
         public override void SetValue(object obj)
         {
             if (obj != null)
@@ -477,7 +480,7 @@ namespace UnityEditor.VFX.UI
                     }
                     catch (System.Exception)
                     {
-                        Debug.Log("Error Trying to convert" + (obj != null ? obj.GetType().Name : "null") + " to " +  typeof(T).Name);
+                        Debug.Log("Error Trying to convert" + (obj != null ? obj.GetType().Name : "null") + " to " + typeof(T).Name);
                     }
                 }
             }
@@ -503,7 +506,6 @@ namespace UnityEditor.VFX.UI
             m_Field.AddToClassList("fieldContainer");
             m_Field.OnValueChanged += OnValueChanged;
             Add(m_Field);
-
         }
 
         public void OnValueChanged()

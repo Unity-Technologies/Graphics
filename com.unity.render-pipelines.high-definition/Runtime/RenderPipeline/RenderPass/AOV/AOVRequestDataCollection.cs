@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Build a new collection from requests.</summary>
         /// <param name="aovRequestData">Requests to include in the collection.</param>
         public AOVRequestDataCollection(List<AOVRequestData> aovRequestData)
-            // Transfer ownership of the list
+        // Transfer ownership of the list
             => m_AOVRequestData = aovRequestData;
 
         /// <summary>Enumerate the frame passes.</summary>

@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public SaturateNode()
         {
             name = "Saturate";
+            synonyms = new string[] { "clamp" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = saturate(In);
 }

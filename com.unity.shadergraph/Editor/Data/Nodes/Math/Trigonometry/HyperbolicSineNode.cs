@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public HyperbolicSineNode()
         {
             name = "Hyperbolic Sine";
+            synonyms = new string[] { "sinh" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = sinh(In);
 }

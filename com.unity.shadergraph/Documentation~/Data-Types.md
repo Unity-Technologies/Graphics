@@ -49,4 +49,4 @@ The **Dynamic Matrix** type allows connected edges of any **Matrix** type. All c
 
 ### Dynamic
 
-The **Dynamic** type is a special case. [Nodes](Node.md) that support it must define how it is validated. In the case of the [Multiply Node](Multiply-Node.md), it allows connections of any **Vector** or **Matrix** type, ensuring the correct multiplication is applied depending on the mix of **Data Types**. 
+The **Dynamic** type is a special case. [Nodes](Node.md) that support it must define how it is validated. In the case of the [Multiply Node](Multiply-Node.md), it allows connections of any **Vector** or **Matrix** type, ensuring the correct multiplication is applied depending on the mix of **Data Types**.

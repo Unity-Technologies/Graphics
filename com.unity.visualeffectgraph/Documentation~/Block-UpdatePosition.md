@@ -12,7 +12,7 @@ This Block adds the particle velocity multiplied by deltaTime to the current par
 
 If you disable **Update Position** in the Update Context's Inspector, the system does not change the particle **position** based on the particle's velocity attribute.
 
-You can also add the **Integration : Update Position** Block to the Update Context manually and enable/disable it to specify when the system should update the particle position based on its velocity.
+You can also add the **Integration : Update Position** Block to the Update Context manually and enable/disable it to specify when the System updates the particle position based on its velocity.
 
 ![](Images/Block-UpdatePositionBlockInContext.png)
 

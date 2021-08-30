@@ -2,7 +2,7 @@
 
 Menu Path : **Context > Initialize Particle**
 
-The **Initialize** Context processes a [Spawn Event](Context-Spawn.md) or a [GPU Event](Context-GPUEvent) and initializes new elements for a Particle or ParticleStrip simulation. 
+The **Initialize** Context processes a [Spawn Event](Context-Spawn.md) or a [GPU Event](Context-GPUEvent) and initializes new elements for a Particle or ParticleStrip simulation.
 
 ## Context settings
 
@@ -12,12 +12,14 @@ The **Initialize** Context processes a [Spawn Event](Context-Spawn.md) or a [GPU
 | **Data Type**                | Enum     | **(Inspector)** The data type for the elements in the system. The options are:<br/>&#8226; **Particle**: The system spawns particles.<br/>&#8226; **Particle Strip**: The system spawns particle strips. |
 | **Capacity**                 | UInt     | The fixed amount of elements in the simulation. This count scales the memory allocation of the particle system. |
 | **Particle Per Strip Count** | Uint     | The fixed amount of particles per particle strip.<br/>This setting only appears if you set **Data Type** to **Particle Strip**. |
+| **Bounds Setting Mode**      | Enum     | **Bounds Setting Mode**: Specifies how to set the bounding box of the System. The options are:<br/>&#8226; **Manual**: You set the bounds directly using the **Bounds** input property.<br/>&#8226; **Recorded**: Allows you to record the System from the Target visual effect GameObject panel.<br/>&#8226; **Automatic**: Unity calculates the bounds automatically.<br/><br/>For more information about these modes and the bounds of a visual effect in general, see [Visual effect bounds](visual-effect-bounds.md). |
 
 ## Context input properties
 
-| **Property** | **Type**               | **Description**                                              |
-| ------------ | ---------------------- | ------------------------------------------------------------ |
-| **Bounds**   | [AABox](Type-AABox.md) | The bounding box defined for the system. This property is evaluated accordingly to the **Culling Flags** property defined in the [Visual Effect Asset](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/VisualEffectGraphAsset.html). |
+| **Property**       | **Type**               | **Description**                                              |
+| ------------------ | ---------------------- | ------------------------------------------------------------ |
+| **Bounds**         | [AABox](Type-AABox.md) | The bounding box defined for the system. This property is evaluated accordingly to the **Culling Flags** property defined in the [Visual Effect Asset](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/VisualEffectGraphAsset.html). |
+| **Bounds Padding** | Vector3                | Additional padding to apply to the visual effect's bounding box. For more information about the bounds of a visual effect, see [Visual effect bounds](visual-effect-bounds.md). |
 
 ## Flow
 
@@ -44,11 +46,11 @@ The Visual Effect Graph executes the Initialize Context only once per new elemen
 
 ### Source attribute availability
 
-In an Initialize Context, Blocks and Operators can read from [source attributes](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Attributes.html%23source), by using a Get Attribute (Source) Operator, or an Inherit \<Attribute\> Block. 
+In an Initialize Context, Blocks and Operators can read from [source attributes](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Attributes.html%23source), by using a Get Attribute (Source) Operator, or an Inherit \<Attribute\> Block.
 
 ### Input flow compatibility
 
-Initialize Contexts can connect from one or many SpawnEvent outputting contexts with the following rules:
+Initialize Contexts can connect from one or many SpawnEvent outputting Contexts with the following rules:
 
 - Initialize Contexts can connect from any number of Spawn and/or Event Contexts.
 - Initialize Contexts can connect from a single GPU Event Context.

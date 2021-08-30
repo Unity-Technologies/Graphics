@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderAnalysis
             yield break;
         }
 
-        protected IEnumerator BuildCompileUnits_Internal(BuildTarget target, DirectoryInfo sourceDir)
+        protected IEnumerator BuildCompileUnits_Internal(BuildTarget target, DirectoryInfo sourceDir, List<KeywordSet> keywords)
         {
             ClearCompileUnits();
 
@@ -84,8 +84,10 @@ namespace UnityEditor.ShaderAnalysis
                 progress.SetNormalizedProgress(s * i, "Building compile units {0:D3} / {1:D3}", i + 1, c);
 
                 var compileOptions = ShaderAnalysisUtils.DefaultCompileOptions(kernel.defines, kernel.name, sourceDir);
-                compileOptions.defines.Add(ShaderAnalysisUtils.DefineCompute);
 
+                foreach (var keywordSet in keywords)
+                    foreach (var keyword in (HashSet<string>)keywordSet)
+                        compileOptions.defines.Add(keyword);
 
                 compileOptions.defines.Add(ShaderAnalysisUtils.DefineCompute);
 

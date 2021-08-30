@@ -1,11 +1,11 @@
 Shader "Hidden/HDRP/DebugLightCluster"
 {
     SubShader
-    {   
+    {
         Tags { "Queue"="Transparent+0" "IgnoreProjector"="True" "RenderType"="Transparent" }
-        
+
         HLSLINCLUDE
-        #pragma only_renderers d3d11
+        #pragma only_renderers d3d11 ps5
 
         static const float3 cubeVertices[24] =
         {
@@ -91,7 +91,7 @@ Shader "Hidden/HDRP/DebugLightCluster"
         };
 
         ENDHLSL
-        
+
         Pass
         {
             Cull Back
@@ -106,10 +106,9 @@ Shader "Hidden/HDRP/DebugLightCluster"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingLightCluster.hlsl"
-           
+
             struct AttributesDefault
             {
-                float3 positionOS : POSITION;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -180,7 +179,6 @@ Shader "Hidden/HDRP/DebugLightCluster"
 
             struct AttributesDefault
             {
-                float3 positionOS : POSITION;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 

@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const int k_MaxNumberOfElements = 1000;
         const string k_VendorKey = "unity.hdrp";
         const string k_EventName = "uHDRPUsage";
-        
+
         public int callbackOrder { get; }
 
         struct EventData
@@ -57,7 +57,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorAnalytics.SendEventWithLimit(k_EventName, data);
         }
-
 
         // Helpers to get changed settings as JSON
         static Dictionary<string, string> DiffSettings(object a, object b)

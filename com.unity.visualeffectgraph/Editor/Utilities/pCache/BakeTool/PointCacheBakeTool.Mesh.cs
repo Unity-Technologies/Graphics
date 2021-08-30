@@ -80,9 +80,12 @@ namespace UnityEditor.Experimental.VFX.Utility
                 {
                     EditorGUILayout.LabelField("Mesh Statistics", EditorStyles.boldLabel);
                     EditorGUI.indentLevel++;
+                    var saveEnabled = GUI.enabled;
+                    GUI.enabled = false;
                     EditorGUILayout.IntField("Vertices", m_Mesh.vertexCount);
                     EditorGUILayout.IntField("Triangles", m_Mesh.triangles.Length);
                     EditorGUILayout.IntField("Sub Meshes", m_Mesh.subMeshCount);
+                    GUI.enabled = saveEnabled;
                     EditorGUI.indentLevel--;
                 }
             }
@@ -100,7 +103,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                 public Vector4 tangent;
                 public Vector4[] uvs;
 
-                public static Vertex operator+(Vertex a, Vertex b)
+                public static Vertex operator +(Vertex a, Vertex b)
                 {
                     if (a.uvs.Length != b.uvs.Length)
                         throw new InvalidOperationException("Adding compatible vertex");
@@ -120,7 +123,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                     return r;
                 }
 
-                public static Vertex operator*(float a, Vertex b)
+                public static Vertex operator *(float a, Vertex b)
                 {
                     var r = new Vertex()
                     {
@@ -211,7 +214,7 @@ namespace UnityEditor.Experimental.VFX.Utility
             }
 
             //See http://inis.jinr.ru/sl/vol1/CMC/Graphics_Gems_1,ed_A.Glassner.pdf (p24) uniform distribution from two numbers in triangle generating barycentric coordinate
-            protected readonly static  Vector2 center_of_sampling = new Vector2(4.0f / 9.0f, 3.0f / 4.0f);
+            protected readonly static Vector2 center_of_sampling = new Vector2(4.0f / 9.0f, 3.0f / 4.0f);
             protected MeshData.Vertex Interpolate(MeshData.Triangle triangle, Vector2 p)
             {
                 return Interpolate(m_cacheData.vertices[triangle.a], m_cacheData.vertices[triangle.b], m_cacheData.vertices[triangle.c], p);

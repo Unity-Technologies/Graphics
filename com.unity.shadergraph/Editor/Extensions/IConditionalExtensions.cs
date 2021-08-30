@@ -1,4 +1,4 @@
-﻿﻿using System.Linq;
+using System.Linq;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
@@ -11,22 +11,22 @@ namespace UnityEditor.ShaderGraph
             bool TestFieldCondition(FieldCondition fieldCondition)
             {
                 // Required active field is not active
-                if(fieldCondition.condition == true && !fields.baseInstance.Contains(fieldCondition.field))
+                if (fieldCondition.condition == true && !fields.baseInstance.Contains(fieldCondition.field))
                     return false;
 
                 // Required non-active field is active
-                else if(fieldCondition.condition == false && fields.baseInstance.Contains(fieldCondition.field))
+                else if (fieldCondition.condition == false && fields.baseInstance.Contains(fieldCondition.field))
                     return false;
 
                 return true;
             }
 
             // No FieldConditions
-            if(conditional.fieldConditions == null)
+            if (conditional.fieldConditions == null)
                 return true;
 
             // One or more FieldConditions failed
-            if(conditional.fieldConditions.Where(x => !TestFieldCondition(x)).Any())
+            if (conditional.fieldConditions.Where(x => !TestFieldCondition(x)).Any())
                 return false;
 
             // All FieldConditions passed

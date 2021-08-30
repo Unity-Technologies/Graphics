@@ -1,19 +1,25 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
-
     /// <summary>
     /// Class <c>ShadowCaster2D</c> contains properties used for shadow casting
     /// </summary>
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    [AddComponentMenu("Rendering/2D/Shadow Caster 2D (Experimental)")]
-    public class ShadowCaster2D : ShadowCasterGroup2D
+    [AddComponentMenu("Rendering/2D/Shadow Caster 2D")]
+    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
+    public class ShadowCaster2D : ShadowCasterGroup2D, ISerializationCallbackReceiver
     {
+        public enum ComponentVersions
+        {
+            Version_Unserialized = 0,
+            Version_1 = 1
+        }
+        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
+        [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
+
         [SerializeField] bool m_HasRenderer = false;
         [SerializeField] bool m_UseRendererSilhouette = true;
         [SerializeField] bool m_CastsShadows = true;
@@ -27,14 +33,35 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
 
-        internal Mesh mesh => m_Mesh;
-        internal Vector3[] shapePath => m_ShapePath;
+        [SerializeField]
+        internal BoundingSphere m_ProjectedBoundingSphere;
+
+        public Mesh mesh => m_Mesh;
+        public Vector3[] shapePath => m_ShapePath;
         internal int shapePathHash { get { return m_ShapePathHash; } set { m_ShapePathHash = value; } }
 
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;
         int m_PreviousPathHash = 0;
 
+        internal Vector3 m_CachedPosition;
+        internal Vector3 m_CachedLossyScale;
+        internal Quaternion m_CachedRotation;
+        internal Matrix4x4 m_CachedShadowMatrix;
+        internal Matrix4x4 m_CachedInverseShadowMatrix;
+        internal Matrix4x4 m_CachedLocalToWorldMatrix;
+
+        internal override void CacheValues()
+        {
+            m_CachedPosition = transform.position;
+            m_CachedLossyScale = transform.lossyScale;
+            m_CachedRotation = transform.rotation;
+
+            m_CachedShadowMatrix = Matrix4x4.TRS(m_CachedPosition, m_CachedRotation, Vector3.one);
+            m_CachedInverseShadowMatrix = m_CachedShadowMatrix.inverse;
+
+            m_CachedLocalToWorldMatrix = transform.localToWorldMatrix;
+        }
 
         /// <summary>
         /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
@@ -42,7 +69,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public bool useRendererSilhouette
         {
             set { m_UseRendererSilhouette = value; }
-            get { return m_UseRendererSilhouette && m_HasRenderer;  }
+            get { return m_UseRendererSilhouette && m_HasRenderer; }
         }
 
         /// <summary>
@@ -68,12 +95,30 @@ namespace UnityEngine.Experimental.Rendering.Universal
             int layerCount = SortingLayer.layers.Length;
             int[] allLayers = new int[layerCount];
 
-            for(int layerIndex=0;layerIndex < layerCount;layerIndex++)
+            for (int layerIndex = 0; layerIndex < layerCount; layerIndex++)
             {
                 allLayers[layerIndex] = SortingLayer.layers[layerIndex].id;
             }
 
             return allLayers;
+        }
+
+        internal bool IsLit(Light2D light)
+        {
+            // Oddly adding and subtracting vectors is expensive here because of the new structures created...
+            Vector3 deltaPos;
+            deltaPos.x = m_ProjectedBoundingSphere.position.x + m_CachedPosition.x;
+            deltaPos.y = m_ProjectedBoundingSphere.position.y + m_CachedPosition.y;
+            deltaPos.z = m_ProjectedBoundingSphere.position.z + m_CachedPosition.z;
+
+            deltaPos.x = light.m_CachedPosition.x - deltaPos.x;
+            deltaPos.y = light.m_CachedPosition.y - deltaPos.y;
+            deltaPos.z = light.m_CachedPosition.z - deltaPos.z;
+
+            float distanceSq = Vector3.SqrMagnitude(deltaPos);
+
+            float radiiLength = light.boundingSphere.radius + m_ProjectedBoundingSphere.radius;
+            return distanceSq <= (radiiLength * radiiLength);
         }
 
         internal bool IsShadowedLayer(int layer)
@@ -87,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_ApplyToSortingLayers = SetDefaultSortingLayers();
 
             Bounds bounds = new Bounds(transform.position, Vector3.one);
-            
+
             Renderer renderer = GetComponent<Renderer>();
             if (renderer != null)
             {
@@ -101,17 +146,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     bounds = collider.bounds;
             }
 #endif
+            Vector3 inverseScale = Vector3.zero;
+            Vector3 relOffset = transform.position;
 
-            Vector3 relOffset = bounds.center - transform.position;
+            if (transform.lossyScale.x != 0 && transform.lossyScale.y != 0)
+            {
+                inverseScale = new Vector3(1 / transform.lossyScale.x, 1 / transform.lossyScale.y);
+                relOffset = new Vector3(inverseScale.x * -transform.position.x, inverseScale.y * -transform.position.y);
+            }
 
             if (m_ShapePath == null || m_ShapePath.Length == 0)
             {
                 m_ShapePath = new Vector3[]
                 {
-                    relOffset + new Vector3(-bounds.extents.x, -bounds.extents.y),
-                    relOffset + new Vector3(bounds.extents.x, -bounds.extents.y),
-                    relOffset + new Vector3(bounds.extents.x, bounds.extents.y),
-                    relOffset + new Vector3(-bounds.extents.x, bounds.extents.y)
+                    relOffset + new Vector3(inverseScale.x * bounds.min.x, inverseScale.y * bounds.min.y),
+                    relOffset + new Vector3(inverseScale.x * bounds.min.x, inverseScale.y * bounds.max.y),
+                    relOffset + new Vector3(inverseScale.x * bounds.max.x, inverseScale.y * bounds.max.y),
+                    relOffset + new Vector3(inverseScale.x * bounds.max.x, inverseScale.y * bounds.min.y),
                 };
             }
         }
@@ -121,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (m_Mesh == null || m_InstanceId != GetInstanceID())
             {
                 m_Mesh = new Mesh();
-                ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+                m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
                 m_InstanceId = GetInstanceID();
             }
 
@@ -135,12 +186,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public void Update()
         {
-            Renderer renderer = GetComponent<Renderer>();
-            m_HasRenderer = renderer != null;
+            Renderer renderer;
+            m_HasRenderer = TryGetComponent<Renderer>(out renderer);
 
             bool rebuildMesh = LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
             if (rebuildMesh)
-                ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+            {
+                m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+            }
 
             m_PreviousShadowCasterGroup = m_ShadowCasterGroup;
             bool addedToNewGroup = ShadowCasterGroup2DManager.AddToShadowCasterGroup(this, ref m_ShadowCasterGroup);
@@ -162,10 +215,25 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (LightUtility.CheckForChange(m_CastsShadows, ref m_PreviousCastsShadows))
             {
-                if(m_CastsShadows)
+                if (m_CastsShadows)
                     ShadowCasterGroup2DManager.AddGroup(this);
                 else
                     ShadowCasterGroup2DManager.RemoveGroup(this);
+            }
+        }
+
+        public void OnBeforeSerialize()
+        {
+            m_ComponentVersion = k_CurrentComponentVersion;
+        }
+
+        public void OnAfterDeserialize()
+        {
+            // Upgrade from no serialized version
+            if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
+            {
+                ShadowUtility.ComputeBoundingSphere(m_ShapePath, out m_ProjectedBoundingSphere);
+                m_ComponentVersion = ComponentVersions.Version_1;
             }
         }
 
@@ -175,7 +243,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Awake();
             OnEnable();
         }
-#endif
 
+#endif
     }
 }

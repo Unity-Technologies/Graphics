@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.Utility
         {
             serializedObject.Update();
             EditorGUI.BeginChangeCheck();
-			DrawOutputEventProperties();
+            DrawOutputEventProperties();
 
             EditorGUILayout.PropertyField(m_CinemachineImpulseSource);
             EditorGUILayout.PropertyField(m_AttributeSpace);

@@ -26,9 +26,12 @@ namespace UnityEngine.Rendering.HighDefinition
             AddReflectionSettings,
             /// <summary>Version Step.</summary>
             AddCustomPostprocessAndCustomPass,
+            /// <summary>Version Step.</summary>
+            UpdateMSAA,
         }
 
         [SerializeField, FormerlySerializedAs("version")]
+        [ExcludeCopy]
         Version m_Version = MigrationDescription.LastVersion<Version>();
 
         static readonly MigrationDescription<Version, HDAdditionalCameraData> k_Migration = MigrationDescription.New(
@@ -65,10 +68,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }),
             MigrationStep.New(Version.AddReflectionSettings, (HDAdditionalCameraData data) =>
                 FrameSettings.MigrateToDefaultReflectionSettings(ref data.renderingPathCustomFrameSettings)
-            ),
+                ),
             MigrationStep.New(Version.AddCustomPostprocessAndCustomPass, (HDAdditionalCameraData data) =>
             {
                 FrameSettings.MigrateToCustomPostprocessAndCustomPass(ref data.renderingPathCustomFrameSettings);
+            }),
+            MigrationStep.New(Version.UpdateMSAA, (HDAdditionalCameraData data) =>
+            {
+                FrameSettings.MigrateMSAA(ref data.renderingPathCustomFrameSettings, ref data.renderingPathCustomFrameSettingsOverrideMask);
             })
         );
 
@@ -78,9 +85,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #pragma warning disable 649 // Field never assigned
         [SerializeField, FormerlySerializedAs("renderingPath"), Obsolete("For Data Migration")]
+        [ExcludeCopy]
         int m_ObsoleteRenderingPath;
         [SerializeField]
         [FormerlySerializedAs("serializedFrameSettings"), FormerlySerializedAs("m_FrameSettings")]
+        [ExcludeCopy]
 #pragma warning disable 618 // Type or member is obsolete
         ObsoleteFrameSettings m_ObsoleteFrameSettings;
 #pragma warning restore 618

@@ -22,10 +22,9 @@ namespace UnityEditor.ShaderGraph
         public Vector1Node()
         {
             name = "Float";
-            synonyms = new string[]{"Vector 1"};
+            synonyms = new string[] { "Vector 1", "1", "v1", "vec1", "scalar" };
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

@@ -84,6 +84,7 @@ namespace UnityEditor.Rendering.LookDev
             foreach (var label in labels)
                 AddRadio(label);
         }
+
         public void AddRadios((string text, string tooltip)[] labels)
         {
             foreach (var label in labels)
@@ -101,7 +102,7 @@ namespace UnityEditor.Rendering.LookDev
             foreach (var label in labels)
                 AddRadio(label.text, label.icon);
         }
-        
+
         public void AddRadios((Texture2D icon, string tooltip)[] labels)
         {
             foreach (var label in labels)

@@ -29,7 +29,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         [SerializeField]
         private MetalMaterialType m_Material = MetalMaterialType.Iron;
 
@@ -65,10 +64,6 @@ namespace UnityEditor.ShaderGraph
         private const string kOutputSlotName = "Out";
 
         public override bool hasPreview { get { return true; } }
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview2D; }
-        }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

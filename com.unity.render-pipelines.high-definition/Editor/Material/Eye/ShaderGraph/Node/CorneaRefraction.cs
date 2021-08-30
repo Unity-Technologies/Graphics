@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph
         {
             RefractedPositionOS = Vector3.zero;
             return
-                @"
+@"
                 {
                     float eta = 1.0 / (CorneaIOR);
                     CorneaNormalOS = normalize(CorneaNormalOS);

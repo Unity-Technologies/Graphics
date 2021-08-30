@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
@@ -6,11 +6,10 @@ namespace UnityEditor.ShaderGraph
     [GenerationAPI]
     internal class KeywordCollection : IEnumerable<KeywordCollection.Item>
     {
-        public class Item : IConditional, IShaderString
+        public class Item : IConditional
         {
             public KeywordDescriptor descriptor { get; }
             public FieldCondition[] fieldConditions { get; }
-            public string value => descriptor.ToDeclarationString();
 
             public Item(KeywordDescriptor descriptor, FieldCondition[] fieldConditions)
             {
@@ -28,7 +27,7 @@ namespace UnityEditor.ShaderGraph
 
         public KeywordCollection Add(KeywordCollection keywords)
         {
-            foreach(KeywordCollection.Item item in keywords)
+            foreach (KeywordCollection.Item item in keywords)
             {
                 m_Items.Add(item);
             }
@@ -44,7 +43,7 @@ namespace UnityEditor.ShaderGraph
 
         public KeywordCollection Add(KeywordDescriptor descriptor, FieldCondition fieldCondition)
         {
-            m_Items.Add(new Item(descriptor, new FieldCondition[]{ fieldCondition }));
+            m_Items.Add(new Item(descriptor, new FieldCondition[] { fieldCondition }));
             return this;
         }
 

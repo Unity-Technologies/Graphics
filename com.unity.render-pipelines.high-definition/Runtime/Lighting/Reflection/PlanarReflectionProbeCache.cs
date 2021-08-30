@@ -16,19 +16,19 @@ namespace UnityEngine.Rendering.HighDefinition
             Ready
         }
 
-        int                     m_ProbeSize;
-        IBLFilterGGX            m_IBLFilterGGX;
-        PowerOfTwoTextureAtlas  m_TextureAtlas;
-        RenderTexture           m_TempRenderTexture = null;
-        RenderTexture           m_ConvolutionTargetTexture;
+        int m_ProbeSize;
+        IBLFilterGGX m_IBLFilterGGX;
+        PowerOfTwoTextureAtlas m_TextureAtlas;
+        RenderTexture m_TempRenderTexture = null;
+        RenderTexture m_ConvolutionTargetTexture;
         Dictionary<Vector4, ProbeFilteringState> m_ProbeBakingState = new Dictionary<Vector4, ProbeFilteringState>();
-        Material                m_ConvertTextureMaterial;
-        MaterialPropertyBlock   m_ConvertTextureMPB;
-        Dictionary<int, uint>   m_TextureHashes = new Dictionary<int, uint>();
-        int                     m_FrameProbeIndex;
-        GraphicsFormat          m_ProbeFormat;
+        Material m_ConvertTextureMaterial;
+        MaterialPropertyBlock m_ConvertTextureMPB;
+        Dictionary<int, uint> m_TextureHashes = new Dictionary<int, uint>();
+        int m_FrameProbeIndex;
+        GraphicsFormat m_ProbeFormat;
 
-        public PlanarReflectionProbeCache(RenderPipelineResources defaultResources, IBLFilterGGX iblFilter, int atlasResolution, GraphicsFormat probeFormat, bool isMipmaped)
+        public PlanarReflectionProbeCache(HDRenderPipelineRuntimeResources defaultResources, IBLFilterGGX iblFilter, int atlasResolution, GraphicsFormat probeFormat, bool isMipmaped)
         {
             m_ConvertTextureMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitCubeTextureFacePS);
             m_ConvertTextureMPB = new MaterialPropertyBlock();
@@ -61,7 +61,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     Graphics.SetRenderTarget(m_ConvolutionTargetTexture, mipIdx, CubemapFace.Unknown);
                     GL.Clear(false, true, Color.clear);
                 }
-
             }
 
             m_FrameProbeIndex = 0;
@@ -126,15 +125,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         Debug.LogError("Can't convolve or update the planar reflection render target");
             }
             else // Either we add it to the atlas
-                if (!UpdatePlanarTexture(cmd, texture, ref planarTextureFilteringParameters, ref scaleOffset))
-                    Debug.LogError("No more space in the planar reflection probe atlas. To solve this issue, increase the size of the Planar Reflection Probe Atlas in the HDRP settings.");
+            if (!UpdatePlanarTexture(cmd, texture, ref planarTextureFilteringParameters, ref scaleOffset))
+                Debug.LogError("No more space in the planar reflection probe atlas. To solve this issue, increase the size of the Planar Reflection Probe Atlas in the HDRP settings.");
 
             return scaleOffset;
         }
 
         bool UpdatePlanarTexture(CommandBuffer cmd, Texture texture, ref IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters, ref Vector4 scaleOffset)
         {
-            bool    success = false;
+            bool success = false;
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ConvolvePlanarReflectionProbe)))
             {
@@ -168,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public uint GetTextureHash(Texture texture)
         {
-            uint textureHash  = texture.updateCount;
+            uint textureHash = texture.updateCount;
             // For baked probes in the editor we need to factor in the actual hash of texture because we can't increment the update count of a texture that's baked on the disk.
 #if UNITY_EDITOR
             textureHash += (uint)texture.imageContentsHash.GetHashCode();
@@ -208,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static int GetMaxCacheSizeForWeightInByte(int weight, GraphicsFormat format)
             => PowerOfTwoTextureAtlas.GetMaxCacheSizeForWeightInByte(weight, true, format);
-        
+
         internal Vector4 GetAtlasDatas()
         {
             float padding = Mathf.Pow(2.0f, m_TextureAtlas.mipPadding) * 2.0f;

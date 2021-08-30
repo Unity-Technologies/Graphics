@@ -1,8 +1,6 @@
 using UnityEditor;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     public partial class Renderer2DData
     {
@@ -19,6 +17,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Runtime/Materials/Sprite-Unlit-Default.mat")]
         Material m_DefaultUnlitMaterial = null;
 
+        [SerializeField, Reload("Runtime/Materials/SpriteMask-Default.mat")]
+        Material m_DefaultMaskMaterial = null;
+
         internal override Shader GetDefaultShader()
         {
             return Shader.Find("Universal Render Pipeline/2D/Sprite-Lit-Default");
@@ -34,6 +35,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     return m_DefaultUnlitMaterial;
                 else
                     return m_DefaultCustomMaterial;
+            }
+            if (materialType == DefaultMaterialType.SpriteMask)
+            {
+                return m_DefaultMaskMaterial;
             }
 
             return null;
@@ -60,24 +65,47 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 EditorPrefs.SetString(suggestedNamesKey, suggestedNamesPrefs);
             }
 
+            ReloadAllNullProperties();
+        }
+
+        private void ReloadAllNullProperties()
+        {
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.TryReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
         }
 
         private void Awake()
         {
             if (m_LightBlendStyles != null)
+            {
+                for (int i = 0; i < m_LightBlendStyles.Length; ++i)
+                {
+                    ref var blendStyle = ref m_LightBlendStyles[i];
+
+                    // Custom blend mode (99) now falls back to Multiply.
+                    if ((int)blendStyle.blendMode == 99)
+                        blendStyle.blendMode = Light2DBlendStyle.BlendMode.Multiply;
+                }
+
                 return;
+            }
 
             m_LightBlendStyles = new Light2DBlendStyle[4];
 
-            for (int i = 0; i < m_LightBlendStyles.Length; ++i)
-            {
-                m_LightBlendStyles[i].name = "Blend Style " + i;
-                m_LightBlendStyles[i].blendMode = Light2DBlendStyle.BlendMode.Multiply;
-                m_LightBlendStyles[i].renderTextureScale = 0.5f;
-            }
+            m_LightBlendStyles[0].name = "Multiply";
+            m_LightBlendStyles[0].blendMode = Light2DBlendStyle.BlendMode.Multiply;
+
+            m_LightBlendStyles[1].name = "Additive";
+            m_LightBlendStyles[1].blendMode = Light2DBlendStyle.BlendMode.Additive;
+
+            m_LightBlendStyles[2].name = "Multiply with Mask";
+            m_LightBlendStyles[2].blendMode = Light2DBlendStyle.BlendMode.Multiply;
+            m_LightBlendStyles[2].maskTextureChannel = Light2DBlendStyle.TextureChannel.R;
+
+            m_LightBlendStyles[3].name = "Additive with Mask";
+            m_LightBlendStyles[3].blendMode = Light2DBlendStyle.BlendMode.Additive;
+            m_LightBlendStyles[3].maskTextureChannel = Light2DBlendStyle.TextureChannel.R;
         }
+
 #endif
     }
 }

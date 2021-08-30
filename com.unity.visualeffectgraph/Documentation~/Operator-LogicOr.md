@@ -14,4 +14,3 @@ The **Or** Operator takes two inputs and outputs the result of a logical *or* op
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |
 | **o**      | bool     | If **A** or **B** is `true`, this value is `true`. Otherwise, if both **A** and **B** are `false` this value is `false`. |
-

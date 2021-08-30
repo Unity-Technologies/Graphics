@@ -62,6 +62,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.weight = 1.0;
     output.multiplier = _EnableSkyReflection.x != 0 ? 1.0 : 0.0;
     output.roughReflections = 1.0;
+    output.distanceBasedRoughness = 0.0;
 
     // proxy
     output.proxyForward = float3(0.0, 0.0, 1.0);
@@ -187,7 +188,7 @@ void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint 
 #endif
 
     // The first entry inside a tile is the number of light for lightCategory (thus the +0)
-    lightCount = g_vLightListGlobal[DWORD_PER_TILE * tileOffset + 0] & 0xffff;
+    lightCount = g_vLightListTile[DWORD_PER_TILE * tileOffset + 0] & 0xffff;
     start = tileOffset;
 }
 
@@ -207,7 +208,7 @@ uint FetchIndex(uint tileOffset, uint lightOffset)
 {
     const uint lightOffsetPlusOne = lightOffset + 1; // Add +1 as first slot is reserved to store number of light
     // Light index are store on 16bit
-    return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
+    return (g_vLightListTile[DWORD_PER_TILE * tileOffset + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
 }
 
 #elif defined(USE_CLUSTERED_LIGHTLIST)
@@ -260,7 +261,7 @@ void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint star
 
 uint FetchIndex(uint lightStart, uint lightOffset)
 {
-    return g_vLightListGlobal[lightStart + lightOffset];
+    return g_vLightListCluster[lightStart + lightOffset];
 }
 
 #elif defined(USE_BIG_TILE_LIGHTLIST)
@@ -271,11 +272,24 @@ uint FetchIndex(uint lightStart, uint lightOffset)
 }
 
 #else
-// Fallback case (mainly for raytracing right now)
+// Fallback case (mainly for raytracing right or for shader stages that don't define the keywords)
 uint FetchIndex(uint lightStart, uint lightOffset)
 {
     return 0;
 }
+
+uint GetTileSize()
+{
+    return 1;
+}
+
+void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
+{
+    start = 0;
+    lightCount = 0;
+    return;
+}
+
 #endif // USE_FPTL_LIGHTLIST
 
 #else
@@ -371,6 +385,13 @@ float GetScreenSpaceShadow(PositionInputs posInput, uint shadowIndex)
     uint slot = shadowIndex / 4;
     uint channel = shadowIndex & 0x3;
     return LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel];
+}
+
+float2 GetScreenSpaceShadowArea(PositionInputs posInput, uint shadowIndex)
+{
+    uint slot = shadowIndex / 4;
+    uint channel = shadowIndex & 0x3;
+    return float2(LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel], LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel + 1]);
 }
 
 float3 GetScreenSpaceColorShadow(PositionInputs posInput, int shadowIndex)

@@ -16,7 +16,7 @@ The AxF importer is available in [Unity Enterprise for Product Lifecycle](https:
 
 When you import an AxF file, you cannot modify any of its properties. If you want to edit your AxF Material, and have installed the AxF Importer package, you can create an editable copy of the imported AxF Material. To do this:
 
-1. Select an AxF file in your Unity Project and view it in the Inspector. 
+1. Select an AxF file in your Unity Project and view it in the Inspector.
 2. Right click on the **Imported Object** header area and select **Create AxF Material From This** from the context menu.
 
 This process does not duplicate the Textures and other resources that the original AxF file uses. Instead, the duplicate Material references the original file's Textures and resources, but every value in its Inspector is editable.
@@ -33,7 +33,7 @@ New Materials in HDRP use the [Lit Shader](Lit-Shader.md) by default. To create 
 
 It is possible to copy AxF Material properties from an imported AxF Material to your newly created AxF Material. To do this:
 
-1. Select an AxF file in your Unity Project and view it in the Inspector. 
+1. Select an AxF file in your Unity Project and view it in the Inspector.
 2. In the header area, right click on the **Shader** drop-down and select **Copy AxF Material Properties** from the context menu.
 3. Select your new AxF Material and view it in the Inspector.
 4. In the header area, right click on the **Shader** drop-down and select **Paste AxF Material Properties** from the context menu.
@@ -60,6 +60,7 @@ Note: The AxF Importer imports every Texture as half float, linear, sRGB gamut (
 | --------------------- | ------------------------------------------------------------ |
 | **Mapping Mode**         | Controls the texture mapping mode of the material for all textures.<br/>&#8226; **UV0..UV3**: Like in Lit, uses a UV set from UV0 to UV3 vertex attributes. Note that UV1 is used for baked lightmaps in Unity, so it isn't recommended to use this set.<br/>&#8226; **PlanarXY,YZ,ZX**: Uses planar mapping along the specified plane.<br/>&#8226; **Triplanar**: Uses triplanar mapping.<br/>&#8226; **Planar Space**: When a planar or triplanar mapping mode is selected, you can select whether the coordinates used are world space or object space using the "planar space" option set to (respectively) "world" or "local". |
 | **Main Tiling & Offset** | Sets the tiling rate (xy) and offsets (zw) for every Texture in the **Surface Inputs** section. HDRP uses these values to tile the Textures along the xy-axes of the Material’s surface, in the object's tangent space. Each texture property can also specify additional tiling and offset values that are applied on top of these main values (Texture property-specific tiling rates are multiplied and offsets are added to the main values set here). These additional tiling and offsets appear next to each texture property on the same line.  |
+| **Texture Filtering In Raytracing** | Only visible when raytracing is available in the project: Texture filtering works differently in raytracing, that is, for the primary visible surface when the AxF object is using recursive rendering or for secondary reflections of AxF objects visible on other objects when using raytraced reflections. To help with aliasing of sampled textures of AxF materials in raytracing, you can adjust this from 0 (no filtering) to 1 (maximum filtering).  |
 
 ### Advanced Surface Inputs
 
@@ -101,9 +102,11 @@ Note: The AxF Importer imports every Texture as half float, linear, sRGB gamut (
 | **BRDF Color Scale**                      | A multiplier for the **BRDF Color** color value. Note: AxF files do not include this value. Therefore, if you want your Material to be consistent with the appearance intended from the AxF file, you should set this value to **1**. |
 | **BRDF Color Table Diagonal Clamping**    | Indicates whether Unity should clamp accesses to the **BRDF Color** map. Some BRDF Color tables have a zero (all black) lower half below a central diagonal region. Usually, on correctly measured Materials, the combination of index of refraction (IOR) maps and refractive options prevents the Shader from accessing zero values. The Unity AxF Importer populates values (see the restriction below) that HDRP uses to force the Shader to never access the zero regions. To do this, HDRP linearly remaps the angular domain in non-black regions of the Texture. |
 | **- BRDF Color Map UV Scale Restriction** | Specifies the scale of the restriction HDRP applies when it clamps the BRDF Color table. If you use lower values, this prevents the Shader from reaching higher angular ranges (nearer to **pi / 2**). If you set both of these values to **1**, this is equivalent to disabling the diagonal clamping feature. |
-| **BTF Flake Color Texture2DArray**        | Specifies the measured angular slices data for the flakes. This set of slices represents a sort of a Bidirectional Texture Function (BTF). You should not assign this property manually. Instead allow the AxF Importer to assign this property. |
-| **BTF Flake Scale**                       | A multiplier for the flake reflectance intensity. Note: AxF files do not include this value. Therefore, if you want your Material to be consistent with the appearance intended from the AxF file, you should set this value to **1**. |
-| **Flakes Tiling**                         | A multiplier that applies specific tiling for the Flakes texture slices. |
+| **BTF Flakes Texture2DArray**             | Specifies the measured angular slices data for the flakes. This set of slices represents a sort of a Bidirectional Texture Function (BTF). You should not assign this property manually. Instead allow the AxF Importer to assign this property. |
+| **- BTF Flakes Tiling and Offset **       | Multipliers and offsets of texture mapping that applies specifically for the flakes texture slices. |
+| **BTF Flakes Scale**                      | A multiplier for the flake reflectance intensity. Note: AxF files do not include this value. Therefore, if you want your Material to be consistent with the appearance intended from the AxF file, you should set this value to **1**. |
+| **BRDF Color ThetaH For Indirect Light**   | Selects a fixed angle between normal and half-vector for indirect lighting, when this angle is unknown in indirect lighting computations. This is to fine tune the use of the angular BRDF color table for indirect lighting: Since the color table affects angular shifting of the car paint color, this allows one to select a hue column in the BRDF color table for indirect reflection probes and raytraced indirect light. The value is an angle from **0** to **pi / 2**.  |
+| **Flakes ThetaH For Indirect Light**      | Select a fixed angle between normal and half-vector for indirect lighting, when this angle is unknown in indirect lighting computations. This is to fine tune the angular variation of flake visibility for indirect lighting and do so independently of the tuning for the color hue. Similar to the **BRDF Color ThetaH For Indirect Light** angle, this allows one to control visibility of flakes more precisely when lit by reflection probes and raytraced indirect light. The value is an angle from **0** to **pi / 2**.  |
 | **ThetaFI Slice LUT**                     | Specifies the look-up table that converts angular ranges to slices. You should not assign this property manually. Instead allow the AxF Importer to assign this property. |
 | **Diffuse coeff**                         | The diffuse lobe coefficient. The **CAR_PAINT** AxF model uses a hybrid multi-lobe model. A summary of this model is:<br/>`BRDFColor * (Lambert + Cook-Torrance) + Flakes BTF`<br/>This controls the diffuse albedo for the Lambert diffuse reflectance part of the model. |
 | **CT Lobes F0s**                          | The Fresnel reflectance at 0 degrees of incidence for each Cook-Torrance lobe. |

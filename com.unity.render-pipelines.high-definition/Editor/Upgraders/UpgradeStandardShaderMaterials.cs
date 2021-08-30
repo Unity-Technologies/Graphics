@@ -18,44 +18,46 @@ namespace UnityEditor.Rendering.HighDefinition
             upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Texture", "HDRP/Unlit"));
             upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Transparent", "HDRP/Unlit"));
             upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Transparent Cutout", "HDRP/Unlit"));
-            
-			upgraders.Add(new StandardsTerrainToHDTerrainLitUpgrader("Nature/Terrain/Standard", "HDRP/TerrainLit"));
-			
+
+            upgraders.Add(new StandardsTerrainToHDTerrainLitUpgrader("Nature/Terrain/Standard", "HDRP/TerrainLit"));
+
+            upgraders.Add(new HDSpeedTree8MaterialUpgrader("Nature/SpeedTree8", "HDRP/Nature/SpeedTree8"));
+
             return upgraders;
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Project Materials to High Definition Materials")]
+        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to HDRP", priority = CoreUtils.Priorities.editMenuPriority + 1)]
         internal static void UpgradeMaterialsProject()
         {
-            MaterialUpgrader.UpgradeProjectFolder(GetHDUpgraders(), "Upgrade to HD Material");
+            MaterialUpgrader.UpgradeProjectFolder(GetHDUpgraders(), "Upgrade to HDRP Material");
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Selected Materials to High Definition Materials")]
+        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to HDRP", priority = CoreUtils.Priorities.editMenuPriority + 2)]
         internal static void UpgradeMaterialsSelection()
         {
-            MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HD Material");
+            MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HDRP Material");
         }
-		
-		[MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Scene Terrains to High Definition Terrains")]
-		static void UpgradeSceneTerrainsToHighDefinitionTerrains(MenuCommand menuCommand)
-        {			
-			var LegacyDefaultTerrainMat = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Terrain-Standard.mat");
-			var HDRPTerrainMat =  AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat");
+
+        [MenuItem("Edit/Rendering/Materials/Convert Scene Terrains to HDRP Terrains", priority = CoreUtils.Priorities.editMenuPriority + 2)]
+        static void UpgradeSceneTerrainsToHighDefinitionTerrains(MenuCommand menuCommand)
+        {
+            var LegacyDefaultTerrainMat = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Terrain-Standard.mat");
+            var HDRPTerrainMat = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat");
             var terrainArray = UnityEngine.GameObject.FindObjectsOfType<Terrain>();
 
-			if (terrainArray.Length == 0)
-			{
-				Debug.LogWarning("No terrains were found in the scene.");
-				return;
-			}
-			
-			foreach (Terrain currentTerrain in terrainArray)
+            if (terrainArray.Length == 0)
             {
-				if(currentTerrain.materialTemplate == LegacyDefaultTerrainMat)
-				{
-					currentTerrain.materialTemplate = HDRPTerrainMat;
-				}
-			}
-		}
+                Debug.LogWarning("No terrains were found in the scene.");
+                return;
+            }
+
+            foreach (Terrain currentTerrain in terrainArray)
+            {
+                if (currentTerrain.materialTemplate == LegacyDefaultTerrainMat)
+                {
+                    currentTerrain.materialTemplate = HDRPTerrainMat;
+                }
+            }
+        }
     }
 }

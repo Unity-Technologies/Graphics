@@ -8,10 +8,15 @@ namespace UnityEngine.Rendering.UI
     /// </summary>
     public class DebugUIHandlerEnumField : DebugUIHandlerWidget
     {
+        /// <summary>Text displayed for the "next" button.</summary>
+        public Text nextButtonText;
+        /// <summary>Text displayed for the "previous" button.</summary>
+        public Text previousButtonText;
         /// <summary>Name of the enum field.</summary>
         public Text nameLabel;
         /// <summary>Value of the enum field.</summary>
         public Text valueLabel;
+
         internal protected DebugUI.EnumField m_Field;
 
         internal override void SetWidget(DebugUI.Widget widget)
@@ -30,6 +35,10 @@ namespace UnityEngine.Rendering.UI
         /// <returns>State of the widget.</returns>
         public override bool OnSelection(bool fromNext, DebugUIHandlerWidget previous)
         {
+            if (nextButtonText != null)
+                nextButtonText.color = colorSelected;
+            if (previousButtonText != null)
+                previousButtonText.color = colorSelected;
             nameLabel.color = colorSelected;
             valueLabel.color = colorSelected;
             return true;
@@ -40,6 +49,10 @@ namespace UnityEngine.Rendering.UI
         /// </summary>
         public override void OnDeselection()
         {
+            if (nextButtonText != null)
+                nextButtonText.color = colorDefault;
+            if (previousButtonText != null)
+                previousButtonText.color = colorDefault;
             nameLabel.color = colorDefault;
             valueLabel.color = colorDefault;
         }
@@ -75,7 +88,7 @@ namespace UnityEngine.Rendering.UI
                     //check if quickSeparators have not been constructed
                     //it is the case when not constructed with autoenum
                     var separators = m_Field.quickSeparators;
-                    if(separators == null)
+                    if (separators == null)
                     {
                         m_Field.InitQuickSeparators();
                         separators = m_Field.quickSeparators;
@@ -83,7 +96,7 @@ namespace UnityEngine.Rendering.UI
 
                     int idxSup = 0;
                     for (; idxSup < separators.Length && index + 1 > separators[idxSup]; ++idxSup) ;
-                    if(idxSup == separators.Length)
+                    if (idxSup == separators.Length)
                     {
                         index = 0;
                     }
@@ -117,7 +130,7 @@ namespace UnityEngine.Rendering.UI
 
             if (index == 0)
             {
-                if(fast)
+                if (fast)
                 {
                     //check if quickSeparators have not been constructed
                     //it is thecase when not constructed with autoenum
@@ -174,7 +187,16 @@ namespace UnityEngine.Rendering.UI
             if (index < 0)
                 index = 0;
 
-            valueLabel.text = "< " + m_Field.enumNames[index].text + " >";
+            string text = m_Field.enumNames[index].text;
+
+            // The UI implementation is tight with space, so let's just truncate the string here if too long.
+            const int maxLength = 26;
+            if (text.Length > maxLength)
+            {
+                text = text.Substring(0, maxLength - 3) + "...";
+            }
+
+            valueLabel.text = text;
         }
     }
 }

@@ -9,11 +9,11 @@ namespace UnityEditor.VFX
     class VFXExpressionTextureWidth : VFXExpression
     {
         public VFXExpressionTextureWidth() : this(VFXTexture2DValue.Default)
-        {}
+        { }
 
         public VFXExpressionTextureWidth(VFXExpression texture)
             : base(Flags.InvalidOnGPU, new VFXExpression[1] { texture })
-        {}
+        { }
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.TextureWidth; } }
         sealed public override VFXValueType valueType { get { return VFXValueType.Uint32; } }

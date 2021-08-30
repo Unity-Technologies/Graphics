@@ -4,8 +4,8 @@ namespace UnityEditor.ShaderGraph
 {
     sealed partial class GraphData : ISerializationCallbackReceiver
     {
-       public static class GraphSetup
-       {
+        public static class GraphSetup
+        {
             public static void SetupNode(AbstractMaterialNode node)
             {
                 node.Setup();
@@ -15,6 +15,6 @@ namespace UnityEditor.ShaderGraph
             {
                 GraphDataUtils.ApplyActionLeafFirst(graph, SetupNode);
             }
-       }
+        }
     }
 }

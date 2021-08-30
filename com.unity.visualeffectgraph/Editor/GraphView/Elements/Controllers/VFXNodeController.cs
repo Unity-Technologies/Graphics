@@ -35,7 +35,7 @@ namespace UnityEditor.VFX.UI
             foreach (var setting in settings)
             {
                 var settingController = new VFXSettingController();
-                settingController.Init(viewController,this.slotContainer, setting.field.Name, setting.field.FieldType);
+                settingController.Init(viewController, this.slotContainer, setting.field.Name, setting.field.FieldType);
                 m_Settings[cpt++] = settingController;
             }
         }
@@ -141,7 +141,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual int id
         {
-            get {return 0; }
+            get { return 0; }
         }
 
         bool m_SyncingSlots;

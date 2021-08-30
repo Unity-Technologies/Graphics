@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     internal class SkyRenderingContext
     {
-        SphericalHarmonicsL2    m_AmbientProbe;
+        SphericalHarmonicsL2 m_AmbientProbe;
 
         public SphericalHarmonicsL2 ambientProbe => m_AmbientProbe;
 
@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (supportsConvolution)
             {
-                skyboxBSDFCubemapArray = new CubemapArray(resolution, bsdfCount, TextureFormat.RGBAHalf, true)
+                skyboxBSDFCubemapArray = new CubemapArray(resolution, bsdfCount, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.MipChain)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
                     wrapMode = TextureWrapMode.Repeat,

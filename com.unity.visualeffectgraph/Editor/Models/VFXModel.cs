@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public Action<VFXObject,bool> onModified;
+        public Action<VFXObject, bool> onModified;
         void OnValidate()
         {
             Modified(false);
@@ -33,7 +33,7 @@ namespace UnityEditor.VFX
         public void Modified(bool uiChange)
         {
             if (onModified != null)
-                onModified(this,uiChange);
+                onModified(this, uiChange);
         }
     }
 
@@ -50,11 +50,13 @@ namespace UnityEditor.VFX
             kExpressionInvalidated, // No direct change to the model but a change in connection was propagated from the parents
             kExpressionGraphChanged,// Expression graph must be recomputed
             kUIChanged,             // UI stuff has changed
-            kUIChangedTransient,    // UI stuff has been changed be does not require serialization 
+            kUIChangedTransient,    // UI stuff has been changed be does not require serialization
+            kMaterialChanged,       // Some asset material properties has changed
+            kEnableChanged          // Node has been enabled/disabled
         }
 
-        public new virtual string name  { get { return string.Empty; } }
-        public virtual string libraryName  { get { return name; } }
+        public new virtual string name { get { return string.Empty; } }
+        public virtual string libraryName { get { return name; } }
 
         public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
 
@@ -77,9 +79,9 @@ namespace UnityEditor.VFX
             }
         }
 
-        public virtual void Sanitize(int version) {}
+        public virtual void Sanitize(int version) { }
 
-        public virtual void CheckGraphBeforeImport() {}
+        public virtual void CheckGraphBeforeImport() { }
 
         public virtual void OnUnknownChange()
         {
@@ -117,7 +119,6 @@ namespace UnityEditor.VFX
                 try
                 {
                     onInvalidateDelegate(model, cause);
-
                 }
                 finally
                 {
@@ -137,7 +138,7 @@ namespace UnityEditor.VFX
                     {
                         GenerateErrors(reporter);
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         Debug.LogException(e);
                     }
@@ -145,8 +146,8 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected virtual void OnAdded() {}
-        protected virtual void OnRemoved() {}
+        protected virtual void OnAdded() { }
+        protected virtual void OnRemoved() { }
 
         public virtual bool AcceptChild(VFXModel model, int index = -1)
         {

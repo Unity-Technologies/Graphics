@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public TriangleWaveNode()
         {
             name = "Triangle Wave";
+            synonyms = new string[] { "sawtooth wave" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = 2.0 * abs( 2 * (In - floor(0.5 + In)) ) - 1.0;
 }

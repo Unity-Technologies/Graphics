@@ -99,7 +99,7 @@ namespace UnityEditor.VFX.UI
                     {
                         var instance = Activator.CreateInstance((attribute as PushButtonAttribute).pushButtonProvider);
                         var pushButtonBehavior = instance as IPushButtonBehavior;
-                        return new StringPushButtonInfo() {action = (a) => pushButtonBehavior.OnClicked(a), buttonName = (attribute as PushButtonAttribute).buttonName};
+                        return new StringPushButtonInfo() { action = (a) => pushButtonBehavior.OnClicked(a), buttonName = (attribute as PushButtonAttribute).buttonName };
                     }
                 }
             }
@@ -153,7 +153,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override bool isDelayed {
+        public override bool isDelayed
+        {
             get => base.isDelayed;
 
             set
@@ -177,7 +178,7 @@ namespace UnityEditor.VFX.UI
                         }
                     }
 
-                    if( m_StringFieldPushButton != null)
+                    if (m_StringFieldPushButton != null)
                     {
                         VisualElement input = m_StringFieldPushButton.textfield.Q("unity-text-input");
                         if (isDelayed)

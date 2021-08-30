@@ -1,6 +1,6 @@
 # Sine Wave
 
-Menu Path : **Operator > Math > Wave > Sine Wave** 
+Menu Path : **Operator > Math > Wave > Sine Wave**
 
 The **Sine Wave** Operator evaluates an input to generate a value which smoothly oscillates between a minimum and a maximum value. This Operator also includes a frequency value which changes the rate at which the output value oscillates.
 

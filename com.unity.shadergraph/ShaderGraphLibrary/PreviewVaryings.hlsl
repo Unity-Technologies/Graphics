@@ -20,6 +20,10 @@ Varyings BuildVaryings(Attributes input)
     output.positionWS = positionWS;
 #endif
 
+#ifdef VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
+    output.positionPredisplacementWS = positionWS;
+#endif
+
 #ifdef VARYINGS_NEED_NORMAL_WS
     output.normalWS = normalize(normalWS);
 #endif
@@ -45,6 +49,10 @@ Varyings BuildVaryings(Attributes input)
 
 #if defined(VARYINGS_NEED_COLOR) || defined(VARYINGS_DS_NEED_COLOR)
     output.color = input.color;
+#endif
+
+#if defined(VARYINGS_NEED_VERTEXID)
+    output.vertexID = input.vertexID;
 #endif
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS

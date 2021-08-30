@@ -70,7 +70,7 @@ struct StackInfo
 {
     GraniteLookupData lookupData;
     GraniteLODLookupData lookupDataLod;
-	float4 resolveOutput;
+    float4 resolveOutput;
 };
 
 struct VTProperty
@@ -93,6 +93,11 @@ struct VTProperty
 // This can be used by certain resolver implementations to override screen space derivatives
 #ifndef RESOLVE_SCALE_OVERRIDE
 #define RESOLVE_SCALE_OVERRIDE float2(1,1)
+#endif
+
+#ifndef VT_CACHE_SAMPLER
+    #define VT_CACHE_SAMPLER sampler_clamp_trilinear_aniso4
+    SAMPLER(VT_CACHE_SAMPLER);
 #endif
 
 StructuredBuffer<GraniteTilesetConstantBuffer> _VTTilesetBuffer;
@@ -153,29 +158,7 @@ GraniteTilesetConstantBuffer GetConstantBuffer(GraniteStreamingTextureConstantBu
 #define jj(a, b) jj2(a, b)
 
 #define DECLARE_STACK_LAYER(stackName, layerSamplerName, layerIndex) \
-TEXTURE2D_ARRAY(stackName##_c##layerIndex);\
-SAMPLER(sampler##stackName##_c##layerIndex);\
-\
-float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quality)\
-{\
-    GraniteStreamingTextureConstantBuffer textureParamBlock;\
-    textureParamBlock.data[0] = stackName##_atlasparams[0];\
-    textureParamBlock.data[1] = stackName##_atlasparams[1];\
-\
-    GraniteTilesetConstantBuffer graniteParamBlock = GetConstantBuffer_##stackName(); \
-\
-    GraniteConstantBuffers grCB;\
-    grCB.tilesetBuffer = graniteParamBlock;\
-    grCB.streamingTextureBuffer = textureParamBlock;\
-\
-    GraniteCacheTexture cache;\
-    cache.TextureArray = stackName##_c##layerIndex;\
-    cache.Sampler = sampler##stackName##_c##layerIndex;\
-\
-    float4 output;\
-    VirtualTexturingSample(grCB.tilesetBuffer, info.lookupData, cache, layerIndex, lodCalculation, quality, output);\
-    return output;\
-}
+TEXTURE2D_ARRAY(stackName##_c##layerIndex);
 
 #define DECLARE_BUILD_PROPERTIES(stackName, layers, layer0Index, layer1Index, layer2Index, layer3Index)\
     VTProperty BuildVTProperties_##stackName()\
@@ -199,42 +182,42 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
         vtProperty.layerIndex[3] = layer3Index; \
         \
         vtProperty.cacheLayer[0].TextureArray = stackName##_c##layer0Index; \
-        vtProperty.cacheLayer[0].Sampler = sampler##stackName##_c##layer0Index;\
+        ASSIGN_SAMPLER(vtProperty.cacheLayer[0].Sampler, VT_CACHE_SAMPLER);\
         vtProperty.cacheLayer[1].TextureArray = stackName##_c##layer1Index; \
-        vtProperty.cacheLayer[1].Sampler = sampler##stackName##_c##layer1Index;\
+        ASSIGN_SAMPLER(vtProperty.cacheLayer[1].Sampler, VT_CACHE_SAMPLER);\
         vtProperty.cacheLayer[2].TextureArray = stackName##_c##layer2Index; \
-        vtProperty.cacheLayer[2].Sampler = sampler##stackName##_c##layer2Index;\
+        ASSIGN_SAMPLER(vtProperty.cacheLayer[2].Sampler, VT_CACHE_SAMPLER);\
         vtProperty.cacheLayer[3].TextureArray = stackName##_c##layer3Index; \
-        vtProperty.cacheLayer[3].Sampler = sampler##stackName##_c##layer3Index;\
+        ASSIGN_SAMPLER(vtProperty.cacheLayer[3].Sampler, VT_CACHE_SAMPLER);\
         \
         return vtProperty; \
     }
 
 #define DECLARE_STACK(stackName, layer0SamplerName)\
-	DECLARE_STACK_BASE(stackName)\
-	DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
-	DECLARE_BUILD_PROPERTIES(stackName, 1, 0, 0, 0, 0)
+    DECLARE_STACK_BASE(stackName)\
+    DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
+    DECLARE_BUILD_PROPERTIES(stackName, 1, 0, 0, 0, 0)
 
 #define DECLARE_STACK2(stackName, layer0SamplerName, layer1SamplerName)\
-	DECLARE_STACK_BASE(stackName)\
-	DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
-	DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
-	DECLARE_BUILD_PROPERTIES(stackName, 2, 0, 1, 1, 1)
+    DECLARE_STACK_BASE(stackName)\
+    DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
+    DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
+    DECLARE_BUILD_PROPERTIES(stackName, 2, 0, 1, 1, 1)
 
 #define DECLARE_STACK3(stackName, layer0SamplerName, layer1SamplerName, layer2SamplerName)\
-	DECLARE_STACK_BASE(stackName)\
-	DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
-	DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
-	DECLARE_STACK_LAYER(stackName, layer2SamplerName, 2)\
-	DECLARE_BUILD_PROPERTIES(stackName, 3, 0, 1, 2, 2)
+    DECLARE_STACK_BASE(stackName)\
+    DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
+    DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
+    DECLARE_STACK_LAYER(stackName, layer2SamplerName, 2)\
+    DECLARE_BUILD_PROPERTIES(stackName, 3, 0, 1, 2, 2)
 
 #define DECLARE_STACK4(stackName, layer0SamplerName, layer1SamplerName, layer2SamplerName, layer3SamplerName)\
-	DECLARE_STACK_BASE(stackName)\
-	DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
-	DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
-	DECLARE_STACK_LAYER(stackName, layer2SamplerName, 2)\
-	DECLARE_STACK_LAYER(stackName, layer3SamplerName, 3)\
-	DECLARE_BUILD_PROPERTIES(stackName, 4, 0, 1, 2, 3)
+    DECLARE_STACK_BASE(stackName)\
+    DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
+    DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
+    DECLARE_STACK_LAYER(stackName, layer2SamplerName, 2)\
+    DECLARE_STACK_LAYER(stackName, layer3SamplerName, 3)\
+    DECLARE_BUILD_PROPERTIES(stackName, 4, 0, 1, 2, 3)
 
 #define PrepareStack(inputParams, stackName) PrepareVT_##stackName(inputParams)
 #define SampleStack(info, lodMode, quality, textureName) SampleVT_##textureName(info, lodMode, quality)
@@ -316,12 +299,12 @@ struct VTProperty
     TEXTURE2D(Layer1);
     TEXTURE2D(Layer2);
     TEXTURE2D(Layer3);
-#ifndef SHADER_API_GLES    
+#ifndef SHADER_API_GLES
     SAMPLER(samplerLayer0);
     SAMPLER(samplerLayer1);
     SAMPLER(samplerLayer2);
     SAMPLER(samplerLayer3);
-#endif    
+#endif
 };
 
 StackInfo MakeStackInfo(VtInputParameters vt)
@@ -341,14 +324,28 @@ StackInfo MakeStackInfo(VtInputParameters vt)
 
 float4 SampleVTFallbackToTexture(StackInfo info, int vtLevelMode, TEXTURE2D_PARAM(layerTexture, layerSampler))
 {
-    if (vtLevelMode == VtLevel_Automatic)
-        return SAMPLE_TEXTURE2D(layerTexture, layerSampler, info.vt.uv);
-    else if (vtLevelMode == VtLevel_Lod)
-        return SAMPLE_TEXTURE2D_LOD(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
-    else if (vtLevelMode == VtLevel_Bias)
-        return SAMPLE_TEXTURE2D_BIAS(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
-    else // vtLevelMode == VtLevel_Derivatives
-        return SAMPLE_TEXTURE2D_GRAD(layerTexture, layerSampler, info.vt.uv, info.vt.dx, info.vt.dy);
+    if (info.vt.enableGlobalMipBias)
+    {
+        if (vtLevelMode == VtLevel_Automatic)
+            return SAMPLE_TEXTURE2D(layerTexture, layerSampler, info.vt.uv);
+        else if (vtLevelMode == VtLevel_Lod)
+            return SAMPLE_TEXTURE2D_LOD(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
+        else if (vtLevelMode == VtLevel_Bias)
+            return SAMPLE_TEXTURE2D_BIAS(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
+        else // vtLevelMode == VtLevel_Derivatives
+            return SAMPLE_TEXTURE2D_GRAD(layerTexture, layerSampler, info.vt.uv, info.vt.dx, info.vt.dy);
+    }
+    else
+    {
+        if (vtLevelMode == VtLevel_Automatic)
+            return PLATFORM_SAMPLE_TEXTURE2D(layerTexture, layerSampler, info.vt.uv);
+        else if (vtLevelMode == VtLevel_Lod)
+            return PLATFORM_SAMPLE_TEXTURE2D_LOD(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
+        else if (vtLevelMode == VtLevel_Bias)
+            return PLATFORM_SAMPLE_TEXTURE2D_BIAS(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
+        else // vtLevelMode == VtLevel_Derivatives
+            return PLATFORM_SAMPLE_TEXTURE2D_GRAD(layerTexture, layerSampler, info.vt.uv, info.vt.dx, info.vt.dy);
+    }
 }
 
 StackInfo PrepareVT(VTProperty vtProperty, VtInputParameters vtParams)

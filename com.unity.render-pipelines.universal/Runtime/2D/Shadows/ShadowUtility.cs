@@ -1,13 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System;
-using Unity.Collections;
 using System.Linq;
-using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
+using UnityEngine.Rendering.Universal.LibTessDotNet;
 
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal class ShadowUtility
     {
@@ -53,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Edge retEdge = new Edge();
 
             retEdge.AssignVertexIndices(triangles[triangleIndexA], triangles[triangleIndexB]);
-            
+
             Vector3 vertex0 = vertices[retEdge.vertexIndex0];
             vertex0.z = 0;
             Vector3 vertex1 = vertices[retEdge.vertexIndex1];
@@ -67,11 +64,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static void PopulateEdgeArray(List<Vector3> vertices, List<int> triangles, List<Edge> edges)
         {
-            for(int triangleIndex=0;triangleIndex<triangles.Count;triangleIndex+=3)
+            for (int triangleIndex = 0; triangleIndex < triangles.Count; triangleIndex += 3)
             {
                 edges.Add(CreateEdge(triangleIndex, triangleIndex + 1, vertices, triangles));
-                edges.Add(CreateEdge(triangleIndex+1, triangleIndex + 2, vertices, triangles));
-                edges.Add(CreateEdge(triangleIndex+2, triangleIndex, vertices, triangles));
+                edges.Add(CreateEdge(triangleIndex + 1, triangleIndex + 2, vertices, triangles));
+                edges.Add(CreateEdge(triangleIndex + 2, triangleIndex, vertices, triangles));
             }
         }
 
@@ -92,9 +89,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static void CreateShadowTriangles(List<Vector3> vertices, List<Color> colors, List<int> triangles, List<Vector4> tangents, List<Edge> edges)
         {
-            for(int edgeIndex=0; edgeIndex<edges.Count; edgeIndex++)
+            for (int edgeIndex = 0; edgeIndex < edges.Count; edgeIndex++)
             {
-                if(IsOutsideEdge(edgeIndex, edges))
+                if (IsOutsideEdge(edgeIndex, edges))
                 {
                     Edge edge = edges[edgeIndex];
                     tangents[edge.vertexIndex1] = -edge.tangent;
@@ -123,7 +120,41 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 tangents.Add(Vector4.zero);
         }
 
-        public static void GenerateShadowMesh(Mesh mesh, Vector3[] shapePath)
+        static internal void ComputeBoundingSphere(Vector3[] shapePath, out BoundingSphere boundingSphere)
+        {
+            float minX = float.MaxValue;
+            float maxX = float.MinValue;
+            float minY = float.MaxValue;
+            float maxY = float.MinValue;
+
+            // Add outline vertices
+            int pathLength = shapePath.Length;
+            for (int i = 0; i < pathLength; i++)
+            {
+                Vector3 vertex = shapePath[i];
+
+                if (minX > vertex.x)
+                    minX = vertex.x;
+                if (maxX < vertex.x)
+                    maxX = vertex.x;
+
+                if (minY > vertex.y)
+                    minY = vertex.y;
+                if (maxY < vertex.y)
+                    maxY = vertex.y;
+            }
+
+            // Calculate bounding sphere (circle)
+            Vector3 origin = new Vector2(0.5f * (minX + maxX), 0.5f * (minY + maxY));
+            float deltaX = maxX - minX;
+            float deltaY = maxY - minY;
+            float radius = 0.5f * Mathf.Sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            boundingSphere.position = origin;
+            boundingSphere.radius = radius;
+        }
+
+        public static BoundingSphere GenerateShadowMesh(Mesh mesh, Vector3[] shapePath)
         {
             List<Vector3> vertices = new List<Vector3>();
             List<int> triangles = new List<int>();
@@ -137,11 +168,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 Color extrusionData = new Color(shapePath[i].x, shapePath[i].y, shapePath[i].x, shapePath[i].y);
                 int nextPoint = (i + 1) % pointCount;
-                inputs[2*i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y, Z=0 }, Data = extrusionData };
+                inputs[2 * i] = new ContourVertex() { Position = new Vec3() { X = shapePath[i].x, Y = shapePath[i].y, Z = 0 }, Data = extrusionData };
 
                 extrusionData = new Color(shapePath[i].x, shapePath[i].y, shapePath[nextPoint].x, shapePath[nextPoint].y);
                 Vector2 midPoint = 0.5f * (shapePath[i] + shapePath[nextPoint]);
-                inputs[2*i+1] = new ContourVertex() { Position = new Vec3() { X = midPoint.x, Y = midPoint.y, Z = 0}, Data = extrusionData };
+                inputs[2 * i + 1] = new ContourVertex() { Position = new Vec3() { X = midPoint.x, Y = midPoint.y, Z = 0 }, Data = extrusionData };
             }
 
             Tess tessI = new Tess();
@@ -173,6 +204,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.triangles = finalTriangles;
             mesh.tangents = finalTangents;
             mesh.colors = finalExtrusion;
+
+            BoundingSphere retSphere;
+            ComputeBoundingSphere(shapePath, out retSphere);
+
+            return retSphere;
         }
     }
 }

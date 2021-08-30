@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
         public DielectricSpecularNode()
         {
             name = "Dielectric Specular";
+            synonyms = new string[] { "reflectance" };
             UpdateNodeAfterDeserialization();
         }
-
 
         [SerializeField]
         DielectricMaterial m_Material = new DielectricMaterial(DielectricMaterialType.Common, 0.5f, 1.0f);
@@ -75,11 +75,6 @@ namespace UnityEditor.ShaderGraph
         private const string kOutputSlotName = "Out";
 
         public override bool hasPreview { get { return true; } }
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview2D; }
-        }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

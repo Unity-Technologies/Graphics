@@ -1,0 +1,160 @@
+#pragma kernel RayMarchKernel RAY_MARCH_KERNEL=RayMarchKernel
+#pragma kernel RayMarchHalfKernel RAY_MARCH_KERNEL=RayMarchHalfKernel HALF_RESOLUTION
+
+#pragma only_renderers d3d11 ps5
+
+// Include and define the shader pass
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+#define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
+
+// HDRP generic includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
+
+// Raytracing includes (should probably be in generic files)
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+
+// The dispatch tile resolution
+#define RAY_MARCHING_TILE_SIZE 8
+
+// Input depth pyramid texture
+TEXTURE2D_X(_DepthTexture);
+// Stencil texture
+TEXTURE2D_X_UINT2(_StencilTexture);
+// Input direction buffer
+RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);
+// Input texture that holds the offset for every level of the depth pyramid
+StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
+
+// Constant buffer that holds all scalar that we need
+CBUFFER_START(UnityScreenSpaceRayMarching)
+    int _DeferredStencilBit;
+    int _RayMarchingSteps;
+    float _RayMarchingThicknessScale;
+    float _RayMarchingThicknessBias;
+    int _RayMarchingReflectsSky;
+CBUFFER_END
+
+// Must be included after the declaration of variables
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/RayMarching.hlsl"
+
+// Output textures
+RW_TEXTURE2D_X(float4, _GBufferTexture0RW);
+RW_TEXTURE2D_X(float4, _GBufferTexture1RW);
+RW_TEXTURE2D_X(float4, _GBufferTexture2RW);
+RW_TEXTURE2D_X(float4, _GBufferTexture3RW); // Bake lighting and/or emissive
+RW_TEXTURE2D_X(float, _RaytracingDistanceBuffer);
+
+[numthreads(RAY_MARCHING_TILE_SIZE, RAY_MARCHING_TILE_SIZE, 1)]
+void RAY_MARCH_KERNEL(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    uint2 currentCoord = dispatchThreadId.xy;
+    #if HALF_RESOLUTION
+    currentCoord = currentCoord * 2;
+    #endif
+
+    // Read the depth value as early as possible
+    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
+
+    // Read the direction
+    float4 direction = _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)];
+
+    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = 0.0f;
+    _GBufferTexture0RW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
+    _GBufferTexture1RW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
+    _GBufferTexture2RW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
+    _GBufferTexture3RW[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
+
+    // If this is a background pixel or the direction is invalid, skip it.
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || direction.w < 0.0)
+        return;
+
+    // Read the pixel normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(currentCoord.xy, normalData);
+
+    // Compute the camera position
+    float3 camPosWS = GetCurrentViewPosition();
+
+    // Convert this to a world space position (camera relative)
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    float3 positionWS = posInput.positionWS;
+    // Compute the view direction (world space)
+    float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
+    // Apply normal bias with the magnitude dependent on the distance from the camera.
+    // Unfortunately, we only have access to the shading normal, which is less than ideal...
+    posInput.positionWS  = camPosWS + (posInput.positionWS - camPosWS) * (1 - 0.001 * rcp(max(dot(normalData.normalWS, viewWS), FLT_EPS)));
+    depthValue = ComputeNormalizedDeviceCoordinatesWithZ(posInput.positionWS, UNITY_MATRIX_VP).z;
+
+    // Ray March along our ray
+    float3 rayPos;
+    bool hit = RayMarch(posInput.positionWS, direction.xyz, normalData.normalWS, posInput.positionSS, depthValue, false, rayPos);
+
+    // If we had a hit, store the NDC position of the intersection point
+    if (hit)
+    {
+        int2 resultCoords = rayPos.xy;
+        uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, resultCoords));
+        if ((stencilValue & _DeferredStencilBit) != 0)
+        {
+            // Compute the depth of the result hit point
+            float resultDepth = LOAD_TEXTURE2D_X(_DepthTexture, resultCoords).x;
+
+            // Compute the world position of this pixel
+            PositionInputs resultPosInput = GetPositionInput(resultCoords, _ScreenSize.zw, resultDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+
+            // Ray Marching Distance
+            float distance = length(resultPosInput.positionWS - positionWS);
+
+            if (distance < _RaytracingRayMaxLength)
+            {
+                // Write the properties of this pixel
+                _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = length(resultPosInput.positionWS - positionWS);
+
+                // Read the bsdf data and builtin data from the gbuffer at the target hitpoint
+                BSDFData bsdfData;
+                ZERO_INITIALIZE(BSDFData, bsdfData);
+                BuiltinData builtinData;
+                ZERO_INITIALIZE(BuiltinData, builtinData);
+                uint  featureFlags = UINT_MAX;
+                DecodeFromGBuffer(resultCoords, featureFlags, bsdfData, builtinData);
+                builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
+
+                // Fit the data to the standard lit model
+                StandardBSDFData standardLitData;
+                ZERO_INITIALIZE(StandardBSDFData, standardLitData);
+                standardLitData.shadowMasks = 1;
+                standardLitData.renderingLayers = DEFAULT_LIGHT_LAYERS;
+                FitToStandardLit(bsdfData, builtinData, resultCoords, standardLitData);
+
+                // Encode the standard lit into the gbuffer
+                float4 gbuffer0;
+                float4 gbuffer1;
+                float4 gbuffer2;
+                float4 gbuffer3;
+                EncodeIntoStandardGBuffer(standardLitData, gbuffer0, gbuffer1, gbuffer2, gbuffer3);
+
+                // Export the Gbuffer
+                _GBufferTexture0RW[COORD_TEXTURE2D_X(currentCoord)] = float4(LinearToSRGB(gbuffer0.xyz), gbuffer0.w);
+                _GBufferTexture1RW[COORD_TEXTURE2D_X(currentCoord)] = gbuffer1;
+                _GBufferTexture2RW[COORD_TEXTURE2D_X(currentCoord)] = gbuffer2;
+                _GBufferTexture3RW[COORD_TEXTURE2D_X(currentCoord)] = gbuffer3;
+                _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(direction.xyz, 0.0);
+            }
+        }
+    }
+}

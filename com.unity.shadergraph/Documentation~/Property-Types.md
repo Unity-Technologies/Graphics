@@ -2,7 +2,7 @@
 
 ## Description
 
-**Property Types** are the types of [Property](https://docs.unity3d.com/Manual/SL-Properties.html) than can be defined on the [Blackboard](Blackboard.md) for use in the **Graph**. These [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) will be exposed to the [Inspector](https://docs.unity3d.com/Manual/UsingTheInspector.html) for [Materials](https://docs.unity3d.com/Manual/class-Material.html) that use the shader.
+**Property Types** are the types of [Property](https://docs.unity3d.com/Manual/SL-Properties.html) than can be defined on the [Blackboard](Blackboard.md) for use in the **Graph**. These [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) are exposed to the [Inspector](https://docs.unity3d.com/Manual/UsingTheInspector.html) for [Materials](https://docs.unity3d.com/Manual/class-Material.html) that use the shader.
 
 Each property has an associated **Data Type**. See [Data Types](Data-Types.md) for more information.
 
@@ -23,7 +23,7 @@ NOTE: If you overwrite the **Reference Name** parameter be aware of the followin
 - If your **Reference Name** contains any characters which are unsupported in HLSL they will be removed.
 - You can revert to the default **Reference Name** by right clicking on it and selecting **Reset Reference**.
 
-## Float   
+## Float
 
 Defines a **Float** value.
 
@@ -95,7 +95,7 @@ Defines a **Vector 4** value. Displays a **Vector 4** input field in the materia
 
 ## Color
 
-Defines a **Color** value.
+Defines a **Color** value.  If the Property Inspector displays **Main Color**, this is the [Main Color](https://docs.unity3d.com/Manual/SL-Properties.html) for the shader. To select or deselect this node as the **Main Color**, right-click it in the graph or Blackboard and select **Set as Main Color** or **Clear Main Color**. Corresponds to the [`MainColor`](https://docs.unity3d.com/Manual/SL-Properties.html) ShaderLab Properties attribute.
 
 | Data Type    | Modes |
 |:-------------|:------|
@@ -121,7 +121,7 @@ NOTE: In versions prior to 10.0, Shader Graph didn't correct HDR colors for the 
 
 ## Texture 2D
 
-Defines a [Texture 2D](https://docs.unity3d.com/Manual/class-TextureImporter.html) value. Displays an object field of type [Texture](https://docs.unity3d.com/Manual/class-TextureImporter.html) in the material inspector.
+Defines a [Texture 2D](https://docs.unity3d.com/Manual/class-TextureImporter.html) value. Displays an object field of type [Texture](https://docs.unity3d.com/Manual/class-TextureImporter.html) in the material inspector. If the Property Inspector displays **Main Texture**, this is the `Main Texture` for the shader. To select or deselect this node as the `Main Texture`, right-click on it in the graph or Blackboard and select **Set as Main Texture** or **Clear Main Texture**. Corresponds to the [`MainTexture`](https://docs.unity3d.com/2021.2/Documentation/Manual/SL-Properties.html) ShaderLab Properties attribute.
 
 | Data Type    | Modes |
 |:-------------|:------|
@@ -130,6 +130,7 @@ Defines a [Texture 2D](https://docs.unity3d.com/Manual/class-TextureImporter.htm
 | Field        | Type  | Description |
 |:-------------|:------|:------------|
 | Default | Texture | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+| Use Tiling and Offset | Boolean | When set to false, activates the property [NoScaleOffset](https://docs.unity3d.com/Manual/SL-Properties.html), to enable manipulation of scale and offset separately from other texture properties. See [SplitTextureTransformNode](Split-Texture-Transform-Node).|
 
 ## Texture 3D
 
@@ -181,7 +182,7 @@ Defines a [Texture Stack](https://docs.unity3d.com/2020.1/Documentation/Manual/s
 
 ## Boolean
 
-Defines a **Boolean** value. Displays a **ToggleUI** field in the material inspector. Note that internally to the shader this value is a **Float**. The **Boolean** type in [Shader Graph](Shader-Graph.md) is merely for usability. 
+Defines a **Boolean** value. Displays a **ToggleUI** field in the material inspector. Note that internally to the shader this value is a **Float**. The **Boolean** type in Shader Graph is merely for usability.
 
 | Data Type    | Modes |
 |:-------------|:------|

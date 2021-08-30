@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef BUILTINDATA_CS_HLSL
@@ -41,7 +41,9 @@ struct BuiltinData
     real distortionBlur;
     uint renderingLayers;
     float depthOffset;
+    #if defined(UNITY_VIRTUAL_TEXTURING)
     real4 vtPackedFeedback;
+    #endif
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Builtin+LightTransportData
@@ -103,9 +105,15 @@ void GetGeneratedBuiltinDataDebug(uint paramId, BuiltinData builtindata, inout f
         case DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET:
             result = builtindata.depthOffset.xxx;
             break;
+#if defined(UNITY_VIRTUAL_TEXTURING)
         case DEBUGVIEW_BUILTIN_BUILTINDATA_VT_PACKED_FEEDBACK:
             result = builtindata.vtPackedFeedback.xyz;
             break;
+#else
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_VT_PACKED_FEEDBACK:
+            result = 0;
+            break;
+#endif
     }
 }
 

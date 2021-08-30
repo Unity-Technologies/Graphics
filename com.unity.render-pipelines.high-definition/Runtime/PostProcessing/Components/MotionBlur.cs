@@ -3,7 +3,6 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-
     /// <summary>
     /// Determine how the component of the motion vectors coming from the camera are clamped.
     /// </summary>
@@ -52,8 +51,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Motion Blur effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Motion Blur")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Motion-Blur" + Documentation.endURL)]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Motion Blur", typeof(HDRenderPipeline))]
+    [HDRPHelpURLAttribute("Post-Processing-Motion-Blur")]
     public sealed class MotionBlur : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>
@@ -77,38 +76,46 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// If toggled on camera rotation can be clamped differently.
         /// </summary>
+
+        [Header("Camera Velocity")]
+        [AdditionalProperty]
         [Tooltip("If toggled off, the motion caused by the camera is not considered when doing motion blur.")]
         public BoolParameter cameraMotionBlur = new BoolParameter(true);
 
 
         /// <summary>
         /// Determine how the component of the motion vectors coming from the camera is clamped. It is important to remember that clamping the camera component separately, velocities relative to camera might change too (e.g. an object parented to a camera
-        /// when the camera moves might not have a 0 motion vector anymore). 
+        /// when the camera moves might not have a 0 motion vector anymore).
         /// </summary>
+        [AdditionalProperty]
         [Tooltip("Determine if and how the component of the motion vectors coming from the camera is clamped in a special fashion.")]
         public CameraClampModeParameter specialCameraClampMode = new CameraClampModeParameter(CameraClampMode.None);
 
         /// <summary>
         /// Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera movement can have. Only valid if specialCameraClampMode is set to CameraClampMode.FullCameraMotionVector.
         /// </summary>
+        [AdditionalProperty]
         [Tooltip("Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera can have.")]
         public ClampedFloatParameter cameraVelocityClamp = new ClampedFloatParameter(0.05f, 0.0f, 0.3f);
 
         /// <summary>
         /// Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera can have. Only valid if specialCameraClampMode is set to CameraClampMode.Translation or CameraClampMode.SeparateTranslationAndRotation.
         /// </summary>
+        [AdditionalProperty]
         [Tooltip("Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera can have.")]
         public ClampedFloatParameter cameraTranslationVelocityClamp = new ClampedFloatParameter(0.05f, 0.0f, 0.3f);
 
         /// <summary>
         /// Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera rotation can have. Only valid if specialCameraClampMode is set to CameraClampMode.Rotation or CameraClampMode.SeparateTranslationAndRotation.
         /// </summary>
+        [AdditionalProperty]
         [Tooltip("Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera rotation can have.")]
         public ClampedFloatParameter cameraRotationVelocityClamp = new ClampedFloatParameter(0.03f, 0.0f, 0.3f);
 
         /// <summary>
         /// Value used for the depth based weighting of samples. Tweak if unwanted leak of background onto foreground or viceversa is detected.
         /// </summary>
+        [AdditionalProperty]
         [Tooltip("Value used for the depth based weighting of samples. Tweak if unwanted leak of background onto foreground or viceversa is detected.")]
         public ClampedFloatParameter depthComparisonExtent = new ClampedFloatParameter(1.0f, 0.0f, 20.0f);
 

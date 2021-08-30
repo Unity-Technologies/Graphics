@@ -1,6 +1,7 @@
 using System;
+using UnityEngine.Experimental.Rendering.Universal;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal interface IPixelPerfectCamera
     {
@@ -17,28 +18,28 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [Serializable]
     internal class PixelPerfectCameraInternal : ISerializationCallbackReceiver
     {
-        // Case 1061634: 
+        // Case 1061634:
         // In order for this class to survive hot reloading, we need to make the fields serializable.
-        // Unity can't serialize an interface object, but does properly serialize UnityEngine.Object. 
-        // So we cast the reference to PixelPerfectCamera (which inherits UnityEngine.Object) 
+        // Unity can't serialize an interface object, but does properly serialize UnityEngine.Object.
+        // So we cast the reference to PixelPerfectCamera (which inherits UnityEngine.Object)
         // before serialization happens, and restore the interface reference after deserialization.
         [NonSerialized]
         IPixelPerfectCamera m_Component;
         PixelPerfectCamera m_SerializableComponent;
 
-        internal float  originalOrthoSize;
-        internal bool   hasPostProcessLayer;
-        internal bool   cropFrameXAndY      = false;
-        internal bool   cropFrameXOrY       = false;
-        internal bool   useStretchFill      = false;
-        internal int    zoom                = 1;
-        internal bool   useOffscreenRT      = false;
-        internal int    offscreenRTWidth    = 0;
-        internal int    offscreenRTHeight   = 0;
-        internal Rect   pixelRect           = Rect.zero;
-        internal float  orthoSize           = 1.0f;
-        internal float  unitsPerPixel       = 0.0f;
-        internal int    cinemachineVCamZoom = 1;
+        internal float originalOrthoSize;
+        internal bool hasPostProcessLayer;
+        internal bool cropFrameXAndY = false;
+        internal bool cropFrameXOrY = false;
+        internal bool useStretchFill = false;
+        internal int zoom = 1;
+        internal bool useOffscreenRT = false;
+        internal int offscreenRTWidth = 0;
+        internal int offscreenRTHeight = 0;
+        internal Rect pixelRect = Rect.zero;
+        internal float orthoSize = 1.0f;
+        internal float unitsPerPixel = 0.0f;
+        internal int cinemachineVCamZoom = 1;
 
         internal PixelPerfectCameraInternal(IPixelPerfectCamera component)
         {

@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.LookDev
         }
 
         static int FirstVisibleIndex(ListView listView)
-            => (int)(listView.Q<ScrollView>().scrollOffset.y / listView.itemHeight);
+            => (int)(listView.Q<ScrollView>().scrollOffset.y / (int)listView.fixedItemHeight);
 
         void CreateEnvironment()
         {
@@ -75,7 +75,7 @@ namespace UnityEditor.Rendering.LookDev
             m_EnvironmentList = new ListView();
             m_EnvironmentList.AddToClassList("list-environment");
             m_EnvironmentList.selectionType = SelectionType.Single;
-            m_EnvironmentList.itemHeight = EnvironmentElement.k_SkyThumbnailHeight;
+            m_EnvironmentList.fixedItemHeight = EnvironmentElement.k_SkyThumbnailHeight;
             m_EnvironmentList.makeItem = () =>
             {
                 var preview = new Image();
@@ -125,8 +125,8 @@ namespace UnityEditor.Rendering.LookDev
 #if UNITY_2020_1_OR_NEWER
             m_EnvironmentList.onItemsChosen += objCollection =>
             {
-                foreach(var obj in objCollection)
-                    EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary?[(int)obj]);
+                foreach (var obj in objCollection)
+                    EditorGUIUtility.PingObject(LookDev.currentContext.environmentLibrary ? [(int)obj]);
             };
 #else
             m_EnvironmentList.onItemChosen += obj =>
@@ -195,7 +195,7 @@ namespace UnityEditor.Rendering.LookDev
             listContainer.AddToClassList("list-environment");
             listContainer.Add(m_EnvironmentList);
             listContainer.Add(m_EnvironmentListToolbar);
-            
+
             m_LibraryField = new ObjectField("Library")
             {
                 tooltip = "The currently used library"
@@ -229,7 +229,7 @@ namespace UnityEditor.Rendering.LookDev
             //add ability to unselect
             m_EnvironmentList.RegisterCallback<MouseDownEvent>(evt =>
             {
-                var clickedIndex = (int)(evt.localMousePosition.y / m_EnvironmentList.itemHeight);
+                var clickedIndex = (int)(evt.localMousePosition.y / (int)m_EnvironmentList.fixedItemHeight);
                 if (clickedIndex >= m_EnvironmentList.itemsSource.Count)
                 {
                     m_EnvironmentList.selectedIndex = -1;
@@ -286,11 +286,12 @@ namespace UnityEditor.Rendering.LookDev
                         .Q(className: "unity-scroll-view__vertical-scroller")
                         .Q("unity-dragger")
                         .style.visibility = itemMax == 0
-                            ? Visibility.Hidden
-                            : Visibility.Visible;
+                        ? Visibility.Hidden
+                        : Visibility.Visible;
                     m_EnvironmentListToolbar.style.visibility = Visibility.Visible;
                     m_NoEnvironmentList.style.display = DisplayStyle.None;
                 }
+                m_EnvironmentList.RefreshItems();
             }
         }
 
@@ -300,7 +301,7 @@ namespace UnityEditor.Rendering.LookDev
                 item as Image,
                 //note: this even can come before the selection event of the
                 //ListView. Reconstruct index by looking at target of the event.
-                (int)item.layout.y / m_EnvironmentList.itemHeight,
+                (int)item.layout.y / (int)m_EnvironmentList.fixedItemHeight,
                 worldPosition);
 
         void EndDragging(DraggingContext context, Vector2 mouseWorldPosition)
@@ -435,7 +436,7 @@ namespace UnityEditor.Rendering.LookDev
 
             RefreshLibraryDisplay();
         }
-        
+
         void OnFocus()
         {
             //OnFocus is called before OnEnable that open backend if not already opened, so only sync if backend is open
@@ -475,7 +476,7 @@ namespace UnityEditor.Rendering.LookDev
         {
             if (LookDev.currentContext.environmentLibrary != null)
                 LookDev.currentContext.FullReimportEnvironmentLibrary();
-            
+
             ((IEnvironmentDisplayer)this).Repaint();
         }
     }

@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public enum MaterialFeatureFlags
         {
             HairKajiyaKay = 1 << 0,
+            HairMarschner = 1 << 1
         };
 
         //-----------------------------------------------------------------------------
@@ -33,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float specularOcclusion;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true, checkIsNormalized = true)]
+            [SurfaceDataAttributes(new string[] { "Normal", "Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3 normalWS;
 
             [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, checkIsNormalized = true)]
@@ -70,6 +71,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [SurfaceDataAttributes("Secondary Specular Shift")]
             public float secondarySpecularShift;
+
+            // Marschner
+            [SurfaceDataAttributes("Azimuthal Roughness")]
+            public float perceptualRadialSmoothness;
+            [SurfaceDataAttributes("Cuticle Angle")]
+            public float cuticleAngle;
         };
 
         //-----------------------------------------------------------------------------
@@ -99,12 +106,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public float perceptualRoughness;
 
             public Vector3 transmittance;
-            public float   rimTransmissionIntensity;
+            public float rimTransmissionIntensity;
 
             // Anisotropic
             [SurfaceDataAttributes("", true)]
             public Vector3 hairStrandDirectionWS;
             public float anisotropy;
+
+            // TEMP: Pathtracer Compatibility.
+            // Path tracer assumes this anisotropic fields generally exist (even though we don't use them).
+            public Vector3 tangentWS;
+            public Vector3 bitangentWS;
+            public float roughnessT;
+            public float roughnessB;
 
             // Kajiya kay
             public float secondaryPerceptualRoughness;
@@ -113,6 +127,21 @@ namespace UnityEngine.Rendering.HighDefinition
             public float secondarySpecularExponent;
             public float specularShift;
             public float secondarySpecularShift;
+
+            // Marschner
+            public Vector3 absorption;
+
+            public float lightPathLength;
+
+            public float cuticleAngleR;
+            public float cuticleAngleTT;
+            public float cuticleAngleTRT;
+
+            public float roughnessR;
+            public float roughnessTT;
+            public float roughnessTRT;
+
+            public float roughnessRadial;
         };
 
 
@@ -120,12 +149,16 @@ namespace UnityEngine.Rendering.HighDefinition
         // Init precomputed texture
         //-----------------------------------------------------------------------------
 
-        public Hair() {}
+        private Texture2D m_PreIntegratedAzimuthalScatteringLUT;
 
-        public override void Build(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
+        public Hair() { }
+
+        public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Build();
+
+            m_PreIntegratedAzimuthalScatteringLUT = defaultResources.textures.preintegratedAzimuthalScattering;
         }
 
         public override void Cleanup()
@@ -143,6 +176,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             PreIntegratedFGD.instance.Bind(cmd, PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Bind(cmd);
+
+            if (m_PreIntegratedAzimuthalScatteringLUT != null)
+                cmd.SetGlobalTexture(HDShaderIDs._PreIntegratedAzimuthalScattering, m_PreIntegratedAzimuthalScatteringLUT);
         }
     }
 }

@@ -18,4 +18,3 @@ The **Direction** inline Operator allows you to store an instance of a [Directio
 | **Output** | Direction   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

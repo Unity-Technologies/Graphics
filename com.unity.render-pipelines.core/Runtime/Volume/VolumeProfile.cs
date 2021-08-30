@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// An Asset which holds a set of settings to use with a <see cref="Volume"/>.
     /// </summary>
-    [HelpURL(Documentation.baseURLHDRP + Documentation.version + Documentation.subURL + "Volume-Profile" + Documentation.endURL)]
+    [CoreRPHelpURL("Volume-Profile", "com.unity.render-pipelines.high-definition")]
     public sealed class VolumeProfile : ScriptableObject
     {
         /// <summary>
@@ -283,7 +283,6 @@ namespace UnityEngine.Rendering
 
             return count != result.Count;
         }
-
 
         /// <summary>
         /// A custom hashing function that Unity uses to compare the state of parameters.

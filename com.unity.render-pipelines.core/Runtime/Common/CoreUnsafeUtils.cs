@@ -402,7 +402,6 @@ namespace UnityEngine.Rendering
                 var h = getter.Get(ref v);
                 HashUtilities.AppendHash(ref h, ref *outHash);
             }
-
         }
 
         /// <summary>

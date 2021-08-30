@@ -42,7 +42,7 @@ namespace UnityEngine.VFX.Utility
         /// </summary>
         protected virtual void OnDisable()
         {
-            if(m_VisualEffect != null)
+            if (m_VisualEffect != null)
                 m_VisualEffect.outputEventReceived -= OnOutputEventRecieved;
         }
 
@@ -61,6 +61,5 @@ namespace UnityEngine.VFX.Utility
         /// </summary>
         /// <param name="eventAttribute">The VFXEventAttribute handling properties from the spawn event.</param>
         public abstract void OnVFXOutputEvent(VFXEventAttribute eventAttribute);
-
     }
 }

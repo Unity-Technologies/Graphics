@@ -1,0 +1,10 @@
+default_stages: [commit]
+repos:
+  - repo: git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git
+    rev: 14104d8
+    hooks:
+      - id: file-extension-to-lowercase
+      - id: check-shader-includes
+      - id: format-code
+      - id: check-branch-name
+        stages: [push]

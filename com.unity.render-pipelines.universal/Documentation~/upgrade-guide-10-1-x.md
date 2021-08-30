@@ -22,7 +22,7 @@ If you intend to use the SSAO effect with your custom shaders, consider the foll
 
 * The `_SCREEN_SPACE_OCCLUSION` keyword.
 
-* `Input.hlsl` contains the new declaration `float2  normalizedScreenSpaceUV` in the `InputData` struct. 
+* `Input.hlsl` contains the new declaration `float2  normalizedScreenSpaceUV` in the `InputData` struct.
 
 * `Lighting.hlsl` contains the `AmbientOcclusionFactor` struct with the variables for calculating indirect and direct occlusion:
 
@@ -53,6 +53,6 @@ If your custom shader implements custom lighting functions, use the function `Ge
 
 ## Upgrading from URP 7.0.x-7.1.x
 
-1. Upgrade to URP 7.2.0 first. Refer to [Upgrading to version 7.2.0 of the Universal Render Pipeline](upgrade-guide-7-2-0).
+1. Upgrade to URP 7.2.0 first. Refer to [Upgrading to version 7.2.0 of the Universal Render Pipeline](upgrade-guide-7-2-0.md).
 
 2. URP 8.x.x does not support the package Post-Processing Stack v2. If your Project uses the package Post-Processing Stack v2, migrate the effects that use that package first.

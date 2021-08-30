@@ -1,6 +1,6 @@
 # Subtract
 
-Menu Path : **Operator > Math > Arithmetic > Subtract** 
+Menu Path : **Operator > Math > Arithmetic > Subtract**
 
 The **Subtract** Operator takes the first input and subtracts all subsequent inputs from it. For example, an input of (1, 2) - (3, 4, 5) outputs (-2, -2, -5), and an input of (1, 2) - 3 outputs (-2, -1).
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
@@ -48,7 +48,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 // Reset UndoGroup when done editing input field
                 mUndoGroup = -1;
             });
-
         }
 
         public Vector3PropertyDrawer()
@@ -63,7 +62,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             out VisualElement propertyVec3Field,
             int indentLevel = 0)
         {
-            var vector3Field = new Vector3Field {value = fieldToDraw};
+            var vector3Field = new Vector3Field { value = fieldToDraw };
 
             var inputFields = vector3Field.Query("unity-text-input").ToList();
             foreach (var inputField in inputFields)
@@ -97,8 +96,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
-                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
-                (Vector3) propertyInfo.GetValue(actualObject),
+                newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] { newValue }),
+                (Vector3)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }

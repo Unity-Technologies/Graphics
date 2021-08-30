@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.Utilities
             for (var i = 0; i < MaterialQualityUtilities.Keywords.Length; ++i)
             {
                 if (keywordSet.IsEnabled(MaterialQualityUtilities.Keywords[i]))
-                    result |= (MaterialQuality) (1 << i);
+                    result |= (MaterialQuality)(1 << i);
             }
 
             return result;

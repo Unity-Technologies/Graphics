@@ -27,9 +27,9 @@ namespace UnityEditor.ShaderGraph
         public ColorNode()
         {
             name = "Color";
+            synonyms = new string[] { "rgba" };
             UpdateNodeAfterDeserialization();
         }
-
 
         [SerializeField]
         Color m_Color = new Color(UnityEngine.Color.clear, ColorMode.Default);
@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph
                     break;
                 case 1:
                     //HDR color picker assumes Linear space, regular color picker assumes SRGB. Handle both cases
-                    if(color.mode == ColorMode.Default)
+                    if (color.mode == ColorMode.Default)
                     {
                         sb.AppendLine(@"$precision4 {0} = IsGammaSpace() ? $precision4({1}, {2}, {3}, {4}) : $precision4(SRGBToLinear($precision3({1}, {2}, {3})), {4});"
                             , GetVariableNameForNode()
@@ -147,7 +147,7 @@ namespace UnityEditor.ShaderGraph
                 switch (sgVersion)
                 {
                     case 0:
-                        if(PlayerSettings.colorSpace == ColorSpace.Linear)
+                        if (PlayerSettings.colorSpace == ColorSpace.Linear)
                             propColor = propColor.linear;
                         break;
                     case 1:

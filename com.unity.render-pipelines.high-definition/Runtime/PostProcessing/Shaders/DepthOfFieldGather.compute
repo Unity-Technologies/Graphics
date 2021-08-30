@@ -2,7 +2,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DepthOfFieldCommon.hlsl"
 
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel KMainNear MAIN=KMainNear  NEAR
 #pragma kernel KMainFar  MAIN=KMainFar FAR
@@ -43,7 +43,7 @@ CBUFFER_START(cb0)
 CBUFFER_END
 
 #define SampleCount         _Params.x
-#define TotalSampleCount    _Params.y
+#define ScaledRadius        _Params.y
 #define BarrelClipping      _Params.z
 #define Radius              _Params.w
 
@@ -89,12 +89,12 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
     const float kMaxMips = 4.0;
-    float2 sampDist = _TexelSize.zw * samp0CoC * Radius;
+    float2 sampDist = _PostProcessScreenSize.zw * samp0CoC * Radius;
 
 #if NEAR
     float mip = 0.0;
 #else
-    float mip = min(kMaxMips, (1.0 / (SampleCount - 1.5)) * samp0CoC * Radius);
+    float mip = min(kMaxMips, (1.0 / (SampleCount - 1.5)) * samp0CoC * ScaledRadius);
 #endif
 
     uint mipCeiled = ceil(mip);
@@ -104,6 +104,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     float nearWeightAcc = 0.0;
     float accAlpha = 0.0;
 
+    float TotalSampleCount = SampleCount * SampleCount;
     // Gather samples
     UNITY_LOOP
     for (uint i = 0u; i < uint(TotalSampleCount); i++)
@@ -116,11 +117,11 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         // low clipping values
         float clipping = 1.0 - abs(dot(sampTap, barrelUV));
         sampTap = sampTap * sampDist * clipping + uv;
-        sampTap = ClampAndScaleUV(sampTap, _TexelSize.zw, texelsToClamp);
+        sampTap = ClampAndScaleUVPostProcessTexture(sampTap, _PostProcessScreenSize.zw, texelsToClamp);
 
         CTYPE sampColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, SamplerTap, sampTap, mip).CTYPE_SWIZZLE;
         float sampCoC = SAMPLE_TEXTURE2D_X_LOD(_InputCoCTexture, SamplerTap, sampTap, mip).x;
-    
+
         #if NEAR
         {
             float weight = saturate(1.0 - (sampCoC - samp0CoC));
@@ -135,7 +136,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
         {
             // Weight & pre-multiply to limit bleeding on the focused area
             float weight = saturate(1.0 - (samp0CoC - sampCoC));
-            acc += float4(sampColor.xyz, sampCoC)* weight;
+            acc += float4(sampColor.xyz, sampCoC) * weight;
 
 #ifdef ENABLE_ALPHA
             accAlpha += sampColor.w * weight;

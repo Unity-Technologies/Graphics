@@ -3,8 +3,9 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ScriptablePath), true)]
@@ -30,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             {
                 if (EditorGUIUtility.isProSkin)
                     return IconContent(pro, tooltip);
-                
+
                 return IconContent(personal, tooltip);
             }
         }
@@ -43,8 +44,8 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             get
             {
                 if (m_Paths == null)
-                    m_Paths = targets.Select( t => t as ScriptablePath).ToList();
-                
+                    m_Paths = targets.Select(t => t as ScriptablePath).ToList();
+
                 return m_Paths;
             }
         }
@@ -59,7 +60,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             if (!IsAnyShapeType(ShapeType.Spline))
                 return;
-            
+
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel(Contents.tangentModeLabel);
 
@@ -102,9 +103,9 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 {
                     if (m_Dragged == false)
                     {
-                        foreach(var path in paths)
+                        foreach (var path in paths)
                             path.undoObject.RegisterUndo("Point Position");
-                        
+
                         m_Dragged = true;
                     }
 
@@ -128,13 +129,13 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 value = GUILayout.Toggle(value, icon, buttonStyle, GUILayout.Width(kButtonWidth), GUILayout.Height(kButtonHeight));
                 changed = check.changed;
             }
-            
+
             return value && changed;
         }
 
         private bool GetToggleStateFromTangentMode(TangentMode mode)
         {
-            foreach(var path in paths)
+            foreach (var path in paths)
             {
                 var selection = path.selection;
 
@@ -142,13 +143,13 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                     if (path.GetPoint(index).tangentMode != mode)
                         return false;
             }
-            
+
             return true;
         }
 
         private void SetMixedTangentMode(TangentMode tangentMode)
         {
-            foreach(var path in paths)
+            foreach (var path in paths)
             {
                 path.undoObject.RegisterUndo("Tangent Mode");
 
@@ -163,38 +164,46 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             var first = true;
             position = Vector3.zero;
+            var activeObject = Selection.activeObject as GameObject;
 
-            foreach(var path in paths)
+            if (Selection.count > 1 || !activeObject)
+                return true;
+            var lightObject = activeObject.GetComponent<Light2D>();
+            var shadowCaster = activeObject.GetComponent<ShadowCaster2D>();
+
+            foreach (var path in paths)
             {
                 var selection = path.selection;
                 var matrix = path.localToWorldMatrix;
-
-                path.localToWorldMatrix = Matrix4x4.identity;
-
-                foreach (var index in selection.elements)
+                if (lightObject == path.owner || shadowCaster == path.owner)
                 {
-                    var controlPoint = path.GetPoint(index);
+                    path.localToWorldMatrix = Matrix4x4.identity;
 
-                    if (first)
+                    foreach (var index in selection.elements)
                     {
-                        position  = controlPoint.position;
-                        first = false;
-                    }
-                    else if (position != controlPoint.position)
-                    {
-                        return true;
+                        var controlPoint = path.GetPoint(index);
+
+                        if (first)
+                        {
+                            position = controlPoint.position;
+                            first = false;
+                        }
+                        else if (position != controlPoint.position)
+                        {
+                            return true;
+                        }
                     }
                 }
 
                 path.localToWorldMatrix = matrix;
             }
-            
+
             return false;
         }
 
         private void SetMixedDeltaPosition(Vector3 delta)
         {
-            foreach(var path in paths)
+            foreach (var path in paths)
             {
                 var selection = path.selection;
                 var matrix = path.localToWorldMatrix;
@@ -214,7 +223,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
         private bool IsAnyShapeType(ShapeType shapeType)
         {
-            foreach(var path in paths)
+            foreach (var path in paths)
                 if (path.shapeType == shapeType)
                     return true;
 
@@ -223,7 +232,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
         protected bool IsAnyPointSelected()
         {
-            foreach(var path in paths)
+            foreach (var path in paths)
                 if (path.selection.Count > 0)
                     return true;
 

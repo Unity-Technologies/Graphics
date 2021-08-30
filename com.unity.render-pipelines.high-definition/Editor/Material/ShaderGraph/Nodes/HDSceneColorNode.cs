@@ -17,15 +17,16 @@ namespace UnityEditor.Rendering.HighDefinition
         public HDSceneColorNode()
         {
             name = "HD Scene Color";
+            synonyms = new string[] { "screen buffer" };
             UpdateNodeAfterDeserialization();
         }
 
         public override string documentationURL => Documentation.GetPageLink("SGNode-HD-Scene-Color");
 
         [SerializeField]
-        bool                m_Exposure;
+        bool m_Exposure;
         [ToggleControl]
-        public ToggleData   exposure
+        public ToggleData exposure
         {
             get => new ToggleData(m_Exposure);
             set
@@ -49,9 +50,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             AddSlot(new ScreenPositionMaterialSlot(kUvInputSlotId, kUvInputSlotName, kUvInputSlotName, ScreenSpaceType.Default));
             AddSlot(new Vector1MaterialSlot(kLodInputSlotId, kLodInputSlotName, kLodInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
-            AddSlot(new ColorRGBMaterialSlot(kColorOutputSlotId, kColorOutputSlotName, kColorOutputSlotName , SlotType.Output, Color.black, ColorMode.HDR));
+            AddSlot(new ColorRGBMaterialSlot(kColorOutputSlotId, kColorOutputSlotName, kColorOutputSlotName, SlotType.Output, Color.black, ColorMode.HDR));
 
-            RemoveSlotsNameNotMatching(new[] {
+            RemoveSlotsNameNotMatching(new[]
+            {
                 kUvInputSlotId,
                 kLodInputSlotId,
                 kColorOutputSlotId,
@@ -60,34 +62,34 @@ namespace UnityEditor.Rendering.HighDefinition
 
         string GetFunctionName()
         {
-            return $"Unity_HDRP_SampleSceneColor_{concretePrecision.ToShaderString()}";
+            return "Unity_HDRP_SampleSceneColor_$precision";
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine("$precision3 {0}($precision2 uv, $precision lod, $precision exposureMultiplier)", GetFunctionName());
+                using (s.BlockScope())
                 {
-                    s.AppendLine("$precision3 {0}($precision2 uv, $precision lod, $precision exposureMultiplier)", GetFunctionName());
-                    using (s.BlockScope())
+                    if (generationMode.IsPreview())
                     {
-                        if (generationMode.IsPreview())
-                        {
-                            s.AppendLine("// Sampling the scene color is not supported in the preview");
-                            s.AppendLine("return $precision3(0.0, 0.0, 0.0);");
-                        }
-                        else
-                        {
-                            if (exposure.isOn)
-                            {
-                                s.AppendLine("exposureMultiplier = 1.0;");
-                            }
-                            s.AppendLine("#if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)");
-                            s.AppendLine("return SampleCameraColor(uv, lod) * exposureMultiplier;");
-                            s.AppendLine("#endif");
-                            s.AppendLine("return $precision3(0.0, 0.0, 0.0);");
-                        }
+                        s.AppendLine("// Sampling the scene color is not supported in the preview");
+                        s.AppendLine("return $precision3(0.0, 0.0, 0.0);");
                     }
-                });
+                    else
+                    {
+                        if (exposure.isOn)
+                        {
+                            s.AppendLine("exposureMultiplier = 1.0;");
+                        }
+                        s.AppendLine("#if defined(REQUIRE_OPAQUE_TEXTURE) && defined(_SURFACE_TYPE_TRANSPARENT) && defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)");
+                        s.AppendLine("return SampleCameraColor(uv, lod) * exposureMultiplier;");
+                        s.AppendLine("#endif");
+                        s.AppendLine("return $precision3(0.0, 0.0, 0.0);");
+                    }
+                }
+            });
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)

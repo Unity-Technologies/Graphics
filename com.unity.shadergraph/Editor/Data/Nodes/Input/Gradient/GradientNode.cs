@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph
         public GradientNode()
         {
             name = "Gradient";
+            synonyms = new string[] { "ramp" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -120,7 +121,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            if(!generationMode.IsPreview())
+            if (!generationMode.IsPreview())
                 return;
 
             base.CollectShaderProperties(properties, generationMode);

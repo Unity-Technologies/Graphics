@@ -41,13 +41,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         Vector3 GetExtents(ProxyShape shape)
+        {
+            switch (shape)
             {
-                switch (shape)
-                {
-                    case ProxyShape.Box: return m_BoxSize * 0.5f;
-                    case ProxyShape.Sphere: return Vector3.one * m_SphereRadius;
-                    default: return Vector3.one;
-                }
+                case ProxyShape.Box: return m_BoxSize * 0.5f;
+                case ProxyShape.Sphere: return Vector3.one * m_SphereRadius;
+                default: return Vector3.one;
             }
         }
+    }
 }

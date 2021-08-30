@@ -2,6 +2,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -29,15 +30,15 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var o = new PropertyFetcher<Tonemapping>(serializedObject);
 
-            m_Mode             = Unpack(o.Find(x => x.mode));
-            m_ToeStrength      = Unpack(o.Find(x => x.toeStrength));
-            m_ToeLength        = Unpack(o.Find(x => x.toeLength));
+            m_Mode = Unpack(o.Find(x => x.mode));
+            m_ToeStrength = Unpack(o.Find(x => x.toeStrength));
+            m_ToeLength = Unpack(o.Find(x => x.toeLength));
             m_ShoulderStrength = Unpack(o.Find(x => x.shoulderStrength));
-            m_ShoulderLength   = Unpack(o.Find(x => x.shoulderLength));
-            m_ShoulderAngle    = Unpack(o.Find(x => x.shoulderAngle));
-            m_Gamma            = Unpack(o.Find(x => x.gamma));
-            m_LutTexture       = Unpack(o.Find(x => x.lutTexture));
-            m_LutContribution  = Unpack(o.Find(x => x.lutContribution));
+            m_ShoulderLength = Unpack(o.Find(x => x.shoulderLength));
+            m_ShoulderAngle = Unpack(o.Find(x => x.shoulderAngle));
+            m_Gamma = Unpack(o.Find(x => x.gamma));
+            m_LutTexture = Unpack(o.Find(x => x.lutTexture));
+            m_LutContribution = Unpack(o.Find(x => x.lutContribution));
 
             m_Material = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/Custom Tonemapper Curve"));
         }
@@ -61,11 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
 
                 // Reserve GUI space
-                using (new GUILayout.HorizontalScope())
-                {
-                    GUILayout.Space(EditorGUI.indentLevel * 15f);
-                    m_CurveRect = GUILayoutUtility.GetRect(128, 80);
-                }
+                m_CurveRect = GUILayoutUtility.GetRect(128, 80);
+                m_CurveRect.xMin += EditorGUI.indentLevel * 15f;
 
                 if (Event.current.type == EventType.Repaint)
                 {
@@ -125,7 +123,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 PropertyField(m_LutContribution, EditorGUIUtility.TrTextContent("Contribution"));
 
-                EditorGUILayout.HelpBox("Use \"Edit > Render Pipeline > HD Render Pipeline > Render Selected Camera to Log EXR\" to export a log-encoded frame for external grading.", MessageType.Info);
+                EditorGUILayout.HelpBox("Use \"Edit > Rendering > Render Selected HDRP Camera to Log EXR\" to export a log-encoded frame for external grading.", MessageType.Info);
             }
         }
 
@@ -134,7 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_CurveTex == null || !m_CurveTex.IsCreated() || m_CurveTex.width != width || m_CurveTex.height != height)
             {
                 CoreUtils.Destroy(m_CurveTex);
-                m_CurveTex = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
+                m_CurveTex = new RenderTexture(width, height, 0, GraphicsFormat.R8G8B8A8_SRGB);
                 m_CurveTex.hideFlags = HideFlags.HideAndDontSave;
             }
         }
@@ -142,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
     sealed class ExrExportMenu
     {
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Render Selected Camera to Log EXR %#&e")]
+        [MenuItem("Edit/Rendering/Render Selected HDRP Camera to Log EXR %#&e", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.editMenuPriority + 1)]
         static void Export()
         {
             var camera = Selection.activeGameObject?.GetComponent<Camera>();
@@ -168,8 +166,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var w = camera.pixelWidth;
             var h = camera.pixelHeight;
-            var texOut = new Texture2D(w, h, TextureFormat.RGBAFloat, false, true);
-            var target = RenderTexture.GetTemporary(w, h, 24, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+            var texOut = new Texture2D(w, h, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
+            var target = RenderTexture.GetTemporary(w, h, 24, GraphicsFormat.R32G32B32A32_SFloat);
             var lastActive = RenderTexture.active;
             var lastTargetSet = camera.targetTexture;
 

@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph
         public VoronoiNode()
         {
             name = "Voronoi";
+            synonyms = new string[] { "worley noise" };
         }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -25,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(4, Binding.None)] out Vector1 Cells)
         {
             return
-                @"
+@"
 {
     $precision2 g = floor(UV * CellDensity);
     $precision2 f = frac(UV * CellDensity);
@@ -54,7 +55,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            registry.ProvideFunction($"Unity_Voronoi_RandomVector_{concretePrecision.ToShaderString()}", s => s.Append(@"
+            registry.ProvideFunction("Unity_Voronoi_RandomVector_$precision", s => s.Append(@"
 inline $precision2 Unity_Voronoi_RandomVector_$precision ($precision2 UV, $precision offset)
 {
     $precision2x2 m = $precision2x2(15.27, 47.63, 99.41, 89.98);

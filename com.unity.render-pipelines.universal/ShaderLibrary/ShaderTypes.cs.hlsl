@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef SHADERTYPES_CS_HLSL
@@ -13,14 +13,7 @@ struct LightData
     float4 attenuation;
     float4 spotDirection;
     float4 occlusionProbeChannels;
-};
-
-// Generated from UnityEngine.Rendering.Universal.ShaderInput+ShadowData
-// PackingRules = Exact
-struct ShadowData
-{
-    float4x4 worldToShadowMatrix;
-    float4 shadowParams;
+    uint layerMask;
 };
 
 

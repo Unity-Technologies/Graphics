@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_SpecularAA;
             set => m_SpecularAA = value;
         }
-        
+
         // TODO: Was on HDLitMasterNode but seemingly replaced by a Port
         // [SerializeField]
         // float m_SpecularAAScreenSpaceVariance;

@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 // no declaration from ShaderGraph side -- declared by SRP internal include files
             }
 
-            internal override string GetPropertyAsArgumentString()
+            internal override string GetPropertyAsArgumentString(string precisionString)
             {
                 return String.Empty;
             }
@@ -30,15 +30,15 @@ namespace UnityEditor.ShaderGraph.Internal
         };
 
         public static readonly LightmapTextureArrayProperty kLightmapsIndirectionArray = new LightmapTextureArrayProperty()
-            {
-                displayName = "unity_LightmapsInd",
-                generatePropertyBlock = true,
-                overrideHLSLDeclaration = false,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                hidden = true,
-                modifiable = true,
-                overrideReferenceName = "unity_LightmapsInd",
-                precision = Precision.Single
+        {
+            displayName = "unity_LightmapsInd",
+            generatePropertyBlock = true,
+            overrideHLSLDeclaration = false,
+            hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+            hidden = true,
+            modifiable = true,
+            overrideReferenceName = "unity_LightmapsInd",
+            precision = Precision.Single
         };
 
         public static readonly LightmapTextureArrayProperty kShadowMasksArray = new LightmapTextureArrayProperty()

@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public HyperbolicTangentNode()
         {
             name = "Hyperbolic Tangent";
+            synonyms = new string[] { "tanh" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = tanh(In);
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using System.Linq;
+using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -14,17 +15,17 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// Wrapper to handle Material UI Blocks, it will handle initialization of the blocks when drawing the GUI.
     /// </summary>
-    class MaterialUIBlockList : List<MaterialUIBlock>
+    public class MaterialUIBlockList : List<MaterialUIBlock>
     {
         [System.NonSerialized]
-        bool                        m_Initialized = false;
+        bool m_Initialized = false;
 
-        Material[]                  m_Materials;
+        Material[] m_Materials;
 
         /// <summary>
         /// Parent of the ui block list, in case of nesting (Layered Lit material)
         /// </summary>
-        public MaterialUIBlockList  parent;
+        public MaterialUIBlockList parent;
 
         /// <summary>
         /// List of materials currently selected in the inspector
@@ -40,11 +41,10 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Construct a ui block list
         /// </summary>
-        /// <returns></returns>
-        public MaterialUIBlockList() : this(null) {}
+        public MaterialUIBlockList() : this(null) { }
 
         /// <summary>
-        /// Render the list of ui blocks added contained in the materials property
+        /// Render the list of ui blocks
         /// </summary>
         /// <param name="materialEditor"></param>
         /// <param name="properties"></param>
@@ -55,16 +55,30 @@ namespace UnityEditor.Rendering.HighDefinition
             Initialize(materialEditor, properties);
             foreach (var uiBlock in this)
             {
-                // We load material properties at each frame because materials can be animated and to make undo/redo works
-                uiBlock.UpdateMaterialProperties(properties);
-                uiBlock.OnGUI();
+                try
+                {
+                    // We load material properties at each frame because materials can be animated and to make undo/redo works
+                    uiBlock.UpdateMaterialProperties(properties);
+                    uiBlock.OnGUI();
+                }
+                // Never catch ExitGUIException as they are used to handle color picker and object pickers.
+                catch (ExitGUIException)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
         }
 
         /// <summary>
-        /// Initialize the ui blocks, can be called at every frame, a guard is prevents more that one initialization
+        /// Initialize the ui blocks
         /// <remarks>This function is called automatically by MaterialUIBlockList.OnGUI so you only need this when you want to render the UI Blocks in a custom order</remarks>
         /// </summary>
+        /// <param name="materialEditor">Material editor instance.</param>
+        /// <param name="properties">The list of properties in the inspected material(s).</param>
         public void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties)
         {
             if (!m_Initialized)
@@ -82,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <typeparam name="T">MaterialUIBlock type</typeparam>
         /// <returns></returns>
-        public T FetchUIBlock< T >() where T : MaterialUIBlock
+        public T FetchUIBlock<T>() where T : MaterialUIBlock
         {
             return this.FirstOrDefault(uiBlock => uiBlock is T) as T;
         }

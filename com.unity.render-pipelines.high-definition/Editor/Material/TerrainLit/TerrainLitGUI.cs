@@ -14,42 +14,39 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class TerrainLitGUI : HDShaderGUI, ITerrainLayerCustomUI
     {
-        const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit;
+        const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveDecal;
+        const AdvancedOptionsUIBlock.Features advancedOptionsFeatures = AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion;
 
         [Flags]
         enum Expandable
         {
-            Terrain     = 1 << 0,
+            Terrain = 1 << 1,
         }
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: surfaceOptionFeatures),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing),
+            new SurfaceOptionUIBlock(MaterialUIBlock.ExpandableBit.Base, features: surfaceOptionFeatures),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, features: advancedOptionsFeatures),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             FindMaterialProperties(props);
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                uiBlocks.Initialize(materialEditor, props);
-                uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().UpdateMaterialProperties(props);
-                uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().OnGUI();
 
-                // TODO: move the terrain UI to a MaterialUIBlock to clarify the code
-                DrawTerrainGUI(materialEditor);
+            uiBlocks.Initialize(materialEditor, props);
+            uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
+            uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().OnGUI();
 
-                uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().UpdateMaterialProperties(props);
-                uiBlocks.FetchUIBlock< AdvancedOptionsUIBlock >().OnGUI();
+            // TODO: move the terrain UI to a MaterialUIBlock to clarify the code
+            DrawTerrainGUI(materialEditor);
 
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
-            }
+            uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().UpdateMaterialProperties(props);
+            uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().OnGUI();
         }
 
         private class StylesLayer
         {
-            public readonly string terrainText = "Terrain";
+            public GUIContent header { get; } = EditorGUIUtility.TrTextContent("Terrain");
             public readonly GUIContent enableHeightBlend = new GUIContent("Enable Height-based Blend", "Blend terrain layers based on height values.");
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
             public readonly GUIContent enableInstancedPerPixelNormal = new GUIContent("Enable Per-pixel Normal", "Enable per-pixel normal when the terrain uses instanced rendering.");
@@ -129,12 +126,12 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material material)
+        static public void SetupTerrainLitKeywordsAndPass(Material material)
         {
             BaseLitGUI.SetupBaseLitKeywords(material);
             BaseLitGUI.SetupBaseLitMaterialPass(material);
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
-                        : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
+                : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
             BaseLitGUI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
 
             // TODO: planar/triplannar support
@@ -165,7 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (enableHeightBlend == null && enableInstancedPerPixelNormal == null && customProperties.Count == 0)
                 return;
 
-            using (var header = new MaterialHeaderScope(styles.terrainText, (uint)Expandable.Terrain, materialEditor))
+            using (var header = new MaterialHeaderScope(styles.header, (uint)Expandable.Terrain, materialEditor))
             {
                 if (header.expanded)
                 {
@@ -374,6 +371,6 @@ namespace UnityEditor.Rendering.HighDefinition
             return true;
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => SetupTerrainLitKeywordsAndPass(material);
     }
 } // namespace UnityEditor

@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             clearAlpha = true;
             imageFitMode = BackgroundFitMode.Stretch;
 
-            if (layerFilters !=null)
+            if (layerFilters != null)
             {
                 layerFilters.Clear();
                 layerFilters = null;

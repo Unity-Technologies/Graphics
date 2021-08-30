@@ -8,12 +8,12 @@ namespace UnityEditor.Rendering.HighDefinition
     struct LightUnitSliderUIDescriptor
     {
         public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution,
-            string cautionTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
+                                           string cautionTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
             : this(valueRanges, sliderDistribution, cautionTooltip, cautionTooltip, unitName, hasMarkers, clampValue)
-        {}
+        { }
 
         public LightUnitSliderUIDescriptor(LightUnitSliderUIRange[] valueRanges, float[] sliderDistribution, string belowRangeTooltip,
-            string aboveRangeTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
+                                           string aboveRangeTooltip, string unitName, bool hasMarkers = true, bool clampValue = false)
         {
             this.valueRanges = valueRanges;
             this.belowRangeTooltip = belowRangeTooltip;
@@ -42,9 +42,9 @@ namespace UnityEditor.Rendering.HighDefinition
     struct LightUnitSliderUIRange
     {
         public LightUnitSliderUIRange(Texture2D icon, string tooltip, Vector2 value)
-            // If no preset value provided, then by default it is the average of the value range.
+        // If no preset value provided, then by default it is the average of the value range.
             : this(icon, tooltip, value, 0.5f * (value.x + value.y))
-        {}
+        { }
 
         public LightUnitSliderUIRange(Texture2D icon, string tooltip, Vector2 value, float presetValue)
         {
@@ -61,24 +61,24 @@ namespace UnityEditor.Rendering.HighDefinition
         public static LightUnitSliderUIRange CautionRange(string tooltip, float value) => new LightUnitSliderUIRange
         {
             // Load the buildin caution icon with provided tooltip.
-            content = new GUIContent( EditorGUIUtility.TrIconContent("console.warnicon").image, tooltip),
+            content = new GUIContent(EditorGUIUtility.TrIconContent("console.warnicon").image, tooltip),
             value = new Vector2(-1, value),
             presetValue = -1
         };
 
         public GUIContent content;
-        public Vector2    value;
-        public float      presetValue;
+        public Vector2 value;
+        public float presetValue;
     }
 
     static class LightUnitSliderDescriptors
     {
         // Lux
         public static LightUnitSliderUIDescriptor LuxDescriptor = new LightUnitSliderUIDescriptor(
-        LightUnitValueRanges.LuxValueTable,
-        LightUnitSliderDistributions.LuxDistribution,
-        LightUnitTooltips.k_SunCaution,
-           "Lux"
+            LightUnitValueRanges.LuxValueTable,
+            LightUnitSliderDistributions.LuxDistribution,
+            LightUnitTooltips.k_SunCaution,
+            "Lux"
         );
 
         // Lumen
@@ -114,13 +114,13 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 new LightUnitSliderUIRange(LightUnitIcon.ExteriorLight,  LightUnitTooltips.k_PunctualExterior,   new Vector2(3000, 40000), 10000),
                 new LightUnitSliderUIRange(LightUnitIcon.InteriorLight,  LightUnitTooltips.k_PunctualInterior,   new Vector2(300,  3000),  1000),
-                new LightUnitSliderUIRange(LightUnitIcon.DecorativeLight,LightUnitTooltips.k_PunctualDecorative, new Vector2(15,   300),   100),
+                new LightUnitSliderUIRange(LightUnitIcon.DecorativeLight, LightUnitTooltips.k_PunctualDecorative, new Vector2(15,   300),   100),
                 new LightUnitSliderUIRange(LightUnitIcon.Candlelight,    LightUnitTooltips.k_PunctualCandle,     new Vector2(0,    15),    12.5f),
             };
 
             public static readonly LightUnitSliderUIRange[] LuxValueTable =
             {
-                new LightUnitSliderUIRange(LightUnitIcon.BrightSky,     LightUnitTooltips.k_LuxBrightSky,     new Vector2(80000, 120000), 100000),
+                new LightUnitSliderUIRange(LightUnitIcon.BrightSky,     LightUnitTooltips.k_LuxBrightSky,     new Vector2(80000, 130000), 100000),
                 new LightUnitSliderUIRange(LightUnitIcon.Overcast,      LightUnitTooltips.k_LuxOvercastSky,   new Vector2(10000, 80000),  20000),
                 new LightUnitSliderUIRange(LightUnitIcon.SunriseSunset, LightUnitTooltips.k_LuxSunriseSunset, new Vector2(1,     10000),  5000),
                 new LightUnitSliderUIRange(LightUnitIcon.Moonlight,     LightUnitTooltips.k_LuxMoonlight,     new Vector2(0,     1),      0.5f),
@@ -128,7 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly LightUnitSliderUIRange[] ExposureValueTable =
             {
-                new LightUnitSliderUIRange(LightUnitIcon.BrightSky,     LightUnitTooltips.k_ExposureBrightSky,     new Vector2(12, 16)),
+                new LightUnitSliderUIRange(LightUnitIcon.BrightSky,     LightUnitTooltips.k_ExposureBrightSky,     new Vector2(12, 15), 13),
                 new LightUnitSliderUIRange(LightUnitIcon.Overcast,      LightUnitTooltips.k_ExposureOvercastSky,   new Vector2(8,  12)),
                 new LightUnitSliderUIRange(LightUnitIcon.SunriseSunset, LightUnitTooltips.k_ExposureSunriseSunset, new Vector2(6,   8)),
                 new LightUnitSliderUIRange(LightUnitIcon.InteriorLight, LightUnitTooltips.k_ExposureInterior,      new Vector2(3,   6)),
@@ -151,7 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private static class LightUnitSliderDistributions
         {
             // Warning: All of these values need to be kept in sync with their associated descriptor's set of value ranges.
-            public static readonly float[] LuxDistribution = {0.0f, 0.05f, 0.5f, 0.9f, 1.0f};
+            public static readonly float[] LuxDistribution = { 0.0f, 0.05f, 0.5f, 0.9f, 1.0f };
 
             private const float LumenStep = 1 / 4f;
             public static readonly float[] LumenDistribution =
@@ -179,7 +179,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private static class LightUnitIcon
         {
             static string GetLightUnitIconPath() => HDUtils.GetHDRenderPipelinePath() +
-                                                    "/Editor/RenderPipelineResources/Texture/LightUnitIcons/";
+            "/Editor/RenderPipelineResources/Texture/LightUnitIcons/";
 
             // Note: We do not use the editor resource loading mechanism for light unit icons because we need to skin the icon correctly for the editor theme.
             // Maybe the resource reloader can be improved to support icon loading (thus supporting skinning)?
@@ -190,64 +190,64 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // TODO: Move all light unit icons from the package into the built-in resources.
-            public static Texture2D BlueSky          = GetLightUnitIcon("BlueSky");
-            public static Texture2D ClearSky         = GetLightUnitIcon("ClearSky");
-            public static Texture2D Candlelight      = GetLightUnitIcon("Candlelight");
-            public static Texture2D DecorativeLight  = GetLightUnitIcon("DecorativeLight");
-            public static Texture2D DirectSunlight   = GetLightUnitIcon("DirectSunlight");
-            public static Texture2D ExteriorLight    = GetLightUnitIcon("ExteriorLight");
+            public static Texture2D BlueSky = GetLightUnitIcon("BlueSky");
+            public static Texture2D ClearSky = GetLightUnitIcon("ClearSky");
+            public static Texture2D Candlelight = GetLightUnitIcon("Candlelight");
+            public static Texture2D DecorativeLight = GetLightUnitIcon("DecorativeLight");
+            public static Texture2D DirectSunlight = GetLightUnitIcon("DirectSunlight");
+            public static Texture2D ExteriorLight = GetLightUnitIcon("ExteriorLight");
             public static Texture2D IntenseAreaLight = GetLightUnitIcon("IntenseAreaLight");
-            public static Texture2D InteriorLight    = GetLightUnitIcon("InteriorLight");
-            public static Texture2D MediumAreaLight  = GetLightUnitIcon("MediumAreaLight");
-            public static Texture2D MoonlessNight    = GetLightUnitIcon("MoonlessNight");
-            public static Texture2D Moonlight        = GetLightUnitIcon("Moonlight");
-            public static Texture2D Overcast         = GetLightUnitIcon("Overcast");
-            public static Texture2D CloudySky        = GetLightUnitIcon("CloudySky");
-            public static Texture2D SoftAreaLight    = GetLightUnitIcon("SoftAreaLight");
-            public static Texture2D SunriseSunset    = GetLightUnitIcon("SunriseSunset");
-            public static Texture2D VeryBrightSun    = GetLightUnitIcon("VeryBrightSun");
-            public static Texture2D BrightSky        = GetLightUnitIcon("BrightSky");
-            public static Texture2D Shade            = GetLightUnitIcon("Shade");
-            public static Texture2D Fluorescent      = GetLightUnitIcon("Fluorescent");
+            public static Texture2D InteriorLight = GetLightUnitIcon("InteriorLight");
+            public static Texture2D MediumAreaLight = GetLightUnitIcon("MediumAreaLight");
+            public static Texture2D MoonlessNight = GetLightUnitIcon("MoonlessNight");
+            public static Texture2D Moonlight = GetLightUnitIcon("Moonlight");
+            public static Texture2D Overcast = GetLightUnitIcon("Overcast");
+            public static Texture2D CloudySky = GetLightUnitIcon("CloudySky");
+            public static Texture2D SoftAreaLight = GetLightUnitIcon("SoftAreaLight");
+            public static Texture2D SunriseSunset = GetLightUnitIcon("SunriseSunset");
+            public static Texture2D VeryBrightSun = GetLightUnitIcon("VeryBrightSun");
+            public static Texture2D BrightSky = GetLightUnitIcon("BrightSky");
+            public static Texture2D Shade = GetLightUnitIcon("Shade");
+            public static Texture2D Fluorescent = GetLightUnitIcon("Fluorescent");
         }
 
         private static class LightUnitTooltips
         {
             // Caution
-            public const string k_SunCaution           = "Higher than Sunlight";
-            public const string k_PunctualCaution      = "Very high intensity light";
+            public const string k_SunCaution = "Higher than Sunlight";
+            public const string k_PunctualCaution = "Very high intensity light";
             public const string k_ExposureBelowCaution = "Lower than a moonless scene";
             public const string k_ExposureAboveCaution = "Higher than a sunlit scene";
-            public const string k_TemperatureCaution   = "";
+            public const string k_TemperatureCaution = "";
 
             // Lux / Directional
-            public const string k_LuxBrightSky       = "High Sun";
-            public const string k_LuxOvercastSky     = "Cloudy";
-            public const string k_LuxSunriseSunset   = "Low Sun";
-            public const string k_LuxMoonlight       = "Moon";
+            public const string k_LuxBrightSky = "High Sun";
+            public const string k_LuxOvercastSky = "Cloudy";
+            public const string k_LuxSunriseSunset = "Low Sun";
+            public const string k_LuxMoonlight = "Moon";
 
             // Punctual
-            public const string k_PunctualExterior   = "Exterior";
-            public const string k_PunctualInterior   = "Interior";
+            public const string k_PunctualExterior = "Exterior";
+            public const string k_PunctualInterior = "Interior";
             public const string k_PunctualDecorative = "Decorative";
-            public const string k_PunctualCandle     = "Candle";
+            public const string k_PunctualCandle = "Candle";
 
             // Exposure
-            public const string k_ExposureBrightSky     = "Sunlit Scene";
-            public const string k_ExposureOvercastSky   = "Cloudy Scene";
+            public const string k_ExposureBrightSky = "Sunlit Scene";
+            public const string k_ExposureOvercastSky = "Cloudy Scene";
             public const string k_ExposureSunriseSunset = "Low Sun Scene";
-            public const string k_ExposureInterior      = "Interior Scene";
-            public const string k_ExposureMoonlitSky    = "Moonlit Scene";
+            public const string k_ExposureInterior = "Interior Scene";
+            public const string k_ExposureMoonlitSky = "Moonlit Scene";
             public const string k_ExposureMoonlessNight = "Moonless Scene";
 
             // Temperature
-            public const string k_TemperatureBlueSky        = "Blue Sky";
-            public const string k_TemperatureShade          = "Shade (Clear Sky)";
-            public const string k_TemperatureCloudySky      = "Cloudy Skylight";
+            public const string k_TemperatureBlueSky = "Blue Sky";
+            public const string k_TemperatureShade = "Shade (Clear Sky)";
+            public const string k_TemperatureCloudySky = "Cloudy Skylight";
             public const string k_TemperatureDirectSunlight = "Direct Sunlight";
-            public const string k_TemperatureFluorescent    = "Fluorescent Light";
-            public const string k_TemperatureIncandescent   = "Incandescent Light";
-            public const string k_TemperatureCandle         = "Candlelight";
+            public const string k_TemperatureFluorescent = "Fluorescent Light";
+            public const string k_TemperatureIncandescent = "Incandescent Light";
+            public const string k_TemperatureCandle = "Candlelight";
         }
     }
 }

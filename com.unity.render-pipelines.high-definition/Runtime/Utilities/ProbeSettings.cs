@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>A multiplier applied to the radiance of the Probe.</summary>
             public float multiplier;
             /// <summary>A weight applied to the influence of the Probe.</summary>
-            [Range(0,1)]
+            [Range(0, 1)]
             public float weight;
             /// <summary>An enum flag to select which Light Layers this Probe interacts with.</summary>
             public LightLayerEnum lightLayer;
@@ -242,6 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 frustum = Frustum.NewDefault(),
                 resolutionScalable = new PlanarReflectionAtlasResolutionScalableSettingValue(),
                 roughReflections = true,
+                distanceBasedRoughness = false,
             };
             probeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.Resolution512;
 
@@ -275,8 +276,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serialization.FormerlySerializedAs("camera")]
         public CameraSettings cameraSettings;
 
-        /// <summary>Defines if the planar reflection should support rough reflections.</summary>
+        /// <summary>Indicates whether the ReflectionProbe supports rough reflections.</summary>
         public bool roughReflections;
+
+        /// <summary>Indicates whether the ReflectionProbe supports distance-based roughness.</summary>
+        public bool distanceBasedRoughness;
 
         /// <summary>
         /// Compute a hash of the settings.

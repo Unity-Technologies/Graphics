@@ -6,7 +6,7 @@ The **Integration : Update Rotation** Block updates particle orientation based o
 
 ![](Images/Block-UpdateRotationInspector.png)
 
-The block adds the corresponding angular velocity, multiplied by deltaTime, to the current particle angle:
+The Block adds the corresponding angular velocity, multiplied by deltaTime, to the current particle angle:
 
 ```
 angleX += angularVelocityX * deltaTime;
@@ -16,7 +16,7 @@ angleZ += angularVelocityZ * deltaTime;
 
 If you disable **Update Rotation** in the Update Context's Inspector, the system does not change the particle orientation based on the particle's angular velocity attribute.
 
-You can also add the **Integration : Update Rotation** Block to the Update Context manually and enable/disable it to specify when the system should update the particle orientation based on its angular velocity.
+You can also add the **Integration : Update Rotation** Block to the Update Context manually and enable/disable it to specify when the System updates the particle orientation based on its angular velocity.
 
 ![](Images/Block-UpdateRotationBlockInContext.png)
 

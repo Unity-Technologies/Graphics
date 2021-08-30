@@ -32,6 +32,13 @@ namespace UnityEditor.Rendering.HighDefinition
         None
     }
 
+    enum DoubleSidedGIMode
+    {
+        Auto,
+        On,
+        Off
+    }
+
     enum TessellationMode
     {
         None,
@@ -118,31 +125,31 @@ namespace UnityEditor.Rendering.HighDefinition
 
     internal static class MaterialExtension
     {
-        public static SurfaceType   GetSurfaceType(this Material material)
+        public static SurfaceType GetSurfaceType(this Material material)
             => material.HasProperty(kSurfaceType) ? (SurfaceType)material.GetFloat(kSurfaceType) : SurfaceType.Opaque;
 
-        public static MaterialId    GetMaterialId(this Material material)
+        public static MaterialId GetMaterialId(this Material material)
             => material.HasProperty(kMaterialID) ? (MaterialId)material.GetFloat(kMaterialID) : MaterialId.LitStandard;
 
-        public static BlendMode     GetBlendMode(this Material material)
+        public static BlendMode GetBlendMode(this Material material)
             => material.HasProperty(kBlendMode) ? (BlendMode)material.GetFloat(kBlendMode) : BlendMode.Additive;
 
-        public static int           GetLayerCount(this Material material)
+        public static int GetLayerCount(this Material material)
             => material.HasProperty(kLayerCount) ? material.GetInt(kLayerCount) : 1;
 
-        public static bool          GetZWrite(this Material material)
+        public static bool GetZWrite(this Material material)
             => material.HasProperty(kZWrite) ? material.GetInt(kZWrite) == 1 : false;
 
-        public static bool          GetTransparentZWrite(this Material material)
+        public static bool GetTransparentZWrite(this Material material)
             => material.HasProperty(kTransparentZWrite) ? material.GetInt(kTransparentZWrite) == 1 : false;
 
-        public static CullMode      GetTransparentCullMode(this Material material)
+        public static CullMode GetTransparentCullMode(this Material material)
             => material.HasProperty(kTransparentCullMode) ? (CullMode)material.GetInt(kTransparentCullMode) : CullMode.Back;
 
-        public static CullMode      GetOpaqueCullMode(this Material material)
+        public static CullMode GetOpaqueCullMode(this Material material)
             => material.HasProperty(kOpaqueCullMode) ? (CullMode)material.GetInt(kOpaqueCullMode) : CullMode.Back;
 
-        public static CompareFunction   GetTransparentZTest(this Material material)
+        public static CompareFunction GetTransparentZTest(this Material material)
             => material.HasProperty(kZTestTransparent) ? (CompareFunction)material.GetInt(kZTestTransparent) : CompareFunction.LessEqual;
 
         public static void ResetMaterialCustomRenderQueue(this Material material)
@@ -180,6 +187,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 Color emissiveColorLDR = material.GetColor(kEmissiveColorLDR);
                 Color emissiveColorLDRLinear = new Color(Mathf.GammaToLinearSpace(emissiveColorLDR.r), Mathf.GammaToLinearSpace(emissiveColorLDR.g), Mathf.GammaToLinearSpace(emissiveColorLDR.b));
                 material.SetColor(kEmissiveColor, emissiveColorLDRLinear * material.GetFloat(kEmissiveIntensity));
+            }
+        }
+
+        public static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(this Material material)
+        {
+            const string kEmissiveColorLDR = "_EmissiveColorLDR";
+            const string kEmissiveColor = "_EmissiveColor";
+            const string kEmissiveIntensity = "_EmissiveIntensity";
+
+            if (material.HasProperty(kEmissiveColorLDR) && material.HasProperty(kEmissiveIntensity) && material.HasProperty(kEmissiveColor))
+            {
+                Color emissiveColorLDRLinear = material.GetColor(kEmissiveColor) / material.GetFloat(kEmissiveIntensity);
+                Color emissiveColorLDR = new Color(Mathf.LinearToGammaSpace(emissiveColorLDRLinear.r), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.g), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.b));
+                material.SetColor(kEmissiveColorLDR, emissiveColorLDR);
             }
         }
     }

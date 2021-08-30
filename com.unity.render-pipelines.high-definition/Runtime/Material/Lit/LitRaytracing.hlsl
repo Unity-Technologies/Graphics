@@ -1,4 +1,4 @@
-float3 SampleSpecularBRDF(BSDFData bsdfData, float2 sample, float3 viewWS)
+float3 SampleSpecularBRDF(BSDFData bsdfData, float2 theSample, float3 viewWS)
 {
     float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
     float3x3 localToWorld;
@@ -12,7 +12,7 @@ float3 SampleSpecularBRDF(BSDFData bsdfData, float2 sample, float3 viewWS)
     }
     float NdotL, NdotH, VdotH;
     float3 sampleDir;
-    SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+    SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
     return sampleDir;
 }
 
@@ -65,22 +65,18 @@ void OverrideRefractionData(SurfaceData surfaceData, float refractionDistance, f
 #endif
 
 #if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)
-void FitToStandardLit( SurfaceData surfaceData
+void FitToStandardLit( BSDFData bsdfData
                         , BuiltinData builtinData
                         , uint2 positionSS
-                        , out StandardBSDFData outStandardlit)
+                        , inout StandardBSDFData outStandardlit)
 {
-    outStandardlit.specularOcclusion = surfaceData.specularOcclusion;
-    outStandardlit.normalWS = surfaceData.normalWS;
-
-    float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
-
-    outStandardlit.baseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
-    outStandardlit.fresnel0     = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
-
-    outStandardlit.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
-    outStandardlit.coatMask = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ? surfaceData.coatMask : 0.0;
-    outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor;
+    outStandardlit.specularOcclusion = bsdfData.specularOcclusion;
+    outStandardlit.normalWS = bsdfData.normalWS;
+    outStandardlit.baseColor = bsdfData.diffuseColor;
+    outStandardlit.fresnel0 = bsdfData.fresnel0;
+    outStandardlit.perceptualRoughness = bsdfData.perceptualRoughness;
+    outStandardlit.coatMask = bsdfData.coatMask;
+    outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * bsdfData.ambientOcclusion + builtinData.emissiveColor;
     outStandardlit.isUnlit = 0;
 }
 #endif

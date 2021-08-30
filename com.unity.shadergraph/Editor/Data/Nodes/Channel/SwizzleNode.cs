@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -14,9 +13,9 @@ namespace UnityEditor.ShaderGraph
         public SwizzleNode()
         {
             name = "Swizzle";
+            synonyms = new string[] { "swap", "reorder", "component mask" };
             UpdateNodeAfterDeserialization();
         }
-
 
         const int InputSlotId = 0;
         const int OutputSlotId = 1;
@@ -28,146 +27,168 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
+        [SerializeField]
+        string _maskInput = "xyzw";
+
+        [TextControl("Mask:")]
+        public string maskInput
+        {
+            get { return _maskInput; }
+            set
+            {
+                if (_maskInput.Equals(value))
+                    return;
+                _maskInput = value;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+        public string convertedMask;
+
+        public bool ValidateMaskInput(int InputValueSize)
+        {
+            convertedMask = _maskInput.ToLower();
+
+            Dictionary<char, char> mask_map = new Dictionary<char, char>
+            {
+                {'r', 'x' },
+                {'g', 'y' },
+                {'b', 'z' },
+                {'a', 'w' },
+            };
+            bool MaskInputIsValid = true;
+            char[] MaskChars = convertedMask.ToCharArray();
+            char[] AllChars = { 'x', 'y', 'z', 'w', 'r', 'g', 'b', 'a' };
+            List<char> CurrentChars = new List<char>();
+            for (int i = 0; i < InputValueSize; i++)
+            {
+                CurrentChars.Add(AllChars[i]);
+                CurrentChars.Add(AllChars[i + 4]);
+            }
+
+            foreach (char c in MaskChars)
+            {
+                if (!CurrentChars.Contains(c))
+                {
+                    MaskInputIsValid = false;
+                }
+            }
+            if (MaskChars.Length <= 0 || MaskChars.Length > 4)
+            {
+                MaskInputIsValid = false;
+            }
+            //Convert "rgba" input to "xyzw" to avoid mismathcing
+            if (MaskInputIsValid)
+            {
+                char[] rgba = { 'r', 'g', 'b', 'a' };
+
+                for (int i = 0; i < MaskChars.Length; i++)
+                {
+                    if (rgba.Contains(MaskChars[i]))
+                    {
+                        MaskChars[i] = mask_map[MaskChars[i]];
+                    }
+                }
+                convertedMask = new string(MaskChars);
+            }
+            return MaskInputIsValid;
+        }
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new DynamicVectorMaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Vector4.zero));
-            AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+            switch (_maskInput.Length)
+            {
+                case 1:
+                    AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
+                    break;
+                case 2:
+                    AddSlot(new Vector2MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector2.zero));
+                    break;
+                case 3:
+                    AddSlot(new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector3.zero));
+                    break;
+                default:
+                    AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+                    break;
+            }
             RemoveSlotsNameNotMatching(new[] { InputSlotId, OutputSlotId });
-        }
-
-        static Dictionary<TextureChannel, string> s_ComponentList = new Dictionary<TextureChannel, string>
-        {
-            {TextureChannel.Red, "r" },
-            {TextureChannel.Green, "g" },
-            {TextureChannel.Blue, "b" },
-            {TextureChannel.Alpha, "a" },
-        };
-
-        [SerializeField]
-        TextureChannel m_RedChannel;
-
-        [ChannelEnumControl("Red Out")]
-        public TextureChannel redChannel
-        {
-            get { return m_RedChannel; }
-            set
-            {
-                if (m_RedChannel == value)
-                    return;
-
-                m_RedChannel = value;
-                Dirty(ModificationScope.Node);
-            }
-        }
-
-        [SerializeField]
-        TextureChannel m_GreenChannel;
-
-        [ChannelEnumControl("Green Out")]
-        public TextureChannel greenChannel
-        {
-            get { return m_GreenChannel; }
-            set
-            {
-                if (m_GreenChannel == value)
-                    return;
-
-                m_GreenChannel = value;
-                Dirty(ModificationScope.Node);
-            }
-        }
-
-        [SerializeField]
-        TextureChannel m_BlueChannel;
-
-        [ChannelEnumControl("Blue Out")]
-        public TextureChannel blueChannel
-        {
-            get { return m_BlueChannel; }
-            set
-            {
-                if (m_BlueChannel == value)
-                    return;
-
-                m_BlueChannel = value;
-                Dirty(ModificationScope.Node);
-            }
-        }
-
-        [SerializeField]
-        TextureChannel m_AlphaChannel;
-
-        [ChannelEnumControl("Alpha Out")]
-        public TextureChannel alphaChannel
-        {
-            get { return m_AlphaChannel; }
-            set
-            {
-                if (m_AlphaChannel == value)
-                    return;
-
-                m_AlphaChannel = value;
-                Dirty(ModificationScope.Node);
-            }
-        }
-
-        void ValidateChannelCount()
-        {
-            var channelCount = SlotValueHelper.GetChannelCount(FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType);
-            if ((int)redChannel >= channelCount)
-                redChannel = TextureChannel.Red;
-            if ((int)greenChannel >= channelCount)
-                greenChannel = TextureChannel.Red;
-            if ((int)blueChannel >= channelCount)
-                blueChannel = TextureChannel.Red;
-            if ((int)alphaChannel >= channelCount)
-                alphaChannel = TextureChannel.Red;
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            ValidateChannelCount();
             var outputSlotType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString();
             var outputName = GetVariableNameForSlot(OutputSlotId);
             var inputValue = GetSlotValue(InputSlotId, generationMode);
             var inputValueType = FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType;
-            if (inputValueType == ConcreteSlotValueType.Vector1)
-                sb.AppendLine(string.Format("{0} {1} = {2};", outputSlotType, outputName, inputValue));
-            else if (generationMode == GenerationMode.ForReals)
-                sb.AppendLine("{0} {1} = {2}.{3}{4}{5}{6};",
-                        outputSlotType,
-                        outputName,
-                        inputValue,
-                        s_ComponentList[m_RedChannel].ToString(CultureInfo.InvariantCulture),
-                        s_ComponentList[m_GreenChannel].ToString(CultureInfo.InvariantCulture),
-                        s_ComponentList[m_BlueChannel].ToString(CultureInfo.InvariantCulture),
-                        s_ComponentList[m_AlphaChannel].ToString(CultureInfo.InvariantCulture));
+            var InputValueSize = SlotValueHelper.GetChannelCount(inputValueType);
+
+            if (!ValidateMaskInput(InputValueSize))
+            {
+                sb.AppendLine(string.Format("{0} {1} = 0;", outputSlotType, outputName));
+            }
             else
-                sb.AppendLine("{0} {1} = {0}({3}[((int){2} >> 0) & 3], {3}[((int){2} >> 2) & 3], {3}[((int){2} >> 4) & 3], {3}[((int){2} >> 6) & 3]);", outputSlotType, outputName, GetVariableNameForNode(), inputValue);
+            {
+                sb.AppendLine("{0} {1} = {2}.{3};", outputSlotType, outputName, inputValue, convertedMask);
+            }
         }
 
-        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        public override void ValidateNode()
         {
-            base.CollectShaderProperties(properties, generationMode);
-            if (generationMode != GenerationMode.Preview)
-                return;
-            properties.AddShaderProperty(new Vector1ShaderProperty
+            base.ValidateNode();
+
+            var inputValueType = FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType;
+            var InputValueSize = SlotValueHelper.GetChannelCount(inputValueType);
+            if (!ValidateMaskInput(InputValueSize))
             {
-                overrideReferenceName = GetVariableNameForNode(),
-                generatePropertyBlock = false
-            });
+                owner.AddValidationError(objectId, "Invalid mask for a Vector" + InputValueSize + " input.", ShaderCompilerMessageSeverity.Error);
+            }
         }
 
-        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        public override int latestVersion => 1;
+
+        public override void OnAfterMultiDeserialize(string json)
         {
-            base.CollectPreviewMaterialProperties(properties);
-            // Encode swizzle values into an integer
-            var value = ((int)redChannel) | ((int)greenChannel << 2) | ((int)blueChannel << 4) | ((int)alphaChannel << 6);
-            properties.Add(new PreviewProperty(PropertyType.Float)
+            //collect texturechannel properties
+            //get the value
+            //pass it to maskInput
+            if (sgVersion < 1)
             {
-                name = GetVariableNameForNode(),
-                floatValue = value
-            });
+                LegacySwizzleChannelData.LegacySwizzleChannel(json, this);
+                ChangeVersion(1);
+                UpdateNodeAfterDeserialization();
+            }
+        }
+
+        public override IEnumerable<int> allowedNodeVersions => new List<int> { 1 };
+
+        class LegacySwizzleChannelData
+        {
+            //collect texturechannel properties
+            [SerializeField]
+            public TextureChannel m_RedChannel;
+            [SerializeField]
+            public TextureChannel m_GreenChannel;
+            [SerializeField]
+            public TextureChannel m_BlueChannel;
+            [SerializeField]
+            public TextureChannel m_AlphaChannel;
+
+
+            public static void LegacySwizzleChannel(string json, SwizzleNode node)
+            {
+                Dictionary<TextureChannel, string> s_ComponentList = new Dictionary<TextureChannel, string>
+                {
+                    {TextureChannel.Red, "r" },
+                    {TextureChannel.Green, "g" },
+                    {TextureChannel.Blue, "b" },
+                    {TextureChannel.Alpha, "a" },
+                };
+                var legacySwizzleChannelData = new LegacySwizzleChannelData();
+                JsonUtility.FromJsonOverwrite(json, legacySwizzleChannelData);
+                node._maskInput = s_ComponentList[legacySwizzleChannelData.m_RedChannel] + s_ComponentList[legacySwizzleChannelData.m_GreenChannel] + s_ComponentList[legacySwizzleChannelData.m_BlueChannel] + s_ComponentList[legacySwizzleChannelData.m_AlphaChannel];
+            }
         }
     }
 }

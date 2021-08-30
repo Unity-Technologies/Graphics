@@ -1,7 +1,12 @@
-﻿Shader "Hidden/Shader Graph/FallbackError"
+Shader "Hidden/Shader Graph/FallbackError"
 {
     SubShader
     {
+        Tags
+        {
+            "ShaderGraphShader" = "true"
+            "ShaderGraphTargetId" = "FallbackError"
+        }
         Pass
         {
             CGPROGRAM

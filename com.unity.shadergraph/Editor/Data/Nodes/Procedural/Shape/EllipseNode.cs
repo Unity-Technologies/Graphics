@@ -9,8 +9,8 @@ namespace UnityEditor.ShaderGraph
         public EllipseNode()
         {
             name = "Ellipse";
+            synonyms = new string[] { "circle" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(4, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     $precision d = length((UV * 2 - 1) / $precision2(Width, Height));
     Out = saturate((1 - d) / fwidth(d));

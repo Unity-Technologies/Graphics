@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -60,6 +60,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_DepthOffset;
             set => m_DepthOffset = value;
+        }
+
+        [SerializeField]
+        bool m_ConservativeDepthOffset;
+        public bool conservativeDepthOffset
+        {
+            get => m_ConservativeDepthOffset;
+            set => m_ConservativeDepthOffset = value;
         }
 
         [SerializeField]

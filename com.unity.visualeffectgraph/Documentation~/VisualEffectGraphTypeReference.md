@@ -42,7 +42,7 @@ This section describes the advanced types that the Visual Effect Graph includes.
 
 ### Spaceable base types
 
-Spaceable base types are Vector types that embed a space alongside their value. They also use a vector semantic when performing space transformations. 
+Spaceable base types are Vector types that embed a space alongside their value. They also use a vector semantic when performing space transformations.
 
 | **Type**      | **Description**                                              |
 | ------------- | ------------------------------------------------------------ |

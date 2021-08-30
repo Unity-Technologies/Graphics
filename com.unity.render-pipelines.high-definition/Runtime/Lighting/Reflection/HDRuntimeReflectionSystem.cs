@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class HDRuntimeReflectionSystem : ScriptableRuntimeReflectionSystem
     {
-        #if !REFLECTION_PROBE_UPDATE_CACHED_DATA_AVAILABLE
+#if !REFLECTION_PROBE_UPDATE_CACHED_DATA_AVAILABLE
         static MethodInfo BuiltinUpdate;
 
         static HDRuntimeReflectionSystem()
@@ -23,7 +23,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var method = type.GetMethod("BuiltinUpdate", BindingFlags.Static | BindingFlags.NonPublic);
             BuiltinUpdate = method;
         }
-        #endif
+
+#endif
 
         static HDRuntimeReflectionSystem k_instance = new HDRuntimeReflectionSystem();
 
@@ -43,11 +44,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override bool TickRealtimeProbes()
         {
-            #if REFLECTION_PROBE_UPDATE_CACHED_DATA_AVAILABLE
+#if REFLECTION_PROBE_UPDATE_CACHED_DATA_AVAILABLE
             ReflectionProbe.UpdateCachedState();
-            #else
+#else
             BuiltinUpdate.Invoke(null, new object[0]);
-            #endif
+#endif
             return base.TickRealtimeProbes();
         }
     }

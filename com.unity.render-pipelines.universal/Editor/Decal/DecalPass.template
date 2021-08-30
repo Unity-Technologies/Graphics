@@ -1,0 +1,185 @@
+Pass
+{ 
+    $splice(PassName)
+    Tags 
+    { 
+        $splice(LightMode)
+    }
+
+    // Render State
+    $splice(RenderState)
+
+    // Debug
+    $splice(Debug)
+
+    // --------------------------------------------------
+    // Pass
+
+    HLSLPROGRAM
+
+    // Pragmas
+    $splice(PassPragmas)
+
+    // Keywords
+    $splice(PassKeywords)
+    $splice(GraphKeywords)
+
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
+
+    // Defines
+    $Attributes.normalOS:               #define ATTRIBUTES_NEED_NORMAL
+    $Attributes.tangentOS:              #define ATTRIBUTES_NEED_TANGENT
+    $Attributes.uv0:                    #define ATTRIBUTES_NEED_TEXCOORD0
+    $Attributes.uv1:                    #define ATTRIBUTES_NEED_TEXCOORD1
+    $Attributes.uv2:                    #define ATTRIBUTES_NEED_TEXCOORD2
+    $Attributes.uv3:                    #define ATTRIBUTES_NEED_TEXCOORD3
+    $Attributes.color:                  #define ATTRIBUTES_NEED_COLOR
+    $Varyings.positionWS:               #define VARYINGS_NEED_POSITION_WS
+    $Varyings.normalWS:                 #define VARYINGS_NEED_NORMAL_WS
+    $Varyings.viewDirectionWS:          #define VARYINGS_NEED_VIEWDIRECTION_WS
+    $Varyings.tangentWS:                #define VARYINGS_NEED_TANGENT_WS
+    $Varyings.texCoord0:                #define VARYINGS_NEED_TEXCOORD0
+    $Varyings.texCoord1:                #define VARYINGS_NEED_TEXCOORD1
+    $Varyings.texCoord2:                #define VARYINGS_NEED_TEXCOORD2
+    $Varyings.texCoord3:                #define VARYINGS_NEED_TEXCOORD3
+    $Varyings.color:                    #define VARYINGS_NEED_COLOR
+    $Varyings.fogFactorAndVertexLight:  #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
+    $Varyings.sh:                       #define VARYINGS_NEED_SH
+    $Varyings.staticLightmapUV:         #define VARYINGS_NEED_STATIC_LIGHTMAP_UV
+    $Varyings.dynamicLightmapUV:        #define VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV
+    $Varyings.shadowCoord:              #define VARYINGS_NEED_SHADOW_COORD
+    
+    $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
+
+    $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
+    $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
+
+    $splice(GraphDefines)
+
+    $splice(HybridV1InjectedBuiltinProperties)
+
+    // -- Properties used by ScenePickingPass
+    #ifdef SCENEPICKINGPASS
+    float4 _SelectionID;
+    #endif
+
+    // Includes
+    $splice(PreGraphIncludes)
+
+    // --------------------------------------------------
+    // Structs and Packing
+
+    $splice(PassStructs)
+
+    $splice(InterpolatorPack)
+
+    // --------------------------------------------------
+    // Graph
+
+    // Graph Properties
+    $splice(GraphProperties)
+
+    // Graph Functions
+    $splice(GraphFunctions)
+
+    // Graph Vertex
+    $splice(GraphVertex)
+    
+    // Graph Pixel
+    $splice(GraphPixel)
+
+    // --------------------------------------------------
+    // Build Graph Inputs
+
+    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
+    $features.graphPixel:   $include("SharedCode.template.hlsl")
+    $features.graphPixel:   $include("BuildSurfaceDescriptionInputs.template.hlsl")
+
+    // --------------------------------------------------
+    // Build Surface Data
+
+    uint2 ComputeFadeMaskSeed(uint2 positionSS)
+    {
+        uint2 fadeMaskSeed;
+
+        // Can't use the view direction, it is the same across the entire screen.
+        fadeMaskSeed = positionSS;
+
+        return fadeMaskSeed;
+    }
+
+    void GetSurfaceData(Varyings input, half3 viewDirectioWS, uint2 positionSS, float angleFadeFactor, out DecalSurfaceData surfaceData)
+    {
+        #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
+            half4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
+            half fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f) * angleFadeFactor;
+            float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
+            float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
+            $Varyings.texCoord0: input.texCoord0.xy = input.texCoord0.xy * scale + offset;
+            $Varyings.texCoord1: input.texCoord1.xy = input.texCoord1.xy * scale + offset;
+            $Varyings.texCoord2: input.texCoord2.xy = input.texCoord2.xy * scale + offset;
+            $Varyings.texCoord3: input.texCoord3.xy = input.texCoord3.xy * scale + offset;
+        #else
+            #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+                LODDitheringTransition(ComputeFadeMaskSeed(positionSS), unity_LODFade.x);
+            #endif
+
+            half fadeFactor = half(1.0);
+        #endif
+
+        SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(input);
+        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+
+        // setup defaults -- these are used if the graph doesn't output a value
+        ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
+        surfaceData.occlusion = half(1.0);
+        surfaceData.smoothness = half(0);
+
+        #ifdef _MATERIAL_AFFECTS_NORMAL
+            surfaceData.normalWS.w = half(1.0);
+        #else
+            surfaceData.normalWS.w = half(0.0);
+        #endif
+
+        $SurfaceDescription.Emission:       surfaceData.emissive.rgb = half3(surfaceDescription.Emission.rgb * fadeFactor);
+
+        // copy across graph values, if defined
+        $SurfaceDescription.BaseColor:      surfaceData.baseColor.xyz = half3(surfaceDescription.BaseColor);
+        $SurfaceDescription.Alpha:          surfaceData.baseColor.w = half(surfaceDescription.Alpha * fadeFactor);
+
+        #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
+            #if defined(_MATERIAL_AFFECTS_NORMAL)
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul((half3x3)normalToWorld, surfaceDescription.NormalTS.xyz);
+            #else
+                surfaceData.normalWS.xyz = normalToWorld[2].xyz;
+            #endif
+        #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_MESH)
+            #if defined(_MATERIAL_AFFECTS_NORMAL)
+                float sgn = input.tangentWS.w;      // should be either +1 or -1
+                float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+                half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
+
+                // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.NormalTS, tangentToWorld));
+            #else
+                surfaceData.normalWS.xyz = half3(input.normalWS); // Default to vertex normal
+            #endif
+        #endif
+
+        $SurfaceDescription.NormalAlpha:    surfaceData.normalWS.w = surfaceDescription.NormalAlpha * fadeFactor;
+
+        // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change
+        $SurfaceDescription.Metallic:       surfaceData.metallic = half(surfaceDescription.Metallic);
+        $SurfaceDescription.Occlusion:      surfaceData.occlusion = half(surfaceDescription.Occlusion);
+        $SurfaceDescription.Smoothness:     surfaceData.smoothness = half(surfaceDescription.Smoothness);
+        $SurfaceDescription.MAOSAlpha:      surfaceData.MAOSAlpha = half(surfaceDescription.MAOSAlpha * fadeFactor);
+    }
+
+    // --------------------------------------------------
+    // Main
+
+    $splice(PostGraphIncludes)
+
+    ENDHLSL
+}

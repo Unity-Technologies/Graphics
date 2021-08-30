@@ -9,7 +9,7 @@ This Template uses the following Unity features:
 
 The template contains the following:
 
-* A sample Scene that contains examples of how to configure lighting settings, Materials, Shaders, and post-processing effects in URP 
+* A sample Scene that contains examples of how to configure lighting settings, Materials, Shaders, and post-processing effects in URP
 * Several preconfigured [Universal Render Pipline Assets](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/universalrp-asset.html) that let you quickly swap between graphics quality levels
 * [Presets](https://docs.unity3d.com/Manual/Presets.html) that have been optimized for use with URP
 
@@ -53,7 +53,7 @@ To change the Universal Render Pipeline Asset that the Project is using:
 
 1. In the Project window, navigate to the folder named **Settings**
 2. Open the Graphics Settings window (**Edit** > **Project Settings** > **Graphics**)
-3. Locate the **Scriptable Render Pipeline Settings** field 
+3. Locate the **Scriptable Render Pipeline Settings** field
 3. Drag a Universal Render Pipeline Asset from the **Settings** folder in the Project window on to the **Scriptable Render Pipeline Settings** field
 
 ![Change Render Pipeline Asset](images/change_rp_asset.png)

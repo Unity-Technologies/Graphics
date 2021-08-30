@@ -3,6 +3,7 @@ using System.Collections;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
@@ -52,6 +53,11 @@ public class GraphicsTests
             waitFrames = 1;
         }
 
+        if (XRGraphicsAutomatedTests.enabled)
+        {
+            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(true, waitFrames, settings.ImageComparisonSettings);
+        }
+
         for (int i = 0; i < waitFrames; i++)
             yield return new WaitForEndOfFrame();
 
@@ -86,6 +92,7 @@ public class GraphicsTests
 
         CleanUp();
 
+        XRGraphicsAutomatedTests.running = false;
     }
 
     public void CleanUp()

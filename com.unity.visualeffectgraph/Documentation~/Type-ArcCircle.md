@@ -8,4 +8,3 @@ A solid-arc of a circle, defined by an angle and a [Circle](Type-Circle.md). Thi
 | ------------ | ------------------------------------------------------ |
 | **Circle**   | The [Circle](Type-Circle.md) to take the segment from. |
 | **Arc**      | The angle, in radians, of the circle segment.          |
-

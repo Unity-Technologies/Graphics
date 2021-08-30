@@ -58,13 +58,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 base.OnInspectorGUI();
 
-                using (new HDEditorUtils.IndentScope())
+                using (new IndentLevelScope())
                 using (new QualityScope(this))
                 {
                     PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Controls the number of samples HDRP uses for ray casting."));
                 }
             }
         }
+
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)

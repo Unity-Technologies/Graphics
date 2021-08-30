@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public ClampNode()
         {
             name = "Clamp";
+            synonyms = new string[] { "limit" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(3, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = clamp(In, Min, Max);
 }";

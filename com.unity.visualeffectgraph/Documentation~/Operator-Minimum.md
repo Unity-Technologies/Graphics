@@ -1,6 +1,6 @@
 # Minimum
 
-Menu Path : **Operator > Math > Clamp > Minimum**  
+Menu Path : **Operator > Math > Clamp > Minimum**
 
 The **Minimum** Operator outputs the smallest value from all input values.
 

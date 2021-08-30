@@ -246,7 +246,7 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(3, node.GetInputSlots<MaterialSlot>().Count());
             Assert.AreEqual(3, node.GetOutputSlots<MaterialSlot>().Count());
 
-            node.RemoveSlotsNameNotMatching(new[] {TestableNode.Input1});
+            node.RemoveSlotsNameNotMatching(new[] { TestableNode.Input1 });
 
             Assert.AreEqual(1, node.GetSlots<MaterialSlot>().Count());
             Assert.AreEqual(1, node.GetInputSlots<MaterialSlot>().Count());
@@ -418,36 +418,36 @@ namespace UnityEditor.Graphing.UnitTests
             var node = new TestableNode();
             Assert.DoesNotThrow(
                 () =>
-                NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
-                    node,
-                    new[] {TestableNode.Input0, TestableNode.Input1, TestableNode.Input2},
-                    new[] {TestableNode.Output0, TestableNode.Output1, TestableNode.Output2, })
-                );
+                    NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
+                        node,
+                        new[] { TestableNode.Input0, TestableNode.Input1, TestableNode.Input2 },
+                        new[] { TestableNode.Output0, TestableNode.Output1, TestableNode.Output2, })
+            );
 
 
             Assert.Throws<SlotConfigurationException>(
                 () =>
-                NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
-                    node,
-                    new[] {666, TestableNode.Input1, TestableNode.Input2},
-                    new[] {TestableNode.Output0, TestableNode.Output1, TestableNode.Output2, })
-                );
+                    NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
+                        node,
+                        new[] { 666, TestableNode.Input1, TestableNode.Input2 },
+                        new[] { TestableNode.Output0, TestableNode.Output1, TestableNode.Output2, })
+            );
 
             Assert.Throws<SlotConfigurationException>(
                 () =>
-                NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
-                    node,
-                    new[] {TestableNode.Input0, TestableNode.Input1, TestableNode.Input2},
-                    new[] {666, TestableNode.Output1, TestableNode.Output2, })
-                );
+                    NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
+                        node,
+                        new[] { TestableNode.Input0, TestableNode.Input1, TestableNode.Input2 },
+                        new[] { 666, TestableNode.Output1, TestableNode.Output2, })
+            );
 
             Assert.DoesNotThrow(
                 () =>
-                NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
-                    node,
-                    new[] {TestableNode.Input0},
-                    new[] {TestableNode.Output0})
-                );
+                    NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
+                        node,
+                        new[] { TestableNode.Input0 },
+                        new[] { TestableNode.Output0 })
+            );
         }
 
         [Test]
@@ -600,7 +600,7 @@ namespace UnityEditor.Graphing.UnitTests
             graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
-            graph.RemoveElements(graph.GetNodes<AbstractMaterialNode>().ToArray(), graph.edges.ToArray(), new GroupData[] {}, new StickyNoteData[] {});
+            graph.RemoveElements(graph.GetNodes<AbstractMaterialNode>().ToArray(), graph.edges.ToArray(), new GroupData[] { }, new StickyNoteData[] { });
             Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
             Assert.AreEqual(0, graph.edges.Count());
         }

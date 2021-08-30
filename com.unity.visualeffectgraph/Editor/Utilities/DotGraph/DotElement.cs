@@ -30,7 +30,7 @@ namespace UnityEditor.Dot
 
     class DotNode : DotElement
     {
-        public DotNode() {}
+        public DotNode() { }
         public DotNode(string name)
         {
             Label = name;
@@ -50,7 +50,7 @@ namespace UnityEditor.Dot
         public override string Name { get { return "edge"; } }
 
         public DotNode From { get { return m_From; } }
-        public DotNode To   { get { return m_To; } }
+        public DotNode To { get { return m_To; } }
 
         private DotNode m_From;
         private DotNode m_To;

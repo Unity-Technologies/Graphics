@@ -28,9 +28,9 @@ namespace UnityEditor.ShaderGraph
         public Vector4Node()
         {
             name = "Vector 4";
+            synonyms = new string[] { "4", "v4", "vec4", "float4" };
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -51,11 +51,11 @@ namespace UnityEditor.ShaderGraph
             var outputName = GetVariableNameForSlot(outputSlotId);
 
             var s = string.Format("$precision4 {0} = $precision4({1}, {2}, {3}, {4});",
-                    outputName,
-                    inputXValue,
-                    inputYValue,
-                    inputZValue,
-                    inputWValue);
+                outputName,
+                inputXValue,
+                inputYValue,
+                inputZValue,
+                inputWValue);
             sb.AppendLine(s);
         }
 

@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.LookDev
-{   
+{
     partial class DisplayWindow
     {
         static partial class Style
@@ -22,7 +22,6 @@ namespace UnityEditor.Rendering.LookDev
             //The following const are used in the uss.
             //If you change them, update the uss file too.
             internal const string k_DebugToolbarName = "debugToolbar";
-
         }
 
         MultipleSourceToggle m_Shadow;
@@ -71,7 +70,7 @@ namespace UnityEditor.Rendering.LookDev
             multipleDifferentValue = false;
             bool view1 = debugView1SidePanel;
             bool view2 = debugView2SidePanel;
-            
+
             if (view1)
                 res1 = getter.Invoke(LookDev.currentContext.GetViewContent(ViewIndex.First));
             if (view2)
@@ -96,7 +95,7 @@ namespace UnityEditor.Rendering.LookDev
             element.inMultipleValueState = multipleDifferentValue;
         }
 
-#region Hack_Support_UIElement_MixedValueState
+        #region Hack_Support_UIElement_MixedValueState
 
         class MultipleDifferentValue : TextElement
         {
@@ -105,7 +104,7 @@ namespace UnityEditor.Rendering.LookDev
             public new class UxmlTraits : TextElement.UxmlTraits { }
 
             public new static readonly string ussClassName = "unity-multipledifferentevalue";
-            
+
             public MultipleDifferentValue()
             {
                 AddToClassList(ussClassName);
@@ -136,7 +135,7 @@ namespace UnityEditor.Rendering.LookDev
                 }
             }
 
-            public MultipleSourceToggle() : base ()
+            public MultipleSourceToggle() : base()
             {
                 m_MultipleOverlay = new MultipleDifferentValue();
                 this.Q(name: "unity-checkmark").Add(m_MultipleOverlay);
@@ -190,11 +189,11 @@ namespace UnityEditor.Rendering.LookDev
 
             public MultipleSourcePopupField(string label, List<string> choices, int defaultIndex = 0)
                 : base(
-                      label,
-                      choices,
-                      defaultIndex,
-                      null,
-                      null)
+                    label,
+                    choices,
+                    defaultIndex,
+                    null,
+                    null)
             {
                 count = choices.Count;
                 m_MultipleOverlay = new MultipleDifferentValue();
@@ -222,7 +221,7 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
-#endregion
+        #endregion
 
         void CreateDebug()
         {
@@ -234,8 +233,8 @@ namespace UnityEditor.Rendering.LookDev
             if (sidePanel == SidePanel.Debug)
                 m_MainContainer.AddToClassList(Style.k_ShowDebugPanelClass);
 
-            AddDebugViewSelector(); 
-            
+            AddDebugViewSelector();
+
             AddDebugShadow();
             AddDebugViewMode();
 
@@ -250,7 +249,7 @@ namespace UnityEditor.Rendering.LookDev
 
             //[TODO: debug why list sometimes empty on resource reloading]
             //[TODO: display only per view]
-            
+
             if (sidePanel == SidePanel.Debug)
                 UpdateSideDebugPanelProperties();
         }
@@ -308,7 +307,7 @@ namespace UnityEditor.Rendering.LookDev
             else
                 m_DebugContainer.Insert(pos, m_DebugView);
         }
-        
+
         void UpdateSideDebugPanelProperties()
         {
             ReadValueFromSourcesWithoutNotify(m_Shadow, view => view.debug.shadow);

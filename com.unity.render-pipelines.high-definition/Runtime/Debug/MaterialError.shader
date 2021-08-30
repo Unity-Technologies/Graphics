@@ -1,4 +1,4 @@
-﻿Shader "Hidden/HDRP/MaterialError"
+Shader "Hidden/HDRP/MaterialError"
 {
     SubShader
     {

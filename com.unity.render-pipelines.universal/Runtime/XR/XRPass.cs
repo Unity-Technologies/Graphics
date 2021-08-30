@@ -81,6 +81,9 @@ namespace UnityEngine.Rendering.Universal
         static   RenderTargetIdentifier  invalidRT = -1;
         internal bool                    renderTargetValid { get => renderTarget != invalidRT; }
         internal bool                    renderTargetIsRenderTexture { get; private set; }
+        internal bool isLateLatchEnabled { get; set; }
+        internal bool canMarkLateLatch { get; set; }
+        internal bool hasMarkedLateLatch { get; set; }
 
         // Access to view information
         internal Matrix4x4 GetProjMatrix(int viewIndex = 0)  { return views[viewIndex].projMatrix; }
@@ -233,7 +236,7 @@ namespace UnityEngine.Rendering.Universal
         internal void AddViewInternal(XRView xrView)
         {
             // XRTODO: Fix hard coded max views
-            int maxSupportedViews = Math.Min(TextureXR.slices, 2/*ShaderConfig.s_XrMaxViews*/);
+            int maxSupportedViews = Math.Min(TextureXR.slices, 2 /*ShaderConfig.s_XrMaxViews*/);
 
             if (views.Count < maxSupportedViews)
             {
@@ -248,7 +251,7 @@ namespace UnityEngine.Rendering.Universal
         // Must be called after all views have been added to the pass
         internal void UpdateOcclusionMesh()
         {
-            if (isOcclusionMeshSupported && TryGetOcclusionMeshCombinedHashCode(out var hashCode))
+            if (isOcclusionMeshSupported && singlePassEnabled && TryGetOcclusionMeshCombinedHashCode(out var hashCode))
             {
                 if (occlusionMeshCombined == null || hashCode != occlusionMeshCombinedHashCode)
                 {
@@ -277,7 +280,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     hashCode = 0;
                     return false;
-                } 
+                }
             }
 
             return true;
@@ -330,7 +333,7 @@ namespace UnityEngine.Rendering.Universal
 
                     indices[indexStart + i] = (ushort)newIndex;
                 }
-                
+
                 vertexStart += mesh.vertexCount;
                 indexStart += meshIndices.Length;
             }
@@ -338,8 +341,6 @@ namespace UnityEngine.Rendering.Universal
             occlusionMeshCombined.vertices = vertices;
             occlusionMeshCombined.SetIndices(indices, MeshTopology.Triangles, 0);
         }
-
-        Vector4[] stereoEyeIndices = new Vector4[2] { Vector4.zero , Vector4.one };
 
         internal void StartSinglePass(CommandBuffer cmd)
         {
@@ -352,7 +353,6 @@ namespace UnityEngine.Rendering.Universal
                         if (SystemInfo.supportsMultiview)
                         {
                             cmd.EnableShaderKeyword("STEREO_MULTIVIEW_ON");
-                            cmd.SetGlobalVectorArray("unity_StereoEyeIndices", stereoEyeIndices);
                         }
                         else
                         {
@@ -406,6 +406,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal void RenderOcclusionMesh(CommandBuffer cmd)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running)
+                return;
+#endif
+
             if (isOcclusionMeshSupported)
             {
                 using (new ProfilingScope(cmd, _XROcclusionProfilingSampler))
@@ -450,7 +455,33 @@ namespace UnityEngine.Rendering.Universal
                     stereoProjectionMatrix[i] = GL.GetGPUProjectionMatrix(stereoCameraProjectionMatrix[i], isRenderToTexture);
                 }
                 RenderingUtils.SetStereoViewAndProjectionMatrices(cmd, stereoViewMatrix, stereoProjectionMatrix, stereoCameraProjectionMatrix, true);
+                if (cameraData.xr.canMarkLateLatch)
+                    MarkLateLatchShaderProperties(cmd, ref cameraData);
             }
+        }
+
+        internal static readonly int UNITY_STEREO_MATRIX_V = Shader.PropertyToID("unity_StereoMatrixV");
+        internal static readonly int UNITY_STEREO_MATRIX_IV = Shader.PropertyToID("unity_StereoMatrixInvV");
+        internal static readonly int UNITY_STEREO_MATRIX_VP = Shader.PropertyToID("unity_StereoMatrixVP");
+        internal static readonly int UNITY_STEREO_MATRIX_IVP = Shader.PropertyToID("unity_StereoMatrixIVP");
+
+        internal void MarkLateLatchShaderProperties(CommandBuffer cmd, ref CameraData cameraData)
+        {
+            cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.View, UNITY_STEREO_MATRIX_V);
+            cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.InverseView, UNITY_STEREO_MATRIX_IV);
+            cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.ViewProjection, UNITY_STEREO_MATRIX_VP);
+            cmd.MarkLateLatchMatrixShaderPropertyID(CameraLateLatchMatrixType.InverseViewProjection, UNITY_STEREO_MATRIX_IVP);
+            cmd.SetLateLatchProjectionMatrices(stereoProjectionMatrix);
+            cameraData.xr.hasMarkedLateLatch = true;
+        }
+
+        internal void UnmarkLateLatchShaderProperties(CommandBuffer cmd, ref CameraData cameraData)
+        {
+            cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.View);
+            cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.InverseView);
+            cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.ViewProjection);
+            cmd.UnmarkLateLatchMatrix(CameraLateLatchMatrixType.InverseViewProjection);
+            cameraData.xr.hasMarkedLateLatch = false;
         }
     }
 }

@@ -24,7 +24,7 @@ The [Lit](Lit-Shader.md), [LayeredLit](Layered-Lit-Shader.md), and [Unlit](Unlit
 To create a Material that uses a Shader Graph (for example, a StackLit Graph), follow these steps:
 
 1. Create a Shader with the Shader Graph that you want the Material to use.
-	1. Go to **Assets > Create > Shader > HDRP** to find the list of HDRP Shader Graphs. For this example, click **StackLit Graph**.
+    1. Go to **Assets > Create > Shader Graph > HDRP** to find the list of HDRP Shader Graphs. For this example, click **StackLit Graph**.
    1. Give the Shader Graph a unique name. This is important, because you need to reference this Shader Graph in the Material.
 1. Create a Material from the Shader.
 1. In your Project window, find the Shader that you just created and right-click it.
@@ -43,7 +43,7 @@ To edit properties for Materials that use Shader Graphs, the Inspector window on
 
 ## Material properties
 
-When you edit a Shader Graph Asset, you can create properties on the [Blackboard](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Blackboard.html) for Materials that use it. This allows you to change the value of the property at runtime. 
+When you edit a Shader Graph Asset, you can create properties on the [Blackboard](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Blackboard.html) for Materials that use it. This allows you to change the value of the property at runtime.
 
 The best way to create a property depends on how you want to use it:
 
@@ -64,9 +64,9 @@ If you want to change the value of a Material’s property in the Unity Editor I
 
 You should only expose a property if you intend to change it in the Inspector while you develop your application in the Editor. Otherwise, it’s good practice to leave it unexposed, so that it doesn’t take up too much space in the Inspector, and it can’t accidentally change.
 
-If a property is not exposed, you can still edit it. To edit the property for every Material instance that uses the selected Shader, open the Shader Graph Asset and edit the property directly in the Blackboard. To edit the property for a single Material instance that uses the Shader, use a script. 
+If a property is not exposed, you can still edit it. To edit the property for every Material instance that uses the selected Shader, open the Shader Graph Asset and edit the property directly in the Blackboard. To edit the property for a single Material instance that uses the Shader, use a script.
 
-**:warning: HDRP reserves a set of property names that you should not use in the Blackboard. If you use any of them, the Material will most likely not work correctly.  
+**:warning: HDRP reserves a set of property names that you should not use in the Blackboard. If you use any of them, the Material will most likely not work correctly.
 For the list of restricted property names and their uses, see the following table:**
 
 Property Name | HDRP Usage
@@ -96,7 +96,7 @@ Concrete nodes that define a Texture (or a Texture array) define an unexposed pr
 
 ### Material Surface Option properties
 
-By default HDRP master nodes exposes a bunch of **Surface Options** properties, they allow you to control common settings from the Material instead of in the ShaderGraph and thus avoid having to duplicate the whole graph to change for example the **Sorting Priority** or the **Surface Type**. In the master node, these settings act as a default value in the Shader so when you create a material from the **Shader Graph** (**Right Click on the Shader Graph asset > Create > Material**) it will have the configuration of the master node.  
+By default HDRP master nodes exposes a bunch of **Surface Options** properties, they allow you to control common settings from the Material instead of in the ShaderGraph and thus avoid having to duplicate the whole graph to change for example the **Sorting Priority** or the **Surface Type**. In the master node, these settings act as a default value in the Shader so when you create a material from the **Shader Graph** (**Right Click on the Shader Graph asset > Create > Material**) it will have the configuration of the master node.
 
 ![](Images/ShaderGraphMaterialUI_Default.png)
 

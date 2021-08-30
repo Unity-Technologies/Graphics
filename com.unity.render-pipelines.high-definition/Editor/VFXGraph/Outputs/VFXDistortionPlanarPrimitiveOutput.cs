@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     [VFXInfo]
     class VFXDistortionPlanarPrimitiveOutput : VFXAbstractDistortionOutput
@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
         //[VFXSetting] // tmp dont expose as settings atm
         public bool useGeometryShader = false;
 
-        public override string name { get { return "Output Particle Distortion " + primitiveType.ToString(); ; } }
+        public override string name { get { return "Output Particle HDRP Distortion " + primitiveType.ToString(); } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDistortionPlanarPrimitive"); } }
         public override VFXTaskType taskType
         {

@@ -1,0 +1,10 @@
+{
+	"Exceptions":
+	[
+		{
+			"ValidationTest": "Package Lifecycle Validation",
+			"ExceptionError": "Package com.unity.render-pipelines.universal@12.0.0 depends on package com.unity.burst@1.5.0 which is in an invalid track for release purposes. Release versions can only depend on Release versions.",
+			"PackageVersion": "12.0.0"
+		}
+	]
+}

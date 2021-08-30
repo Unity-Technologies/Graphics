@@ -9,16 +9,16 @@
 //
 // Developed by Minigraph
 //
-// Author:  James Stanard 
+// Author:  James Stanard
 //
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/GTAOCommon.hlsl"
 
 #pragma kernel BlurUpsample  BLUR_AND_UPSAMPLE
-#pragma kernel BilateralUpsampling     UPSAMPLE_KERNEL=BilateralUpsampling     UPSAMPLE_ONLY 
+#pragma kernel BilateralUpsampling     UPSAMPLE_KERNEL=BilateralUpsampling     UPSAMPLE_ONLY
 #pragma kernel BoxUpsampling            UPSAMPLE_KERNEL=BoxUpsampling          UPSAMPLE_ONLY BOX
-// Currently not used. 
-#pragma kernel Blur          BLUR_KERNEL_NAME=Blur BLUR 
+// Currently not used.
+#pragma kernel Blur          BLUR_KERNEL_NAME=Blur BLUR
 #pragma kernel Blur_FullRes  BLUR_KERNEL_NAME=Blur_FullRes BLUR   FULL_RES
 
 TEXTURE2D_X(_AOPackedData);

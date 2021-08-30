@@ -42,7 +42,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-
         /// <summary>
         /// Looks for resources in the given <paramref name="container"/> object and reload the ones
         /// that are missing or broken.
@@ -204,7 +203,6 @@ namespace UnityEngine.Rendering
             return result;
         }
 
-
         static bool SetAndLoadIfNull(System.Object container, FieldInfo info,
             string path, bool builtin)
         {
@@ -318,7 +316,7 @@ namespace UnityEngine.Rendering
         /// <param name="rangeMax">The array end index (exclusive)</param>
         /// <param name="package">The lookup method</param>
         public ReloadAttribute(string pathFormat, int rangeMin, int rangeMax,
-            Package package = Package.Root)
+                               Package package = Package.Root)
         {
 #if UNITY_EDITOR
             this.package = package;

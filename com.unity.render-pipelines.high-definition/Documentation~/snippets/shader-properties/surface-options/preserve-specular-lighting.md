@@ -6,4 +6,3 @@ Indicates whether to make alpha blending not reduce the intensity of specular hi
 
 </td>
 </tr>
-

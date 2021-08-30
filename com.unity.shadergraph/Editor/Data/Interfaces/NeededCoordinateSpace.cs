@@ -29,7 +29,8 @@ namespace UnityEditor.ShaderGraph.Internal
         BiTangent,
         Tangent,
         ViewDirection,
-        Position
+        Position,
+        PositionPredisplacement,
     }
 
     public static class CoordinateSpaceExtensions

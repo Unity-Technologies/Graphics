@@ -8,7 +8,7 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests" 
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
       - [all]: --compilation-errors-as-warnings
   # - type: editmode
   #  utr_flags:
@@ -30,7 +30,26 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-  - name: OSX 
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      editmode:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+      standalone:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      standalone_build:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+  - name: OSX
     apis:
       - name: Metal
         exclude_test_platforms:
@@ -40,7 +59,7 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
@@ -52,13 +71,25 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-all:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode
-        - playmode_XR
-       # - Standalone
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies: # add any dependencies
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+  - name: Extra <PROJECT_NAME>
+    dependencies: # add any dependencies
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode_XR
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

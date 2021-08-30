@@ -3,17 +3,18 @@ using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     [VFXInfo(experimental = true)]
     class VFXLitQuadStripOutput : VFXAbstractParticleHDRPLitOutput
     {
-        protected VFXLitQuadStripOutput() : base(true) { } // strips
+        protected VFXLitQuadStripOutput() : base(true) { }  // strips
 
-        public override string name { get { return "Output ParticleStrip Lit Quad"; } }
+        public override string name { get { return "Output ParticleStrip HDRP Lit Quad"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
         public override bool supportsUV { get { return true; } }
+        public override bool implementsMotionVector { get { return true; } }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, a Normal Bending Factor slider becomes available in the output which can be used to adjust the curvature of the normals.")]
         protected bool normalBending = false;
@@ -45,7 +46,7 @@ namespace UnityEditor.VFX
             get
             {
                 var properties = base.inputProperties;
-                if (normalBending)
+                if (normalBending && !GeneratesWithShaderGraph())
                     properties = properties.Concat(PropertiesFromType("NormalBendingProperties"));
                 if (tilingMode == StripTilingMode.Custom)
                     properties = properties.Concat(PropertiesFromType("CustomUVInputProperties"));
@@ -82,7 +83,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if (normalBending)
+            if (normalBending && !GeneratesWithShaderGraph())
                 yield return slotExpressions.First(o => o.name == "normalBendingFactor");
             if (tilingMode == StripTilingMode.Custom)
                 yield return slotExpressions.First(o => o.name == "texCoord");
@@ -95,7 +96,7 @@ namespace UnityEditor.VFX
                 foreach (var d in base.additionalDefines)
                     yield return d;
 
-                if (normalBending)
+                if (normalBending && !GeneratesWithShaderGraph())
                     yield return "USE_NORMAL_BENDING";
 
                 if (tilingMode == StripTilingMode.Stretch)

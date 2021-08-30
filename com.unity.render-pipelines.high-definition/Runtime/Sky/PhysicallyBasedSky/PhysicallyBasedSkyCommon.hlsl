@@ -252,26 +252,26 @@ float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool aboveHorizon
     float2 z = n * r;
     float2 Z = n * R;
 
-	float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
+    float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
 
     float2 ch;
     ch.x = ChapmanUpperApprox(z.x, abs(cosTheta)) * exp(Z.x - z.x); // Rescaling adds 'exp'
     ch.y = ChapmanUpperApprox(z.y, abs(cosTheta)) * exp(Z.y - z.y); // Rescaling adds 'exp'
 
     if (!aboveHorizon) // Below horizon, intersect sphere
-	{
-		float sinGamma = (r / R) * sinTheta;
-		float cosGamma = sqrt(saturate(1 - sinGamma * sinGamma));
+    {
+        float sinGamma = (r / R) * sinTheta;
+        float cosGamma = sqrt(saturate(1 - sinGamma * sinGamma));
 
-		float2 ch_2;
+        float2 ch_2;
         ch_2.x = ChapmanUpperApprox(Z.x, cosGamma); // No need to rescale
         ch_2.y = ChapmanUpperApprox(Z.y, cosGamma); // No need to rescale
 
-		ch = ch_2 - ch;
+        ch = ch_2 - ch;
     }
     else if (cosTheta < 0)   // Above horizon, lower hemisphere
     {
-    	// z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
+        // z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
         // Ch(z, theta) = 2 * exp(z - z_0) * Ch(z_0, Pi/2) - Ch(z, Pi - theta).
         float2 z_0  = z * sinTheta;
         float2 b    = exp(Z - z_0); // Rescaling cancels out 'z' and adds 'Z'

@@ -30,12 +30,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         public void RenderThrowWhenTargetIsNotARenderTextureForTex2DRendering()
         {
             Assert.Throws<ArgumentException>(() => HDRenderUtilities.Render(
-                    new CameraSettings
-                    {
-                        renderingPathCustomFrameSettings = default
-                    },
-                    default(CameraPositionSettings),
-                    Texture2D.whiteTexture
+                new CameraSettings
+                {
+                    renderingPathCustomFrameSettings = default
+                },
+                default(CameraPositionSettings),
+                Texture2D.whiteTexture
             ));
         }
     }

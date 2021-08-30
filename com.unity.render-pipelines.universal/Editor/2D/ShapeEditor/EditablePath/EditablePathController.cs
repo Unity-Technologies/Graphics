@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     internal class EditablePathController : IEditablePathController
     {
@@ -110,15 +110,24 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         public void RemoveSelectedPoints()
         {
             var minPointCount = editablePath.isOpenEnded ? 2 : 3;
+            int pointsCountToRemove = editablePath.selection.Count;
 
-            if (editablePath.pointCount > minPointCount)
+            if (editablePath.pointCount != pointsCountToRemove)
             {
-                var indices = editablePath.selection.elements.OrderByDescending( i => i);
+                var indices = editablePath.selection.elements.OrderByDescending(i => i);
 
                 foreach (var index in indices)
+                {
                     if (editablePath.pointCount > minPointCount)
+                    {
                         editablePath.RemovePoint(index);
-
+                    }
+                }
+                ClearSelection();
+            }
+            else
+            {
+                editablePath.SetDefaultShape();
                 ClearSelection();
             }
         }
@@ -130,7 +139,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             for (var i = 0; i < editablePath.pointCount; ++i)
             {
                 if (editablePath.selection.Contains(i))
-                {                            
+                {
                     var controlPoint = editablePath.GetPoint(i);
                     controlPoint.position += delta;
                     editablePath.SetPoint(i, controlPoint);
@@ -142,7 +151,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             if (editablePath.isOpenEnded && index == editablePath.pointCount - 1)
                 return;
-            
+
             var controlPoint = editablePath.GetPoint(index);
             controlPoint.position += delta;
             editablePath.SetPoint(index, controlPoint);

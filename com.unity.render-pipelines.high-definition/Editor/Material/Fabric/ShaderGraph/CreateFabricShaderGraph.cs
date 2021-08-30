@@ -1,18 +1,19 @@
-﻿using System;
+using System;
 using UnityEditor.ShaderGraph;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class CreateFabricShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/HDRP/Fabric Shader Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader Graph/HDRP/Fabric Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 2)]
         public static void CreateFabricGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
             target.TrySetActiveSubTarget(typeof(FabricSubTarget));
 
-            var blockDescriptors = new [] 
-            { 
+            var blockDescriptors = new[]
+            {
                 BlockFields.VertexDescription.Position,
                 BlockFields.VertexDescription.Normal,
                 BlockFields.VertexDescription.Tangent,
@@ -26,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.SurfaceDescription.Alpha,
             };
 
-            GraphUtil.CreateNewGraphWithOutputs(new [] {target}, blockDescriptors);
+            GraphUtil.CreateNewGraphWithOutputs(new[] { target }, blockDescriptors);
         }
     }
 }

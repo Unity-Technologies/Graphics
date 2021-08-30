@@ -2,14 +2,47 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+namespace UnityEngine.Rendering.Universal
 {
+#if UNITY_EDITOR
+    [InitializeOnLoadAttribute]
+#endif
     internal class ShadowCasterGroup2DManager
     {
         static List<ShadowCasterGroup2D> s_ShadowCasterGroups = null;
 
         public static List<ShadowCasterGroup2D> shadowCasterGroups { get { return s_ShadowCasterGroups; } }
 
+
+#if UNITY_EDITOR
+        static ShadowCasterGroup2DManager()
+        {
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+        }
+
+        private static void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            if (s_ShadowCasterGroups != null && (state == PlayModeStateChange.ExitingEditMode || state == PlayModeStateChange.ExitingPlayMode))
+                s_ShadowCasterGroups.Clear();
+        }
+
+#endif
+
+        public static void CacheValues()
+        {
+            if (shadowCasterGroups != null)
+            {
+                for (int i = 0; i < shadowCasterGroups.Count; i++)
+                {
+                    if (shadowCasterGroups[i] != null)
+                        shadowCasterGroups[i].CacheValues();
+                }
+            }
+        }
 
         public static void AddShadowCasterGroupToList(ShadowCasterGroup2D shadowCaster, List<ShadowCasterGroup2D> list)
         {
@@ -35,8 +68,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Transform transformToCheck = shadowCaster.transform.parent;
             while (transformToCheck != null)
             {
-                CompositeShadowCaster2D currentGroup = transformToCheck.GetComponent<CompositeShadowCaster2D>();
-                if (currentGroup != null)
+                CompositeShadowCaster2D currentGroup;
+                if (transformToCheck.TryGetComponent<CompositeShadowCaster2D>(out currentGroup))
                     retGroup = currentGroup;
 
                 transformToCheck = transformToCheck.parent;
@@ -78,6 +111,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             AddShadowCasterGroupToList(group, s_ShadowCasterGroups);
         }
+
         public static void RemoveGroup(ShadowCasterGroup2D group)
         {
             if (group != null && s_ShadowCasterGroups != null)

@@ -9,8 +9,8 @@ namespace UnityEditor.ShaderGraph
         public NormalStrengthNode()
         {
             name = "Normal Strength";
+            synonyms = new string[] { "intensity" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector3.up;
             return
-                @"
+@"
 {
     Out = $precision3(In.rg * Strength, lerp(1, In.b, saturate(Strength)));
 }

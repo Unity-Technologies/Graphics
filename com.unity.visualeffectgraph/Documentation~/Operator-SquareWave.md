@@ -1,6 +1,6 @@
 # Square Wave
 
-Menu Path : **Operator > Math > Wave > Square Wave** 
+Menu Path : **Operator > Math > Wave > Square Wave**
 
 The Square Wave Operator allows you to generate a value which alternates between a minimum and a maximum value at steady intervals based on a provided input and a set frequency.
 

@@ -9,8 +9,8 @@ namespace UnityEditor.ShaderGraph
         public DDYNode()
         {
             name = "DDY";
+            synonyms = new string[] { "derivative" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = ddy(In);
 }

@@ -4,7 +4,15 @@ This page contains an overview of new features, improvements, and issues resolve
 
 ## Features
 
-The following is a list of features Unity added to version 10.0 of the High Definition Render Pipeline. Each entry includes a summary of the feature and a link to any relevant documentation.
+The following is a list of features Unity added to version 10 of the High Definition Render Pipeline. Each entry includes a summary of the feature and a link to any relevant documentation.
+
+### Added support for the PlayStation 5 platform.
+
+This version of HDRP includes support for the Playstation 5 platform. For more information, see [building for consoles](Building-For-Consoles.md).
+
+### Added support for the Game Core Xbox Series platform and Game Core Xbox One
+
+This version of HDRP includes support for the Game Core Xbox Series platform as well as support for Game Core for Xbox One. For more information, see [building for consoles](Building-For-Consoles.md).
 
 ### IES Profiles and light cookies
 
@@ -30,7 +38,7 @@ For more information about this feature, see [Exposure](Override-Exposure.md).
 
 HDRP now includes new debug modes that can help you to set the correct exposure for your Scene.
 
-For more information about the debug modes, see [Exposure](Override-Exposure.md) and [Render Pipeline Debug](Render-Pipeline-Debug-Window.md).
+For more information about the debug modes, see [Exposure](Override-Exposure.md) and [Rendering Debugger](Render-Pipeline-Debug-Window.md).
 
 
 ### Scalability settings
@@ -41,9 +49,9 @@ This version of HDRP includes scalability settings for fog and subsurface scatte
 
 ![](Images/HDRPFeatures-SSGI.png)
 
-This version of HDRP introduces screen-space global illumination (SSGI) as a fallback for ray-traced global illumination (RTGI). It is an algorithm that accesses indirect diffuse lighting the environment generates. It works in the same way as the [Screen Space Reflection](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
+This version of HDRP introduces screen-space global illumination (SSGI). It is an algorithm that accesses indirect diffuse lighting the environment generates. It works in the same way as the [Screen Space Reflection](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
 
-Since this feature is a fallback for RTGI, for more information, see [Ray-traced Global Illumination](Ray-Traced-Global-Illumination.md). This feature is still in preview.
+For more information, see [Screen Space Global Illumination](Override-Screen-Space-GI.md).
 
 ### Custom Pass AOV Export
 
@@ -70,12 +78,12 @@ To help you to debug lighting in your Scene, HDRP now includes various lighting 
 
 HDRP now includes a new [light layer](Light-Layers.md) debug mode which can display the light layers assigned to each GameObject or can highlight GameObjects which match the light layers of a specific Light.
 
-For more information, see the Lighting panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md).
+For more information, see the Lighting panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md).
 
 #### Volume debug mode
 ![](Images/VolumeDebugMode.png)
 
-The Render Pipeline Debug window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md#VolumePanel).
+The Rendering Debugger window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [Rendering Debugger](Render-Pipeline-Debug-Window.md#VolumePanel).
 
 #### Quad Overdraw and Vertex Density
 
@@ -109,9 +117,9 @@ HDRP's screen-space reflection (SSR) solution now support transparent materials.
 
 HDRP now includes a new sample that contains example fabric and hair materials. You can use these materials as references to more quickly develop fabric and hair materials for your application. HDRP now also includes an eye Shader Graph which you can use to create a realistic eye Material. There are also new HDRP-specific Shader Graph nodes which allow you to more easier customize this eye Shader Graph.
 
-### Decal Layers and Decal angle fading
+### Decal improvment - Decal Bias, Decal Layers, and Decal angle fading
 
-This version of HDRP introduces Decal Layers which allow you to specify which decals affect which Materials on a layer by layer basis. For more information about Decal Layers, see the [Decal documentation](Decal.md). This version also introduce the support of angle based fading for Decal when Decal Layers are enabled.
+This version of HDRP introduces Decal Layers which allow you to specify which decals affect which Materials on a layer by layer basis. For more information about Decal Layers, see the [Decal documentation](Decal.md). This version also introduce the support of angle based fading for Decal when Decal Layers are enabled. Lastly this version introduces a new world-space bias (in meters) option that HDRP applies to the decal’s Mesh to stop it from overlapping with other Meshes along the view vector.
 
 ### Input System package support
 
@@ -123,7 +131,7 @@ The [HDRI Sky](Override-HDRI-Sky.md) override now contains a new property to all
 
 For more information, see the [HDRI Sky documentation](Override-HDRI-Sky.md).
 
-### Graphics Compositor (in Preview)
+### Graphics Compositor
 
 ![](Images/Compositor-HDRPTemplateWithLogo_Feature.png)
 The Graphics Compositor allows real-time compositing operations between layers of 3D content, static images, and videos.
@@ -178,7 +186,7 @@ Note that the graph should not contain nodes that rely on screen-space different
 
 ## Improvements
 
-The following is a list of improvements Unity made to the High Definition Render Pipeline in version 10.0. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
+The following is a list of improvements Unity made to the High Definition Render Pipeline in version 10. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
 
 
 ### Scene view Camera properties
@@ -190,6 +198,13 @@ For information on HDRP's Scene view Camera properties, see [Scene view Camera](
 ### Shadow caching system
 
 This version of HDRP improves on shadow atlas and shadow caching management. You can now stagger cascade shadows which means you can update each cascade independently. Cached shadows (those that use **OnEnable**) render everything they can see independently of the main view. This version also introduces more API which you can use to more finely control cached shadows. For more information, see [Shadows](Shadows-in-HDRP.md).
+
+### Volumetric fog control modes
+
+Version 10.2 of HDRP introduces the concept of volumetric fog control modes to help you set up volumetric fog in a Scene. The control modes are:
+
+* **Balance**: Uses a performance-oriented approach to define the quality of the volumetric fog.
+* **Manual**: Gives you access to the internal set of properties which directly control the effect. This mode is equivalent to the behavior before this update.
 
 ### Custom post-processing: new injection point
 
@@ -215,7 +230,7 @@ Planar reflection probe filtering is a process that combines the result of plana
 
 ![](Images/DistanceBaseRoughness-Feature.png)
 
-Reflection Probe can now fake the increasing preceive bluriness of a surface reflection with distance from the object.
+Reflection Probe can now fake the increasing preceive bluriness of a surface reflection with distance from the object. This option is disabled by default and need to be enabled on the Reflection Probe.
 
 ### Screen space reflection
 
@@ -235,7 +250,7 @@ In terms of performance, one of the most resource intensive operations for HDRP 
 
 ### Decal improvement
 
-HDRP no longer forces a full depth pre-pass when you enable decals in Deferred Lit Mode. Only materials with the **Receive Decals** property enabled render in the pre-pass. Decal shader code has improved and now produces fewer shader variants and includes better UI to control which material attributes the decal affects. Finally, the [Decal Shader Graph](Master-Node-Decal.md) now exposes affects flags control on the Material.
+HDRP no longer forces a full depth pre-pass when you enable decals in Deferred Lit Mode. Only materials with the **Receive Decals** property enabled render in the pre-pass. Decal shader code has improved and now produces fewer shader variants and includes better UI to control which material attributes the decal affects. Finally, the [Decal Master Stack](master-stack-decal.md) now exposes affects flags control on the Material.
 
 ### Constant buffer setup optimization
 
@@ -306,6 +321,7 @@ Ray tracing now supports VR. However, since ray tracing is resource intensive an
 ### Render Graph
 
 HDRP now internally uses a Render Graph system. This has no impact on features available to you and it should improve overall memory usage significantly. In the new HDRP template, GPU memory usage decreased by 25%.
+More information see [RenderGraph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@10.2/manual/render-graph-system.html).
 
 ### Metallic Remapping
 
@@ -313,4 +329,4 @@ HDRP now uses range remapping for the metallic value when using a mask map on Li
 
 ## Issues resolved
 
-For information on issues resolved in version 10 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/changelog/CHANGELOG.html).
+For information on issues resolved in version 10 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.2/changelog/CHANGELOG.html).

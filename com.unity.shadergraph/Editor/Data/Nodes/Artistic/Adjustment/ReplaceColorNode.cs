@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector3.zero;
             return
-                @"
+@"
 {
     $precision Distance = distance(From, In);
     Out = lerp(To, In, saturate((Distance - Range) / max(Fuzziness, 1e-5f)));

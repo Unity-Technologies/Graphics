@@ -13,9 +13,11 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             displayName = "Vector4";
         }
-        
+
+        internal override int vectorDimension => 4;
+
         public override PropertyType propertyType => PropertyType.Vector4;
-        
+
         internal override AbstractMaterialNode ToConcreteNode()
         {
             var node = new Vector4Node();
@@ -40,11 +42,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return new Vector4ShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
-                overrideHLSLDeclaration = overrideHLSLDeclaration,
-                hlslDeclarationOverride = hlslDeclarationOverride
             };
         }
 

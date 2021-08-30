@@ -65,7 +65,7 @@ namespace UnityEditor.Graphing
 
         public static JSONSerializedElement Serialize<T>(T item)
         {
-            if(item is JsonObject jsonObject)
+            if (item is JsonObject jsonObject)
                 return new JSONSerializedElement() { JSONnodeData = jsonObject.Serialize() };
 
             if (item == null)
@@ -78,7 +78,7 @@ namespace UnityEditor.Graphing
 
             if (string.IsNullOrEmpty(data))
                 throw new ArgumentException(string.Format("Can not serialize {0}", item));
-            
+
 
             return new JSONSerializedElement
             {
@@ -95,7 +95,7 @@ namespace UnityEditor.Graphing
             return info;
         }
 
-        public static T Deserialize<T>(JSONSerializedElement item, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper,  params object[] constructorArgs) where T : class
+        public static T Deserialize<T>(JSONSerializedElement item, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper, params object[] constructorArgs) where T : class
         {
             T instance;
             if (typeof(T) == typeof(JsonObject) || typeof(T).IsSubclassOf(typeof(JsonObject)))
@@ -128,7 +128,7 @@ namespace UnityEditor.Graphing
             //if type is null but T is an abstract material node, instead we create an unknowntype node
             if (type == null)
             {
-                    throw new ArgumentException(string.Format("Can not deserialize ({0}), type is invalid", info.fullName));
+                throw new ArgumentException(string.Format("Can not deserialize ({0}), type is invalid", info.fullName));
             }
 
             try

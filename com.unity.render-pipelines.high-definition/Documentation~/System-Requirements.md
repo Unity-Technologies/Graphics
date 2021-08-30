@@ -8,7 +8,8 @@ The following table shows the compatibility of the High Definition Render Pipeli
 
 | **Package version** | **Minimum Unity version** | **Maximum Unity version** |
 | ------------------- | ------------------------- | ------------------------- |
-| 10.x                | 2020.2                    | 2020.2                    |
+| 11.x                | 2021.1                    | 2021.1                    |
+| 10.x                | 2020.2                    | 2020.3                    |
 | 8.x / 9.x-preview   | 2020.1                    | 2020.1                    |
 | 7.x                 | 2019.3                    | 2019.4                    |
 | 6.x                 | 2019.2                    | 2019.2                    |
@@ -37,7 +38,7 @@ HRDP is only compatible with the following platforms:
 - MacOS (minimum version 10.13) using Metal graphics
 - Linux and Windows platforms with Vulkan
 
-**Note: HDRP only works on these platforms if the device used supports Compute Shaders. HDRP does not support OpenGL or OpenGL ES devices.**
+**Note: HDRP only works on these platforms if the device used supports Compute Shaders. HDRP does not support OpenGL or OpenGL ES devices. On Linux, Vulkan may not be installed by default. In that case you need to install it manually to run HDRP.**
 
 ### Ray tracing
 

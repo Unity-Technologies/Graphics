@@ -9,8 +9,8 @@ namespace UnityEngine.Rendering.Universal
         ComputeBuffer m_LightDataBuffer = null;
         ComputeBuffer m_LightIndicesBuffer = null;
 
-        ComputeBuffer m_ShadowDataBuffer = null;
-        ComputeBuffer m_ShadowIndicesBuffer = null;
+        ComputeBuffer m_AdditionalLightShadowParamsStructuredBuffer = null;
+        ComputeBuffer m_AdditionalLightShadowSliceMatricesStructuredBuffer = null;
 
         ShaderData()
         {
@@ -31,8 +31,8 @@ namespace UnityEngine.Rendering.Universal
         {
             DisposeBuffer(ref m_LightDataBuffer);
             DisposeBuffer(ref m_LightIndicesBuffer);
-            DisposeBuffer(ref m_ShadowDataBuffer);
-            DisposeBuffer(ref m_ShadowIndicesBuffer);
+            DisposeBuffer(ref m_AdditionalLightShadowParamsStructuredBuffer);
+            DisposeBuffer(ref m_AdditionalLightShadowSliceMatricesStructuredBuffer);
         }
 
         internal ComputeBuffer GetLightDataBuffer(int size)
@@ -45,14 +45,14 @@ namespace UnityEngine.Rendering.Universal
             return GetOrUpdateBuffer<int>(ref m_LightIndicesBuffer, size);
         }
 
-        internal ComputeBuffer GetShadowDataBuffer(int size)
+        internal ComputeBuffer GetAdditionalLightShadowParamsStructuredBuffer(int size)
         {
-            return GetOrUpdateBuffer<ShaderInput.ShadowData>(ref m_ShadowDataBuffer, size);
+            return GetOrUpdateBuffer<Vector4>(ref m_AdditionalLightShadowParamsStructuredBuffer, size);
         }
 
-        internal ComputeBuffer GetShadowIndicesBuffer(int size)
+        internal ComputeBuffer GetAdditionalLightShadowSliceMatricesStructuredBuffer(int size)
         {
-            return GetOrUpdateBuffer<int>(ref m_ShadowIndicesBuffer, size);
+            return GetOrUpdateBuffer<Matrix4x4>(ref m_AdditionalLightShadowSliceMatricesStructuredBuffer, size);
         }
 
         ComputeBuffer GetOrUpdateBuffer<T>(ref ComputeBuffer buffer, int size) where T : struct

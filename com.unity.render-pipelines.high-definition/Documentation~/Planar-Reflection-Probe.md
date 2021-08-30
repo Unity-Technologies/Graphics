@@ -8,13 +8,11 @@ Planar Reflection Probes share many properties with the the [built-in render pip
 
 Planar Reflection Probes use the same texture format than the one selected in [HDRP Asset](HDRP-Asset.md) for Color Buffer Format.
 
-![](Images/PlanarReflectionProbe1.png)
-
 ### General Properties
 
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
-| **Realtime Mode** | A Planar Reflection Probe updates in real time. Use this property to tell HDRP how often to update the Probe.<br />**Every Frame** updates the Probe’s capture data every frame.<br />**On Enable** updates the Probe’s capture data each time Unity calls the component’s `OnEnable()` function. This occurs whenever you enable the component in the Inspector or activate the GameObject that the component attaches to. |
+| **Realtime Mode** | A Planar Reflection Probe updates in real time. Use this property to tell HDRP how often to update the Probe.<br />&#8226; **Every Frame**: Updates the Probe’s capture data every frame.<br />&#8226; **On Enable**: Updates the Probe’s capture data each time Unity calls the component’s `OnEnable()` function. This occurs whenever you enable the component in the Inspector or activate the GameObject that the component attaches to.<br/>&#8226; **On Demand**: Updates the Probe's capture data when you request it. To do this, access the Probe's `HDAdditionalReflectionData` and call the `RequestRenderNextUpdate()` function. |
 
 ### Projection Settings
 
@@ -61,18 +59,19 @@ The following properties control the method that the Planar Reflection Probe use
 | **Custom Frame Settings**  | Allows you to define custom [Frame Settings](Frame-Settings.md) for this Probe. Disable this property to use the **Default Frame Settings** in your Unity Project’s [HDRP Asset](HDRP-Asset.md). |
 | **Resolution**             | Set the resolution of this Planar Reflection Probe. Use the drop-down to select which quality mode to derive the resolution from. If you select Custom, set the resolution, measured in pixels, in the input field. A higher resolution increases the fidelity of planar reflection at the cost of GPU performance and memory usage, so if you experience any performance issues, try using a lower value. |
 | **Rough Reflections**      | Disable the checkbox to tell HDRP to use this Planar Reflection Probe as a mirror. If you do this, the receiving surface must be perfectly smooth or the reflection result is not accurate. If you want perfect reflection, disabling this option can be useful because it means HDRP does not need to process rough refraction and thus decreases the resource intensity of the effect.|
-| **Mirror Position**        | Offsets the position of the mirror from the Transform Position. This is only available in **Advanced** mode. |
-| **Range Compression Factor**  | The factor which HDRP divides the result of the probe's rendering by. This is useful to deal with very bright or dark objects in the reflections that would otherwise be saturated. |
+| **Mirror Position**        | Offsets the position of the mirror from the Transform Position.<br/>This property only appears when you enable [additional properties](More-Options.md) for this section. |
+| **Range Compression Factor**  | The factor which HDRP divides the result of the probe's rendering by. This is useful to deal with very bright or dark objects in the reflections that would otherwise be saturated.<br/>This property only appears when you enable [additional properties](More-Options.md) for this section. |
 
 ### Render Settings
 
 The following properties control extra behavior options for fine-tuning the behavior of your Planar Reflection Probes.
 
-| **Property**    | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| **Light Layer** | A mask that allows you to choose which Light Layers this Reflection Probe affects. This Reflection Probe only affects Mesh Renderers or Terrain with a matching **Rendering Layer Mask**.<br/>Navigate to your Project’s **HDRP Asset > Render Pipeline Supported Features** and enable **Light Layers** to use this property. |
-| **Multiplier**  | A multiplier that HDRP applies to the RenderTexture captured by the Planar Reflection Probe. Higher multiplier values make the queried RenderTexture brighter, and lower multiplier values make the queried RenderTexture darker. |
-| **Weight**      | The overall weight of this Reflection Probe’s contribution to the reflective effect of Materials. When Reflection Probe’s blend together, the weight of each Probe determines their contribution to a reflective Material in the blend area. |
+| **Property**      | **Description**                                              |
+| ----------------- | ------------------------------------------------------------ |
+| **Light Layer**   | A mask that allows you to choose which Light Layers this Reflection Probe affects. This Reflection Probe only affects Mesh Renderers or Terrain with a matching **Rendering Layer Mask**.<br/>Navigate to your Project’s **HDRP Asset > Render Pipeline Supported Features** and enable **Light Layers** to use this property. |
+| **Multiplier**    | A multiplier that HDRP applies to the RenderTexture captured by the Planar Reflection Probe. Higher multiplier values make the queried RenderTexture brighter, and lower multiplier values make the queried RenderTexture darker. |
+| **Weight**        | The overall weight of this Reflection Probe’s contribution to the reflective effect of Materials. When Reflection Probe’s blend together, the weight of each Probe determines their contribution to a reflective Material in the blend area. |
+| **Fade Distance** | The distance, in meters, from the camera at which reflections begin to smoothly fade out before they disappear completely. |
 
 ## Gizmos
 
@@ -91,4 +90,3 @@ You can use Scene view gizmos to visually customize specific properties.
 
 If you use a Planar Reflection Probe as a mirror (i.e its influence volume overlap a GameObject with a Material that has its smoothness and metallic properties set to 1) it is best practice to disable the **Rough Refraction** property to decrease the resource intensity.
 If a receiving surface isn't a perfect mirror and the **Rough Reflection** option is disabled, the surface still renders smooth, but the result is physically incorrect.
-

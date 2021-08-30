@@ -62,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
             viewport.y      *= renderPass.renderTargetDesc.height;
             viewport.height *= renderPass.renderTargetDesc.height;
         }
+
 #endif
     }
 
@@ -69,24 +70,24 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         readonly List<XRView> views = new List<XRView>(2);
 
-        internal bool enabled      { get => views.Count > 0; }
+        internal bool enabled { get => views.Count > 0; }
         internal bool xrSdkEnabled { get; private set; }
-        internal bool copyDepth    { get; private set; }
+        internal bool copyDepth { get; private set; }
 
-        internal int multipassId    { get; private set; }
-        internal int cullingPassId  { get; private set; }
+        internal int multipassId { get; private set; }
+        internal int cullingPassId { get; private set; }
 
         // Ability to specify where to render the pass
-        internal RenderTargetIdentifier  renderTarget     { get; private set; }
+        internal RenderTargetIdentifier renderTarget { get; private set; }
         internal RenderTextureDescriptor renderTargetDesc { get; private set; }
-        static RenderTargetIdentifier    invalidRT = -1;
-        internal bool                    renderTargetValid { get => renderTarget != invalidRT; }
+        static RenderTargetIdentifier invalidRT = -1;
+        internal bool renderTargetValid { get => renderTarget != invalidRT; }
 
         // Access to view information
-        internal Matrix4x4 GetProjMatrix(int viewIndex = 0)  { return views[viewIndex].projMatrix; }
-        internal Matrix4x4 GetViewMatrix(int viewIndex = 0)  { return views[viewIndex].viewMatrix; }
+        internal Matrix4x4 GetProjMatrix(int viewIndex = 0) { return views[viewIndex].projMatrix; }
+        internal Matrix4x4 GetViewMatrix(int viewIndex = 0) { return views[viewIndex].viewMatrix; }
         internal int GetTextureArraySlice(int viewIndex = 0) { return views[viewIndex].textureArraySlice; }
-        internal Rect GetViewport(int viewIndex = 0)         { return views[viewIndex].viewport; }
+        internal Rect GetViewport(int viewIndex = 0) { return views[viewIndex].viewport; }
 
         // Combined projection and view matrices for culling
         internal ScriptableCullingParameters cullingParams { get; private set; }
@@ -151,6 +152,32 @@ namespace UnityEngine.Rendering.HighDefinition
             return passInfo;
         }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+
+        internal void UpdateView(int viewId, XRDisplaySubsystem.XRRenderPass xrSdkRenderPass, XRDisplaySubsystem.XRRenderParameter xrSdkRenderParameter)
+        {
+            if (viewId >= views.Count)
+                throw new NotImplementedException($"Invalid XR setup to update, trying to update non-existing xr view.");
+
+            views[viewId] = new XRView(xrSdkRenderPass, xrSdkRenderParameter);
+        }
+
+#endif
+
+        internal void UpdateView(int viewId, Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
+        {
+            if (viewId >= views.Count)
+                throw new NotImplementedException($"Invalid XR setup to update, trying to update non-existing xr view.");
+
+            views[viewId] = new XRView(proj, view, vp, textureArraySlice);
+        }
+
+        internal void UpdateCullingParams(int cullingPassId, ScriptableCullingParameters cullingParams)
+        {
+            this.cullingPassId = cullingPassId;
+            this.cullingParams = cullingParams;
+        }
+
         internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
         {
             AddViewInternal(new XRView(proj, view, vp, textureArraySlice));
@@ -181,6 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             AddViewInternal(new XRView(xrSdkRenderPass, xrSdkRenderParameter));
         }
+
 #endif
 
         internal static void Release(XRPass xrPass)
@@ -210,7 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Must be called after all views have been added to the pass
         internal void UpdateOcclusionMesh()
         {
-            if (isOcclusionMeshSupported && TryGetOcclusionMeshCombinedHashCode(out var hashCode))
+            if (isOcclusionMeshSupported && singlePassEnabled && TryGetOcclusionMeshCombinedHashCode(out var hashCode))
             {
                 if (occlusionMeshCombined == null || hashCode != occlusionMeshCombinedHashCode)
                 {
@@ -371,6 +399,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RenderOcclusionMeshes(CommandBuffer cmd, Color clearColor, RTHandle colorBuffer, RTHandle depthBuffer)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running)
+                return;
+#endif
+
             if (isOcclusionMeshSupported)
             {
                 CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, clearColor, 0, CubemapFace.Unknown, -1);
@@ -395,17 +428,20 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly int _unity_StereoMatrixV = Shader.PropertyToID("unity_StereoMatrixV");
         static readonly int _unity_StereoMatrixP = Shader.PropertyToID("unity_StereoMatrixP");
         static readonly int _unity_StereoMatrixVP = Shader.PropertyToID("unity_StereoMatrixVP");
+        static readonly int _unity_StereoWorldSpaceCameraPos = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
         Matrix4x4[] builtinViewMatrix = new Matrix4x4[2];
         Matrix4x4[] builtinProjMatrix = new Matrix4x4[2];
         Matrix4x4[] builtinViewProjMatrix = new Matrix4x4[2];
+        Vector4[] builtinWorldSpaceCameraPos = new Vector4[2];
 
         // Maintain compatibility with builtin renderer
-        internal void UpdateBuiltinStereoMatrices(CommandBuffer cmd)
+        internal void UpdateBuiltinStereoMatrices(CommandBuffer cmd, HDCamera hdCamera)
         {
             if (singlePassEnabled)
             {
                 for (int viewIndex = 0; viewIndex < 2; ++viewIndex)
                 {
+                    builtinWorldSpaceCameraPos[viewIndex] = hdCamera.m_XRViewConstants[viewIndex].worldSpaceCameraPos;
                     builtinViewMatrix[viewIndex] = GetViewMatrix(viewIndex);
                     builtinProjMatrix[viewIndex] = GL.GetGPUProjectionMatrix(GetProjMatrix(viewIndex), true);
                     builtinViewProjMatrix[viewIndex] = builtinProjMatrix[viewIndex] * builtinViewMatrix[viewIndex];
@@ -414,6 +450,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalMatrixArray(_unity_StereoMatrixV, builtinViewMatrix);
                 cmd.SetGlobalMatrixArray(_unity_StereoMatrixP, builtinProjMatrix);
                 cmd.SetGlobalMatrixArray(_unity_StereoMatrixVP, builtinViewProjMatrix);
+                cmd.SetGlobalVectorArray(_unity_StereoWorldSpaceCameraPos, builtinWorldSpaceCameraPos);
             }
         }
     }

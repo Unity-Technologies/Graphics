@@ -14,12 +14,12 @@ namespace UnityEditor.ShaderGraph
             displayName = "Matrix4x4";
             value = Matrix4x4.identity;
         }
-        
+
         public override PropertyType propertyType => PropertyType.Matrix4;
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
-            return $"{concretePrecision.ToShaderString()}4x4 {referenceName}";
+            return $"{precisionString}4x4 {referenceName}";
         }
 
         internal override AbstractMaterialNode ToConcreteNode()
@@ -47,11 +47,7 @@ namespace UnityEditor.ShaderGraph
             return new Matrix4ShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
-                overrideHLSLDeclaration = overrideHLSLDeclaration,
-                hlslDeclarationOverride = hlslDeclarationOverride
             };
         }
 

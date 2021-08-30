@@ -31,7 +31,6 @@ namespace UnityEditor.ShaderGraph
         [StructLayout(LayoutKind.Explicit)]
         struct StructData
         {
-
             [FieldOffset(0)]
             public Color colorValue;
             [FieldOffset(0)]
@@ -233,8 +232,14 @@ namespace UnityEditor.ShaderGraph
                         case Texture2DShaderProperty.DefaultType.Grey:
                             mat.SetTexture(name, Texture2D.grayTexture);
                             break;
-                        case Texture2DShaderProperty.DefaultType.Bump:
+                        case Texture2DShaderProperty.DefaultType.NormalMap:
                             mat.SetTexture(name, Texture2D.normalTexture);
+                            break;
+                        case Texture2DShaderProperty.DefaultType.LinearGrey:
+                            mat.SetTexture(name, Texture2D.linearGrayTexture);
+                            break;
+                        case Texture2DShaderProperty.DefaultType.Red:
+                            mat.SetTexture(name, Texture2D.redTexture);
                             break;
                     }
                 }

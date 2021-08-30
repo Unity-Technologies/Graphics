@@ -55,6 +55,7 @@ namespace UnityEngine.VFX.Utility
         {
             m_Dirty = true;
         }
+
 #endif
 
         void DisposeInstances()

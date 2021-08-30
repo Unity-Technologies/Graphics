@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEditor.ShaderAnalysis.Internal;
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderAnalysis
 
             if (typeof(TAsset) == typeof(Shader))
             {
-                if(!DoesPlatformSupport(args.common.targetPlatform, PlatformJob.BuildShaderPerfReport))
+                if (!DoesPlatformSupport(args.common.targetPlatform, PlatformJob.BuildShaderPerfReport))
                     throw new InvalidOperationException(
                         $"Job {PlatformJob.BuildShaderPerfReport} is not supported for {args.common.targetPlatform}."
                     );

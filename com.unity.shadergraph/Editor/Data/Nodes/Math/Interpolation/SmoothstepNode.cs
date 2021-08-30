@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public SmoothstepNode()
         {
             name = "Smoothstep";
+            synonyms = new string[] { "curve" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(3, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = smoothstep(Edge1, Edge2, In);
 }";

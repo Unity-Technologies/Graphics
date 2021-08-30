@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework;
+using UnityEditor.Rendering.Universal.Path2D.GUIFramework;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D
+namespace UnityEditor.Rendering.Universal.Path2D
 {
     internal class EditablePathView : IEditablePathView
     {
@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         private IDrawer m_Drawer;
 
         public EditablePathView() : this(new Drawer()) { }
-        
+
         public EditablePathView(IDrawer drawer)
         {
             m_Drawer = drawer;
@@ -87,7 +87,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
                     var position = GetPoint(i).position;
                     var leftTangent = GetLeftTangent(i);
-                    
+
                     m_Drawer.DrawTangent(position, leftTangent);
                 }
             };
@@ -98,12 +98,12 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 {
                     if (GetShapeType() != ShapeType.Spline)
                         return 0;
-                        
+
                     return GetPointCount();
                 },
                 distance = (guiState, i) =>
                 {
-                    if (!IsSelected(i) || IsOpenEnded() && i == GetPointCount()-1)
+                    if (!IsSelected(i) || IsOpenEnded() && i == GetPointCount() - 1)
                         return float.MaxValue;
 
                     var position = GetRightTangent(i);
@@ -115,9 +115,9 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 right = (i) => { return GetRight(); },
                 onRepaint = (guiState, control, i) =>
                 {
-                    if (!IsSelected(i) || IsOpenEnded() && i == GetPointCount()-1)
+                    if (!IsSelected(i) || IsOpenEnded() && i == GetPointCount() - 1)
                         return;
-                    
+
                     var position = GetPoint(i).position;
                     var rightTangent = GetRightTangent(i);
 
@@ -173,7 +173,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
                     if (!guiState.isActionKeyDown && !IsSelected(index))
                         controller.ClearSelection();
-                    
+
                     controller.SelectPoint(index, true);
                     guiState.changed = true;
                 },
@@ -200,15 +200,15 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 onSliderChanged = (guiState, control, position) =>
                 {
                     var index = control.hotLayoutData.index;
-                    var delta = position -  GetPoint(index).position;
-                    
+                    var delta = position - GetPoint(index).position;
+
                     controller.MoveEdge(index, delta);
                 }
             };
 
             var cachedRightTangent = Vector3.zero;
             var cachedLeftTangent = Vector3.zero;
-            
+
             m_MoveLeftTangentAction = new SliderAction(m_LeftTangentControl)
             {
                 onSliderBegin = (guiState, control, position) =>
@@ -222,7 +222,6 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                     var setToLinear = guiState.nearestControl == m_PointControl.ID && m_PointControl.layoutData.index == index;
 
                     controller.SetLeftTangent(index, position, setToLinear, guiState.isShiftDown, cachedRightTangent);
-                    
                 },
                 onSliderEnd = (guiState, control, position) =>
                 {
@@ -381,7 +380,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
                 var dir1 = (mouseWorldPosition - p0);
                 var dir2 = (p1 - p0);
-                
+
                 return Mathf.Clamp01(Vector3.Dot(dir1, dir2.normalized) / dir2.magnitude) * dir2 + p0;
             }
             else if (GetShapeType() == ShapeType.Spline)
@@ -441,9 +440,9 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 var nextIndex = NextIndex(index);
                 var color = Color.white;
 
-                if(guiState.nearestControl == control.ID && control.layoutData.index == index && guiState.hotControl == 0)
+                if (guiState.nearestControl == control.ID && control.layoutData.index == index && guiState.hotControl == 0)
                     color = Color.yellow;
-                
+
                 m_Drawer.DrawLine(GetPoint(index).position, GetPoint(nextIndex).position, 5f, color);
             }
             else if (GetShapeType() == ShapeType.Spline)
@@ -451,9 +450,9 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 var nextIndex = NextIndex(index);
                 var color = Color.white;
 
-                if(guiState.nearestControl == control.ID && control.layoutData.index == index && guiState.hotControl == 0)
+                if (guiState.nearestControl == control.ID && control.layoutData.index == index && guiState.hotControl == 0)
                     color = Color.yellow;
-                
+
                 m_Drawer.DrawBezier(
                     GetPoint(index).position,
                     GetRightTangent(index),
@@ -467,23 +466,23 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         private bool EnableCreatePointRepaint(IGUIState guiState, GUIAction action)
         {
             return guiState.nearestControl != m_PointControl.ID &&
-                    guiState.hotControl == 0  &&
-                    (guiState.nearestControl != m_LeftTangentControl.ID) &&
-                    (guiState.nearestControl != m_RightTangentControl.ID);
+                guiState.hotControl == 0 &&
+                (guiState.nearestControl != m_LeftTangentControl.ID) &&
+                (guiState.nearestControl != m_RightTangentControl.ID);
         }
 
         private Vector3 SnapIfNeeded(Vector3 position)
         {
             if (!controller.enableSnapping || controller.snapping == null)
                 return position;
-            
+
             var guiPosition = HandleUtility.WorldToGUIPoint(position);
             var snappedGuiPosition = HandleUtility.WorldToGUIPoint(controller.snapping.Snap(position));
             var sqrDistance = (guiPosition - snappedGuiPosition).sqrMagnitude;
 
             if (sqrDistance < kSnappingDistance * kSnappingDistance)
                 position = controller.snapping.Snap(position);
-            
+
             return position;
         }
     }

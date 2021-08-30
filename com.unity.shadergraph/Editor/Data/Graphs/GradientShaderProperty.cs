@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph
                         builder.AppendLine(alphas[i]);
                     builder.AppendLine("return g;", true);
                 }
-                builder.AppendIndentation();
+                builder.TryAppendIndentation();
                 builder.Append("#define {0} {0}_Definition()", referenceName);
             };
 
@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph
                 });
         }
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return "Gradient " + referenceName;
         }
@@ -105,9 +105,7 @@ namespace UnityEditor.ShaderGraph
             return new GradientShaderProperty
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision
             };
         }
     }

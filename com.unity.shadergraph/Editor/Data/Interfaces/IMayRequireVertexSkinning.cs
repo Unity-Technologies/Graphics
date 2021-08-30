@@ -1,4 +1,4 @@
-﻿using UnityEditor.Graphing;
+using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {

@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public FractionNode()
         {
             name = "Fraction";
+            synonyms = new string[] { "remainder" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = frac(In);
 }

@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef UNLIT_CS_HLSL
@@ -10,6 +10,7 @@
 #define DEBUGVIEW_UNLIT_SURFACEDATA_COLOR (300)
 #define DEBUGVIEW_UNLIT_SURFACEDATA_NORMAL (301)
 #define DEBUGVIEW_UNLIT_SURFACEDATA_NORMAL_VIEW_SPACE (302)
+#define DEBUGVIEW_UNLIT_SURFACEDATA_SHADOW_TINT (303)
 
 //
 // UnityEngine.Rendering.HighDefinition.Unlit+BSDFData:  static fields
@@ -22,6 +23,9 @@ struct SurfaceData
 {
     float3 color;
     float3 normalWS;
+    #if defined(_ENABLE_SHADOW_MATTE) && (SHADERPASS == SHADERPASS_PATH_TRACING)
+    float4 shadowTint;
+    #endif
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Unlit+BSDFData
@@ -48,6 +52,16 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_UNLIT_SURFACEDATA_NORMAL_VIEW_SPACE:
             result = surfacedata.normalWS * 0.5 + 0.5;
             break;
+#if defined(_ENABLE_SHADOW_MATTE) && (SHADERPASS == SHADERPASS_PATH_TRACING)
+        case DEBUGVIEW_UNLIT_SURFACEDATA_SHADOW_TINT:
+            result = surfacedata.shadowTint.xyz;
+            needLinearToSRGB = true;
+            break;
+#else
+        case DEBUGVIEW_UNLIT_SURFACEDATA_SHADOW_TINT:
+            result = 0;
+            break;
+#endif
     }
 }
 

@@ -17,9 +17,9 @@ namespace UnityEditor.ShaderGraph
         public Texture2DArrayAssetNode()
         {
             name = "Texture 2D Array Asset";
+            synonyms = new string[] { "stack", "pile" };
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -43,11 +43,21 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        string GetTexturePropertyName()
+        {
+            return base.GetVariableNameForSlot(OutputSlotId);
+        }
+
+        public override string GetVariableNameForSlot(int slotId)
+        {
+            return $"UnityBuildTexture2DArrayStruct({GetTexturePropertyName()})";
+        }
+
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             properties.AddShaderProperty(new Texture2DArrayShaderProperty()
             {
-                overrideReferenceName = GetVariableNameForSlot(OutputSlotId),
+                overrideReferenceName = GetTexturePropertyName(),
                 generatePropertyBlock = true,
                 value = m_Texture,
                 modifiable = false
@@ -58,7 +68,7 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty(PropertyType.Texture2DArray)
             {
-                name = GetVariableNameForSlot(OutputSlotId),
+                name = GetTexturePropertyName(),
                 textureValue = texture
             });
         }

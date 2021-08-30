@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
         {
             IrisUV = Vector3.zero;
             return
-                @"
+@"
                 {
                     $precision2 irisUVCentered = PositionOS.xy / IrisRadius;
                     IrisUV = (irisUVCentered * 0.5 + $precision2(0.5, 0.5));

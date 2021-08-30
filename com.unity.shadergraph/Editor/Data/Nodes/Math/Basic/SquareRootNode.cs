@@ -8,8 +8,8 @@ namespace UnityEditor.ShaderGraph
         public SquareRootNode()
         {
             name = "Square Root";
+            synonyms = new string[] { "sqrt" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = sqrt(In);
 }

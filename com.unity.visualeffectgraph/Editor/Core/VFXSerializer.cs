@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
             return !ReferenceEquals(value, null) ? value.m_Type : null;
         }
 
-        private SerializableType() {}
+        private SerializableType() { }
         public SerializableType(Type type)
         {
             m_Type = type;
@@ -38,7 +38,8 @@ namespace UnityEditor.VFX
 
         public virtual void OnBeforeSerialize()
         {
-            m_SerializableType = m_Type != null ? m_Type.AssemblyQualifiedName : string.Empty;
+            if (m_Type != null)
+                m_SerializableType = m_Type.AssemblyQualifiedName;
         }
 
         public virtual void OnAfterDeserialize()
@@ -67,7 +68,7 @@ namespace UnityEditor.VFX
             return m_Type == otherType;
         }
 
-        public static bool operator==(SerializableType left, SerializableType right)
+        public static bool operator ==(SerializableType left, SerializableType right)
         {
             if (!ReferenceEquals(left, null))
                 return left.Equals(right);
@@ -101,7 +102,7 @@ namespace UnityEditor.VFX
     [Serializable]
     class VFXSerializableObject
     {
-        private VFXSerializableObject() {}
+        private VFXSerializableObject() { }
 
         public VFXSerializableObject(Type type, object obj) : this(type)
         {
@@ -501,6 +502,11 @@ namespace UnityEditor.VFX
 
                     return listObj;
                 }
+            }
+            else if (type == typeof(GraphicsBuffer))
+            {
+                //We can't desarialize or allocate a default GraphicsBuffer
+                return null;
             }
             else
             {

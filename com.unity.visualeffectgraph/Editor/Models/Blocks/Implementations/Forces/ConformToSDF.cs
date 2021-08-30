@@ -22,7 +22,6 @@ namespace UnityEditor.VFX.Block
                     {
                         yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(input.exp), "InvFieldTransform");
                         yield return new VFXNamedExpression(VFXOperatorUtility.Max3(new VFXExpressionExtractScaleFromMatrix(input.exp)), "scalingFactor");
-
                     }
 
                     yield return input;
@@ -82,10 +81,10 @@ else
     dir = SampleSDFDerivativesFast(DistanceField, coord, dist);
     if (dist > 0)
         dir = -dir;
-    dir = normalize(mul(float4(dir,0), InvFieldTransform).xyz);
+    dir = VFXSafeNormalize(mul(float4(dir,0), InvFieldTransform).xyz);
 }
 
-float distToSurface = abs(dist) * scalingFactor; 
+float distToSurface = abs(dist) * scalingFactor;
 
 float spdNormal = dot(dir,velocity);
 float ratio = smoothstep(0.0,stickDistance * 2.0,abs(distToSurface));

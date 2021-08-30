@@ -1,0 +1,167 @@
+fileFormatVersion: 2
+guid: 56e522908cc1a82429cdae792df5d0fb
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: Adam_Reference
+    100002: Bip01
+    100004: Bip01 Head
+    100006: Bip01 L Calf
+    100008: Bip01 L Clavicle
+    100010: Bip01 L Foot
+    100012: Bip01 L Forearm
+    100014: Bip01 L Thigh
+    100016: Bip01 L Toe4
+    100018: Bip01 L UpperArm
+    100020: Bip01 Neck
+    100022: Bip01 Neck1
+    100024: Bip01 Neck2
+    100026: Bip01 Pelvis
+    100028: Bip01 R Calf
+    100030: Bip01 R Clavicle
+    100032: Bip01 R Foot
+    100034: Bip01 R Forearm
+    100036: Bip01 R Thigh
+    100038: Bip01 R Toe4
+    100040: Bip01 R UpperArm
+    100042: Bip01 Spine
+    100044: Bip01 Spine1
+    100046: //RootNode
+    100048: CrowdBones_LFinger1
+    100050: CrowdBones_LFinger3
+    100052: CrowdBones_LHand
+    100054: CrowdBones_LThumb1
+    100056: CrowdBones_LTwist
+    100058: CrowdBones_RFinger1
+    100060: CrowdBones_RFinger3
+    100062: CrowdBones_RHand
+    100064: CrowdBones_RThumb1
+    100066: CrowdBones_RTwist
+    100068: mesh_Crowd_LOD_01
+    400000: Adam_Reference
+    400002: Bip01
+    400004: Bip01 Head
+    400006: Bip01 L Calf
+    400008: Bip01 L Clavicle
+    400010: Bip01 L Foot
+    400012: Bip01 L Forearm
+    400014: Bip01 L Thigh
+    400016: Bip01 L Toe4
+    400018: Bip01 L UpperArm
+    400020: Bip01 Neck
+    400022: Bip01 Neck1
+    400024: Bip01 Neck2
+    400026: Bip01 Pelvis
+    400028: Bip01 R Calf
+    400030: Bip01 R Clavicle
+    400032: Bip01 R Foot
+    400034: Bip01 R Forearm
+    400036: Bip01 R Thigh
+    400038: Bip01 R Toe4
+    400040: Bip01 R UpperArm
+    400042: Bip01 Spine
+    400044: Bip01 Spine1
+    400046: //RootNode
+    400048: CrowdBones_LFinger1
+    400050: CrowdBones_LFinger3
+    400052: CrowdBones_LHand
+    400054: CrowdBones_LThumb1
+    400056: CrowdBones_LTwist
+    400058: CrowdBones_RFinger1
+    400060: CrowdBones_RFinger3
+    400062: CrowdBones_RHand
+    400064: CrowdBones_RThumb1
+    400066: CrowdBones_RTwist
+    400068: mesh_Crowd_LOD_01
+    2100000: Adam_LOD_02
+    4300000: mesh_Crowd_LOD_01
+    7400000: Take 001
+    9500000: //RootNode
+    13700000: mesh_Crowd_LOD_01
+    2186277476908879412: ImportLogs
+  externalObjects: {}
+  materials:
+    importMaterials: 0
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 0.01
+    hasPreviousCalculatedGlobalScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,6 +1,6 @@
 # Maximum
 
-Menu Path : **Operator > Math > Clamp > Maximum**  
+Menu Path : **Operator > Math > Clamp > Maximum**
 
 The **Maximum** Operator outputs the largest value from all input values.
 

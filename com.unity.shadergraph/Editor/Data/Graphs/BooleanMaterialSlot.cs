@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         private bool m_DefaultValue;
 
         public BooleanMaterialSlot()
-        {}
+        { }
 
         public BooleanMaterialSlot(
             int slotId,
@@ -101,6 +101,5 @@ namespace UnityEditor.ShaderGraph
                 m_DefaultValue = ms.defaultValue;
             }
         }
-
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
+namespace UnityEditor.Rendering.Universal.Path2D.GUIFramework
 {
     internal abstract class Control
     {
@@ -106,12 +106,10 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
 
         protected virtual void OnEndLayout(IGUIState guiState)
         {
-            
         }
 
         protected virtual void OnRepaint(IGUIState guiState, int index)
         {
-            
         }
 
         protected virtual int GetCount()

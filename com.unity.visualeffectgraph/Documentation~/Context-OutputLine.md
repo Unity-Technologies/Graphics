@@ -2,7 +2,7 @@
 
 Menu Path : **Context > Output Particle Line**
 
-This **Output Particle Line** Context uses lines to render a particle system. Lines are defined by two end-points and are always a single pixel width regardless of the distance of the particle to the camera or the particle's size and scale attributes. 
+This **Output Particle Line** Context uses lines to render a particle system. Lines are defined by two end-points and are always a single pixel width regardless of the distance of the particle to the camera or the particle's size and scale attributes.
 
 Two modes are available to set the end point of the line. The first point is always at the particle position:
 
@@ -18,7 +18,7 @@ Below is a list of settings and properties specific to the Output Particle Line 
 
 | Setting | Type | Description |
 | ------- | ---- | ----------- |
-|**Use Target Offset**|bool|Indicates whether this Context should derive the end point of the line as an offset to the particle position, in particle space. If you disable this property, the Context uses the target position attribute of the particle as the end point.|
+|**Use Target Offset**|bool|Indicates whether this Context derives the end point of the line as an offset to the particle position, in particle space. If you disable this property, the Context uses the target position attribute of the particle as the end point.|
 
 ## Context properties
 

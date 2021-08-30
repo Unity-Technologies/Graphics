@@ -14,7 +14,7 @@ Shader "Hidden/HDRP/PreIntegratedFGD_CookTorrance"
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             #define PREFER_HALF 0
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
@@ -76,7 +76,7 @@ Shader "Hidden/HDRP/PreIntegratedFGD_CookTorrance"
                 // weight = fr * (N.L) with fr = F(H) * G(V, L) * D(H) / (4 * (N.L) * (N.V))
                 // weight over pdf is:
                 // weightOverPdf = F(H) * G(V, L) * (L.H) / ((N.H) * (N.V))
-                // weightOverPdf = F(H) * 4 * (N.L) * V(V, L) * (L.H) / (N.H) 
+                // weightOverPdf = F(H) * 4 * (N.L) * V(V, L) * (L.H) / (N.H)
                 //   with V(V, L) = G(V, L) / (4 * (N.L) * (N.V))
                 // Reminder: (L.H) == (V.H)
                 // F is applied outside the function

@@ -71,11 +71,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // 3 x float4 = 48 bytes.
         // TODO: pack the axes into 16-bit UNORM per channel, and consider a quaternionic representation.
         public Vector3 right;
-        public float   extentX;
+        public float extentX;
         public Vector3 up;
-        public float   extentY;
+        public float extentY;
         public Vector3 center;
-        public float   extentZ;
+        public float extentZ;
 
         public Vector3 forward { get { return Vector3.Cross(up, right); } }
 
@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; overlap && i < numPlanes; i++)
             {
                 Vector3 n = frustum.planes[i].normal;
-                float   d = frustum.planes[i].distance;
+                float d = frustum.planes[i].distance;
 
                 // Max projection of the half-diagonal onto the normal (always positive).
                 float maxHalfDiagProj = obb.extentX * Mathf.Abs(Vector3.Dot(n, obb.right))
@@ -133,11 +133,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // We can exploit the symmetry of the box by only testing against 3 planes rather than 6.
             var planes = stackalloc Plane[3];
 
-            planes[0].normal   = obb.right;
+            planes[0].normal = obb.right;
             planes[0].distance = obb.extentX;
-            planes[1].normal   = obb.up;
+            planes[1].normal = obb.up;
             planes[1].distance = obb.extentY;
-            planes[2].normal   = obb.forward;
+            planes[2].normal = obb.forward;
             planes[2].distance = obb.extentZ;
 
             for (int i = 0; overlap && i < 3; i++)
@@ -194,14 +194,14 @@ namespace UnityEngine.Rendering.HighDefinition
             var inversion = sourceProjection.inverse;
 
             var cps = new Vector4(
-                    Mathf.Sign(clipPlane.x),
-                    Mathf.Sign(clipPlane.y),
-                    1.0f,
-                    1.0f);
+                Mathf.Sign(clipPlane.x),
+                Mathf.Sign(clipPlane.y),
+                1.0f,
+                1.0f);
             var q = inversion * cps;
             Vector4 M4 = new Vector4(projection[3], projection[7], projection[11], projection[15]);
 
-            var c = clipPlane * ((2.0f*Vector4.Dot(M4, q)) / Vector4.Dot(clipPlane, q));
+            var c = clipPlane * ((2.0f * Vector4.Dot(M4, q)) / Vector4.Dot(clipPlane, q));
 
             projection[2] = c.x - M4.x;
             projection[6] = c.y - M4.y;
@@ -261,4 +261,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     } // class GeometryUtils
 }
-

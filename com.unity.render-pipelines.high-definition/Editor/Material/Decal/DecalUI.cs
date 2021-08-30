@@ -23,35 +23,27 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new DecalSurfaceOptionsUIBlock((MaterialUIBlock.Expandable)Expandable.SurfaceOptions),
-            new DecalSurfaceInputsUIBlock((MaterialUIBlock.Expandable)Expandable.SurfaceInputs),
-            new DecalSortingInputsUIBlock((MaterialUIBlock.Expandable)Expandable.Sorting),
+            new DecalSurfaceOptionsUIBlock((MaterialUIBlock.ExpandableBit)Expandable.SurfaceOptions),
+            new DecalSurfaceInputsUIBlock((MaterialUIBlock.ExpandableBit)Expandable.SurfaceInputs),
+            new DecalSortingInputsUIBlock((MaterialUIBlock.ExpandableBit)Expandable.Sorting),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            // always instanced
-            SerializedProperty instancing = materialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
-            instancing.boolValue = true;
-
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                uiBlocks.OnGUI(materialEditor, props);
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
-            }
-
-            // We should always do this call at the end
-            materialEditor.serializedObject.ApplyModifiedProperties();
+            uiBlocks.OnGUI(materialEditor, props);
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupCommonDecalMaterialKeywordsAndPass(Material material)
         {
+            bool affectsMaskmap = false;
+            affectsMaskmap |= material.HasProperty(kAffectMetal) && material.GetFloat(kAffectMetal) == 1.0f;
+            affectsMaskmap |= material.HasProperty(kAffectAO) && material.GetFloat(kAffectAO) == 1.0f;
+            affectsMaskmap |= material.HasProperty(kAffectSmoothness) && material.GetFloat(kAffectSmoothness) == 1.0f;
+
             CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_ALBEDO", material.HasProperty(kAffectAlbedo) && material.GetFloat(kAffectAlbedo) == 1.0f);
             CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_NORMAL", material.HasProperty(kAffectNormal) && material.GetFloat(kAffectNormal) == 1.0f);
-            CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_MASKMAP", material.HasProperty(kAffectMetal) && material.GetFloat(kAffectMetal) == 1.0f);
-            CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_MASKMAP", material.HasProperty(kAffectAO) && material.GetFloat(kAffectAO) == 1.0f);
-            CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_MASKMAP", material.HasProperty(kAffectSmoothness) && material.GetFloat(kAffectSmoothness) == 1.0f);
+            CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_MASKMAP", affectsMaskmap);
 
             // Albedo : RT0 RGB, A - sRGB
             // Normal : RT1 RGB, A
@@ -96,6 +88,9 @@ namespace UnityEditor.Rendering.HighDefinition
             // Set stencil state
             material.SetInt(kDecalStencilWriteMask, (int)StencilUsage.Decals);
             material.SetInt(kDecalStencilRef, (int)StencilUsage.Decals);
+
+            // always instanced
+            material.enableInstancing = true;
         }
 
         protected const string kBaseColorMap = "_BaseColorMap";
@@ -104,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kEmissiveColorMap = "_EmissiveColorMap";
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material material)
+        static public void SetupDecalKeywordsAndPass(Material material)
         {
             // Setup color mask properties
             SetupCommonDecalMaterialKeywordsAndPass(material);
@@ -115,6 +110,6 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_EMISSIVEMAP", material.GetTexture(kEmissiveColorMap));
         }
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => SetupDecalKeywordsAndPass(material);
     }
 }

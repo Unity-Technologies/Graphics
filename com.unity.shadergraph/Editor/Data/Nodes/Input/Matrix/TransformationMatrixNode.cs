@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         WorldToObject
     };
 
-    enum UnityMatrixType
+    internal enum UnityMatrixType
     {
         Model,
         InverseModel,
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
     }
 
     [Title("Input", "Matrix", "Transformation Matrix")]
-    class TransformationMatrixNode : AbstractMaterialNode
+    class TransformationMatrixNode : AbstractMaterialNode, IMayRequireTransform
     {
         static Dictionary<UnityMatrixType, string> m_MatrixList = new Dictionary<UnityMatrixType, string>
         {
@@ -89,10 +89,9 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            if(m_matrix != TransformationMatrixType.None)
+            if (m_matrix != TransformationMatrixType.None)
             {
                 m_MatrixType = m_MatrixUpgrade[m_matrix];
                 m_matrix = TransformationMatrixType.None;
@@ -110,6 +109,11 @@ namespace UnityEditor.ShaderGraph
         public bool RequiresVertexColor()
         {
             return true;
+        }
+
+        public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            return new[] { new NeededTransform(matrixType) };
         }
     }
 }

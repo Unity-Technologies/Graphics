@@ -5,6 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph.UnitTests
 {
@@ -185,7 +186,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 }
             }
 
-            Assert.AreEqual(kExpectedPreviewDeclaration, sb.ToString(), "Keyword declaration snippet for preview shader was invalid");
+            Assert.AreEqual(kExpectedPreviewDeclaration.Replace("\r\n", "\n"), sb.ToString(), "Keyword declaration snippet for preview shader was invalid");
         }
 
         [Test]
@@ -194,23 +195,19 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var sb =  new ShaderStringBuilder();
             foreach (var keyword in m_Collector.keywords)
             {
-                string declaration = keyword.GetKeywordDeclarationString();
-                if(!string.IsNullOrEmpty(declaration))
-                {
-                    sb.AppendLine(declaration);
-                }
+                keyword.AppendKeywordDeclarationStrings(sb);
             }
 
-            Assert.AreEqual(kExpectedForRealsDeclaration, sb.ToString(), "Keyword declaration snippet for final shader was invalid");
+            Assert.AreEqual(kExpectedForRealsDeclaration.Replace("\r\n", "\n"), sb.ToString(), "Keyword declaration snippet for final shader was invalid");
         }
 
         [Test]
         public void CanGetPermutationDeclaration()
         {
-            var sb =  new ShaderStringBuilder();
+            var sb =  new ShaderStringBuilder(humanReadable: true);
             KeywordUtil.GetKeywordPermutationDeclarations(sb, m_Collector.permutations);
 
-            Assert.AreEqual(kExpectedPermutationDeclaration, sb.ToString(), "Keyword permutation snippet was invalid");
+            Assert.AreEqual(kExpectedPermutationDeclaration.Replace("\r\n", "\n"), sb.ToString(), "Keyword permutation snippet was invalid");
         }
 
         [Test]

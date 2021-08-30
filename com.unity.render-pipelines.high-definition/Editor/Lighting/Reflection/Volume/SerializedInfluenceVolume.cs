@@ -85,21 +85,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 //display old data
                 editorAdvancedModeEnabled.boolValue =
-                       positive.x != positive.y
+                    positive.x != positive.y
                     || positive.x != positive.z
                     || negative.x != negative.y
                     || negative.x != negative.z
                     || positive.x != negative.x;
                 Apply();
             }
-            if(editorAdvancedModeFaceFadePositive.vector3Value == Vector3.one
+            if (editorAdvancedModeFaceFadePositive.vector3Value == Vector3.one
                 && editorAdvancedModeFaceFadeNegative.vector3Value == Vector3.one
                 && (boxSideFadePositive.vector3Value != Vector3.one
                     || boxSideFadeNegative.vector3Value != Vector3.one))
             {
                 editorAdvancedModeFaceFadePositive.vector3Value = boxSideFadePositive.vector3Value;
                 editorAdvancedModeFaceFadeNegative.vector3Value = boxSideFadeNegative.vector3Value;
-                if(!editorAdvancedModeEnabled.boolValue)
+                if (!editorAdvancedModeEnabled.boolValue)
                 {
                     boxSideFadePositive.vector3Value = Vector3.one;
                     boxSideFadeNegative.vector3Value = Vector3.one;

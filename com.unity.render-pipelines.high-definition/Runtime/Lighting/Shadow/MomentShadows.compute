@@ -30,14 +30,14 @@ RWTexture2D<float4> _FilterOutputTexture;
 [numthreads(MOMENT_SHADOW_TILE_SIZE, MOMENT_SHADOW_TILE_SIZE, 1)]
 void ComputeMomentShadows(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
-	// Fetch the current pixel coordinate
-	uint2 currentPixelCoordinate = groupId * MOMENT_SHADOW_TILE_SIZE + groupThreadId;
-	// Displace by the offset in the atlas
+    // Fetch the current pixel coordinate
+    uint2 currentPixelCoordinate = groupId * MOMENT_SHADOW_TILE_SIZE + groupThreadId;
+    // Displace by the offset in the atlas
     currentPixelCoordinate += _MomentShadowmapSlotST.zw;
 
     // If this pixel is outside of the range of the current kernel, skip it
     if(float(currentPixelCoordinate.x) >= _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x || float(currentPixelCoordinate.y) >= _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y)
-     	return;
+        return;
 
     // Compute the different moments
     float z = 1.0 - _ShadowmapAtlas[currentPixelCoordinate].x;
@@ -51,10 +51,10 @@ void ComputeMomentShadows(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
     float4 moments =  float4(z, z2, z3, z3 * z);
 
     // Optimize the moments
-	moments.xz = mul(moments.xz, float2x2(1.5f, sqrt(3.0f) * 0.5f, -2.0f, -sqrt(3.0f) * 2.0f / 9.0f)) + 0.5f;
-	moments.yw = mul(moments.yw, float2x2(4.0f, 0.5f, -4.0f, 0.5f));
+    moments.xz = mul(moments.xz, float2x2(1.5f, sqrt(3.0f) * 0.5f, -2.0f, -sqrt(3.0f) * 2.0f / 9.0f)) + 0.5f;
+    moments.yw = mul(moments.yw, float2x2(4.0f, 0.5f, -4.0f, 0.5f));
 
-	// Output the moments to the atlas
+    // Output the moments to the atlas
     _MomentShadowAtlas[currentPixelCoordinate] = moments;
 }
 
@@ -148,14 +148,14 @@ void MomentSummedAreaTableVertical(uint groupThreadId : SV_GroupThreadID, uint g
 [numthreads(MOMENT_SHADOW_TILE_SIZE, MOMENT_SHADOW_TILE_SIZE, 1)]
 void HORIZONTAL_FILTER_PASS(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
-	// Fetch the current pixel coordinate
-	uint2 currentPixelCoordinate = groupId * MOMENT_SHADOW_TILE_SIZE + groupThreadId;
-	// Displace by the offset in the atlas
+    // Fetch the current pixel coordinate
+    uint2 currentPixelCoordinate = groupId * MOMENT_SHADOW_TILE_SIZE + groupThreadId;
+    // Displace by the offset in the atlas
     currentPixelCoordinate += _MomentShadowmapSlotST.zw;
 
     // If this pixel is outside of the range of the current kernel, skip it
     if(currentPixelCoordinate.x >= _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x || currentPixelCoordinate.y >= _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y)
-     	return;
+        return;
 
     // Inverse dimension of the atlas
     float2 invAtlasSize = 1.0f / _MomentShadowmapSize;
@@ -200,21 +200,21 @@ void HORIZONTAL_FILTER_PASS(uint2 groupThreadId : SV_GroupThreadID, uint2 groupI
         + 0.0581035630769f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc3, 0);
     #endif
 
-	// Output the moments to the atlas
+    // Output the moments to the atlas
     _FilterOutputTexture[currentPixelCoordinate] = horizontalFiltered;
 }
 
 [numthreads(MOMENT_SHADOW_TILE_SIZE, MOMENT_SHADOW_TILE_SIZE, 1)]
 void VERTICAL_FILTER_PASS(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
-	// Fetch the current pixel coordinate
-	uint2 currentPixelCoordinate = groupId * MOMENT_SHADOW_TILE_SIZE + groupThreadId;
-	// Displace by the offset in the atlas
+    // Fetch the current pixel coordinate
+    uint2 currentPixelCoordinate = groupId * MOMENT_SHADOW_TILE_SIZE + groupThreadId;
+    // Displace by the offset in the atlas
     currentPixelCoordinate += _MomentShadowmapSlotST.zw;
 
     // If this pixel is outside of the range of the current kernel, skip it
     if(currentPixelCoordinate.x >= _MomentShadowmapSlotST.z + _MomentShadowmapSlotST.x || currentPixelCoordinate.y >= _MomentShadowmapSlotST.w + _MomentShadowmapSlotST.y)
-     	return;
+        return;
 
     // Inverse dimension of the atlas
     float2 invAtlasSize = 1.0f / _MomentShadowmapSize;
@@ -259,7 +259,7 @@ void VERTICAL_FILTER_PASS(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
         + 0.0581035630769f * SAMPLE_TEXTURE2D_LOD(_FilterInputTexture, s_linear_clamp_sampler, tc3, 0);
     #endif
 
-	// Output the moments to the atlas
+    // Output the moments to the atlas
     _FilterOutputTexture[currentPixelCoordinate] = filtered;
 }
 */

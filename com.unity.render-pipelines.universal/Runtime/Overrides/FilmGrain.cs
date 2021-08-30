@@ -17,13 +17,13 @@ namespace UnityEngine.Rendering.Universal
         Custom
     }
 
-    [Serializable, VolumeComponentMenu("Post-processing/FilmGrain")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Film Grain", typeof(UniversalRenderPipeline))]
     public sealed class FilmGrain : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("The type of grain to use. You can select a preset or provide your own texture by selecting Custom.")]
         public FilmGrainLookupParameter type = new FilmGrainLookupParameter(FilmGrainLookup.Thin1);
 
-        [Tooltip("Amount of vignetting on screen.")]
+        [Tooltip("Use the slider to set the strength of the Film Grain effect.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
 
         [Tooltip("Controls the noisiness response curve based on scene luminance. Higher values mean less noise in light areas.")]

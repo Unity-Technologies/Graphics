@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.UI
         {
             GenericMenu menu = new GenericMenu();
 
-            for(long i = 0; i < enumValues.Length; ++i)
+            for (long i = 0; i < enumValues.Length; ++i)
             {
                 menu.AddItem(new GUIContent(enumValues[i]), i == m_Value, ChangeValue, i);
             }
@@ -79,7 +79,7 @@ namespace UnityEditor.VFX.UI
             bool found = false;
             for (uint i = 0; i < enumValues.Length; ++i)
             {
-                if( newValue == i)
+                if (newValue == i)
                 {
                     found = true;
                     m_ValueText.text = enumValues[i];
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
             if (!found)
-                m_ValueText.text = enumValues[enumValues.Length-1];
+                m_ValueText.text = enumValues[enumValues.Length - 1];
         }
     }
 }

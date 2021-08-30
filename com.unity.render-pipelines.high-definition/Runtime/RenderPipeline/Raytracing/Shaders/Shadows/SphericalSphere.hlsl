@@ -1,13 +1,13 @@
 float dist2(float3 vecA, float3 vecB)
 {
-	float3 res = vecA - vecB;
-	return dot(res, res);
+    float3 res = vecA - vecB;
+    return dot(res, res);
 }
 
 float dist(float3 vecA, float3 vecB)
 {
-	float3 res = vecA - vecB;
-	return length(res);
+    float3 res = vecA - vecB;
+    return length(res);
 }
 
 void SampleSphericalSphere(float3 spherePosition, float sphereRadius, float u, float v, float3 position, float3 normal, out float3 outPosition, out float outPDF)
@@ -32,7 +32,7 @@ void SampleSphericalSphere(float3 spherePosition, float sphereRadius, float u, f
     // Compute surface normal and sampled point on sphere.
     float cphi = cos(phi);
     float sphi = sin(phi);
-  	float3 nWorld =  sinAlpha * cphi * -localToWorld[0] + sinAlpha * sphi * -localToWorld[1] + cosAlpha * -wc;
+    float3 nWorld =  sinAlpha * cphi * -localToWorld[0] + sinAlpha * sphi * -localToWorld[1] + cosAlpha * -wc;
 
     // Compute the world position of the sample
     outPosition = sphereRadius * nWorld + spherePosition;

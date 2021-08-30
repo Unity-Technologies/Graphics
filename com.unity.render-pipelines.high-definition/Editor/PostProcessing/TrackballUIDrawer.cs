@@ -1,6 +1,6 @@
 using System;
-using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Debug.LogWarning("TrackballUIDrawer requires a Vector4 property");
                 return;
             }
-            
+
             m_ComputeFunc = computeFunc;
             var value = property.vector4Value;
 
@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Wheel texture
                 var oldRT = RenderTexture.active;
-                var rt = RenderTexture.GetTemporary((int)(size * scale), (int)(size * scale), 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+                var rt = RenderTexture.GetTemporary((int)(size * scale), (int)(size * scale), 0, GraphicsFormat.R8G8B8A8_SRGB);
                 s_Material.SetFloat("_Offset", offset);
                 s_Material.SetFloat("_DisabledState", overrideState && GUI.enabled ? 1f : 0.5f);
                 s_Material.SetVector("_Resolution", new Vector2(size * scale, size * scale / 2f));
@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 var valuesRect = GUILayoutUtility.GetRect(1f, 17f);
                 valuesRect.width /= (displayInputFields ? 4f : 3.0f);
-                if(displayInputFields)
+                if (displayInputFields)
                 {
                     GUI.Label(valuesRect, "RGB Value:", EditorStyles.centeredGreyMiniLabel);
                     valuesRect.x += valuesRect.width;

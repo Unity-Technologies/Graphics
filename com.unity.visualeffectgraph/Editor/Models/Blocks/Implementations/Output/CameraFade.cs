@@ -30,6 +30,9 @@ namespace UnityEditor.VFX.Block
         [SerializeField, VFXSetting, Tooltip("Specifies how the particle fades out when it gets near the camera. It can have its alpha fade out, its color fade to black, or both. ")]
         private FadeApplicationMode fadeMode = FadeApplicationMode.Alpha;
 
+        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, the fade will also affect shadow map generation. This could have unexpected results in the shadow when using multiple cameras.")]
+        private bool affectShadows = false;
+
         public override string libraryName { get { return "Camera Fade"; } }
         public override string name { get { return string.Format("Camera Fade ({0})", ObjectNames.NicifyVariableName(fadeMode.ToString())); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.Output; } }
@@ -75,13 +78,32 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        protected override sealed void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            if (affectShadows && Camera.allCamerasCount > 1)
+                manager.RegisterError("CameraFadeShadowsMultipleCamera", VFXErrorType.Warning, "Camera fade in shadow maps may be incorrect when rendered in more than one camera.");
+        }
+
         public override string source
         {
             get
             {
-                string outCode = @"
-float clipPosW = TransformPositionVFXToClip(position).w;
-float fade = saturate((clipPosW - FadedDistance) * InvFadeDistance);
+                string outCode = @"float fade = 1;
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW";
+                if (affectShadows)
+                {
+                    outCode += @"
+float3 posWS = TransformPositionVFXToWorld(position);
+float3 posToCamera = VFXTransformPositionWorldToCameraRelative(posWS);
+float distance = dot(posToCamera, VFXGetCameraWorldDirection());
+fade = saturate((distance - FadedDistance) * InvFadeDistance);";
+                }
+
+                outCode += @"
+#else
+float distance = TransformPositionVFXToClip(position).w;
+fade = saturate((distance - FadedDistance) * InvFadeDistance);
+#endif
 ";
                 if ((fadeMode & FadeApplicationMode.Color) != 0)
                     outCode += "color *= fade;\n";

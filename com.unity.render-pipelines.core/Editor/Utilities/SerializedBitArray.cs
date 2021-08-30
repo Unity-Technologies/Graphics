@@ -507,8 +507,8 @@ namespace UnityEditor.Rendering
         /// <returns>True: properties have different value</returns>
         protected override bool HasBitMultipleDifferentValue_Internal(uint bitIndex)
             => bitIndex < 64u
-                ? HasBitMultipleDifferentValue_For64Bits("data1", m_Data1, bitIndex)
-                : HasBitMultipleDifferentValue_For64Bits("data2", m_Data2, bitIndex - 64u);
+            ? HasBitMultipleDifferentValue_For64Bits("data1", m_Data1, bitIndex)
+            : HasBitMultipleDifferentValue_For64Bits("data2", m_Data2, bitIndex - 64u);
 
 
         /// <summary>Get the value at index</summary>
@@ -572,12 +572,12 @@ namespace UnityEditor.Rendering
         /// <returns>True: properties have different value</returns>
         protected override bool HasBitMultipleDifferentValue_Internal(uint bitIndex)
             => bitIndex < 128u
-                ? bitIndex < 64u
-                    ? HasBitMultipleDifferentValue_For64Bits("data1", m_Data1, bitIndex)
-                    : HasBitMultipleDifferentValue_For64Bits("data2", m_Data2, bitIndex - 64u)
-                : bitIndex < 192u
-                    ? HasBitMultipleDifferentValue_For64Bits("data3", m_Data3, bitIndex - 128u)
-                    : HasBitMultipleDifferentValue_For64Bits("data4", m_Data4, bitIndex - 192u);
+            ? bitIndex < 64u
+            ? HasBitMultipleDifferentValue_For64Bits("data1", m_Data1, bitIndex)
+            : HasBitMultipleDifferentValue_For64Bits("data2", m_Data2, bitIndex - 64u)
+            : bitIndex < 192u
+            ? HasBitMultipleDifferentValue_For64Bits("data3", m_Data3, bitIndex - 128u)
+            : HasBitMultipleDifferentValue_For64Bits("data4", m_Data4, bitIndex - 192u);
 
         /// <summary>Get the value at index</summary>
         /// <param name="bitIndex">The index</param>

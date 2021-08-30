@@ -1,10 +1,9 @@
 using System;
 using System.Linq;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShaderPathID
+    public enum ShaderPathID
     {
         Lit,
         SimpleLit,
@@ -17,11 +16,12 @@ namespace UnityEngine.Rendering.Universal
         SpeedTree7,
         SpeedTree7Billboard,
         SpeedTree8,
+        // If you add a value here, also add it to ShaderID in Editor/ShaderUtils.cs
     }
 
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public static class ShaderUtils
+    public static class ShaderUtils
     {
-        static readonly string[] s_ShaderPaths  =
+        static readonly string[] s_ShaderPaths =
         {
             "Universal Render Pipeline/Lit",
             "Universal Render Pipeline/Simple Lit",
@@ -74,7 +74,12 @@ namespace UnityEngine.Rendering.Universal
             "99134b1f0c27d54469a840832a28fadf",
         };
 
-        internal static string GetShaderGUID(ShaderPathID id)
+        /// <summary>
+        /// Returns shader from shader path id.
+        /// </summary>
+        /// <param name="id">Id of shader path.</param>
+        /// <returns></returns>
+        public static string GetShaderGUID(ShaderPathID id)
         {
             int index = (int)id;
             int arrayLength = s_ShaderGUIDs.Length;
@@ -84,6 +89,7 @@ namespace UnityEngine.Rendering.Universal
             Debug.LogError("Trying to access universal shader GUID out of bounds: (" + id + ": " + index + ")");
             return "";
         }
+
 #endif
     }
 }

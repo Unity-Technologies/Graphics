@@ -9,8 +9,8 @@ namespace UnityEditor.ShaderGraph
         public PolygonNode()
         {
             name = "Polygon";
+            synonyms = new string[] { "shape" };
         }
-
 
         protected override MethodInfo GetFunctionToConvert()
         {
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(4, Binding.None, ShaderStageCapability.Fragment)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     $precision pi = 3.14159265359;
     $precision aWidth = Width * cos(pi / Sides);

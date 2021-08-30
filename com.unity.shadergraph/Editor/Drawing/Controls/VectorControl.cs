@@ -79,39 +79,39 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             field.RegisterCallback<MouseDownEvent>(Repaint);
             field.RegisterCallback<MouseMoveEvent>(Repaint);
             field.RegisterValueChangedCallback(evt =>
-                {
-                    var value = GetValue();
-                    value[index] = (float)evt.newValue;
-                    SetValue(value);
-                    m_UndoGroup = -1;
-                    this.MarkDirtyRepaint();
-                });
+            {
+                var value = GetValue();
+                value[index] = (float)evt.newValue;
+                SetValue(value);
+                m_UndoGroup = -1;
+                this.MarkDirtyRepaint();
+            });
             field.Q("unity-text-input").RegisterCallback<InputEvent>(evt =>
+            {
+                if (m_UndoGroup == -1)
                 {
-                    if (m_UndoGroup == -1)
-                    {
-                        m_UndoGroup = Undo.GetCurrentGroup();
-                        m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
-                    }
-                    float newValue;
-                    if (!float.TryParse(evt.newData, NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out newValue))
-                        newValue = 0f;
-                    var value = GetValue();
-                    value[index] = newValue;
-                    SetValue(value);
-                    this.MarkDirtyRepaint();
-                });
+                    m_UndoGroup = Undo.GetCurrentGroup();
+                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
+                }
+                float newValue;
+                if (!float.TryParse(evt.newData, NumberStyles.Float, CultureInfo.InvariantCulture.NumberFormat, out newValue))
+                    newValue = 0f;
+                var value = GetValue();
+                value[index] = newValue;
+                SetValue(value);
+                this.MarkDirtyRepaint();
+            });
             field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(evt =>
+            {
+                if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
                 {
-                    if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
-                    {
-                        Undo.RevertAllDownToGroup(m_UndoGroup);
-                        m_UndoGroup = -1;
-                        m_Value = GetValue();
-                        evt.StopPropagation();
-                    }
-                    this.MarkDirtyRepaint();
-                });
+                    Undo.RevertAllDownToGroup(m_UndoGroup);
+                    m_UndoGroup = -1;
+                    m_Value = GetValue();
+                    evt.StopPropagation();
+                }
+                this.MarkDirtyRepaint();
+            });
             Add(field);
         }
 

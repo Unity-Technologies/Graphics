@@ -16,18 +16,18 @@ namespace UnityEditor.Graphing.IntegrationTests
 
             public DummyJsonHolder() : base()
             {
-
             }
+
             public DummyJsonHolder(List<MaterialSlot> materialSlots)
             {
-                foreach(var slot in materialSlots)
+                foreach (var slot in materialSlots)
                 {
                     testSlots.Add(slot);
                 }
             }
         }
         interface ITestInterface
-        {}
+        { }
 
         [Serializable]
         class SimpleSerializeClass : ITestInterface
@@ -53,7 +53,7 @@ namespace UnityEditor.Graphing.IntegrationTests
                         stringValue = "ABCD",
                         intValue = 5,
                         floatValue = 7.7f,
-                        arrayValue = new[] {1, 2, 3, 4}
+                        arrayValue = new[] { 1, 2, 3, 4 }
                     };
                 }
             }
@@ -84,7 +84,7 @@ namespace UnityEditor.Graphing.IntegrationTests
                         stringValue = "qwee",
                         intValue = 5,
                         floatValue = 6f,
-                        arrayValue = new[] {5, 6, 7, 8},
+                        arrayValue = new[] { 5, 6, 7, 8 },
                         childString = "CHILD"
                     };
                 }
@@ -117,7 +117,7 @@ namespace UnityEditor.Graphing.IntegrationTests
                         stringValue = "qwee",
                         intValue = 5,
                         floatValue = 6f,
-                        arrayValue = new[] {5, 6, 7, 8},
+                        arrayValue = new[] { 5, 6, 7, 8 },
                         childInt = 666
                     };
                 }
