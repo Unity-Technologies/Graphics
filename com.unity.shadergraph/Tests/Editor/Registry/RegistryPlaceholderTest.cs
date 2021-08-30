@@ -54,7 +54,8 @@ namespace UnityEditor.ShaderGraph.Registry.UnitTests
             graph.TryConnect("Add2", "Out", "Add1", "In1", registry);
             graph.ReconcretizeNode("Add1", registry);
             reader = graph.GetNodeReader("Add1");
-            reader.GetField("In1.Length", out len);
+            reader.TryGetPort("In1", out var portReader);
+            portReader.GetField("Length", out len);
             Assert.AreEqual(2, len);
             reader.GetField("In2.Length", out len);
             Assert.AreEqual(2, len);

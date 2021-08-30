@@ -11,37 +11,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         private class GraphReader : IDisposable, INodeReader, IPortReader, IFieldReader, IDataReader
         {
 
-            private bool HasSubData(Element element, params string[] expectedChildren)
-            {
-                foreach(string childName in expectedChildren)
-                {
-                    var check = GetSubData(element, childName);
-                    if(check == null)
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            private Element GetSubData(Element element, string dataID)
-            {
-                foreach(var child in element.children)
-                {
-                    if(child.id.CompareTo(dataID) == 0)
-                    {
-                        return child;
-                    }
-                }
-                return null;
-            }
-
             private bool IsPortReader(Element element)
             {
                 return HasSubData(element, "_isInput", "_isHorizontal");
             }
 
-            public WeakReference<Element<Element>> elementReference;
+            private string path;
+            public WeakReference<Element> elementReference;
             public GraphStorage storageReference;
             public void Dispose()
             {
@@ -51,17 +27,27 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public GraphReader(Element element, GraphStorage storage)
             {
-                this.elementReference = new WeakReference<Element<Element>>(storage.m_flatStructureLookup[element.GetFullPath()]);
+                this.path = element.GetFullPath();
+                this.elementReference = new WeakReference<Element>(storage.m_flatStructureLookup[path]);
                 this.storageReference = storage;
             }
 
             private IEnumerable<Element> GetSubElements()
             {
-                if (elementReference.TryGetTarget(out Element<Element> element))
+                foreach(var kvp in storageReference.m_flatStructureLookup)
                 {
-                    return element.children;
+                    string id = kvp.Key;
+                    Element elem = kvp.Value;
+                    if (id.StartsWith(path))
+                    {
+                        var relativePath = id.Substring(path.Length);
+                        if(relativePath.StartsWith("."))
+                        {
+                            yield return elem;
+                        }
+                    }
                 }
-                return null;
+
             }
 
             public IEnumerator<GraphReader> GetChildren()
@@ -74,7 +60,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool TryGetValue<T>(out T value)
             {
-                if (elementReference.TryGetTarget(out Element<Element> element) && element.data is Element<T> typeElement)
+                if (elementReference.TryGetTarget(out Element element) && element is Element<T> typeElement)
                 {
                     value = typeElement.data;
                     return true;
@@ -86,16 +72,20 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
             }
 
-            private bool TryGetSubReader(string searchKey, out GraphReader graphReader)
+            private bool TryGetSubReader(string searchKey, out GraphReader graphReader, bool thruConnection = true)
             {
-                if (elementReference.TryGetTarget(out Element<Element> element))
+                if(thruConnection && storageReference.m_flatStructureLookup.TryGetValue($"{path}._Input", out Element element) && element is Element<Element> conneciton)
                 {
-                    Element maybeElement = storageReference.SearchRelative(element, searchKey);
-                    if (maybeElement != null)
+                    if(storageReference.m_flatStructureLookup.TryGetValue($"{conneciton.data.GetFullPath()}.{searchKey}", out Element connected))
                     {
-                        graphReader = new GraphReader(maybeElement, this.storageReference);
+                        graphReader = new GraphReader(connected, this.storageReference);
                         return true;
                     }
+                }
+                if (storageReference.m_flatStructureLookup.TryGetValue($"{path}.{searchKey}", out element))
+                {
+                    graphReader = new GraphReader(element, this.storageReference);
+                    return true;
                 }
                 graphReader = null;
                 return false;
@@ -165,12 +155,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool TryGetPort(string portKey, out IPortReader portReader)
             {
-                if (elementReference.TryGetTarget(out Element<Element> element))
+                if (TryGetSubReader(portKey, out GraphReader graphReader))
                 {
-                    Element maybePort = storageReference.SearchRelative(element, portKey);
-                    if (IsPortReader(maybePort))
+                    if (graphReader.elementReference.TryGetTarget(out Element element) && IsPortReader(element))
                     {
-                        portReader = new GraphReader(maybePort, this.storageReference);
+                        portReader = graphReader;
                         return true;
                     }
                 }
@@ -180,12 +169,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             bool INodeReader.TryGetField(string fieldKey, out IFieldReader fieldReader)
             {
-                if (elementReference.TryGetTarget(out Element<Element> element))
+                if (TryGetSubReader(fieldKey, out GraphReader graphReader))
                 {
-                    Element maybeField = storageReference.SearchRelative(element, fieldKey);
-                    if (!IsPortReader(maybeField))
+                    if (graphReader.elementReference.TryGetTarget(out Element element) && !IsPortReader(element))
                     {
-                        fieldReader = new GraphReader(maybeField, this.storageReference);
+                        fieldReader = graphReader;
                         return true;
                     }
                 }
@@ -193,9 +181,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return false;
             }
 
-            public bool TryGetField(string fieldKey, out IFieldReader fieldReader)
+            public bool TryGetField(string fieldKey, out IFieldReader fieldReader, bool thruConnection = true)
             {
-                bool output = TryGetSubReader(fieldKey, out GraphReader reader);
+                bool output = TryGetSubReader(fieldKey, out GraphReader reader, thruConnection);
                 fieldReader = reader;
                 return output;
             }
@@ -210,7 +198,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool IsInput()
             {
-                if(TryGetField("_isInput", out var reader) && reader.TryGetValue(out bool isInput))
+                if(TryGetField("_isInput", out var reader, false) && reader.TryGetValue(out bool isInput))
                 {
                     return isInput;
                 }
@@ -219,7 +207,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool IsHorizontal()
             {
-                if (TryGetField("_isHorizontal", out var reader) && reader.TryGetValue(out bool isInput))
+                if (TryGetField("_isHorizontal", out var reader, false) && reader.TryGetValue(out bool isInput))
                 {
                     return isInput;
                 }
@@ -271,7 +259,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return false;
             }
 
-            private bool TryAddSubWriter<T>(string key, out GraphWriter<T> graphWriter) where T : ISerializable
+            private bool TryAddSubWriter<T>(string key, out GraphWriter<T> graphWriter) 
             {
                 if (elementReference.TryGetTarget(out Element element))
                 {
@@ -290,6 +278,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 if (elementReference.TryGetTarget(out Element element))
                 {
+                    var connection = storageReference.SearchRelative(element, "_Input");
+                    if(connection != null && connection is Element<Element> link)
+                    {
+                        element = link.data;
+                    }
                     var subElement = storageReference.SearchRelative(element, key);
                     if (subElement != null)
                     {
@@ -301,10 +294,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return false;
             }
 
-            private bool TryGetSubWriter<T>(string key, out GraphWriter<T> graphWriter) where T : ISerializable
+            private bool TryGetSubWriter<T>(string key, out GraphWriter<T> graphWriter) 
             {
                 if (elementReference.TryGetTarget(out Element element))
                 {
+                    var connection = storageReference.SearchRelative(element, "_Input");
+                    if(connection != null && connection is Element<Element> link)
+                    {
+                        element = link.data;
+                    }
                     var subElement = storageReference.SearchRelative(element, key);
                     if (subElement != null && subElement is Element<T> typedSubElement)
                     {
@@ -326,16 +324,59 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 var otherReader = otherWriter.GetCorrespondingReader();
                 if (other != null && thisReader != null && otherReader != null && thisReader.IsInput() != otherReader.IsInput() && thisReader.IsHorizontal() == otherReader.IsHorizontal())
                 {
-                    if (elementReference.TryGetTarget(out Element element) && otherWriter.elementReference.TryGetTarget(out Element otherElement))
+                    if (thisReader.IsInput())
                     {
-                        storageReference.LinkData(element, otherElement);
-                        return true;
+                        ConnectPorts(otherWriter, this);
                     }
+                    else
+                    {
+                        ConnectPorts(this, otherWriter);
+                    }
+                    return true;
                 }
                 return false;
             }
 
-            public bool TryAddField<T>(string fieldKey, out IFieldWriter<T> fieldWriter) where T : ISerializable
+            private void ConnectPorts(GraphWriter output, GraphWriter input)
+            {
+                input.elementReference.TryGetTarget(out Element inputElem);
+                output.elementReference.TryGetTarget(out Element outputElem);
+
+                if(!output.TryGetSubWriter("_Output", out GraphWriter<List<Element>> outputWriter))
+                {
+                    output.TryAddSubWriter("_Output", out outputWriter);
+                    outputWriter.TryWriteData(new List<Element>());
+                }
+                outputWriter.elementReference.TryGetTarget(out Element listElem);
+                (listElem as Element<List<Element>>).data.Add(inputElem);
+
+                if(!input.TryGetSubWriter("_Input", out GraphWriter<Element> inputWriter))
+                {
+                    input.TryAddSubWriter("_Input", out inputWriter);
+                }
+                inputWriter.TryWriteData(outputElem);
+            }
+
+            private void DisconnectPorts(GraphWriter output, GraphWriter input)
+            {
+                input.elementReference.TryGetTarget(out Element inputElem);
+                output.elementReference.TryGetTarget(out Element outputElem);
+
+                output.TryGetSubWriter("_Output", out GraphWriter<List<Element>> outputWriter);
+                outputWriter.elementReference.TryGetTarget(out Element elem);
+                var listElem = (elem as Element<List<Element>>);
+                listElem.data.Remove(inputElem);
+                if(listElem.data.Count == 0)
+                {
+                    storageReference.RemoveData(elem);
+                }
+
+                input.TryGetSubWriter("_Input", out GraphWriter<Element> inputWriter);
+                inputWriter.elementReference.TryGetTarget(out Element elem2);
+                storageReference.RemoveData(elem2);
+            }
+
+            public bool TryAddField<T>(string fieldKey, out IFieldWriter<T> fieldWriter) 
             {
                 var output = TryAddSubWriter(fieldKey, out GraphWriter<T> graphWriter);
                 fieldWriter = graphWriter;
@@ -367,51 +408,39 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool TryAddSubField(string subFieldKey, out IFieldWriter subFieldWriter) => TryAddField(subFieldKey, out subFieldWriter);
 
-            public bool TryAddSubField<T>(string subFieldKey, out IFieldWriter<T> subFieldWriter) where T : ISerializable => TryAddField<T>(subFieldKey, out subFieldWriter);
+            public bool TryAddSubField<T>(string subFieldKey, out IFieldWriter<T> subFieldWriter) => TryAddField<T>(subFieldKey, out subFieldWriter);
 
-            public bool TryAddTransientNode<T>(string transientNodeKey, IFieldWriter<T> fieldWriter) where T : ISerializable
+            public bool TryAddTransientNode<T>(string transientNodeKey, IFieldWriter<T> fieldWriter) 
             {
                 throw new NotImplementedException();
             }
 
-            public bool TryGetField<T>(string fieldKey, out IFieldWriter<T> fieldWriter) where T : ISerializable
+            public bool TryGetField<T>(string fieldKey, out IFieldWriter<T> fieldWriter) 
             {
-                bool output = true;
-                if(!TryGetSubWriter(fieldKey, out GraphWriter<T> subWriter))
-                {
-                    output = TryAddSubWriter(fieldKey, out subWriter);
-                }
+                bool output = TryGetSubWriter(fieldKey, out GraphWriter<T> subWriter);
                 fieldWriter = subWriter;
                 return output;
             }
 
             public bool TryGetField(string fieldKey, out IFieldWriter fieldWriter)
             {
-                bool output = true;
-                if (!TryGetSubWriter(fieldKey, out GraphWriter subWriter))
-                {
-                    output = TryAddSubWriter(fieldKey, out subWriter);
-                }
+                bool output = TryGetSubWriter(fieldKey, out var subWriter);
                 fieldWriter = subWriter;
                 return output;
             }
 
             public bool TryGetPort(string portKey, out IPortWriter portWriter)
             {
-                bool output = true;
-                if (!TryGetSubWriter(portKey, out GraphWriter subWriter))
-                {
-                    output = TryAddSubWriter(portKey, out subWriter);
-                }
+                bool output = TryGetSubWriter(portKey, out var subWriter);
                 portWriter = subWriter;
                 return output;
             }
 
             public bool TryGetSubField(string subFieldKey, out IFieldWriter subFieldWriter) => TryGetField(subFieldKey, out subFieldWriter);
 
-            public bool TryGetSubField<T>(string subFieldKey, out IFieldWriter<T> subFieldWriter) where T : ISerializable => TryGetField<T>(subFieldKey, out subFieldWriter);
+            public bool TryGetSubField<T>(string subFieldKey, out IFieldWriter<T> subFieldWriter) => TryGetField<T>(subFieldKey, out subFieldWriter);
 
-            public bool TryGetTypedFieldWriter<T>(out IFieldWriter<T> typedFieldWriter) where T : ISerializable
+            public bool TryGetTypedFieldWriter<T>(out IFieldWriter<T> typedFieldWriter) 
             {
                 if (elementReference.TryGetTarget(out Element element) && element is Element<T> typedElement)
                 {
@@ -422,10 +451,108 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return false;
             }
 
+            bool INodeWriter.TryRemove()
+            {
+                if(elementReference.TryGetTarget(out Element element))
+                {
+                    bool output = true;
+                    foreach(var child in element.children)
+                    {
+                        if (HasSubData(child, "_isInput", "_isHorizontal"))
+                        {
+                            DisconnectAll(child);
+                        }
+                    }
+                    storageReference.RemoveDataBranch(element);
+                    return output;
+                }
+                return false;
+            }
+
+            private void DisconnectAll(Element element)
+            {
+                foreach (var child in element.children)
+                {
+                    if (child.id.CompareTo("_Input") == 0)
+                    {
+                        var outputPort = (child as Element<Element>).data;
+                        DisconnectPorts(new GraphWriter(outputPort, storageReference), this);
+                        break;
+                    }
+                    else if (child.id.CompareTo("_Output") == 0)
+                    {
+                        var connections = (child as Element<List<Element>>).data;
+                        foreach (var connection in connections)
+                        {
+                            DisconnectPorts(this, new GraphWriter(connection, storageReference));
+                        }
+                        break;
+                    }
+                }
+            }
+
+            bool IPortWriter.TryRemove()
+            {
+                if (elementReference.TryGetTarget(out Element element))
+                {
+                    bool output = true;
+                    foreach (var child in element.children)
+                    {
+                        if(child.id.CompareTo("_Input") == 0)
+                        {
+                            var outputPort = (child as Element<Element>).data;
+                            DisconnectPorts(new GraphWriter(outputPort, storageReference), this);
+                            break;
+                        }
+                        else if (child.id.CompareTo("_Output") == 0)
+                        {
+                            var connections = (child as Element<List<Element>>).data;
+                            foreach(var connection in connections)
+                            {
+                                DisconnectPorts(this, new GraphWriter(connection, storageReference));
+                            }
+                            break;
+                        }
+                    }
+                    storageReference.RemoveDataBranch(element);
+                    return output;
+                }
+                return false;
+
+            }
+
+            bool IFieldWriter.TryRemove()
+            {
+                if (elementReference.TryGetTarget(out Element element))
+                {
+                    bool output = true;
+                    storageReference.RemoveDataBranch(element);
+                    return output;
+                }
+                return false;
+
+            }
+
+            public IPortWriter GetPort(string portKey)
+            {
+                if(!TryGetPort(portKey, out var pw))
+                {
+                    var reader = GetCorrespondingReader();
+                    if(reader.TryGetPort(portKey, out var portReader))
+                    {
+                        TryAddPort(portKey, portReader.IsInput(), portReader.IsHorizontal(), out pw);
+                    }
+                }
+                return pw;
+            }
+
+
+
+
             #endregion
         }
 
-        private class GraphWriter<T> : GraphWriter, IFieldWriter<T> where T : ISerializable
+        private class GraphWriter<T> : GraphWriter, IFieldWriter<T> 
         {
             public GraphWriter(Element<T> element, GraphStorage storage) : base(element, storage) { }
 
@@ -438,6 +565,31 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 }
                 return false;
             }
+        }
+
+        private static bool HasSubData(Element element, params string[] expectedChildren)
+        {
+            foreach (string childName in expectedChildren)
+            {
+                var check = GetSubData(element, childName);
+                if (check == null)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static Element GetSubData(Element element, string dataID)
+        {
+            foreach (var child in element.children)
+            {
+                if (child.id.CompareTo(dataID) == 0)
+                {
+                    return child;
+                }
+            }
+            return null;
         }
 
         public const string k_concrete = "Concrete";

@@ -118,25 +118,6 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        //Used to organize links mwhen serialized to try and keep a consistent ordering
-        private class SerializedLinkComparer : IComparer<SerializedElementLink>
-        {
-            public int Compare(SerializedElementLink x, SerializedElementLink y)
-            {
-                int first = x.idA.CompareTo(y.idA);
-                if(first != 0)
-                {
-                    return first;
-                }
-                else
-                {
-                    return x.idB.CompareTo(y.idB);
-                }
-            }
-        }
-
-
-
         //Stores a single Element's data 
         [Serializable]
         public struct SerializedElementData
@@ -153,32 +134,17 @@ namespace UnityEditor.ContextLayeredDataStorage
             }
         }
 
-        [Serializable]
-        public struct SerializedElementLink
-        {
-            public string idA;
-            public string idB;
-
-            public SerializedElementLink(string elementAFullPath, string elementBFullPath)
-            {
-                idA = elementAFullPath;
-                idB = elementBFullPath;
-            }
-        }
-
         //Stores a layers data
         [Serializable]
         public struct SerializedLayerData
         {
             public string layerName;
             public List<SerializedElementData> layerData;
-            public List<SerializedElementLink> layerLinks;
 
-            public SerializedLayerData(string layerName, List<SerializedElementData> layerData, List<SerializedElementLink> layerLinks)
+            public SerializedLayerData(string layerName, List<SerializedElementData> layerData)
             {
                 this.layerName = layerName;
                 this.layerData = layerData;
-                this.layerLinks = layerLinks;
             }
         }
 
@@ -244,15 +210,12 @@ namespace UnityEditor.ContextLayeredDataStorage
         [NonSerialized]
         protected readonly LayerList m_layerList;
         [NonSerialized]
-        protected Element m_flatStructure;
-        [NonSerialized]
-        protected Dictionary<string, Element<Element>> m_flatStructureLookup;
+        protected Dictionary<string, Element> m_flatStructureLookup;
 
         public ContextLayeredDataStorage()
         {
             m_layerList = new LayerList(this);
-            m_flatStructure = new Element(this);
-            m_flatStructureLookup = new Dictionary<string, Element<Element>>();
+            m_flatStructureLookup = new Dictionary<string, Element>();
             AddDefaultLayers();
         }
 
@@ -342,18 +305,6 @@ namespace UnityEditor.ContextLayeredDataStorage
             UpdateFlattenedStructureAdd(output);
         }
 
-        protected void LinkData(Element a, Element b)
-        {
-            Link(a, b);
-            UpdateFlattenedStructureLink(a, b);
-        }
-
-        protected void UnlinkData(Element a, Element b)
-        {
-            Unlink(a, b);
-            UpdateFlattenedStructureUnlink(a, b);
-        }
-
         private void AddChild(Element parent, Element child)
         {
             parent.children.Add(child);
@@ -364,29 +315,6 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
             parent.children.Remove(child);
             child.parent = null;
-        }
-
-        private void Link(Element a, Element b)
-        {
-            a.children.Add(b);
-            b.children.Add(a);
-        }
-
-        private void Unlink(Element a, Element b)
-        {
-            a.children.Remove(b);
-            b.children.Remove(a);
-        }
-
-        protected IEnumerable<Element> GetLinkedElements(Element element)
-        {
-            foreach (var child in element.children)
-            {
-                if (child.parent != element)
-                {
-                    yield return child;
-                }
-            }
         }
 
         private void EvaluateParentAndId(in Element element, string id, out Element parent, out string newId)
@@ -447,20 +375,12 @@ namespace UnityEditor.ContextLayeredDataStorage
         private void RemoveInternal(Element elem)
         {
             List<Element> childrenToRemove  = new List<Element>();
-            List<Element> elementsToUnlink = new List<Element>();
             foreach (var child in elem.children)
             {
-                if (child.parent == elem)
+                child.id = $"{elem.id}.{child.id}";
+                if (elem.parent != null)
                 {
-                    child.id = $"{elem.id}.{child.id}";
-                    if (elem.parent != null)
-                    {
-                        childrenToRemove.Add(child);
-                    }
-                }
-                else
-                {
-                    elementsToUnlink.Add(child.parent);
+                    childrenToRemove.Add(child);
                 }
             }
 
@@ -469,38 +389,25 @@ namespace UnityEditor.ContextLayeredDataStorage
                 RemoveChild(elem, child);
                 AddChild(elem.parent, child);
             }
-            foreach(var link in elementsToUnlink)
-            {
-                Unlink(elem, link);
-            }
             RemoveChild(elem.parent, elem);
 
         }
 
         protected void RemoveDataBranch(Element root)
         {
-            GatherAll(root, out var elems, out var links);
-            foreach(var link in links)
-            {
-                Unlink(link.a, link.b);
-            }
+            GatherAll(root, out var elems);
             foreach(var elem in elems)
             {
                 RemoveData(elem);
             }
+            RemoveData(root);
         }
 
         public IDataElement Search(string lookup)
         {
-            if(m_flatStructureLookup.TryGetValue(lookup, out Element<Element> reference))
+            if(m_flatStructureLookup.TryGetValue(lookup, out Element reference))
             {
-                return reference.data;
-            }
-
-            var pathSearch = SearchRelative(m_flatStructure, lookup) as Element<Element>;
-            if(pathSearch != null)
-            {
-                return pathSearch.data;
+                return reference;
             }
             return null;
         }
@@ -570,29 +477,19 @@ namespace UnityEditor.ContextLayeredDataStorage
         {
             foreach(var layer in m_layerList)
             {
-                GatherAll(layer.Value.element, out var elems, out var _);
+                GatherAll(layer.Value.element, out var elems);
                 Rebalance(layer.Value.element, elems);
             }
         }
 
         //Get all elements descended from root inclusive in a list
-        protected void GatherAll(Element root, out List<Element> elements, out List<(Element a, Element b)> links)
+        protected void GatherAll(Element root, out List<Element> elements)
         {
             elements = new List<Element>();
-            links = new List<(Element a, Element b)>();
             foreach(var child in root.children)
             {
-                //ignore links
-                if(child.parent != root)
-                {
-                    links.Add((root, child));
-                }
-                else
-                {
-                    elements.Add(child);
-                }
-                GatherAll(child, out var accumulatedElements, out var accumulatedLinks);
-                links.AddRange(accumulatedLinks);
+                elements.Add(child);
+                GatherAll(child, out var accumulatedElements);
                 elements.AddRange(accumulatedElements);
             }
         }
@@ -685,18 +582,13 @@ namespace UnityEditor.ContextLayeredDataStorage
             {
                 if(layer.Value.descriptor.isSerialized)
                 {
-                    var serializedLayer = new SerializedLayerData(layer.Value.descriptor.layerName, new List<SerializedElementData>(), new List<SerializedElementLink>()) ;
-                    GatherAll(layer.Value.element, out var elements, out var links);
+                    var serializedLayer = new SerializedLayerData(layer.Value.descriptor.layerName, new List<SerializedElementData>());
+                    GatherAll(layer.Value.element, out var elements);
                     foreach(var elem in elements)
                     {
                         serializedLayer.layerData.Add(elem.ToSerializedFormat());
                     }
                     serializedLayer.layerData.Sort(new SerializedDataComparer());
-                    foreach(var link in links)
-                    {
-                        serializedLayer.layerLinks.Add(new SerializedElementLink(link.a.GetFullPath(), link.b.GetFullPath()));
-                    }
-                    serializedLayer.layerLinks.Sort(new SerializedLinkComparer());
                     m_serializedData.Add(serializedLayer);
                 }
             }
@@ -716,17 +608,6 @@ namespace UnityEditor.ContextLayeredDataStorage
                 foreach(var elem in elems)
                 {
                     UpdateFlattenedStructureAdd(elem);
-                }
-
-                foreach(var link in serializedLayer.layerLinks)
-                {
-                    var a = SearchRelative(root, link.idA);
-                    var b = SearchRelative(root, link.idB);
-                    if(a != null && b != null)
-                    {
-                        Link(a,b);
-                        UpdateFlattenedStructureLink(a, b);
-                    }
                 }
             }
         }
@@ -761,52 +642,19 @@ namespace UnityEditor.ContextLayeredDataStorage
             return new Element(data.id, this);
         }
 
-        private void UpdateFlattenedStructureLink(Element a, Element b)
-        {
-            string idA = a.GetFullPath();
-            string idB = b.GetFullPath();
-
-            m_flatStructureLookup.TryGetValue(idA, out var currentA);
-            m_flatStructureLookup.TryGetValue(idB, out var currentB);
-
-            if(a == currentA.data && b == currentB.data)
-            {
-                Link(currentA, currentB);
-            }
-        }
-
-        private void UpdateFlattenedStructureUnlink(Element a, Element b)
-        {
-            string idA = a.GetFullPath();
-            string idB = b.GetFullPath();
-
-            m_flatStructureLookup.TryGetValue(idA, out var currentA);
-            m_flatStructureLookup.TryGetValue(idB, out var currentB);
-
-            if (a == currentA.data && b == currentB.data)
-            {
-                Unlink(currentA, currentB);
-            }
-        }
-
         protected void UpdateFlattenedStructureAdd(Element addedElement)
         {
             string id = addedElement.GetFullPath();
-            if(m_flatStructureLookup.TryGetValue(id, out Element<Element> flatRefElem))
+            if(m_flatStructureLookup.TryGetValue(id, out Element elem))
             {
-                if(GetHierarchyValue(addedElement) > GetHierarchyValue(flatRefElem.data))
+                if(GetHierarchyValue(addedElement) > GetHierarchyValue(elem))
                 {
-                    flatRefElem.data = addedElement;
-                    ReevaluateLinks(flatRefElem);
+                    m_flatStructureLookup[id] = addedElement;
                 }
             }
             else
             {
-                EvaluateParentAndId(in m_flatStructure, id, out Element parent, out string newId);
-                Element<Element> newFlatRefElem = new Element<Element>(newId, addedElement, this);
-                AddChild(parent, newFlatRefElem);
-                m_flatStructureLookup.Add(id, newFlatRefElem);
-                ReevaluateLinks(newFlatRefElem);
+                m_flatStructureLookup.Add(id, addedElement);
             }
         }
 
@@ -815,32 +663,11 @@ namespace UnityEditor.ContextLayeredDataStorage
             var replacement = SearchInternal(removedElementId);
             if(replacement != null)
             {
-                var flatRefElem = m_flatStructureLookup[removedElementId];
-                flatRefElem.data = replacement;
-                ReevaluateLinks(flatRefElem);
+                m_flatStructureLookup[removedElementId] = replacement;
             }
             else
             {
-                var refElem = m_flatStructureLookup[removedElementId];
-                RemoveInternal(refElem);
                 m_flatStructureLookup.Remove(removedElementId);
-            }
-        }
-
-        private void ReevaluateLinks(Element<Element> flatRefElem)
-        {
-            foreach (var linked in GetLinkedElements(flatRefElem))
-            {
-                Unlink(flatRefElem, linked);
-            }
-            foreach (var linked in GetLinkedElements(flatRefElem.data))
-            {
-                string currentLinked = linked.GetFullPath();
-                m_flatStructureLookup.TryGetValue(currentLinked, out var newLinkMaybe);
-                if (newLinkMaybe.data == linked)
-                {
-                    Link(flatRefElem, newLinkMaybe);
-                }
             }
         }
 
