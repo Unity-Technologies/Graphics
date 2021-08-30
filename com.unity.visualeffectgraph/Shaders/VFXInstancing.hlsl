@@ -4,7 +4,6 @@
 
 struct VFXIndices
 {
-    uint id;
     uint instanceIndex;
     uint particleIndex;
     uint index;
@@ -34,16 +33,15 @@ void VFXSetComputeInstancingIndices(
                             StructuredBuffer<uint> indirectionBufferInstances,
                             #endif
                             uint alignedSystemCapacity,
-                            inout uint index,
-                            inout uint particleIndex
+                            inout VFXIndices vfxIndices
                             )
 {
-    uint instanceIndex = GetInstanceIndexFromGroupID(groupId, nbThreadPerGroup, dispatchWidth, alignedSystemCapacity);
-    particleIndex = index - instanceIndex * nbParticlesPerInstance;
+    vfxIndices.instanceIndex = GetInstanceIndexFromGroupID(groupId, nbThreadPerGroup, dispatchWidth, alignedSystemCapacity);
+    vfxIndices.particleIndex = vfxIndices.index - vfxIndices.instanceIndex * nbParticlesPerInstance;
     #if VFX_INSTANCING_INDIRECTION
-        instanceIndex = indirectionBufferInstances[instanceIndex];
+        vfxIndices.instanceIndex = indirectionBufferInstances[vfxIndices.instanceIndex];
     #endif
-    index = GetIndexInAttributeBuffer(instanceIndex, particleIndex,alignedSystemCapacity);
+    vfxIndices.index = GetIndexInAttributeBuffer(vfxIndices.instanceIndex, vfxIndices.particleIndex,alignedSystemCapacity);
 }
 
 
@@ -58,22 +56,20 @@ void VFXSetOutputInstancingIndices(
                             StructuredBuffer<uint> indirectionBufferInstances,
                             #endif
                             uint alignedSystemCapacity,
-                            inout uint index,
-                            inout uint particleIndex
+                            inout VFXIndices vfxIndices
                             )
 {
-    uint instanceIndex;
     #if VFX_INSTANCING_VARIABLE_SIZE
-        particleIndex = BinarySearchPrefixSum(index, prefixSumInstances, nbInstancesInDispatch,instanceIndex);
+        vfxIndices.particleIndex = BinarySearchPrefixSum(vfxIndices.index, prefixSumInstances, nbInstancesInDispatch,vfxIndices.instanceIndex);
         #if VFX_INSTANCING_INDIRECTION
-            instanceIndex = indirectionBufferInstances[instanceIndex];
+            vfxIndices.instanceIndex = indirectionBufferInstances[vfxIndices.instanceIndex];
         #endif
     #else
-        instanceIndex = index / nbParticlesPerInstance;
-        particleIndex = index - instanceIndex * nbParticlesPerInstance;
+        vfxIndices.instanceIndex = vfxIndices.index / nbParticlesPerInstance;
+        vfxIndices.particleIndex = vfxIndices.index - vfxIndices.instanceIndex * nbParticlesPerInstance;
         #if VFX_INSTANCING_INDIRECTION
-            instanceIndex = indirectionBufferInstances[instanceIndex];
+            vfxIndices.instanceIndex = indirectionBufferInstances[vfxIndices.instanceIndex];
         #endif
     #endif
-    index = GetIndexInAttributeBuffer(instanceIndex, particleIndex,alignedSystemCapacity);
+    vfxIndices.index = GetIndexInAttributeBuffer(vfxIndices.instanceIndex, vfxIndices.particleIndex,alignedSystemCapacity);
 }
