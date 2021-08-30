@@ -64,6 +64,7 @@ namespace UnityEditor.ShaderGraph.Registry
         Type = 1, // The corresponding node definition is allowed to be a port.
         Func = 2, // Cannot be a port.
         Cast = 3,
+        Base = 4,
     }
 
 
@@ -71,12 +72,18 @@ namespace UnityEditor.ShaderGraph.Registry
     {
         Dictionary<RegistryKey, Defs.IRegistryEntry> builders = new Dictionary<RegistryKey, Defs.IRegistryEntry>();
         GraphDelta.IGraphHandler defaultTopologies = GraphUtil.CreateGraph();
+
+        public Registry()
+        {
+            Register<Defs.ContextBuilder>();
+        }
+
         public IEnumerable<RegistryKey> BrowseRegistryKeys() => builders.Keys;
         public INodeReader GetDefaultTopology(RegistryKey key) => defaultTopologies.GetNodeReader(key.ToString());
 
         public bool CastExists(RegistryKey from, RegistryKey to) => builders.Values.OfType<Defs.ICastDefinitionBuilder>().Any(e => e.GetTypeConversionMapping().Equals((from,to)));
 
-        public bool RegisterBuilder<T>() where T : Defs.IRegistryEntry
+        public bool Register<T>() where T : Defs.IRegistryEntry
         {
             var builder = Activator.CreateInstance<T>();
             var key = builder.GetRegistryKey();
@@ -86,6 +93,7 @@ namespace UnityEditor.ShaderGraph.Registry
             return true;
         }
 
+        public Defs.IContextDescriptor GetContextDescriptor(RegistryKey key) => (Defs.IContextDescriptor)GetBuilder(key);
         public Defs.INodeDefinitionBuilder GetNodeBuilder(RegistryKey key) => (Defs.INodeDefinitionBuilder)GetBuilder(key);
         public Defs.ITypeDefinitionBuilder GetTypeBuilder(RegistryKey key) => (Defs.ITypeDefinitionBuilder)GetBuilder(key);
         public Defs.ICastDefinitionBuilder GetCastBuilder(RegistryKey key) => (Defs.ICastDefinitionBuilder)GetBuilder(key);

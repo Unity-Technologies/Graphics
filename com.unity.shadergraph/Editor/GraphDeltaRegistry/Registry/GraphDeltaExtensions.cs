@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEditor.ShaderGraph.Registry
 {
@@ -43,13 +44,167 @@ namespace UnityEditor.ShaderGraph.Registry
 
         public static void SetupContext(this GraphDelta.IGraphHandler handler, IEnumerable<Defs.IContextDescriptor> contexts, Registry registry)
         {
-            GraphDelta.INodeWriter previousContext = null;
+            // only safe to call right now.
+            GraphDelta.INodeWriter previousContextNode = null;
             foreach(var context in contexts)
             {
-                var node = handler.AddNode<Defs.ContextBuilder>(context.GetRegistryKey().Name + "_Context", registry);
-                node.SetField("_contextDescriptor", context.GetRegistryKey());
-                registry.GetNodeBuilder(Defs.ContextBuilder.kRegistryKey).BuildNode(null, node, registry);
+                // Initialize the Context Node with information from the ContextDescriptor
+                var name = context.GetRegistryKey().Name + "_Context"; // Not like this...
+                var currentContextNode = handler.AddNode<Defs.ContextBuilder>(name, registry);
+                currentContextNode.SetField("_contextDescriptor", context.GetRegistryKey()); // initialize the node w/a reference to the context descriptor (so it can build itself).
+                if(previousContextNode != null)
+                {
+                    // Create the monadic connection if it should exist.
+                    previousContextNode.TryAddPort("Out", false, false, out var outPort);
+                    currentContextNode.TryAddPort("In", true, false, out var inPort);
+                    inPort.TryAddConnection(outPort);
+                }
+                handler.ReconcretizeNode(name, registry);
+                previousContextNode = currentContextNode;
             }
+
+            var entryPoint = handler.AddNode<Defs.ContextBuilder>("EntryPoint", registry);
+            previousContextNode.TryAddPort("Out", false, false, out var toEnry);
+            entryPoint.TryAddPort("In", true, false, out var inEntry);
+            inEntry.TryAddConnection(toEnry);
+            handler.ReconcretizeNode("EntryPoint", registry);
+        }
+
+        public static void ProcessGraph(this GraphDelta.IGraphHandler handler, ShaderFoundry.ShaderContainer container, Registry registry)
+        {
+            // if we walk the vertical/input output relationship here, we will get all of our context nodes.
+            // Each context node is processed by flattening the node i/o in capturing local variables, and passing those along, applying casts where appropriate.
+            var entryPoint = handler.GetNodeReader("EntryPoint");
+            ProcessContextNode(entryPoint, handler, container, registry);
+        }
+
+        private static ShaderFoundry.Block ProcessContextNode(GraphDelta.INodeReader contextNode, GraphDelta.IGraphHandler handler, ShaderFoundry.ShaderContainer container, Registry registry)
+        {
+            // can't handle duplicate contexts
+            contextNode.GetField<RegistryKey>("_contextDescriptor", out var contextKey);
+
+            var blockbuilder = new ShaderFoundry.Block.Builder(contextKey.Name);
+            var funcbuilder = new ShaderFoundry.ShaderFunction.Builder(contextKey.Name + "_func");
+            var outtypebuilder = new ShaderFoundry.ShaderType.StructBuilder(contextKey.Name + "_out");
+            ShaderFoundry.ShaderType inputType = default;
+
+            // Find our input struct -->
+            // This gets more awkward/interesting with reference nodes-- it's unclear to me now how they should be handled.
+            // Is pass-through interpolation working?
+            foreach (var port in contextNode.GetPorts().Where(e => e.IsInput() && !e.IsHorizontal()))
+            {
+                var connectedPort = port.GetConnectedPorts().FirstOrDefault();
+                if (connectedPort != null)
+                {
+                    var connectedNode = handler.GetNodeByPort(connectedPort);
+                    var previousBlock = ProcessContextNode(connectedNode, handler, container, registry);
+                    if (previousBlock.Inputs.Any())
+                        inputType = previousBlock.EntryPointFunction.Parameters.Where(e => e.Name == "Out").FirstOrDefault().Type;
+                }
+            }
+
+            // process our body and initialize our output struct accordingly.
+            var visitedList = new HashSet<string>();
+            foreach (var port in contextNode.GetPorts().Where(e => e.IsInput() && e.IsHorizontal()))
+            {
+                // get the type of our port, so we can add the correct type of field to our output struct.
+                var shaderType = registry.GetTypeBuilder(port.GetRegistryKey()).GetShaderType((GraphDelta.IFieldReader)port, container, registry);
+                outtypebuilder.AddField(shaderType, port.GetName());
+                var connectedPort = port.GetConnectedPorts().FirstOrDefault();
+                if(connectedPort != null)
+                {
+                    var connectedNode = handler.GetNodeByPort(connectedPort);
+                    if (!visitedList.Contains(connectedNode.GetName()))
+                    {
+                        // recursively build out each input connection's body code (output variable initializations-- visited list prevents dupes).
+                        ProcessFuncNode(connectedNode, handler, visitedList, funcbuilder, container, registry);
+                    }
+                    // TODO: CAST
+                    funcbuilder.AddLine($"Out.{port.GetName()} = {connectedNode.GetName()}_{connectedPort.GetName()};");
+                }
+                else
+                {
+                    var init = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry);
+                    funcbuilder.AddLine($"Out.{port.GetName()} = {init};");
+                }
+            }
+
+
+            // copy the fields from our output struct to the block's outputs
+            var outType = outtypebuilder.Build(container);
+            foreach (var outField in outType.StructFields)
+            {
+                var blockVarBuilder = new ShaderFoundry.BlockVariable.Builder();
+                blockVarBuilder.ReferenceName = outField.Name;
+                blockVarBuilder.Type = outField.Type;
+                var blockVar = blockVarBuilder.Build(container);
+                blockbuilder.AddOutput(blockVar);
+            }
+
+            // copy the input fields from our input struct to the block's inputs
+            if (inputType.IsValid) foreach (var inField in inputType.StructFields)
+            {
+                var blockVarBuilder = new ShaderFoundry.BlockVariable.Builder();
+                blockVarBuilder.ReferenceName = inField.Name;
+                blockVarBuilder.Type = inField.Type;
+                var blockVar = blockVarBuilder.Build(container);
+                blockbuilder.AddInput(blockVar);
+            }
+
+            // finalize our function and entry point
+            funcbuilder.AddOutput(outType, "Out");
+            var func = funcbuilder.Build(container);
+            blockbuilder.SetEntryPointFunction(func);
+
+            // done with the block?
+            return blockbuilder.Build(container);
+        }
+
+        private static void ProcessFuncNode(GraphDelta.INodeReader node, GraphDelta.IGraphHandler handler, HashSet<string> visitedList, ShaderFoundry.ShaderFunction.Builder funcBuilder, ShaderFoundry.ShaderContainer container, Registry registry)
+        {
+            var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, container, registry);
+            string arguments = "";
+            foreach (var param in func.Parameters)
+            {
+                if(node.TryGetPort(param.Name, out var port))
+                {
+                    string argument = "";
+                    if (!port.IsHorizontal()) continue;
+                    if(port.IsInput())
+                    {
+                        var connectedPort = port.GetConnectedPorts().FirstOrDefault();
+                        if (connectedPort != null) // connected input port-
+                        {
+                            var connectedNode = handler.GetNodeByPort(connectedPort);
+                            if (!visitedList.Contains(connectedNode.GetName()))
+                            {
+                                // This will roll out its output vars as well as the call to initialize them.
+                                // visitedList protects from duplication, as we know the func's outputs have already been initialized.
+                                // (note that ShaderFoundry.Container should handle deduplications).
+                                ProcessFuncNode(node, handler, visitedList, funcBuilder, container, registry);
+                            }
+                            // TODO: CAST
+                            argument = $"{connectedNode.GetName()}_{connectedPort.GetName()}";
+                        }
+                        else // not connected.
+                        {
+                            // get the inlined port value as an initializer from the definition-- since there was no connection).
+                            argument = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry);
+                        }
+                    }
+                    else // this is an output port.
+                    {
+                        argument = $"{node.GetName()}_{port.GetName()}"; // add to the arguments for the function call.
+                        // default initialize this before our function call.
+                        var initValue = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry);
+                        funcBuilder.AddLine($"{param.Type.Name} {argument} = {initValue};");
+                    }
+                    arguments += argument + ", ";
+                }
+            }
+            if (arguments.Length != 0)
+                arguments.Remove(arguments.Length - 3, 2); // trim the trailing ", "
+            funcBuilder.AddLine($"{func.Name}({arguments});"); // add our node's function call to the body we're building out.
         }
 
         public static bool TestConnection(this GraphDelta.IGraphHandler handler, string srcNode, string srcPort, string dstNode, string dstPort, Registry registry)

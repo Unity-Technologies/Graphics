@@ -167,6 +167,25 @@ namespace UnityEditor.ShaderGraph.Registry
                     typeWriter.SetField<float>($"c{i}", 0);
             }
 
+            public string GetInitializerList(IFieldReader data, Registry registry)
+            {
+                data.GetField(kLength, out int length);
+                data.GetField(kHeight, out int height);
+                length = Mathf.Clamp(length, 1, 4);
+                height = Mathf.Clamp(height, 1, 4);
+
+                string result = "{";
+                for(int i = 0; i < length*height; ++i)
+                {
+                    data.GetField($"c{i}", out float componentValue);
+                    result += $"{componentValue}";
+                    if (i != length * height - 1)
+                        result += ", ";
+                }
+                result += "}";
+                return result;
+            }
+
             public ShaderFoundry.ShaderType GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry)
             {
                 data.GetField(kPrimitive, out Primitive primitive);

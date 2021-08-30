@@ -8,6 +8,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     internal sealed class GraphStorage : ContextLayeredDataStorage.ContextLayeredDataStorage
     {
+        internal INodeReader GetNodeReaderFromPort(IPortReader port)
+        {
+            ((GraphReader)port).elementReference.TryGetTarget(out var target);
+            return new GraphReader(target.parent, this);
+        }
+
         private class GraphReader : IDisposable, INodeReader, IPortReader, IFieldReader, IDataReader
         {
 
@@ -259,7 +265,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return false;
             }
 
-            private bool TryAddSubWriter<T>(string key, out GraphWriter<T> graphWriter) 
+            private bool TryAddSubWriter<T>(string key, out GraphWriter<T> graphWriter)
             {
                 if (elementReference.TryGetTarget(out Element element))
                 {
@@ -294,7 +300,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return false;
             }
 
-            private bool TryGetSubWriter<T>(string key, out GraphWriter<T> graphWriter) 
+            private bool TryGetSubWriter<T>(string key, out GraphWriter<T> graphWriter)
             {
                 if (elementReference.TryGetTarget(out Element element))
                 {
@@ -376,7 +382,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 storageReference.RemoveData(elem2);
             }
 
-            public bool TryAddField<T>(string fieldKey, out IFieldWriter<T> fieldWriter) 
+            public bool TryAddField<T>(string fieldKey, out IFieldWriter<T> fieldWriter)
             {
                 var output = TryAddSubWriter(fieldKey, out GraphWriter<T> graphWriter);
                 fieldWriter = graphWriter;
@@ -410,12 +416,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool TryAddSubField<T>(string subFieldKey, out IFieldWriter<T> subFieldWriter) => TryAddField<T>(subFieldKey, out subFieldWriter);
 
-            public bool TryAddTransientNode<T>(string transientNodeKey, IFieldWriter<T> fieldWriter) 
+            public bool TryAddTransientNode<T>(string transientNodeKey, IFieldWriter<T> fieldWriter)
             {
                 throw new NotImplementedException();
             }
 
-            public bool TryGetField<T>(string fieldKey, out IFieldWriter<T> fieldWriter) 
+            public bool TryGetField<T>(string fieldKey, out IFieldWriter<T> fieldWriter)
             {
                 bool output = TryGetSubWriter(fieldKey, out GraphWriter<T> subWriter);
                 fieldWriter = subWriter;
@@ -440,7 +446,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public bool TryGetSubField<T>(string subFieldKey, out IFieldWriter<T> subFieldWriter) => TryGetField<T>(subFieldKey, out subFieldWriter);
 
-            public bool TryGetTypedFieldWriter<T>(out IFieldWriter<T> typedFieldWriter) 
+            public bool TryGetTypedFieldWriter<T>(out IFieldWriter<T> typedFieldWriter)
             {
                 if (elementReference.TryGetTarget(out Element element) && element is Element<T> typedElement)
                 {
@@ -552,7 +558,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             #endregion
         }
 
-        private class GraphWriter<T> : GraphWriter, IFieldWriter<T> 
+        private class GraphWriter<T> : GraphWriter, IFieldWriter<T>
         {
             public GraphWriter(Element<T> element, GraphStorage storage) : base(element, storage) { }
 

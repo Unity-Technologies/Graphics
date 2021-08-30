@@ -1,6 +1,9 @@
 using UnityEngine;
+using System;
+using System.Collections.Generic;
 
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEditor.ShaderFoundry;
 
 namespace UnityEditor.ShaderGraph.Registry.Defs
 {
@@ -23,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
     {
         void BuildType(IFieldReader userData, IFieldWriter generatedData, Registry registry);
         ShaderFoundry.ShaderType GetShaderType(IFieldReader data, ShaderFoundry.ShaderContainer container, Registry registry);
+        string GetInitializerList(IFieldReader data, Registry registry);
     }
 
     public interface ICastDefinitionBuilder : IRegistryEntry
@@ -37,4 +41,112 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 
         ShaderFoundry.ShaderFunction GetShaderCast(IFieldReader src, IFieldReader dst, ShaderFoundry.ShaderContainer container, Registry registry);
     }
+
+
+    public interface IContextDescriptor : IRegistryEntry
+    {
+        struct ContextEntry
+        {
+            public string fieldName;
+            public Types.GraphType.Precision precision;
+            public Types.GraphType.Primitive primitive;
+            public int length, height;
+            public Matrix4x4 initialValue;
+            public string interpolationSemantic;
+            public bool isFlat;
+        }
+
+        IReadOnlyCollection<ContextEntry> GetEntries();
+    }
+
+    internal class ReferenceNodeBuilder : INodeDefinitionBuilder
+    {
+        public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Reference", Version = 1 };
+        public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
+
+        public void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry)
+        {
+            // When a reference node is added, the context property that we are using is setup in the UserData already.
+            // Do we need to do anything here? I think by the nature of how connections work within the graph, we can just
+            // connect our port's field information to the context property. If it concretizes, we will inherently have reconcretized as well.
+            // -- Only issue here is that downstream nodes of this one would also need to reconcretize.
+
+            // Context nodes themselves, however, are definitively static. They would only reconcretize non-automatically (since they exist to constrain data).
+            // In this case-- it's only ever special action that would result in them reconcretizing, in which case it's those actions that need to propagate to
+            // reference nodes.
+        }
+
+        public ShaderFunction GetShaderFunction(INodeReader data, ShaderContainer container, Registry registry)
+        {
+            // Reference nodes are not processed through function generation.
+            throw new NotImplementedException();
+        }
+    }
+
+    internal class ContextBuilder : INodeDefinitionBuilder
+    {
+        public static readonly RegistryKey kRegistryKey = new RegistryKey { Name = "_Context", Version = 1 };
+        public RegistryKey GetRegistryKey() => kRegistryKey;
+
+        public RegistryFlags GetRegistryFlags() => RegistryFlags.Base;
+
+        public void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry)
+        {
+            userData.GetField<RegistryKey>("_contextDescriptor", out var contextKey);
+            var context = registry.GetContextDescriptor(contextKey);
+            foreach (var entry in context.GetEntries())
+            {
+                var port = generatedData.AddPort<Types.GraphType>(userData, entry.fieldName, true, registry);
+                port.SetField(Types.GraphType.kHeight, entry.height);
+                port.SetField(Types.GraphType.kLength, entry.length);
+                port.SetField(Types.GraphType.kPrecision, entry.precision);
+                port.SetField(Types.GraphType.kPrimitive, entry.primitive);
+                for (int i = 0; i < entry.length * entry.height; ++i)
+                    port.SetField($"c{i}", entry.initialValue[i]);
+                if (entry.interpolationSemantic == null || entry.interpolationSemantic == "")
+                    port.SetField("semantic", entry.interpolationSemantic);
+                port.SetField("isFlat", entry.isFlat);
+            }
+            // We could "enfield" all of our ContextEntries into our output port, which would consequently make them accessible
+            // with regards to the GetShaderFunction method below-- which could be helpful, but ultimately redundant if that is an internal processing step.
+        }
+
+        public ShaderFunction GetShaderFunction(INodeReader data, ShaderContainer container, Registry registry)
+        {
+            // Cannot get a shader function from a context node, that needs to be processed by the graph.
+            // -- Though, see comment before this one, it could do more- but it'd be kinda pointless.
+            // It's also pointless unless a similar strategy is taken for Reference nodes- who also need a fair amount of graph processing to function.
+            throw new NotImplementedException();
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+
+//public ShaderFoundry.Block GetShaderBlock(IGraphHandler graph, INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+//{
+//    var builder = new ShaderFoundry.Block.Builder(data.GetRegistryKey().ToString());
+//    foreach (var port in data.GetPorts())
+//    {
+//        if (port.IsInput() && !port.IsHorizontal())
+//        {
+//            // Need to be able to ask the for the previous node's built form, since that will comprise the input structure for our block.
+//        }
+
+//        if (!port.IsInput() || !port.IsHorizontal())
+//            continue;
+
+//        var varBuilder = new ShaderFoundry.BlockVariable.Builder();
+//        varBuilder.Type = registry.GetTypeBuilder(port.GetRegistryKey()).GetShaderType((IFieldReader)port, container, registry);
+//        varBuilder.ReferenceName = port.GetName();
+//        builder.AddOutput(varBuilder.Build(container));
+//    }
+//    var block = builder.Build(container);
+//}
