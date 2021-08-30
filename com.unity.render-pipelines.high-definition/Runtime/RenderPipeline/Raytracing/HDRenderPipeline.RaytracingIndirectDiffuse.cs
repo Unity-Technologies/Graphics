@@ -458,7 +458,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RaytracingIntensityClamp = data.clampValue;
                         data.shaderVariablesRayTracingCB._RaytracingRayMaxLength = data.rayLength;
                         data.shaderVariablesRayTracingCB._RaytracingNumSamples = data.sampleCount;
+#if NO_RAY_RECURSION
+                        data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = 1;
+#else
                         data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = data.bounceCount;
+#endif
                         data.shaderVariablesRayTracingCB._RayTracingDiffuseLightingOnly = 1;
                         data.shaderVariablesRayTracingCB._RayTracingLodBias = data.lodBias;
                         data.shaderVariablesRayTracingCB._RayTracingRayMissFallbackHierarchy = data.rayMiss;
@@ -529,19 +533,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 filterParams.occluderMotionRejection = false;
                 filterParams.receiverMotionRejection = giSettings.receiverMotionRejection.value;
                 filterParams.exposureControl = true;
+                filterParams.fullResolution = true;
+
                 TextureHandle denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, filterParams,
                     rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferHF,
                     depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
 
                 // Apply the diffuse denoiser
-                rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, singleChannel: false, kernelSize: giSettings.denoiserRadius, halfResolutionFilter: giSettings.halfResolutionDenoiser, jitterFilter: giSettings.secondDenoiserPass, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
+                HDDiffuseDenoiser.DiffuseDenoiserParameters ddParams;
+                ddParams.singleChannel = false;
+                ddParams.kernelSize = giSettings.denoiserRadius;
+                ddParams.halfResolutionFilter = giSettings.halfResolutionDenoiser;
+                ddParams.jitterFilter = giSettings.secondDenoiserPass;
+                ddParams.fullResolutionInput = true;
+                rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
 
                 // If the second pass is requested, do it otherwise blit
                 if (giSettings.secondDenoiserPass)
                 {
                     float historyValidity1 = EvaluateIndirectDiffuseHistoryValidity1(hdCamera, fullResolution, true);
 
-                    // Run the temporal denoiser
+                    // Run the temporal filter
                     TextureHandle historyBufferLF = renderGraph.ImportTexture(RequestIndirectDiffuseHistoryTextureLF(hdCamera));
                     filterParams.singleChannel = false;
                     filterParams.historyValidity = historyValidity1;
@@ -552,8 +564,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         rtGIBuffer, renderGraph.defaultResources.blackTextureXR, historyBufferLF,
                         depthPyramid, normalBuffer, motionVectorBuffer, historyValidationTexture);
 
-                    // Apply the diffuse denoiser
-                    rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, singleChannel: false, kernelSize: giSettings.denoiserRadius * 0.5f, halfResolutionFilter: giSettings.halfResolutionDenoiser, jitterFilter: false, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
+                    // Apply the second diffuse filter
+                    ddParams.singleChannel = false;
+                    ddParams.kernelSize = giSettings.denoiserRadius * 0.5f;
+                    ddParams.halfResolutionFilter = giSettings.halfResolutionDenoiser;
+                    ddParams.jitterFilter = false;
+                    ddParams.fullResolutionInput = true;
+                    rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
 
                     // Propagate the history validity for the second buffer
                     PropagateIndirectDiffuseHistoryValidity1(hdCamera, fullResolution, true);

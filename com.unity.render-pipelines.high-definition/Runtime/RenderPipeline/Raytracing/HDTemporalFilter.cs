@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool occluderMotionRejection;
             public bool receiverMotionRejection;
             public bool exposureControl;
+            public bool fullResolution;
         }
 
         class HistoryValidityPassData
@@ -188,6 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool occluderMotionRejection;
             public bool receiverMotionRejection;
             public int exposureControl;
+            public bool fullResolution;
 
             // Kernels
             public int temporalAccKernel;
@@ -218,16 +220,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.EnableAsyncCompute(false);
 
                 // Camera parameters
-                passData.texWidth = hdCamera.actualWidth;
-                passData.texHeight = hdCamera.actualHeight;
+                if (filterParams.fullResolution)
+                {
+                    passData.texWidth = hdCamera.actualWidth;
+                    passData.texHeight = hdCamera.actualHeight;
+                }
+                else
+                {
+                    passData.texWidth = hdCamera.actualWidth / 2;
+                    passData.texHeight = hdCamera.actualHeight / 2;
+                }
                 passData.viewCount = hdCamera.viewCount;
 
                 // Denoising parameters
-                passData.pixelSpreadTangent = HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
+                passData.pixelSpreadTangent = HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, passData.texWidth, passData.texHeight);
                 passData.historyValidity = filterParams.historyValidity;
                 passData.receiverMotionRejection = filterParams.receiverMotionRejection;
                 passData.occluderMotionRejection = filterParams.occluderMotionRejection;
                 passData.exposureControl = filterParams.exposureControl ? 1 : 0;
+                passData.fullResolution = filterParams.fullResolution;
 
                 // Kernels
                 passData.temporalAccKernel = filterParams.singleChannel ? m_TemporalAccumulationSingleKernel : m_TemporalAccumulationColorKernel;
@@ -279,12 +290,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._AccumulationOutputTextureRW, data.outputBuffer);
 
                         // Combine signal with history
+                        CoreUtils.SetKeyword(ctx.cmd, "FULL_RESOLUTION_FILTER", data.fullResolution);
                         ctx.cmd.DispatchCompute(data.temporalFilterCS, data.temporalAccKernel, numTilesX, numTilesY, data.viewCount);
 
                         // Make sure to copy the new-accumulated signal in our history buffer
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.copyHistoryKernel, HDShaderIDs._DenoiseInputTexture, data.outputBuffer);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.copyHistoryKernel, HDShaderIDs._DenoiseOutputTextureRW, data.historyBuffer);
                         ctx.cmd.DispatchCompute(data.temporalFilterCS, data.copyHistoryKernel, numTilesX, numTilesY, data.viewCount);
+                        CoreUtils.SetKeyword(ctx.cmd, "FULL_RESOLUTION_FILTER", true);
                     });
                 return passData.outputBuffer;
             }

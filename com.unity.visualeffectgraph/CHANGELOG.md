@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Structured Graphics Buffer support as exposed type
 - Added HDRP Decal output context.
 - Motion vectors enabled for particle strips
+- Added Is Inside subgraph into VFX Graph additions package
+
 
 ### Changed
 - Allow remaking an existing link.
