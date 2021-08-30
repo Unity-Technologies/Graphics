@@ -24,6 +24,9 @@ uint GetInstanceIndexFromGroupID(uint3 groupId,uint nbThreadPerGroup, uint dispa
     return (groupId.x + dispatchWidth * groupId.y) * nbThreadPerGroup / alignedSystemCapacity;
 }
 
+
+// The methods for extracting the indices are different in Compute and Output.
+// In Compute shader, it relies on the SV_GroupId and DispatchWidth which are not relevant in Output
 void VFXSetComputeInstancingIndices(
                             uint nbParticlesPerInstance,
                             uint3 groupId,
