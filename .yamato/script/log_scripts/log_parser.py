@@ -118,7 +118,7 @@ def post_additional_results(cmd, local):
 
 def parse_args(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--execution-log", required=False, help='Path to execution log file. If not specified, ../../Execution-*.log is used.', default=None)
+    parser.add_argument("--execution-log", required=False, help='Path to execution log file. If not specified, ../../Execution-*.log is used.', default="")
     parser.add_argument("--local", action='store_true', help='If specified, API call to post additional results is skipped.', default=False)
     args = parser.parse_args(argv)
     return args
