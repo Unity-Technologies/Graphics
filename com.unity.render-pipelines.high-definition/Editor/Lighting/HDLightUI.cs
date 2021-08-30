@@ -692,7 +692,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     temperatureSliderRect.x += EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
                     temperatureSliderRect.width -= EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
                     TemperatureSliderUIDrawer.Draw(serialized.settings, serialized.serializedObject, serialized.settings.colorTemperature, temperatureSliderRect);
-                    
+
                     // Value and unit label
                     // Match const defined in EditorGUI.cs
                     const int k_IndentPerLevel = 15;
