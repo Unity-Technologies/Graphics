@@ -182,7 +182,12 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new LightTypeEditionScope(lineRect, s_Styles.shape, serialized, isPreset))
             {
                 EditorGUI.showMixedValue = lightType == (HDLightType)(-1);
-                updatedLightType = (HDLightType)EditorGUI.EnumPopup(lineRect, s_Styles.shape, lightType);
+                updatedLightType = (HDLightType)EditorGUI.EnumPopup(
+                    lineRect,
+                    s_Styles.shape,
+                    lightType,
+                    e => !isPreset || (HDLightType)e != HDLightType.Area,
+                    false);
             }
 
             if (EditorGUI.EndChangeCheck())
