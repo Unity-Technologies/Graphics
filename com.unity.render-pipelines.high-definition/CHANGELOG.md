@@ -376,7 +376,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the clouds missing in the ambient probe and in the static and dynamic sky.
 - Fixed lens flare not rendering correctly with TAAU or DLSS.
 - Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
-- Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
+- Fixed wrong ordering in FrameSettings (Normalize Reflection Probes).
+- Fixed issue with depth slope scale depth bias when a material uses depth offset.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
