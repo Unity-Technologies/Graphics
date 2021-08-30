@@ -66,14 +66,7 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
 
         public void BuildNode(INodeReader userData, INodeWriter generatedData, Registry registry)
         {
-            // When a reference node is added, the context property that we are using is setup in the UserData already.
-            // Do we need to do anything here? I think by the nature of how connections work within the graph, we can just
-            // connect our port's field information to the context property. If it concretizes, we will inherently have reconcretized as well.
-            // -- Only issue here is that downstream nodes of this one would also need to reconcretize.
-
-            // Context nodes themselves, however, are definitively static. They would only reconcretize non-automatically (since they exist to constrain data).
-            // In this case-- it's only ever special action that would result in them reconcretizing, in which case it's those actions that need to propagate to
-            // reference nodes.
+            // TODO: Correctly generate port type based on our reference type (how do we find that?).
         }
 
         public ShaderFunction GetShaderFunction(INodeReader data, ShaderContainer container, Registry registry)

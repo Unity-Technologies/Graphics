@@ -42,6 +42,28 @@ namespace UnityEditor.ShaderGraph.Registry
 
         }
 
+        // need more information-- this is just... idk, something?
+        public static IEnumerable<string> GetReferences(this GraphDelta.IGraphHandler handler)
+        {
+            HashSet<string> references = new HashSet<string>();
+            foreach(var context in handler.GetNodes().Where(n => n.GetRegistryKey().Equals(Defs.ContextBuilder.kRegistryKey)))
+                foreach(var port in context.GetPorts())
+                    if (port.IsInput() && port.IsHorizontal())
+                        references.Add(port.GetName());
+            return references;
+        }
+
+        public static void AddReferenceNode(this GraphDelta.IGraphHandler handler, string nodeName, string referenceName, Registry registry)
+        {
+            var node = handler.AddNode<Defs.ReferenceNodeBuilder>(nodeName, registry);
+            node.SetField("_referenceName", referenceName);
+            // reference nodes have some weird rules, in that they can't really fetch or achieve any sort of identity until they are connected downstream to a context node.
+            // We need stronger rules around references-- namely that a reference type must be consistent across all instances of that reference within however many context nodes.
+
+            // This is funny though-- if you change a reference's type, that means _all_ reference handles that are represented by a context input port and all reference nodes and...
+            // all of their downstream nodes get propogated-- and then upstream node connections can be disrupted if the type every changes.
+        }
+
         public static void SetupContext(this GraphDelta.IGraphHandler handler, IEnumerable<Defs.IContextDescriptor> contexts, Registry registry)
         {
             // only safe to call right now.
@@ -114,6 +136,14 @@ namespace UnityEditor.ShaderGraph.Registry
                 if(connectedPort != null)
                 {
                     var connectedNode = handler.GetNodeByPort(connectedPort);
+                    if (connectedNode.GetField("_referenceName", out string referenceName))
+                    {
+                        // reference nodes aren't functions, but are scoped to the input structure of the context node.
+                        // unclear if passthrough interpolation is setup or not-- if it isn't, this won't work for many cases.
+                        // will need to add walk up the dependencies and provide extra fields that need to be inlined into their i/o structures.
+                        funcbuilder.AddLine($"Out.{port.GetName()} = In.{referenceName};");
+                        continue;
+                    }
                     if (!visitedList.Contains(connectedNode.GetName()))
                     {
                         // recursively build out each input connection's body code (output variable initializations-- visited list prevents dupes).

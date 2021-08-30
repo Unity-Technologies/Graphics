@@ -76,6 +76,7 @@ namespace UnityEditor.ShaderGraph.Registry
         public Registry()
         {
             Register<Defs.ContextBuilder>();
+            Register<Defs.ReferenceNodeBuilder>();
         }
 
         public IEnumerable<RegistryKey> BrowseRegistryKeys() => builders.Keys;
