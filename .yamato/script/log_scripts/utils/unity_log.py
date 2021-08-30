@@ -1,6 +1,7 @@
 import os
 import glob
 from .shared_utils import load_json, find_matching_patterns
+from .rules import *
 
 class Unity_log():
     ''''Handles parsing Unity log (UnityLog.txt) against known error patterns'''
@@ -17,12 +18,12 @@ class Unity_log():
         return [
             {
                 'pattern': r'TcpProtobufSession::SendMessageAsync',
-                'tags': ['network','instability'],
+                'tags': ['TcpProtobufSession', 'instability'],
                 'conclusion': 'failure',
             },
             {
                 'pattern': r'AcceleratorClientConnectionCallback - disconnected - cacheserver-slo',
-                'tags': ['cache','instability'],
+                'tags': ['cache', 'instability'],
                 'conclusion': 'failure',
             },
             {
@@ -30,6 +31,7 @@ class Unity_log():
                 'pattern': r'.+',
                 'tags': ['unknown'],
                 'conclusion': 'failure',
+                'add_if': add_unknown_pattern_if
             }
         ]
 
