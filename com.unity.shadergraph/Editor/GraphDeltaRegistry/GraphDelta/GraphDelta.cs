@@ -100,11 +100,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_data.RemoveNode(id);
         }
 
-        public INodeReader GetNodeByPort(IPortReader portReader)
-        {
-            return m_data.GetNodeReaderFromPort(portReader);
-        }
-
         /*
         public void RemoveNode(INodeRef node)
         {

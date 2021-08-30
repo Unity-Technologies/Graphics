@@ -59,10 +59,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 Assert.NotNull(nodeRef);
                 Assert.IsTrue(nodeRef.TryGetPort("A", out IPortReader portReader));
                 Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
                 Assert.IsTrue(nodeRef.TryGetPort("B", out portReader));
                 Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
                 Assert.IsTrue(nodeRef.TryGetPort("Out", out portReader));
                 Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
             }
 
             [Test]

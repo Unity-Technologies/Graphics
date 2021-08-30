@@ -8,11 +8,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 {
     internal sealed class GraphStorage : ContextLayeredDataStorage.ContextLayeredDataStorage
     {
-        internal INodeReader GetNodeReaderFromPort(IPortReader port)
-        {
-            ((GraphReader)port).elementReference.TryGetTarget(out var target);
-            return new GraphReader(target.parent, this);
-        }
 
         private class GraphReader : IDisposable, INodeReader, IPortReader, IFieldReader, IDataReader
         {
@@ -218,6 +213,16 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     return isInput;
                 }
                 return false;
+            }
+
+            public INodeReader GetNode()
+            {
+                string parentPath = path.Substring(0, path.LastIndexOf('.'));
+                if(storageReference.m_flatStructureLookup.TryGetValue(parentPath, out Element elem))
+                {
+                    return new GraphReader(elem, storageReference);
+                }
+                return null;
             }
 
             #endregion

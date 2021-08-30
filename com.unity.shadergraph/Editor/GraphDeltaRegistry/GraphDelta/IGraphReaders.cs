@@ -30,6 +30,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public bool IsHorizontal();
 
+        public INodeReader GetNode();
+
         public IEnumerable<IFieldReader> GetFields();
 
         public IEnumerable<IPortReader> GetConnectedPorts();
