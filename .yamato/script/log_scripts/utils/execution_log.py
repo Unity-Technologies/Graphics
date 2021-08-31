@@ -43,7 +43,7 @@ class Execution_log():
             {
                 #  Or with newlines: r'(packet_write_poll: Connection to)((.|\n)+)(Operation not permitted)((.|\n)+)(lost connection)',
                 'pattern': r'(packet_write_poll: Connection to)(.+)(Operation not permitted)',
-                'tags': ['packet_write_poll','instability'],
+                'tags': ['packet_write_poll','instability', 'infrastructure'],
                 'conclusion': 'failure',
             },
             {
@@ -59,7 +59,7 @@ class Execution_log():
             },
             {
                 'pattern': r'(LTO : error: L0492: LTOP internal error: bad allocation)',
-                'tags': ['instability', 'bad-allocation'],
+                'tags': ['instability', 'bad-allocation', 'infrastructure'],
                 'conclusion': 'failure',
             },
             {
@@ -69,7 +69,7 @@ class Execution_log():
             },
             {
                 'pattern': r'Reason\(s\): One or more non-test related errors or failures occurred.',
-                'tags': ['non-test'],
+                'tags': [],
                 'conclusion': 'failure',
                 'redirect': [
                     UTR_LOG,

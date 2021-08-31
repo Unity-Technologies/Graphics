@@ -16,14 +16,15 @@ class Unity_log():
         tags: tags to be added to Yamato additional results, typically one as identifier, and one as category such as instability, ...
         conclusion: success/failure/cancelled/inconclusive (if many patterns are matched for a command, most severe is chosen in the end)'''
         return [
-            {
-                'pattern': r'TcpProtobufSession::SendMessageAsync',
-                'tags': ['TcpProtobufSession', 'instability'],
-                'conclusion': 'failure',
-            },
+            # {
+            #       # commented out as this should always come paired with cache instability below
+            #     'pattern': r'TcpProtobufSession::SendMessageAsync',
+            #     'tags': ['TcpProtobufSession', 'instability', 'infrastructure'],
+            #     'conclusion': 'failure',
+            # },
             {
                 'pattern': r'AcceleratorClientConnectionCallback - disconnected - cacheserver-slo',
-                'tags': ['cache', 'instability'],
+                'tags': ['cache', 'instability', 'infrastructure'],
                 'conclusion': 'failure',
             },
             {

@@ -24,7 +24,7 @@ class UTR_log():
             # },
             {
                 'pattern': r'System.AggregateException: One or more errors occurred. \(Detected that ios-deploy is not running when attempting to establish player connection.\)',
-                'tags': ['ios-deploy'], # instability?
+                'tags': ['ios-deploy', 'infrastructure'], # instability?
                 'conclusion': 'failure',
             },
             {
