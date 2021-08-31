@@ -24,8 +24,6 @@
     #define _PrevCamPosRWS                  _PrevCamPosRWS_Internal.xyz
 #endif
 
-#define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
-
 // Define the type for shadow (either colored shadow or monochrome shadow)
 #if SHADEROPTIONS_COLORED_SHADOW
 #define SHADOW_TYPE real3

@@ -90,7 +90,8 @@ CBUFFER_END
 #define UNITY_MATRIX_I_M   unity_WorldToObject
 #define UNITY_MATRIX_I_P   (float4x4)0
 #define UNITY_MATRIX_I_VP  (float4x4)0
-#define UNITY_PREV_MATRIX_I_M unity_MatrixPreviousMI
+#define UNITY_PREV_MATRIX_M   (float4x4)0
+#define UNITY_PREV_MATRIX_I_M (float4x4)0
 #endif
 
 

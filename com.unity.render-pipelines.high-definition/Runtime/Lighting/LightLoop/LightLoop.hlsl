@@ -9,7 +9,8 @@
 
 #ifndef SCALARIZE_LIGHT_LOOP
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
-// More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
+// More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/ .
+// Note that it is currently disabled on gamecore platforms for issues with wave intrinsics and the new compiler, it will be soon investigated, but we disable it in the meantime.
 #define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && !defined(SHADER_API_GAMECORE) && SHADERPASS == SHADERPASS_FORWARD)
 #endif
 
@@ -115,10 +116,10 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
         lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0);
 
         const float3 s_CascadeColors[] = {
-            float3(0.5, 0.5, 0.7),
-            float3(0.5, 0.7, 0.5),
-            float3(0.7, 0.7, 0.5),
-            float3(0.7, 0.5, 0.5),
+            kDebugColorShadowCascade0.rgb,
+            kDebugColorShadowCascade1.rgb,
+            kDebugColorShadowCascade2.rgb,
+            kDebugColorShadowCascade3.rgb,
             float3(1.0, 1.0, 1.0)
         };
 
