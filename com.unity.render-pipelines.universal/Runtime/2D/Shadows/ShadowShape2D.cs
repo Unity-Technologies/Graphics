@@ -52,6 +52,8 @@ namespace UnityEngine.Rendering.Universal
         static Dictionary<Edge, int> m_EdgeDictionary = new Dictionary<Edge, int>(new EdgeComparer());  // This is done so we don't create garbage allocating and deallocating a dictionary object
         NativeArray<Vector2>         m_ProvidedVertices;
         NativeArray<Edge>            m_ProvidedEdges;
+        NativeArray<int>             m_ShapeStartingIndices;
+
         bool                         m_SupportsContraction;
 
         public override bool supportsContraction
@@ -87,8 +89,7 @@ namespace UnityEngine.Rendering.Universal
                 unsortedEdges[i] = new Edge(index0, index1); ;
             }
 
-            m_ProvidedEdges = new NativeArray<Edge>(numOfIndices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            SortEdges(unsortedEdges, m_ProvidedEdges);
+            SortEdges(unsortedEdges, out m_ProvidedEdges, out m_ShapeStartingIndices);
             unsortedEdges.Dispose();
         }
 
@@ -105,8 +106,8 @@ namespace UnityEngine.Rendering.Universal
                 lastIndex = curIndex;
             }
 
-            m_ProvidedEdges = new NativeArray<Edge>(numOfIndices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            SortEdges(unsortedEdges, m_ProvidedEdges);
+            
+            SortEdges(unsortedEdges, out m_ProvidedEdges, out m_ShapeStartingIndices);
             unsortedEdges.Dispose();
         }
 
@@ -172,8 +173,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            m_ProvidedEdges = new NativeArray<Edge>(outsideEdges, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            SortEdges(unsortedEdges, m_ProvidedEdges);
+            SortEdges(unsortedEdges, out m_ProvidedEdges, out m_ShapeStartingIndices);
         }
 
         private void SetShape<V,I>(V vertices, I indices, VertexValueGetter<V> vertexGetter, LengthGetter<V> vertexLengthGetter, IndexValueGetter<I> indexGetter, LengthGetter<I> indexLengthGetter, IShadowShape2DProvider.OutlineTopology outlineTopology)
@@ -188,9 +188,6 @@ namespace UnityEngine.Rendering.Universal
             if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Triangles)
             {
                 Debug.Assert(indices != null, "Indices array cannot be null for Triangles topology");
-
-                m_ProvidedVertices = new NativeArray<Vector2>(vertexLengthGetter(ref vertices), Allocator.Persistent);
-
                 CalculateEdgesFromTriangles<I>(indices, indexGetter, indexLengthGetter);
             }
             else if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Lines)
@@ -239,39 +236,76 @@ namespace UnityEngine.Rendering.Universal
                 m_ProvidedVertices.CopyFrom(vertices);
         }
 
-        void SortEdges(NativeArray<Edge> unsortedEdges, NativeArray<Edge> sortedEdges)
+        int GetFirstUnusedIndex(NativeArray<bool> usedValues)
         {
+            for(int i=0;i<usedValues.Length;i++)
+            {
+                if (!usedValues[i])
+                    return i;
+            }
+
+            return -1;
+        }
+
+        void SortEdges(NativeArray<Edge> unsortedEdges, out NativeArray<Edge> sortedEdges, out NativeArray<int> shapeStartingIndices)
+        {
+            sortedEdges = new NativeArray<Edge>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            shapeStartingIndices = new NativeArray<int>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
             NativeArray<int>  edgeMap = new NativeArray<int>(unsortedEdges.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            NativeArray<bool> usedEdges = new NativeArray<bool>(unsortedEdges.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            for (int i=0;i< unsortedEdges.Length;i++)
-                edgeMap[unsortedEdges[i].v0] = i;
-
-            int edgeIndex = 0;
             for (int i = 0; i < unsortedEdges.Length; i++)
             {
+                edgeMap[unsortedEdges[i].v0] = i;
+                usedEdges[i] = false;
+                shapeStartingIndices[i] = -1;
+            }
+
+            int currentShape = 0;
+            bool findStartingEdge = true;
+            int edgeIndex = -1;
+            int startingEdge = 0;
+            for (int i = 0; i < unsortedEdges.Length; i++)
+            {
+                if (findStartingEdge)
+                {
+                    edgeIndex = GetFirstUnusedIndex(usedEdges);
+                    startingEdge = edgeIndex;
+                    shapeStartingIndices[currentShape++] = edgeIndex;
+                    findStartingEdge = false;
+                }
+
+                usedEdges[edgeIndex] = true;
                 sortedEdges[i] = unsortedEdges[edgeIndex];
                 int nextVertex = unsortedEdges[edgeIndex].v1;
                 edgeIndex = edgeMap[nextVertex];
-                
+
+                if (edgeIndex == startingEdge)
+                    findStartingEdge = true;
             }
 
+            usedEdges.Dispose();
             edgeMap.Dispose();
         }
 
         public void GenerateShadowMesh(Mesh mesh, ref BoundingSphere boundingSphere, float contractionDistance)
         {
-            ShadowUtility.GenerateShadowMesh(mesh, m_ProvidedVertices, m_ProvidedEdges, contractionDistance);
+            ShadowUtility.GenerateShadowMesh(mesh, m_ProvidedVertices, m_ProvidedEdges, m_ShapeStartingIndices, contractionDistance);
         }
 
         internal void GenerateShadowOutline(float contractionDistance, out NativeArray<Vector3> outline)
         {
-            ShadowUtility.GenerateShadowOutline(m_ProvidedVertices, m_ProvidedEdges, contractionDistance, out outline);
+            ShadowUtility.GenerateShadowOutline(m_ProvidedVertices, m_ProvidedEdges, m_ShapeStartingIndices, contractionDistance, out outline);
         }
 
         ~ShadowShape2D()
         {
-            m_ProvidedVertices.Dispose();
-            m_ProvidedEdges.Dispose();
+            if (m_ProvidedVertices.IsCreated)
+                m_ProvidedVertices.Dispose();
+
+            if (m_ProvidedEdges.IsCreated)
+                m_ProvidedEdges.Dispose();
         }
     }
 }

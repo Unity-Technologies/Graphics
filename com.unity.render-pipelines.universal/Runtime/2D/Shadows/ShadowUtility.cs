@@ -73,25 +73,40 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
-        static void CalculateContraction(ref NativeArray<Vector2> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector4> inTangents, float contractionDistance, ref NativeArray<Vector3> outReducedVertices)
+        static void CalculateContraction(ref NativeArray<Vector2> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector4> inTangents, ref NativeArray<int> inShapeStartingIndices, float contractionDistance, ref NativeArray<Vector3> outReducedVertices)
         {
-            // Reduce the original verices
-            for (int i = 0; i < inEdges.Length; i++)
+            for(int shapeIndex=0;shapeIndex<inShapeStartingIndices.Length; shapeIndex++)
             {
-                int v0 = inEdges[i].v0;
-                int v1 = inEdges[i].v1;
-                int v2 = inEdges[(i + 1) % inEdges.Length].v1;
+                int startingIndex = inShapeStartingIndices[shapeIndex];
 
-                Vector3 pt0 = inVertices[v0];
-                Vector3 pt1 = inVertices[v1];
-                Vector3 pt2 = inVertices[v2];
+                if (startingIndex < 0)
+                    return;
 
-                Vector3 tangent0 = Vector3.Cross(Vector3.Normalize(pt1-pt0), -Vector3.forward).normalized;
-                Vector3 tangent1 = Vector3.Cross(Vector3.Normalize(pt2-pt1), -Vector3.forward).normalized;
+                int nextStartingIndex = inShapeStartingIndices[shapeIndex + 1];
+                int numEdgesInCurShape = nextStartingIndex >= 0 ? nextStartingIndex - startingIndex : inEdges.Length - startingIndex;
 
-                Vector3 reductionDir = (-0.5f * (tangent0 + tangent1)).normalized;
 
-                outReducedVertices[v1] = contractionDistance * reductionDir + (Vector3)inVertices[v1];
+                int edgeIndex = startingIndex;
+                for(int i=0;i< numEdgesInCurShape; i++)
+                {
+                    int curEdge = startingIndex + i;
+                    int nextEdge = i + 1 < numEdgesInCurShape ? startingIndex + i + 1 : startingIndex;
+
+                    int v0 = inEdges[curEdge].v0;
+                    int v1 = inEdges[curEdge].v1;
+                    int v2 = inEdges[nextEdge].v1;
+
+                    Vector3 pt0 = inVertices[v0];
+                    Vector3 pt1 = inVertices[v1];
+                    Vector3 pt2 = inVertices[v2];
+
+                    Vector3 tangent0 = Vector3.Cross(Vector3.Normalize(pt1 - pt0), -Vector3.forward).normalized;
+                    Vector3 tangent1 = Vector3.Cross(Vector3.Normalize(pt2 - pt1), -Vector3.forward).normalized;
+
+                    Vector3 reductionDir = (-0.5f * (tangent0 + tangent1)).normalized;
+
+                    outReducedVertices[v1] = contractionDistance * reductionDir + (Vector3)inVertices[v1];
+                }
             }
         }
 
@@ -179,7 +194,7 @@ namespace UnityEngine.Rendering.Universal
 
 
         // inEdges is expected to be contiguous
-        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector2> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, float contractionDistance)
+        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector2> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices, float contractionDistance)
         {
             Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
 
@@ -193,7 +208,7 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<ShadowMeshVertex> meshFinalVertices = new NativeArray<ShadowMeshVertex>(meshVertexCount, Allocator.Temp);
 
             // Get vertex reduction directions
-            CalculateContraction(ref inVertices, ref inEdges, ref meshTangents, contractionDistance, ref meshReducedVertices);
+            CalculateContraction(ref inVertices, ref inEdges, ref meshTangents, ref inShapeStartingIndices, contractionDistance, ref meshReducedVertices);
             CalculateTangents(ref meshReducedVertices, ref inEdges, ref meshTangents);                            // meshVertices contain a normal component
             CalculateVertices(ref meshReducedVertices, ref inEdges, ref meshTangents, ref meshFinalVertices);
             CalculateTriangles(ref inVertices, ref inEdges, ref meshIndices);
@@ -218,7 +233,7 @@ namespace UnityEngine.Rendering.Universal
             return retBoundingSphere;
         }
 
-        static public void GenerateShadowOutline(NativeArray<Vector2> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, float contractionDistance, out NativeArray<Vector3> outline)
+        static public void GenerateShadowOutline(NativeArray<Vector2> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices, float contractionDistance, out NativeArray<Vector3> outline)
         {
             Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
 
@@ -234,7 +249,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Get vertex reduction directions
             CalculateTangents(ref inVertices, ref inEdges, ref meshTangents);                            // meshVertices contain a normal component
-            CalculateContraction(ref inVertices, ref inEdges, ref meshTangents, contractionDistance, ref contractedVertices);
+            CalculateContraction(ref inVertices, ref inEdges, ref meshTangents, ref inShapeStartingIndices, contractionDistance, ref contractedVertices);
             ReorderVertices(ref contractedVertices, ref inEdges, ref outline);
 
             meshTangents.Dispose();

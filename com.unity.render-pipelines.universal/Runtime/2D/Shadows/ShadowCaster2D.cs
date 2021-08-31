@@ -52,8 +52,6 @@ namespace UnityEngine.Rendering.Universal
         internal ShadowCasterGroup2D  m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D  m_PreviousShadowCasterGroup = null;
         internal int                  m_PreviousShadowCastingSource;
-        internal NativeArray<Vector2> m_ShadowShapeVertices;
-        internal NativeArray<ShadowShape2D.Edge> m_ShadowShapeEdges;
 
         [SerializeField]
         internal BoundingSphere m_ProjectedBoundingSphere;
@@ -274,7 +272,6 @@ namespace UnityEngine.Rendering.Universal
                     ShadowCasterGroup2DManager.RemoveGroup(this);
             }
         }
-
 
 #if UNITY_EDITOR
         internal void DrawPreviewOutline()
