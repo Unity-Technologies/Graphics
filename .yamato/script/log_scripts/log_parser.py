@@ -126,27 +126,18 @@ def parse_args(argv):
 
 def main(argv):
 
-    args = parse_args(argv)
+    try:
+        args = parse_args(argv)
 
         # read execution log
-    execution_log = Execution_log(args.execution_log)
-    logs, should_be_parsed = execution_log.read_log()
+        execution_log = Execution_log(args.execution_log)
+        logs, should_be_parsed = execution_log.read_log()
 
-    if should_be_parsed:
-        parse_failures(execution_log, logs, args.local)
+        if should_be_parsed:
+            parse_failures(execution_log, logs, args.local)
 
-    # try:
-    #     args = parse_args(argv)
-
-    #     # read execution log
-    #     execution_log = Execution_log(args.execution_log)
-    #     logs, should_be_parsed = execution_log.read_log()
-
-    #     if should_be_parsed:
-    #         parse_failures(execution_log, logs, args.local)
-
-    # except Exception as e:
-    #     print('Failed to parse logs: ', str(e))
+    except Exception as e:
+        print('Failed to parse logs: ', str(e))
 
 
 if __name__ == '__main__':
