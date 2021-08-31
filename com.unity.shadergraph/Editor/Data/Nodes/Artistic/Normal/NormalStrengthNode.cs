@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph
         public NormalStrengthNode()
         {
             name = "Normal Strength";
+            synonyms = new string[] { "intensity" };
         }
 
         protected override MethodInfo GetFunctionToConvert()
