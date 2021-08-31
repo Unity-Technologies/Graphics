@@ -72,7 +72,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
         output.sortKey = - attributes.age;
 #endif //VFX_[CRITERION]_SORT_KEY
         output.index = index;
-
+        output.sortKey *= SORTING_SIGN;
 
 		outputBuffer[id] = output;
 	}
