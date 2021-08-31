@@ -9,25 +9,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     abstract class RenderGraphPass
     {
         public RenderFunc<PassData> GetExecuteDelegate<PassData>()
-            where PassData : class, new() => ((RenderGraphPass<PassData>) this).renderFunc;
+            where PassData : class, new() => ((RenderGraphPass<PassData>)this).renderFunc;
 
         public abstract void Execute(RenderGraphContext renderGraphContext);
         public abstract void Release(RenderGraphObjectPool pool);
         public abstract bool HasRenderFunc();
 
-        public string           name { get; protected set; }
-        public int              index { get; protected set; }
+        public string name { get; protected set; }
+        public int index { get; protected set; }
         public ProfilingSampler customSampler { get; protected set; }
-        public bool             enableAsyncCompute { get; protected set; }
-        public bool             allowPassCulling { get; protected set; }
+        public bool enableAsyncCompute { get; protected set; }
+        public bool allowPassCulling { get; protected set; }
 
-        public TextureHandle    depthBuffer { get; protected set; }
-        public TextureHandle[]  colorBuffers { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
-        public int              colorBufferMaxIndex { get; protected set; } = -1;
-        public int              refCount { get; protected set; }
-        public bool             generateDebugData { get; protected set; }
+        public TextureHandle depthBuffer { get; protected set; }
+        public TextureHandle[] colorBuffers { get; protected set; } = new TextureHandle[RenderGraph.kMaxMRTCount];
+        public int colorBufferMaxIndex { get; protected set; } = -1;
+        public int refCount { get; protected set; }
+        public bool generateDebugData { get; protected set; }
 
-        public bool             allowRendererListCulling { get; protected set; }
+        public bool allowRendererListCulling { get; protected set; }
 
         public List<ResourceHandle>[] resourceReadLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
         public List<ResourceHandle>[] resourceWriteLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];

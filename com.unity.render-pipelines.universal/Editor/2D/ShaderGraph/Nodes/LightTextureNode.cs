@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     }
 
     [Title("Input", "2D", "Light Texture")]
-    [SubTargetFilterAttribute(new[] {typeof(UniversalSpriteCustomLitSubTarget)})]
+    [SubTargetFilterAttribute(new[] { typeof(UniversalSpriteCustomLitSubTarget) })]
     class LightTextureNode : AbstractMaterialNode
     {
         private const int OutputSlotId = 0;

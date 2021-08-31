@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.Universal
     {
         public override string name => "Material and Material Reference Upgrade";
         public override string info => "This will upgrade all materials and material references.";
-        public override int priority => - 1000;
+        public override int priority => -1000;
         public override Type container => typeof(BuiltInToURP2DConverterContainer);
 
         List<string> m_AssetsToConvert = new List<string>();
@@ -21,8 +21,8 @@ namespace UnityEditor.Rendering.Universal
         Material m_SpritesDefaultMat;
         Material m_SpritesMaskMat;
         Material m_SpriteMaskDefaultMat;
-        Shader   m_SpriteLitDefaultShader;
-        Shader   m_SpritesDefaultShader;
+        Shader m_SpriteLitDefaultShader;
+        Shader m_SpritesDefaultShader;
 
         string m_SpritesDefaultShaderId;
         string m_SpritesDefaultMatId;
