@@ -16,7 +16,7 @@ When using **Specular** **Workflow** on a [PBR Master Node](PBR-Master-Node.md) 
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| Material | Dropdown | Iron, Silver, Aluminium, Gold, Copper, Chromium, Nickel, Titanium, Cobalt, Platform | Selects the material value to output. |
+| Material | Dropdown | Iron, Silver, Aluminium, Gold, Copper, Chromium, Nickel, Titanium, Cobalt, Platinum | Selects the material value to output. |
 
 ## Generated Code Example
 
