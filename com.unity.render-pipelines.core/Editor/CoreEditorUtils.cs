@@ -89,25 +89,68 @@ namespace UnityEditor.Rendering
             return tex2;
         }
 
-        const float s_HighlightDuration = 0.7f;
-        static float s_HighlightStart = 0.0f;
+        const float s_HighlightDuration = 2.0f;
+        static float s_HighlightStart = -1.0f;
+        static Texture2D s_HighlightBackground;
+        static object s_View;
+
+        static FieldInfo k_ViewInfo = typeof(Highlighter).GetField("s_View", BindingFlags.Static | BindingFlags.NonPublic);
+        static FieldInfo k_HighlightStyleInfo = typeof(Highlighter).GetField("s_HighlightStyle", BindingFlags.Static | BindingFlags.NonPublic);
+        static FieldInfo k_WindowBackendInfo = Type.GetType("UnityEditor.GUIView,UnityEditor").GetField("m_WindowBackend", BindingFlags.NonPublic | BindingFlags.Instance);
+        static EventInfo k_GUIHandlerInfo = Type.GetType("UnityEditor.UIElements.DefaultEditorWindowBackend,UnityEditor").GetEvent("overlayGUIHandler", (BindingFlags)(-1));
+        static MethodInfo k_Repaint = Type.GetType("UnityEditor.GUIView,UnityEditor").GetMethod("Repaint", (BindingFlags)(-1));
+
         static void HighlightTimeout()
         {
-            if (Highlighter.active)
+            // Item is in view for the first time, register highlight drawer delegate
+            if (Highlighter.active && Highlighter.activeVisible && s_HighlightStart <= 0.0f)
             {
-                if (Highlighter.activeVisible)
+                s_HighlightStart = Time.realtimeSinceStartup;
+
+                s_View = k_ViewInfo.GetValue(null);
+                if (s_View != null)
                 {
-                    if (Time.realtimeSinceStartup - s_HighlightStart > s_HighlightDuration)
-                    {
-                        Highlighter.Stop();
-                        return;
-                    }
+                    var windowBackend = k_WindowBackendInfo.GetValue(s_View);
+                    k_GUIHandlerInfo.AddEventHandler(windowBackend, (Action)ControlHighlightGUI);
+                    var style = k_HighlightStyleInfo.GetValue(null) as GUIStyle;
+                    s_HighlightBackground = style.normal.background;
+                    style.normal.background = null;
                 }
                 else
-                    s_HighlightStart = Time.realtimeSinceStartup;
-
-                EditorApplication.delayCall += HighlightTimeout;
+                {
+                    EditorApplication.update -= HighlightTimeout;
+                    s_HighlightStart = -1.0f;
+                }
             }
+
+            if (s_HighlightStart > 0.0f)
+            {
+                // Repaint view containing the highlight
+                k_Repaint.Invoke(s_View, null);
+
+                if (Time.realtimeSinceStartup - s_HighlightStart > s_HighlightDuration)
+                {
+                    (k_HighlightStyleInfo.GetValue(null) as GUIStyle).normal.background = s_HighlightBackground;
+                    Highlighter.Stop();
+
+                    var windowBackend = k_WindowBackendInfo.GetValue(s_View);
+                    k_GUIHandlerInfo.RemoveEventHandler(windowBackend, (Action)ControlHighlightGUI);
+
+                    EditorApplication.update -= HighlightTimeout;
+                    s_HighlightStart = -1.0f;
+                }
+            }
+        }
+
+        static void ControlHighlightGUI()
+        {
+            if (Event.current.type != EventType.Repaint)
+                return;
+
+            var color = CoreEditorStyles.backgroundHighlightColor;
+            color.a = Mathf.Min(1.0f - (Time.realtimeSinceStartup - s_HighlightStart) / s_HighlightDuration, 0.8f);
+
+            EditorGUI.DrawRect(GUIUtility.ScreenToGUIRect(Highlighter.activeRect), color);
         }
 
         /// <summary>Highlights an element in the editor for a short period of time.</summary>
@@ -116,9 +159,12 @@ namespace UnityEditor.Rendering
         /// <param name="mode">	Optional mode to specify how to search for the element.</param>
         public static void Highlight(string windowTitle, string text, HighlightSearchMode mode = HighlightSearchMode.Auto)
         {
-            s_HighlightStart = Time.realtimeSinceStartup;
+            if (s_HighlightStart >= 0.0f)
+                return;
+
+            s_HighlightStart = 0.0f;
             Highlighter.Highlight(windowTitle, text, mode);
-            EditorApplication.delayCall += HighlightTimeout;
+            EditorApplication.update += HighlightTimeout;
         }
 
         /// <summary>Draw a help box with the Fix button.</summary>
