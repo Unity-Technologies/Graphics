@@ -62,14 +62,14 @@ namespace UnityEditor.VFX
         {
             return criteria is SortCriteria.CameraDepth or SortCriteria.DistanceToCamera;
         }
-        internal class SortKeySlotComparer : IEqualityComparer<VFXSlot>
+        internal class SortKeySlotComparer : EqualityComparer<VFXSlot>
         {
-            public bool Equals(VFXSlot x, VFXSlot y)
+            public override bool Equals(VFXSlot x, VFXSlot y)
             {
                 return x.GetExpression().Equals(y.GetExpression());
             }
 
-            public int GetHashCode(VFXSlot obj)
+            public override int GetHashCode(VFXSlot obj)
             {
                 return obj.GetExpression().GetHashCode();
             }
