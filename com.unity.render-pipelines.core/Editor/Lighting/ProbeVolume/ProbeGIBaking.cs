@@ -252,14 +252,7 @@ namespace UnityEngine.Experimental.Rendering
             var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
             if (perSceneDataList.Length == 0) return;
 
-            m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
             SetBakingContext(perSceneDataList);
-
-            if (m_BakingReferenceVolumeAuthoring == null)
-            {
-                Debug.Log("Scene(s) have multiple inconsistent ProbeReferenceVolumeAuthoring components. Please ensure they use identical profiles and transforms before baking.");
-                return;
-            }
 
             AddOccluders();
 
@@ -662,7 +655,7 @@ namespace UnityEngine.Experimental.Rendering
             ClearBakingBatch();
 
             // Subdivide the scene and place the bricks
-            var ctx = PrepareProbeSubdivisionContext(m_BakingReferenceVolumeAuthoring);
+            var ctx = PrepareProbeSubdivisionContext();
             var result = BakeBricks(ctx);
 
             // Compute probe positions and send them to the Lightmapper
@@ -677,7 +670,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // Prepare all the information in the scene for baking GI.
             Vector3 refVolOrigin = Vector3.zero; // TODO: This will need to be center of the world bounds.
-            ctx.Initialize(refVolume, m_BakingProfile, refVolOrigin);
+            ctx.Initialize(m_BakingProfile, refVolOrigin);
 
             return ctx;
         }

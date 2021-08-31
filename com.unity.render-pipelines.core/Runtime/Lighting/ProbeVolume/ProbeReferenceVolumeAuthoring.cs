@@ -104,9 +104,6 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField]
         float m_VirtualOffsetBiasOutOfGeometry = 0.01f;
 
-        // Field used for the realtime subdivision preview
-        [NonSerialized]
-        internal Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>> realtimeSubdivisionInfo = new Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>>();
 
         MeshGizmo brickGizmos;
         MeshGizmo cellGizmo;
@@ -251,7 +248,7 @@ namespace UnityEngine.Experimental.Rendering
                     if (debugDisplay.realtimeSubdivision)
                     {
                         // realtime subdiv cells are already culled
-                        foreach (var kp in realtimeSubdivisionInfo)
+                        foreach (var kp in ProbeReferenceVolume.instance.realtimeSubdivisionInfo)
                         {
                             var cellVolume = kp.Key;
 
@@ -300,7 +297,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     if (debugDisplay.realtimeSubdivision)
                     {
-                        foreach (var kp in realtimeSubdivisionInfo)
+                        foreach (var kp in ProbeReferenceVolume.instance.realtimeSubdivisionInfo)
                         {
                             kp.Key.CalculateCenterAndSize(out var center, out var _);
                             yield return center;

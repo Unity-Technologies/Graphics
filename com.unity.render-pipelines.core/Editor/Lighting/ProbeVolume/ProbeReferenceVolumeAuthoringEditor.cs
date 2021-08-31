@@ -99,10 +99,10 @@ namespace UnityEngine.Experimental.Rendering
                         var cells = ctx.cells.ToList();
 
                         // Remove all the cells that was not updated to prevent ghosting
-                        foreach (var cellVolume in ctx.refVolume.realtimeSubdivisionInfo.Keys.ToList())
+                        foreach (var cellVolume in ProbeReferenceVolume.instance.realtimeSubdivisionInfo.Keys.ToList())
                         {
                             if (!cells.Any(c => c.volume.Equals(cellVolume)))
-                                ctx.refVolume.realtimeSubdivisionInfo.Remove(cellVolume);
+                                ProbeReferenceVolume.instance.realtimeSubdivisionInfo.Remove(cellVolume);
                         }
 
                         // Subdivide visible cells
@@ -113,7 +113,7 @@ namespace UnityEngine.Experimental.Rendering
                             ctx.cells.Add(cell);
 
                             var result = ProbeGIBaking.BakeBricks(ctx);
-                            ctx.refVolume.realtimeSubdivisionInfo[cell.volume] = result.bricksPerCells[cell.position];
+                            ProbeReferenceVolume.instance.realtimeSubdivisionInfo[cell.volume] = result.bricksPerCells[cell.position];
 
                             yield return null;
                         }
