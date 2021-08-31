@@ -379,6 +379,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
 - Fixed a null ref exception when no opaque objects are rendered.
 - Fixed issue with depth slope scale depth bias when a material uses depth offset.
+- Fixed shadow sampling artifact when using the spot light shadow option 'custom spot angle'
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
