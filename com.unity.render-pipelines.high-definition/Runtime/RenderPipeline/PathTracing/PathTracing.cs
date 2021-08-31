@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
         uint  m_CacheMaxIteration = 0;
 #endif // UNITY_EDITOR
         ulong m_CacheAccelSize = 0;
-        uint  m_CacheLightCount = 0;
+        uint m_CacheLightCount = 0;
 
         RTHandle m_RadianceTexture; // stores the per-pixel results of path tracing for this frame
 
@@ -234,17 +234,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct PathTracingParameters
         {
-            public RayTracingShader                 pathTracingShader;
-            public CameraData                       cameraData;
-            public BlueNoise.DitheredTextureSet     ditheredTextureSet;
-            public ShaderVariablesRaytracing        shaderVariablesRaytracingCB;
-            public Color                            backgroundColor;
-            public Texture                          skyReflection;
-            public Matrix4x4                        pixelCoordToViewDirWS;
-            public Vector4                          dofParameters;
-            public int                              width, height;
-            public RayTracingAccelerationStructure  accelerationStructure;
-            public HDRaytracingLightCluster         lightCluster;
+            public RayTracingShader pathTracingShader;
+            public CameraData cameraData;
+            public BlueNoise.DitheredTextureSet ditheredTextureSet;
+            public ShaderVariablesRaytracing shaderVariablesRaytracingCB;
+            public Color backgroundColor;
+            public Texture skyReflection;
+            public Matrix4x4 pixelCoordToViewDirWS;
+            public Vector4 dofParameters;
+            public int width, height;
+            public RayTracingAccelerationStructure accelerationStructure;
+            public HDRaytracingLightCluster lightCluster;
         }
 
         PathTracingParameters PreparePathTracingParameters(HDCamera hdCamera)

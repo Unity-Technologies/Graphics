@@ -680,14 +680,14 @@ namespace UnityEditor.VFX.UI
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
         }
 
-        void IVFXResizable.OnStartResize() {}
+        void IVFXResizable.OnStartResize() { }
         public void OnResized()
         {
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
         }
     }
     class VFXComponentBoardEventUIFactory : UxmlFactory<VFXComponentBoardEventUI>
-    {}
+    { }
     class VFXComponentBoardEventUI : VisualElement
     {
         public VFXComponentBoardEventUI()
@@ -735,9 +735,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        string      m_Name;
-        TextField   m_EventName;
-        Button      m_EventSend;
+        string m_Name;
+        TextField m_EventName;
+        Button m_EventSend;
 
         void OnSend()
         {

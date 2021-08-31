@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
 
         float topRadiusScreen;
         float baseRadiusScreen;
-        bool  m_Dragging;
+        bool m_Dragging;
 
 
         public struct Extremities

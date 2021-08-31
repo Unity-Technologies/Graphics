@@ -23,43 +23,43 @@ namespace UnityEditor.Rendering.HighDefinition
         public enum Features
         {
             /// <summary>Displays the minimum surface option fields.</summary>
-            None                        = 0,
+            None = 0,
             /// <summary>Displays the surface field.</summary>
-            Surface                     = 1 << 0,
+            Surface = 1 << 0,
             /// <summary>Displays the blend mode field.</summary>
-            BlendMode                   = 1 << 1,
+            BlendMode = 1 << 1,
             /// <summary>Displays the double sided field.</summary>
-            DoubleSided                 = 1 << 2,
+            DoubleSided = 1 << 2,
             /// <summary>Displays the alpha cutoff field.</summary>
-            AlphaCutoff                 = 1 << 3,
+            AlphaCutoff = 1 << 3,
             /// <summary>Displays the alpha cutoff threshold field.</summary>
-            AlphaCutoffThreshold        = 1 << 4,
+            AlphaCutoffThreshold = 1 << 4,
             /// <summary>Displays the alpha cutoff shadow treshold field.</summary>
-            AlphaCutoffShadowThreshold  = 1 << 5,
+            AlphaCutoffShadowThreshold = 1 << 5,
             /// <summary>Displays the double sided normal mode field.</summary>
-            DoubleSidedNormalMode       = 1 << 6,
+            DoubleSidedNormalMode = 1 << 6,
             /// <summary>Displays the back then front rendering field.</summary>
-            BackThenFrontRendering      = 1 << 7,
+            BackThenFrontRendering = 1 << 7,
             /// <summary>Displays the receive ssr field.</summary>
-            ReceiveSSR                  = 1 << 8,
+            ReceiveSSR = 1 << 8,
             /// <summary>Displays the receive decal field.</summary>
-            ReceiveDecal                = 1 << 9,
+            ReceiveDecal = 1 << 9,
             /// <summary>Displays the show after post process field.</summary>
-            ShowAfterPostProcessPass    = 1 << 10,
+            ShowAfterPostProcessPass = 1 << 10,
             /// <summary>Displays the alpha to mask field.</summary>
-            AlphaToMask                 = 1 << 11,
+            AlphaToMask = 1 << 11,
             /// <summary>Displays the show pre pass and post pass fields.</summary>
-            ShowPrePassAndPostPass      = 1 << 12,
+            ShowPrePassAndPostPass = 1 << 12,
             /// <summary>Displays the depth offset field.</summary>
-            ShowDepthOffsetOnly         = 1 << 13,
+            ShowDepthOffsetOnly = 1 << 13,
             /// <summary>Displays the preserve specular lighting field.</summary>
-            PreserveSpecularLighting    = 1 << 14,
+            PreserveSpecularLighting = 1 << 14,
             /// <summary>Displays all the Unlit Surface Option fields.</summary>
-            Unlit                       = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
+            Unlit = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
             /// <summary>Displays all the Lit Surface Option fields field.</summary>
-            Lit                         = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
+            Lit = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
             /// <summary>Displays all the fields.</summary>
-            All                         = ~0,
+            All = ~0,
         }
 
         internal static class Styles
@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Lit properties
         MaterialProperty doubleSidedNormalMode = null;
         const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
-        MaterialProperty materialID  = null;
+        MaterialProperty materialID = null;
         MaterialProperty supportDecals = null;
         const string kSupportDecals = "_SupportDecals";
         MaterialProperty enableGeometricSpecularAA = null;
@@ -291,9 +291,9 @@ namespace UnityEditor.Rendering.HighDefinition
         List<string> m_RenderingPassNames = new List<string>();
         List<int> m_RenderingPassValues = new List<int>();
 
-        ExpandableBit  m_ExpandableBit;
-        Features    m_Features;
-        int         m_LayerCount;
+        ExpandableBit m_ExpandableBit;
+        Features m_Features;
+        int m_LayerCount;
 
         /// <summary>
         /// Constructs a SurfaceOptionUIBlock based on the parameters.
@@ -373,7 +373,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ppdMaxSamples = FindProperty(kPpdMaxSamples);
             ppdLodThreshold = FindProperty(kPpdLodThreshold);
             ppdPrimitiveLength = FindProperty(kPpdPrimitiveLength);
-            ppdPrimitiveWidth  = FindProperty(kPpdPrimitiveWidth);
+            ppdPrimitiveWidth = FindProperty(kPpdPrimitiveWidth);
             invPrimScale = FindProperty(kInvPrimScale);
 
             // tessellation specific, silent if not found

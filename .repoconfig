@@ -1,5 +1,6 @@
 [version]
-repoconfig=5
+repoconfig=7
+minimum-unity-meta=47
 
 [format]
 path-ignore=<<EOT

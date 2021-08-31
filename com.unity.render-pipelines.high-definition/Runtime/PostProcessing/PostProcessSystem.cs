@@ -19,9 +19,9 @@ namespace UnityEngine.Rendering.HighDefinition
             NeighborhoodBlending = 2
         }
 
-        GraphicsFormat m_ColorFormat            = GraphicsFormat.B10G11R11_UFloatPack32;
-        const GraphicsFormat k_CoCFormat        = GraphicsFormat.R16_SFloat;
-        internal const GraphicsFormat k_ExposureFormat   = GraphicsFormat.R32G32_SFloat;
+        GraphicsFormat m_ColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+        const GraphicsFormat k_CoCFormat = GraphicsFormat.R16_SFloat;
+        internal const GraphicsFormat k_ExposureFormat = GraphicsFormat.R32G32_SFloat;
 
         readonly RenderPipelineResources m_Resources;
         Material m_FinalPassMaterial;
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
-        const int k_HistogramBins          = 128;   // Important! If this changes, need to change HistogramExposure.compute
+        const int k_HistogramBins = 128;   // Important! If this changes, need to change HistogramExposure.compute
         const int k_DebugImageHistogramBins = 256;   // Important! If this changes, need to change HistogramExposure.compute
         readonly Color[] m_ExposureCurveColorArray = new Color[k_ExposureCurvePrecision];
         readonly int[] m_ExposureVariants = new int[4];
@@ -223,13 +223,13 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_DebugImageHistogramBuffer);
             RTHandles.Release(m_DebugExposureData);
 
-            m_ExposureCurveTexture      = null;
-            m_InternalSpectralLut       = null;
-            m_FinalPassMaterial         = null;
-            m_ClearBlackMaterial        = null;
-            m_SMAAMaterial              = null;
-            m_TemporalAAMaterial        = null;
-            m_HistogramBuffer           = null;
+            m_ExposureCurveTexture = null;
+            m_InternalSpectralLut = null;
+            m_FinalPassMaterial = null;
+            m_ClearBlackMaterial = null;
+            m_SMAAMaterial = null;
+            m_TemporalAAMaterial = null;
+            m_HistogramBuffer = null;
             m_DebugImageHistogramBuffer = null;
             m_DebugExposureData = null;
         }
@@ -258,44 +258,44 @@ namespace UnityEngine.Rendering.HighDefinition
             // Prefetch all the volume components we need to save some cycles as most of these will
             // be needed in multiple places
             var stack = camera.volumeStack;
-            m_Exposure                  = stack.GetComponent<Exposure>();
-            m_DepthOfField              = stack.GetComponent<DepthOfField>();
-            m_MotionBlur                = stack.GetComponent<MotionBlur>();
-            m_PaniniProjection          = stack.GetComponent<PaniniProjection>();
-            m_Bloom                     = stack.GetComponent<Bloom>();
-            m_ChromaticAberration       = stack.GetComponent<ChromaticAberration>();
-            m_LensDistortion            = stack.GetComponent<LensDistortion>();
-            m_Vignette                  = stack.GetComponent<Vignette>();
-            m_Tonemapping               = stack.GetComponent<Tonemapping>();
-            m_WhiteBalance              = stack.GetComponent<WhiteBalance>();
-            m_ColorAdjustments          = stack.GetComponent<ColorAdjustments>();
-            m_ChannelMixer              = stack.GetComponent<ChannelMixer>();
-            m_SplitToning               = stack.GetComponent<SplitToning>();
-            m_LiftGammaGain             = stack.GetComponent<LiftGammaGain>();
+            m_Exposure = stack.GetComponent<Exposure>();
+            m_DepthOfField = stack.GetComponent<DepthOfField>();
+            m_MotionBlur = stack.GetComponent<MotionBlur>();
+            m_PaniniProjection = stack.GetComponent<PaniniProjection>();
+            m_Bloom = stack.GetComponent<Bloom>();
+            m_ChromaticAberration = stack.GetComponent<ChromaticAberration>();
+            m_LensDistortion = stack.GetComponent<LensDistortion>();
+            m_Vignette = stack.GetComponent<Vignette>();
+            m_Tonemapping = stack.GetComponent<Tonemapping>();
+            m_WhiteBalance = stack.GetComponent<WhiteBalance>();
+            m_ColorAdjustments = stack.GetComponent<ColorAdjustments>();
+            m_ChannelMixer = stack.GetComponent<ChannelMixer>();
+            m_SplitToning = stack.GetComponent<SplitToning>();
+            m_LiftGammaGain = stack.GetComponent<LiftGammaGain>();
             m_ShadowsMidtonesHighlights = stack.GetComponent<ShadowsMidtonesHighlights>();
-            m_Curves                    = stack.GetComponent<ColorCurves>();
-            m_FilmGrain                 = stack.GetComponent<FilmGrain>();
-            m_PathTracing               = stack.GetComponent<PathTracing>();
+            m_Curves = stack.GetComponent<ColorCurves>();
+            m_FilmGrain = stack.GetComponent<FilmGrain>();
+            m_PathTracing = stack.GetComponent<PathTracing>();
 
             // Prefetch frame settings - these aren't free to pull so we want to do it only once
             // per frame
             var frameSettings = camera.frameSettings;
-            m_StopNaNFS             = frameSettings.IsEnabled(FrameSettingsField.StopNaN);
-            m_DepthOfFieldFS        = frameSettings.IsEnabled(FrameSettingsField.DepthOfField);
-            m_MotionBlurFS          = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
-            m_PaniniProjectionFS    = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
-            m_BloomFS               = frameSettings.IsEnabled(FrameSettingsField.Bloom);
+            m_StopNaNFS = frameSettings.IsEnabled(FrameSettingsField.StopNaN);
+            m_DepthOfFieldFS = frameSettings.IsEnabled(FrameSettingsField.DepthOfField);
+            m_MotionBlurFS = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
+            m_PaniniProjectionFS = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
+            m_BloomFS = frameSettings.IsEnabled(FrameSettingsField.Bloom);
             m_ChromaticAberrationFS = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration);
-            m_LensDistortionFS      = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
-            m_VignetteFS            = frameSettings.IsEnabled(FrameSettingsField.Vignette);
-            m_ColorGradingFS        = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
-            m_TonemappingFS         = frameSettings.IsEnabled(FrameSettingsField.Tonemapping);
-            m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
-            m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
-            m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
+            m_LensDistortionFS = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
+            m_VignetteFS = frameSettings.IsEnabled(FrameSettingsField.Vignette);
+            m_ColorGradingFS = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
+            m_TonemappingFS = frameSettings.IsEnabled(FrameSettingsField.Tonemapping);
+            m_FilmGrainFS = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
+            m_DitheringFS = frameSettings.IsEnabled(FrameSettingsField.Dithering);
+            m_AntialiasingFS = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
 
             // Override full screen anti-aliasing when doing path tracing (which is naturally anti-aliased already)
-            m_AntialiasingFS        &= !m_PathTracing.enable.value;
+            m_AntialiasingFS &= !m_PathTracing.enable.value;
 
             m_DebugExposureCompensation = m_HDInstance.m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
@@ -321,34 +321,34 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct UberPostParameters
         {
-            public ComputeShader    uberPostCS;
-            public int              uberPostKernel;
-            public bool             outputColorLog;
-            public int              width;
-            public int              height;
-            public int              viewCount;
+            public ComputeShader uberPostCS;
+            public int uberPostKernel;
+            public bool outputColorLog;
+            public int width;
+            public int height;
+            public int viewCount;
 
-            public Vector4          logLutSettings;
+            public Vector4 logLutSettings;
 
-            public Vector4          lensDistortionParams1;
-            public Vector4          lensDistortionParams2;
+            public Vector4 lensDistortionParams1;
+            public Vector4 lensDistortionParams2;
 
-            public Texture          spectralLut;
-            public Vector4          chromaticAberrationParameters;
+            public Texture spectralLut;
+            public Vector4 chromaticAberrationParameters;
 
-            public Vector4          vignetteParams1;
-            public Vector4          vignetteParams2;
-            public Vector4          vignetteColor;
-            public Texture          vignetteMask;
+            public Vector4 vignetteParams1;
+            public Vector4 vignetteParams2;
+            public Vector4 vignetteColor;
+            public Texture vignetteMask;
 
-            public Texture          bloomDirtTexture;
-            public Vector4          bloomParams;
-            public Vector4          bloomTint;
-            public Vector4          bloomBicubicParams;
-            public Vector4          bloomDirtTileOffset;
-            public Vector4          bloomThreshold;
+            public Texture bloomDirtTexture;
+            public Vector4 bloomParams;
+            public Vector4 bloomTint;
+            public Vector4 bloomBicubicParams;
+            public Vector4 bloomDirtTileOffset;
+            public Vector4 bloomThreshold;
 
-            public Vector4          alphaScaleBias;
+            public Vector4 alphaScaleBias;
         }
 
         UberPostParameters PrepareUberPostParameters(HDCamera hdCamera, bool isSceneView)
@@ -723,9 +723,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         bool IsExposureFixed(HDCamera camera) => m_Exposure.mode.value == ExposureMode.Fixed || m_Exposure.mode.value == ExposureMode.UsePhysicalCamera
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
         || (camera.camera.cameraType == CameraType.SceneView && HDAdditionalSceneViewSettings.sceneExposureOverriden)
-            #endif
+#endif
         ;
 
         //if exposure comes from the parent camera, it means we dont have to calculate / force it.
@@ -910,7 +910,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var sourceTex = colorBuffer;
 
             kernel = exposureParameters.exposurePreparationKernel;
-            cmd.SetComputeIntParams(cs, HDShaderIDs._Variants,  exposureParameters.exposureVariants);
+            cmd.SetComputeIntParams(cs, HDShaderIDs._Variants, exposureParameters.exposureVariants);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SourceTexture, sourceTex);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, exposureParameters.exposureParams2);
@@ -3346,22 +3346,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct FinalPassParameters
         {
-            public bool             postProcessEnabled;
-            public Material         finalPassMaterial;
-            public HDCamera         hdCamera;
-            public BlueNoise        blueNoise;
-            public bool             flipY;
-            public System.Random    random;
-            public bool             useFXAA;
-            public bool             enableAlpha;
-            public bool             keepAlpha;
+            public bool postProcessEnabled;
+            public Material finalPassMaterial;
+            public HDCamera hdCamera;
+            public BlueNoise blueNoise;
+            public bool flipY;
+            public System.Random random;
+            public bool useFXAA;
+            public bool enableAlpha;
+            public bool keepAlpha;
 
-            public bool             filmGrainEnabled;
-            public Texture          filmGrainTexture;
-            public float            filmGrainIntensity;
-            public float            filmGrainResponse;
+            public bool filmGrainEnabled;
+            public Texture filmGrainTexture;
+            public float filmGrainIntensity;
+            public float filmGrainResponse;
 
-            public bool             ditheringEnabled;
+            public bool ditheringEnabled;
         }
 
         FinalPassParameters PrepareFinalPass(HDCamera hdCamera, BlueNoise blueNoise, bool flipY)
@@ -3397,12 +3397,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void DoFinalPass(in FinalPassParameters  parameters,
-            RTHandle                source,
-            RTHandle                afterPostProcessTexture,
-            RenderTargetIdentifier  destination,
-            RTHandle                alphaTexture,
-            CommandBuffer           cmd)
+        static void DoFinalPass(in FinalPassParameters parameters,
+            RTHandle source,
+            RTHandle afterPostProcessTexture,
+            RenderTargetIdentifier destination,
+            RTHandle alphaTexture,
+            CommandBuffer cmd)
         {
             // Final pass has to be done in a pixel shader as it will be the one writing straight
             // to the backbuffer eventually
@@ -3445,13 +3445,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (parameters.filmGrainTexture != null) // Fail safe if the resources asset breaks :/
                     {
-                        #if HDRP_DEBUG_STATIC_POSTFX
+#if HDRP_DEBUG_STATIC_POSTFX
                         float offsetX = 0;
                         float offsetY = 0;
-                        #else
+#else
                         float offsetX = (float)(parameters.random.NextDouble());
                         float offsetY = (float)(parameters.random.NextDouble());
-                        #endif
+#endif
 
                         finalPassMaterial.EnableKeyword("GRAIN");
                         finalPassMaterial.SetTexture(HDShaderIDs._GrainTexture, parameters.filmGrainTexture);
@@ -3470,11 +3470,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var blueNoiseTexture = parameters.blueNoise.textureArray16L;
 
-                    #if HDRP_DEBUG_STATIC_POSTFX
+#if HDRP_DEBUG_STATIC_POSTFX
                     int textureId = 0;
-                    #else
+#else
                     int textureId = (int)hdCamera.GetCameraFrameCount() % blueNoiseTexture.depth;
-                    #endif
+#endif
 
                     finalPassMaterial.EnableKeyword("DITHER");
                     finalPassMaterial.SetTexture(HDShaderIDs._BlueNoiseTexture, blueNoiseTexture);
@@ -3494,7 +3494,7 @@ namespace UnityEngine.Rendering.HighDefinition
             finalPassMaterial.SetVector(HDShaderIDs._UVTransform,
                 flipY
                 ? new Vector4(1.0f, -1.0f, 0.0f, 1.0f)
-                : new Vector4(1.0f,  1.0f, 0.0f, 0.0f)
+                : new Vector4(1.0f, 1.0f, 0.0f, 0.0f)
             );
 
             finalPassMaterial.SetVector(HDShaderIDs._ViewPortSize,

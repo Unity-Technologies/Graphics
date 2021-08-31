@@ -99,7 +99,8 @@ namespace UnityEditor.Rendering.HighDefinition
             var diffusionProfileDrawer = new DiffusionProfilePropertyDrawer();
 
             propertySheet.Add(diffusionProfileDrawer.CreateGUI(
-                newValue => {
+                newValue =>
+                {
                     preChangeValueCallback("Changed Diffusion Profile");
                     value = newValue;
                     postChangeValueCallback(true);

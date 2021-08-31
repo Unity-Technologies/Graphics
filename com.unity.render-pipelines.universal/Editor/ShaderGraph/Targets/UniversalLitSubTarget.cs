@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Process SubShaders
             SubShaderDescriptor[] litSubShaders = { SubShaders.LitComputeDOTS, SubShaders.LitGLES };
-            SubShaderDescriptor[] complexLitSubShaders = { SubShaders.ComplexLitComputeDOTS, SubShaders.LitGLESForwardOnly};
+            SubShaderDescriptor[] complexLitSubShaders = { SubShaders.ComplexLitComputeDOTS, SubShaders.LitGLESForwardOnly };
 
             // TODO: In the future:
             // We could take a copy of subshaders and dynamically modify them here.
@@ -91,19 +91,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var descs = context.blocks.Select(x => x.descriptor);
             // Surface Type & Blend Mode
             // These must be set per SubTarget as Sprite SubTargets override them
-            context.AddField(UniversalFields.SurfaceOpaque,       target.surfaceType == SurfaceType.Opaque);
-            context.AddField(UniversalFields.SurfaceTransparent,  target.surfaceType != SurfaceType.Opaque);
-            context.AddField(UniversalFields.BlendAdd,            target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive);
-            context.AddField(Fields.BlendAlpha,                    target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
-            context.AddField(UniversalFields.BlendMultiply,       target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
-            context.AddField(UniversalFields.BlendPremultiply,    target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
+            context.AddField(UniversalFields.SurfaceOpaque, target.surfaceType == SurfaceType.Opaque);
+            context.AddField(UniversalFields.SurfaceTransparent, target.surfaceType != SurfaceType.Opaque);
+            context.AddField(UniversalFields.BlendAdd, target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive);
+            context.AddField(Fields.BlendAlpha, target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
+            context.AddField(UniversalFields.BlendMultiply, target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
+            context.AddField(UniversalFields.BlendPremultiply, target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
 
             // Lit
-            context.AddField(UniversalFields.NormalDropOffOS,     normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddField(UniversalFields.NormalDropOffTS,     normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddField(UniversalFields.NormalDropOffWS,     normalDropOffSpace == NormalDropOffSpace.World);
-            context.AddField(UniversalFields.SpecularSetup,       workflowMode == WorkflowMode.Specular);
-            context.AddField(UniversalFields.Normal,              descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
+            context.AddField(UniversalFields.NormalDropOffOS, normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddField(UniversalFields.NormalDropOffTS, normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddField(UniversalFields.NormalDropOffWS, normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddField(UniversalFields.SpecularSetup, workflowMode == WorkflowMode.Specular);
+            context.AddField(UniversalFields.Normal, descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
                 descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
                 descs.Contains(BlockFields.SurfaceDescription.NormalWS));
             // Complex Lit
@@ -115,17 +115,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalOS,           normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalTS,           normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalWS,           normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalOS, normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalTS, normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalWS, normalDropOffSpace == NormalDropOffSpace.World);
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
-            context.AddBlock(BlockFields.SurfaceDescription.Specular,           workflowMode == WorkflowMode.Specular);
-            context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode == WorkflowMode.Metallic);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
+            context.AddBlock(BlockFields.SurfaceDescription.Specular, workflowMode == WorkflowMode.Specular);
+            context.AddBlock(BlockFields.SurfaceDescription.Metallic, workflowMode == WorkflowMode.Metallic);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha, target.surfaceType == SurfaceType.Transparent || target.alphaClip);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
-            context.AddBlock(BlockFields.SurfaceDescription.CoatMask,           clearCoat);
-            context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,     clearCoat);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatMask, clearCoat);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness, clearCoat);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -383,7 +383,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
-                pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
+                pragmas = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
             };
@@ -411,7 +411,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
-                pragmas  = CorePragmas.Forward,    // NOTE: SM 2.0 only GL
+                pragmas = CorePragmas.Forward,    // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
             };

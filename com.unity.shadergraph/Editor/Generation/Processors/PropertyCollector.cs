@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph
                             {
                                 // check if same property
                                 if (!h.ValueEquals(m_HLSLProperties[index]))
-                                    Debug.LogError("Two different HLSL Properties declared with the same name: " + h.name + " and " +  m_HLSLProperties[index].name);
+                                    Debug.LogError("Two different HLSL Properties declared with the same name: " + h.name + " and " + m_HLSLProperties[index].name);
                                 return;
                             }
                             dict.Add(h.name, m_HLSLProperties.Count);

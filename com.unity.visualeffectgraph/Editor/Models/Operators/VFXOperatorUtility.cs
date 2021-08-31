@@ -47,9 +47,9 @@ namespace UnityEditor.VFX
         {
             switch (_base)
             {
-                case Base.Base2:    return TwoExpression[type];
-                case Base.Base10:   return TenExpression[type];
-                case Base.BaseE:    return E_NapierConstantExpression[type];
+                case Base.Base2: return TwoExpression[type];
+                case Base.Base10: return TenExpression[type];
+                case Base.BaseE: return E_NapierConstantExpression[type];
                 default:
                     throw new NotImplementedException();
             }
@@ -658,10 +658,10 @@ namespace UnityEditor.VFX
             var deltaZ = zNear - zFar;
 
             var zero = ZeroExpression[VFXValueType.Float];
-            var m0 = new VFXExpressionCombine(cotangent / aspect,   zero,       zero,                                                               zero);
-            var m1 = new VFXExpressionCombine(zero,                 cotangent,  zero,                                                               zero);
-            var m2 = new VFXExpressionCombine(zero,                 zero,       MinusOneExpression[VFXValueType.Float] * (zFar + zNear) / deltaZ,                                       OneExpression[VFXValueType.Float]);
-            var m3 = new VFXExpressionCombine(zero,                 zero,       TwoExpression[VFXValueType.Float] * zNear * zFar / deltaZ,     zero);
+            var m0 = new VFXExpressionCombine(cotangent / aspect, zero, zero, zero);
+            var m1 = new VFXExpressionCombine(zero, cotangent, zero, zero);
+            var m2 = new VFXExpressionCombine(zero, zero, MinusOneExpression[VFXValueType.Float] * (zFar + zNear) / deltaZ, OneExpression[VFXValueType.Float]);
+            var m3 = new VFXExpressionCombine(zero, zero, TwoExpression[VFXValueType.Float] * zNear * zFar / deltaZ, zero);
 
             return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
         }

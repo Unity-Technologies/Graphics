@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
             advancedFade = probeVolumeParams.FindPropertyRelative("advancedFade");
 
             distanceFadeStart = probeVolumeParams.FindPropertyRelative("distanceFadeStart");
-            distanceFadeEnd   = probeVolumeParams.FindPropertyRelative("distanceFadeEnd");
+            distanceFadeEnd = probeVolumeParams.FindPropertyRelative("distanceFadeEnd");
 
             backfaceTolerance = probeVolumeParams.FindPropertyRelative("backfaceTolerance");
             dilationIterations = probeVolumeParams.FindPropertyRelative("dilationIterations");

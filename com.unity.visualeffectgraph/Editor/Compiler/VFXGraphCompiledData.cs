@@ -715,7 +715,7 @@ namespace UnityEditor.VFX
                 new { eventName = VisualEffectAsset.StopEventName, playSystems = new List<uint>(), stopSystems = allStopNotLinked },
             }.ToList();
 
-            var specialNames = new HashSet<string>(new string[] {VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName});
+            var specialNames = new HashSet<string>(new string[] { VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName });
 
 
             var events = contexts.Where(o => o.contextType == VFXContextType.Event);
@@ -928,7 +928,7 @@ namespace UnityEditor.VFX
         {
             private VFXExpressionMapper mapper;
 
-            public VFXImplicitContextOfExposedExpression() : base(VFXContextType.None, VFXDataType.None, VFXDataType.None) {}
+            public VFXImplicitContextOfExposedExpression() : base(VFXContextType.None, VFXDataType.None, VFXDataType.None) { }
 
             private static void CollectExposedExpression(List<VFXExpression> expressions, VFXSlot slot)
             {
@@ -967,7 +967,7 @@ namespace UnityEditor.VFX
             var property = typeof(VisualEffectResource).GetProperty("compileInitialVariants");
             if (property != null)
             {
-                return delegate(VisualEffectResource rsc, bool value)
+                return delegate (VisualEffectResource rsc, bool value)
                 {
                     property.SetValue(rsc, value, null);
                 };
@@ -998,7 +998,7 @@ namespace UnityEditor.VFX
                     m_Graph.visualEffectResource.ClearRuntimeData();
 
                 m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
+                m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
                 return;
             }
 
@@ -1194,7 +1194,7 @@ namespace UnityEditor.VFX
                     m_Graph.visualEffectResource.ClearRuntimeData();
 
                 m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new VFXExpressionValueContainerDesc[] {};
+                m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
             }
             finally
             {

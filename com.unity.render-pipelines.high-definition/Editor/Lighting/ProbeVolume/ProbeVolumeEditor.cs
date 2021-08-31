@@ -153,7 +153,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             probeVolume.parameters.size = shapeBox.size;
 
                             Vector3 delta = probeVolume.transform.rotation * shapeBox.center - probeVolume.transform.position;
-                            probeVolume.transform.position += delta;;
+                            probeVolume.transform.position += delta; ;
                         }
                     }
                     break;

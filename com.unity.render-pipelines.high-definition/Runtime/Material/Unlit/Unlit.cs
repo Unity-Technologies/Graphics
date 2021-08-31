@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 color;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] { "Normal", "Normal View Space" }, true)]
             public Vector3 normalWS;
         };
 
