@@ -57,10 +57,10 @@ namespace UnityEditor.ShaderFoundry
 
         static BlockVariable BuildVariable(ShaderContainer container, string name, ShaderType type)
         {
-            var builder = new BlockVariable.Builder();
+            var builder = new BlockVariable.Builder(container);
             builder.Type = type;
             builder.ReferenceName = builder.DisplayName = name;
-            return builder.Build(container);
+            return builder.Build();
         }
 
         static void BuildLit(WorkflowRegistry registry, ShaderContainer container)
@@ -69,15 +69,15 @@ namespace UnityEditor.ShaderFoundry
             var float3Type = container._float3;
             var builder = new Workflow.Builder();
             builder.Name = "Lit";
-            var vertexPointBuilder = new CustomizationPoint.Builder(LegacyCustomizationPoints.VertexDescriptionCPName);
+            var vertexPointBuilder = new CustomizationPoint.Builder(container, LegacyCustomizationPoints.VertexDescriptionCPName);
             foreach (var field in UnityEditor.ShaderGraph.Structs.VertexDescriptionInputs.fields)
                 vertexPointBuilder.AddInput(BuildVariable(container, field.name, container.GetType(field.type)));
             vertexPointBuilder.AddOutput(BuildVariable(container, UnityEditor.ShaderGraph.BlockFields.VertexDescription.Position.name, float3Type));
             vertexPointBuilder.AddOutput(BuildVariable(container, UnityEditor.ShaderGraph.BlockFields.VertexDescription.Normal.name, float3Type));
             vertexPointBuilder.AddOutput(BuildVariable(container, UnityEditor.ShaderGraph.BlockFields.VertexDescription.Tangent.name, float3Type));
-            builder.AddCustomizationPoint(vertexPointBuilder.Build(container));
+            builder.AddCustomizationPoint(vertexPointBuilder.Build());
 
-            var fragmentPointBuilder = new CustomizationPoint.Builder(LegacyCustomizationPoints.SurfaceDescriptionCPName);
+            var fragmentPointBuilder = new CustomizationPoint.Builder(container, LegacyCustomizationPoints.SurfaceDescriptionCPName);
             foreach (var field in UnityEditor.ShaderGraph.Structs.SurfaceDescriptionInputs.fields)
                 fragmentPointBuilder.AddInput(BuildVariable(container, field.name, container.GetType(field.type)));
 
@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderFoundry
             fragmentPointBuilder.AddOutput(BuildVariable(container, UnityEditor.ShaderGraph.BlockFields.SurfaceDescription.Emission.name, float3Type));
             fragmentPointBuilder.AddOutput(BuildVariable(container, UnityEditor.ShaderGraph.BlockFields.SurfaceDescription.Alpha.name, float3Type));
             fragmentPointBuilder.AddOutput(BuildVariable(container, UnityEditor.ShaderGraph.BlockFields.SurfaceDescription.AlphaClipThreshold.name, float3Type));
-            builder.AddCustomizationPoint(fragmentPointBuilder.Build(container));
+            builder.AddCustomizationPoint(fragmentPointBuilder.Build());
             registry.Register(builder.Build(container));
         }
     }

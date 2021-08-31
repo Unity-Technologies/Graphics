@@ -21,16 +21,18 @@ namespace UnityEditor.ShaderFoundry
 
         internal class Builder
         {
+            ShaderContainer container;
             public string Name { get; set; }
             public List<TemplateDescriptor> TemplateDescriptors { get; set; } = new List<TemplateDescriptor>();
             public string FallbackShader { get; set; } = @"FallBack ""Hidden/Shader Graph/FallbackError""";
 
-            public Builder(string name)
+            public Builder(ShaderContainer container, string name)
             {
+                this.container = container;
                 Name = name;
             }
 
-            public ShaderDescriptor Build(ShaderContainer container)
+            public ShaderDescriptor Build()
             {
                 return new ShaderDescriptor(Name, TemplateDescriptors, FallbackShader);
             }

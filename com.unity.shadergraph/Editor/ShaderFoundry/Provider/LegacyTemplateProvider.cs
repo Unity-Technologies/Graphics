@@ -61,11 +61,11 @@ namespace UnityEditor.ShaderFoundry
 
         Template BuildTemplate(SubShaderDescriptor subShaderDescriptor, int subShaderIndex)
         {
-            var builder = new Template.Builder($"{subShaderDescriptor.pipelineTag}");
+            var builder = new Template.Builder(Container, $"{subShaderDescriptor.pipelineTag}");
 
             CustomizationPoint vertexCustomizationPoint, surfaceCustomizationPoint;
             BuildTemplateCustomizationPoints(builder, subShaderDescriptor, out vertexCustomizationPoint, out surfaceCustomizationPoint);
-            var result = builder.Build(Container);
+            var result = builder.Build();
 
             var legacyLinker = new SandboxLegacyTemplateLinker(m_assetCollection);
             legacyLinker.SetLegacy(m_Target, subShaderDescriptor);
@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderFoundry
             foreach (var pass in subShaderDescriptor.passes)
             {
                 var legacyPassDescriptor = pass.descriptor;
-                var passBuilder = new TemplatePass.Builder();
+                var passBuilder = new TemplatePass.Builder(Container);
                 passBuilder.ReferenceName = legacyPassDescriptor.referenceName;
                 passBuilder.DisplayName = legacyPassDescriptor.displayName;
                 passBuilder.PassIdentifier = new UnityEditor.ShaderFoundry.PassIdentifier(subShaderIndex, subPassIndex);
@@ -83,10 +83,10 @@ namespace UnityEditor.ShaderFoundry
 
                 BuildLegacyTemplateEntryPoints(result, legacyPassDescriptor, passBuilder, vertexCustomizationPoint, surfaceCustomizationPoint);
 
-                builder.AddPass(passBuilder.Build(Container));
+                builder.AddPass(passBuilder.Build());
             }
 
-            return builder.Build(Container);
+            return builder.Build();
         }
 
         void BuildTemplateCustomizationPoints(Template.Builder builder, SubShaderDescriptor subShaderDescriptor, out CustomizationPoint vertexCustomizationPoint, out CustomizationPoint surfaceCustomizationPoint)
@@ -94,11 +94,11 @@ namespace UnityEditor.ShaderFoundry
             List<FieldDescriptor> vertexFields, fragmentFields;
             ExtractVertexAndFragmentPostFields(subShaderDescriptor, out vertexFields, out fragmentFields);
 
-            var vertexBuilder = new CustomizationPoint.Builder(LegacyCustomizationPoints.VertexDescriptionCPName);
+            var vertexBuilder = new CustomizationPoint.Builder(Container, LegacyCustomizationPoints.VertexDescriptionCPName);
             vertexCustomizationPoint = BuildCustomizationPoint(vertexBuilder, BuildVertexPreBlock(), BuildVertexPostBlock(vertexFields));
             builder.AddCustomizationPoint(vertexCustomizationPoint);
 
-            var fragmentBuilder = new CustomizationPoint.Builder(LegacyCustomizationPoints.SurfaceDescriptionCPName);
+            var fragmentBuilder = new CustomizationPoint.Builder(Container, LegacyCustomizationPoints.SurfaceDescriptionCPName);
             surfaceCustomizationPoint = BuildCustomizationPoint(fragmentBuilder, BuildFragmentPreBlock(), BuildFragmentPostBlock(fragmentFields));
             builder.AddCustomizationPoint(surfaceCustomizationPoint);
         }
@@ -157,8 +157,8 @@ namespace UnityEditor.ShaderFoundry
 
         BlockDescriptor BuildSimpleBlockDesc(Block block)
         {
-            var builder = new BlockDescriptor.Builder(block);
-            return builder.Build(Container);
+            var builder = new BlockDescriptor.Builder(Container, block);
+            return builder.Build();
         }
 
         Block BuildVertexPreBlock()
@@ -167,35 +167,35 @@ namespace UnityEditor.ShaderFoundry
             fields.AddRange(UnityEditor.ShaderGraph.Structs.Attributes.fields);
             fields.AddRange(UnityEditor.ShaderGraph.Structs.VertexDescriptionInputs.fields);
 
-            var builder = new Block.Builder($"Pre{LegacyCustomizationPoints.VertexDescriptionCPName}");
+            var builder = new Block.Builder(Container, $"Pre{LegacyCustomizationPoints.VertexDescriptionCPName}");
             foreach(var output in ExtractFields(fields))
                 builder.AddOutput(output);
-            return builder.Build(Container);
+            return builder.Build();
         }
 
         Block BuildVertexPostBlock(List<FieldDescriptor> fields)
         {
-            var builder = new Block.Builder($"Post{LegacyCustomizationPoints.VertexDescriptionCPName}");
+            var builder = new Block.Builder(Container, $"Post{LegacyCustomizationPoints.VertexDescriptionCPName}");
             foreach (var input in ExtractFields(fields))
                 builder.AddInput(input);
-            return builder.Build(Container);
+            return builder.Build();
         }
 
         Block BuildFragmentPreBlock()
         {
-            var builder = new Block.Builder($"Pre{LegacyCustomizationPoints.SurfaceDescriptionCPName}");
+            var builder = new Block.Builder(Container, $"Pre{LegacyCustomizationPoints.SurfaceDescriptionCPName}");
             var outputs = ExtractFields(UnityEditor.ShaderGraph.Structs.SurfaceDescriptionInputs.fields);
             foreach (var output in outputs)
                 builder.AddOutput(output);
-            return builder.Build(Container);
+            return builder.Build();
         }
 
         Block BuildFragmentPostBlock(List<FieldDescriptor> fields)
         {
-            var builder = new Block.Builder($"Post{LegacyCustomizationPoints.SurfaceDescriptionCPName}");
+            var builder = new Block.Builder(Container, $"Post{LegacyCustomizationPoints.SurfaceDescriptionCPName}");
             foreach (var input in ExtractFields(fields))
                 builder.AddInput(input);
-            return builder.Build(Container);
+            return builder.Build();
         }
 
         CustomizationPoint BuildCustomizationPoint(CustomizationPoint.Builder builder, Block preBlock, Block postBlock)
@@ -204,12 +204,12 @@ namespace UnityEditor.ShaderFoundry
                 builder.AddInput(output.Clone(Container));
             foreach (var input in postBlock.Inputs)
                 builder.AddOutput(input.Clone(Container));
-            return builder.Build(Container);
+            return builder.Build();
         }
 
         Block BuildMainBlock(string blockName, Block preBlock, Block postBlock, List<BlockVariableNameOverride> nameMappings, Dictionary<string, string> defaultVariableValues)
         {
-            var mainBlockBuilder = new Block.Builder(blockName);
+            var mainBlockBuilder = new Block.Builder(Container, blockName);
 
             if (nameMappings == null)
             {
@@ -226,8 +226,8 @@ namespace UnityEditor.ShaderFoundry
                     availableOutputs[prop.ReferenceName] = prop;
 
                 // Build the input/output type from the matching fields
-                var inputBuilder = new ShaderType.StructBuilder($"{blockName}DefaultIn");
-                var outputBuilder = new ShaderType.StructBuilder($"{blockName}DefaultOut");
+                var inputBuilder = new ShaderType.StructBuilder(Container, $"{blockName}DefaultIn");
+                var outputBuilder = new ShaderType.StructBuilder(Container, $"{blockName}DefaultOut");
                 HashSet<string> declaredInputs = new HashSet<string>();
                 HashSet<string> declaredOutputs = new HashSet<string>();
 
@@ -261,13 +261,13 @@ namespace UnityEditor.ShaderFoundry
                     }
                 }
 
-                var inType = inputBuilder.Build(Container);
-                var outType = outputBuilder.Build(Container);
+                var inType = inputBuilder.Build();
+                var outType = outputBuilder.Build();
                 mainBlockBuilder.AddType(inType);
                 mainBlockBuilder.AddType(outType);
 
                 // Build the actual function
-                var fnBuilder = new UnityEditor.ShaderFoundry.ShaderFunction.Builder($"{blockName}Default", outType);
+                var fnBuilder = new UnityEditor.ShaderFoundry.ShaderFunction.Builder(Container, $"{blockName}Default", outType);
                 fnBuilder.AddInput(inType, "input");
 
                 fnBuilder.AddLine($"{outType.Name} output;");
@@ -292,22 +292,22 @@ namespace UnityEditor.ShaderFoundry
                 }
 
                 fnBuilder.AddLine($"return output;");
-                var entryPointFunction = fnBuilder.Build(Container);
+                var entryPointFunction = fnBuilder.Build();
                 mainBlockBuilder.AddFunction(entryPointFunction);
                 mainBlockBuilder.SetEntryPointFunction(entryPointFunction);
             }
 
-            return mainBlockBuilder.Build(Container);
+            return mainBlockBuilder.Build();
         }
 
         void ExtractVertex(Template template, TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, List<FieldDescriptor> vertexFields)
         {
             BlockVariableNameOverride BuildSimpleNameOverride(string sourceName, string destinationName, ShaderContainer container)
             {
-                var builder = new BlockVariableNameOverride.Builder();
+                var builder = new BlockVariableNameOverride.Builder(container);
                 builder.SourceName = sourceName;
                 builder.DestinationName = destinationName;
-                return builder.Build(container);
+                return builder.Build();
             }
             var vertexPreBlock = BuildVertexPreBlock();
             var vertexPostBlock = BuildVertexPostBlock(vertexFields);
@@ -399,11 +399,11 @@ namespace UnityEditor.ShaderFoundry
                 if (!fieldType.IsValid)
                     continue;
 
-                var builder = new BlockVariable.Builder();
+                var builder = new BlockVariable.Builder(Container);
                 builder.DisplayName = field.name;
                 builder.ReferenceName = field.name;
                 builder.Type = fieldType;
-                var prop = builder.Build(Container);
+                var prop = builder.Build();
                 results.Add(prop);
             }
             return results;

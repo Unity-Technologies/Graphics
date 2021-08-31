@@ -43,14 +43,14 @@ namespace UnityEditor.ShaderFoundry
 
         internal BlockVariable Build(ShaderContainer container)
         {
-            var blockVariableBuilder = new BlockVariable.Builder();
+            var blockVariableBuilder = new BlockVariable.Builder(container);
             blockVariableBuilder.Type = Type;
             blockVariableBuilder.ReferenceName = ReferenceName;
             blockVariableBuilder.DisplayName = DisplayName;
             blockVariableBuilder.DefaultExpression = DefaultExpression;
             foreach (var attribute in Attributes)
                 blockVariableBuilder.AddAttribute(attribute);
-            return blockVariableBuilder.Build(container);
+            return blockVariableBuilder.Build();
         }
     }
 }
