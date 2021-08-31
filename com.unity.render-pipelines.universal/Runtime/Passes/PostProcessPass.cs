@@ -1270,13 +1270,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                     int arrayIndex = i / 2;
                     XRView view0 = xrPass.views[i];
                     Vector4 newValue;
-                    newValue.x = view0.eyeCenterUV.x + centerDeltaX;
-                    newValue.y = view0.eyeCenterUV.y + centerDeltaY;
+                    newValue.x = view0.eyeCenterUV.x - centerDeltaX;
+                    newValue.y = view0.eyeCenterUV.y - centerDeltaY;
                     if (i + 1 < viewCount)
                     {
                         XRView view1 = xrPass.views[i+1];
-                        newValue.z = view1.eyeCenterUV.x + centerDeltaX;
-                        newValue.w = view1.eyeCenterUV.y + centerDeltaY;
+                        newValue.z = view1.eyeCenterUV.x - centerDeltaX;
+                        newValue.w = view1.eyeCenterUV.y - centerDeltaY;
                     }
                     else
                     {
