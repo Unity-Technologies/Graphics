@@ -73,6 +73,8 @@ namespace UnityEditor.VFX
                 {
                     yield return additionalDef;
                 }
+                yield return "SORTING_SIGN " + (revertSorting ? -1 : 1);
+
             }
         }
     }

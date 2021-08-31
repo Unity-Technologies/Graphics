@@ -213,7 +213,6 @@ namespace UnityEditor.VFX
                     yield return d;
 
                 yield return "INDIRECT_BUFFER_COUNT " + bufferCount;
-                yield return "SORTING_SIGN " + (output.revertSorting ? -1 : 1);
 
                 if (HasFeature(Features.MotionVector))
                 {
@@ -226,6 +225,7 @@ namespace UnityEditor.VFX
                 if (HasFeature(Features.Sort))
                 {
                     yield return "VFX_FEATURE_SORT";
+                    yield return "SORTING_SIGN " + (output.revertSorting ? -1 : 1);
                     foreach (string additionalDef in GetSortingAdditionalDefines(m_Output.GetSortCriterion()))
                     {
                         yield return additionalDef;
