@@ -52,6 +52,9 @@ namespace UnityEngine.Experimental.Rendering
         static bool m_IsInit = false;
         static BakingBatch m_BakingBatch;
         static ProbeReferenceVolumeAuthoring m_BakingReferenceVolumeAuthoring = null;
+        static ProbeReferenceVolumeProfile m_BakingProfile = null;
+        static ProbeVolumeBakingProcessSettings m_BakingSettings;
+
         static int m_BakingBatchIndex = 0;
 
         static Bounds globalBounds = new Bounds();
@@ -178,6 +181,32 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        static void SetBakingContext(ProbeVolumePerSceneData[] perSceneData)
+        {
+            // We need to make sure all scenes we are baking have the same profile. The same should be done for the baking settings, but we check only profile.
+            // TODO: This should be ensured by the controlling panel, until we have that we need to assert.
+
+            // To check what are  the scenes that have probe volume enabled we checks the ProbeVolumePerSceneData. We are guaranteed to have only one per scene.
+            for (int i=0; i<perSceneData.Length; ++i)
+            {
+                var data = perSceneData[i];
+                var scene = data.gameObject.scene;
+                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(scene);
+                Debug.Assert(profile != null, "Trying to bake a scene without a profile properly set.");
+
+                if (i == 0)
+                {
+                    m_BakingProfile = profile;
+                    Debug.Assert(ProbeReferenceVolume.instance.sceneData.BakeSettingsDefinedForScene(scene));
+                    m_BakingSettings = ProbeReferenceVolume.instance.sceneData.GetBakeSettingsForScene(scene);
+                }
+                else
+                {
+                    Debug.Assert(m_BakingProfile.IsEquivalent(profile));
+                }
+            }
+        }
+
         static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
         {
             List<ProbeReferenceVolumeAuthoring> enabledVolumes = new List<ProbeReferenceVolumeAuthoring>();
@@ -213,22 +242,24 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (!ProbeReferenceVolume.instance.isInitialized) return;
 
-            var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
+            var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>(); // TODO: To remove.
+
             if (refVolAuthList.Length == 0)
                 return;
 
             FindWorldBounds();
             refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
+            var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
+            if (perSceneDataList.Length == 0) return;
 
             m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
+            SetBakingContext(perSceneDataList);
 
             if (m_BakingReferenceVolumeAuthoring == null)
             {
                 Debug.Log("Scene(s) have multiple inconsistent ProbeReferenceVolumeAuthoring components. Please ensure they use identical profiles and transforms before baking.");
                 return;
             }
-
-            var refVol = ProbeReferenceVolume.instance;
 
             AddOccluders();
 
@@ -270,11 +301,9 @@ namespace UnityEngine.Experimental.Rendering
         // It is only a first iteration of the concept that won't be as impactful on memory as other options.
         internal static void RevertDilation()
         {
-            var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
-            m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
-            if (m_BakingReferenceVolumeAuthoring == null) return;
+            if (m_BakingProfile == null) return;
 
-            var dilationSettings = m_BakingReferenceVolumeAuthoring.GetDilationSettings();
+            var dilationSettings = m_BakingSettings.dilationSettings;
 
             foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
             {
@@ -299,17 +328,9 @@ namespace UnityEngine.Experimental.Rendering
         internal static void PerformDilation()
         {
             Dictionary<int, List<string>> cell2Assets = new Dictionary<int, List<string>>();
-            var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>(); // TODO: Soon to be removable
             var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
 
-            m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
-            if (m_BakingReferenceVolumeAuthoring == null) return;
-
-            foreach (var refVol in refVolAuthList)
-            {
-                if (m_BakingReferenceVolumeAuthoring == null)
-                    m_BakingReferenceVolumeAuthoring = refVol;
-            }
+            if (m_BakingProfile == null) return;
 
             foreach (var sceneData in perSceneDataList)
             {
@@ -326,7 +347,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            var dilationSettings = m_BakingReferenceVolumeAuthoring.GetDilationSettings();
+            var dilationSettings = m_BakingSettings.dilationSettings;
 
 
             if (dilationSettings.dilationDistance > 0.0f)
@@ -432,7 +453,7 @@ namespace UnityEngine.Experimental.Rendering
 
             onAdditionalProbesBakeCompletedCalled = true;
 
-            var dilationSettings = m_BakingReferenceVolumeAuthoring.GetDilationSettings();
+            var dilationSettings = m_BakingSettings.dilationSettings;
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
             {
@@ -645,7 +666,7 @@ namespace UnityEngine.Experimental.Rendering
             var result = BakeBricks(ctx);
 
             // Compute probe positions and send them to the Lightmapper
-            float brickSize = m_BakingReferenceVolumeAuthoring.brickSize;
+            float brickSize = m_BakingProfile.minBrickSize;
             Matrix4x4 newRefToWS = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(brickSize, brickSize, brickSize));
             ApplySubdivisionResults(result, newRefToWS);
         }
@@ -656,7 +677,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // Prepare all the information in the scene for baking GI.
             Vector3 refVolOrigin = Vector3.zero; // TODO: This will need to be center of the world bounds.
-            ctx.Initialize(refVolume, refVolOrigin);
+            ctx.Initialize(refVolume, m_BakingProfile, refVolOrigin);
 
             return ctx;
         }
@@ -668,7 +689,7 @@ namespace UnityEngine.Experimental.Rendering
             if (ctx.probeVolumes.Count == 0)
                 return result;
 
-            using (var gpuResources = ProbePlacement.AllocateGPUResources(ctx.probeVolumes.Count, ctx.refVolume.profile.maxSubdivision))
+            using (var gpuResources = ProbePlacement.AllocateGPUResources(ctx.probeVolumes.Count, ctx.profile.maxSubdivision))
             {
                 // subdivide all the cells and generate brick positions
                 foreach (var cell in ctx.cells)
@@ -813,7 +834,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // Move positions before sending them
             var positions = m_BakingBatch.uniquePositions.Keys.ToArray();
-            VirtualOffsetSettings voSettings = m_BakingReferenceVolumeAuthoring.GetVirtualOffsetSettings();
+            VirtualOffsetSettings voSettings = m_BakingSettings.virtualOffsetSettings;
             if (voSettings.useVirtualOffset)
             {
                 for (int i = 0; i < positions.Length; ++i)
@@ -821,7 +842,7 @@ namespace UnityEngine.Experimental.Rendering
                     int subdivLevel = 0;
                     m_BakingBatch.uniqueBrickSubdiv.TryGetValue(positions[i], out subdivLevel);
                     float brickSize = ProbeReferenceVolume.CellSize(subdivLevel);
-                    float searchDistance = (brickSize * m_BakingReferenceVolumeAuthoring.brickSize) / ProbeBrickPool.kBrickCellCount;
+                    float searchDistance = (brickSize * m_BakingProfile.minBrickSize) / ProbeBrickPool.kBrickCellCount;
 
                     float scaleForSearchDist = voSettings.searchMultiplier;
                     positions[i] = PushPositionOutOfGeometry(positions[i], scaleForSearchDist * searchDistance, voSettings.outOfGeoOffset);

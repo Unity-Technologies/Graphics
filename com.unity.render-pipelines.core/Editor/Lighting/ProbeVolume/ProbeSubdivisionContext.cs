@@ -17,10 +17,12 @@ namespace UnityEngine.Experimental.Rendering
         public List<(Vector3Int position, ProbeReferenceVolume.Volume volume)> cells = new List<(Vector3Int, ProbeReferenceVolume.Volume)>();
         public List<(Terrain, ProbeReferenceVolume.Volume volume)> terrains = new List<(Terrain, ProbeReferenceVolume.Volume)>();
         public ProbeReferenceVolumeAuthoring refVolume;
+        public ProbeReferenceVolumeProfile profile;
 
-        public void Initialize(ProbeReferenceVolumeAuthoring refVolume, Vector3 refVolOrigin)
+        public void Initialize(ProbeReferenceVolumeAuthoring refVolume, ProbeReferenceVolumeProfile profile, Vector3 refVolOrigin)
         {
             this.refVolume = refVolume;
+            this.profile = profile;
             float cellSize = refVolume.cellSizeInMeters;
 
             foreach (var pv in UnityEngine.Object.FindObjectsOfType<ProbeVolume>())

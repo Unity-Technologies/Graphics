@@ -115,6 +115,9 @@ namespace UnityEngine.Experimental.Rendering
         // The [NonSerialized] attribute allows to force the asset to be null in case a domain reload happens.
         [NonSerialized]
         ProbeVolumeAsset m_PrevAsset = null;
+
+        [NonSerialized]
+        bool m_SentDataToSceneData = false; // TODO: This is temp until we don't have a setting panel.
 #endif
         [SerializeField]
         float m_DilationValidityThreshold = 0.25f;
@@ -133,11 +136,15 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // TEMP! THIS NEEDS TO BE REMOVED WHEN WE HAVE THE SETTINGS PANEL.
-        void SendSceneData()
+        void SendSceneData(bool force = false)
         {
             if (ProbeReferenceVolume.instance.sceneData == null) return;
-            ProbeReferenceVolume.instance.sceneData.SetBakeSettingsForScene(gameObject.scene, GetDilationSettings(), GetVirtualOffsetSettings());
-            ProbeReferenceVolume.instance.sceneData.SetProfileForScene(gameObject.scene, m_Profile);
+            if (!m_SentDataToSceneData || force)
+            {
+                ProbeReferenceVolume.instance.sceneData.SetBakeSettingsForScene(gameObject.scene, GetDilationSettings(), GetVirtualOffsetSettings());
+                ProbeReferenceVolume.instance.sceneData.SetProfileForScene(gameObject.scene, m_Profile);
+                m_SentDataToSceneData = true;
+            }
         }
 
         internal void QueueAssetLoading()
@@ -166,7 +173,7 @@ namespace UnityEngine.Experimental.Rendering
             if (m_Profile == null)
                 m_Profile = CreateReferenceVolumeProfile(gameObject.scene, gameObject.name);
 #endif
-            SendSceneData();
+            SendSceneData(force: true);
             QueueAssetLoading();
         }
 
@@ -193,7 +200,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_PrevAsset = volumeAsset;
-            SendSceneData();
+            SendSceneData(force: true);
         }
 
         void OnDisable()
@@ -333,6 +340,12 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 cellGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
             }
+        }
+
+        // IMPORTANT TODO: This is to be deleted when we have the proper setting panel.
+        private void Update()
+        {
+            SendSceneData();
         }
 
         public ProbeDilationSettings GetDilationSettings()

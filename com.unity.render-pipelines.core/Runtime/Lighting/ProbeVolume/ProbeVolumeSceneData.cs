@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering
             serializedBounds.Clear();
             serializedHasVolumes.Clear();
             serializedProfiles.Clear();
-            sceneBakingSettings.Clear();
+            serializedBakeSettings.Clear();
 
             foreach (var k in sceneBounds.Keys)
             {
@@ -331,6 +331,7 @@ namespace UnityEngine.Experimental.Rendering
             if (sceneBakingSettings == null) sceneBakingSettings = new Dictionary<string, ProbeVolumeBakingProcessSettings>();
 
             var sceneGUID = GetSceneGUID(scene);
+
             ProbeVolumeBakingProcessSettings settings = new ProbeVolumeBakingProcessSettings();
             settings.dilationSettings = dilationSettings;
             settings.virtualOffsetSettings = virtualOffsetSettings;
@@ -344,6 +345,21 @@ namespace UnityEngine.Experimental.Rendering
                 return sceneProfiles[sceneGUID];
 
             return null;
+        }
+
+        internal bool BakeSettingsDefinedForScene(Scene scene)
+        {
+            var sceneGUID = GetSceneGUID(scene);
+            return sceneBakingSettings.ContainsKey(sceneGUID);
+        }
+
+        internal ProbeVolumeBakingProcessSettings GetBakeSettingsForScene(Scene scene)
+        {
+            var sceneGUID = GetSceneGUID(scene);
+            if (sceneBakingSettings.ContainsKey(sceneGUID))
+                return sceneBakingSettings[sceneGUID];
+
+            return new ProbeVolumeBakingProcessSettings();
         }
 #endif
     }
