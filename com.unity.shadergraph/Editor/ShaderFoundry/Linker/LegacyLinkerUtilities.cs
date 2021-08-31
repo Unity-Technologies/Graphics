@@ -181,9 +181,9 @@ namespace UnityEditor.ShaderFoundry
 
     internal static class TypeUtilities
     {
-        internal static ShaderType.StructBuilder BuildStructBuilder(string typeName, IEnumerable<BlockVariableLinkInstance> variables)
+        internal static ShaderType.StructBuilder BuildStructBuilder(ShaderContainer container, string typeName, IEnumerable<BlockVariableLinkInstance> variables)
         {
-            var builder = new ShaderType.StructBuilder(typeName);
+            var builder = new ShaderType.StructBuilder(container, typeName);
             foreach (var variable in variables)
                 builder.AddField(variable.Type, variable.ReferenceName);
 
@@ -192,10 +192,10 @@ namespace UnityEditor.ShaderFoundry
 
         internal static ShaderType BuildType(ShaderContainer container, string typeName, IEnumerable<BlockVariable> variables)
         {
-            var builder = new ShaderType.StructBuilder(typeName);
+            var builder = new ShaderType.StructBuilder(container, typeName);
             foreach (var variable in variables)
                 builder.AddField(variable.Type, variable.ReferenceName);
-            return builder.Build(container);
+            return builder.Build();
         }
     }
 }

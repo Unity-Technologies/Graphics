@@ -154,14 +154,14 @@ namespace UnityEditor.ShaderFoundry
 
         internal static BlockVariable Clone(this BlockVariable variable, ShaderContainer container, string referenceName, string displayName)
         {
-            var builder = new BlockVariable.Builder();
+            var builder = new BlockVariable.Builder(container);
             builder.Type = variable.Type;
             builder.ReferenceName = referenceName;
             builder.DisplayName = displayName;
             builder.DefaultExpression = variable.DefaultExpression;
             foreach (var attribute in variable.Attributes)
                 builder.AddAttribute(attribute);
-            return builder.Build(container);
+            return builder.Build();
         }
     }
 

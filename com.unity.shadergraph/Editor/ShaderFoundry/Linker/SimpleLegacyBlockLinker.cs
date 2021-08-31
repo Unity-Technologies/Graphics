@@ -167,8 +167,8 @@ namespace UnityEditor.ShaderFoundry
                 string name = varOverride.Name;
                 if (availableOutputs.TryGetValue(name, out var matchingOutput))
                 {
-                    var builder = new ShaderAttribute.Builder(CommonShaderAttributes.Varying);
-                    input.Attributes.Add(builder.Build(Container));
+                    var builder = new ShaderAttribute.Builder(Container, CommonShaderAttributes.Varying);
+                    input.Attributes.Add(builder.Build());
                     // Explicitly mark these as reading/writing to the stage scope. This allows easier generation later.
                     inputTypeInstance.AddOverride(input.ReferenceName, NamespaceScopes.StageScopeName, name, 0);
                     outputTypeInstance.AddOverride(matchingOutput.ReferenceName, NamespaceScopes.StageScopeName, name, 0);
@@ -178,8 +178,8 @@ namespace UnityEditor.ShaderFoundry
 
         BlockDescriptor BuildSimpleBlockDescriptor(Block block)
         {
-            var builder = new BlockDescriptor.Builder(block);
-            return builder.Build(Container);
+            var builder = new BlockDescriptor.Builder(Container, block);
+            return builder.Build();
         }
 
         Block BuildLegacyBlock(LegacyBlockBuildingContext buildingContext)
@@ -301,22 +301,22 @@ namespace UnityEditor.ShaderFoundry
             var block = blockDescriptor.Block;
             var subEntryPointFn = block.EntryPointFunction;
 
-            var blockBuilder = new Block.Builder(buildingContext.FunctionName);
+            var blockBuilder = new Block.Builder(Container, buildingContext.FunctionName);
             // Copy over all of the base block data
             blockBuilder.MergeTypesFunctionsDescriptors(block);
 
             // Build the input/output types from the collected inputs and outputs
-            var inputBuilder = new ShaderType.StructBuilder(buildingContext.InputTypeName);
+            var inputBuilder = new ShaderType.StructBuilder(Container, buildingContext.InputTypeName);
             foreach (var input in inputs)
                 inputBuilder.AddField(input.Source.Type, input.Source.ReferenceName);
-            var inputType = inputBuilder.Build(Container);
+            var inputType = inputBuilder.Build();
             blockBuilder.AddType(inputType);
             var inputInstanceName = buildingContext.InputTypeName.ToLower();
 
-            var outputBuilder = new ShaderType.StructBuilder(buildingContext.OutputTypeName);
+            var outputBuilder = new ShaderType.StructBuilder(Container, buildingContext.OutputTypeName);
             foreach (var output in outputs)
                 outputBuilder.AddField(output.Destination.Type, output.Destination.ReferenceName);
-            var outputType = outputBuilder.Build(Container);
+            var outputType = outputBuilder.Build();
             blockBuilder.AddType(outputType);
             var outputInstanceName = buildingContext.OutputTypeName.ToLower();
 
@@ -325,7 +325,7 @@ namespace UnityEditor.ShaderFoundry
             var subBlockOutputInstanceName = subBlockOutputType.Name.ToLower();
 
             // Build up the actual description functions
-            var fnBuilder = new ShaderFunction.Builder(buildingContext.FunctionName, outputType);
+            var fnBuilder = new ShaderFunction.Builder(Container, buildingContext.FunctionName, outputType);
             fnBuilder.AddInput(inputType, inputInstanceName);
 
             fnBuilder.AddLine($"{subBlockInputType.Name} {subBlockInputInstanceName};");
@@ -355,10 +355,10 @@ namespace UnityEditor.ShaderFoundry
             }
 
             fnBuilder.AddLine($"return {outputInstanceName};");
-            var entryPointFn = fnBuilder.Build(Container);
+            var entryPointFn = fnBuilder.Build();
             blockBuilder.SetEntryPointFunction(entryPointFn);
 
-            return blockBuilder.Build(Container);
+            return blockBuilder.Build();
         }
     }
 }

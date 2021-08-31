@@ -13,11 +13,11 @@ namespace UnityEditor.ShaderFoundry
         {
             ITemplateProvider provider = new LegacyTemplateProvider(target, new ShaderGraph.AssetCollection());
 
-            var shaderDescBuilder = new ShaderDescriptor.Builder(shaderName);
+            var shaderDescBuilder = new ShaderDescriptor.Builder(container, shaderName);
             
             foreach(var template in provider.GetTemplates(container))
             {
-                var templateDescriptorBuilder = new TemplateDescriptor.Builder(template);
+                var templateDescriptorBuilder = new TemplateDescriptor.Builder(container, template);
 
                 // Hard-coded find the two customization points we know will exist. This really should discovered from iterating long-term
                 var customizationPoints = template.CustomizationPoints.ToList();
@@ -30,11 +30,11 @@ namespace UnityEditor.ShaderFoundry
                 templateDescriptorBuilder.AddCustomizationPointDescriptor(vertexCPDesc);
                 templateDescriptorBuilder.AddCustomizationPointDescriptor(surfaceCPDesc);
 
-                var templateDescriptor = templateDescriptorBuilder.Build(container);
+                var templateDescriptor = templateDescriptorBuilder.Build();
                 shaderDescBuilder.TemplateDescriptors.Add(templateDescriptor);
             }
             
-            var shaderDesc = shaderDescBuilder.Build(container);
+            var shaderDesc = shaderDescBuilder.Build();
             var generator = new ShaderGenerator();
             generator.Generate(shaderBuilder, container, shaderDesc);
         }
@@ -42,25 +42,25 @@ namespace UnityEditor.ShaderFoundry
         // Simple helper to make a type from a bunch of variables
         internal static ShaderType BuildStructFromVariables(ShaderContainer container, string typeName, IEnumerable<BlockVariable> variables)
         {
-            var typeBuilder = new ShaderType.StructBuilder(typeName);
+            var typeBuilder = new ShaderType.StructBuilder(container, typeName);
             foreach (var variable in variables)
-                typeBuilder.AddField(new StructField.Builder(variable.ReferenceName, variable.Type));
-            return typeBuilder.Build(container);
+                typeBuilder.AddField(variable.Type, variable.ReferenceName);
+            return typeBuilder.Build();
         }
 
         internal static void MarkAsProperty(ShaderContainer container, BlockVariable.Builder variableBuilder, string propertyType)
         {
             // An input tagged with 'Property' is auto added as a property
-            variableBuilder.AddAttribute(new ShaderAttribute.Builder(CommonShaderAttributes.Property).Build(container));
+            variableBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Property).Build());
             // [PropertyType] is used to fill out the type in the material attribute.
             // Currently the Value is used to set this, but the name has to be non-empty...
-            variableBuilder.AddAttribute(new ShaderAttribute.Builder(CommonShaderAttributes.PropertyType).Param(propertyType, propertyType).Build(container));
+            variableBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PropertyType).Param(propertyType, propertyType).Build());
         }
 
         internal static BlockDescriptor BuildSimpleBlockDescriptor(ShaderContainer container, Block block)
         {
-            var blockDescBuilder = new BlockDescriptor.Builder(block);
-            return blockDescBuilder.Build(container);
+            var blockDescBuilder = new BlockDescriptor.Builder(container, block);
+            return blockDescBuilder.Build();
         }
 
         internal static void BuildTexture2D(ShaderContainer container, string referenceName, string displayName, List<BlockVariable> inputs, List<BlockVariable> properties)
@@ -69,49 +69,49 @@ namespace UnityEditor.ShaderFoundry
             // we need the material declaration for the texture, and the 4 uniforms (texture, sampler, ST, TexelSize).
             // Not all of these are required, but this is showing a full example.
 
-            var propertyBuilder = new BlockVariable.Builder();
+            var propertyBuilder = new BlockVariable.Builder(container);
             propertyBuilder.ReferenceName = referenceName;
             propertyBuilder.DisplayName = displayName;
             propertyBuilder.Type = container._Texture2D;
             
             // [PropertyType] is used to fill out the type in the material attribute.
             // Currently the Value is used to set this, but the name has to be non-empty...
-            propertyBuilder.AddAttribute(new ShaderAttribute.Builder(CommonShaderAttributes.PropertyType).Param("2D", "2D").Build(container));
+            propertyBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PropertyType).Param("2D", "2D").Build());
             // Default expression is everything after the equal sign in the declaration
             propertyBuilder.DefaultExpression = "\"white\" {}";
-            var textureProperty = propertyBuilder.Build(container);
+            var textureProperty = propertyBuilder.Build();
             properties.Add(textureProperty);
 
             // Currently, attributes are used to describe where each uniform is declared. The only two supported ones right now are [Global] and [PerMaterial].
-            var globalLocationAttribute = new ShaderAttribute.Builder(CommonShaderAttributes.Global).Build(container);
-            var perMaterialLocationAttribute = new ShaderAttribute.Builder(CommonShaderAttributes.PerMaterial).Build(container);
+            var globalLocationAttribute = new ShaderAttribute.Builder(container, CommonShaderAttributes.Global).Build();
+            var perMaterialLocationAttribute = new ShaderAttribute.Builder(container, CommonShaderAttributes.PerMaterial).Build();
 
-            var texture2DInputBuilder = new BlockVariable.Builder();
+            var texture2DInputBuilder = new BlockVariable.Builder(container);
             texture2DInputBuilder.ReferenceName = referenceName;
             texture2DInputBuilder.Type = container._Texture2D;
             texture2DInputBuilder.AddAttribute(globalLocationAttribute);
-            var texture2DInput = texture2DInputBuilder.Build(container);
+            var texture2DInput = texture2DInputBuilder.Build();
             inputs.Add(texture2DInput);
 
-            var samplerBuilder = new BlockVariable.Builder();
+            var samplerBuilder = new BlockVariable.Builder(container);
             samplerBuilder.ReferenceName = $"sampler{referenceName}";
             samplerBuilder.Type = container._SamplerState;
             samplerBuilder.AddAttribute(globalLocationAttribute);
-            var sampler = samplerBuilder.Build(container);
+            var sampler = samplerBuilder.Build();
             inputs.Add(sampler);
 
-            var texelSizeBuilder = new BlockVariable.Builder();
+            var texelSizeBuilder = new BlockVariable.Builder(container);
             texelSizeBuilder.ReferenceName = $"{referenceName}_TexelSize";
             texelSizeBuilder.Type = container._float4;
             texelSizeBuilder.AddAttribute(perMaterialLocationAttribute);
-            var texelSize = texelSizeBuilder.Build(container);
+            var texelSize = texelSizeBuilder.Build();
             inputs.Add(texelSize);
 
-            var stBuilder = new BlockVariable.Builder();
+            var stBuilder = new BlockVariable.Builder(container);
             stBuilder.ReferenceName = $"{referenceName}_ST";
             stBuilder.Type = container._float4;
             stBuilder.AddAttribute(perMaterialLocationAttribute);
-            var st = stBuilder.Build(container);
+            var st = stBuilder.Build();
             inputs.Add(st);
         }
 
