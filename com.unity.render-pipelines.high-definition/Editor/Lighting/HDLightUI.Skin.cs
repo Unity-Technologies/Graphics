@@ -95,7 +95,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent distance = EditorGUIUtility.TrTextContent("Distance", "Distance from the camera (in meters) to the emissive celestial body represented by the light. Primarily used for sorting.");
 
             public readonly GUIContent shape = EditorGUIUtility.TrTextContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, and Area.");
-            public readonly GUIContent[] shapeNames;
             public readonly GUIContent enableSpotReflector = EditorGUIUtility.TrTextContent("Reflector", "When enabled, HDRP simulates a physically correct Spot Light using a reflector. This means the narrower the Outer Angle, the more intense the Spot Light.  When disabled, the intensity of the Light matches the one of a Point Light and thus remains constant regardless of the Outer Angle.");
             public readonly GUIContent luxAtDistance = EditorGUIUtility.TrTextContent("At", "Sets the distance, in meters, where a surface receives the amount of light equivalent to the provided number of Lux.");
 
@@ -161,13 +160,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // Warnings
             public readonly string unsupportedLightShapeWarning = L10n.Tr("This light shape is not supported by Realtime Global Illumination.");
             public readonly string unsupportedPresetPropertiesMessage = L10n.Tr("When using Preset of Light Component, only a subset of properties are supported.  Unsupported properties are hidden.");
-
-            public Styles()
-            {
-                shapeNames = Enum.GetNames(typeof(UnityEngine.Rendering.HighDefinition.HDLightType))
-                    .Select(x => new GUIContent(x))
-                    .ToArray();
-            }
         }
 
         static Styles s_Styles = new Styles();
