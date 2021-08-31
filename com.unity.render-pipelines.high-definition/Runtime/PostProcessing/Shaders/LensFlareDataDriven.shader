@@ -26,7 +26,6 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #define HDRP_FLARE
-            #define FLARE_DYNAMIC_RESOLUTION
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareCommon.hlsl"
 
             ENDHLSL
@@ -56,7 +55,6 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #define HDRP_FLARE
-            #define FLARE_DYNAMIC_RESOLUTION
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareCommon.hlsl"
 
             ENDHLSL
@@ -86,7 +84,6 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #define HDRP_FLARE
-            #define FLARE_DYNAMIC_RESOLUTION
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareCommon.hlsl"
 
             ENDHLSL
@@ -116,7 +113,6 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #define HDRP_FLARE
-            #define FLARE_DYNAMIC_RESOLUTION
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareCommon.hlsl"
 
             ENDHLSL

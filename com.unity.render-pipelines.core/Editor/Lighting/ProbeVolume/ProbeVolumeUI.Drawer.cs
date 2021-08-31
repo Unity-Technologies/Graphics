@@ -56,6 +56,9 @@ namespace UnityEditor.Experimental.Rendering
 
             if (performFitting)
             {
+                ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
+                Undo.RecordObject(pv.transform, "Fitting Probe Volume");
+
                 if (performFittingOnlyOnSelection)
                 {
                     var transforms = Selection.transforms;
@@ -92,8 +95,7 @@ namespace UnityEditor.Experimental.Rendering
                     }
                 }
 
-                (serialized.serializedObject.targetObject as ProbeVolume).transform.position = bounds.center;
-
+                pv.transform.position = bounds.center;
                 float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
                 Vector3 tmpClamp = (bounds.size + new Vector3(minBrickSize, minBrickSize, minBrickSize));
                 tmpClamp.x = Mathf.Max(0f, tmpClamp.x);

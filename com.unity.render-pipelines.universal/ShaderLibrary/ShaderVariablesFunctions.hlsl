@@ -196,12 +196,21 @@ float3 NormalizeNormalPerVertex(float3 normalWS)
 
 half3 NormalizeNormalPerPixel(half3 normalWS)
 {
+// With XYZ normal map encoding we sporadically sample normals with near-zero-length causing Inf/NaN
+#if defined(UNITY_NO_DXT5nm) && defined(_NORMALMAP)
+    return SafeNormalize(normalWS);
+#else
     return normalize(normalWS);
+#endif
 }
 
 float3 NormalizeNormalPerPixel(float3 normalWS)
 {
+#if defined(UNITY_NO_DXT5nm) && defined(_NORMALMAP)
+    return SafeNormalize(normalWS);
+#else
     return normalize(normalWS);
+#endif
 }
 
 

@@ -316,20 +316,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             private bool m_UseDebugGlobalMipBiasOverride = false;
 
-            /// <summary>
-            /// Returns true if the rendering pipeline should apply the mip bias override from the debug settings.
-            /// </summary>
-            /// <returns>True if mip bias override should be applied, false otherwise</returns>
-            public bool UseDebugGlobalMipBiasOverride()
+            internal bool UseDebugGlobalMipBiasOverride()
             {
                 return m_UseDebugGlobalMipBiasOverride;
             }
 
-            /// <summary>
-            /// Sets whether to use or not use the mip bias override in the rendering pipeline.
-            /// </summary>
-            /// <param name="value">True to tell the rendering pipeline to use the mip bias override, false otherwise</returns>
-            public void SetUseDebugGlobalMipBiasOverride(bool value)
+            internal void SetUseDebugGlobalMipBiasOverride(bool value)
             {
                 m_UseDebugGlobalMipBiasOverride = value;
             }
