@@ -42,7 +42,10 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
 #endif
 
+//TODOPAUL: Check if we can early remove useless interpolator
+#if !defined(HAVE_VFX_MODIFICATION)
     color *= unpacked.color;
+#endif
 
     SurfaceData2D surfaceData;
     InitializeSurfaceData(color.rgb, color.a, surfaceDescription.SpriteMask, surfaceData);

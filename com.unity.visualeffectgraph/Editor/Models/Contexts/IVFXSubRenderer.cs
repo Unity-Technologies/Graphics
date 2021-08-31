@@ -46,6 +46,9 @@ namespace UnityEditor.VFX
 
                 m_PropertyMap.Add(p.name, p.floatValue);
             }
+
+            //TODOPAUL: Workaround for sprite
+            m_PropertyMap.Add("dummy", 0.0f);
         }
 
         public void ApplyToMaterial(Material material)

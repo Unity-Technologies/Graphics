@@ -25,8 +25,10 @@ half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inpu
     const half2 lightingUV = inputData.lightingUV;
 
     AlphaDiscard(alpha, 0);
-
+//TODOPAUL: Check if we can early remove useless interpolator
+#if !defined(HAVE_VFX_MODIFICATION)
     color = color * _RendererColor; // This is needed for sprite shape
+#endif
 
 #if USE_SHAPE_LIGHT_TYPE_0
     half4 shapeLight0 = SAMPLE_TEXTURE2D(_ShapeLightTexture0, sampler_ShapeLightTexture0, lightingUV);

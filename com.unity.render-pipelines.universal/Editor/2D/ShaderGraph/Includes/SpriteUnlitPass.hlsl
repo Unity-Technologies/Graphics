@@ -41,6 +41,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     }
     #endif
 
+//TODOPAUL: Check if we can early remove useless interpolator
+#if !defined(HAVE_VFX_MODIFICATION)
     color *= unpacked.color * _RendererColor;
+#endif
     return color;
 }
