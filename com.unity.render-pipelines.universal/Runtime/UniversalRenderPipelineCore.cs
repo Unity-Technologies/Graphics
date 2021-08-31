@@ -295,6 +295,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int orthoParams = Shader.PropertyToID("unity_OrthoParams");
 
         public static readonly int screenSize = Shader.PropertyToID("_ScreenSize");
+        public static readonly int sourceSize = Shader.PropertyToID("_SourceSize");
 
         public static readonly int viewMatrix = Shader.PropertyToID("unity_MatrixV");
         public static readonly int projectionMatrix = Shader.PropertyToID("glstate_matrix_projection");

@@ -154,10 +154,12 @@ namespace UnityEngine.Rendering.Universal
 
             Rect pixelRect = cameraData.pixelRect;
             float renderScale = cameraData.isSceneViewCamera ? 1f : cameraData.renderScale;
-            float scaledCameraWidth = (float)pixelRect.width * renderScale;
-            float scaledCameraHeight = (float)pixelRect.height * renderScale;
             float cameraWidth = (float)pixelRect.width;
             float cameraHeight = (float)pixelRect.height;
+            float sourceWidth = cameraWidth;
+            float sourceHeight = cameraHeight;
+            float scaledCameraWidth = cameraWidth * renderScale;
+            float scaledCameraHeight = cameraHeight * renderScale;
 
             // Use eye texture's width and height as screen params when XR is enabled
             if (cameraData.xr.enabled)
@@ -174,6 +176,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 scaledCameraWidth *= ScalableBufferManager.widthScaleFactor;
                 scaledCameraHeight *= ScalableBufferManager.heightScaleFactor;
+
+                if (camera.targetTexture == null)
+                {
+                    sourceWidth *= ScalableBufferManager.widthScaleFactor;
+                    sourceHeight *= ScalableBufferManager.heightScaleFactor;
+                }
             }
 
             float near = camera.nearClipPlane;
@@ -193,7 +201,6 @@ namespace UnityEngine.Rendering.Universal
             float zc1 = far * invNear;
 
             Vector4 zBufferParams = new Vector4(zc0, zc1, zc0 * invFar, zc1 * invFar);
-
             if (SystemInfo.usesReversedZBuffer)
             {
                 zBufferParams.y += zBufferParams.x;
@@ -216,10 +223,10 @@ namespace UnityEngine.Rendering.Universal
             // Camera and Screen variables as described in https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
             cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, cameraData.worldSpaceCameraPos);
             cmd.SetGlobalVector(ShaderPropertyId.screenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+            cmd.SetGlobalVector(ShaderPropertyId.sourceSize, new Vector4(sourceWidth, sourceHeight, 1.0f / sourceWidth, 1.0f / sourceHeight));
             cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
             cmd.SetGlobalVector(ShaderPropertyId.zBufferParams, zBufferParams);
             cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
-
             cmd.SetGlobalVector(ShaderPropertyId.screenSize, new Vector4(cameraWidth, cameraHeight, 1.0f / cameraWidth, 1.0f / cameraHeight));
         }
 

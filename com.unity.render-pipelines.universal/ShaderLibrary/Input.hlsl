@@ -84,6 +84,7 @@ SAMPLER(sampler_GlossyEnvironmentCubeMap);
 
 #define _InvCameraViewProj unity_MatrixInvVP
 float4 _ScaledScreenParams;
+float4 _SourceSize;
 
 float4 _MainLightPosition;
 half4 _MainLightColor;

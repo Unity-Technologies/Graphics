@@ -39,6 +39,11 @@ VertexNormalInputs GetVertexNormalInputs(float3 normalOS, float4 tangentOS)
     return tbn;
 }
 
+float4 GetSourceSize()
+{
+    return _SourceSize;
+}
+
 float4 GetScaledScreenParams()
 {
     return _ScaledScreenParams;
@@ -366,7 +371,7 @@ void TransformNormalizedScreenUV(inout float2 uv)
 
 float2 GetNormalizedScreenSpaceUV(float2 positionCS)
 {
-    float2 normalizedScreenSpaceUV = positionCS.xy * rcp(GetScaledScreenParams().xy);
+    float2 normalizedScreenSpaceUV = positionCS.xy * rcp(GetSourceSize().xy);
     TransformNormalizedScreenUV(normalizedScreenSpaceUV);
     return normalizedScreenSpaceUV;
 }

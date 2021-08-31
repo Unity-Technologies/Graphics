@@ -16,7 +16,6 @@ SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 
 // Params
 float4 _SSAOParams;
-float4 _SourceSize;
 float4 _ProjectionParams2;
 float4x4 _CameraViewProjections[2]; // This is different from UNITY_MATRIX_VP (platform-agnostic projection matrix is used). Handle both non-XR and XR modes.
 float4 _CameraViewTopLeftCorner[2]; // TODO: check if we can use half type
@@ -176,7 +175,7 @@ float3 ReconstructNormal(float2 uv, float depth, float3 vpos)
     #if defined(_RECONSTRUCT_NORMAL_LOW)
         return normalize(cross(ddy(vpos), ddx(vpos)));
     #else
-        float2 delta = _SourceSize.zw * 2.0;
+        float2 delta = GetSourceSize().zw * 2.0;
 
         // Sample the neighbour fragments
         float2 lUV = float2(-delta.x, 0.0);
@@ -389,7 +388,7 @@ half4 HorizontalBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
-    float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
+    float2 delta = float2(GetSourceSize().z * rcp(DOWNSAMPLE) * 2.0, 0.0);
     return Blur(uv, delta);
 }
 
@@ -398,7 +397,7 @@ half4 VerticalBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
-    float2 delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
+    float2 delta = float2(0.0, GetSourceSize().w * rcp(DOWNSAMPLE) * 2.0);
     return Blur(uv, delta);
 }
 
@@ -407,7 +406,7 @@ half4 FinalBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
-    float2 delta = _SourceSize.zw * rcp(DOWNSAMPLE);
+    float2 delta = GetSourceSize().zw * rcp(DOWNSAMPLE);
     return 1.0 - BlurSmall(uv, delta );
 }
 

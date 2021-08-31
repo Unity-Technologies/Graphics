@@ -22,7 +22,6 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         TEXTURE2D_X(_DofTexture);
         TEXTURE2D_X(_FullCoCTexture);
 
-        half4 _SourceSize;
         half4 _HalfSourceSize;
         half4 _DownSampleScaleFactor;
         half4 _CoCParams;
@@ -39,7 +38,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
-            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _SourceSize.xy * uv).x;
+            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, GetSourceSize().xy * uv).x;
             float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 
             half coc = (1.0 - FocusDist / linearEyeDepth) * MaxCoC;
@@ -75,7 +74,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
 
         #else
 
-            float3 duv = _SourceSize.zwz * float3(0.5, 0.5, -0.5);
+            float3 duv = GetSourceSize().zwz * float3(0.5, 0.5, -0.5);
             float2 uv0 = uv - duv.xy;
             float2 uv1 = uv - duv.zy;
             float2 uv2 = uv + duv.zy;
@@ -119,7 +118,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             half coc = (-cocMin > cocMax ? cocMin : cocMax) * MaxRadius;
 
             // Premultiply CoC
-            avg *= smoothstep(0, _SourceSize.w * 2.0, abs(coc));
+            avg *= smoothstep(0, GetSourceSize().w * 2.0, abs(coc));
 
         #if defined(UNITY_COLORSPACE_GAMMA)
             avg = GetSRGBToLinear(avg);
@@ -187,7 +186,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
             // 9-tap tent filter with 4 bilinear samples
-            float4 duv = _SourceSize.zwzw * _DownSampleScaleFactor.zwzw * float4(0.5, 0.5, -0.5, 0);
+            float4 duv = GetSourceSize().zwzw * _DownSampleScaleFactor.zwzw * float4(0.5, 0.5, -0.5, 0);
             half4 acc;
             acc  = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - duv.xy);
             acc += SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - duv.zy);
@@ -206,7 +205,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             coc = (coc - 0.5) * 2.0 * MaxRadius;
 
             // Convert CoC to far field alpha value
-            float ffa = smoothstep(_SourceSize.w * 2.0, _SourceSize.w * 4.0, coc);
+            float ffa = smoothstep(GetSourceSize().w * 2.0, GetSourceSize().w * 4.0, coc);
 
             half4 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv);
 
