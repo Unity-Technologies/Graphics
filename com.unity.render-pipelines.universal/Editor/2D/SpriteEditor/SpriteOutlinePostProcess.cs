@@ -115,13 +115,17 @@ namespace UnityEditor.Rendering.Universal
             // set indices
 
             // setup the submeshes
-            sprite.SetSubMeshCount(tesses.Length);
+            sprite.SetSubMeshCount(tesses.Length + 1);
             vertexOffset = 0;
             indexOffset = 0;
-            var index = 0;
+            var subMeshIndex = 0;
+
+            // submesh 0 is always the entire thing
+            sprite.SetSubMesh(subMeshIndex++, 0, totalVertices, 0, totalIndices);
+
             foreach (var tess in tesses)
             {
-                sprite.SetSubMesh(index++, vertexOffset, tess.VertexCount, indexOffset, tess.Elements.Length);
+                sprite.SetSubMesh(subMeshIndex++, vertexOffset, tess.VertexCount, indexOffset, tess.Elements.Length);
                 vertexOffset += tess.VertexCount;
                 indexOffset += tess.Elements.Length;
             }
