@@ -19,7 +19,7 @@ The title bar at the top of the **Shader Graph Window** contains actions that ca
 | Color Mode        | Provides the drop down menu to select a [Color Mode](Color-Modes.md) for the graph. |
 | Blackboard        | Toggles visibility of the [Blackboard](Blackboard.md). |
 | Graph Inspector   | Toggles visibility of the [Graph Inspector](Internal-Inspector.md). |
-| Main Preview    | Toggles visbility of the [Main Preview](Main-Preview.md). |
+| Main Preview    | Toggles visibility of the [Main Preview](Main-Preview.md). |
 
 ## Workspace
 
