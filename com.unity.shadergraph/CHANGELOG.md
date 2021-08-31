@@ -131,6 +131,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed incorrect warning while using VFXTarget
 - Fixed a bug with Sprite Targets in ShaderGraph not rendering correctly in game view [1352225]
 - Fixed compilation problems on preview shader when using hybrid renderer v2 and property desc override Hybrid Per Instance
+- Fixed noise nodes to use a deterministic integer hash, instead of platform dependent floating point hashes [1156544]
 
 ## [11.0.0] - 2020-10-21
 

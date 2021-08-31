@@ -14,6 +14,12 @@ Generates a Voronoi, or [Worley](https://en.wikipedia.org/wiki/Worley_noise), no
 | Out | Output      |    Float    | None | Output noise value |
 | Cells | Output      |    Float    | None | Raw cell data |
 
+## Controls
+
+| Name        | Type           | Options  | Description |
+|:------------ |:-------------|:-----|:---|
+| Hash Type      | Dropdown | Deterministic, LegacySine | Selects the hash function used to generate random numbers |
+
 ## Generated Code Example
 
 The following example code represents one possible outcome of this node.
