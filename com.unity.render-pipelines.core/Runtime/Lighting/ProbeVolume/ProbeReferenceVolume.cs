@@ -295,6 +295,8 @@ namespace UnityEngine.Experimental.Rendering
             public SphericalHarmonicsL2[] sh;
             public float[] validity;
             public int minSubdiv;
+            public int indexChunkCount;
+            public int shChunkCount;
         }
 
         internal class CellInfo
@@ -1086,13 +1088,14 @@ namespace UnityEngine.Experimental.Rendering
             var bricks = cell.bricks;
 
             // calculate the number of chunks necessary
-            int ch_size = m_Pool.GetChunkSize();
+            int ch_size = ProbeBrickPool.GetChunkSize();
             var ch_list = new List<Chunk>((bricks.Count + ch_size - 1) / ch_size);
 
             // Try to allocate texture space
             if (!m_Pool.Allocate(ch_list.Capacity, ch_list))
                 return false;
 
+            // Create temporary allocation to copy SH data over to main atlas.
             var dataloc = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed: false, m_SHBands, out var allocatedBytes);
             ProbeBrickPool.FillDataLocation(ref dataloc, cell.sh, m_SHBands);
 
@@ -1135,7 +1138,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Registry.Add(id, ch_list);
 
             // Build index
-            m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);
+            m_Index.AddBricks(id, bricks, ch_list, ProbeBrickPool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);
 
             // Update CellInfo
             cellInfo.regId = id;

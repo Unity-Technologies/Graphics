@@ -63,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering
 
         const int kMaxPoolWidth = 1 << 11; // 2048 texels is a d3d11 limit for tex3d in all dimensions
 
-        int m_AllocationSize;
+        static int m_AllocationSize;
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         DataLocation m_Pool;
         BrickChunkAlloc m_NextFreeChunk;
@@ -103,7 +103,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        internal int GetChunkSize() { return m_AllocationSize; }
+        internal static int GetChunkSize() { return m_AllocationSize; }
         internal int GetChunkSizeInProbeCount() { return m_AllocationSize * kBrickProbeCountTotal; }
 
         internal int GetPoolWidth() { return m_Pool.width; }
@@ -126,6 +126,12 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_FreeList.Clear();
             m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
+        }
+
+        internal static int GetChunkCount(int brickCount)
+        {
+            int chunkSize = GetChunkSize();
+            return (brickCount + chunkSize - 1) / chunkSize;
         }
 
         internal bool Allocate(int numberOfBrickChunks, List<BrickChunkAlloc> outAllocations)
