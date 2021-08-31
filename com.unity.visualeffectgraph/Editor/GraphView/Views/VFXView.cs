@@ -389,7 +389,6 @@ namespace UnityEditor.VFX.UI
         readonly Texture2D m_UnlinkedIcon;
 
         VFXNodeProvider m_NodeProvider;
-        ToolbarButton m_SaveButton;
         bool m_IsRuntimeMode;
         bool m_ForceShaderValidation;
 
@@ -410,7 +409,6 @@ namespace UnityEditor.VFX.UI
         {
             string path = string.Format("{0}/VFX/{1}.png", VisualEffectAssetEditorUtility.editorResourcesPath, text);
             return EditorGUIUtility.LoadIcon(path);
-            //return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }
 
         SelectionDragger m_SelectionDragger;
