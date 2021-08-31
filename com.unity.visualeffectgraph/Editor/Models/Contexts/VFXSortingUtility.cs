@@ -60,19 +60,6 @@ namespace UnityEditor.VFX
         {
             return criteria is SortCriteria.CameraDepth or SortCriteria.DistanceToCamera;
         }
-        class SortKeySlotComparer : EqualityComparer<VFXSlot>
-        {
-            public override bool Equals(VFXSlot x, VFXSlot y)
-            {
-                return x.GetExpression().Equals(y.GetExpression());
-            }
-
-            public override int GetHashCode(VFXSlot obj)
-            {
-                return obj.GetExpression().GetHashCode();
-            }
-        }
-
         public static TResult MajorityVote<TResult, TVoter>(IEnumerable<TVoter> voterContainer, Func<TVoter, TResult> getVoteFunc, IEqualityComparer<TResult> comparer = null)
         {
             Dictionary<TResult, int> voteCounts = comparer == null ? new Dictionary<TResult, int>() : new Dictionary<TResult, int>(comparer) ;
@@ -86,27 +73,47 @@ namespace UnityEditor.VFX
             return voteCounts.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
         }
 
-        private static readonly SortKeySlotComparer sortKeySlotComparer = new SortKeySlotComparer();
+        private static readonly SortingCriteriaComparer s_SortingCriteriaComparer = new SortingCriteriaComparer();
         public static bool OutputNeedsOwnSort(VFXAbstractParticleOutput abstractParticleOutput, bool needsGlobalSort,
-            SortCriteria globalSortCriterion, VFXSlot globalSortKeySlot)
+            SortingCriterion globalSortCriterion)
         {
+            var outputSortingCriteria = new SortingCriterion(abstractParticleOutput);
             return abstractParticleOutput.HasSorting() && needsGlobalSort &&
-                   (abstractParticleOutput.GetSortCriterion() != globalSortCriterion
-                    || abstractParticleOutput.GetSortCriterion() == SortCriteria.Custom
-                    && !sortKeySlotComparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"), globalSortKeySlot));
+                   !s_SortingCriteriaComparer.Equals(outputSortingCriteria, globalSortCriterion);
+        }
+        public static void SetContextSortCriteria(ref VFXGlobalSort globalSort, SortingCriterion globalSortCriterion)
+        {
+            globalSort.sortCriterion = globalSortCriterion.sortCriterion;
+            globalSort.revertSorting = globalSortCriterion.revertSorting;
+            if (globalSort.sortCriterion == SortCriteria.Custom)
+            {
+                globalSort.customSortingSlot = globalSortCriterion.sortKeySlot;
+            }
         }
 
         public class SortingCriterion
         {
             public SortCriteria sortCriterion;
             public VFXSlot sortKeySlot = null;
+            public bool revertSorting = false;
 
-            public SortingCriterion(SortCriteria sortCriterion, VFXSlot sortKeySlot)
+            public SortingCriterion(SortCriteria sortCriterion, VFXSlot sortKeySlot, bool revertSorting)
             {
                 this.sortCriterion = sortCriterion;
+                this.revertSorting = revertSorting;
                 if (sortCriterion == SortCriteria.Custom)
                 {
                     this.sortKeySlot = sortKeySlot;
+                }
+            }
+
+            public SortingCriterion(VFXAbstractParticleOutput output)
+            {
+                sortCriterion = output.GetSortCriterion();
+                revertSorting = output.revertSorting;
+                if (sortCriterion == SortCriteria.Custom)
+                {
+                    sortKeySlot = output.inputSlots.FirstOrDefault(o => o.name == "sortKey");
                 }
             }
 
@@ -119,7 +126,7 @@ namespace UnityEditor.VFX
 
         public static SortingCriterion GetVoteFunc(VFXAbstractParticleOutput output)
         {
-            return new SortingCriterion(output.GetSortCriterion(), output.inputSlots.FirstOrDefault(s => s.name == "sortKey"));
+            return new SortingCriterion(output.GetSortCriterion(), output.inputSlots.FirstOrDefault(s => s.name == "sortKey"), output.revertSorting);
         }
 
         public class SortingCriteriaComparer : EqualityComparer<SortingCriterion>
@@ -128,16 +135,20 @@ namespace UnityEditor.VFX
             {
                 if (x.sortCriterion != y.sortCriterion)
                     return false;
-                if(x.sortCriterion == SortCriteria.Custom)
-                    if (x.sortKeySlot.GetExpression().Equals(y.sortKeySlot.GetExpression()))
-                        return true;
-                return false;
+                if (x.revertSorting != y.revertSorting)
+                    return false;
+                if (x.sortCriterion == SortCriteria.Custom)
+                {
+                    return x.sortKeySlot.GetExpression().Equals(y.sortKeySlot.GetExpression());
+                }
+                return true;
             }
 
 
             public override int GetHashCode(SortingCriterion obj)
             {
                 int hash = obj.sortCriterion.GetHashCode();
+                hash ^= obj.revertSorting.GetHashCode();
                 if (obj.sortCriterion == SortCriteria.Custom)
                     hash ^= obj.sortKeySlot.GetExpression().GetHashCode();
                 return hash;
