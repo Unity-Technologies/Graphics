@@ -12,6 +12,12 @@ Generates a gradient, or [Perlin](https://en.wikipedia.org/wiki/Perlin_noise), n
 | Scale      | Input | Float    | None | Noise scale |
 | Out | Output      |    Float    | None | Output value |
 
+## Controls
+
+| Name        | Type           | Options  | Description |
+|:------------ |:-------------|:-----|:---|
+| Hash Type      | Dropdown | Deterministic, LegacyMod | Selects the hash function used to generate random numbers |
+
 ## Generated Code Example
 
 The following example code represents one possible outcome of this node.
