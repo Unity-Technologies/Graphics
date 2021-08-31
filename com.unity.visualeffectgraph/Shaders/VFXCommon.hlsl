@@ -60,11 +60,13 @@ struct VFXSamplerCube
     SamplerState s;
 };
 
+#if SHADER_AVAILABLE_CUBEARRAY
 struct VFXSamplerCubeArray
 {
     TextureCubeArray t;
     SamplerState s;
 };
+#endif
 
 #if !VFX_WORLD_SPACE && !VFX_LOCAL_SPACE
 #error VFXCommon.hlsl should be included after space defines
@@ -118,10 +120,12 @@ float4 SampleTexture(VFXSamplerCube s, float3 coords)
     return SAMPLE_TEXTURECUBE(s.t, s.s, coords);
 }
 
+#if SHADER_AVAILABLE_CUBEARRAY
 float4 SampleTexture(VFXSamplerCubeArray s, float3 coords, float slice)
 {
     return SAMPLE_TEXTURECUBE_ARRAY(s.t, s.s, coords, slice);
 }
+#endif
 
 float4 SampleTexture(VFXSampler2D s, float2 coords, float level)
 {
@@ -143,10 +147,12 @@ float4 SampleTexture(VFXSamplerCube s, float3 coords, float level)
     return SAMPLE_TEXTURECUBE_LOD(s.t, s.s, coords, level);
 }
 
+#if SHADER_AVAILABLE_CUBEARRAY
 float4 SampleTexture(VFXSamplerCubeArray s, float3 coords, float slice, float level)
 {
     return SAMPLE_TEXTURECUBE_ARRAY_LOD(s.t, s.s, coords, slice, level);
 }
+#endif
 
 float4 LoadTexture(VFXSampler2D s, int3 pixelCoords)
 {
@@ -261,6 +267,7 @@ VFXSamplerCube GetVFXSampler(TextureCube t, SamplerState s)
     return vfxSampler;
 }
 
+#if SHADER_AVAILABLE_CUBEARRAY
 VFXSamplerCubeArray GetVFXSampler(TextureCubeArray t, SamplerState s)
 {
     VFXSamplerCubeArray vfxSampler;
@@ -268,6 +275,7 @@ VFXSamplerCubeArray GetVFXSampler(TextureCubeArray t, SamplerState s)
     vfxSampler.s = s;
     return vfxSampler;
 }
+#endif
 
 uint ConvertFloatToSortableUint(float f)
 {
