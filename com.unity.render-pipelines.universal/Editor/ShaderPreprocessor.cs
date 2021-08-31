@@ -28,27 +28,26 @@ namespace UnityEditor.Rendering.Universal
         MixedLighting = (1 << 6),
         TerrainHoles = (1 << 7),
         DeferredShading = (1 << 8), // DeferredRenderer is in the list of renderer
-        DeferredWithAccurateGbufferNormals = (1 << 9),
-        DeferredWithoutAccurateGbufferNormals = (1 << 10),
-        ScreenSpaceOcclusion = (1 << 11),
-        ScreenSpaceShadows = (1 << 12),
-        UseFastSRGBLinearConversion = (1 << 13),
-        LightLayers = (1 << 14),
-        ReflectionProbeBlending = (1 << 15),
-        ReflectionProbeBoxProjection = (1 << 16),
-        DBufferMRT1 = (1 << 17),
-        DBufferMRT2 = (1 << 18),
-        DBufferMRT3 = (1 << 19),
-        DecalScreenSpace = (1 << 20),
-        DecalGBuffer = (1 << 21),
-        DecalNormalBlendLow = (1 << 22),
-        DecalNormalBlendMedium = (1 << 23),
-        DecalNormalBlendHigh = (1 << 24),
-        ClusteredRendering = (1 << 25),
-        RenderPassEnabled = (1 << 26),
-        MainLightShadowsCascade = (1 << 27),
-        DrawProcedural = (1 << 28),
-        ScreenSpaceOcclusionAfterOpaque = (1 << 29),
+        AccurateGbufferNormals = (1 << 9),
+        ScreenSpaceOcclusion = (1 << 10),
+        ScreenSpaceShadows = (1 << 11),
+        UseFastSRGBLinearConversion = (1 << 12),
+        LightLayers = (1 << 13),
+        ReflectionProbeBlending = (1 << 14),
+        ReflectionProbeBoxProjection = (1 << 15),
+        DBufferMRT1 = (1 << 16),
+        DBufferMRT2 = (1 << 17),
+        DBufferMRT3 = (1 << 18),
+        DecalScreenSpace = (1 << 19),
+        DecalGBuffer = (1 << 20),
+        DecalNormalBlendLow = (1 << 21),
+        DecalNormalBlendMedium = (1 << 22),
+        DecalNormalBlendHigh = (1 << 23),
+        ClusteredRendering = (1 << 24),
+        RenderPassEnabled = (1 << 25),
+        MainLightShadowsCascade = (1 << 26),
+        DrawProcedural = (1 << 27),
+        ScreenSpaceOcclusionAfterOpaque = (1 << 28),
     }
 
     [Flags]
@@ -385,8 +384,17 @@ namespace UnityEditor.Rendering.Universal
                 !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
                 return true;
 
-            if (stripTool.StripMultiCompile(m_LightLayers, ShaderFeatures.LightLayers))
-                return true;
+            if (compilerData.shaderCompilerPlatform == ShaderCompilerPlatform.GLES20)
+            {
+                // GLES2 does not support bitwise operations.
+                if (compilerData.shaderKeywordSet.IsEnabled(m_LightLayers))
+                    return true;
+            }
+            else
+            {
+                if (stripTool.StripMultiCompile(m_LightLayers, ShaderFeatures.LightLayers))
+                    return true;
+            }
 
             if (stripTool.StripMultiCompile(m_RenderPassEnabled, ShaderFeatures.RenderPassEnabled))
                 return true;
@@ -455,7 +463,7 @@ namespace UnityEditor.Rendering.Universal
             // TODO: make sure vulkan works after refactor
             // Do not strip accurateGbufferNormals on Mobile Vulkan as some GPUs do not support R8G8B8A8_SNorm, which then force us to use accurateGbufferNormals
             if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.Vulkan &&
-                stripTool.StripMultiCompile(m_GbufferNormalsOct, ShaderFeatures.DeferredWithAccurateGbufferNormals))
+                stripTool.StripMultiCompile(m_GbufferNormalsOct, ShaderFeatures.AccurateGbufferNormals))
                 return true;
 
             if (compilerData.shaderKeywordSet.IsEnabled(m_UseDrawProcedural) &&
@@ -896,8 +904,7 @@ namespace UnityEditor.Rendering.Universal
             bool hasScreenSpaceShadows = false;
             bool hasScreenSpaceOcclusion = false;
             bool hasDeferredRenderer = false;
-            bool withAccurateGbufferNormals = false;
-            bool withoutAccurateGbufferNormals = false;
+            bool accurateGbufferNormals = false;
             bool clusteredRendering = false;
             bool onlyClusteredRendering = false;
             bool usesRenderPass = false;
@@ -910,8 +917,7 @@ namespace UnityEditor.Rendering.Universal
                     if (universalRenderer.renderingMode == RenderingMode.Deferred)
                     {
                         hasDeferredRenderer |= true;
-                        withAccurateGbufferNormals |= universalRenderer.accurateGbufferNormals;
-                        withoutAccurateGbufferNormals |= !universalRenderer.accurateGbufferNormals;
+                        accurateGbufferNormals |= universalRenderer.accurateGbufferNormals;
                         usesRenderPass |= universalRenderer.useRenderPassEnabled;
                     }
                 }
@@ -976,12 +982,8 @@ namespace UnityEditor.Rendering.Universal
             if (hasDeferredRenderer)
                 shaderFeatures |= ShaderFeatures.DeferredShading;
 
-            // We can only strip accurateGbufferNormals related variants if all DeferredRenderers use the same option.
-            if (withAccurateGbufferNormals)
-                shaderFeatures |= ShaderFeatures.DeferredWithAccurateGbufferNormals;
-
-            if (withoutAccurateGbufferNormals)
-                shaderFeatures |= ShaderFeatures.DeferredWithoutAccurateGbufferNormals;
+            if (accurateGbufferNormals)
+                shaderFeatures |= ShaderFeatures.AccurateGbufferNormals;
 
             if (hasScreenSpaceShadows)
                 shaderFeatures |= ShaderFeatures.ScreenSpaceShadows;
