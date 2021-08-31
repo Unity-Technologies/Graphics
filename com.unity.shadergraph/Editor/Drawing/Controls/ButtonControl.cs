@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             }
             var value = (ButtonConfig)propertyInfo.GetValue(m_Node, null);
 
-            Add(new Button(value.action) { text = value.text});
+            Add(new Button(value.action) { text = value.text });
         }
     }
 }

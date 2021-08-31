@@ -27,19 +27,19 @@ namespace UnityEngine.Rendering.Universal
         IPixelPerfectCamera m_Component;
         PixelPerfectCamera m_SerializableComponent;
 
-        internal float  originalOrthoSize;
-        internal bool   hasPostProcessLayer;
-        internal bool   cropFrameXAndY      = false;
-        internal bool   cropFrameXOrY       = false;
-        internal bool   useStretchFill      = false;
-        internal int    zoom                = 1;
-        internal bool   useOffscreenRT      = false;
-        internal int    offscreenRTWidth    = 0;
-        internal int    offscreenRTHeight   = 0;
-        internal Rect   pixelRect           = Rect.zero;
-        internal float  orthoSize           = 1.0f;
-        internal float  unitsPerPixel       = 0.0f;
-        internal int    cinemachineVCamZoom = 1;
+        internal float originalOrthoSize;
+        internal bool hasPostProcessLayer;
+        internal bool cropFrameXAndY = false;
+        internal bool cropFrameXOrY = false;
+        internal bool useStretchFill = false;
+        internal int zoom = 1;
+        internal bool useOffscreenRT = false;
+        internal int offscreenRTWidth = 0;
+        internal int offscreenRTHeight = 0;
+        internal Rect pixelRect = Rect.zero;
+        internal float orthoSize = 1.0f;
+        internal float unitsPerPixel = 0.0f;
+        internal int cinemachineVCamZoom = 1;
 
         internal PixelPerfectCameraInternal(IPixelPerfectCamera component)
         {

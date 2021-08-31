@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Header("Wind")]
         public ClampedFloatParameter windOrientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         /// <summary>Controls the global wind speed in kilometers per hour.</summary>
-        public MinFloatParameter windSpeed = new MinFloatParameter(100.0f, 0.0f);
+        public FloatParameter windSpeed = new FloatParameter(100.0f);
 
         // Deprecated, kept for migration
         [SerializeField]
@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">Sky Ambient Mode parameter.</param>
         /// <param name="overrideState">Initial override value.</param>
         public SkyAmbientModeParameter(SkyAmbientMode value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -211,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="mode">Initial override mode.</param>
         /// <param name="overrideState">Initial override value.</param>
         public WindOrientationParameter(float value = 0.0f, WindOverrideMode mode = WindOverrideMode.Global, bool overrideState = false)
-            : base(value, mode, overrideState) {}
+            : base(value, mode, overrideState) { }
 
         /// <summary>Returns the value stored in the volume.</summary>
         /// <param name="camera">The camera containing the volume stack to evaluate</param>
@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="mode">Initial override mode.</param>
         /// <param name="overrideState">Initial override value.</param>
         public WindSpeedParameter(float value = 100.0f, WindOverrideMode mode = WindOverrideMode.Global, bool overrideState = false)
-            : base(value, mode, overrideState) {}
+            : base(value, mode, overrideState) { }
 
         /// <summary>Returns the value stored in the volume.</summary>
         /// <param name="camera">The camera containing the volume stack to evaluate</param>
