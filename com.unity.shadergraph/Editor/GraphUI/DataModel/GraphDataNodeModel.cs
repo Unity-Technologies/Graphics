@@ -1,4 +1,4 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry;
@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         public bool existsInGraphData => m_GraphDataName != null && TryGetNodeReader(out _);
 
         IGraphHandler graphHandler => ((ShaderGraphModel)GraphModel).GraphHandler;
-        IRegistry registry => ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
+        Registry.Registry registry => ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
 
         public bool TryGetNodeWriter(out INodeWriter writer)
         {
@@ -123,7 +123,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
                     this.AddDataOutputPort(portReader.GetName(), type, orientation: orientation);
 
                 // Mark node as containing a preview if any of the ports on it are flagged as a preview port
-                if (portReader.GetFlags().IsPreview)
+                if (portReader.TryGetField("_isPreview", out var previewField) && previewField.TryGetValue(out bool previewData) && previewData)
                     nodeHasPreview = true;
             }
 
