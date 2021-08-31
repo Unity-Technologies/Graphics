@@ -2,7 +2,7 @@
 <UXML xmlns:ui="UnityEngine.UIElements">
     <ui:Box class="section">
         <ui:Label text="Install Additional Samples" class="category" />
-        <ui:Button name="installSamples" text="VFX Graph Addition" tooltip="Installs pre built VFX examples" class="indented" />
+        <ui:Button name="installSamples" text="VFX Graph Additions" tooltip="Installs pre built VFX examples" class="indented" />
         <ui:Button name="graphAddition" text="Output Event Helpers" tooltip="Installs helper scripts to add behaviors on VFX events" class="indented" />
     </ui:Box>
     <ui:Box class="section alternate">
