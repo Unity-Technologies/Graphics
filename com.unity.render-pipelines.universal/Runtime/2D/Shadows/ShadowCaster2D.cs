@@ -277,21 +277,28 @@ namespace UnityEngine.Rendering.Universal
         internal void DrawPreviewOutline()
         {
             NativeArray<Vector3> outline;
+            NativeArray<int> shapeStartingIndices;
             float contractionDistance = m_ShadowCastingSource == ShadowCastingSources.ShapeProvider ? m_ShadowShapeContract : 0;
 
-            m_ShadowShape.GenerateShadowOutline(contractionDistance, out outline);
+            m_ShadowShape.GenerateShadowOutline(contractionDistance, out outline, out shapeStartingIndices);
             Transform t = transform;
 
             Handles.color = Color.white;
-            for (int i = 0; i < outline.Length - 1; ++i)
+            for (int shape=0;shape<shapeStartingIndices.Length;shape++)
             {
-                Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(outline[i]), t.TransformPoint(outline[i + 1]) });
+                int shapeStart = shapeStartingIndices[shape];
+                int shapeEnd = shape + 1 < shapeStartingIndices.Length ? shapeStartingIndices[shape + 1] : outline.Length;
+
+                for (int i=shapeStart;i<shapeEnd;i++)
+                {
+                    Vector3 lineStart = outline[i];
+                    Vector3 lineEnd = i + 1 < shapeEnd ? outline[i + 1] : outline[shapeStart];
+                    Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(lineStart), t.TransformPoint(lineEnd) });
+                }
             }
-
-            if (outline.Length > 1)
-                Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(outline[outline.Length - 1]), t.TransformPoint(outline[0]) });
-
+            
             outline.Dispose();
+            shapeStartingIndices.Dispose();
         }
 
         void Reset()

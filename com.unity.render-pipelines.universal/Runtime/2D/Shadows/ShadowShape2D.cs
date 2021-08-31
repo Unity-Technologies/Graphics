@@ -294,9 +294,9 @@ namespace UnityEngine.Rendering.Universal
             ShadowUtility.GenerateShadowMesh(mesh, m_ProvidedVertices, m_ProvidedEdges, m_ShapeStartingIndices, contractionDistance);
         }
 
-        internal void GenerateShadowOutline(float contractionDistance, out NativeArray<Vector3> outline)
+        internal void GenerateShadowOutline(float contractionDistance, out NativeArray<Vector3> outline, out NativeArray<int> shapeStartingIndices)
         {
-            ShadowUtility.GenerateShadowOutline(m_ProvidedVertices, m_ProvidedEdges, m_ShapeStartingIndices, contractionDistance, out outline);
+            ShadowUtility.GenerateShadowOutline(m_ProvidedVertices, m_ProvidedEdges, m_ShapeStartingIndices, contractionDistance, out outline, out shapeStartingIndices);
         }
 
         ~ShadowShape2D()

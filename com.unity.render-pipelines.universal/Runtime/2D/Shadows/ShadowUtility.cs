@@ -233,11 +233,22 @@ namespace UnityEngine.Rendering.Universal
             return retBoundingSphere;
         }
 
-        static public void GenerateShadowOutline(NativeArray<Vector2> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices, float contractionDistance, out NativeArray<Vector3> outline)
+        static public void GenerateShadowOutline(NativeArray<Vector2> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices, float contractionDistance, out NativeArray<Vector3> outOutline, out NativeArray<int> outShapeStartingIndices)
         {
             Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
 
-            outline = new NativeArray<Vector3>(inVertices.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            int shapeCount = 0;
+            for (;shapeCount<inShapeStartingIndices.Length;shapeCount++)
+            {
+                if (inShapeStartingIndices[shapeCount] < 0)
+                    break;
+            }
+
+            outOutline = new NativeArray<Vector3>(inVertices.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            outShapeStartingIndices = new NativeArray<int>(shapeCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            for (int i = 0; i < shapeCount; i++)
+                outShapeStartingIndices[i] = inShapeStartingIndices[i];
 
             // Setup our buffers
             int meshVertexCount = inVertices.Length + 2 * inEdges.Length;                       // Each vertex will have a duplicate that can be extruded.
@@ -250,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
             // Get vertex reduction directions
             CalculateTangents(ref inVertices, ref inEdges, ref meshTangents);                            // meshVertices contain a normal component
             CalculateContraction(ref inVertices, ref inEdges, ref meshTangents, ref inShapeStartingIndices, contractionDistance, ref contractedVertices);
-            ReorderVertices(ref contractedVertices, ref inEdges, ref outline);
+            ReorderVertices(ref contractedVertices, ref inEdges, ref outOutline);
 
             meshTangents.Dispose();
             meshIndices.Dispose();
