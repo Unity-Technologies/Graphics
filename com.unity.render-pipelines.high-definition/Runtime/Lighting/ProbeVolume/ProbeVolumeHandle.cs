@@ -23,8 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ref ProbeVolumeArtistParameters parameters => ref m_List.GetParameters(m_Index);
 
-        public int GetAtlasID() => m_List.GetAtlasID(m_Index);
-        public int GetBakeID() => m_List.GetBakeID(m_Index);
+        public ProbeVolumeGlobalUniqueID GetAtlasID() => m_List.GetAtlasID(m_Index);
         public ProbeVolume.ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey() => m_List.ComputeProbeVolumeAtlasKey(m_Index);
         public ProbeVolume.ProbeVolumeAtlasKey GetProbeVolumeAtlasKeyPrevious() => m_List.GetProbeVolumeAtlasKeyPrevious(m_Index);
         public void SetProbeVolumeAtlasKeyPrevious(ProbeVolume.ProbeVolumeAtlasKey key) => m_List.SetProbeVolumeAtlasKeyPrevious(m_Index, key);

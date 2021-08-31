@@ -389,7 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable]
     internal struct ProbeVolumeSettingsKey
     {
-        public int id;
+        public ProbeVolumeGlobalUniqueID id;
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 size;
@@ -401,7 +401,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly ProbeVolumeSettingsKey zero = new ProbeVolumeSettingsKey()
         {
-            id = 0,
+            id = ProbeVolumeGlobalUniqueID.zero,
             position = Vector3.zero,
             rotation = Quaternion.identity,
             size = Vector3.zero,
@@ -639,6 +639,113 @@ namespace UnityEngine.Rendering.HighDefinition
         public ComputeBuffer ValidityBuffer;
     }
 
+    // Unity will only natively serialize ints, but we want to serialize ulong global unique ids.
+    // Split up the bits across two ints for serialization.
+    [System.Serializable]
+    internal struct ProbeVolumeGlobalUniqueID : IEquatable<ProbeVolumeGlobalUniqueID>
+    {
+        [SerializeField] private int value_31_0;
+        [SerializeField] private int value_63_32;
+        [SerializeField] private int value_95_64;
+        [SerializeField] private int value_127_96;
+        [SerializeField] private int value_159_128;
+        [SerializeField] private int value_191_160;
+        [SerializeField] private int value_194_192;
+
+        public ProbeVolumeGlobalUniqueID(int identifierType, ulong assetGUID_127_64, ulong assetGUID_63_0, ulong targetObjectId, ulong targetPrefabId)
+        {
+            Debug.Assert((identifierType >= 0) && (identifierType < ((1 << 2) - 1)));
+            Debug.Assert((targetObjectId == 0) || (targetPrefabId == 0));
+
+            ulong maskLo = (1ul << 32) - 1ul;
+            value_31_0 = unchecked((int)(maskLo & assetGUID_63_0));
+            value_63_32 = unchecked((int)(assetGUID_63_0 >> 32));
+
+            value_95_64 = unchecked((int)(maskLo & assetGUID_127_64));
+            value_127_96 = unchecked((int)(assetGUID_127_64 >> 32));
+
+            bool isPrefab = (targetPrefabId != 0);
+            ulong targetId = isPrefab ? targetPrefabId : targetObjectId;
+            value_159_128 = unchecked((int)(maskLo & targetId));
+            value_191_160 = unchecked((int)(targetId >> 32));
+
+            value_194_192 = isPrefab ? 1 : 0;
+            value_194_192 |= unchecked((int)(((uint)identifierType) << 1));
+        }
+
+        private void Decode(out int identifierType, out ulong assetGUID_127_64, out ulong assetGUID_63_0, out ulong targetObjectId, out ulong targetPrefabId)
+        {
+            assetGUID_63_0 = (((ulong)unchecked((uint)value_63_32)) << 32) | (ulong)unchecked((uint)value_31_0);
+            assetGUID_127_64 = (((ulong)unchecked((uint)value_127_96)) << 32) | (ulong)unchecked((uint)value_95_64);
+
+            identifierType = (int)(unchecked((uint)value_194_192) >> 1);
+
+            bool isPrefab = (unchecked((uint)value_194_192) & 1u) == 1u;
+
+            ulong targetId = (((ulong)unchecked((uint)value_191_160)) << 32) | (ulong)unchecked((uint)value_159_128);
+
+            targetObjectId = isPrefab ? 0ul : targetId;
+            targetPrefabId = isPrefab ? targetId : 0ul;
+        }
+
+        public static readonly ProbeVolumeGlobalUniqueID zero = new ProbeVolumeGlobalUniqueID()
+        {
+            value_31_0 = 0,
+            value_63_32 = 0,
+            value_95_64 = 0,
+            value_127_96 = 0,
+            value_159_128 = 0,
+            value_191_160 = 0,
+            value_194_192 = 0
+        };
+
+        public bool Equals(ProbeVolumeGlobalUniqueID other)
+        {
+            return (this.value_31_0 == other.value_31_0)
+                && (this.value_63_32 == other.value_63_32)
+                && (this.value_95_64 == other.value_95_64)
+                && (this.value_127_96 == other.value_127_96)
+                && (this.value_159_128 == other.value_159_128)
+                && (this.value_191_160 == other.value_191_160)
+                && (this.value_194_192 == other.value_194_192);
+        }
+
+        public override bool Equals(object other)
+        {
+            return other is ProbeVolumeGlobalUniqueID globalUniqueID && Equals(globalUniqueID);
+        }
+
+        public override int GetHashCode()
+        {
+            var hash = value_31_0.GetHashCode();
+            hash = hash * 23 + value_63_32.GetHashCode();
+            hash = hash * 23 + value_63_32.GetHashCode();
+            hash = hash * 23 + value_95_64.GetHashCode();
+            hash = hash * 23 + value_127_96.GetHashCode();
+            hash = hash * 23 + value_191_160.GetHashCode();
+            hash = hash * 23 + value_194_192.GetHashCode();
+
+            return hash;
+        }
+
+        public override string ToString()
+        {
+            Decode(out int identifierType, out ulong assetGUID_127_64, out ulong assetGUID_63_0, out ulong targetObjectId, out ulong targetPrefabId);
+
+            return string.Format("V1-{0}-{1:x16}{2:x16}-{3}-{4}", identifierType, assetGUID_127_64, assetGUID_63_0, targetObjectId, targetPrefabId);
+        }
+
+        public static bool operator == (ProbeVolumeGlobalUniqueID lhs, ProbeVolumeGlobalUniqueID rhs)
+        {
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(ProbeVolumeGlobalUniqueID lhs, ProbeVolumeGlobalUniqueID rhs)
+        {
+            return !lhs.Equals(rhs);
+        }
+    }
+
     [ExecuteAlways]
     [AddComponentMenu("Light/Experimental/Probe Volume")]
     internal class ProbeVolume : MonoBehaviour
@@ -650,7 +757,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private ProbeVolumeSettingsKey bakeKey = new ProbeVolumeSettingsKey
         {
-            id = 0,
+            id = ProbeVolumeGlobalUniqueID.zero,
             position = Vector3.zero,
             rotation = Quaternion.identity,
             size = Vector3.zero,
@@ -663,7 +770,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal struct ProbeVolumeAtlasKey : IEquatable<ProbeVolumeAtlasKey>
         {
-            public int id;
+            public ProbeVolumeGlobalUniqueID id;
             public Quaternion rotation;
             public int width;
             public int height;
@@ -671,7 +778,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public static readonly ProbeVolumeAtlasKey zero = new ProbeVolumeAtlasKey
             {
-                id = 0,
+                id = ProbeVolumeGlobalUniqueID.zero,
                 rotation = new Quaternion(0.0f, 0.0f, 0.0f, 0.0f),
                 width = 0,
                 height = 0,
@@ -739,6 +846,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool bakingEnabled = false;
         private bool dataNeedsDilation = false;
 #endif
+        [SerializeField] private ProbeVolumeGlobalUniqueID globalUniqueID = ProbeVolumeGlobalUniqueID.zero;
 
         [SerializeField] internal ProbeVolumeAsset probeVolumeAsset = null;
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
@@ -774,14 +882,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return probeVolumeAsset != null && probeVolumeAsset.IsDataAssigned();
         }
 
-        private int GetID()
+        private ProbeVolumeGlobalUniqueID GetPayloadID()
         {
-            return GetInstanceID();
-        }
-
-        private int GetPayloadID()
-        {
-            return (probeVolumeAsset == null) ? 0 : probeVolumeAsset.GetInstanceID();
+            return (probeVolumeAsset == null) ? ProbeVolumeGlobalUniqueID.zero : probeVolumeAsset.GetID();
         }
 
         internal ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey()
@@ -791,12 +894,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Quaternion assetRotation = GetAssetRotation();
             Quaternion volumeRotation = transform.rotation;
-            return ComputeProbeVolumeAtlasKey(GetID(),
+            return ComputeProbeVolumeAtlasKey(GetPayloadID(),
                 probeVolumeAsset.resolutionX, probeVolumeAsset.resolutionY, probeVolumeAsset.resolutionZ,
                 volumeRotation, assetRotation);
         }
 
-        internal static ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey(int id, int width, int height, int depth,
+        internal static ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey(ProbeVolumeGlobalUniqueID id, int width, int height, int depth,
             Quaternion volumeRotation, Quaternion assetRotation)
         {
             Quaternion sphericalHarmonicWSFromOS = Quaternion.Inverse(assetRotation) * volumeRotation;
@@ -823,16 +926,7 @@ namespace UnityEngine.Rendering.HighDefinition
             probeVolumeAtlasKeyPrevious = key;
         }
 
-        internal int GetBakeID()
-        {
-            int id = GetID();
-#if UNITY_EDITOR
-            Debug.Assert(id != AdditionalGIBakeRequestsManager.s_BakingID);
-#endif
-            return id;
-        }
-
-        public int GetAtlasID()
+        public ProbeVolumeGlobalUniqueID GetAtlasID()
         {
             // Use the payloadID, rather than the probe volume ID to uniquely identify data in the atlas.
             // This ensures that if 2 probe volume exist that point to the same data, that data will only be uploaded once.
@@ -968,6 +1062,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             dataNeedsDilation = false;
+            InitializeGlobalUniqueIDEditorOnly();
             ForceBakingEnabled();
 #endif
 
@@ -1110,16 +1205,19 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
+        internal ProbeVolumeGlobalUniqueID GetBakeID()
+        {
+            // Handle case where a globalUniqueId has not been assigned yet.
+            // This occurs due to legacy data - probe volumes that were serialized before we introduced globalUniqueIds.
+            // The IDs can only be generated in the editor, so no way to perform runtime migrations (i.e: during streaming).
+            return (globalUniqueID == ProbeVolumeGlobalUniqueID.zero) ? new ProbeVolumeGlobalUniqueID(0, 0, 0, (ulong)unchecked((uint)GetInstanceID()), 0) : globalUniqueID;
+        }
 
         public void SetProbeVolumeAsset(ProbeVolumeAsset asset)
         {
             probeVolumeAsset = asset;
             dataUpdated = true;
             bakeKey = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
-            if (probeVolumeAsset != null)
-            {
-                probeVolumeAsset.instanceID = GetID();
-            }
 
             UnityEditor.EditorUtility.SetDirty(this);
 
@@ -1147,7 +1245,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!UnityEditor.EditorApplication.isPlaying)
             {
                 // Do not spend time interacting with the baking API if we are in playmode.
-                UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetBakeID(), null);
+                if (AdditionalGIBakeRequestsManager.instance.TryGetLightmapperBakeIDFromBakeID(GetBakeID(), out int lightmapperBakeID))
+                {
+                    UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(lightmapperBakeID, null);
+                }
                 return;
             }
         }
@@ -1165,6 +1266,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
             // custom-end
+
+            if (ProbeVolumeAssetIsReadOnlyReference())
+            {
+                return;
+            }
 
             ProbeVolumeSettingsKey bakeKeyCurrent = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
             if (ProbeVolumeSettingsKeyEquals(ref bakeKey, ref bakeKeyCurrent))
@@ -1190,6 +1296,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             SetupProbePositions();
+        }
+
+        internal bool ProbeVolumeAssetIsReadOnlyReference()
+        {
+            // If this probe volume is referencing a probeVolumeAsset that it did not create, do not allow it to write (bake) to that asset.
+            return (probeVolumeAsset != null) && (probeVolumeAsset.globalUniqueID != ProbeVolumeGlobalUniqueID.zero) && (probeVolumeAsset.globalUniqueID != GetBakeID());
         }
 
         internal void OnLightingDataCleared()
@@ -1247,14 +1359,15 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             var octahedralDepth = new NativeArray<float>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 #endif
-
-            if(UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetBakeID(), sh, validity, octahedralDepth))
+            bool lightmapperBakeIDExists = AdditionalGIBakeRequestsManager.instance.TryGetLightmapperBakeIDFromBakeID(GetBakeID(), out int lightmapperBakeID);
+            if(lightmapperBakeIDExists && UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(lightmapperBakeID, sh, validity, octahedralDepth))
             {
                 if (probeVolumeAsset == null)
                 {
                     probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetBakeID());
-                    probeVolumeAsset.instanceID = GetID();
                 }
+
+                probeVolumeAsset.globalUniqueID = GetBakeID();
 
                 probeVolumeAsset.resolutionX = parameters.resolutionX;
                 probeVolumeAsset.resolutionY = parameters.resolutionY;
@@ -1306,7 +1419,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 string parentName = (transform.parent == null) ? "null" : transform.parent.name;
                 bool isCompanionGameObject = gameObject.scene.path == "";
                 string companionString = isCompanionGameObject ? "true" : "false";
-                Debug.LogFormat("Failed to get data at id: {0}, with probe volume: {1}, and parent: {2}, companionGameObject: {3}", GetBakeID(), name, parentName, companionString);
+                Debug.LogFormat("Failed to get data at id: {0}, with lightmapperBakeID {1}, with probe volume: {2}, and parent: {3}, companionGameObject: {4}", GetBakeID(), lightmapperBakeID, name, parentName, companionString);
             }
 
             sh.Dispose();
@@ -1386,6 +1499,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorApplication.isPlaying)
                 return;
 
+            if (!AdditionalGIBakeRequestsManager.instance.TryGetLightmapperBakeIDFromBakeID(GetBakeID(), out int lightmapperBakeID))
+                return;
+
             int probeCount = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
             m_ProbePositions = new Vector3[probeCount];
 
@@ -1408,12 +1524,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int x = 0; x < parameters.resolutionX; ++x)
                     {
                         Vector3 position = probeStartPosition + (probeSteps.x * x * obb.right) + (probeSteps.y * y * obb.up) + (probeSteps.z * z * -obb.forward);
-                        m_ProbePositions[processedProbes] = position;
+                        m_ProbePositions[processedProbes++] = position;
                     }
                 }
             }
 
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(GetBakeID(), m_ProbePositions);
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(lightmapperBakeID, m_ProbePositions);
             bakingEnabled = true;
         }
 
@@ -1466,6 +1582,99 @@ namespace UnityEngine.Rendering.HighDefinition
                 OnValidate();
                 HDRenderPipeline.currentPipeline.DrawProbeVolumeDebugSHPreview(this, camera);
             }
+        }
+
+        
+        private void InitializeGlobalUniqueIDEditorOnly()
+        {
+            if (UnityEditor.EditorApplication.isPlaying) { return; }
+
+            UnityEditor.GlobalObjectId globalObjectId = UnityEditor.GlobalObjectId.GetGlobalObjectIdSlow(this);
+            ProbeVolumeGlobalUniqueID globalUniqueIDGoal = ParseProbeVolumeGlobalUniqueIDFromGlobalObjectId(globalObjectId);
+
+            if (globalUniqueID == ProbeVolumeGlobalUniqueID.zero)
+            {
+                globalUniqueID = globalUniqueIDGoal;
+            }
+            else if (globalUniqueID != globalUniqueIDGoal)
+            {
+                // Encountered a Probe Volume who's serialized globalUniqueId does not match it's actual globalUniqueId.
+                // This occurs if a Probe Volume is duplicated.
+                globalUniqueID = globalUniqueIDGoal;
+                InitializeDuplicateProbeVolume();
+            }
+        }
+
+        private static readonly string GLOBAL_OBJECT_ID_ASSET_GUID_PREFIX = "GlobalObjectId_V1-0-";
+
+        private ProbeVolumeGlobalUniqueID ParseProbeVolumeGlobalUniqueIDFromGlobalObjectId(UnityEditor.GlobalObjectId globalObjectId)
+        {
+            // https://docs.unity3d.com/ScriptReference/GlobalObjectId.html
+            // GlobalObjectId_V1-0-00000000000000000000000000000000-0-0
+            string globalObjectIdString = globalObjectId.ToString();
+
+            int assetGUIDStringStart = GLOBAL_OBJECT_ID_ASSET_GUID_PREFIX.Length;
+
+            if (!TryParseUlongFromHexSubstringNoGCAlloc(out ulong assetGUID_127_64, globalObjectIdString, assetGUIDStringStart, assetGUIDStringStart + 15))
+            {
+                Debug.AssertFormat(false, "Failed to parse hi digits of GLobalObjectId string {0}", globalObjectIdString);
+            }
+
+            if (!TryParseUlongFromHexSubstringNoGCAlloc(out ulong assetGUID_63_0, globalObjectIdString, assetGUIDStringStart + 16, assetGUIDStringStart + 31))
+            {
+                Debug.AssertFormat(false, "Failed to parse lo digits of GLobalObjectId string {0}", globalObjectIdString);
+            }
+
+            return new ProbeVolumeGlobalUniqueID(globalObjectId.identifierType, assetGUID_127_64, assetGUID_63_0, globalObjectId.targetObjectId, globalObjectId.targetPrefabId);
+        }
+
+        private static bool TryParseUlongFromHexSubstringNoGCAlloc(out ulong res, string s, int start, int end)
+        {
+            Debug.Assert(start >= 0 && start < s.Length);
+            Debug.Assert(end >= start && end < s.Length);
+
+            // ulong can only store up to 16 hex digits.
+            Debug.Assert((end - start) < 16);
+
+            res = 0;
+            for (int i = start; i <= end; ++i)
+            {
+                ulong digit = 0;
+                switch (s[i])
+                {
+                    case '0': digit = 0; break;
+                    case '1': digit = 1; break;
+                    case '2': digit = 2; break;
+                    case '3': digit = 3; break;
+                    case '4': digit = 4; break;
+                    case '5': digit = 5; break;
+                    case '6': digit = 6; break;
+                    case '7': digit = 7; break;
+                    case '8': digit = 8; break;
+                    case '9': digit = 9; break;
+                    case 'a': digit = 10; break;
+                    case 'b': digit = 11; break;
+                    case 'c': digit = 12; break;
+                    case 'd': digit = 13; break;
+                    case 'e': digit = 14; break;
+                    case 'f': digit = 15; break;
+                    default: res = 0; return false;
+                }
+
+                res = res * 16ul + digit;
+            }
+
+            return true;
+        }
+
+        private void InitializeDuplicateProbeVolume()
+        {
+            // When a probe volume is duplicated, we unlink the asset.
+            // This is not strictly necessary, it is valid at runtime to have multiple probe volumes who point to the same asset.
+            // However, this is not valid to have multiple probe volumes pointing to the same asset at bake time.
+            // To be extra safe, simply unlink the asset so a new one will be created next time we bake.
+            probeVolumeAsset = null;
+            BakeKeyClear();
         }
 
         internal static Bounds ComputeBoundsWS(ProbeVolume probeVolume)
