@@ -68,3 +68,5 @@ MonoBehaviour:
     type: 2}
   m_DefaultUnlitMaterial: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40,
     type: 2}
+  m_DefaultMaskMaterial: {fileID: 2100000, guid: 15d0c3709176029428a0da2f8cecf0b5,
+    type: 2}

@@ -1,0 +1,836 @@
+fileFormatVersion: 2
+guid: 7f8d770bf189a4f1ba37ae9080453b5a
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 11
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMasterTextureLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: BuckMatthews_0
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 923
+        width: 170
+        height: 99
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8f21f20646f714a1d8556f41ea5db888
+      internalID: -1029674141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_1
+      rect:
+        serializedVersion: 2
+        x: 174
+        y: 923
+        width: 179
+        height: 98
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2aa6f8c306268487496242acf1f67bed
+      internalID: 1201942097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_2
+      rect:
+        serializedVersion: 2
+        x: 355
+        y: 923
+        width: 68
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b07eb278061f74ac697bcf8c9daa5694
+      internalID: 304957544
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_3
+      rect:
+        serializedVersion: 2
+        x: 441
+        y: 760
+        width: 175
+        height: 232
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 73f9ed4d5499a43958c1bbaebb631195
+      internalID: -1534692436
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_4
+      rect:
+        serializedVersion: 2
+        x: 618
+        y: 863
+        width: 187
+        height: 105
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2cf58ec1afe8b424b91ecf5bbfcc3d9b
+      internalID: -359640444
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_5
+      rect:
+        serializedVersion: 2
+        x: 807
+        y: 863
+        width: 145
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1a05937cd6b3c4f7eb3b09cc0f81ad89
+      internalID: 1576983446
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_6
+      rect:
+        serializedVersion: 2
+        x: 954
+        y: 928
+        width: 168
+        height: 82
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d208fffd711b4498bbe063a0c6baa3b4
+      internalID: -190990027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_7
+      rect:
+        serializedVersion: 2
+        x: 1124
+        y: 928
+        width: 95
+        height: 86
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 062d7080ef0ff4c388506608028964ac
+      internalID: -2015995242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_8
+      rect:
+        serializedVersion: 2
+        x: 1244
+        y: 910
+        width: 168
+        height: 112
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: be1fd4f971ad0421995af28c0e30de29
+      internalID: -1973260307
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_9
+      rect:
+        serializedVersion: 2
+        x: 1414
+        y: 929
+        width: 101
+        height: 93
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a4a8e6feb54e744dc8c5c3b647e4d047
+      internalID: 136571585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_10
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 760
+        width: 437
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 47f8014f5a6d4486f983b06a0f15de18
+      internalID: 1454136026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_11
+      rect:
+        serializedVersion: 2
+        x: 618
+        y: 571
+        width: 338
+        height: 290
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c2e816fba1e4f4b33b6165262ea07658
+      internalID: 238662363
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_12
+      rect:
+        serializedVersion: 2
+        x: 958
+        y: 590
+        width: 284
+        height: 336
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5f07b9b5fc9f74ca6986a11ff0dbc3bd
+      internalID: 20625407
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_13
+      rect:
+        serializedVersion: 2
+        x: 1244
+        y: 802
+        width: 178
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3e34e2af2f0b346068a465120f6e60fc
+      internalID: -192286085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_14
+      rect:
+        serializedVersion: 2
+        x: 1424
+        y: 802
+        width: 118
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 34606469421424693b0b5a19d6e2ab18
+      internalID: -1867436887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_15
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 597
+        width: 538
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a12e67bef31f249f8bcb948e83047abf
+      internalID: 149651013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_16
+      rect:
+        serializedVersion: 2
+        x: 542
+        y: 597
+        width: 70
+        height: 111
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 28f28835e497a454fa1b81725e191e15
+      internalID: -506905590
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_17
+      rect:
+        serializedVersion: 2
+        x: 1245
+        y: 464
+        width: 285
+        height: 336
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d017e3f5187cc41e2bc786c6e13189b2
+      internalID: 2055113964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_18
+      rect:
+        serializedVersion: 2
+        x: 1532
+        y: 671
+        width: 77
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bd2de445b02614ed99c8c3f3dc9b1396
+      internalID: -2126042828
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_19
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 2
+        width: 614
+        height: 593
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 709b128173aed45258b2d3450c9e0176
+      internalID: 1635423589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_20
+      rect:
+        serializedVersion: 2
+        x: 618
+        y: 409
+        width: 403
+        height: 160
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2e318385b6a3445ee9d24bb3f1497417
+      internalID: -615519624
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_21
+      rect:
+        serializedVersion: 2
+        x: 1023
+        y: 409
+        width: 199
+        height: 179
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 58f3d63fea54644229365399c3ee7de1
+      internalID: -153296191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_22
+      rect:
+        serializedVersion: 2
+        x: 1532
+        y: 490
+        width: 98
+        height: 179
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b73068625f0884b1da92d1b1f758ac29
+      internalID: 1547606876
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_23
+      rect:
+        serializedVersion: 2
+        x: 1632
+        y: 490
+        width: 98
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 59622f50f8ddb4a87bf838e4d4be3551
+      internalID: -921348304
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_24
+      rect:
+        serializedVersion: 2
+        x: 1732
+        y: 490
+        width: 113
+        height: 105
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 99bb7ad7daf8f4b6293300ed3593e411
+      internalID: -1459257919
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_25
+      rect:
+        serializedVersion: 2
+        x: 1847
+        y: 490
+        width: 108
+        height: 84
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5d2f1aa8e09984158a96b96b7a08d928
+      internalID: -1971038568
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_26
+      rect:
+        serializedVersion: 2
+        x: 1957
+        y: 490
+        width: 89
+        height: 92
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bf67fe72202d5450ea278f5d2456444b
+      internalID: 1633136393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_27
+      rect:
+        serializedVersion: 2
+        x: 618
+        y: 334
+        width: 625
+        height: 73
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 48aea42ac598241d8ab50b17e8b4d3ad
+      internalID: -2087570834
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_28
+      rect:
+        serializedVersion: 2
+        x: 1255
+        y: 181
+        width: 352
+        height: 281
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: feaa251b5b7d74213ab2d666627ddacf
+      internalID: 390236223
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_29
+      rect:
+        serializedVersion: 2
+        x: 1609
+        y: 196
+        width: 352
+        height: 292
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c0bd506ff55914dab92e294dfccad76a
+      internalID: 292112899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_30
+      rect:
+        serializedVersion: 2
+        x: 618
+        y: 2
+        width: 635
+        height: 330
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9396ecfa032bf4efba68ed5dfbd47698
+      internalID: -1291304819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_31
+      rect:
+        serializedVersion: 2
+        x: 1255
+        y: 2
+        width: 469
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cf166a0e348ce44f1b05596e328d6fd8
+      internalID: 1238340841
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BuckMatthews_32
+      rect:
+        serializedVersion: 2
+        x: 1726
+        y: 2
+        width: 293
+        height: 192
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 65338e5e15d884e48984b44a8392fe11
+      internalID: 748910247
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      BuckMatthews_23: -921348304
+      BuckMatthews_12: 20625407
+      BuckMatthews_28: 390236223
+      BuckMatthews_8: -1973260307
+      BuckMatthews_11: 238662363
+      BuckMatthews_9: 136571585
+      BuckMatthews_2: 304957544
+      BuckMatthews_31: 1238340841
+      BuckMatthews_27: -2087570834
+      BuckMatthews_5: 1576983446
+      BuckMatthews_1: 1201942097
+      BuckMatthews_21: -153296191
+      BuckMatthews_25: -1971038568
+      BuckMatthews_7: -2015995242
+      BuckMatthews_17: 2055113964
+      BuckMatthews_22: 1547606876
+      BuckMatthews_24: -1459257919
+      BuckMatthews_6: -190990027
+      BuckMatthews_15: 149651013
+      BuckMatthews_3: -1534692436
+      BuckMatthews_13: -192286085
+      BuckMatthews_20: -615519624
+      BuckMatthews_26: 1633136393
+      BuckMatthews_18: -2126042828
+      BuckMatthews_30: -1291304819
+      BuckMatthews_29: 292112899
+      BuckMatthews_10: 1454136026
+      BuckMatthews_16: -506905590
+      BuckMatthews_32: 748910247
+      BuckMatthews_14: -1867436887
+      BuckMatthews_4: -359640444
+      BuckMatthews_0: -1029674141
+      BuckMatthews_19: 1635423589
+  spritePackingTag: 
+  pSDRemoveMatte: 0
+  pSDShowRemoveMatteOption: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
