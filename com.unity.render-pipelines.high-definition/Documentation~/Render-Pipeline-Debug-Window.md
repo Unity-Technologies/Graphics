@@ -1,6 +1,6 @@
 # Rendering Debugger
 
-The **Render Pipeline Debug** window is a specific window for the Scriptable Render Pipeline that contains debugging and visualization tools. You can use these tools to quickly understand and solve any issues you might encounter. It contains mostly graphics-related tools but you can extend it to include tools for any other field, such as animation. The **Render Pipeline Debug** window separates debug items into different sections as follows:
+The **Rendering Debugger** is a specific window for the Scriptable Render Pipeline that contains debugging and visualization tools. You can use these tools to quickly understand and solve any issues you might encounter. It contains mostly graphics-related tools but you can extend it to include tools for any other field, such as animation. The **Rendering Debugger** separates debug items into different sections as follows:
 
 - [Decals](#DecalsPanel)
 - [Display Stats](#StatsPanel)
@@ -10,11 +10,9 @@ The **Render Pipeline Debug** window is a specific window for the Scriptable Ren
 - [Rendering](#RenderingPanel)
 - [Camera](#CameraPanel)
 
-![](Images/RenderPipelineDebug1.png)
+![](Images/RenderPipelineDebug1.png)<br/>*The Rendering Debugger.*
 
-The Rendering Debugger window.
-
-## Using the Rendering Debugger window
+## Using the Rendering Debugger
 
 The Rendering Debugger window is available in the following modes:
 
@@ -24,7 +22,11 @@ The Rendering Debugger window is available in the following modes:
 
 * At runtime in the standalone Unity Player, on any device. The window is only available in **Development Builds**.
 
-To open the window in the Editor, select **Window > Analysis > Rendering Debugger**.
+To open the Rendering Debugger in the Editor:
+
+* Enable **Runtime Debug Shaders** in **HDRP Global Settings** (in the menu: **Edit > Project Settings > Graphics > HDRP Settings**).
+
+* Select **Window > Analysis > Rendering Debugger**.
 
 To open the window in the Play mode, or at runtime in a Development Build, use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller.
 
@@ -255,7 +257,7 @@ The **NVIDIA device debug view** is a panel that shows a list of the current fea
 
 ## Camera panels
 
-In the **Render Pipeline Debugger** window , each active Camera in the Scene has its own debug window. Use the Camera's debug window to temporarily change that Camera's [Frame Settings](Frame-Settings.md) without altering the Camera data in the Scene. The Camera window helps you to understand why a specific feature does not work correctly. You can access all of the information that HDRP uses the render the Camera you select.
+In the **Rendering Debugger**, each active Camera in the Scene has its own debug window. Use the Camera's debug window to temporarily change that Camera's [Frame Settings](Frame-Settings.md) without altering the Camera data in the Scene. The Camera window helps you to understand why a specific feature does not work correctly. You can access all of the information that HDRP uses the render the Camera you select.
 
 **Note**: The Camera debug window is only available for Cameras, not Reflection Probes.
 
