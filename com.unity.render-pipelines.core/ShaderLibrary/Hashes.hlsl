@@ -56,6 +56,34 @@ void Hash_Tchou_2_3_half(half2 i, out half3 o)
     o = r * (1.0 / float(0xffffffff));
 }
 
+void Hash_Tchou_2_2_uint(uint2 v, out uint2 o)
+{
+    // ~8 alu (2 mul)
+    v.y ^= 1103515245U;
+    v.x += v.y;
+    v.x *= v.y;
+    v.x ^= v.x >> 5u;
+    v.x *= 0x27d4eb2du;
+    v.y ^= (v.x << 3u);
+    o = v;
+}
+
+void Hash_Tchou_2_2_float(float2 i, out float2 o)
+{
+    uint2 r;
+    uint2 v = (uint2) (int2) round(i);
+    Hash_Tchou_2_2_uint(v, r);
+    o = r * (1.0 / float(0xffffffff));
+}
+
+void Hash_Tchou_2_2_half(half2 i, out half2 o)
+{
+    uint2 r;
+    uint2 v = (uint2) (int2) round(i);
+    Hash_Tchou_2_2_uint(v, r);
+    o = r * (1.0 / float(0xffffffff));
+}
+
 void Hash_Tchou_3_1_uint(uint3 v, out uint o)
 {
     // ~15 alu (3 mul)
@@ -157,13 +185,23 @@ void Hash_BetterSine_2_1_half(half2 i, out half o)
 void Hash_LegacySine_2_2_float(float2 i, out float2 o)
 {
     float2x2 m = float2x2(15.27, 47.63, 99.41, 89.98);
-    o = frac(sin(mul(i, m)));
+    float2 angles = mul(i, m);
+#if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN))
+    // 'sin()' has bad precision on Mali GPUs for inputs > 10000
+    angles = fmod(angles, TWO_PI); // Avoid large inputs to sin()
+#endif
+    o = frac(sin(angles));
 }
 
 void Hash_LegacySine_2_2_half(half2 i, out half2 o)
 {
     half2x2 m = half2x2(15.27, 47.63, 99.41, 89.98);
-    o = frac(sin(mul(i, m)));
+    half2 angles = mul(i, m);
+#if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN))
+    // 'sin()' has bad precision on Mali GPUs for inputs > 10000
+    angles = fmod(angles, TWO_PI); // Avoid large inputs to sin()
+#endif
+    o = frac(sin(angles));
 }
 
 void Hash_LegacyMod_2_1_float(float2 i, out float o)
