@@ -5,46 +5,9 @@
 
 {% metadata_file .yamato/_cache_config.metafile -%}
 {% metadata_file .yamato/_latest_editor_versions_2021.2.metafile -%}
-{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
 ---
 
-PR_Universal_Split_trunk:
-    name: PR Universal_Split on trunk
-    variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/all-urp_2d.yml#PR_URP_2D_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-urp_foundation.yml#PR_URP_Foundation_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-urp_lighting.yml#PR_URP_Lighting_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-urp_terrain.yml#PR_URP_Terrain_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-urp_postpro.yml#PR_URP_PostPro_trunk
-         rerun: on_new_revision
-Extra_Universal_Split_trunk:
-    name: Extra Universal_Split on trunk
-    variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        UTR_VERSION: "current"
-        TEST_FILTER: .*
-        CACHE_ARGS: '{{cache.flags}}'
-    dependencies:
-      -  path: .yamato/all-urp_2d.yml#Extra_URP_2D_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-urp_foundation.yml#Extra_URP_Foundation_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-urp_lighting.yml#Extra_URP_Lighting_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-urp_terrain.yml#Extra_URP_Terrain_trunk
-         rerun: on_new_revision
-      -  path: .yamato/all-urp_postpro.yml#Extra_URP_PostPro_trunk
-         rerun: on_new_revision
 PR_Universal_Split_2021.2:
     name: PR Universal_Split on 2021.2
     variables:
