@@ -634,6 +634,61 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        protected override void ProcessRenderRequests(ScriptableRenderContext renderContext, Camera camera, List<Camera.RenderRequest> renderRequests)
+        {
+            var cameras = new [] {camera};
+            BeginFrameRendering(renderContext, cameras);
+
+            GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
+            SetupPerFrameShaderConstants();
+
+            BeginCameraRendering(renderContext, camera);
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+            VFX.VFXManager.PrepareCamera(camera);
+#endif
+            UpdateVolumeFramework(camera, null);
+
+
+            var cameraTarget = camera.targetTexture;
+
+            foreach (var renderRequest in renderRequests)
+            {
+
+                if (!renderRequest.isValid)
+                    continue;
+                RenderWithMode(renderContext, camera, renderRequest);
+            }
+
+            EndCameraRendering(renderContext, camera);
+            EndFrameRendering(renderContext, cameras);
+            camera.targetTexture = cameraTarget;
+        }
+
+        private static void RenderWithMode(ScriptableRenderContext renderContext, Camera camera, Camera.RenderRequest renderRequest)
+        {
+                camera.targetTexture = renderRequest.result;
+
+                UniversalAdditionalCameraData additionalCameraData = null;
+                if (IsGameCamera(camera))
+                    camera.gameObject.TryGetComponent(out additionalCameraData);
+
+                if (additionalCameraData != null && additionalCameraData.renderType != CameraRenderType.Base)
+                {
+                    Debug.LogWarning("Only Base cameras can be rendered with standalone RenderSingleCamera. Camera will be skipped.");
+                    return;
+                }
+
+                var data = ScriptableObject.CreateInstance<RenderRequestRendererData>();
+                data.request = renderRequest;
+                InitializeCameraData(camera, additionalCameraData, true, out var cameraData);
+                cameraData.renderRequestMode = renderRequest.mode;
+                cameraData.renderer = data.InternalCreateRenderer();
+                RenderSingleCamera(renderContext, cameraData, false);
+                Object.DestroyImmediate(data);
+        }
+
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));

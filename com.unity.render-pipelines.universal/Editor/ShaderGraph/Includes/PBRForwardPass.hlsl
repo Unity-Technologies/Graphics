@@ -1,3 +1,4 @@
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DataExtraction.hlsl"
 
 void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
 {
@@ -125,3 +126,73 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
 }
+
+PackedVaryings vertExtraction(
+    Attributes input)
+{
+    Varyings output = (Varyings)0;
+    output = BuildVaryings(input);
+    PackedVaryings packedOutput = (PackedVaryings)0;
+    packedOutput = PackVaryings(output);
+
+/*  Not yet supported.
+    if (UNITY_DataExtraction_Space == 0)
+        packedOutput.positionCS = float4(uv0, 0.0F, 1.0f);
+    else if (UNITY_DataExtraction_Space == 1)
+        packedOutput.positionCS = float4(uv1, 0.0F,  1.0f);
+    else if (UNITY_DataExtraction_Space == 2)
+        packedOutput.positionCS = float4(uv2, 0.0F, 1.0f);
+    else if (UNITY_DataExtraction_Space == 3)
+        packedOutput.positionCS = float4(uv3, 0.0F, 1.0f);
+    else if (UNITY_DataExtraction_Space == 4)
+        packedOutput.positionCS = float4(uv4, 0.0F, 1.0f);
+    else if (UNITY_DataExtraction_Space == 5)
+        packedOutput.positionCS = float4(uv5, 0.0F, 1.0f);
+    else if (UNITY_DataExtraction_Space == 6)
+        packedOutput.positionCS = float4(uv6, 0.0F, 1.0f);
+    else if (UNITY_DataExtraction_Space == 7)
+        packedOutput.positionCS = float4(uv7, 0.0F, 1.0f);
+*/
+    return packedOutput;
+}
+
+half4 fragExtraction(PackedVaryings packedInput) : SV_TARGET
+{
+    Varyings unpacked = UnpackVaryings(packedInput);
+    UNITY_SETUP_INSTANCE_ID(unpacked);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
+
+    SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
+    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+
+    #if _AlphaClip
+        half alpha = surfaceDescription.Alpha;
+        clip(alpha - surfaceDescription.AlphaClipThreshold);
+    #elif _SURFACE_TYPE_TRANSPARENT
+        half alpha = surfaceDescription.Alpha;
+    #else
+        half alpha = 1;
+    #endif
+
+    InputData inputData;
+    BuildInputData(unpacked, surfaceDescription, inputData);
+
+    ExtractionInputs extraction;
+    extraction.vertexNormalWS = unpacked.normalWS;
+    extraction.pixelNormalWS = inputData.normalWS;
+    extraction.positionWS = inputData.positionWS;
+    extraction.baseColor = surfaceDescription.BaseColor;
+    extraction.alpha = alpha;
+    #ifdef _SPECULAR_SETUP
+    extraction.specular = surfaceDescription.Specular;
+    #else
+    extraction.metallic = surfaceDescription.Metallic;
+    #endif
+    extraction.smoothness = surfaceDescription.Smoothness;
+    extraction.occlusion = surfaceDescription.Occlusion;
+    extraction.emission = surfaceDescription.Emission.xyz;
+
+    // half precision will not preserve things like IDs which require exact results.
+    return half4(OutputExtraction(extraction));
+}
+

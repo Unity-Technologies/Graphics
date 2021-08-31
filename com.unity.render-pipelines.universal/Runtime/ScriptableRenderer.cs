@@ -614,6 +614,10 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
 
+            bool isRenderRequest = cameraData.renderRequestMode != Camera.RenderRequestMode.None;
+            bool drawWireframe = !isRenderRequest;
+            drawGizmos = drawGizmos && !isRenderRequest;
+
             CommandBuffer cmd = CommandBufferPool.Get();
 
             // TODO: move skybox code from C++ to URP in order to remove the call to context.Submit() inside DrawSkyboxPass
@@ -745,11 +749,17 @@ namespace UnityEngine.Rendering.Universal
 
                 EndXRRendering(cmd, context, ref renderingData.cameraData);
 
-                DrawWireOverlay(context, camera);
+                if (drawWireframe)
+                {
+                    DrawWireOverlay(context, camera);
+                }
 
                 if (drawGizmos)
                 {
                     DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+
+                    if (cameraData.renderRequestMode == Camera.RenderRequestMode.ObjectId)
+                        DrawGizmos(context, camera, GizmoSubset.RenderRequestInstanceID);
                 }
 
                 InternalFinishRendering(context, cameraData.resolveFinalTarget);

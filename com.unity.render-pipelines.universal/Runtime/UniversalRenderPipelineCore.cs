@@ -111,6 +111,7 @@ namespace UnityEngine.Rendering.Universal
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+        public Camera.RenderRequestMode renderRequestMode;
 
         /// <summary>
         /// Returns true if post processing passes require depth texture.
