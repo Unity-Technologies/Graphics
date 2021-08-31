@@ -613,8 +613,8 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
     if (GetSample(pixelCoord, _RaytracingSampleIndex, 108) < 0.5)
     {
         result.exitNormal = -result.exitNormal;
-        result.throughput *= 2.0;
     }
+    result.throughput *= 2.0;
 #endif
 
     return true;
