@@ -47,7 +47,8 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         half4 _Vignette_Params1;
         float4 _Vignette_Params2;
     #ifdef USING_STEREO_MATRICES
-        float4 _Vignette_Params3;
+        #define MAX_VIGNETTE_VIEWS 8
+        float4 _Vignette_Params3[MAX_VIGNETTE_VIEWS/2];
     #endif
         float2 _Grain_Params;
         float4 _Grain_TilingParams;
@@ -72,10 +73,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
         #define VignetteColor           _Vignette_Params1.xyz
     #ifdef USING_STEREO_MATRICES
-        // With XR, the views can use asymmetric FOV which will have the center of
-        // each eyes to be at a different location
-        #define VignetteCenterEye0      _Vignette_Params2.xy
-        #define VignetteCenterEye1      _Vignette_Params3.xy
+        #define VignetteCenterEyeArray  _Vignette_Params3
     #else
         #define VignetteCenter          _Vignette_Params2.xy
     #endif
@@ -202,7 +200,12 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             if (VignetteIntensity > 0)
             {
             #ifdef USING_STEREO_MATRICES
-                const float2 VignetteCenter = unity_StereoEyeIndex == 0 ? VignetteCenterEye0 : VignetteCenterEye1;
+                // With XR, the views can use asymmetric FOV which will have the center of each
+                // view be at a different location.
+                // Each float4 in VignetteCenterEyeArray contain 2 view centers
+                int viewIndex = min(MAX_VIGNETTE_VIEWS-1, unity_StereoEyeIndex);
+                float4 VignetteCenterEye = VignetteCenterEyeArray[viewIndex/2];
+                const float2 VignetteCenter = (unity_StereoEyeIndex & 1) == 0 ? VignetteCenterEye.xy : VignetteCenterEye.zw;
             #endif
 
                 color = ApplyVignette(color, uvDistorted, VignetteCenter, VignetteIntensity, VignetteRoundness, VignetteSmoothness, VignetteColor);

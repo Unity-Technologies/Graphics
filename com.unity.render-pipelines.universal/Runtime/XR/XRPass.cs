@@ -48,12 +48,7 @@ namespace UnityEngine.Rendering.Universal
             occlusionMesh = null;
             textureArraySlice = dstSlice;
 
-            var projectionParameters = proj.decomposeProjection;
-            float left = Math.Abs(projectionParameters.left);
-            float right = Math.Abs(projectionParameters.right);
-            float top = Math.Abs(projectionParameters.top);
-            float bottom = Math.Abs(projectionParameters.bottom);
-            eyeCenterUV = new Vector2(left / (right + left), top / (top + bottom));
+            eyeCenterUV = ComputeEyeCenterUV(proj);
         }
 
         internal XRView(XRDisplaySubsystem.XRRenderPass renderPass, XRDisplaySubsystem.XRRenderParameter renderParameter)
@@ -64,18 +59,23 @@ namespace UnityEngine.Rendering.Universal
             occlusionMesh = renderParameter.occlusionMesh;
             textureArraySlice = renderParameter.textureArraySlice;
 
-            var projectionParameters = projMatrix.decomposeProjection;
-            float left = Math.Abs(projectionParameters.left);
-            float right = Math.Abs(projectionParameters.right);
-            float top = Math.Abs(projectionParameters.top);
-            float bottom = Math.Abs(projectionParameters.bottom);
-            eyeCenterUV = new Vector2(left / (right + left), top / (top + bottom));
-
             // Convert viewport from normalized to screen space
             viewport.x      *= renderPass.renderTargetDesc.width;
             viewport.width  *= renderPass.renderTargetDesc.width;
             viewport.y      *= renderPass.renderTargetDesc.height;
             viewport.height *= renderPass.renderTargetDesc.height;
+
+            eyeCenterUV = ComputeEyeCenterUV(projMatrix);
+        }
+
+        private static Vector2 ComputeEyeCenterUV(Matrix4x4 proj)
+        {
+            var projectionParameters = proj.decomposeProjection;
+            float left = Math.Abs(projectionParameters.left);
+            float right = Math.Abs(projectionParameters.right);
+            float top = Math.Abs(projectionParameters.top);
+            float bottom = Math.Abs(projectionParameters.bottom);
+            return new Vector2(left / (right + left), top / (top + bottom));
         }
     }
 
