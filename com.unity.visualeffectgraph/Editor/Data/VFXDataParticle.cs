@@ -543,19 +543,22 @@ namespace UnityEditor.VFX
             }
 
             var implicitContext = new List<VFXContext>();
-            SortCriteria globalSortCriterion = SortCriteria.DistanceToCamera;
             bool needsGlobalSort = NeedsGlobalSort();
-            VFXSlot globalSortKeySlot = null;
             //Issues a global sort, when it affects at least one output.
             //If others don't match the criterion, or have a compute cull pass, they need a per output sort.
+            BaseSortingCriterion globalSortCriterion = new BaseSortingCriterion();
+            VFXSlot globalSortKeySlot = null;
             if (needsGlobalSort)
             {
                 // Then the camera sort
                 var globalSort = VFXContext.CreateImplicitContext<VFXGlobalSort>(this);
-                bool isCustomSortKey = GetGlobalSortCriterionAndSlotIfCustom(out globalSortCriterion, out globalSortKeySlot);
-                globalSort.sortCriterion = globalSortCriterion;
-                if (isCustomSortKey)
+                GetGlobalSortCriterionAndSlotIfCustom(out globalSortCriterion);
+                globalSort.sortCriterion = globalSortCriterion.sortCriterion;
+                if (globalSortCriterion is CustomSortingCriterion customSortingCriterion)
+                {
+                    globalSortKeySlot = customSortingCriterion.sortKeySlot;
                     globalSort.customSortingSlot = globalSortKeySlot;
+                }
                 implicitContext.Add(globalSort);
                 m_Contexts.Add(globalSort);
             }
@@ -569,7 +572,7 @@ namespace UnityEditor.VFX
                     continue;
 
                 abstractParticleOutput.needsOwnSort = OutputNeedsOwnSort(abstractParticleOutput, needsGlobalSort,
-                    globalSortCriterion, globalSortKeySlot, comparer);
+                    globalSortCriterion.sortCriterion, globalSortKeySlot, comparer);
                 if (abstractParticleOutput.NeedsOutputUpdate())
                 {
                     var update = VFXContext.CreateImplicitContext<VFXOutputUpdate>(this);
@@ -622,6 +625,15 @@ namespace UnityEditor.VFX
             globalSortKeySlot = null;
             return false;
         }
+        void GetGlobalSortCriterionAndSlotIfCustom(out BaseSortingCriterion globalSortCriterion)
+        {
+            var globalSortedCandidates = compilableOwners.OfType<VFXAbstractParticleOutput>()
+                .Where(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
+           Func<VFXAbstractParticleOutput, BaseSortingCriterion> getVoteFunc = VFXSortingUtility.GetVoteFunc;
+           globalSortCriterion = MajorityVote(globalSortedCandidates, getVoteFunc);
+        }
+
+
 
         public override void FillDescs(
             VFXCompileErrorReporter reporter,
