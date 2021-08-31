@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reflection;
 
 using UnityEditor.Experimental;
-using System.Reflection;
 
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Toolbars;
@@ -17,13 +16,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
-using UnityEditor.VersionControl;
 using UnityEngine.Profiling;
-
-using UnityEngine;
-using UnityEngine.Profiling;
-using UnityEngine.UIElements;
-using UnityEngine.VFX;
 
 using PositionType = UnityEngine.UIElements.Position;
 using Task = UnityEditor.VersionControl.Task;
@@ -392,12 +385,13 @@ namespace UnityEditor.VFX.UI
         readonly VisualElement m_Toolbar;
         readonly ToolbarToggle m_LockToggle;
         readonly EditorToolbarDropdown m_AttachDropDownButton;
+        readonly Texture2D m_LinkedIcon;
+        readonly Texture2D m_UnlinkedIcon;
 
         VFXNodeProvider m_NodeProvider;
         ToolbarButton m_SaveButton;
         bool m_IsRuntimeMode;
         bool m_ForceShaderValidation;
-        VisualElement m_Toolbar;
 
 
         public static StyleSheet LoadStyleSheet(string text)
@@ -473,7 +467,9 @@ namespace UnityEditor.VFX.UI
             m_BackButton.clicked += OnBackToParent;
             m_Toolbar.Add(m_BackButton);
 
-            m_AttachDropDownButton = new EditorToolbarDropdown(Contents.attach.text, OnOpenAttachMenu);
+            m_LinkedIcon = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "Linked.png"));
+            m_UnlinkedIcon = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "UnLinked.png"));
+            m_AttachDropDownButton = new EditorToolbarDropdown(m_UnlinkedIcon, OnOpenAttachMenu);
             m_AttachDropDownButton.name = "attach-toolbar-button";
             m_Toolbar.Add(m_AttachDropDownButton);
             m_LockToggle = new ToolbarToggle();
@@ -574,11 +570,6 @@ namespace UnityEditor.VFX.UI
             var bounds = new Rect(ViewToScreenPosition(m_AttachDropDownButton.worldBound.position), m_AttachDropDownButton.worldBound.size);
             bounds.xMin++;
             attachPanel.ShowAsDropDown(bounds, attachPanel.WindowSize, new[] { PopupLocation.BelowAlignLeft });
-        }
-
-        void OnRefreshUI(DropdownMenuAction action)
-        {
-            Resync();
         }
 
         internal void ToggleRuntimeMode()
@@ -775,10 +766,12 @@ namespace UnityEditor.VFX.UI
             if (attachedComponent != null)
             {
                 m_AttachDropDownButton.AddToClassList("checked");
+                m_AttachDropDownButton.icon = m_LinkedIcon;
             }
             else
             {
                 m_AttachDropDownButton.RemoveFromClassList("checked");
+                m_AttachDropDownButton.icon = m_UnlinkedIcon;
             }
 
             m_LockToggle.tooltip = locked ? Contents.clickToUnlock.text : Contents.clickToLock.text;

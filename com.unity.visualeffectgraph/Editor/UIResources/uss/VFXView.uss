@@ -36,6 +36,11 @@ ToolbarToggle
     border-right-width: 0px;
 }
 
+EditorToolbarDropdown
+{
+    flex-direction: Row;
+}
+
 #BackButton
 {
     padding-top: 3px;
@@ -51,12 +56,14 @@ ToolbarToggle
 
 #lock-auto-attach
 {
-    width: 16px;
+    width: 20px;
     height: 17px; /* Don't know why the real height is one pixel less than specified here */
     padding:1px 0 4px 0;
     align-self: center;
     border-left-width: 0;
+    border-right-width: 1px;
     background-image: var(--unity-icons-lock);
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 #lock-auto-attach:checked
@@ -67,6 +74,7 @@ ToolbarToggle
 
 #attach-toolbar-button
 {
+    margin-left: 6px;
     border-right-width: 0;
 }
 
