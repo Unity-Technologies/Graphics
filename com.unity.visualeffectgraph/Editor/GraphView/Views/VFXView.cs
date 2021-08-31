@@ -462,8 +462,8 @@ namespace UnityEditor.VFX.UI
             var compileDropDownButton = new VFXCompileDropdownButton(this);
             m_Toolbar.Add(compileDropDownButton);
 
-            m_BackButton = new Button {tooltip = "Back to parent", name = "BackButton"};
-            m_BackButton.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "back.png"))});
+            m_BackButton = new Button { tooltip = "Back to parent", name = "BackButton" };
+            m_BackButton.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "back.png")) });
             m_BackButton.clicked += OnBackToParent;
             m_Toolbar.Add(m_BackButton);
 
@@ -484,12 +484,12 @@ namespace UnityEditor.VFX.UI
             m_Toolbar.Add(flexSpacer);
 
             var toggleBlackboard = new ToolbarToggle { tooltip = "Blackboard" };
-            toggleBlackboard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/variableswindow.png"))});
+            toggleBlackboard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/variableswindow.png")) });
             toggleBlackboard.RegisterCallback<ChangeEvent<bool>>(ToggleBlackboard);
             m_Toolbar.Add(toggleBlackboard);
 
-            m_ToggleComponentBoard = new ToolbarToggle { tooltip = "Target GameObject"};
-            m_ToggleComponentBoard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/controls.png"))});
+            m_ToggleComponentBoard = new ToolbarToggle { tooltip = "Target GameObject" };
+            m_ToggleComponentBoard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/controls.png")) });
             m_ToggleComponentBoard.style.borderRightWidth = 1;
             m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
             m_Toolbar.Add(m_ToggleComponentBoard);
@@ -563,7 +563,7 @@ namespace UnityEditor.VFX.UI
         }
 
         internal bool GetIsRuntimeMode() => m_IsRuntimeMode;
-        
+
         private void OnOpenAttachMenu()
         {
             var attachPanel = ScriptableObject.CreateInstance<VFXAttachPanel>();

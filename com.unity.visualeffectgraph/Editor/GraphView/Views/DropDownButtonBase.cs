@@ -51,7 +51,7 @@ namespace UnityEditor.VFX.UI
             m_MainButton.AddToClassList("unity-toolbar-toggle");
             if (!string.IsNullOrEmpty(iconPath))
             {
-                var icon = new Image {image = EditorGUIUtility.LoadIcon(iconPath)};
+                var icon = new Image { image = EditorGUIUtility.LoadIcon(iconPath) };
                 m_MainButton.Add(icon);
                 m_MainButton.tooltip = mainButtonLabel;
             }
@@ -84,8 +84,8 @@ namespace UnityEditor.VFX.UI
             contentContainer.AddStyleSheetPath("VFXToolbar");
         }
 
-        protected virtual void OnOpenPopup() {}
-        protected virtual void OnMainButton() {}
+        protected virtual void OnOpenPopup() { }
+        protected virtual void OnMainButton() { }
         protected abstract Vector2 GetPopupSize();
 
         protected void ClosePopup()
@@ -124,7 +124,7 @@ namespace UnityEditor.VFX.UI
                     bounds.xMin += 6;
                 }
 
-                m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(), new[] {PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft});
+                m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(), new[] { PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft });
                 m_CurrentPopup.minSize = GetPopupSize();
                 m_CurrentPopup.maxSize = m_CurrentPopup.minSize;
                 m_CurrentPopup.position = new Rect(bounds.position, m_CurrentPopup.minSize);
