@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections;
 using Unity.Collections;
 using System;
 using System.Linq;
@@ -10,20 +11,135 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
+    [InitializeOnLoad]
+    class RealtimeProbeSubdivisionDebug
+    {
+        static double s_LastSubdivisionTime;
+        static double s_LastRefreshTime;
+        static IEnumerator s_CurrentSubdivision;
+
+        static RealtimeProbeSubdivisionDebug()
+        {
+            EditorApplication.update -= UpdateRealtimeSubdivisionDebug;
+            EditorApplication.update += UpdateRealtimeSubdivisionDebug;
+        }
+
+        static void UpdateRealtimeSubdivisionDebug()
+        {
+            var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
+            if (!debugDisplay.realtimeSubdivision)
+                return;
+
+            // Avoid killing the GPU when Unity is in background and runInBackground is disabled
+            if (!Application.runInBackground && !UnityEditorInternal.InternalEditorUtility.isApplicationActive)
+                return;
+
+            // update is called 200 times per second so we bring down the update rate to 60hz to avoid overloading the GPU
+            if (Time.realtimeSinceStartupAsDouble - s_LastRefreshTime < 1.0f / 60.0f)
+                return;
+            s_LastRefreshTime = Time.realtimeSinceStartupAsDouble;
+
+            if (Time.realtimeSinceStartupAsDouble - s_LastSubdivisionTime > debugDisplay.subdivisionDelayInSeconds)
+            {
+                var probeVolumePerSceneData = GameObject.FindObjectOfType<ProbeVolumePerSceneData>();
+                if (probeVolumePerSceneData == null || ProbeReferenceVolume.instance.sceneData == null) return;
+
+                var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(probeVolumePerSceneData.gameObject.scene);
+
+                if (profile == null) return;
+
+                if (s_CurrentSubdivision == null)
+                {
+                    // Start a new Subdivision
+                    s_CurrentSubdivision = Subdivide();
+                }
+
+                // Step the subdivision with the amount of cell per frame in debug menu
+                int updatePerFrame = debugDisplay.subdivisionCellUpdatePerFrame;
+                // From simplification level 5 and higher, the cost of calculating one cell is very high, so we adjust that number.
+                if (profile.simplificationLevels > 4)
+                    updatePerFrame = (int)Mathf.Max(1, updatePerFrame / Mathf.Pow(9, profile.simplificationLevels - 4));
+                for (int i = 0; i < debugDisplay.subdivisionCellUpdatePerFrame; i++)
+                {
+                    if (!s_CurrentSubdivision.MoveNext())
+                    {
+                        s_LastSubdivisionTime = Time.realtimeSinceStartupAsDouble;
+                        s_CurrentSubdivision = null;
+                        break;
+                    }
+                }
+
+                IEnumerator Subdivide()
+                {
+                    var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(probeVolumePerSceneData);
+
+                    // Cull all the cells that are not visible (we don't need them for realtime debug)
+                    ctx.cells.RemoveAll(c =>
+                    {
+                        return probeVolumePerSceneData.ShouldCullCell(c.position);
+                    });
+
+                    Camera activeCamera = Camera.current ?? SceneView.lastActiveSceneView.camera;
+
+                    // Sort cells by camera distance to compute the closest cells first
+                    if (activeCamera != null)
+                    {
+                        var cameraPos = activeCamera.transform.position;
+                        ctx.cells.Sort((c1, c2) =>
+                        {
+                            c1.volume.CalculateCenterAndSize(out var c1Center, out var _);
+                            float c1Distance = Vector3.Distance(cameraPos, c1Center);
+
+                            c2.volume.CalculateCenterAndSize(out var c2Center, out var _);
+                            float c2Distance = Vector3.Distance(cameraPos, c2Center);
+
+                            return c1Distance.CompareTo(c2Distance);
+                        });
+                    }
+
+                    // Progressively update cells:
+                    var cells = ctx.cells.ToList();
+
+                    // Remove all the cells that was not updated to prevent ghosting
+                    foreach (var cellVolume in ctx.perSceneData.realtimeSubdivisionInfo.Keys.ToList())
+                    {
+                        if (!cells.Any(c => c.volume.Equals(cellVolume)))
+                            ctx.perSceneData.realtimeSubdivisionInfo.Remove(cellVolume);
+                    }
+
+                    // Subdivide visible cells
+                    foreach (var cell in cells)
+                    {
+                        // Override the cell list to only compute one cell
+                        ctx.cells.Clear();
+                        ctx.cells.Add(cell);
+
+                        var result = ProbeGIBaking.BakeBricks(ctx);
+                        ctx.perSceneData.realtimeSubdivisionInfo[cell.volume] = result.bricksPerCells[cell.position];
+
+                        yield return null;
+                    }
+
+                    yield break;
+                }
+            }
+        }
+    }
+
     class ProbeSubdivisionContext
     {
         public List<(ProbeVolume component, ProbeReferenceVolume.Volume volume)> probeVolumes = new List<(ProbeVolume, ProbeReferenceVolume.Volume)>();
         public List<(Renderer component, ProbeReferenceVolume.Volume volume)> renderers = new List<(Renderer, ProbeReferenceVolume.Volume)>();
         public List<(Vector3Int position, ProbeReferenceVolume.Volume volume)> cells = new List<(Vector3Int, ProbeReferenceVolume.Volume)>();
         public List<(Terrain, ProbeReferenceVolume.Volume volume)> terrains = new List<(Terrain, ProbeReferenceVolume.Volume)>();
-        public ProbeReferenceVolumeAuthoring refVolume;
+        public ProbeVolumePerSceneData perSceneData;
         public ProbeReferenceVolumeProfile profile;
 
-        public void Initialize(ProbeReferenceVolumeAuthoring refVolume, ProbeReferenceVolumeProfile profile, Vector3 refVolOrigin)
+        public void Initialize(ProbeVolumePerSceneData perSceneData, ProbeReferenceVolumeProfile profile, Vector3 refVolOrigin)
         {
-            this.refVolume = refVolume;
+            this.perSceneData = perSceneData;
             this.profile = profile;
-            float cellSize = refVolume.cellSizeInMeters;
+            float cellSize = profile.cellSizeInMeters;
 
             foreach (var pv in UnityEngine.Object.FindObjectsOfType<ProbeVolume>())
             {

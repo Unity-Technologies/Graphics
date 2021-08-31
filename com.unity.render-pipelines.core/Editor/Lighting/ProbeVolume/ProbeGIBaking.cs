@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         static bool m_IsInit = false;
         static BakingBatch m_BakingBatch;
-        static ProbeReferenceVolumeAuthoring m_BakingReferenceVolumeAuthoring = null;
+        static ProbeVolumePerSceneData m_BakingPerSceneData = null;
         static ProbeReferenceVolumeProfile m_BakingProfile = null;
         static ProbeVolumeBakingProcessSettings m_BakingSettings;
 
@@ -252,14 +252,8 @@ namespace UnityEngine.Experimental.Rendering
             var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
             if (perSceneDataList.Length == 0) return;
 
-            m_BakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
+            m_BakingPerSceneData = perSceneDataList[0];
             SetBakingContext(perSceneDataList);
-
-            if (m_BakingReferenceVolumeAuthoring == null)
-            {
-                Debug.Log("Scene(s) have multiple inconsistent ProbeReferenceVolumeAuthoring components. Please ensure they use identical profiles and transforms before baking.");
-                return;
-            }
 
             AddOccluders();
 
@@ -662,7 +656,7 @@ namespace UnityEngine.Experimental.Rendering
             ClearBakingBatch();
 
             // Subdivide the scene and place the bricks
-            var ctx = PrepareProbeSubdivisionContext(m_BakingReferenceVolumeAuthoring);
+            var ctx = PrepareProbeSubdivisionContext(m_BakingPerSceneData);
             var result = BakeBricks(ctx);
 
             // Compute probe positions and send them to the Lightmapper
@@ -671,13 +665,13 @@ namespace UnityEngine.Experimental.Rendering
             ApplySubdivisionResults(result, newRefToWS);
         }
 
-        public static ProbeSubdivisionContext PrepareProbeSubdivisionContext(ProbeReferenceVolumeAuthoring refVolume)
+        public static ProbeSubdivisionContext PrepareProbeSubdivisionContext(ProbeVolumePerSceneData perSceneData)
         {
             ProbeSubdivisionContext ctx = new ProbeSubdivisionContext();
 
             // Prepare all the information in the scene for baking GI.
             Vector3 refVolOrigin = Vector3.zero; // TODO: This will need to be center of the world bounds.
-            ctx.Initialize(refVolume, m_BakingProfile, refVolOrigin);
+            ctx.Initialize(perSceneData, m_BakingProfile, refVolOrigin);
 
             return ctx;
         }
