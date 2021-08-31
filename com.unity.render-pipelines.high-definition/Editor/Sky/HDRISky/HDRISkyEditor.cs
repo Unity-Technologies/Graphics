@@ -11,7 +11,9 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         class Styles
         {
-            public static GUIContent distorsionMode { get; } = EditorGUIUtility.TrTextContent("Distortion Mode");
+            public static GUIContent scrollOrientationLabel { get; } = new GUIContent("Orientation", "Controls the orientation of the distortion relative to the X world vector (in degrees).\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.");
+            public static GUIContent scrollSpeedLabel { get; } = new GUIContent("Speed", "Sets the scrolling speed of the distortion. The higher the value, the faster the sky will move.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
+
             public static GUIContent backplate { get; } = EditorGUIUtility.TrTextContent("Backplate", "Enable the projection of the bottom of the CubeMap on a plane with a given shape ('Disc', 'Rectangle', 'Ellispe', 'Infinite')");
             public static GUIContent type { get; } = EditorGUIUtility.TrTextContent("Type");
             public static GUIContent projection { get; } = EditorGUIUtility.TrTextContent("Projection");
@@ -31,11 +33,10 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_UpperHemisphereLuxValue;
         SerializedDataParameter m_UpperHemisphereLuxColor;
 
-        SerializedDataParameter m_EnableCloudMotion;
-        SerializedDataParameter m_Procedural;
+        SerializedDataParameter m_DistortionMode;
         SerializedDataParameter m_Flowmap;
         SerializedDataParameter m_UpperHemisphereOnly;
-        SerializedDataParameter m_ScrollDirection;
+        SerializedDataParameter m_ScrollOrientation;
         SerializedDataParameter m_ScrollSpeed;
 
         SerializedDataParameter m_EnableBackplate;
@@ -52,8 +53,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_RectLightShadow;
         SerializedDataParameter m_ShadowTint;
 
-        GUIContent[]    m_DistortionModes = { Styles.procedural, Styles.flowmap };
-        int[]           m_DistortionModeValues = { 1, 0 };
+        GUIContent[] m_DistortionModes = { Styles.procedural, Styles.flowmap };
+        int[] m_DistortionModeValues = { 1, 0 };
 
         RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
@@ -69,30 +70,29 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CommonUIElementsMask = 0xFFFFFFFF & ~(uint)(SkySettingsUIElement.IncludeSunInBaking);
 
             var o = new PropertyFetcher<HDRISky>(serializedObject);
-            m_hdriSky                   = Unpack(o.Find(x => x.hdriSky));
-            m_UpperHemisphereLuxValue   = Unpack(o.Find(x => x.upperHemisphereLuxValue));
-            m_UpperHemisphereLuxColor   = Unpack(o.Find(x => x.upperHemisphereLuxColor));
+            m_hdriSky = Unpack(o.Find(x => x.hdriSky));
+            m_UpperHemisphereLuxValue = Unpack(o.Find(x => x.upperHemisphereLuxValue));
+            m_UpperHemisphereLuxColor = Unpack(o.Find(x => x.upperHemisphereLuxColor));
 
-            m_EnableCloudMotion         = Unpack(o.Find(x => x.enableDistortion));
-            m_Procedural                = Unpack(o.Find(x => x.procedural));
-            m_Flowmap                   = Unpack(o.Find(x => x.flowmap));
-            m_UpperHemisphereOnly       = Unpack(o.Find(x => x.upperHemisphereOnly));
-            m_ScrollDirection           = Unpack(o.Find(x => x.scrollDirection));
-            m_ScrollSpeed               = Unpack(o.Find(x => x.scrollSpeed));
+            m_DistortionMode = Unpack(o.Find(x => x.distortionMode));
+            m_Flowmap = Unpack(o.Find(x => x.flowmap));
+            m_UpperHemisphereOnly = Unpack(o.Find(x => x.upperHemisphereOnly));
+            m_ScrollOrientation = Unpack(o.Find(x => x.scrollOrientation));
+            m_ScrollSpeed = Unpack(o.Find(x => x.scrollSpeed));
 
-            m_EnableBackplate           = Unpack(o.Find(x => x.enableBackplate));
-            m_BackplateType             = Unpack(o.Find(x => x.backplateType));
-            m_GroundLevel               = Unpack(o.Find(x => x.groundLevel));
-            m_Scale                     = Unpack(o.Find(x => x.scale));
-            m_ProjectionDistance        = Unpack(o.Find(x => x.projectionDistance));
-            m_PlateRotation             = Unpack(o.Find(x => x.plateRotation));
-            m_PlateTexRotation          = Unpack(o.Find(x => x.plateTexRotation));
-            m_PlateTexOffset            = Unpack(o.Find(x => x.plateTexOffset));
-            m_BlendAmount               = Unpack(o.Find(x => x.blendAmount));
-            m_PointLightShadow          = Unpack(o.Find(x => x.pointLightShadow));
-            m_DirLightShadow            = Unpack(o.Find(x => x.dirLightShadow));
-            m_RectLightShadow           = Unpack(o.Find(x => x.rectLightShadow));
-            m_ShadowTint                = Unpack(o.Find(x => x.shadowTint));
+            m_EnableBackplate = Unpack(o.Find(x => x.enableBackplate));
+            m_BackplateType = Unpack(o.Find(x => x.backplateType));
+            m_GroundLevel = Unpack(o.Find(x => x.groundLevel));
+            m_Scale = Unpack(o.Find(x => x.scale));
+            m_ProjectionDistance = Unpack(o.Find(x => x.projectionDistance));
+            m_PlateRotation = Unpack(o.Find(x => x.plateRotation));
+            m_PlateTexRotation = Unpack(o.Find(x => x.plateTexRotation));
+            m_PlateTexOffset = Unpack(o.Find(x => x.plateTexOffset));
+            m_BlendAmount = Unpack(o.Find(x => x.blendAmount));
+            m_PointLightShadow = Unpack(o.Find(x => x.pointLightShadow));
+            m_DirLightShadow = Unpack(o.Find(x => x.dirLightShadow));
+            m_RectLightShadow = Unpack(o.Find(x => x.rectLightShadow));
+            m_ShadowTint = Unpack(o.Find(x => x.shadowTint));
 
             m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
             if (HDRenderPipelineGlobalSettings.instance?.renderPipelineResources != null)
@@ -167,35 +167,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 updateDefaultShadowTint = true;
             }
 
-            PropertyField(m_EnableCloudMotion);
-            if (m_EnableCloudMotion.value.boolValue)
+            PropertyField(m_DistortionMode);
+            if (m_DistortionMode.value.intValue != (int)HDRISky.DistortionMode.None)
             {
                 using (new IndentLevelScope())
                 {
-                    using (var scope = new OverridablePropertyScope(m_Procedural, Styles.distorsionMode, this))
+                    PropertyField(m_ScrollOrientation, Styles.scrollOrientationLabel);
+                    PropertyField(m_ScrollSpeed, Styles.scrollSpeedLabel);
+                    if (m_DistortionMode.value.intValue == (int)HDRISky.DistortionMode.Flowmap)
                     {
-                        if (scope.displayed)
-                        {
-                            EditorGUI.BeginChangeCheck();
-                            bool newValue = EditorGUILayout.IntPopup(Styles.distorsionMode, (int)m_Procedural.value.intValue, m_DistortionModes, m_DistortionModeValues) == 1;
-                            if (EditorGUI.EndChangeCheck())
-                                m_Procedural.value.boolValue = newValue;
-                        }
+                        PropertyField(m_Flowmap);
+                        if (IsFlowmapFormatInvalid(m_Flowmap))
+                            EditorGUILayout.HelpBox(Styles.flowmapInfoMessage, MessageType.Info);
+                        PropertyField(m_UpperHemisphereOnly);
                     }
-
-                    if (!m_Procedural.value.boolValue)
-                    {
-                        using (new IndentLevelScope())
-                        {
-                            PropertyField(m_Flowmap);
-                            if (IsFlowmapFormatInvalid(m_Flowmap))
-                                EditorGUILayout.HelpBox(Styles.flowmapInfoMessage, MessageType.Info);
-                            PropertyField(m_UpperHemisphereOnly);
-                        }
-                    }
-
-                    PropertyField(m_ScrollDirection);
-                    PropertyField(m_ScrollSpeed);
                 }
             }
 

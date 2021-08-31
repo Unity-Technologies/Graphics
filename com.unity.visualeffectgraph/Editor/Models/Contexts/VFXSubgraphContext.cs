@@ -269,7 +269,7 @@ namespace UnityEditor.VFX
             // Don't notify while doing this else asset is considered dirty after each call at RecreateCopy
             if (m_InputFlowNames == null || !newInputFlowNames.SequenceEqual(m_InputFlowNames) || inputFlowSlot.Length != inputFlowCount)
             {
-                var oldLinks = new Dictionary<string,  List<VFXContextLink>>();
+                var oldLinks = new Dictionary<string, List<VFXContextLink>>();
 
                 for (int i = 0; i < inputFlowSlot.Count() && i < m_InputFlowNames.Count; ++i)
                 {

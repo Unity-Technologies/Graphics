@@ -148,7 +148,7 @@ The Lens Flare Element asset has the following properties:
 | ---------------- | ------------------------------------------------------------ |
 | Colors           | The range of colors that this asset applies to the lens flares. You can use the **Position Spacing** curve to determine how this range affects each lens flare. |
 | Position Variation | Adjust this curve to change the placement of the lens flare elements in the **Lens Spread**. |
-| Rotation | The uniform angle of rotation (in degrees) applied to each element distributed along the curve. |
+| Rotation | The uniform angle of rotation (in degrees) applied to each element distributed along the curve. This value ranges from -180° to 180 |
 | Scale | Adjust this curve to control the size range of the lens flare elements. |
 
 <a name="Random"></a>

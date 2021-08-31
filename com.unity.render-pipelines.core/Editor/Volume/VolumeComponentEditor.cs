@@ -310,7 +310,7 @@ namespace UnityEditor.Rendering
             {
                 var name = "";
                 var order = 0;
-                var(fieldInfo, serializedProperty) = t;
+                var (fieldInfo, serializedProperty) = t;
                 var attr = (DisplayInfoAttribute[])fieldInfo.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
                 if (attr.Length != 0)
                 {
@@ -465,7 +465,8 @@ namespace UnityEditor.Rendering
         /// <returns>true if the property field has been rendered</returns>
         protected bool PropertyField(SerializedDataParameter property)
         {
-            var title = EditorGUIUtility.TrTextContent(property.displayName);
+            var title = EditorGUIUtility.TrTextContent(property.displayName,
+                property.GetAttribute<TooltipAttribute>()?.tooltip); // avoid property from getting the tooltip of another one with the same name
             return PropertyField(property, title);
         }
 

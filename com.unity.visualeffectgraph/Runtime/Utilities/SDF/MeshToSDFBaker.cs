@@ -420,7 +420,7 @@ namespace UnityEngine.VFX.SDF
 
         void UpdateCameras()
         {
-            Vector3 pos =  m_Center + Vector3.back * (m_SizeBox.z * 0.5f + 1f);
+            Vector3 pos = m_Center + Vector3.back * (m_SizeBox.z * 0.5f + 1f);
             Quaternion rot = Quaternion.identity;
             float near = 1.0f;
             float far = near + m_SizeBox.z;
@@ -433,7 +433,7 @@ namespace UnityEngine.VFX.SDF
 
             pos = m_Center + Vector3.left * (m_SizeBox.x * 0.5f + 1f);
             rot = Quaternion.Euler(0, 90, 90);
-            far =  near + m_SizeBox.x;
+            far = near + m_SizeBox.x;
             m_WorldToClip[2] = ComputeOrthographicWorldToClip(pos, rot, m_SizeBox.y, m_SizeBox.z, near, far, out m_ProjMat[2], out m_ViewMat[2]);
         }
 
@@ -463,7 +463,7 @@ namespace UnityEngine.VFX.SDF
                 Mathf.CeilToInt((float)nVoxels / m_ThreadGroupSize), 1, 1);
 
 
-            int nBlocks = iDivUp(nVoxels , m_ThreadGroupSize);
+            int nBlocks = iDivUp(nVoxels, m_ThreadGroupSize);
             if (nBlocks > m_ThreadGroupSize) //If the number of cells is bigger than m_ThreadGroupSize^2, (512^2, 64^3), apply prefix sum recursively
             {
                 m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.toBlockSumBuffer, ShaderProperties.inputCounter, m_CounterBuffer);

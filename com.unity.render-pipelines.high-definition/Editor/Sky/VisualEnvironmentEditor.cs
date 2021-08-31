@@ -14,6 +14,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_SkyType;
         SerializedDataParameter m_CloudType;
         SerializedDataParameter m_SkyAmbientMode;
+        SerializedDataParameter m_WindOrientation;
+        SerializedDataParameter m_WindSpeed;
 
         static List<GUIContent> m_SkyClassNames = null;
         static List<int> m_SkyUniqueIDs = null;
@@ -65,6 +67,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SkyType = Unpack(o.Find(x => x.skyType));
             m_CloudType = Unpack(o.Find(x => x.cloudType));
             m_SkyAmbientMode = Unpack(o.Find(x => x.skyAmbientMode));
+
+            m_WindOrientation = Unpack(o.Find(x => x.windOrientation));
+            m_WindSpeed = Unpack(o.Find(x => x.windSpeed));
         }
 
         static void UpdateSkyAndFogIntPopupData()
@@ -113,7 +118,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             UpdateSkyAndFogIntPopupData();
 
-            DrawHeader("Sky");
             using (var scope = new OverridablePropertyScope(m_SkyType, EditorGUIUtility.TrTextContent("Sky type", "Specifies the type of sky this Volume uses."), this))
             {
                 if (scope.displayed)
@@ -132,7 +136,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_SkyAmbientMode.value.GetEnumValue<SkyAmbientMode>() == SkyAmbientMode.Static)
             {
                 if (staticLightingSky == null)
-                    EditorGUILayout.HelpBox("Current Static Lighting Sky use None of profile None.", MessageType.Info);
+                    EditorGUILayout.HelpBox("No Static Lighting Sky is assigned in the Environment settings.", MessageType.Info);
                 else
                 {
                     var skyType = staticLightingSky.staticLightingSkyUniqueID == 0 ? "no Sky" : SkyManager.skyTypesDict[staticLightingSky.staticLightingSkyUniqueID].Name.ToString();
@@ -140,6 +144,90 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox($"Current Static Lighting Sky uses {skyType} and {cloudType} of profile {staticLightingSky.profile?.name ?? "None"}.", MessageType.Info);
                 }
             }
+
+            PropertyField(m_WindOrientation, EditorGUIUtility.TrTextContent("Global Orientation", "Controls the orientation of the wind relative to the X world vector."));
+            PropertyField(m_WindSpeed, EditorGUIUtility.TrTextContent("Global Speed", "Controls the global wind speed in kilometers per hour."));
+        }
+    }
+
+    sealed class LocalWindParameterDrawer
+    {
+        public static readonly string[] modeNames = Enum.GetNames(typeof(WindParameter.WindOverrideMode));
+        public static readonly int popupWidth = 70;
+
+        public static bool BeginGUI(out Rect rect, GUIContent title, SerializedDataParameter parameter, SerializedProperty mode)
+        {
+            rect = EditorGUILayout.GetControlRect();
+            rect.xMax -= popupWidth + 2;
+
+            var popupRect = rect;
+            popupRect.x = rect.xMax + 2;
+            popupRect.width = popupWidth;
+            mode.intValue = EditorGUI.Popup(popupRect, mode.intValue, modeNames);
+
+            if (mode.intValue == (int)WindParameter.WindOverrideMode.Additive)
+            {
+                var value = parameter.value.FindPropertyRelative("additiveValue");
+                value.floatValue = EditorGUI.FloatField(rect, title, value.floatValue);
+            }
+            else if (mode.intValue == (int)WindParameter.WindOverrideMode.Multiply)
+            {
+                var value = parameter.value.FindPropertyRelative("multiplyValue");
+                value.floatValue = EditorGUI.FloatField(rect, title, value.floatValue);
+            }
+            else
+            {
+                if (mode.intValue == (int)WindParameter.WindOverrideMode.Global)
+                {
+                    EditorGUI.BeginDisabledGroup(true);
+                    EditorGUI.showMixedValue = true;
+                }
+                return false;
+            }
+            return true;
+        }
+
+        public static void EndGUI(SerializedProperty mode)
+        {
+            if (mode.intValue == (int)WindParameter.WindOverrideMode.Global)
+            {
+                EditorGUI.showMixedValue = false;
+                EditorGUI.EndDisabledGroup();
+            }
+        }
+    }
+
+    [VolumeParameterDrawer(typeof(WindOrientationParameter))]
+    sealed class WindOrientationParameterDrawer : VolumeParameterDrawer
+    {
+        public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
+        {
+            var mode = parameter.value.FindPropertyRelative("mode");
+            if (!LocalWindParameterDrawer.BeginGUI(out var rect, title, parameter, mode))
+            {
+                var value = parameter.value.FindPropertyRelative("customValue");
+                value.floatValue = EditorGUI.Slider(rect, title, value.floatValue, 0.0f, 360.0f);
+            }
+            LocalWindParameterDrawer.EndGUI(mode);
+
+            return true;
+        }
+    }
+
+    [VolumeParameterDrawer(typeof(WindSpeedParameter))]
+    sealed class WindSpeedParameterDrawer : VolumeParameterDrawer
+    {
+        public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
+        {
+            var mode = parameter.value.FindPropertyRelative("mode");
+            if (!LocalWindParameterDrawer.BeginGUI(out var rect, title, parameter, mode))
+            {
+                var value = parameter.value.FindPropertyRelative("customValue");
+                value.floatValue = EditorGUI.FloatField(rect, title, value.floatValue);
+            }
+            LocalWindParameterDrawer.EndGUI(mode);
+
+            return true;
         }
     }
 }

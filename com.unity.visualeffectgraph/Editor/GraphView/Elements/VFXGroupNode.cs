@@ -152,7 +152,7 @@ namespace UnityEditor.VFX.UI
 
         bool m_ModificationFromController;
 
-        public static bool inRemoveElement {get; set; }
+        public static bool inRemoveElement { get; set; }
 
         public void ElementsAddedToGroupNode(IEnumerable<GraphElement> elements)
         {
