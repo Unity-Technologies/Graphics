@@ -33,6 +33,12 @@ namespace UnityEngine.Experimental.Rendering
 
         [SerializeField] string m_AssetFullPath = "UNINITIALIZED!";
 
+        // Profile info
+        [SerializeField] internal int cellSizeInBricks;
+        [SerializeField] internal float minDistanceBetweenProbes;
+        [SerializeField] internal int simplificationLevels;
+
+
         public string GetSerializedFullPath()
         {
             return m_AssetFullPath;
@@ -71,6 +77,12 @@ namespace UnityEngine.Experimental.Rendering
             return asset;
         }
 
+        internal void StoreProfileData(ProbeReferenceVolumeProfile profile)
+        {
+            cellSizeInBricks = profile.cellSizeInBricks;
+            simplificationLevels = profile.simplificationLevels;
+            minDistanceBetweenProbes = profile.minDistanceBetweenProbes;
+        }
 #endif
     }
 

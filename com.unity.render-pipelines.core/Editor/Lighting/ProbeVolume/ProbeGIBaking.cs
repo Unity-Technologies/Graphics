@@ -544,6 +544,7 @@ namespace UnityEngine.Experimental.Rendering
                         var asset = data2Asset[data];
                         asset.cells.Add(cell);
                         var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(scene);
+                        asset.StoreProfileData(profile);
                         Debug.Assert(profile != null);
                         CellCountInDirections(out asset.minCellPosition, out asset.maxCellPosition, profile.cellSizeInMeters);
                         asset.globalBounds = globalBounds;
@@ -646,7 +647,6 @@ namespace UnityEngine.Experimental.Rendering
             // Compute probe positions and send them to the Lightmapper
             float brickSize = m_BakingReferenceVolumeAuthoring.brickSize;
             Matrix4x4 newRefToWS = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(brickSize, brickSize, brickSize));
-            //m_BakingReferenceVolumeAuthoring;
             ApplySubdivisionResults(result, newRefToWS);
         }
 
