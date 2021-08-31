@@ -12,7 +12,7 @@ editors: # applied for all yml files
     ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
       enabled: True
-      nr_commits_to_retrieve: 1
+      nr_commits_to_retrieve: 100
     allow_triggers: True
     variables:
       CACHE_ARGS: '{{cache.flags}}'
