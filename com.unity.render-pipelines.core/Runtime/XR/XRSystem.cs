@@ -174,7 +174,7 @@ namespace UnityEngine.Experimental.Rendering
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             // Only support late latching for multiview on Android
-            if (s_Display != null && Application.platform == RuntimePlatform.Android && xrPass.viewCount == 2)
+            if (s_Display != null && xrPass.viewCount == 2)
             {
                 s_Display.BeginRecordingIfLateLatched(camera);
                 xrPass.isLateLatchEnabled = true;
