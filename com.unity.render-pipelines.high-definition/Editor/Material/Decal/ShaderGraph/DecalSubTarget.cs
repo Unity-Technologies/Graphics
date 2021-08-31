@@ -87,6 +87,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            base.GetFields(ref context);
+
             // Decal properties
             context.AddField(AffectsAlbedo, decalData.affectsAlbedo);
             context.AddField(AffectsNormal, decalData.affectsNormal);

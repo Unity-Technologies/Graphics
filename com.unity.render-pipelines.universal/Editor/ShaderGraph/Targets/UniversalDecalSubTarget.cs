@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 }
                 subShader.passes = passes;
 
-                context.AddSubShader(subShader);
+                context.AddSubShader(PostProcessSubShader(subShader));
             }
         }
 
@@ -200,6 +200,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            base.GetFields(ref context);
+
             // Decal properties
             context.AddField(AffectsAlbedo, decalData.affectsAlbedo);
             context.AddField(AffectsNormal, decalData.affectsNormal);
@@ -344,7 +346,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/Decal/DecalPass.template",
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Collections
                 renderStates = DecalRenderStates.ScenePicking,
@@ -366,7 +368,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/Decal/DecalPass.template",
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentWithoutEmessive,
@@ -391,7 +393,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/Decal/DecalPass.template",
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.ForwardOnlyEmissive,
@@ -417,7 +419,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/Decal/DecalPass.template",
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.Fragment,
@@ -444,7 +446,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/Decal/DecalPass.template",
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.Fragment,
@@ -471,7 +473,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/Decal/DecalPass.template",
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentWithoutEmessive,
@@ -499,7 +501,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/Decal/DecalPass.template",
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.Fragment,
@@ -526,7 +528,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/Decal/DecalPass.template",
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.Fragment, // todo
@@ -553,7 +555,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/Decal/DecalPass.template",
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.Fragment, // todo
