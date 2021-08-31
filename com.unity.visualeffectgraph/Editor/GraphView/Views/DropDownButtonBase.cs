@@ -161,26 +161,6 @@ namespace UnityEditor.VFX.UI
                     ClosePopup();
                     break;
             }
-
-            /*
-            if (evt.keyCode == KeyCode.DownArrow || evt.keyCode == KeyCode.UpArrow)
-            {
-            var modifier = evt.keyCode == KeyCode.DownArrow ? EventModifiers.None : EventModifiers.Shift;
-
-            var fakeEvt = new Event {
-                type = EventType.KeyUp,
-                keyCode = KeyCode.Tab,
-                character = '\0',
-                modifiers = modifier
-            };
-
-            using (var ev = KeyUpEvent.GetPooled(fakeEvt))
-            {
-                //m_CurrentPopup.SendEvent(fakeEvt);
-                m_PopupContent.SendEvent(ev);
-            }
-            }
-            */
         }
 
         private VisualElement GetNextFocusable(Focusable focused, IEnumerable<VisualElement> elements, bool reverse)
