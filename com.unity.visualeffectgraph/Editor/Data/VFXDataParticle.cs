@@ -546,7 +546,7 @@ namespace UnityEditor.VFX
             bool needsGlobalSort = NeedsGlobalSort();
             //Issues a global sort, when it affects at least one output.
             //If others don't match the criterion, or have a compute cull pass, they need a per output sort.
-            BaseSortingCriterion globalSortCriterion = new BaseSortingCriterion();
+            SortingCriterion globalSortCriterion = new SortingCriterion();
             VFXSlot globalSortKeySlot = null;
             if (needsGlobalSort)
             {
@@ -554,9 +554,9 @@ namespace UnityEditor.VFX
                 var globalSort = VFXContext.CreateImplicitContext<VFXGlobalSort>(this);
                 GetGlobalSortCriterionAndSlotIfCustom(out globalSortCriterion);
                 globalSort.sortCriterion = globalSortCriterion.sortCriterion;
-                if (globalSortCriterion is CustomSortingCriterion customSortingCriterion)
+                if (globalSort.sortCriterion == SortCriteria.Custom)
                 {
-                    globalSortKeySlot = customSortingCriterion.sortKeySlot;
+                    globalSortKeySlot = globalSortCriterion.sortKeySlot;
                     globalSort.customSortingSlot = globalSortKeySlot;
                 }
                 implicitContext.Add(globalSort);
@@ -610,30 +610,13 @@ namespace UnityEditor.VFX
 
         }
 
-        bool GetGlobalSortCriterionAndSlotIfCustom(out SortCriteria globalSortCriteria, out VFXSlot globalSortKeySlot)
+        void GetGlobalSortCriterionAndSlotIfCustom(out SortingCriterion globalSortCriterion)
         {
             var globalSortedCandidates = compilableOwners.OfType<VFXAbstractParticleOutput>()
                 .Where(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
-            globalSortCriteria = MajorityVote(globalSortedCandidates, output => output.GetSortCriterion());
-            if (globalSortCriteria == SortCriteria.Custom)
-            {
-                globalSortedCandidates = globalSortedCandidates.Where(o => o.GetSortCriterion() == SortCriteria.Custom);
-                globalSortKeySlot = MajorityVote(globalSortedCandidates,
-                    output => output.inputSlots.First(s => s.name == "sortKey"), new SortKeySlotComparer());
-                return true;
-            }
-            globalSortKeySlot = null;
-            return false;
-        }
-        void GetGlobalSortCriterionAndSlotIfCustom(out BaseSortingCriterion globalSortCriterion)
-        {
-            var globalSortedCandidates = compilableOwners.OfType<VFXAbstractParticleOutput>()
-                .Where(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
-           Func<VFXAbstractParticleOutput, BaseSortingCriterion> getVoteFunc = VFXSortingUtility.GetVoteFunc;
+           Func<VFXAbstractParticleOutput, SortingCriterion> getVoteFunc = VFXSortingUtility.GetVoteFunc;
            globalSortCriterion = MajorityVote(globalSortedCandidates, getVoteFunc);
         }
-
-
 
         public override void FillDescs(
             VFXCompileErrorReporter reporter,

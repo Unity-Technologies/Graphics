@@ -98,69 +98,51 @@ namespace UnityEditor.VFX
         }
 
 
-        public class BaseSortingCriterion
+        public class SortingCriterion
         {
             public SortCriteria sortCriterion;
-        }
+            public VFXSlot sortKeySlot = null;
 
-        public class BuiltInSortingCriterion : BaseSortingCriterion
-        {
-            public BuiltInSortingCriterion(SortCriteria sortCriterion)
+            public SortingCriterion(SortCriteria sortCriterion, VFXSlot sortKeySlot)
             {
-                if (sortCriterion == SortCriteria.Custom)
-                    throw new ArgumentException("Built-in sorting criterion excludes Custom");
                 this.sortCriterion = sortCriterion;
+                if (sortCriterion == SortCriteria.Custom)
+                {
+                    this.sortKeySlot = sortKeySlot;
+                }
+            }
+
+            public SortingCriterion()
+            {
+                sortCriterion = SortCriteria.DistanceToCamera;
+                sortKeySlot = null;
             }
         }
 
-        public class CustomSortingCriterion : BaseSortingCriterion
+        public static SortingCriterion GetVoteFunc(VFXAbstractParticleOutput output)
         {
-            public readonly VFXSlot sortKeySlot;
-
-            public CustomSortingCriterion(VFXSlot sortKeySlot)
-            {
-                this.sortCriterion = SortCriteria.Custom;
-                this.sortKeySlot = sortKeySlot;
-            }
-        }
-        public static BaseSortingCriterion GetVoteFunc(VFXAbstractParticleOutput output)
-        {
-            SortCriteria sortCriterion = output.GetSortCriterion();
-            return sortCriterion != SortCriteria.Custom
-                ? new BuiltInSortingCriterion(sortCriterion)
-                : new CustomSortingCriterion(output.inputSlots.First(s => s.name == "sortKey"));
+            return new SortingCriterion(output.GetSortCriterion(), output.inputSlots.FirstOrDefault(s => s.name == "sortKey"));
         }
 
-        public class SortingCriteriaComparer : EqualityComparer<BaseSortingCriterion>
+        public class SortingCriteriaComparer : EqualityComparer<SortingCriterion>
         {
-            public override bool Equals(BaseSortingCriterion x, BaseSortingCriterion y)
+            public override bool Equals(SortingCriterion x, SortingCriterion y)
             {
-                if (x?.GetType() != y?.GetType())
+                if (x.sortCriterion != y.sortCriterion)
                     return false;
-                switch (x)
-                {
-                    case BuiltInSortingCriterion sortingCriteriaX:
-                        return sortingCriteriaX.sortCriterion.Equals(((BuiltInSortingCriterion) y).sortCriterion);
-                    case CustomSortingCriterion slotCriteriaX:
-                        return slotCriteriaX.sortKeySlot.GetExpression()
-                            .Equals(((CustomSortingCriterion) y).sortKeySlot.GetExpression());
-                    default:
-                        return false;
-                }
+                if(x.sortCriterion == SortCriteria.Custom)
+                    if (x.sortKeySlot.GetExpression().Equals(y.sortKeySlot.GetExpression()))
+                        return true;
+                return false;
             }
 
 
-            public override int GetHashCode(BaseSortingCriterion obj)
+            public override int GetHashCode(SortingCriterion obj)
             {
-                switch (obj)
-                {
-                    case BuiltInSortingCriterion sortingCriteriaObj:
-                        return sortingCriteriaObj.sortCriterion.GetHashCode();
-                    case CustomSortingCriterion slotCriteriaObj:
-                        return slotCriteriaObj.sortKeySlot.GetExpression().GetHashCode();
-                    default:
-                        return 0;
-                }
+                int hash = obj.sortCriterion.GetHashCode();
+                if (obj.sortCriterion == SortCriteria.Custom)
+                    hash ^= obj.sortKeySlot.GetExpression().GetHashCode();
+                return hash;
             }
         }
     }
