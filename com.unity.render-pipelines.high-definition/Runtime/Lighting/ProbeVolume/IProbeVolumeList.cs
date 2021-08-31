@@ -15,8 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         ref ProbeVolumeArtistParameters GetParameters(int i);
 
-        int GetAtlasID(int i);
-        int GetBakeID(int i);
+        ProbeVolumeGlobalUniqueID GetAtlasID(int i);
         ProbeVolume.ProbeVolumeAtlasKey ComputeProbeVolumeAtlasKey(int i);
         ProbeVolume.ProbeVolumeAtlasKey GetProbeVolumeAtlasKeyPrevious(int i);
         void SetProbeVolumeAtlasKeyPrevious(int i, ProbeVolume.ProbeVolumeAtlasKey key);

@@ -5,7 +5,7 @@ Shader "Hidden/Debug/ProbeVolumeSHPreview"
         _Exposure("_Exposure", Range(-10.0,10.0)) = 0.0
         _ProbeVolumeResolution("_ProbeVolumeResolution", Vector) = (0, 0, 0, 0)
         _ProbeVolumeProbeDisplayRadiusWS("_ProbeVolumeProbeDisplayRadiusWS", Float) = 1.0
-        _ProbeVolumeAtlasBias("_ProbeVolumeAtlasBias", Vector) = (0, 0, 0, 0)
+        _ProbeVolumeAtlasBiasTexels("_ProbeVolumeAtlasBiasTexels", Vector) = (0, 0, 0, 0)
         _ProbeVolumeIsResidentInAtlas("_ProbeVolumeIsResidentInAtlas", Float) = 0.0
         _ProbeVolumeHighlightNegativeRinging("_ProbeVolumeHighlightNegativeRinging", Float) = 0.0
         _ProbeVolumeDrawValidity("_ProbeVolumeDrawValidity", Float) = 0.0
@@ -56,7 +56,7 @@ Shader "Hidden/Debug/ProbeVolumeSHPreview"
             float3 _ProbeVolumeResolution;
             float4x4 _ProbeIndex3DToPositionWSMatrix;
             float _ProbeVolumeProbeDisplayRadiusWS;
-            float3 _ProbeVolumeAtlasBias;
+            float3 _ProbeVolumeAtlasBiasTexels;
             int _ProbeVolumeIsResidentInAtlas;
             int _ProbeVolumeHighlightNegativeRinging;
             int _ProbeVolumeDrawValidity;
@@ -205,7 +205,7 @@ Shader "Hidden/Debug/ProbeVolumeSHPreview"
                 {
                     // Due to probeIndex3D getting stored as a float and interpolated, we need to round before converting to int.
                     // Otherwise our texel coordinate will oscillate between probes randomly (based on precision).
-                    int3 probeIndexAtlas3D = (int3)(i.probeIndex3D + 0.5 + _ProbeVolumeAtlasBias);
+                    int3 probeIndexAtlas3D = (int3)(i.probeIndex3D + 0.5 + _ProbeVolumeAtlasBiasTexels);
 
                     probeSampleData = SampleProbeData(probeIndexAtlas3D, normalWS);
                 }

@@ -26,8 +26,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] protected internal int m_Version = (int)AssetVersion.Current;
         [SerializeField] internal int Version { get => m_Version; }
 
-        [SerializeField] internal int instanceID;
-
         // dataSH, dataValidity, and dataOctahedralDepth is from AssetVersion.First. In versions AddProbeVolumesAtlasEncodingModes or greater, this should be null.
         [SerializeField] internal SphericalHarmonicsL1[] dataSH = null;
         [SerializeField] internal float[] dataValidity = null;
@@ -44,9 +42,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField] internal Quaternion rotation;
 
+        [SerializeField] internal ProbeVolumeGlobalUniqueID globalUniqueID;
+
         internal bool IsDataAssigned()
         {
             return payload.dataSHL01 != null;
+        }
+
+        internal ProbeVolumeGlobalUniqueID GetID()
+        {
+            return (globalUniqueID == ProbeVolumeGlobalUniqueID.zero) ? new ProbeVolumeGlobalUniqueID(0, 0, 0, (ulong)unchecked((uint)GetInstanceID()), 0) : globalUniqueID;
         }
 
 #if UNITY_EDITOR
@@ -58,41 +63,37 @@ namespace UnityEngine.Rendering.HighDefinition
         //     CreateAsset();
         // }
 
-        internal static string GetFileName(int id = -1)
+        private static string GetFileName(ProbeVolumeGlobalUniqueID globalUniqueID)
         {
             string assetName = "ProbeVolumeData";
 
             String assetFileName;
             String assetPath;
 
-            if (id == -1)
-            {
-                assetPath = "Assets";
-                assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(assetName + ".asset");
-            }
-            else
-            {
-                String scenePath = SceneManagement.SceneManager.GetActiveScene().path;
-                String sceneDir = System.IO.Path.GetDirectoryName(scenePath);
-                String sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
 
-                assetPath = System.IO.Path.Combine(sceneDir, sceneName);
+            String scenePath = SceneManagement.SceneManager.GetActiveScene().path;
+            String sceneDir = System.IO.Path.GetDirectoryName(scenePath);
+            String sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
 
-                if (!UnityEditor.AssetDatabase.IsValidFolder(assetPath))
-                    UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
+            assetPath = System.IO.Path.Combine(sceneDir, sceneName);
 
-                assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(assetName + id + ".asset");
-            }
+            if (!UnityEditor.AssetDatabase.IsValidFolder(assetPath))
+                UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
+
+            assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(string.Format("{0}-{1}{2}", assetName, globalUniqueID.ToString(), ".asset"));
 
             assetFileName = System.IO.Path.Combine(assetPath, assetFileName);
 
             return assetFileName;
         }
 
-        internal static ProbeVolumeAsset CreateAsset(int id = -1)
+        internal static ProbeVolumeAsset CreateAsset(ProbeVolumeGlobalUniqueID globalUniqueID)
         {
             ProbeVolumeAsset asset = ScriptableObject.CreateInstance<ProbeVolumeAsset>();
-            string assetFileName = GetFileName(id);
+            asset.globalUniqueID = globalUniqueID;
+            EditorUtility.SetDirty(asset);
+
+            string assetFileName = GetFileName(globalUniqueID);
 
             UnityEditor.AssetDatabase.CreateAsset(asset, assetFileName);
             UnityEditor.AssetDatabase.SaveAssets();

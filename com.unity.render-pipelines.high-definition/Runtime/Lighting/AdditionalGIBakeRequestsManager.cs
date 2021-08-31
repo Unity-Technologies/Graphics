@@ -14,9 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public class AdditionalGIBakeRequestsManager
     {
         // The baking ID for the extra requests
-        // TODO: Need to ensure this never conflicts with bake IDs from others interacting with the API.
-        // In our project, this is ProbeVolumes.
-        internal static readonly int s_BakingID = 912345678;
+        internal static readonly int s_BakingID = int.MaxValue;
 
         private static AdditionalGIBakeRequestsManager s_Instance = new AdditionalGIBakeRequestsManager();
         /// <summary>
@@ -28,6 +26,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!Application.isPlaying)
             {
+                lightmapperBakeIDFromBakeID.Clear();
+                lightmapperBakeIDNext = 0;
+
                 SubscribeOnBakeStarted();
             }
         }
@@ -37,6 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!Application.isPlaying)
             {
                 UnsubscribeOnBakeStarted();
+
+                lightmapperBakeIDFromBakeID.Clear();
+                lightmapperBakeIDNext = 0;
             }
         }
 
@@ -47,6 +51,36 @@ namespace UnityEngine.Rendering.HighDefinition
         private static bool m_RequestToLightmapperIsSet = false;
 
         private static readonly Vector2 s_FreelistSentinel = new Vector2(float.MaxValue, float.MaxValue);
+
+        // Lightmapper API uses ints as keys, but we want to use full, stable, GlobalObjectIds as keys.
+        // Rather than hashing and hoping we don't collide, lets handle this robustly by
+        // keeping a dictionary of ProbeVolumeGlobalUniqueID->int bit keys.
+        private Dictionary<ProbeVolumeGlobalUniqueID, int> lightmapperBakeIDFromBakeID = new Dictionary<ProbeVolumeGlobalUniqueID, int>(32);
+        private int lightmapperBakeIDNext = 0;
+
+        internal bool TryGetLightmapperBakeIDFromBakeID(ProbeVolumeGlobalUniqueID bakeID, out int lightmapperBakeID)
+        {
+            bool success = false;
+            if (lightmapperBakeIDFromBakeID.TryGetValue(bakeID, out lightmapperBakeID))
+            {
+                success = true;
+            }
+            else if (lightmapperBakeIDNext == s_BakingID)
+            {
+                success = false;
+                lightmapperBakeID = -1;
+                Debug.LogWarningFormat("Error: Used up all lightmapper bake IDs. This should never happen. Somehow all {0} ids have been used up. This must be the result of a bug. Unlikely that you created and baked {0} unique bake requests. Quit and reopen unity to flush all IDs.", s_BakingID - 1);
+            }
+            else
+            {
+                success = true;
+                lightmapperBakeID = lightmapperBakeIDNext;
+                ++lightmapperBakeIDNext;
+                lightmapperBakeIDFromBakeID.Add(bakeID, lightmapperBakeID);
+            }
+
+            return success;
+        }
 
         /// <summary>
         /// Enqueue a request for probe rendering at the specified location.
