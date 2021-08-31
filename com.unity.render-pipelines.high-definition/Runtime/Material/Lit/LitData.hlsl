@@ -281,15 +281,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
     // If user provide bent normal then we process a better term
-#if defined(_BENTNORMALMAP) && (defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP) || defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP_SG) || defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP_ASG))
+#if defined(_BENTNORMALMAP) && defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
     // If we have bent normal and ambient occlusion, process a specular occlusion
-    #ifdef _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
     surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-    #elif defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP_SG)
-    surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO_SG(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-    #elif defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP_ASG)
-    surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO_ASG(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-    #endif
     // Don't do spec occ from Ambient if there is no mask mask
 #elif defined(_MASKMAP) && !defined(_SPECULAR_OCCLUSION_NONE)
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));

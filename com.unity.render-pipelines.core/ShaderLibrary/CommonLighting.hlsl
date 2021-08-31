@@ -279,7 +279,7 @@ real SphericalCapIntersectionSolidArea(real cosC1, real cosC2, real cosB)
 // ref: Practical Realtime Strategies for Accurate Indirect Occlusion
 // http://blog.selfshadow.com/publications/s2016-shading-course/#course_content
 // Original Cone-Cone method with cosine weighted assumption (p129 s2016_pbs_activision_occlusion)
-real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS, real ambientOcclusion, real roughness)
+real GetSpecularOcclusionFromBentAO_ConeCone(real3 V, real3 bentNormalWS, real3 normalWS, real ambientOcclusion, real roughness)
 {
     // Retrieve cone angle
     // Ambient occlusion is cosine weighted, thus use following equation. See slide 129
@@ -290,14 +290,9 @@ real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS,
     return SphericalCapIntersectionSolidArea(cosAv, cosAs, cosB) / (TWO_PI * (1.0 - cosAs));
 }
 
-float Square(float x)
+real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS, real ambientOcclusion, real roughness)
 {
-    return x * x;
-}
-
-real GetSpecularOcclusionFromBentAO_ASG(real3 V, real3 bentNormalWS, real3 normalWS, real ambientOcclusion, real roughness)
-{
-    //AnisotropicSphericalGaussian NDF = WarpedGGXDistributionASG(normalWS, roughness, V);
+    //SphericalGaussian NDF = WarpedGGXDistribution(normalWS, roughness, V);
     //SphericalGaussian Visibility = VisibilityConeSG(bentNormalWS, ambientOcclusion);
     //SphericalGaussian UpperHemisphere = UpperHemisphereSG(normalWS);
     //return saturate( InnerProduct(NDF, Visibility) / InnerProduct(NDF, UpperHemisphere) );
@@ -309,50 +304,23 @@ real GetSpecularOcclusionFromBentAO_ASG(real3 V, real3 bentNormalWS, real3 norma
     // sharpness = (log(Y) - log(A)) / (cos(X) - 1)
     // For AO cone, cos(X) = sqrt(1 - ambientOcclusion)
     // -> for Y = 0.1, sharpness = -1.0 / (sqrt(1-ao) - 1)
-
-    const float nu1 = -0.5f / (sqrt(1.0f - ambientOcclusion) - 1.0f);
+    float vs = -1.0f / (sqrt(1.0f - ambientOcclusion) - 1.0f);
 
     // 2. Approximate upper hemisphere with sharpness = 0.8 and amplitude = 1
-    const float nu2 = 0.5f * 0.8f;
+    float us = 0.8f;
 
-    // 3. Compute warped Anisotropic SG of GGX distribution
-    // Ref: http://cg.cs.tsinghua.edu.cn/people/~kun/asg/paper_asg.pdf
-    // https://therealmjp.github.io/posts/sg-series-part-4-specular-lighting-from-an-sg-light-source/#going-anisotropic
-    // use same sharpness for X and Y because it simplifies a lot and it doesn't change much
+    // 3. Compute warped SG Axis of GGX distribution
+    // Ref: All-Frequency Rendering of Dynamic, Spatially-Varying Reflectance
+    // https://www.microsoft.com/en-us/research/wp-content/uploads/2009/12/sg.pdf
     float NoV = dot(V, normalWS);
-    float3 R = 2 * NoV * normalWS - V;
-    float NDFSharpnessInv = 4.0f * roughness * roughness * NoV;
-    float3 NDFAxisX = cross(V, normalWS);
-    float3 NDFAxisY = cross(R, NDFAxisX);
+    float3 NDFAxis = (2 * NoV * normalWS - V) * (0.5f / max(roughness * roughness * NoV, 0.001f));
 
-    //float amplitude = sqrt( ((nu1 + NDF.SharpnessX) * (nu1 + NDF.SharpnessY)) / ((nu2 + NDF.SharpnessX) * (nu2 + NDF.SharpnessY)) );
-    float amplitude = nu1 * NDFSharpnessInv + 1;    // Assuming sharpnessX == sharpnessY and nu2 << sharpness
-    float sharpness = nu1 / max(amplitude, 0.001f); // == (nu1 * NDF.SharpnessX) / (nu1 + NDF.SharpnessX);
-
-    // Ignore L2 cause it's mostly 0
-    float NDFAxisYNorm = 1.0f / dot(NDFAxisY, NDFAxisY);
-    float u1 = Square(dot(NDFAxisY, bentNormalWS)) * NDFAxisYNorm;
-    float u2 = Square(dot(NDFAxisY, normalWS))     * NDFAxisYNorm;
-    float L1 = Square(dot(NDFAxisX, bentNormalWS)) / dot(NDFAxisX, NDFAxisX);
-    float expFactor = exp(nu2 * u2 - sharpness * (L1 + u1));
-
-    // put expFactor 2 times because it looks nicer
-    return saturate(amplitude * expFactor * expFactor);
-}
-
-real GetSpecularOcclusionFromBentAO_SG(real3 V, real3 bentNormalWS, real3 normalWS, real ambientOcclusion, real roughness)
-{
-    // Same as GetSpecularOcclusionFromBentAO_ASG but with non anisotropic SG for GGX 
-    float us = 0.81f;
-    float vs = 1.0f / (sqrt(1.0f - ambientOcclusion) - 1.0f);
-    float3 NDFAxis = reflect(-V, normalWS) * (0.5f / max(roughness * roughness * dot(normalWS, V), 0.001));
-
-    float umLength1 = length(NDFAxis - vs * bentNormalWS);
+    float umLength1 = length(NDFAxis + vs * bentNormalWS);
     float umLength2 = length(NDFAxis + us * normalWS);
     float d1 = 1 - exp(-2 * umLength1);
     float d2 = 1 - exp(-2 * umLength2);
 
-    float expFactor1 = exp(umLength1 - umLength2 + us + vs);
+    float expFactor1 = exp(umLength1 - umLength2 + us - vs);
 
     return saturate(expFactor1 * (d1 * umLength2) / (d2 * umLength1));
 }

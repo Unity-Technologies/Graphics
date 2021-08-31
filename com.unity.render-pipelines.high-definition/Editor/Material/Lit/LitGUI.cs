@@ -130,8 +130,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
                 CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", specOcclusionMode == 0);
                 CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", specOcclusionMode == 2);
-                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP_SG", specOcclusionMode == 3);
-                CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP_ASG", specOcclusionMode == 4);
             }
             if (material.HasProperty(kHeightMap))
                 CoreUtils.SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
