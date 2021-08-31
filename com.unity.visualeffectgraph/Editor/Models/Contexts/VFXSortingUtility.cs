@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Lucene.Net.Search;
-using static UnityEditor.VFX.VFXSortingUtility;
 
 namespace UnityEditor.VFX
 {
@@ -62,7 +60,7 @@ namespace UnityEditor.VFX
         {
             return criteria is SortCriteria.CameraDepth or SortCriteria.DistanceToCamera;
         }
-        public class SortKeySlotComparer : EqualityComparer<VFXSlot>
+        class SortKeySlotComparer : EqualityComparer<VFXSlot>
         {
             public override bool Equals(VFXSlot x, VFXSlot y)
             {
@@ -88,15 +86,15 @@ namespace UnityEditor.VFX
             return voteCounts.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
         }
 
+        private static readonly SortKeySlotComparer sortKeySlotComparer = new SortKeySlotComparer();
         public static bool OutputNeedsOwnSort(VFXAbstractParticleOutput abstractParticleOutput, bool needsGlobalSort,
-            SortCriteria globalSortCriterion, VFXSlot globalSortKeySlot, SortKeySlotComparer comparer)
+            SortCriteria globalSortCriterion, VFXSlot globalSortKeySlot)
         {
             return abstractParticleOutput.HasSorting() && needsGlobalSort &&
                    (abstractParticleOutput.GetSortCriterion() != globalSortCriterion
                     || abstractParticleOutput.GetSortCriterion() == SortCriteria.Custom
-                    && !comparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"), globalSortKeySlot));
+                    && !sortKeySlotComparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"), globalSortKeySlot));
         }
-
 
         public class SortingCriterion
         {

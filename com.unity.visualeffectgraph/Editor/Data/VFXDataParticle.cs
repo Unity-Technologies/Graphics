@@ -562,7 +562,6 @@ namespace UnityEditor.VFX
                 implicitContext.Add(globalSort);
                 m_Contexts.Add(globalSort);
             }
-            SortKeySlotComparer comparer = new SortKeySlotComparer();
             //additional update
             for (int outputIndex = index; outputIndex < contexts.Count; ++outputIndex)
             {
@@ -572,7 +571,7 @@ namespace UnityEditor.VFX
                     continue;
 
                 abstractParticleOutput.needsOwnSort = OutputNeedsOwnSort(abstractParticleOutput, needsGlobalSort,
-                    globalSortCriterion.sortCriterion, globalSortKeySlot, comparer);
+                    globalSortCriterion.sortCriterion, globalSortKeySlot);
                 if (abstractParticleOutput.NeedsOutputUpdate())
                 {
                     var update = VFXContext.CreateImplicitContext<VFXOutputUpdate>(this);
@@ -615,7 +614,7 @@ namespace UnityEditor.VFX
             var globalSortedCandidates = compilableOwners.OfType<VFXAbstractParticleOutput>()
                 .Where(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
            Func<VFXAbstractParticleOutput, SortingCriterion> getVoteFunc = VFXSortingUtility.GetVoteFunc;
-           globalSortCriterion = MajorityVote(globalSortedCandidates, getVoteFunc);
+           globalSortCriterion = MajorityVote(globalSortedCandidates, getVoteFunc, SortingCriteriaComparer.Default);
         }
 
         public override void FillDescs(
