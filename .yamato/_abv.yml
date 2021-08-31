@@ -35,7 +35,7 @@ all_project_ci_nightly_2021.2:
         CACHE_ARGS: '{{cache.flags}}'
     triggers:
         recurring:
-          -  branch: master
+          -  branch: 2021.2/staging
              frequency: 1 * * ?
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_2021.2
