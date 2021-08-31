@@ -52,9 +52,8 @@ namespace UnityEditor.ShaderFoundry
         {
             // An input tagged with 'Property' is auto added as a property
             variableBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.Property).Build());
-            // [PropertyType] is used to fill out the type in the material attribute.
-            // Currently the Value is used to set this, but the name has to be non-empty...
-            variableBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PropertyType).Param(propertyType, propertyType).Build());
+            // [PropertyType(propertyTypeName)] is used to fill out the type in the material attribute.
+            variableBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PropertyType).Param(propertyType).Build());
         }
 
         internal static BlockDescriptor BuildSimpleBlockDescriptor(ShaderContainer container, Block block)
@@ -74,9 +73,8 @@ namespace UnityEditor.ShaderFoundry
             propertyBuilder.DisplayName = displayName;
             propertyBuilder.Type = container._Texture2D;
             
-            // [PropertyType] is used to fill out the type in the material attribute.
-            // Currently the Value is used to set this, but the name has to be non-empty...
-            propertyBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PropertyType).Param("2D", "2D").Build());
+            // [PropertyType(propertyTypeName)] is used to fill out the type in the material attribute.
+            propertyBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PropertyType).Param("2D").Build());
             // Default expression is everything after the equal sign in the declaration
             propertyBuilder.DefaultExpression = "\"white\" {}";
             var textureProperty = propertyBuilder.Build();
