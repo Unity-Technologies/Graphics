@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool fogEnabled;
 
         public float accumulatedWeight;
-        public uint  currentIteration;
+        public uint currentIteration;
     }
 
     // Helper class to manage time-scale in Unity when recording multi-frame sequences where one final frame is an accumulation of multiple sub-frames

@@ -41,9 +41,7 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
 #ifdef MINIMAL_GBUFFER
     // Override all the parameters that we do not require for our minimal lit version
     standardLitData.specularOcclusion = 1.0;
-    standardLitData.perceptualRoughness = 1.0;
     standardLitData.normalWS = fragInput.tangentToWorld[2];
-    standardLitData.fresnel0 = 0.0;
     standardLitData.coatMask = 0.0;
     standardLitData.emissiveAndBaked = builtinData.emissiveColor;
 #endif

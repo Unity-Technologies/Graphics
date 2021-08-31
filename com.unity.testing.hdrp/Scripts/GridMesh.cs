@@ -11,7 +11,7 @@ public class GridMesh : MonoBehaviour
     [SerializeField] private float m_Thickness = 0.1f;
 
     [System.NonSerialized]
-    Mesh            mesh;
+    Mesh mesh;
 
     private void OnEnable()
     {

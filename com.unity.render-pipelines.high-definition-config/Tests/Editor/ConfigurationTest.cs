@@ -8,6 +8,6 @@ namespace UnityEngine.Rendering.HighDefinition.Test
     class ConfigurationTest
     {
         [Test]
-        public void ValidateConfiguration() {}
+        public void ValidateConfiguration() { }
     }
 }

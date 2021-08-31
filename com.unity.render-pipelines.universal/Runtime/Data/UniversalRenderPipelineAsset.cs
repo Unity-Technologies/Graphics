@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsDynamicBatching = false;
         [SerializeField] bool m_MixedLightingSupported = true;
         [SerializeField] bool m_SupportsLightLayers = false;
-        [SerializeField][Obsolete] PipelineDebugLevel m_DebugLevel;
+        [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
@@ -362,6 +362,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 // If previous version and current version are miss-matched then we are waiting for the upgrader to kick in
                 if (k_AssetPreviousVersion != k_AssetVersion)
+                    return null;
+
+                if (m_RendererDataList[m_DefaultRendererIndex].GetType().ToString()
+                    .Contains("Universal.ForwardRendererData"))
                     return null;
 
                 Debug.LogError(
@@ -672,7 +676,7 @@ namespace UnityEngine.Rendering.Universal
         public LightRenderingMode additionalLightsRenderingMode
         {
             get { return m_AdditionalLightsRenderingMode; }
-            internal set { m_AdditionalLightsRenderingMode = value;}
+            internal set { m_AdditionalLightsRenderingMode = value; }
         }
 
         public int maxAdditionalLightsCount
