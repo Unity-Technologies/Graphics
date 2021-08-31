@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace UnityEditor.VFX
 {
-    public static class VFXSortingUtility
+    internal static class VFXSortingUtility
     {
         public enum SortCriteria
         {
@@ -39,7 +39,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        internal static IEnumerable<VFXAttribute> GetSortingDependantAttributes(SortCriteria sortCriteria)
+        public static IEnumerable<VFXAttribute> GetSortingDependantAttributes(SortCriteria sortCriteria)
         {
             switch (sortCriteria)
             {
@@ -53,8 +53,6 @@ namespace UnityEditor.VFX
                 case SortCriteria.OldestInFront:
                     yield return VFXAttribute.Age;
                     break;
-                default:
-                    throw new NotImplementedException("This Sorting criteria is missing an Additional Define");
             }
         }
 
@@ -62,20 +60,20 @@ namespace UnityEditor.VFX
         {
             return criteria is SortCriteria.CameraDepth or SortCriteria.DistanceToCamera;
         }
-        internal class SortKeySlotComparer : IEqualityComparer<VFXSlot>
+        class SortKeySlotComparer : EqualityComparer<VFXSlot>
         {
-            public bool Equals(VFXSlot x, VFXSlot y)
+            public override bool Equals(VFXSlot x, VFXSlot y)
             {
                 return x.GetExpression().Equals(y.GetExpression());
             }
 
-            public int GetHashCode(VFXSlot obj)
+            public override int GetHashCode(VFXSlot obj)
             {
                 return obj.GetExpression().GetHashCode();
             }
         }
 
-        internal static TResult MajorityVote<TResult, TVoter>(IEnumerable<TVoter> voterContainer, Func<TVoter, TResult> getVoteFunc, IEqualityComparer<TResult> comparer = null)
+        public static TResult MajorityVote<TResult, TVoter>(IEnumerable<TVoter> voterContainer, Func<TVoter, TResult> getVoteFunc, IEqualityComparer<TResult> comparer = null)
         {
             Dictionary<TResult, int> voteCounts = comparer == null ? new Dictionary<TResult, int>() : new Dictionary<TResult, int>(comparer) ;
             foreach (var voter in voterContainer)
@@ -87,5 +85,65 @@ namespace UnityEditor.VFX
             //Return result with the most votes
             return voteCounts.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
         }
+
+        private static readonly SortKeySlotComparer sortKeySlotComparer = new SortKeySlotComparer();
+        public static bool OutputNeedsOwnSort(VFXAbstractParticleOutput abstractParticleOutput, bool needsGlobalSort,
+            SortCriteria globalSortCriterion, VFXSlot globalSortKeySlot)
+        {
+            return abstractParticleOutput.HasSorting() && needsGlobalSort &&
+                   (abstractParticleOutput.GetSortCriterion() != globalSortCriterion
+                    || abstractParticleOutput.GetSortCriterion() == SortCriteria.Custom
+                    && !sortKeySlotComparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"), globalSortKeySlot));
+        }
+
+        public class SortingCriterion
+        {
+            public SortCriteria sortCriterion;
+            public VFXSlot sortKeySlot = null;
+
+            public SortingCriterion(SortCriteria sortCriterion, VFXSlot sortKeySlot)
+            {
+                this.sortCriterion = sortCriterion;
+                if (sortCriterion == SortCriteria.Custom)
+                {
+                    this.sortKeySlot = sortKeySlot;
+                }
+            }
+
+            public SortingCriterion()
+            {
+                sortCriterion = SortCriteria.DistanceToCamera;
+                sortKeySlot = null;
+            }
+        }
+
+        public static SortingCriterion GetVoteFunc(VFXAbstractParticleOutput output)
+        {
+            return new SortingCriterion(output.GetSortCriterion(), output.inputSlots.FirstOrDefault(s => s.name == "sortKey"));
+        }
+
+        public class SortingCriteriaComparer : EqualityComparer<SortingCriterion>
+        {
+            public override bool Equals(SortingCriterion x, SortingCriterion y)
+            {
+                if (x.sortCriterion != y.sortCriterion)
+                    return false;
+                if(x.sortCriterion == SortCriteria.Custom)
+                    if (x.sortKeySlot.GetExpression().Equals(y.sortKeySlot.GetExpression()))
+                        return true;
+                return false;
+            }
+
+
+            public override int GetHashCode(SortingCriterion obj)
+            {
+                int hash = obj.sortCriterion.GetHashCode();
+                if (obj.sortCriterion == SortCriteria.Custom)
+                    hash ^= obj.sortKeySlot.GetExpression().GetHashCode();
+                return hash;
+            }
+        }
     }
+
+
 }

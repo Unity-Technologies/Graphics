@@ -543,23 +543,25 @@ namespace UnityEditor.VFX
             }
 
             var implicitContext = new List<VFXContext>();
-            SortCriteria globalSortCriterion = SortCriteria.DistanceToCamera;
             bool needsGlobalSort = NeedsGlobalSort();
-            VFXSlot globalSortKeySlot = null;
             //Issues a global sort, when it affects at least one output.
             //If others don't match the criterion, or have a compute cull pass, they need a per output sort.
+            SortingCriterion globalSortCriterion = new SortingCriterion();
+            VFXSlot globalSortKeySlot = null;
             if (needsGlobalSort)
             {
                 // Then the camera sort
                 var globalSort = VFXContext.CreateImplicitContext<VFXGlobalSort>(this);
-                bool isCustomSortKey = GetGlobalSortCriterionAndSlotIfCustom(out globalSortCriterion, out globalSortKeySlot);
-                globalSort.sortCriterion = globalSortCriterion;
-                if (isCustomSortKey)
+                GetGlobalSortCriterionAndSlotIfCustom(out globalSortCriterion);
+                globalSort.sortCriterion = globalSortCriterion.sortCriterion;
+                if (globalSort.sortCriterion == SortCriteria.Custom)
+                {
+                    globalSortKeySlot = globalSortCriterion.sortKeySlot;
                     globalSort.customSortingSlot = globalSortKeySlot;
+                }
                 implicitContext.Add(globalSort);
                 m_Contexts.Add(globalSort);
             }
-            SortKeySlotComparer comparer = new SortKeySlotComparer();
             //additional update
             for (int outputIndex = index; outputIndex < contexts.Count; ++outputIndex)
             {
@@ -568,10 +570,8 @@ namespace UnityEditor.VFX
                 if (abstractParticleOutput == null)
                     continue;
 
-                abstractParticleOutput.needsOwnSort = abstractParticleOutput.HasSorting() && needsGlobalSort &&
-                    (abstractParticleOutput.GetSortCriterion() != globalSortCriterion
-                        || abstractParticleOutput.GetSortCriterion() == SortCriteria.Custom
-                        && !comparer.Equals(abstractParticleOutput.inputSlots.First(o => o.name == "sortKey"), globalSortKeySlot));
+                abstractParticleOutput.needsOwnSort = OutputNeedsOwnSort(abstractParticleOutput, needsGlobalSort,
+                    globalSortCriterion.sortCriterion, globalSortKeySlot);
                 if (abstractParticleOutput.NeedsOutputUpdate())
                 {
                     var update = VFXContext.CreateImplicitContext<VFXOutputUpdate>(this);
@@ -609,20 +609,12 @@ namespace UnityEditor.VFX
 
         }
 
-        bool GetGlobalSortCriterionAndSlotIfCustom(out SortCriteria globalSortCriteria, out VFXSlot globalSortKeySlot)
+        void GetGlobalSortCriterionAndSlotIfCustom(out SortingCriterion globalSortCriterion)
         {
             var globalSortedCandidates = compilableOwners.OfType<VFXAbstractParticleOutput>()
                 .Where(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
-            globalSortCriteria = MajorityVote(globalSortedCandidates, output => output.GetSortCriterion());
-            if (globalSortCriteria == SortCriteria.Custom)
-            {
-                globalSortedCandidates = globalSortedCandidates.Where(o => o.GetSortCriterion() == SortCriteria.Custom);
-                globalSortKeySlot = MajorityVote(globalSortedCandidates,
-                    output => output.inputSlots.First(s => s.name == "sortKey"), new SortKeySlotComparer());
-                return true;
-            }
-            globalSortKeySlot = null;
-            return false;
+           Func<VFXAbstractParticleOutput, SortingCriterion> getVoteFunc = VFXSortingUtility.GetVoteFunc;
+           globalSortCriterion = MajorityVote(globalSortedCandidates, getVoteFunc, SortingCriteriaComparer.Default);
         }
 
         public override void FillDescs(
