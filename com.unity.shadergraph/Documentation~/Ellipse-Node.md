@@ -20,7 +20,7 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](S
 The following example code represents one possible outcome of this node.
 
 ```
-void Unity_Ellipse_float(float2 UV, float Width, float Height, out float4 Out)
+void Unity_Ellipse_float(float2 UV, float Width, float Height, out float Out)
 {
     float d = length((UV * 2 - 1) / float2(Width, Height));
     Out = saturate((1 - d) / fwidth(d));
