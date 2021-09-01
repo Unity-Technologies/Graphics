@@ -106,7 +106,7 @@
         if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
         {
             // Pack debug color into SH data so that we can access it later for our debug mode.
-            // coefficients.data[0].xyz += probeVolumeData.debugColor * weightCurrent;
+            coefficients.data[0].xyz += probeVolumeData.debugColor * weightCurrent;
 
 #if PROBE_VOLUMES_BILATERAL_FILTERING_MODE == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
             float3x3 probeVolumeWorldFromTexel3DRotationScale;
