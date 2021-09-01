@@ -52,7 +52,8 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
             0.1 * Luminance(mtlData.bsdfData.fresnel0) : Luminance(F_Schlick(mtlData.bsdfData.fresnel0, NdotV));
     }
 
-    if (HasFlag(mtlData.bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION))
+    bool hasTransmission = HasFlag(mtlData.bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION);
+    if (hasTransmission)
         mtlData.bsdfWeight[2] = mtlData.bsdfWeight[0] * Luminance(mtlData.bsdfData.transmittance);
 
     // Normalize the weights
@@ -77,7 +78,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
             SSS::Result subsurfaceResult;
             float3 meanFreePath = 0.001 / (_ShapeParamsAndMaxScatterDists[mtlData.bsdfData.diffusionProfileIndex].rgb * _WorldScalesAndFilterRadiiAndThicknessRemaps[mtlData.bsdfData.diffusionProfileIndex].x);
 
-            if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult))
+            if (!SSS::RandomWalk(shadingPosition, GetDiffuseNormal(mtlData), mtlData.bsdfData.diffuseColor, meanFreePath, pathIntersection.pixelCoord, subsurfaceResult, hasTransmission))
                 return false;
 
             shadingPosition = subsurfaceResult.exitPosition;
