@@ -382,6 +382,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed assert failure when enabling the probe volume system for the first time.
 - Significantly improved performance of APV probe debug.
 - Removed DLSS keyword in settings search when NVIDIA package is not installed. (case 1358409)
+- Fixed light anchor min distance value + properties not working with prefabs (case 1345509).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
