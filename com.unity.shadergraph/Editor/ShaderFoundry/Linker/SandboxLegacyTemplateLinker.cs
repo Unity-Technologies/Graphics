@@ -102,9 +102,10 @@ namespace UnityEditor.ShaderFoundry
             var legacyEntryPoints = legacyBlockLinker.GenerateLegacyEntryPoints(template, pass, passCustomizationPointDescriptors);
 
             ActiveFields targetActiveFields, shaderGraphActiveFields;
-            BuildLegacyActiveFields(legacyPass, legacyEntryPoints, out targetActiveFields, out shaderGraphActiveFields);
+            var customInterpolatorFields = new List<FieldDescriptor>();
+            BuildLegacyActiveFields(legacyPass, legacyEntryPoints, out targetActiveFields, out shaderGraphActiveFields, customInterpolatorFields);
 
-            GenerateShaderPass(builder, pass, legacyPass, targetActiveFields, shaderGraphActiveFields, legacyEntryPoints, new PropertyCollector());
+            GenerateShaderPass(builder, pass, legacyPass, targetActiveFields, shaderGraphActiveFields, legacyEntryPoints, customInterpolatorFields, new PropertyCollector());
         }
 
         List<CustomizationPointDescriptor> FindCustomizationPointsForPass(TemplatePass pass, IEnumerable<CustomizationPointDescriptor> customizationPointDescriptors)
@@ -128,7 +129,7 @@ namespace UnityEditor.ShaderFoundry
             return passCustomizationPointDescriptors;
         }        
 
-        void BuildLegacyActiveFields(UnityEditor.ShaderGraph.PassDescriptor legacyPass, LegacyEntryPoints legacyEntryPoints, out ActiveFields targetActiveFields, out ActiveFields shaderGraphActiveFields)
+        void BuildLegacyActiveFields(UnityEditor.ShaderGraph.PassDescriptor legacyPass, LegacyEntryPoints legacyEntryPoints, out ActiveFields targetActiveFields, out ActiveFields shaderGraphActiveFields, List<FieldDescriptor> customInterpolatorFields)
         {
             Dictionary<string, FieldDescriptor> vertexInLookup, vertexOutLookup, fragmentInLookup, fragmentOutLookup;
             BuildLookups(legacyPass, out vertexInLookup, out vertexOutLookup, out fragmentInLookup, out fragmentOutLookup);
@@ -146,8 +147,10 @@ namespace UnityEditor.ShaderFoundry
                     activeFields.baseInstance.Add(activeField);
                 else if (prop.Attributes.FindFirst(CommonShaderAttributes.Varying).IsValid)
                 {
-                    var customInterpolatorField = new FieldDescriptor("", prop.ReferenceName, "", prop.Type.Name);
+                    // Create the interpolant field descriptor to handle the varying
+                    var customInterpolatorField = new FieldDescriptor("", prop.ReferenceName, "", ShaderValueTypeFrom((int)prop.Type.VectorDimension), subscriptOptions: StructFieldOptions.Generated);
                     activeFields.baseInstance.Add(customInterpolatorField);
+                    customInterpolatorFields.Add(customInterpolatorField);
                 }
             }
 
@@ -170,7 +173,6 @@ namespace UnityEditor.ShaderFoundry
         void BuildLookups(UnityEditor.ShaderGraph.PassDescriptor legacyPass, out Dictionary<string, FieldDescriptor> vertexInLookups, out Dictionary<string, FieldDescriptor> vertexOutLookups, out Dictionary<string, FieldDescriptor> fragmentInLookups, out Dictionary<string, FieldDescriptor> fragmentOutLookups)
         {
             List<FieldDescriptor> preVertexFields = new List<FieldDescriptor>();
-            preVertexFields.AddRange(UnityEditor.ShaderGraph.Structs.Attributes.fields);
             preVertexFields.AddRange(UnityEditor.ShaderGraph.Structs.VertexDescriptionInputs.fields);
 
             var vertexOutFields = new List<FieldDescriptor>();
@@ -325,7 +327,7 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void GenerateShaderPass(ShaderBuilder subPassBuilder, TemplatePass templatePass, UnityEditor.ShaderGraph.PassDescriptor pass, ActiveFields targetActiveFields, ActiveFields blockActiveFields, LegacyEntryPoints legacyEntryPoints, PropertyCollector subShaderProperties)
+        void GenerateShaderPass(ShaderBuilder subPassBuilder, TemplatePass templatePass, UnityEditor.ShaderGraph.PassDescriptor pass, ActiveFields targetActiveFields, ActiveFields blockActiveFields, LegacyEntryPoints legacyEntryPoints, List<FieldDescriptor> customInterpolatorFields, PropertyCollector subShaderProperties)
         {
             string vertexCode = "// GraphVertex: <None>";
             string fragmentCode = "// GraphPixel: <None>";
@@ -362,21 +364,6 @@ namespace UnityEditor.ShaderFoundry
             ProcessBlockDescriptor(legacyEntryPoints.vertexDescBlockDesc, visitedRegistry, LegacyCustomizationPoints.VertexEntryPointOutputName, ref vertexCode);
             ProcessBlockDescriptor(legacyEntryPoints.fragmentDescBlockDesc, visitedRegistry, LegacyCustomizationPoints.SurfaceEntryPointOutputName, ref fragmentCode);
 
-            // Handle block custom interpolators. Do this by checking if any fragment input is marked as a varying
-            var blockVaryings = new List<FieldDescriptor>();
-            if (legacyEntryPoints.fragmentDescBlockDesc.IsValid && legacyEntryPoints.fragmentDescBlockDesc.Block.IsValid)
-            {
-                var block = legacyEntryPoints.fragmentDescBlockDesc.Block;
-                foreach (var field in block.Inputs)
-                {
-                    if (field.Attributes.FindFirst(CommonShaderAttributes.Varying).IsValid)
-                    {
-                        var customInterpolatorField = new FieldDescriptor("", field.ReferenceName, "", ShaderValueTypeFrom((int)field.Type.VectorDimension), subscriptOptions: StructFieldOptions.Generated);
-                        blockVaryings.Add(customInterpolatorField);
-                    }
-                }
-            }
-
             GenerationMode m_Mode = GenerationMode.ForReals;
             // Early exit if pass is not used in preview
             if (m_Mode == GenerationMode.Preview && !pass.useInPreview)
@@ -403,7 +390,7 @@ namespace UnityEditor.ShaderFoundry
 
             // Initialize custom interpolator sub generator
             CustomInterpSubGen customInterpSubGen = new CustomInterpSubGen(m_OutputNode != null);
-            foreach (var customInterpolatorField in blockVaryings)
+            foreach (var customInterpolatorField in customInterpolatorFields)
                 customInterpSubGen.AddCustomInterpolant(customInterpolatorField);
 
             // Initiailize Collectors
