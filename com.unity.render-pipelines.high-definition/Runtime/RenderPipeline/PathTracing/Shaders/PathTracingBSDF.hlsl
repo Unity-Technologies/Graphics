@@ -515,7 +515,7 @@ struct Result
     float3 exitNormal;
 };
 
-bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 meanFreePath, uint2 pixelCoord, out Result result)
+bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 meanFreePath, uint2 pixelCoord, out Result result, bool isThin = false)
 {
     // Remap from our user-friendly parameters to and sigmaS and sigmaT
     float3 sigmaS, sigmaT;
@@ -609,10 +609,13 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
 #ifdef _DOUBLESIDED_ON
 
     // If we are dealing with a thin (double-sided) surface, we randomly flip the output normal half the time
-    if (GetSample(pixelCoord, _RaytracingSampleIndex, DIM_THIN_NORMAL_FLIP) < 0.5)
-        result.exitNormal = -result.exitNormal;
+    if (isThin)
+    {
+        if (GetSample(pixelCoord, _RaytracingSampleIndex, DIM_THIN_NORMAL_FLIP) < 0.5)
+            result.exitNormal = -result.exitNormal;
 
-    result.throughput *= 2.0;
+        result.throughput *= 2.0;
+    }
 
 #endif
 
