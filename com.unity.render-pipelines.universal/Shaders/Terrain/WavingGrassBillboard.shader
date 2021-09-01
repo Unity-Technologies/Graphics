@@ -84,8 +84,8 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
 
         Pass
         {
-            Name "DepthNormals"
-            Tags{"LightMode" = "DepthNormals"}
+            Name "DepthNormalsOnly"
+            Tags{"LightMode" = "DepthNormalsOnly"}
 
             ZWrite On
             Cull Off
