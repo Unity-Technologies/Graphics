@@ -6,8 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.0.0] - 2021-09-01
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed impossibility to release the cursor in the template.
+- Fixed assert failure when enabling the probe volume system for the first time.
+- Significantly improved performance of APV probe debug.
+- Removed DLSS keyword in settings search when NVIDIA package is not installed. (case 1358409)
+- Fixed light anchor min distance value + properties not working with prefabs (case 1345509).
+
+### changed
+- Visual Environment ambient mode is now Dynamic by default.
 
 ## [12.0.0] - 2021-01-11
 
@@ -381,10 +388,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed lens flare not rendering correctly with TAAU or DLSS.
 - Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
+- Fixed ThreadMapDetail to saturate AO & smoothness strength inputs to prevent out-of-bounds values set by users (1357740)
 - Allow negative wind speed parameter.
-- Fixed impossibility to release the cursor in the template.
-- Fixed lens flare not rendering correctly with TAAU or DLSS
-- Fixed light anchor min distance value + properties not working with prefabs (case 1345509).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
