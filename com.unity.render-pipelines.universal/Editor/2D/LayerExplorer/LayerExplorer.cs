@@ -32,9 +32,15 @@ namespace UnityEditor.Rendering.Universal
         }
 
         private static Color[] BatchColors = new[] {
-            Color.black, Color.blue, Color.cyan,
-            Color.gray, Color.green, Color.magenta,
-            Color.red, Color.white, Color.yellow
+            Color.green,
+            Color.magenta,
+            Color.yellow,
+            Color.red,
+            Color.cyan,
+            Color.white,
+            Color.gray,
+            Color.blue,
+            Color.black,
         };
 
         private List<LayerBatch> batchList;
