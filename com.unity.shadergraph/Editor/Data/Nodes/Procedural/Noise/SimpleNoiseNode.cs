@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
             get
             {
                 if (((int)m_HashType < 0) || ((int)m_HashType >= kHashFunctionPrefix.Length))
-                    return (HashType) 0;
+                    return (HashType)0;
                 return m_HashType;
             }
             set
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph
 
             var hashType = this.hashType;
             var hashTypeString = hashType.ToString();
-            var HashFunction = kHashFunctionPrefix[(int) hashType];
+            var HashFunction = kHashFunctionPrefix[(int)hashType];
 
             registry.ProvideFunction($"Unity_SimpleNoise_ValueNoise_{hashTypeString}_$precision", s =>
             {

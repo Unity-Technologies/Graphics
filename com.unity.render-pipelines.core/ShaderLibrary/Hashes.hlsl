@@ -130,9 +130,9 @@ void Hash_Tchou_3_3_uint(uint3 v, out uint3 o)
 
 void Hash_Tchou_3_3_float(float3 i, out float3 o)
 {
-	uint3 r, v = (uint3) (int3) round(i);
-	Hash_Tchou_3_3_uint(v, r);
-	o = r * (1.0 / float(0xffffffff));
+    uint3 r, v = (uint3) (int3) round(i);
+    Hash_Tchou_3_3_uint(v, r);
+    o = r * (1.0 / float(0xffffffff));
 }
 
 void Hash_Tchou_3_3_half(half3 i, out half3 o)
