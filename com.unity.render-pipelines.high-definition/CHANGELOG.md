@@ -379,6 +379,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ThreadMapDetail to saturate AO & smoothness strength inputs to prevent out-of-bounds values set by users (1357740)
 - Allow negative wind speed parameter.
 - Fixed impossibility to release the cursor in the template.
+- Fixed assert failure when enabling the probe volume system for the first time.
+- Significantly improved performance of APV probe debug.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
