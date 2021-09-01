@@ -382,6 +382,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
 - Allow negative wind speed parameter.
+- Fixed impossibility to release the cursor in the template.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
