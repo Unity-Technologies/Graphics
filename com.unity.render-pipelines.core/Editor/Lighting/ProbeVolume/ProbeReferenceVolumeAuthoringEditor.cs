@@ -15,9 +15,9 @@ namespace UnityEngine.Experimental.Rendering
         [InitializeOnLoad]
         class RealtimeProbeSubdivisionDebug
         {
-            static double       s_LastSubdivisionTime;
-            static double       s_LastRefreshTime;
-            static IEnumerator  s_CurrentSubdivision;
+            static double s_LastSubdivisionTime;
+            static double s_LastRefreshTime;
+            static IEnumerator s_CurrentSubdivision;
 
             static RealtimeProbeSubdivisionDebug()
             {
@@ -72,7 +72,8 @@ namespace UnityEngine.Experimental.Rendering
                         var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(probeVolumeAuthoring);
 
                         // Cull all the cells that are not visible (we don't need them for realtime debug)
-                        ctx.cells.RemoveAll(c => {
+                        ctx.cells.RemoveAll(c =>
+                        {
                             return probeVolumeAuthoring.ShouldCullCell(c.position);
                         });
 
@@ -82,7 +83,8 @@ namespace UnityEngine.Experimental.Rendering
                         if (activeCamera != null)
                         {
                             var cameraPos = activeCamera.transform.position;
-                            ctx.cells.Sort((c1, c2) => {
+                            ctx.cells.Sort((c1, c2) =>
+                            {
                                 c1.volume.CalculateCenterAndSize(out var c1Center, out var _);
                                 float c1Distance = Vector3.Distance(cameraPos, c1Center);
 

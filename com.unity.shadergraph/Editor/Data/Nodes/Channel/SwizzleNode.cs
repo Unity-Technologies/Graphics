@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderGraph
         public SwizzleNode()
         {
             name = "Swizzle";
+            synonyms = new string[] { "swap", "reorder", "component mask" };
             UpdateNodeAfterDeserialization();
         }
 

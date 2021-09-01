@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.0.0] - 2021-09-01
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -76,6 +81,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Lens Flare Thumbnails
 - Fixed Lens Flare 'radialScreenAttenuationCurve invisible'
 - Fixed Lens Flare rotation for Curve Distribution
+- Fixed potentially conflicting runtime Rendering Debugger UI command by adding an option to disable runtime UI altogether (1345783).
 
 ### Changed
 - Improved the warning messages for Volumes and their Colliders.
@@ -99,6 +105,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - LensFlare Element editor now have Thumbnail preview
 - Improved IntegrateLDCharlie() to use uniform stratified sampling for faster convergence towards the ground truth
 - DynamicResolutionHandler.GetScaledSize function now clamps, and never allows to return a size greater than its input.
+- Removed DYNAMIC_RESOLUTION snippet on lens flare common shader. Its not necessary any more on HDRP, which simplifies the shader.
 
 ## [11.0.0] - 2020-10-21
 

@@ -11,8 +11,8 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class CustomPassListSearchWindow : ScriptableObject, ISearchWindowProvider
     {
-        Texture2D           icon;
-        Action<Type>        createCustomPassCallback;
+        Texture2D icon;
+        Action<Type> createCustomPassCallback;
 
         public void Initialize(Action<Type> createCustomPassCallback)
             => this.createCustomPassCallback = createCustomPassCallback;
@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 tree.Add(new SearchTreeEntry(new GUIContent(customPassType.Name, icon))
                 {
-                    level    = 1,
+                    level = 1,
                     userData = customPassType
                 });
             }
