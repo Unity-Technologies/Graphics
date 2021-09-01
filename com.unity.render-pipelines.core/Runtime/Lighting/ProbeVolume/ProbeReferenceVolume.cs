@@ -615,7 +615,7 @@ namespace UnityEngine.Experimental.Rendering
             // Temporarily reverting recent change to always allocate L2 (which is still required for dilation/debug right now)
             m_SHBands = ProbeVolumeSHBands.SphericalHarmonicsL2;// parameters.shBands;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
-            InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_SHBands);
+            InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
             m_NeedsIndexRebuild = true;
             sceneBounds = parameters.sceneBounds;
@@ -789,7 +789,7 @@ namespace UnityEngine.Experimental.Rendering
             if (m_NeedsIndexRebuild)
             {
                 CleanupLoadedData();
-                InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_SHBands);
+                InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
                 m_HasChangedIndex = true;
                 m_NeedsIndexRebuild = false;
             }
@@ -943,7 +943,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Perform all the operations that are relative to changing the content or characteristics of the probe reference volume.
         /// </summary>
-        /// <param name ="loadAllCells"> True when all cells are to be immediately loaded..</param>
+        /// <param name ="addAllCells"> True when all cells are to be immediately added.</param>
         public void PerformPendingOperations(bool addAllCells = false)
         {
             PerformPendingDeletion();
@@ -958,14 +958,14 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name ="allocationSize"> Size used for the chunk allocator that handles bricks.</param>
         /// <param name ="memoryBudget">Probe reference volume memory budget.</param>
         /// <param name ="shBands">Probe reference volume SH bands.</param>
-        void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
+        void InitProbeReferenceVolume(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
         {
             var minCellPosition = m_PendingInitInfo.pendingMinCellPosition;
             var maxCellPosition = m_PendingInitInfo.pendingMaxCellPosition;
             if (!m_ProbeReferenceVolumeInit)
             {
                 Profiler.BeginSample("Initialize Reference Volume");
-                m_Pool = new ProbeBrickPool(allocationSize, memoryBudget, shBands);
+                m_Pool = new ProbeBrickPool(memoryBudget, shBands);
 
                 m_Index = new ProbeBrickIndex(memoryBudget);
                 m_CellIndices = new ProbeCellIndices(minCellPosition, maxCellPosition, (int)Mathf.Pow(3, m_MaxSubdivision - 1));
@@ -1124,7 +1124,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            // Update textures with incoming SH data and index and ignore any potential frame latency related issues for now
+            // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
             m_Pool.Update(dataloc, m_TmpSrcChunks, ch_list, m_SHBands);
 
             dataloc.Cleanup();

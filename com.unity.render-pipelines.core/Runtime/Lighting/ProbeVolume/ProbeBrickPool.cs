@@ -7,6 +7,8 @@ namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeBrickPool
     {
+        const int kProbeIndexPoolAllocationSize = 128;
+
         [DebuggerDisplay("Chunk ({x}, {y}, {z})")]
         public struct BrickChunkAlloc
         {
@@ -63,7 +65,6 @@ namespace UnityEngine.Experimental.Rendering
 
         const int kMaxPoolWidth = 1 << 11; // 2048 texels is a d3d11 limit for tex3d in all dimensions
 
-        static int m_AllocationSize;
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         DataLocation m_Pool;
         BrickChunkAlloc m_NextFreeChunk;
@@ -71,19 +72,18 @@ namespace UnityEngine.Experimental.Rendering
 
         ProbeVolumeSHBands m_SHBands;
 
-        internal ProbeBrickPool(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
+        internal ProbeBrickPool(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
         {
             Profiler.BeginSample("Create ProbeBrickPool");
             m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
 
-            m_AllocationSize = allocationSize;
             m_MemoryBudget = memoryBudget;
             m_SHBands = shBands;
 
             m_FreeList = new Stack<BrickChunkAlloc>(256);
 
             int width, height, depth;
-            DerivePoolSizeFromBudget(allocationSize, memoryBudget, out width, out height, out depth);
+            DerivePoolSizeFromBudget(memoryBudget, out width, out height, out depth);
             int estimatedCost = 0;
             m_Pool = CreateDataLocation(width * height * depth, false, shBands, out estimatedCost);
             estimatedVMemCost = estimatedCost;
@@ -103,8 +103,8 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        internal static int GetChunkSize() { return m_AllocationSize; }
-        internal int GetChunkSizeInProbeCount() { return m_AllocationSize * kBrickProbeCountTotal; }
+        internal static int GetChunkSize() { return kProbeIndexPoolAllocationSize; }
+        internal int GetChunkSizeInProbeCount() { return kProbeIndexPoolAllocationSize * kBrickProbeCountTotal; }
 
         internal int GetPoolWidth() { return m_Pool.width; }
         internal int GetPoolHeight() { return m_Pool.height; }
@@ -152,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 outAllocations.Add(m_NextFreeChunk);
 
-                m_NextFreeChunk.x += m_AllocationSize * kBrickProbeCountPerDim;
+                m_NextFreeChunk.x += kProbeIndexPoolAllocationSize * kBrickProbeCountPerDim;
                 if (m_NextFreeChunk.x >= m_Pool.width)
                 {
                     m_NextFreeChunk.x = 0;
@@ -185,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 for (int j = 0; j < kBrickProbeCountPerDim; j++)
                 {
-                    int width = Mathf.Min(m_AllocationSize * kBrickProbeCountPerDim, source.width - src.x);
+                    int width = Mathf.Min(kProbeIndexPoolAllocationSize * kBrickProbeCountPerDim, source.width - src.x);
                     Graphics.CopyTexture(source.TexL0_L1rx, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL0_L1rx, dst.z + j, 0, dst.x, dst.y);
 
                     Graphics.CopyTexture(source.TexL1_G_ry, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_G_ry, dst.z + j, 0, dst.x, dst.y);
@@ -407,7 +407,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        void DerivePoolSizeFromBudget(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
+        void DerivePoolSizeFromBudget(ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
         {
             // TODO: This is fairly simplistic for now and relies on the enum to have the value set to the desired numbers,
             // might change the heuristic later on.
