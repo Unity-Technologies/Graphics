@@ -187,7 +187,12 @@ namespace UnityEditor.ShaderGraph
                         activeFields.AddAll(fd);
                     }
                     foreach (var field in customFieldDescriptors)
+                    {
+                        // Don't add duplicate fields
+                        if (ps.fields.Any((f) => (f.name == field.name)))
+                            continue;
                         agg.Add(field);
+                    }
                     newPassStructs.Add(new StructDescriptor { name = ps.name, packFields = ps.packFields, fields = ps.fields.Union(agg).ToArray() });
                 }
                 else

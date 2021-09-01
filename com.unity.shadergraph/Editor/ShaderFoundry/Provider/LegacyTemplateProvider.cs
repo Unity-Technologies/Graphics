@@ -164,7 +164,6 @@ namespace UnityEditor.ShaderFoundry
         Block BuildVertexPreBlock()
         {
             List<FieldDescriptor> fields = new List<FieldDescriptor>();
-            fields.AddRange(UnityEditor.ShaderGraph.Structs.Attributes.fields);
             fields.AddRange(UnityEditor.ShaderGraph.Structs.VertexDescriptionInputs.fields);
 
             var builder = new Block.Builder(Container, $"Pre{LegacyCustomizationPoints.VertexDescriptionCPName}");
