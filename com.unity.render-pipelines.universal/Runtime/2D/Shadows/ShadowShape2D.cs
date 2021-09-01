@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         static Dictionary<Edge, int> m_EdgeDictionary = new Dictionary<Edge, int>(new EdgeComparer());  // This is done so we don't create garbage allocating and deallocating a dictionary object
-        NativeArray<Vector2>         m_ProvidedVertices;
+        NativeArray<Vector3>         m_ProvidedVertices;
         NativeArray<Edge>            m_ProvidedEdges;
         NativeArray<int>             m_ShapeStartingIndices;
 
@@ -93,19 +93,18 @@ namespace UnityEngine.Rendering.Universal
             unsortedEdges.Dispose();
         }
 
-        private void CalculateEdgesFromLineStrip<T>(T indices, IndexValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
+        private void CalculateEdgesFromLineStrip(NativeArray<int> indices)
         {
-            int numOfIndices = lengthGetter(ref indices);
-            int lastIndex = valueGetter(ref indices, numOfIndices - 1);
+            int numOfIndices = indices.Length;
+            int lastIndex = indices[numOfIndices - 1];
 
             NativeArray<Edge> unsortedEdges = new NativeArray<Edge>(numOfIndices, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             for (int i = 0; i < numOfIndices; i++)
             {
-                int curIndex = valueGetter(ref indices, i);
+                int curIndex = indices[i];
                 unsortedEdges[i] = new Edge(lastIndex, curIndex); ;
                 lastIndex = curIndex;
             }
-
             
             SortEdges(unsortedEdges, out m_ProvidedEdges, out m_ShapeStartingIndices);
             unsortedEdges.Dispose();
@@ -123,15 +122,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        private void CalculateEdgesFromTriangles<T>(T indices, IndexValueGetter<T> valueGetter, LengthGetter<T> lengthGetter)
+        private void CalculateEdgesFromTriangles(NativeArray<int> indices)
         {
             // Add our edges to an edge list
             m_EdgeDictionary.Clear();
-            for(int i=0;i<lengthGetter(ref indices);i+=3)
+            for(int i=0;i<indices.Length;i+=3)
             {
-                int v0Index = valueGetter(ref indices, i);
-                int v1Index = valueGetter(ref indices, i + 1);
-                int v2Index = valueGetter(ref indices, i + 2);
+                int v0Index = indices[i];
+                int v1Index = indices[i + 1];
+                int v2Index = indices[i + 2];
 
                 Edge edge0 = new Edge(v0Index, v1Index);
                 Edge edge1 = new Edge(v1Index, v2Index);
@@ -176,7 +175,8 @@ namespace UnityEngine.Rendering.Universal
             SortEdges(unsortedEdges, out m_ProvidedEdges, out m_ShapeStartingIndices);
         }
 
-        private void SetShape<V,I>(V vertices, I indices, VertexValueGetter<V> vertexGetter, LengthGetter<V> vertexLengthGetter, IndexValueGetter<I> indexGetter, LengthGetter<I> indexLengthGetter, IShadowShape2DProvider.OutlineTopology outlineTopology)
+
+        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
         {
             if (m_ProvidedVertices.IsCreated)
                 m_ProvidedVertices.Dispose();
@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.Universal
             if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Triangles)
             {
                 Debug.Assert(indices != null, "Indices array cannot be null for Triangles topology");
-                CalculateEdgesFromTriangles<I>(indices, indexGetter, indexLengthGetter);
+                CalculateEdgesFromTriangles(indices);
             }
             else if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Lines)
             {
@@ -196,41 +196,21 @@ namespace UnityEngine.Rendering.Universal
             }
             else if (outlineTopology == IShadowShape2DProvider.OutlineTopology.LineStrip)
             {
-                if (indices == null)
-                    CalculateEdgesForSimpleLineStrip(vertexLengthGetter(ref vertices));
+                if (indices.Length == 0)
+                    CalculateEdgesForSimpleLineStrip(vertices.Length);
                 else
-                    CalculateEdgesFromLineStrip<I>(indices, indexGetter, indexLengthGetter);
+                    CalculateEdgesFromLineStrip(indices);
             }
 
             // Copy the vertices
-            int numVertices = vertexLengthGetter(ref vertices);
-            m_ProvidedVertices = new NativeArray<Vector2>(numVertices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            int numVertices = vertices.Length;
+            m_ProvidedVertices = new NativeArray<Vector3>(numVertices, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             for (int i=0;i<numVertices;i++)
-                m_ProvidedVertices[i] = vertexGetter(ref vertices, i);
+                m_ProvidedVertices[i] = vertices[i];
         }
 
-        public override void SetShape(Vector2[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
-        {
-            SetShape<Vector2[], ushort[]>(vertices, indices, Vector2ArrayGetter, Vector2ArrayLengthGetter, UShortArrayGetter, UShortArrayLengthGetter, outlineTopology);
-        }
 
-        public override void SetShape(Vector3[] vertices, ushort[] indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
-        {
-            SetShape<Vector3[], ushort[]>(vertices, indices, Vector3ArrayGetter, Vector3ArrayLengthGetter, UShortArrayGetter, UShortArrayLengthGetter, outlineTopology);
-        }
-
-        public override void SetShape(NativeArray<Vector2> vertices, NativeArray<int> indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
-        {
-            SetShape<NativeArray<Vector2>, NativeArray<int>>(vertices, indices, NativeArrayGetter<Vector2>, NativeArrayLengthGetter<Vector2>, NativeArrayGetter<int>, NativeArrayLengthGetter<int>, outlineTopology);
-        }
-
-        public override void UpdateVertices(Vector2[] vertices)
-        {
-            if (m_ProvidedVertices.IsCreated && vertices.Length >= m_ProvidedVertices.Length)
-                m_ProvidedVertices.CopyFrom(vertices);
-        }
-
-        public override void UpdateVertices(NativeArray<Vector2> vertices)
+        public override void UpdateVertices(NativeArray<Vector3> vertices)
         {
             if (m_ProvidedVertices.IsCreated && vertices.Length >= m_ProvidedVertices.Length)
                 m_ProvidedVertices.CopyFrom(vertices);

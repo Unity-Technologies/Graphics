@@ -156,8 +156,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
             {
-                m_ShadowShape.SetShape(m_ShapePath, null, IShadowShape2DProvider.OutlineTopology.LineStrip);
+                NativeArray<Vector3> nativePath = new NativeArray<Vector3>(m_ShapePath, Allocator.Temp);
+                NativeArray<int> nativeIndices = new NativeArray<int>(0, Allocator.Temp);
+                m_ShadowShape.SetShape(nativePath, nativeIndices, IShadowShape2DProvider.OutlineTopology.LineStrip);
                 m_ShadowShape.GenerateShadowMesh(m_Mesh, ref m_ProjectedBoundingSphere, 0);
+                nativePath.Dispose();
+                nativeIndices.Dispose();
             }
             if (m_ShadowCastingSource == ShadowCastingSources.ShapeProvider)
             {

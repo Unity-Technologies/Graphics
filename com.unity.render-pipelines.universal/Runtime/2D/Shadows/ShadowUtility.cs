@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateTangents(ref NativeArray<Vector2> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector4> outTangents)
+        static void CalculateTangents(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector4> outTangents)
         {
             for (int i = 0; i < inEdges.Length; i++)
             {
@@ -72,10 +72,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-
-        static void CalculateContraction(ref NativeArray<Vector2> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector4> inTangents, ref NativeArray<int> inShapeStartingIndices, float contractionDistance, ref NativeArray<Vector3> outReducedVertices)
+        static void CalculateContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<Vector4> inTangents, NativeArray<int> inShapeStartingIndices, float contractionDistance, ref NativeArray<Vector3> outReducedVertices)
         {
-            for(int shapeIndex=0;shapeIndex<inShapeStartingIndices.Length; shapeIndex++)
+            for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
             {
                 int startingIndex = inShapeStartingIndices[shapeIndex];
 
@@ -87,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
 
 
                 int edgeIndex = startingIndex;
-                for(int i=0;i< numEdgesInCurShape; i++)
+                for (int i = 0; i < numEdgesInCurShape; i++)
                 {
                     int curEdge = startingIndex + i;
                     int nextEdge = i + 1 < numEdgesInCurShape ? startingIndex + i + 1 : startingIndex;
@@ -110,8 +109,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-
-        static void ReorderVertices(ref NativeArray<Vector3> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector3> outVertices)
+        static void ReorderVertices(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector3> outVertices)
         {
             for(int i=0;i<inEdges.Length;i++)
             {
@@ -120,7 +118,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateVertices(ref NativeArray<Vector3> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector4> inTangents, ref NativeArray<ShadowMeshVertex> outMeshVertices)
+        static void CalculateVertices(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<Vector4> inTangents, ref NativeArray<ShadowMeshVertex> outMeshVertices)
         {
             for (int i = 0; i < inEdges.Length; i++)
             {
@@ -139,7 +137,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateTriangles(ref NativeArray<Vector2> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<int> meshIndices)
+        static void CalculateTriangles(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<int> outMeshIndices)
         {
             for (int i = 0; i < inEdges.Length; i++)
             {
@@ -149,12 +147,12 @@ namespace UnityEngine.Rendering.Universal
                 int additionalVerticesStart = 2 * i + inVertices.Length;
 
                 int startingMeshIndex = k_VerticesPerTriangle * k_TrianglesPerEdge * i; 
-                meshIndices[startingMeshIndex] = (ushort)v0;
-                meshIndices[startingMeshIndex + 1] = (ushort)additionalVerticesStart;
-                meshIndices[startingMeshIndex + 2] = (ushort)(additionalVerticesStart + 1);
-                meshIndices[startingMeshIndex + 3] = (ushort)(additionalVerticesStart + 1);
-                meshIndices[startingMeshIndex + 4] = (ushort)v1;
-                meshIndices[startingMeshIndex + 5] = (ushort)v0;
+                outMeshIndices[startingMeshIndex] = (ushort)v0;
+                outMeshIndices[startingMeshIndex + 1] = (ushort)additionalVerticesStart;
+                outMeshIndices[startingMeshIndex + 2] = (ushort)(additionalVerticesStart + 1);
+                outMeshIndices[startingMeshIndex + 3] = (ushort)(additionalVerticesStart + 1);
+                outMeshIndices[startingMeshIndex + 4] = (ushort)v1;
+                outMeshIndices[startingMeshIndex + 5] = (ushort)v0;
             }
         }
 
@@ -194,7 +192,7 @@ namespace UnityEngine.Rendering.Universal
 
 
         // inEdges is expected to be contiguous
-        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector2> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices, float contractionDistance)
+        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices, float contractionDistance)
         {
             Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
 
@@ -208,10 +206,10 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<ShadowMeshVertex> meshFinalVertices = new NativeArray<ShadowMeshVertex>(meshVertexCount, Allocator.Temp);
 
             // Get vertex reduction directions
-            CalculateContraction(ref inVertices, ref inEdges, ref meshTangents, ref inShapeStartingIndices, contractionDistance, ref meshReducedVertices);
-            CalculateTangents(ref meshReducedVertices, ref inEdges, ref meshTangents);                            // meshVertices contain a normal component
-            CalculateVertices(ref meshReducedVertices, ref inEdges, ref meshTangents, ref meshFinalVertices);
-            CalculateTriangles(ref inVertices, ref inEdges, ref meshIndices);
+            CalculateContraction(inVertices, inEdges, meshTangents, inShapeStartingIndices, contractionDistance, ref meshReducedVertices);
+            CalculateTangents(meshReducedVertices, inEdges, ref meshTangents);                            // meshVertices contain a normal component
+            CalculateVertices(meshReducedVertices, inEdges, meshTangents, ref meshFinalVertices);
+            CalculateTriangles(inVertices, inEdges, ref meshIndices);
 
             // Set the mesh data
             mesh.SetVertexBufferParams(meshVertexCount, m_VertexLayout);
@@ -233,7 +231,7 @@ namespace UnityEngine.Rendering.Universal
             return retBoundingSphere;
         }
 
-        static public void GenerateShadowOutline(NativeArray<Vector2> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices, float contractionDistance, out NativeArray<Vector3> outOutline, out NativeArray<int> outShapeStartingIndices)
+        static public void GenerateShadowOutline(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices, float contractionDistance, out NativeArray<Vector3> outOutline, out NativeArray<int> outShapeStartingIndices)
         {
             Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
 
@@ -259,9 +257,9 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<Vector3> contractedVertices = new NativeArray<Vector3>(inVertices.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // Get vertex reduction directions
-            CalculateTangents(ref inVertices, ref inEdges, ref meshTangents);                            // meshVertices contain a normal component
-            CalculateContraction(ref inVertices, ref inEdges, ref meshTangents, ref inShapeStartingIndices, contractionDistance, ref contractedVertices);
-            ReorderVertices(ref contractedVertices, ref inEdges, ref outOutline);
+            CalculateTangents(inVertices, inEdges, ref meshTangents);                            // meshVertices contain a normal component
+            CalculateContraction(inVertices, inEdges, meshTangents, inShapeStartingIndices, contractionDistance, ref contractedVertices);
+            ReorderVertices(contractedVertices, inEdges, ref outOutline);
 
             meshTangents.Dispose();
             meshIndices.Dispose();
