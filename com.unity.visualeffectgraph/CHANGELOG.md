@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.0.0] - 2021-09-01
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [12.0.0] - 2021-01-11
 ### Added
 - Added support for Texture2D Arrays in Flipbooks
@@ -94,6 +99,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - GPU hang on some initialize dispatch during dichotomy (platform specific)
 - Compilation error undeclared identifier 'Infinity' [Case 1328592](https://issuetracker.unity3d.com/product/unity/issues/guid/1328592/)
 - Exposed Parameter placement can be moved after sanitize
+- Fix rendering artifacts on some mobile devices [Case 1149057](https://issuetracker.unity3d.com/product/unity/issues/guid/1149057/)
+- Fix compilation failure on OpenGLES [Case 1348666](https://issuetracker.unity3d.com/product/unity/issues/guid/1348666/)
 
 ## [11.0.0] - 2020-10-21
 ### Added
