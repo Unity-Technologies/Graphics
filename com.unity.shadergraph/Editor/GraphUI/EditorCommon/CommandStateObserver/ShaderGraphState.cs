@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
@@ -12,7 +11,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
         public ShaderGraphState(Hash128 graphViewEditorWindowGUID, Preferences preferences)
             : base(graphViewEditorWindowGUID, preferences)
         {
-
         }
 
         /// <summary>
@@ -61,6 +59,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             // Overrides for default GTF commands
             commandDispatcher.RegisterCommandHandler<CreateEdgeCommand>(ShaderGraphCommandOverrides.HandleCreateEdge);
             commandDispatcher.RegisterCommandHandler<DeleteElementsCommand>(ShaderGraphCommandOverrides.HandleDeleteElements);
+            commandDispatcher.RegisterCommandHandler<BypassNodesCommand>(ShaderGraphCommandOverrides.HandleBypassNodes);
             commandDispatcher.RegisterCommandHandler<RenameElementCommand>(ShaderGraphCommandOverrides.HandleGraphElementRenamed);
             commandDispatcher.RegisterCommandHandler<ChangeNodeStateCommand>(ShaderGraphCommandOverrides.HandleNodeStateChanged);
 

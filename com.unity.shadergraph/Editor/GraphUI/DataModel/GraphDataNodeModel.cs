@@ -1,26 +1,59 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 {
+    /// <summary>
+    /// GraphDataNodeModel is a model for a node backed by graph data. It can be used for a node on the graph (with
+    /// an assigned graph data name) or a searcher preview (with only an assigned registry key).
+    /// </summary>
     public class GraphDataNodeModel : NodeModel
     {
-        string m_Name;
+        [SerializeField] string m_GraphDataName;
 
+        /// <summary>
+        /// Graph data name associated with this node. If null, this node is a searcher preview with type determined
+        /// by the registryKey property.
+        /// </summary>
         public string graphDataName
         {
-            get => m_Name ??= Guid.ToString();
-            set => m_Name = value;
+            get => m_GraphDataName;
+            set => m_GraphDataName = value;
         }
 
-        IGraphHandler graphHandler => ((ShaderGraphModel) GraphModel).GraphHandler;
-        public bool existsInGraphData => TryGetNodeReader(out _);
+        RegistryKey m_PreviewRegistryKey;
+
+        /// <summary>
+        /// This node's registry key. If graphDataName is set, this is read from the graph. Otherwise, it is set
+        /// manually using SetPreviewRegistryKey.
+        /// </summary>
+        public RegistryKey registryKey
+        {
+            get
+            {
+                if (!existsInGraphData) return m_PreviewRegistryKey;
+
+                Assert.IsTrue(TryGetNodeReader(out var reader));
+                return reader.GetRegistryKey();
+            }
+        }
+
+        /// <summary>
+        /// Determines whether or not this node has a valid backing representation at the data layer. If false, this
+        /// node should be treated as a searcher preview.
+        /// </summary>
+        public bool existsInGraphData => m_GraphDataName != null && TryGetNodeReader(out _);
+
+        IGraphHandler graphHandler => ((ShaderGraphModel)GraphModel).GraphHandler;
+        Registry.Registry registry => ((ShaderGraphStencil)GraphModel.Stencil).GetRegistry();
 
         // Need to establish a mapping from port readers to port models,
         // as there currently is no other way to know if they both represent the same underlying port
@@ -30,23 +63,44 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 
         public bool TryGetNodeWriter(out INodeWriter writer)
         {
+            if (graphDataName == null)
+            {
+                writer = null;
+                return false;
+            }
+
             writer = graphHandler.GetNodeWriter(graphDataName);
             return writer != null;
         }
 
         public bool TryGetNodeReader(out INodeReader reader)
         {
-            reader = graphHandler.GetNode(graphDataName);
-            return reader != null;
-        }
+            try
+            {
+                if (graphDataName == null)
+                {
+                    reader = registry.GetDefaultTopology(m_PreviewRegistryKey);
+                    return true;
+                }
 
-        public RegistryKey registryKey => TryGetNodeReader(out var reader) ? reader.GetRegistryKey() : default;
+                reader = graphHandler.GetNodeReader(graphDataName);
+
+                return reader != null;
+            }
+            catch(Exception exception)
+            {
+                AssertHelpers.Fail("Failed to retrieve node due to exception:" + exception);
+                reader = null;
+                return false;
+            }
+        }
+        public bool NodeRequiresTime { get; private set; }
 
         public bool HasPreview { get; private set; }
 
         // By default every node's preview is visible
         // TODO: Handle preview state serialization
-        bool m_IsPreviewExpanded = true;
+        [SerializeField] bool m_IsPreviewExpanded = true;
 
         // By default every node's preview uses the inherit mode
         public PreviewMode NodePreviewMode { get; set; }
@@ -59,13 +113,17 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         public bool IsPreviewVisible
         {
             get => m_IsPreviewExpanded;
-            set
-            {
-                m_IsPreviewExpanded = value;
-            }
+            set { m_IsPreviewExpanded = value; }
         }
 
-        public bool NodeRequiresTime { get; private set; }
+        /// <summary>
+        /// Sets the registry key used when previewing this node. Has no effect if graphDataName has been set.
+        /// </summary>
+        /// <param name="key">Registry key used to preview this node.</param>
+        public void SetPreviewRegistryKey(RegistryKey key)
+        {
+            m_PreviewRegistryKey = key;
+        }
 
         protected override void OnDefineNode()
         {
@@ -81,8 +139,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             // TODO: Convert this to a NodePortsPart maybe?
             foreach (var portReader in reader.GetPorts())
             {
-                var isInput = portReader.GetFlags().isInput;
-                var orientation = portReader.GetFlags().isHorizontal
+                var isInput = portReader.IsInput();
+                var orientation = portReader.IsHorizontal()
                     ? PortOrientation.Horizontal
                     : PortOrientation.Vertical;
 
@@ -97,7 +155,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
                 m_PortMappings.Add(portReader, newPortModel);
 
                 // Mark node as containing a preview if any of the ports on it are flagged as a preview port
-                if(portReader.GetFlags().IsPreview)
+                if (portReader.TryGetField("_isPreview", out var previewField) && previewField.TryGetValue(out bool previewData) && previewData)
                     nodeHasPreview = true;
             }
 

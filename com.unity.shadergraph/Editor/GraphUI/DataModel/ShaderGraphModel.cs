@@ -115,8 +115,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 
         public IEnumerable<IPortReader> GetInputPortsOnNode(GraphDataNodeModel nodeModel)
         {
-            var nodeInstanceReader = m_GraphHandler.GetNode(nodeModel.graphDataName);
-            var nodeInstanceInputPorts = m_GraphHandler.GetInputPorts(nodeInstanceReader);
+            var nodeInstanceReader = m_GraphHandler.GetNodeReader(nodeModel.Guid.ToString());
+            var nodeInstanceInputPorts = nodeInstanceReader.GetInputPorts();
             return nodeInstanceInputPorts;
         }
 

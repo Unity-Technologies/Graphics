@@ -90,6 +90,7 @@ namespace UnityEditor.ShaderGraph
         #endregion
 
         private List<BlockNode> customBlockNodes;
+        private List<FieldDescriptor> customFieldDescriptors;
         private bool isNodePreview;
         private Dictionary<string, ShaderStringBuilder> spliceCommandBuffer;
 
@@ -97,6 +98,7 @@ namespace UnityEditor.ShaderGraph
         {
             this.isNodePreview = isNodePreview;
             customBlockNodes = new List<BlockNode>();
+            customFieldDescriptors = new List<FieldDescriptor>();
             spliceCommandBuffer = new Dictionary<String, ShaderStringBuilder>();
         }
 
@@ -158,6 +160,11 @@ namespace UnityEditor.ShaderGraph
                 activeFields.AddAll(Fields.GraphVertex);
         }
 
+        internal void AddCustomInterpolant(FieldDescriptor field)
+        {
+            customFieldDescriptors.Add(field);
+        }
+
         // This entry point is to inject custom interpolator fields into the appropriate structs for struct generation.
         internal List<StructDescriptor> CopyModifyExistingPassStructs(IEnumerable<StructDescriptor> passStructs, IActiveFieldsSet activeFields)
         {
@@ -179,6 +186,8 @@ namespace UnityEditor.ShaderGraph
                         agg.Add(fd);
                         activeFields.AddAll(fd);
                     }
+                    foreach (var field in customFieldDescriptors)
+                        agg.Add(field);
                     newPassStructs.Add(new StructDescriptor { name = ps.name, packFields = ps.packFields, fields = ps.fields.Union(agg).ToArray() });
                 }
                 else
@@ -250,6 +259,8 @@ namespace UnityEditor.ShaderGraph
                 {
                     builder.AppendLine($"float{(int)bn.customWidth} {bn.customName};");
                 }
+                foreach (var field in customFieldDescriptors)
+                    builder.AppendLine($"float{(int)field.vectorCount} {field.name};");
             }
             builder.AppendLine("};");
             if (makeDefine != null && makeDefine != "")
@@ -262,12 +273,16 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var bnode in customBlockNodes)
                 builder.AppendLine($"{dst}.{bnode.customName} = {src}.{bnode.customName};");
+            foreach (var field in customFieldDescriptors)
+                builder.AppendLine($"{dst}.{field.name} = {src}.{field.name};");
         }
 
         private void GenCopyMacroBlock(string startMacro, string endMacro, ShaderStringBuilder builder)
         {
             foreach (var bnode in customBlockNodes)
                 builder.AppendLine($"{startMacro}{bnode.customName}{endMacro};");
+            foreach (var field in customFieldDescriptors)
+                builder.AppendLine($"{startMacro}{field.name}{endMacro};");
         }
 
         private void GenCopyFunc(string funcName, string dstType, string srcType, ShaderStringBuilder builder, string makeDefine = "")

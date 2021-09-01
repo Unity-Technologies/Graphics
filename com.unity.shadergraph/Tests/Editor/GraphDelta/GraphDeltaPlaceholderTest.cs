@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
 
@@ -31,7 +32,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             {
                 GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
                 graphHandler.AddNode("foo");
-                Assert.NotNull(graphHandler.GetNode("foo"));
+                Assert.NotNull(graphHandler.GetNodeReader("foo"));
             }
 
             [Test]
@@ -39,7 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
             {
                 GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
                 graphHandler.AddNode("foo");
-                Assert.NotNull(graphHandler.GetNode("foo"));
+                Assert.NotNull(graphHandler.GetNodeReader("foo"));
                 graphHandler.RemoveNode("foo");
             }
 
@@ -54,14 +55,20 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                     node.TryAddPort("Out", false, true, out IPortWriter _);
                 }
 
-                var nodeRef = graphHandler.GetNode("Add");
+                var nodeRef = graphHandler.GetNodeReader("Add");
                 Assert.NotNull(nodeRef);
                 Assert.IsTrue(nodeRef.TryGetPort("A", out IPortReader portReader));
                 Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
                 Assert.IsTrue(nodeRef.TryGetPort("B", out portReader));
                 Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
                 Assert.IsTrue(nodeRef.TryGetPort("Out", out portReader));
                 Assert.NotNull(portReader);
+                Assert.NotNull(portReader.GetNode());
+                Assert.AreEqual(portReader.GetNode().GetName(), "Add");
             }
 
             [Test]
@@ -79,7 +86,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                     Assert.IsNotNull(input);
                     Assert.IsTrue(output.TryAddConnection(input));
                 }
-                var thruEdge = graphHandler.m_data.Search("Foo.Out.A");
+                var thruEdge = (graphHandler.m_data.Search("Foo.Out._Output") as Element<List<Element>>).data[0];
                 var normSearch = graphHandler.m_data.Search("Bar.A");
                 Assert.NotNull(thruEdge);
                 Assert.NotNull(normSearch);

@@ -2,9 +2,9 @@
     "name": "Unity.ShaderGraph.GraphDelta.Tests",
     "rootNamespace": "",
     "references": [
-        "Unity.ShaderGraph.GraphDelta",
         "Unity.ShaderGraph.Editor",
-        "ContextLayeredDataStorage"
+        "ContextLayeredDataStorage",
+        "Unity.ShaderGraph.GraphDeltaRegistry"
     ],
     "includePlatforms": [
         "Editor"
