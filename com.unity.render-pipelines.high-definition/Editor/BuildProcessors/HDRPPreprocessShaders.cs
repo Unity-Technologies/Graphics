@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public override int Priority => 100;
 
-        public CommonShaderPreprocessor() {}
+        public CommonShaderPreprocessor() { }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {

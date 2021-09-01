@@ -64,12 +64,12 @@ namespace UnityEngine.Rendering.Universal
         bool m_PreviousCastsShadows = true;
         int m_PreviousPathHash = 0;
 
-        internal Vector3    m_CachedPosition;
-        internal Vector3    m_CachedLossyScale;
+        internal Vector3 m_CachedPosition;
+        internal Vector3 m_CachedLossyScale;
         internal Quaternion m_CachedRotation;
-        internal Matrix4x4  m_CachedShadowMatrix;
-        internal Matrix4x4  m_CachedInverseShadowMatrix;
-        internal Matrix4x4  m_CachedLocalToWorldMatrix;
+        internal Matrix4x4 m_CachedShadowMatrix;
+        internal Matrix4x4 m_CachedInverseShadowMatrix;
+        internal Matrix4x4 m_CachedLocalToWorldMatrix;
 
         internal override void CacheValues()
         {
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Universal
         public bool useRendererSilhouette
         {
             set { m_UseRendererSilhouette = value; }
-            get { return m_UseRendererSilhouette && m_HasRenderer;  }
+            get { return m_UseRendererSilhouette && m_HasRenderer; }
         }
 
         /// <summary>

@@ -801,7 +801,7 @@ namespace UnityEngine.Rendering.Universal
                     // final PP always blit to camera target
                     applyFinalPostProcessing ||
                     // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
-                    (applyPostProcessing && !hasPassesAfterPostProcessing) ||
+                    (applyPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions) ||
                     // offscreen camera rendering to a texture, we don't need a blit pass to resolve to screen
                     m_ActiveCameraColorAttachment == RenderTargetHandle.GetCameraTarget(cameraData.xr);
 
@@ -980,17 +980,17 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < activeRenderPassQueue.Count; ++i)
             {
                 ScriptableRenderPass pass = activeRenderPassQueue[i];
-                bool needsDepth   = (pass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
+                bool needsDepth = (pass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
                 bool needsNormals = (pass.input & ScriptableRenderPassInput.Normal) != ScriptableRenderPassInput.None;
-                bool needsColor   = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
-                bool needsMotion  = (pass.input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
+                bool needsColor = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
+                bool needsMotion = (pass.input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
                 bool eventBeforeMainRendering = pass.renderPassEvent <= beforeMainRenderingEvent;
 
-                inputSummary.requiresDepthTexture   |= needsDepth;
-                inputSummary.requiresDepthPrepass   |= needsNormals || needsDepth && eventBeforeMainRendering;
+                inputSummary.requiresDepthTexture |= needsDepth;
+                inputSummary.requiresDepthPrepass |= needsNormals || needsDepth && eventBeforeMainRendering;
                 inputSummary.requiresNormalsTexture |= needsNormals;
-                inputSummary.requiresColorTexture   |= needsColor;
-                inputSummary.requiresMotionVectors  |= needsMotion;
+                inputSummary.requiresColorTexture |= needsColor;
+                inputSummary.requiresMotionVectors |= needsMotion;
                 if (needsDepth)
                     inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min((int)pass.renderPassEvent, (int)inputSummary.requiresDepthTextureEarliestEvent);
                 if (needsNormals || needsDepth)
@@ -1029,12 +1029,7 @@ namespace UnityEngine.Rendering.Universal
                     var depthDescriptor = descriptor;
                     depthDescriptor.useMipMap = false;
                     depthDescriptor.autoGenerateMips = false;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                    // XRTODO: Enabled this line for non-XR pass? URP copy depth pass is already capable of handling MSAA.
                     depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
-#endif
-
-                    depthDescriptor.bindMS |= depthDescriptor.msaaSamples > 1 && primedDepth && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
 
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
                     depthDescriptor.depthBufferBits = k_DepthStencilBufferBits;

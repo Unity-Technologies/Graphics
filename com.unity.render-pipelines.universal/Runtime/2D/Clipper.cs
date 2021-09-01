@@ -233,14 +233,14 @@ namespace UnityEngine.Rendering.Universal
             return hi < 0;
         }
 
-        public static bool operator==(Int128 val1, Int128 val2)
+        public static bool operator ==(Int128 val1, Int128 val2)
         {
             if ((object)val1 == (object)val2) return true;
             else if ((object)val1 == null || (object)val2 == null) return false;
             return (val1.hi == val2.hi && val1.lo == val2.lo);
         }
 
-        public static bool operator!=(Int128 val1, Int128 val2)
+        public static bool operator !=(Int128 val1, Int128 val2)
         {
             return !(val1 == val2);
         }
@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.Universal
             return hi.GetHashCode() ^ lo.GetHashCode();
         }
 
-        public static bool operator>(Int128 val1, Int128 val2)
+        public static bool operator >(Int128 val1, Int128 val2)
         {
             if (val1.hi != val2.hi)
                 return val1.hi > val2.hi;
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
                 return val1.lo > val2.lo;
         }
 
-        public static bool operator<(Int128 val1, Int128 val2)
+        public static bool operator <(Int128 val1, Int128 val2)
         {
             if (val1.hi != val2.hi)
                 return val1.hi < val2.hi;
@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.Universal
                 return val1.lo < val2.lo;
         }
 
-        public static Int128 operator+(Int128 lhs, Int128 rhs)
+        public static Int128 operator +(Int128 lhs, Int128 rhs)
         {
             lhs.hi += rhs.hi;
             lhs.lo += rhs.lo;
@@ -282,12 +282,12 @@ namespace UnityEngine.Rendering.Universal
             return lhs;
         }
 
-        public static Int128 operator-(Int128 lhs, Int128 rhs)
+        public static Int128 operator -(Int128 lhs, Int128 rhs)
         {
             return lhs + -rhs;
         }
 
-        public static Int128 operator-(Int128 val)
+        public static Int128 operator -(Int128 val)
         {
             if (val.lo == 0)
                 return new Int128(-val.hi, 0);
@@ -372,14 +372,14 @@ namespace UnityEngine.Rendering.Universal
             this.N = pt.N; this.D = pt.D;
         }
 
-        public static bool operator==(IntPoint a, IntPoint b)
+        public static bool operator ==(IntPoint a, IntPoint b)
         {
             return a.X == b.X && a.Y == b.Y;
         }
 
-        public static bool operator!=(IntPoint a, IntPoint b)
+        public static bool operator !=(IntPoint a, IntPoint b)
         {
-            return a.X != b.X  || a.Y != b.Y;
+            return a.X != b.X || a.Y != b.Y;
         }
 
         public override bool Equals(object obj)
@@ -530,7 +530,7 @@ namespace UnityEngine.Rendering.Universal
         internal const int Skip = -2;
         internal const int Unassigned = -1;
         internal const double tolerance = 1.0E-20;
-        internal static bool near_zero(double val) {return (val > -tolerance) && (val < tolerance); }
+        internal static bool near_zero(double val) { return (val > -tolerance) && (val < tolerance); }
 
         public const ClipInt loRange = 0x3FFFFFFF;
         public const ClipInt hiRange = 0x3FFFFFFFFFFFFFFFL;
@@ -743,7 +743,7 @@ namespace UnityEngine.Rendering.Universal
         private TEdge FindNextLocMin(TEdge E)
         {
             TEdge E2;
-            for (;;)
+            for (; ; )
             {
                 while (E.Bot != E.Prev.Bot || E.Curr == E.Top) E = E.Next;
                 if (E.Dx != horizontal && E.Prev.Dx != horizontal) break;
@@ -909,7 +909,7 @@ namespace UnityEngine.Rendering.Universal
 
             //2. Remove duplicate vertices, and (when closed) collinear edges ...
             TEdge E = eStart, eLoopStop = eStart;
-            for (;;)
+            for (; ; )
             {
                 //nb: allows matching start and end points when not Closed ...
                 if (E.Curr == E.Next.Curr && (Closed || E.Next != eStart))
@@ -975,7 +975,7 @@ namespace UnityEngine.Rendering.Universal
                 locMin.RightBound = E;
                 locMin.RightBound.Side = EdgeSide.esRight;
                 locMin.RightBound.WindDelta = 0;
-                for (;;)
+                for (; ; )
                 {
                     if (E.Bot.X != E.Prev.Top.X) ReverseHorizontal(E);
                     if (E.Next.OutIdx == Skip) break;
@@ -995,7 +995,7 @@ namespace UnityEngine.Rendering.Universal
             //open paths have matching start and end points ...
             if (E.Prev.Bot == E.Prev.Top) E = E.Next;
 
-            for (;;)
+            for (; ; )
             {
                 E = FindNextLocMin(E);
                 if (E == EMin) break;
@@ -1100,7 +1100,7 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 LocalMinima tmpLm = m_MinimaList;
-                while (tmpLm.Next != null  && (newLm.Y < tmpLm.Next.Y))
+                while (tmpLm.Next != null && (newLm.Y < tmpLm.Next.Y))
                     tmpLm = tmpLm.Next;
                 newLm.Next = tmpLm.Next;
                 tmpLm.Next = newLm;
@@ -2787,7 +2787,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             OutPt op1 = null;
-            for (;;) //loop through consec. horizontal edges
+            for (; ; ) //loop through consec. horizontal edges
             {
                 bool IsLastHorz = (horzEdge == eLastHorz);
                 TEdge e = GetNextInAEL(horzEdge, dir);
@@ -3527,7 +3527,7 @@ namespace UnityEngine.Rendering.Universal
             outRec.BottomPt = null;
             OutPt pp = outRec.Pts;
             bool preserveCol = PreserveCollinear || StrictlySimple;
-            for (;;)
+            for (; ; )
             {
                 if (pp.Prev == pp || pp.Prev == pp.Next)
                 {
@@ -3584,12 +3584,12 @@ namespace UnityEngine.Rendering.Universal
         {
             if (a1 < a2)
             {
-                if (b1 < b2) {Left = Math.Max(a1, b1); Right = Math.Min(a2, b2); }
-                else {Left = Math.Max(a1, b2); Right = Math.Min(a2, b1); }
+                if (b1 < b2) { Left = Math.Max(a1, b1); Right = Math.Min(a2, b2); }
+                else { Left = Math.Max(a1, b2); Right = Math.Min(a2, b1); }
             }
             else
             {
-                if (b1 < b2) {Left = Math.Max(a2, b1); Right = Math.Min(a1, b2); }
+                if (b1 < b2) { Left = Math.Max(a2, b1); Right = Math.Min(a1, b2); }
                 else { Left = Math.Max(a2, b2); Right = Math.Min(a1, b1); }
             }
             return Left < Right;
@@ -4277,7 +4277,7 @@ namespace UnityEngine.Rendering.Universal
             //see http://en.wikipedia.org/wiki/Perpendicular_distance
             double A = ln1.Y - ln2.Y;
             double B = ln2.X - ln1.X;
-            double C = A * ln1.X  + B * ln1.Y;
+            double C = A * ln1.X + B * ln1.Y;
             C = A * pt.X + B * pt.Y - C;
             return (C * C) / (A * A + B * B);
         }
@@ -4925,7 +4925,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var item = new IntPoint(Round(m_srcPoly[j].X + m_normals[k].X * m_delta),
                         Round(m_srcPoly[j].Y + m_normals[k].Y * m_delta));
-                    item.NX = m_normals[k].X; item.NY = m_normals[k].Y; item.N = j;  item.D = 1;
+                    item.NX = m_normals[k].X; item.NY = m_normals[k].Y; item.N = j; item.D = 1;
                     m_destPoly.Add(item);
                     return;
                 }
@@ -5018,7 +5018,7 @@ namespace UnityEngine.Rendering.Universal
 
     class ClipperException : Exception
     {
-        public ClipperException(string description) : base(description) {}
+        public ClipperException(string description) : base(description) { }
     }
     //------------------------------------------------------------------------------
 } //end ClipperLib namespace
