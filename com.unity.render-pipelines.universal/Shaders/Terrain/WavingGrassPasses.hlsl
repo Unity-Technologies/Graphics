@@ -147,24 +147,9 @@ GrassVertexOutput WavingGrassVert(GrassVertexInput v)
     UNITY_TRANSFER_INSTANCE_ID(v, o);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-    // MeshGrass v.color.a: 1 on top vertices, 0 on bottom vertices
-    // _WaveAndDistance.z == 0 for MeshLit
-    float waveAmount = v.color.a * _WaveAndDistance.z;
-    o.color = TerrainWaveGrass(v.vertex, waveAmount, v.color);
-
-    InitializeVertData(v, o);
-
-    return o;
-}
-
-GrassVertexOutput WavingGrassBillboardVert(GrassVertexInput v)
-{
-    GrassVertexOutput o = (GrassVertexOutput)0;
-    UNITY_SETUP_INSTANCE_ID(v);
-    UNITY_TRANSFER_INSTANCE_ID(v, o);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-
+#if defined(_BILLBOARD_VERT)
     TerrainBillboardGrass(v.vertex, v.tangent.xy);
+#endif
 
     // MeshGrass v.color.a: 1 on top vertices, 0 on bottom vertices
     // _WaveAndDistance.z == 0 for MeshLit
@@ -256,7 +241,9 @@ GrassVertexDepthOnlyOutput DepthOnlyVertex(GrassVertexDepthOnlyInput v)
     UNITY_TRANSFER_INSTANCE_ID(v, o);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+#if defined(_BILLBOARD_VERT)
     TerrainBillboardGrass(v.vertex, v.tangent.xy);
+#endif
 
     // MeshGrass v.color.a: 1 on top vertices, 0 on bottom vertices
     // _WaveAndDistance.z == 0 for MeshLit
