@@ -1254,26 +1254,19 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xrPass != null && xrPass.enabled)
             {
-                var v3 = Vector4.zero;
                 float centerDeltaX = 0.5f - center.x;
                 float centerDeltaY = 0.5f - center.y;
 
-                XRView view0 = xrPass.views[0];
-                v2.x = view0.eyeCenterUV.x - centerDeltaX;
-                v2.y = view0.eyeCenterUV.y - centerDeltaY;
-                if (xrPass.views.Count == 1)
+                v2.x = xrPass.views[0].eyeCenterUV.x - centerDeltaX;
+                v2.y = xrPass.views[0].eyeCenterUV.y - centerDeltaY;
+                if (xrPass.singlePassEnabled)
                 {
-                    v3.z = v2.x;
-                    v3.w = v2.y;
+                    // With single-pass XR, we need a new variable to contain the data for the 2nd view
+                    var v3 = new Vector4(xrPass.views[1].eyeCenterUV.x - centerDeltaX,
+                        xrPass.views[1].eyeCenterUV.y - centerDeltaY,
+                        0.0f, 0.0f);
+                    material.SetVector(ShaderConstants._Vignette_Params3, v3);
                 }
-                else
-                {
-                    XRView view1 = xrPass.views[1];
-                    v3.x = view1.eyeCenterUV.x - centerDeltaX;
-                    v3.y = view1.eyeCenterUV.y - centerDeltaY;
-                }
-
-                material.SetVector(ShaderConstants._Vignette_Params3, v3);
             }
 #endif
 
