@@ -55,6 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             // Shader Graph commands
             commandDispatcher.RegisterCommandHandler<AddRedirectNodeCommand>(AddRedirectNodeCommand.DefaultHandler);
           	commandDispatcher.RegisterCommandHandler<ChangePreviewExpandedCommand>(ChangePreviewExpandedCommand.DefaultCommandHandler);
+            commandDispatcher.RegisterCommandHandler<ChangePreviewModeCommand>(ChangePreviewModeCommand.DefaultCommandHandler);
             commandDispatcher.RegisterCommandHandler<GraphWindowTickCommand>(GraphWindowTickCommand.DefaultCommandHandler);
 
             // Overrides for default GTF commands

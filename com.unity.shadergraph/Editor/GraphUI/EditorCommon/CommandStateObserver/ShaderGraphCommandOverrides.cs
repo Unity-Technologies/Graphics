@@ -122,7 +122,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 {
                     foreach (var nodeModel in command.Models)
                     {
-                        previewUpdater.UpdateNodeState(nodeModel.Guid.ToString(), changeNodeStateCommand.Value);
+                        if(nodeModel is GraphDataNodeModel graphDataNodeModel)
+                            previewUpdater.GraphDataNodeRemoved(graphDataNodeModel);
                     }
                 }
             }

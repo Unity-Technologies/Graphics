@@ -78,6 +78,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
 
         protected void OnBecameVisible()
         {
+            var shaderGraphState = this.CommandDispatcher.State as ShaderGraphState;
+            shaderGraphState?.GraphPreviewState.SetGraphModel(this.GraphView.GraphModel as ShaderGraphModel);
         }
 
         protected override void Update()

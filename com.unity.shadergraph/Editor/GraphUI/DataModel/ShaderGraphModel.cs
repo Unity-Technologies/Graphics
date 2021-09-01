@@ -125,8 +125,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             var nodesOnGraph = NodeModels;
             foreach (var nodeModel in nodesOnGraph)
             {
-                var graphDataNodeModel = nodeModel as GraphDataNodeModel;
-                if(DoesNodeRequireTime(graphDataNodeModel))
+                if(nodeModel is GraphDataNodeModel graphDataNodeModel && DoesNodeRequireTime(graphDataNodeModel))
                     timeDependentNodes.Add(graphDataNodeModel);
             }
 
@@ -182,32 +181,60 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
                 }
         }
 
-        static void ForeachConnectedNode(GraphDataNodeModel node, PropagationDirection dir, Action<GraphDataNodeModel> action)
+        static IEnumerable<INodeReader> GetUpstreamNodes(INodeReader startingNode)
         {
-            node.TryGetNodeReader(out var nodeReader);
-            // TODO: What are edges in graph delta? Can see ConnectionRef in graphHandler class
-            /* using (var tempEdges = PooledList<ConnectionRef>.Get())
-            using (var tempSlots = PooledList<IPortReader>.Get())
+            foreach (var inputPort in startingNode.GetInputPorts())
             {
-                // Loop through all nodes that the node feeds into.
-                if (dir == PropagationDirection.Downstream)
-                    node.GetOutputSlots(tempSlots);
-                else
-                    node.GetInputSlots(tempSlots);
-
-                foreach (var slot in tempSlots)
+                foreach (var connectedPort in inputPort.GetConnectedPorts())
                 {
-                    // get the edges out of each slot
-                    tempEdges.Clear();                            // and here we serialize another list, ouch!
-                    node.owner.GetEdges(slot.slotReference, tempEdges);
-                    foreach (var edge in tempEdges)
-                    {
-                        // We look at each node we feed into.
-                        var connectedSlot = (dir == PropagationDirection.Downstream) ? edge.inputSlot : edge.outputSlot;
-                        var connectedNode = connectedSlot.node;
+                    foreach (var upstreamNode in GetUpstreamNodes(connectedPort.GetNode()))
+                        yield return upstreamNode;
+                }
+            }
 
-                        action(connectedNode);
-                    }
+            yield return startingNode;
+        }
+
+        static IEnumerable<INodeReader> GetDownstreamNodes(INodeReader startingNode)
+        {
+            foreach (var inputPort in startingNode.GetOutputPorts())
+            {
+                foreach (var connectedPort in inputPort.GetConnectedPorts())
+                {
+                    foreach (var downstreamNodes in GetDownstreamNodes(connectedPort.GetNode()))
+                        yield return downstreamNodes;
+                }
+            }
+
+            yield return startingNode;
+        }
+
+        static GraphDataNodeModel TryGetNodeModel(ShaderGraphModel shaderGraphModel, INodeReader inputNodeReader)
+        {
+            // TODO: Make a mapping between every node model and node reader so we can also do lookup
+            // from NodeReaders to NodeModels, as is needed below for instance
+            return null;
+        }
+
+        static void ForeachConnectedNode(GraphDataNodeModel sourceNode, PropagationDirection dir, Action<GraphDataNodeModel> action)
+        {
+            sourceNode.TryGetNodeReader(out var nodeReader);
+
+            ShaderGraphModel shaderGraphModel = sourceNode.GraphModel as ShaderGraphModel;
+
+            // Enumerate through all nodes that the node feeds into and add them to the list of nodes to inspect
+            if (dir == PropagationDirection.Downstream)
+            {
+                foreach (var connectedNode in GetDownstreamNodes(nodeReader))
+                {
+                    action(TryGetNodeModel(shaderGraphModel, connectedNode));
+                }
+            }
+            else
+            {
+                foreach (var connectedNode in GetUpstreamNodes(nodeReader))
+                {
+                    action(TryGetNodeModel(shaderGraphModel, connectedNode));
                 }
             }
 

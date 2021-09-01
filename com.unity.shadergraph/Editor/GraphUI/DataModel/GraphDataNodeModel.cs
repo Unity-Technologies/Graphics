@@ -2,6 +2,7 @@
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphDelta;
+using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
@@ -45,8 +46,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 
         // By default every node's preview is visible
         // TODO: Handle preview state serialization
-        [SerializeField]
         bool m_IsPreviewExpanded = true;
+
+        // By default every node's preview uses the inherit mode
+        public PreviewMode NodePreviewMode { get; set; }
+
+        public GraphDataNodeModel()
+        {
+            NodePreviewMode = PreviewMode.Inherit;
+        }
 
         public bool IsPreviewVisible
         {

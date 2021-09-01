@@ -29,7 +29,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             if (previewObservation.UpdateType != UpdateType.None)
             {
                 Debug.Log("Observed a change: " + previewObservation);
-
                 // TODO: React to preview state being changed (PreviewMode, preview expand/collapse etc)
 
             }
@@ -37,16 +36,17 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             using var graphViewObservation = this.ObserveState(state.GraphViewState);
             if (graphViewObservation.UpdateType != UpdateType.None)
             {
-                Debug.Log("Observed a change: " + graphViewObservation);
-                // TODO: React to topology and preview property changes to update preview content
-
                 var changeset = state.GraphViewState.GetAggregatedChangeset(graphViewObservation.LastObservedVersion);
                 var addedModels = changeset.NewModels;
-                foreach (var addedModel in addedModels)
+
+                using var previewUpdater = state.GraphPreviewState.UpdateScope;
                 {
-                    if (addedModel is GraphDataNodeModel graphDataNodeModel)
+                    foreach (var addedModel in addedModels)
                     {
-                        state.GraphPreviewState.OnGraphDataNodeAdded(graphDataNodeModel);
+                        if (addedModel is GraphDataNodeModel graphDataNodeModel)
+                        {
+                            previewUpdater.GraphDataNodeAdded(graphDataNodeModel);
+                        }
                     }
                 }
             }
