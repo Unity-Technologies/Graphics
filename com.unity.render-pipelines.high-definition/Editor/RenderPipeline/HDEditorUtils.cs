@@ -286,7 +286,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void QualitySettingsHelpBox(string message, MessageType type, HDRenderPipelineUI.Expandable uiSection, string propertyPath)
         {
-            CoreEditorUtils.DrawFixMeBox(message, type, "Open", () => {
+            CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
+            {
                 SettingsService.OpenProjectSettings("Project/Quality/HDRP");
                 HDRenderPipelineUI.Inspector.Expand((int)uiSection);
                 CoreEditorUtils.Highlight("Project Settings", propertyPath, HighlightSearchMode.Identifier);
@@ -296,7 +297,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void GlobalSettingsHelpBox(string message, MessageType type, string propertyPath)
         {
-            CoreEditorUtils.DrawFixMeBox(message, type, "Open", () => {
+            CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
+            {
                 SettingsService.OpenProjectSettings("Project/Graphics/HDRP Global Settings");
                 CoreEditorUtils.Highlight("Project Settings", propertyPath);
                 GUIUtility.ExitGUI();

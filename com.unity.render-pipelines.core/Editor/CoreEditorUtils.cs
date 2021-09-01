@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering
         /// <summary>Highlights an element in the editor for a short period of time.</summary>
         /// <param name="windowTitle">The title of the window the element is inside.</param>
         /// <param name="text">The text to identify the element with.</param>
-        /// <param name="mode">	Optional mode to specify how to search for the element.</param>
+        /// <param name="mode">Optional mode to specify how to search for the element.</param>
         public static void Highlight(string windowTitle, string text, HighlightSearchMode mode = HighlightSearchMode.Auto)
         {
             if (s_HighlightStart >= 0.0f)
