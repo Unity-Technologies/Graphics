@@ -24,23 +24,39 @@ namespace UnityEditor.VFX.URP
             material.SetShaderPassEnabled("ShadowCaster", hasShadowCasting);
         }
 
-        public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(VFXMaterialSerializedSettings materialSettings)
+        public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings)
         {
+            //N.B: About BlendMode multiply, it isn't officially supported by the VFX
+            //but when using generatesWithShaderGraph, the shaderGraph generates the appropriate blendState.
+
             var vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Opaque;
-            if (materialSettings.HasProperty("_Surface"))
+            var path = AssetDatabase.GetAssetPath(shaderGraph);
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+            if (shader.TryGetMetadataOfType<UniversalMetadata>(out var metaData) && !metaData.allowMaterialOverride)
             {
-                var surfaceType = (BaseShaderGUI.SurfaceType)materialSettings.GetFloat("_Surface");
-                if (surfaceType == BaseShaderGUI.SurfaceType.Transparent)
+                switch (metaData.alphaMode)
                 {
-                    BaseShaderGUI.BlendMode blendMode = (BaseShaderGUI.BlendMode)materialSettings.GetFloat("_Blend");
-                    switch (blendMode)
+                    case AlphaMode.Alpha: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Alpha; break;
+                    case AlphaMode.Premultiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.AlphaPremultiplied; break;
+                    case AlphaMode.Additive: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
+                    case AlphaMode.Multiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
+                }
+            }
+            else
+            {
+                if (materialSettings.HasProperty("_Surface"))
+                {
+                    var surfaceType = (BaseShaderGUI.SurfaceType)materialSettings.GetFloat("_Surface");
+                    if (surfaceType == BaseShaderGUI.SurfaceType.Transparent)
                     {
-                        case BaseShaderGUI.BlendMode.Alpha: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Alpha; break;
-                        case BaseShaderGUI.BlendMode.Premultiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.AlphaPremultiplied; break;
-                        case BaseShaderGUI.BlendMode.Additive: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
-                        //Actually, BlendMode multiply isn't officially supported by the VFX
-                        //but when using generatesWithShaderGraph, the shaderGraph generates the appropriate blendState.
-                        case BaseShaderGUI.BlendMode.Multiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
+                        var blendMode = (BaseShaderGUI.BlendMode)materialSettings.GetFloat("_Blend");
+                        switch (blendMode)
+                        {
+                            case BaseShaderGUI.BlendMode.Alpha: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Alpha; break;
+                            case BaseShaderGUI.BlendMode.Premultiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.AlphaPremultiplied; break;
+                            case BaseShaderGUI.BlendMode.Additive: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
+                            case BaseShaderGUI.BlendMode.Multiply: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Additive; break;
+                        }
                     }
                 }
             }

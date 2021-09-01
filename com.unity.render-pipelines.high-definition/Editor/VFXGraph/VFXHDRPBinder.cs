@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.HDRP
             { }
         }
 
-        public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(VFXMaterialSerializedSettings materialSettings)
+        public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(ShaderGraphVfxAsset shader, VFXMaterialSerializedSettings materialSettings)
         {
             var blendMode = VFXAbstractRenderedOutput.BlendMode.Opaque;
 

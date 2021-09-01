@@ -58,6 +58,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var urpMetadata = ScriptableObject.CreateInstance<UniversalMetadata>();
             urpMetadata.shaderID = shaderID;
+            urpMetadata.allowMaterialOverride = target.allowMaterialOverride;
+            urpMetadata.alphaMode = target.alphaMode;
+            urpMetadata.castShadows = target.castShadows;
             return urpMetadata;
         }
 

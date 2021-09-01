@@ -173,7 +173,7 @@ namespace UnityEditor.VFX
                 // VFX Blend Mode state configures important systems like sorting and indirect buffer.
                 // In the case of SG Generation path, we need to know the blend mode state of the SRP
                 // Material to configure the VFX blend mode.
-                blendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(materialSettings);
+                blendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(shaderGraph, materialSettings);
             }
 
             return blendMode;
