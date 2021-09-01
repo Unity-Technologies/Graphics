@@ -206,48 +206,11 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
-        {
-            List<ProbeReferenceVolumeAuthoring> enabledVolumes = new List<ProbeReferenceVolumeAuthoring>();
-
-            foreach (var refVolAuthoring in refVolAuthList)
-            {
-                if (!refVolAuthoring.enabled || !refVolAuthoring.gameObject.activeSelf)
-                    continue;
-
-                enabledVolumes.Add(refVolAuthoring);
-            }
-
-            int numVols = enabledVolumes.Count;
-
-            if (numVols == 0)
-                return null;
-
-            if (numVols == 1)
-                return enabledVolumes[0];
-
-            var reference = enabledVolumes[0];
-            for (int c = 1; c < numVols; ++c)
-            {
-                var compare = enabledVolumes[c];
-                if (!reference.profile.IsEquivalent(compare.profile))
-                    return null;
-            }
-
-            return reference;
-        }
-
         static void OnBakeStarted()
         {
             if (!ProbeReferenceVolume.instance.isInitialized) return;
 
-            var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>(); // TODO: To remove.
-
-            if (refVolAuthList.Length == 0)
-                return;
-
             FindWorldBounds();
-            refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
             var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
             if (perSceneDataList.Length == 0) return;
 
