@@ -98,7 +98,7 @@ namespace UnityEditor.Rendering.Universal
 
             if(EditorWindow.HasOpenInstances<LayerExplorer>())
             {
-                LayerExplorer layerExplorer = EditorWindow.GetWindow<LayerExplorer>();
+                var layerExplorer = EditorWindow.GetWindow<LayerExplorer>();
                 if (layerExplorer != null)
                     layerExplorer.RefreshBatchView();
             }

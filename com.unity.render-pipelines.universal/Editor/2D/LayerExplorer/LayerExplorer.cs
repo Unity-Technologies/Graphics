@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
-using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
 
 /**
  * Todos:
- * - Live updated when layers are changed added
  * - Hook up to the actual render pass (duh)
  * - Move assets into package
  */
@@ -25,14 +22,13 @@ namespace UnityEditor.Rendering.Universal
             public List<Light2D> Lights = new List<Light2D>();
             public int batchId;
             public int color;
-
         }
 
-        [MenuItem("Window/2D/LayerExplorer")]
+        [MenuItem("Window/2D/Sorting Layer Explorer")]
         public static void ShowExample()
         {
             LayerExplorer wnd = GetWindow<LayerExplorer>();
-            wnd.titleContent = new GUIContent("Layer Explorer");
+            wnd.titleContent = new GUIContent("Sorting Layer Explorer");
         }
 
         private static Color[] BatchColors = new[] {
@@ -86,7 +82,6 @@ namespace UnityEditor.Rendering.Universal
             var bubble = new Button();
             bubble.AddToClassList("Pill");
             bubble.text = light.name;
-            // bubble.Add(new Label{text = name});
 
             bubble.clicked += () =>
             {
@@ -125,7 +120,10 @@ namespace UnityEditor.Rendering.Universal
             var batch1 = batchList[index];
 
             var title = root.Query<Label>("InfoTitle").First();
-            title.text = $"Batch {batch1.batchId}";
+            title.text = $"<b>Batch {batch1.batchId}</b>" + " selected.";
+
+            var title2 = root.Query<Label>("InfoTitle2").First();
+            title2.text = "Select any two adjacent batches to compare.";
 
             var label1 = infoView.Query<Label>("InfoLabel1").First();
             label1.text = $"Lights in Batch {batch1.batchId}";
@@ -142,9 +140,6 @@ namespace UnityEditor.Rendering.Universal
 
             var bubble2 = infoView.Query<VisualElement>("InfoBubble2").First();
             bubble2.Clear();
-
-            var desc = root.Query<Label>("Description").First();
-            desc.text = "";
         }
 
         private void CompareBatch(int index1, int index2)
@@ -175,13 +170,15 @@ namespace UnityEditor.Rendering.Universal
             foreach (var light in batch2.Lights)
                 lightSet2.Add(light);
 
-
             // populate
             var title = root.Query<Label>("InfoTitle").First();
-            title.text = $"Comparing Batch {batch1.batchId} and Batch {batch2.batchId}";
+            title.text = $"Comparing <b>Batch {batch1.batchId}</b> and <b>Batch {batch2.batchId}</b>";
+
+            var title2 = root.Query<Label>("InfoTitle2").First();
+            title2.text = $"To batch <b>Batch {batch1.batchId}</b> and <b>Batch {batch2.batchId}</b>, ensure that the Sorting Layers in both batches share the same set of Lights.";
 
             var label1 = infoView.Query<Label>("InfoLabel1").First();
-            label1.text = $"Lights in Batch {batch1.batchId} but not in Batch {batch2.batchId}";
+            label1.text = $"Lights only in <b>Batch {batch1.batchId}</b>";
 
             var bubble1 = infoView.Query<VisualElement>("InfoBubble1").First();
             bubble1.Clear();
@@ -192,7 +189,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             var label2 = infoView.Query<Label>("InfoLabel2").First();
-            label2.text = $"Lights in Batch {batch2.batchId} but not in Batch {batch1.batchId}";
+            label2.text = $"Lights only in <b>Batch {batch2.batchId}</b>";
 
             var bubble2 = infoView.Query<VisualElement>("InfoBubble2").First();
             bubble2.Clear();
@@ -201,9 +198,6 @@ namespace UnityEditor.Rendering.Universal
                 if (!lightSet1.Contains(light))
                     bubble2.Add(MakeLightPill(light));
             }
-
-            var desc = root.Query<Label>("Description").First();
-            desc.text = $"Batch {batch1.batchId} and {batch2.batchId} are not batched together because they do not share the same set of lights.";
         }
 
         void OnEnable()
@@ -223,6 +217,7 @@ namespace UnityEditor.Rendering.Universal
             var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ResourcePath + "LayerExplorer.uxml");
             var templateRoot = visualTree.Instantiate();
             templateRoot.style.flexGrow = 1;
+            templateRoot.Q("ParentElement").StretchToParentSize();
             root.Add(templateRoot);
 
             var batchElement = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ResourcePath + "LayerBatch.uxml");
@@ -265,6 +260,9 @@ namespace UnityEditor.Rendering.Universal
             {
                 OnSelectionChange();
             };
+
+            // Select first index by default
+            batchListView.selectedIndex = 0;
         }
 
         private void OnSelectionChange()
@@ -287,7 +285,6 @@ namespace UnityEditor.Rendering.Universal
                     else
                     {
                         secondIndex = Mathf.Clamp(secondIndex, primaryIndex - 1, primaryIndex + 1);
-                        secondIndex = Mathf.Clamp(secondIndex, 0, batchList.Count());
                         batchListView.selectedIndex = primaryIndex;
                         batchListView.AddToSelection(secondIndex);
                     }
@@ -312,10 +309,6 @@ namespace UnityEditor.Rendering.Universal
         {
             if(batchList.Any())
             {
-                // Default select first index
-                if (!batchListView.selectedIndices.Any())
-                    batchListView.selectedIndex = 0;
-
                 // Refresh if layers are added or removed
                 bool needsRefresh = false;
 

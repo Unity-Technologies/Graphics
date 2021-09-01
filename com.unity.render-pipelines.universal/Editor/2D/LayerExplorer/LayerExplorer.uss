@@ -13,7 +13,7 @@
 }
 
 .BatchList.ColorColumn {
-    width: 10px;
+    width: 3px;
 }
 
 .BatchList.NameColumn {
@@ -32,6 +32,7 @@
 .BatchList.ColorColumn.Splitter {
     margin-top: 5px;
     margin-bottom: 5px;
+    margin-right: 5px;
 }
 
 .BatchList.IndexColumn.Header {
@@ -84,8 +85,10 @@
 }
 
 .InfoView.Header {
-    margin: 5px;
-    height: auto;
+    padding: 5px;
+    flex-basis: 60px;
+    align-items: flex-start;
+    justify-content: space-around;
 }
 
 .InfoScroller {
