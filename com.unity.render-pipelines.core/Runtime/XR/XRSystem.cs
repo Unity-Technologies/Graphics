@@ -173,7 +173,7 @@ namespace UnityEngine.Experimental.Rendering
         public static void BeginLateLatching(Camera camera, XRPass xrPass)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            // Only support late latching for multiview on Android
+            // Only support late latching for multiview
             if (s_Display != null && xrPass.viewCount == 2)
             {
                 s_Display.BeginRecordingIfLateLatched(camera);
