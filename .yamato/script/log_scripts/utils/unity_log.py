@@ -1,6 +1,7 @@
 import os
 import glob
 from .shared_utils import load_json, find_matching_patterns
+from .rules import *
 
 class Unity_log():
     ''''Handles parsing Unity log (UnityLog.txt) against known error patterns'''
@@ -15,14 +16,15 @@ class Unity_log():
         tags: tags to be added to Yamato additional results, typically one as identifier, and one as category such as instability, ...
         conclusion: success/failure/cancelled/inconclusive (if many patterns are matched for a command, most severe is chosen in the end)'''
         return [
-            {
-                'pattern': r'TcpProtobufSession::SendMessageAsync',
-                'tags': ['network','instability'],
-                'conclusion': 'failure',
-            },
+            # {
+            #       # commented out as this should always come paired with cache instability below
+            #     'pattern': r'TcpProtobufSession::SendMessageAsync',
+            #     'tags': ['TcpProtobufSession', 'instability', 'infrastructure'],
+            #     'conclusion': 'failure',
+            # },
             {
                 'pattern': r'AcceleratorClientConnectionCallback - disconnected - cacheserver-slo',
-                'tags': ['cache','instability'],
+                'tags': ['cache', 'instability', 'infrastructure'],
                 'conclusion': 'failure',
             },
             {
@@ -30,6 +32,7 @@ class Unity_log():
                 'pattern': r'.+',
                 'tags': ['unknown'],
                 'conclusion': 'failure',
+                'add_if': add_unknown_pattern_if
             }
         ]
 

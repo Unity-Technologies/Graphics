@@ -1,6 +1,7 @@
 import os
 from .shared_utils import load_json, find_matching_patterns
 from .shared_utils import *
+from .rules import *
 
 class UTR_log():
     ''''Handles parsing UTR logs (TestResults.json) against known error patterns'''
@@ -15,14 +16,15 @@ class UTR_log():
         tags: tags to be added to Yamato additional results, typically one as identifier, and one as category such as instability, ...
         conclusion: success/failure/cancelled/inconclusive (if many patterns are matched for a command, most severe is chosen in the end)'''
         return [
-            {
-                'pattern': r'System.TimeoutException: Timeout while waiting',
-                'tags': ['System.TimeoutException'],
-                'conclusion': 'failure',
-            },
+            # {
+            #     # commented out for now while we focus on instabilities only
+            #     'pattern': r'System.TimeoutException: Timeout while waiting',
+            #     'tags': ['System.TimeoutException'],
+            #     'conclusion': 'failure',
+            # },
             {
                 'pattern': r'System.AggregateException: One or more errors occurred. \(Detected that ios-deploy is not running when attempting to establish player connection.\)',
-                'tags': ['System.AggregateException', 'ios-deploy'],
+                'tags': ['ios-deploy', 'infrastructure'], # instability?
                 'conclusion': 'failure',
             },
             {
@@ -30,6 +32,7 @@ class UTR_log():
                 'pattern': r'.+',
                 'tags': ['unknown'],
                 'conclusion': 'failure',
+                'add_if': add_unknown_pattern_if
             }
         ]
 

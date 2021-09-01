@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.0.0] - 2021-09-01
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -313,7 +318,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Prevent any unwanted light sync when not in HDRP (case 1217575)
 - Fixed missing global wind parameters in the visual environment.
 - Fixed fabric IBL (Charlie) pre-convolution performance and accuracy (uses 1000x less samples and is closer match with the ground truth)
-- Fixed conflicting runtime debug menu command with an option to disable runtime debug window hotkey.
 - Fixed screen-space shadows with XR single-pass and camera relative rendering (1348260).
 - Fixed ghosting issues if the exposure changed too much (RTGI).
 - Fixed failures on platforms that do not support ray tracing due to an engine behavior change.
@@ -377,7 +381,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lens flare not rendering correctly with TAAU or DLSS.
 - Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
-- Merged shape offset parameters for volumetric clouds.
+- Allow negative wind speed parameter.
+- Fixed impossibility to release the cursor in the template.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
