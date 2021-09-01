@@ -143,6 +143,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 this.displayAssetName = displayAssetName;
             }
         }
+
+
         [InitializeOnLoadMethod]
         static void InitializeEntryList()
         {
