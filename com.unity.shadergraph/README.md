@@ -6,13 +6,13 @@ A Shader Graph enables you to build shaders visually. Instead of hand writing co
 
 ## Disclaimer
 
-This repository is under active development. Everything is subject to change. The `master` branch is our current development branch and may not work on the latest publicly available version of Unity. Unless you intend to modify Shader Graph or want to try out the very latest and unsupported features, we recommend that you acquire Shader Graph through the Unity Package Manager: 
+This repository is under active development. Everything is subject to change. The `master` branch is our current development branch and may not work on the latest publicly available version of Unity. Unless you intend to modify Shader Graph or want to try out the very latest and unsupported features, we recommend that you acquire Shader Graph through the Unity Package Manager:
 
-1. Open a Unity project. 
+1. Open a Unity project.
 2. Open the **Package Manager** window (**Window** &gt; **Package Manager**).
-3. In the **Package Manager** window, in the **Packages** menu, select **Unity Registry**. 
+3. In the **Package Manager** window, in the **Packages** menu, select **Unity Registry**.
 4. Select either **Universal RP** or **High Definition RP**, depending on your project needs.
-    Unity installs your chosen render pipeline and Shader Graph. Shader Graph isn't compatible with Unity's built-in render pipeline. 
+    Unity installs your chosen render pipeline and Shader Graph. Shader Graph isn't compatible with Unity's built-in render pipeline.
 
 ## Instructions
 

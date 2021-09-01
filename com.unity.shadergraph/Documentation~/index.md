@@ -10,7 +10,7 @@ Shader Graph is available through the Package Manager window in supported versio
 
 Shader Graph package versions on Unity Engine 2018.x are *Preview* versions, which do not receive bug fixes and feature maintenance. To work with an actively supported version of Shader Graph, use Unity Engine 2019.1 or higher.
 
-### SRP packages are part of the core 
+### SRP packages are part of the core
 
 With the release of Unity 2021.1, graphics packages are relocating to the core of Unity. This move simplifies the experience of working with new Unity graphics features, as well as ensuring that your projects are always running on the latest verified graphics code.
 
