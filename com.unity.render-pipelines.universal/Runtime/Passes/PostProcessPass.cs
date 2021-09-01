@@ -1254,7 +1254,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xrPass != null && xrPass.enabled)
             {
-                var v3 = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+                var v3 = Vector4.zero;
                 float centerDeltaX = 0.5f - center.x;
                 float centerDeltaY = 0.5f - center.y;
 
