@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Rendering;
-using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEditor.Rendering.Universal;
 using UnityEditor.ShaderGraph;
-using RenderQueue = UnityEngine.Rendering.RenderQueue;
+using UnityEditor.ShaderGraph.Drawing;
+using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using static Unity.Rendering.Universal.ShaderUtils;
-using System.Linq;
-using UnityEditor.ShaderGraph.Drawing;
+using RenderQueue = UnityEngine.Rendering.RenderQueue;
 
 namespace UnityEditor
 {
@@ -18,6 +18,7 @@ namespace UnityEditor
         #region EnumsAndClasses
 
         [Flags]
+        [URPHelpURL("shaders-in-universalrp")]
         protected enum Expandable
         {
             SurfaceOptions = 1 << 0,
@@ -128,6 +129,8 @@ namespace UnityEditor
 
             public static readonly GUIContent queueControl = EditorGUIUtility.TrTextContent("Queue Control",
                 "Controls whether render queue is automatically set based on material surface type, or explicitly set by the user.");
+
+            public static readonly GUIContent documentationIcon = EditorGUIUtility.TrIconContent("_Help", $"Open Reference for URP Shaders.");
         }
 
         #endregion
@@ -176,6 +179,7 @@ namespace UnityEditor
         #endregion
 
         private const int queueOffsetRange = 50;
+
         ////////////////////////////////////
         // General Functions              //
         ////////////////////////////////////
@@ -240,12 +244,12 @@ namespace UnityEditor
         public virtual void OnOpenGUI(Material material, MaterialEditor materialEditor)
         {
             // Generate the foldouts
-            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceOptions, (uint)Expandable.SurfaceOptions, DrawSurfaceOptions);
-            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceInputs, (uint)Expandable.SurfaceInputs, DrawSurfaceInputs);
+            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceOptions, Expandable.SurfaceOptions, DrawSurfaceOptions);
+            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceInputs, Expandable.SurfaceInputs, DrawSurfaceInputs);
 
             FillAdditionalFoldouts(m_MaterialScopeList);
 
-            m_MaterialScopeList.RegisterHeaderScope(Styles.AdvancedLabel, (uint)Expandable.Advanced, DrawAdvancedOptions);
+            m_MaterialScopeList.RegisterHeaderScope(Styles.AdvancedLabel, Expandable.Advanced, DrawAdvancedOptions);
         }
 
         public void ShaderPropertiesGUI(Material material)
@@ -321,7 +325,7 @@ namespace UnityEditor
                 materialEditor.IntSliderShaderProperty(queueOffsetProp, -queueOffsetRange, queueOffsetRange, Styles.queueSlider);
         }
 
-        public virtual void FillAdditionalFoldouts(MaterialHeaderScopeList materialScopesList) {}
+        public virtual void FillAdditionalFoldouts(MaterialHeaderScopeList materialScopesList) { }
 
         public virtual void DrawBaseProperties(Material material)
         {

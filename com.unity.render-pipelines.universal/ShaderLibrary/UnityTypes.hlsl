@@ -1,9 +1,6 @@
 #ifndef UNIVERSAL_UNITY_TYPES_HLSL
 #define UNIVERSAL_UNITY_TYPES_HLSL
 
-// TODO: is there a better way?
-// TODO: it would be nice if these could be generated
-
 // Match  UnityEngine.TextureWrapMode
 #define URP_TEXTURE_WRAP_MODE_REPEAT       0
 #define URP_TEXTURE_WRAP_MODE_CLAMP        1

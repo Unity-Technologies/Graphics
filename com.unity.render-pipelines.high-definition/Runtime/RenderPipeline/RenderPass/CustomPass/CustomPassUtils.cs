@@ -29,9 +29,9 @@ namespace UnityEngine.Rendering.HighDefinition
         static ProfilingSampler renderNormalFromCameraSampler = new ProfilingSampler("Render Normal");
         static ProfilingSampler renderTangentFromCameraSampler = new ProfilingSampler("Render Tangent");
 
-        static MaterialPropertyBlock    propertyBlock = new MaterialPropertyBlock();
-        static Material                 customPassUtilsMaterial;
-        static Material                 customPassRenderersUtilsMaterial;
+        static MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+        static Material customPassUtilsMaterial;
+        static Material customPassRenderersUtilsMaterial;
 
 
         static Dictionary<int, ComputeBuffer> gaussianWeightsCache = new Dictionary<int, ComputeBuffer>();
@@ -40,6 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static int verticalBlurPassIndex;
         static int horizontalBlurPassIndex;
         static int copyPassIndex;
+        static int copyDepthPassIndex;
         static int depthToColorPassIndex;
         static int depthPassIndex;
         static int normalToColorPassIndex;
@@ -52,6 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
             verticalBlurPassIndex = customPassUtilsMaterial.FindPass("VerticalBlur");
             horizontalBlurPassIndex = customPassUtilsMaterial.FindPass("HorizontalBlur");
             copyPassIndex = customPassUtilsMaterial.FindPass("Copy");
+            copyDepthPassIndex = customPassUtilsMaterial.FindPass("CopyDepth");
 
             customPassRenderersUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.customPassRenderersUtils);
             depthToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthToColorPass");
@@ -133,11 +135,17 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(ctx.cmd, copySampler))
             {
                 SetRenderTargetWithScaleBias(ctx, propertyBlock, destination, destScaleBias, ClearFlag.None, destMip);
-
                 propertyBlock.SetTexture(HDShaderIDs._Source, source);
                 propertyBlock.SetVector(HDShaderIDs._SourceScaleBias, sourceScaleBias);
                 SetSourceSize(propertyBlock, source);
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
+
+                // Copy color buffer
+                if (source.rt.graphicsFormat != GraphicsFormat.None && destination.rt.graphicsFormat != GraphicsFormat.None)
+                    ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
+
+                // Copy depth buffer
+                if (source.rt.depthStencilFormat != GraphicsFormat.None && destination.rt.depthStencilFormat != GraphicsFormat.None)
+                    ctx.cmd.DrawProcedural(Matrix4x4.identity, customPassUtilsMaterial, copyDepthPassIndex, MeshTopology.Triangles, 3, 1, propertyBlock);
             }
         }
 
@@ -310,10 +318,25 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
         /// <param name="sorting">How the objects are sorted before being rendered.</param>
         public static void DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock), SortingCriteria sorting = SortingCriteria.CommonOpaque)
+            => DrawRenderers(ctx, litForwardTags, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex, overrideRenderState, sorting);
+
+        /// <summary>
+        /// Simpler version of ScriptableRenderContext.DrawRenderers to draw HDRP materials.
+        /// </summary>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="shaderTags">List of shader tags to use when rendering the objects. This acts as a filter to select which objects to render and as selector to know which pass to render.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideMaterial">Optional material that will be used to render the objects.</param>
+        /// <param name="overrideMaterialIndex">Pass index to use for the override material.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
+        /// <param name="sorting">How the objects are sorted before being rendered.</param>
+        ///
+        public static void DrawRenderers(in CustomPassContext ctx, ShaderTagId[] shaderTags, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock), SortingCriteria sorting = SortingCriteria.CommonOpaque)
         {
             PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
 
-            var result = new RendererUtils.RendererListDesc(litForwardTags, ctx.cullingResults, ctx.hdCamera.camera)
+            var result = new RendererUtils.RendererListDesc(shaderTags, ctx.cullingResults, ctx.hdCamera.camera)
             {
                 rendererConfiguration = renderConfig,
                 renderQueueRange = GetRenderQueueRangeFromRenderQueueType(renderQueueFilter),
@@ -442,6 +465,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="ctx">Custom Pass Context.</param>
         /// <param name="view">The camera from where you want the objects to be rendered.</param>
         /// <param name="targetRenderTexture">The render target that will be bound before rendering the objects.</param>
+        /// <param name="clearFlag">The type of clear to do before binding the render targets.</param>
         /// <param name="layerMask">LayerMask to filter the objects to render.</param>
         /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
         /// <param name="overrideMaterial">Optional material that will be used to render the objects.</param>
@@ -634,7 +658,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static void RenderTangentFromCamera(in CustomPassContext ctx, Camera view, RenderTexture targetRenderTexture, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
         {
             using (new ProfilingScope(ctx.cmd, renderTangentFromCameraSampler))
-                // RenderFromCamera(ctx, view, targetRenderTexture, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, tangentToColorPassIndex, overrideRenderState);
                 RenderFromCamera(ctx, view, targetRenderTexture, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, tangentToColorPassIndex, overrideRenderState);
         }
 
@@ -646,10 +669,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public struct OverrideCameraRendering : IDisposable
         {
-            CustomPassContext   ctx;
-            Camera              overrideCamera;
-            HDCamera            overrideHDCamera;
-            float               originalAspect;
+            CustomPassContext ctx;
+            Camera overrideCamera;
+            HDCamera overrideHDCamera;
+            float originalAspect;
 
             static Stack<HDCamera> overrideCameraStack = new Stack<HDCamera>();
 
@@ -697,6 +720,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <param name="ctx">The current custom pass context.</param>
             /// <param name="overrideCamera">The camera that will replace the current one.</param>
             /// <param name="overrideAspectRatio">The aspect ratio of the override camera. Especially useful when rendering directly into a render texture with a different aspect ratio than the current camera.</param>
+            /// <example>
             /// <code>
             /// CoreUtils.SetRenderTarget(ctx.cmd, renderTexture.colorBuffer, renderTexture.depthBuffer, clearFlag);
             ///

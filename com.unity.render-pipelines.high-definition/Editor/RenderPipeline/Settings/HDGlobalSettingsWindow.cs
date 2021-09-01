@@ -7,6 +7,8 @@ using UnityEngine.UIElements;
 using UnityEditorInternal;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.VFX.HDRP;
+using UnityEditor.VFX.UI;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -19,12 +21,15 @@ namespace UnityEditor.Rendering.HighDefinition
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {
+            var keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDGlobalSettingsPanelIMGUI.Styles>()
+                .Concat(OverridableFrameSettingsArea.frameSettingsKeywords);
+
+            keywords = RenderPipelineSettingsUtilities.RemoveDLSSKeywords(keywords);
+
             return new SettingsProvider("Project/Graphics/HDRP Global Settings", SettingsScope.Project)
             {
                 activateHandler = s_IMGUIImpl.OnActivate,
-                keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDGlobalSettingsPanelIMGUI.Styles>()
-                    .Concat(OverridableFrameSettingsArea.frameSettingsKeywords)
-                    .ToArray(),
+                keywords = keywords.ToArray(),
                 guiHandler = s_IMGUIImpl.DoGUI,
                 titleBarGuiHandler = s_IMGUIImpl.OnTitleBarGUI
             };
@@ -73,6 +78,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Help.BrowseURL(Documentation.GetPageLink("Default-Settings-Window"));
         }
 
+        internal static bool needRefreshVfxErrors = false;
+
         public void DoGUI(string searchContext)
         {
             // When the asset being serialized has been deleted before its reconstruction
@@ -108,6 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
                 Inspector.Draw(serializedSettings, null);
                 serializedSettings.serializedObject?.ApplyModifiedProperties();
+                VFXHDRPSettingsUtility.RefreshVfxErrorsIfNeeded(ref needRefreshVfxErrors);
             }
         }
 
@@ -160,7 +168,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUILayout.HorizontalScope())
             {
                 EditorGUI.BeginChangeCheck();
-                var newAsset = (HDRenderPipelineGlobalSettings)EditorGUILayout.ObjectField(settingsSerialized , typeof(HDRenderPipelineGlobalSettings), false);
+                var newAsset = (HDRenderPipelineGlobalSettings)EditorGUILayout.ObjectField(settingsSerialized, typeof(HDRenderPipelineGlobalSettings), false);
                 if (EditorGUI.EndChangeCheck())
                 {
                     HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
@@ -249,9 +257,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static private bool[] m_ShowFrameSettings_Rendering      = { false, false, false };
-        static private bool[] m_ShowFrameSettings_Lighting       = { false, false, false };
-        static private bool[] m_ShowFrameSettings_AsyncCompute   = { false, false, false };
+        static private bool[] m_ShowFrameSettings_Rendering = { false, false, false };
+        static private bool[] m_ShowFrameSettings_Lighting = { false, false, false };
+        static private bool[] m_ShowFrameSettings_AsyncCompute = { false, false, false };
         static private bool[] m_ShowFrameSettings_LightLoopDebug = { false, false, false };
 
         static void DrawFrameSettingsSubsection(int index, SerializedFrameSettings serialized, Editor owner)
@@ -329,6 +337,12 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 GUILayout.Space(5);
                 serialized.uiBeforePostProcessCustomPostProcesses.DoLayoutList();
+            }
+            GUILayout.Space(2);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(5);
+                serialized.uiAfterPostProcessBlursCustomPostProcesses.DoLayoutList();
             }
             GUILayout.Space(2);
             using (new EditorGUILayout.HorizontalScope())

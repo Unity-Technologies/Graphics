@@ -27,14 +27,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the casting technique used to evaluate the effect. Ray marching uses a ray-marched screen-space solution, Ray tracing uses a hardware accelerated world-space solution. Mixed uses first Ray marching, then Ray tracing if it fails to intersect on-screen geometry.")]
         public RayCastingModeParameter tracing = new RayCastingModeParameter(RayCastingMode.RayMarching);
+
+        /// <summary>
+        /// Controls the fallback hierarchy for indirect diffuse in case the ray misses.
+        /// </summary>
+        [Tooltip("Controls the fallback hierarchy for indirect diffuse in case the ray misses.")]
+        [FormerlySerializedAs("fallbackHierarchy")]
+        [AdditionalProperty]
+        public RayMarchingFallbackHierarchyParameter rayMiss = new RayMarchingFallbackHierarchyParameter(RayMarchingFallbackHierarchy.ReflectionProbesAndSky);
         #endregion
 
         #region RayMarching
-        /// <summary>
-        /// Controls the fallback hierarchy for SSGI.
-        /// </summary>
-        public RayMarchingFallbackHierarchyParameter fallbackHierarchy = new RayMarchingFallbackHierarchyParameter(RayMarchingFallbackHierarchy.ReflectionProbesAndSky);
-
         /// <summary>
         /// The thickness of the depth buffer value used for the ray marching step
         /// </summary>
@@ -45,6 +48,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             displayName = "Screen Space Global Illumination";
         }
+
+        /// <summary>
+        /// Defines if the screen space global illumination should be evaluated at full resolution.
+        /// </summary>
+        public BoolParameter fullResolutionSS = new BoolParameter(true);
 
         /// <summary>
         /// The number of steps that should be used during the ray marching pass.
@@ -140,6 +148,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region RayTracing
         /// <summary>
+        /// Controls the fallback hierarchy for lighting the last bounce.
+        /// </summary>
+        [Tooltip("Controls the fallback hierarchy for lighting the last bounce.")]
+        [AdditionalProperty]
+        public RayMarchingFallbackHierarchyParameter lastBounceFallbackHierarchy = new RayMarchingFallbackHierarchyParameter(RayMarchingFallbackHierarchy.ReflectionProbesAndSky);
+
+        /// <summary>
         /// Defines the layers that GI should include.
         /// </summary>
         [Tooltip("Defines the layers that GI should include.")]
@@ -210,24 +225,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("fullResolution")]
         [Tooltip("Full Resolution")]
         private BoolParameter m_FullResolution = new BoolParameter(false);
-
-        /// <summary>
-        /// Defines what radius value should be used to pre-filter the signal.
-        /// </summary>
-        public int upscaleRadius
-        {
-            get
-            {
-                if (!UsesQualitySettings())
-                    return m_UpscaleRadius.value;
-                else
-                    return GetLightingQualitySettings().RTGIUpScaleRadius[(int)quality.value];
-            }
-            set { m_UpscaleRadius.value = value; }
-        }
-        [SerializeField, FormerlySerializedAs("upscaleRadius")]
-        [Tooltip("Upscale Radius")]
-        private ClampedIntParameter m_UpscaleRadius = new ClampedIntParameter(2, 2, 4);
 
         // Quality
         /// <summary>

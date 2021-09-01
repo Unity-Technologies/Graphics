@@ -1,5 +1,7 @@
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering
 {
@@ -25,6 +27,10 @@ namespace UnityEditor.Rendering
         static System.Lazy<GUIStyle> m_SmallMixedTickbox = new(() => new GUIStyle("ShurikenToggleMixed"));
         /// <summary>Style for a small checkbox in mixed state</summary>
         public static GUIStyle smallMixedTickbox => m_SmallMixedTickbox.Value;
+
+        static System.Lazy<GUIStyle> m_HelpBoxLabelStyle = new(() => new GUIStyle(EditorStyles.miniLabel) { wordWrap = true });
+        /// <summary>Style for a small checkbox in mixed state</summary>
+        internal static GUIStyle helpBoxLabelStyle => m_HelpBoxLabelStyle.Value;
 
         static GUIStyle m_MiniLabelButton;
         /// <summary>Style for a minilabel button</summary>
@@ -112,6 +118,28 @@ namespace UnityEditor.Rendering
 
         /// <summary>RenderPipeline Global Settings icon</summary>
         public static readonly Texture2D globalSettingsIcon;
+
+        /// <summary>
+        /// Gets the icon that describes the <see cref="MessageType"/>
+        /// </summary>
+        /// <param name="messageType">The <see cref="MessageType"/> to obtain the icon from</param>
+        /// <returns>a <see cref="Texture2D"/> with the icon for the <see cref="MessageType"/></returns>
+        internal static Texture2D GetMessageTypeIcon(MessageType messageType)
+        {
+            switch (messageType)
+            {
+                case MessageType.None:
+                    return null;
+                case MessageType.Info:
+                    return iconHelp;
+                case MessageType.Warning:
+                    return iconWarn;
+                case MessageType.Error:
+                    return iconFail;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(messageType), messageType, null);
+            }
+        }
 
         #endregion
 

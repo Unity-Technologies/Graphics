@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent s_ManipulatonTypeContent = EditorGUIUtility.TrTextContent("Per Axis Control", "When checked, each face can be manipulated separately. This also include fading options.");
 
             public static readonly GUIContent s_DistanceFadeStartLabel = new GUIContent("Distance Fade Start");
-            public static readonly GUIContent s_DistanceFadeEndLabel   = new GUIContent("Distance Fade End");
+            public static readonly GUIContent s_DistanceFadeEndLabel = new GUIContent("Distance Fade End");
 
             public static readonly GUIContent s_ComputeLabel = new GUIContent("Compute Shader", "Compute Shader used to render this Local Volumetric Fog");
 

@@ -46,6 +46,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool pipelineSupportsRayTracing => HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.rayTracingSupported;
 
+#if UNITY_EDITOR
+        internal static bool buildPipelineSupportsRayTracing => HDRenderPipeline.currentPipeline != null && (HDRenderPipeline.currentPipeline.m_AssetSupportsRayTracing && HDRenderPipeline.buildTargetSupportsRayTracing);
+#endif
+
         internal static bool pipelineSupportsScreenSpaceShadows => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows : false;
         #endregion
 
@@ -147,6 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId[] m_ForwardErrorPassNames = { HDShaderPassNames.s_AlwaysName, HDShaderPassNames.s_ForwardBaseName, HDShaderPassNames.s_DeferredName, HDShaderPassNames.s_PrepassBaseName, HDShaderPassNames.s_VertexName, HDShaderPassNames.s_VertexLMRGBMName, HDShaderPassNames.s_VertexLMName };
         ShaderTagId[] m_SinglePassName = new ShaderTagId[1];
         ShaderTagId[] m_MeshDecalsPassNames = { HDShaderPassNames.s_DBufferMeshName };
+        ShaderTagId[] m_VfxDecalsPassNames = { HDShaderPassNames.s_DBufferVFXDecalName };
 
         RenderStateBlock m_DepthStateOpaque;
         RenderStateBlock m_DepthStateNoWrite;
@@ -197,9 +202,9 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly SkyManager m_SkyManager = new SkyManager();
         internal SkyManager skyManager { get { return m_SkyManager; } }
 
-        bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
-        bool                            m_IsDepthBufferCopyValid;
-        RenderTexture                   m_TemporaryTargetForCubemaps;
+        bool m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
+        bool m_IsDepthBufferCopyValid;
+        RenderTexture m_TemporaryTargetForCubemaps;
 
         private CameraCache<(Transform viewer, HDProbe probe, int face)> m_ProbeCameraCache = new
             CameraCache<(Transform viewer, HDProbe probe, int face)>();
@@ -221,13 +226,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ColorResolveMaterial;
         }
 
+        // Flag that defines if ray tracing is supported by the current asset
+        bool m_AssetSupportsRayTracing = false;
+
         // Flag that defines if ray tracing is supported by the current asset and platform
         bool m_RayTracingSupported = false;
+
         /// <summary>
         ///  Flag that defines if ray tracing is supported by the current HDRP asset and platform
         /// </summary>
         public bool rayTracingSupported { get { return m_RayTracingSupported; } }
-
 
 #if UNITY_EDITOR
         bool m_ResourcesInitialized = false;
@@ -270,7 +278,8 @@ namespace UnityEngine.Rendering.HighDefinition
             QualitySettings.maximumLODLevel = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedMaximumLODLevel(m_Asset);
 
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
-            m_RayTracingSupported = GatherRayTracingSupport(m_Asset.currentPlatformRenderPipelineSettings);
+            m_RayTracingSupported = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
+            m_AssetSupportsRayTracing = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
 
 #if UNITY_EDITOR
             UpgradeResourcesIfNeeded();
@@ -293,15 +302,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_ValidAPI = false;
                 return;
-            }
-
-            if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
-            {
-                ColorUtils.s_LensAttenuation = 0.65f;
-            }
-            else if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.PerfectLens)
-            {
-                ColorUtils.s_LensAttenuation = 0.78f;
             }
 
 #if ENABLE_VIRTUALTEXTURES
@@ -380,8 +380,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
                     probeDebugMesh = defaultResources.assets.sphereMesh,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
-                    sceneBounds = m_GlobalSettings.GetOrCreateAPVSceneBounds()
+                    sceneBounds = m_GlobalSettings.GetOrCreateAPVSceneBounds(),
+                    shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands
                 });
+                RegisterRetrieveOfProbeVolumeExtraDataAction();
             }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
@@ -443,9 +445,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         void UpgradeResourcesIfNeeded()
         {
-            // The first thing we need to do is to set the defines that depend on the render pipeline settings
-            m_Asset.EvaluateSettings();
-
             // Check that the serialized Resources are not broken
             m_GlobalSettings.EnsureRuntimeResources(forceReload: true);
             m_GlobalSettings.EnsureEditorResources(forceReload: true);
@@ -520,14 +519,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 overridesOtherLightingSettings = true,
                 editableMaterialRenderQueue = false,
                 enlighten = true
-                , overridesLODBias = true
-                , overridesMaximumLODLevel = true
-                , overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
-                , overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
-                , overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
-                , autoAmbientProbeBaking = false
-                , autoDefaultReflectionProbeBaking = false
-                , enlightenLightmapper = false
+                ,
+                overridesLODBias = true
+                ,
+                overridesMaximumLODLevel = true
+                ,
+                overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
+                ,
+                overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
+                ,
+                overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
+                ,
+                autoAmbientProbeBaking = false
+                ,
+                autoDefaultReflectionProbeBaking = false
+                ,
+                enlightenLightmapper = false
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -646,6 +653,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="disposing">Is disposing.</param>
         protected override void Dispose(bool disposing)
         {
+            Graphics.ClearRandomWriteTargets();
+            Graphics.SetRenderTarget(null);
             DisposeProbeCameraPool();
 
             UnsetRenderingFeatures();
@@ -975,7 +984,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool useOptimalSettings = hdCam.deepLearningSuperSamplingUseCustomAttributes
                     ? hdCam.deepLearningSuperSamplingUseOptimalSettings
                     : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings;
-                m_DLSSPass.SetupAutomaticDRSScaling(useOptimalSettings, camera, xrPass, ref outDrsSettings);
+                m_DLSSPass.SetupDRSScaling(useOptimalSettings, camera, xrPass, ref outDrsSettings);
             }
         }
 
@@ -1068,6 +1077,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
             m_GlobalSettings.GetOrCreateDefaultVolume();
+
+            if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
+            {
+                ColorUtils.s_LensAttenuation = 0.65f;
+            }
+            else if (m_GlobalSettings.lensAttenuationMode == LensAttenuationMode.PerfectLens)
+            {
+                ColorUtils.s_LensAttenuation = 0.78f;
+            }
+
+            DecalSystem.instance.StartDecalUpdateJobs();
 
             // This function should be called once every render (once for all camera)
             LightLoopNewRender();
@@ -1181,7 +1201,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
-                    dynResHandler.runUpscalerFilterOnFullResolution = hdCam != null && hdCam.cameraCanRenderDLSS;
+                    dynResHandler.runUpscalerFilterOnFullResolution = (hdCam != null && hdCam.cameraCanRenderDLSS) || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
 
                     RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
 
@@ -1286,7 +1306,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         index = renderRequests.Count,
                         cameraSettings = CameraSettings.From(hdCamera),
                         viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get()
-                            // TODO: store DecalCullResult
+                        // TODO: store DecalCullResult
                     };
                     renderRequests.Add(request);
                     // This is a root render request
@@ -1380,7 +1400,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             AddHDProbeRenderRequests(
                                 visibleProbe,
                                 viewerTransform,
-                                new List<(int index, float weight)> {visibility},
+                                new List<(int index, float weight)> { visibility },
                                 HDUtils.GetSceneCullingMaskFromCamera(visibleInRenderRequest.hdCamera.camera),
                                 hdParentCamera,
                                 visibleInRenderRequest.hdCamera.camera.fieldOfView,
@@ -1575,6 +1595,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             hdCamera.volumetricCloudsAnimationData = hdParentCamera.volumetricCloudsAnimationData;
                             useFetchedGpuExposure = true;
                         }
+                        else
+                        {
+                            hdCamera.realtimeReflectionProbe = (visibleProbe.mode == ProbeSettings.Mode.Realtime);
+                        }
 
                         hdCamera.SetParentCamera(hdParentCamera, useFetchedGpuExposure, fetchedGpuExposure); // Used to inherit the properties of the view
 
@@ -1619,7 +1643,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             index = renderRequests.Count,
                             cameraSettings = cameraSettings[j],
                             viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get()
-                                // TODO: store DecalCullResult
+                            // TODO: store DecalCullResult
                         };
 
                         if (m_SkyManager.HasSetValidAmbientProbe(hdCamera))
@@ -2484,7 +2508,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
-                cb._EnableDecals  = 1;
+                cb._EnableDecals = 1;
                 cb._DecalAtlasResolution = new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight);
             }
             else
@@ -2515,7 +2539,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetCurrentSunLight(), cmd);
+            m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetMainLight(), cmd);
         }
 
         /// <summary>
