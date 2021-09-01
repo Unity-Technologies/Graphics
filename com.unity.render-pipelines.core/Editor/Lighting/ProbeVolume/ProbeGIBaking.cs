@@ -51,7 +51,6 @@ namespace UnityEngine.Experimental.Rendering
     {
         static bool m_IsInit = false;
         static BakingBatch m_BakingBatch;
-        static ProbeReferenceVolumeAuthoring m_BakingReferenceVolumeAuthoring = null;
         static ProbeReferenceVolumeProfile m_BakingProfile = null;
         static ProbeVolumeBakingProcessSettings m_BakingSettings;
 
@@ -664,12 +663,18 @@ namespace UnityEngine.Experimental.Rendering
             ApplySubdivisionResults(result, newRefToWS);
         }
 
-        public static ProbeSubdivisionContext PrepareProbeSubdivisionContext(ProbeReferenceVolumeAuthoring refVolume)
+        public static ProbeSubdivisionContext PrepareProbeSubdivisionContext()
         {
             ProbeSubdivisionContext ctx = new ProbeSubdivisionContext();
 
             // Prepare all the information in the scene for baking GI.
             Vector3 refVolOrigin = Vector3.zero; // TODO: This will need to be center of the world bounds.
+            if (m_BakingProfile == null)
+            {
+                var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
+                if (perSceneDataList.Length == 0) return ctx;
+                SetBakingContext(perSceneDataList);
+            }
             ctx.Initialize(m_BakingProfile, refVolOrigin);
 
             return ctx;

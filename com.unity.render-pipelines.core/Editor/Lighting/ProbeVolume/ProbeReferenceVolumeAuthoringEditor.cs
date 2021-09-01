@@ -42,8 +42,12 @@ namespace UnityEngine.Experimental.Rendering
 
                 if (Time.realtimeSinceStartupAsDouble - s_LastSubdivisionTime > debugDisplay.subdivisionDelayInSeconds)
                 {
-                    var probeVolumeAuthoring = FindObjectOfType<ProbeReferenceVolumeAuthoring>();
-                    if (probeVolumeAuthoring == null || !probeVolumeAuthoring.isActiveAndEnabled)
+                    var probeVolume = FindObjectOfType<ProbeVolume>();
+                    if (probeVolume == null || !probeVolume.isActiveAndEnabled || ProbeReferenceVolume.instance.sceneData == null)
+                        return;
+
+                    var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(probeVolume.gameObject.scene);
+                    if (profile == null)
                         return;
 
                     if (s_CurrentSubdivision == null)
@@ -55,8 +59,8 @@ namespace UnityEngine.Experimental.Rendering
                     // Step the subdivision with the amount of cell per frame in debug menu
                     int updatePerFrame = debugDisplay.subdivisionCellUpdatePerFrame;
                     // From simplification level 5 and higher, the cost of calculating one cell is very high, so we adjust that number.
-                    if (probeVolumeAuthoring.profile.simplificationLevels > 4)
-                        updatePerFrame = (int)Mathf.Max(1, updatePerFrame / Mathf.Pow(9, probeVolumeAuthoring.profile.simplificationLevels - 4));
+                    if (profile.simplificationLevels > 4)
+                        updatePerFrame = (int)Mathf.Max(1, updatePerFrame / Mathf.Pow(9, profile.simplificationLevels - 4));
                     for (int i = 0; i < debugDisplay.subdivisionCellUpdatePerFrame; i++)
                     {
                         if (!s_CurrentSubdivision.MoveNext())
@@ -69,12 +73,12 @@ namespace UnityEngine.Experimental.Rendering
 
                     IEnumerator Subdivide()
                     {
-                        var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(probeVolumeAuthoring);
+                        var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext();
 
                         // Cull all the cells that are not visible (we don't need them for realtime debug)
                         ctx.cells.RemoveAll(c =>
                         {
-                            return probeVolumeAuthoring.ShouldCullCell(c.position);
+                            return probeVolume.ShouldCullCell(c.position);
                         });
 
                         Camera activeCamera = Camera.current ?? SceneView.lastActiveSceneView.camera;

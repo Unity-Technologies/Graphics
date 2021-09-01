@@ -104,10 +104,6 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField]
         float m_VirtualOffsetBiasOutOfGeometry = 0.01f;
 
-
-        MeshGizmo brickGizmos;
-        MeshGizmo cellGizmo;
-
         // In some cases Unity will magically popuplate this private field with a correct value even though it should not be serialized.
         // The [NonSerialized] attribute allows to force the asset to be null in case a domain reload happens.
         [NonSerialized]
@@ -155,11 +151,6 @@ namespace UnityEngine.Experimental.Rendering
                 return;
 
 #if UNITY_EDITOR
-            brickGizmos?.Dispose();
-            brickGizmos = null;
-            cellGizmo?.Dispose();
-            cellGizmo = null;
-
             m_PrevAsset = null;
 #endif
         }
@@ -208,135 +199,6 @@ namespace UnityEngine.Experimental.Rendering
         void OnDestroy()
         {
             QueueAssetRemoval();
-        }
-
-        internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))
-        {
-            if (m_Profile == null)
-                return true;
-
-            var cameraTransform = SceneView.lastActiveSceneView.camera.transform;
-
-            Vector3 cellCenterWS = cellPosition * m_Profile.cellSizeInMeters + originWS + Vector3.one * (m_Profile.cellSizeInMeters / 2.0f);
-
-            // Round down to cell size distance
-            float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / m_Profile.cellSizeInMeters) * m_Profile.cellSizeInMeters;
-
-            if (roundedDownDist > ProbeReferenceVolume.instance.debugDisplay.subdivisionViewCullingDistance)
-                return true;
-
-            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
-            var volumeAABB = new Bounds(cellCenterWS, m_Profile.cellSizeInMeters * Vector3.one);
-
-            return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
-        }
-
-        // TODO: We need to get rid of Handles.DrawWireCube to be able to have those at runtime as well.
-        void OnDrawGizmos()
-        {
-            if (!enabled || !gameObject.activeSelf || !ProbeReferenceVolume.instance.isInitialized)
-                return;
-
-            var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
-
-            if (debugDisplay.drawBricks)
-            {
-                var subdivColors = ProbeReferenceVolume.instance.subdivisionDebugColors;
-
-                IEnumerable<ProbeBrickIndex.Brick> GetVisibleBricks()
-                {
-                    if (debugDisplay.realtimeSubdivision)
-                    {
-                        // realtime subdiv cells are already culled
-                        foreach (var kp in ProbeReferenceVolume.instance.realtimeSubdivisionInfo)
-                        {
-                            var cellVolume = kp.Key;
-
-                            foreach (var brick in kp.Value)
-                            {
-                                yield return brick;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
-                        {
-                            if (ShouldCullCell(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
-                                continue;
-
-                            if (cell.bricks == null)
-                                continue;
-
-                            foreach (var brick in cell.bricks)
-                                yield return brick;
-                        }
-                    }
-                }
-
-                if (brickGizmos == null)
-                    brickGizmos = new MeshGizmo((int)(Mathf.Pow(3, ProbeBrickIndex.kMaxSubdivisionLevels) * MeshGizmo.vertexCountPerCube));
-
-                brickGizmos.Clear();
-                foreach (var brick in GetVisibleBricks())
-                {
-                    if (brick.subdivisionLevel < 0)
-                        continue;
-
-                    Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
-                    Vector3 scaledPos = brick.position + scaledSize / 2;
-                    brickGizmos.AddWireCube(scaledPos, scaledSize, subdivColors[brick.subdivisionLevel]);
-                }
-
-                brickGizmos.RenderWireframe(ProbeReferenceVolume.instance.GetRefSpaceToWS(), gizmoName: "Brick Gizmo Rendering");
-            }
-
-            if (debugDisplay.drawCells)
-            {
-                IEnumerable<Vector3> GetVisibleCellCenters()
-                {
-                    if (debugDisplay.realtimeSubdivision)
-                    {
-                        foreach (var kp in ProbeReferenceVolume.instance.realtimeSubdivisionInfo)
-                        {
-                            kp.Key.CalculateCenterAndSize(out var center, out var _);
-                            yield return center;
-                        }
-                    }
-                    else
-                    {
-                        foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
-                        {
-                            if (ShouldCullCell(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
-                                continue;
-
-                            var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
-                            var center = positionF * m_Profile.cellSizeInMeters + m_Profile.cellSizeInMeters * 0.5f * Vector3.one;
-                            yield return center;
-                        }
-                    }
-                }
-
-                Matrix4x4 trs = Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one);
-
-                // For realtime subdivision, the matrix from ProbeReferenceVolume.instance can be wrong if the profile changed since the last bake
-                if (debugDisplay.realtimeSubdivision)
-                    trs = Matrix4x4.TRS(transform.position, Quaternion.identity, Vector3.one);
-
-                // Fetching this from components instead of from the reference volume allows the user to
-                // preview how cells will look before they commit to a bake.
-                Gizmos.color = new Color(0, 1, 0.5f, 0.2f);
-                Gizmos.matrix = trs;
-                if (cellGizmo == null)
-                    cellGizmo = new MeshGizmo();
-                cellGizmo.Clear();
-                foreach (var center in GetVisibleCellCenters())
-                {
-                    Gizmos.DrawCube(center, Vector3.one * m_Profile.cellSizeInMeters);
-                    cellGizmo.AddWireCube(center, Vector3.one * m_Profile.cellSizeInMeters, new Color(0, 1, 0.5f, 1));
-                }
-                cellGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
-            }
         }
 
         // IMPORTANT TODO: This is to be deleted when we have the proper setting panel.
