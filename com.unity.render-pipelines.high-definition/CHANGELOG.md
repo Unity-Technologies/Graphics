@@ -483,6 +483,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Make some volumetric clouds properties additional to reduce the number default parameters (case 1357926).
 - Renamed the Cloud Offset to Cloud Map Offset in the volumetric clouds volume component (case 1358528).
 - Made debug panel mip bias functions internal, not public.
+- Visual Environment ambient mode is now Dynamic by default.
 
 ## [11.0.0] - 2020-10-21
 
