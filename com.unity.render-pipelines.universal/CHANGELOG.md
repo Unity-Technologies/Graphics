@@ -10,9 +10,8 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 ### Fixed
 - Fixed terrain hole shadowing [case 1349305]
-
-### Fixed
 - Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
+- Fixed an issue where the scene view would turn black when bloom was enabled. [case 1298790](https://issuetracker.unity3d.com/issues/urp-bloom-and-tonemapping-causes-the-screen-to-go-black-in-scene-mode), [case 1340848](https://issuetracker.unity3d.com/issues/urp-bloom-produces-visual-artifacts-when-color-slash-emission-are-not-clamped)
 
 ## [10.6.0] - 2021-04-29
 
