@@ -82,9 +82,22 @@ namespace UnityEngine.Rendering.Universal
             this.CreateCameraSortingLayerRenderTexture(renderingData, cmd, m_Renderer2DData.cameraSortingLayerDownsamplingMethod);
 
             Material copyMaterial = m_Renderer2DData.cameraSortingLayerDownsamplingMethod == Downsampling._4xBox ? m_SamplingMaterial : m_BlitMaterial;
-            RenderingUtils.Blit(cmd, colorAttachment, m_Renderer2DData.cameraSortingLayerRenderTarget.id, copyMaterial, 0, false, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-            cmd.SetRenderTarget(colorAttachment, RenderBufferLoadAction.Load, mainTargetStoreAction,
-                depthAttachment, RenderBufferLoadAction.Load, mainTargetStoreAction);
+            RenderingUtils.Blit(cmd, colorAttachmentHandle.nameID, m_Renderer2DData.cameraSortingLayerRenderTarget.id, copyMaterial, 0, false, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+            if (colorAttachmentHandle.rt == null || depthAttachmentHandle.rt == null)
+            {
+                // One of the attachments is an alias for an identifier and doesn't manage the actual RT
+                CoreUtils.SetRenderTarget(cmd,
+                    colorAttachmentHandle.nameID, RenderBufferLoadAction.Load, mainTargetStoreAction,
+                    colorAttachmentHandle.nameID, RenderBufferLoadAction.Load, mainTargetStoreAction,
+                    ClearFlag.None, Color.clear);
+            }
+            else
+            {
+                CoreUtils.SetRenderTarget(cmd,
+                    colorAttachmentHandle, RenderBufferLoadAction.Load, mainTargetStoreAction,
+                    depthAttachmentHandle, RenderBufferLoadAction.Load, mainTargetStoreAction,
+                    ClearFlag.None, Color.clear);
+            }
             cmd.SetGlobalTexture(k_CameraSortingLayerTextureID, m_Renderer2DData.cameraSortingLayerRenderTarget.id);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -211,7 +224,7 @@ namespace UnityEngine.Rendering.Universal
                     if (layerBatch.lightStats.totalNormalMapUsage > 0)
                     {
                         filterSettings.sortingLayerRange = layerBatch.layerRange;
-                        var depthTarget = m_NeedsDepth ? depthAttachment : BuiltinRenderTextureType.None;
+                        var depthTarget = m_NeedsDepth ? depthAttachmentHandle.nameID : BuiltinRenderTextureType.None;
                         this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, cmd, layerBatch.lightStats);
                     }
 
@@ -240,7 +253,21 @@ namespace UnityEngine.Rendering.Universal
                     initialStoreAction = resolveDuringBatch < startIndex ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.StoreAndResolve;
                 else
                     initialStoreAction = RenderBufferStoreAction.Store;
-                cmd.SetRenderTarget(colorAttachment, RenderBufferLoadAction.Load, initialStoreAction, depthAttachment, RenderBufferLoadAction.Load, initialStoreAction);
+                if (colorAttachmentHandle.rt == null || depthAttachmentHandle.rt == null)
+                {
+                    // One of the attachments is an alias for an identifier and doesn't manage the actual RT
+                    CoreUtils.SetRenderTarget(cmd,
+                        colorAttachmentHandle.nameID, RenderBufferLoadAction.Load, initialStoreAction,
+                        depthAttachmentHandle.nameID, RenderBufferLoadAction.Load, initialStoreAction,
+                        ClearFlag.None, Color.clear);
+                }
+                else
+                {
+                    CoreUtils.SetRenderTarget(cmd,
+                        colorAttachmentHandle, RenderBufferLoadAction.Load, initialStoreAction,
+                        depthAttachmentHandle, RenderBufferLoadAction.Load, initialStoreAction,
+                        ClearFlag.None, Color.clear);
+                }
 
                 for (var i = startIndex; i < startIndex + batchesDrawn; i++)
                 {
@@ -314,7 +341,7 @@ namespace UnityEngine.Rendering.Universal
                                 storeAction = resolveDuringBatch == i && !resolveIsAfterCopy ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.StoreAndResolve;
                             else
                                 storeAction = RenderBufferStoreAction.Store;
-                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachment, depthAttachment,
+                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachmentHandle.nameID, depthAttachmentHandle.nameID,
                                 RenderBufferStoreAction.Store, storeAction, false, m_Renderer2DData.lightCullResult.visibleLights);
 
                             cmd.EndSample(sampleName);
@@ -397,7 +424,21 @@ namespace UnityEngine.Rendering.Universal
                 var cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSamplerUnlit))
                 {
-                    cmd.SetRenderTarget(colorAttachment, RenderBufferLoadAction.Load, storeAction, depthAttachment, RenderBufferLoadAction.Load, storeAction);
+                    if (colorAttachmentHandle.rt == null || depthAttachmentHandle.rt == null)
+                    {
+                        // One of the attachments is an alias for an identifier and doesn't manage the actual RT
+                        CoreUtils.SetRenderTarget(cmd,
+                            colorAttachmentHandle.nameID, RenderBufferLoadAction.Load, storeAction,
+                            depthAttachmentHandle.nameID, RenderBufferLoadAction.Load, storeAction,
+                            ClearFlag.None, Color.clear);
+                    }
+                    else
+                    {
+                        CoreUtils.SetRenderTarget(cmd,
+                            colorAttachmentHandle, RenderBufferLoadAction.Load, storeAction,
+                            depthAttachmentHandle, RenderBufferLoadAction.Load, storeAction,
+                            ClearFlag.None, Color.clear);
+                    }
 
                     cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                     cmd.SetGlobalColor(k_RendererColorID, Color.white);
