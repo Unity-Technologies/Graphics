@@ -383,6 +383,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with fading in SSR applying fade factor twice, resulting in darkening of the image in the transition areas.
 - Fixed path traced subsurface scattering for transmissive surfaces (case 1329403)
 - Fixed missing context menu for “Post Anti-Aliasing” in Camera (1357283)
+- Fixed error when disabling opaque objects on a camera with MSAA.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
