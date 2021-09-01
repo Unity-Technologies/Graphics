@@ -207,6 +207,12 @@ namespace UnityEngine.Experimental.Rendering
 
                 GeometryUtility.CalculateFrustumPlanes(camera, m_DebugFrustumPlanes);
 
+                m_DebugMaterial.shaderKeywords = null;
+                if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL1)
+                    m_DebugMaterial.EnableKeyword("PROBE_VOLUMES_L1");
+                else if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                    m_DebugMaterial.EnableKeyword("PROBE_VOLUMES_L2");
+
                 foreach (var debug in m_CellDebugData)
                 {
                     if (ShouldCullCell(debug.cellPosition, camera.transform, m_DebugFrustumPlanes))

@@ -544,6 +544,7 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
+
         internal bool isInitialized => m_ProbeReferenceVolumeInit;
 
         struct InitInfo
@@ -612,8 +613,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_MemoryBudget = parameters.memoryBudget;
-            // Temporarily reverting recent change to always allocate L2 (which is still required for dilation/debug right now)
-            m_SHBands = ProbeVolumeSHBands.SphericalHarmonicsL2;// parameters.shBands;
+            m_SHBands = parameters.shBands;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
             InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
@@ -627,11 +627,24 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
+
+        // This is used for steps such as dilation that require the maximum order allowed to be loaded at all times. Should really never be used as a general purpose function.
+        internal void ForceSHBand(ProbeVolumeSHBands shBands)
+        {
+            if (m_ProbeReferenceVolumeInit)
+                CleanupLoadedData();
+            m_SHBands = shBands;
+            m_ProbeReferenceVolumeInit = false;
+            InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, shBands);
+        }
+
         /// <summary>
         /// Cleanup the Probe Volume system.
         /// </summary>
         public void Cleanup()
         {
+            if (!m_ProbeReferenceVolumeInit) return;
+
             if (!m_IsInitialized)
             {
                 Debug.LogError("Probe Volume System has not been initialized first before calling cleanup.");
