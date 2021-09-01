@@ -359,7 +359,7 @@ namespace UnityEngine.Rendering.Universal
             bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
             if (isOffscreenDepthTexture)
             {
-                ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
+                ConfigureCameraTarget(k_CameraTarget, k_CameraTarget);
                 AddRenderPasses(ref renderingData);
                 SetupRenderPasses(in renderingData);
                 EnqueuePass(m_RenderOpaqueForwardPass);
@@ -897,7 +897,7 @@ namespace UnityEngine.Rendering.Universal
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved)
                 {
-                    m_FinalBlitPass.Setup(cameraTargetDescriptor, new RenderTargetHandle(sourceForFinalPass));
+                    m_FinalBlitPass.Setup(cameraTargetDescriptor, sourceForFinalPass);
                     EnqueuePass(m_FinalBlitPass);
                 }
 
@@ -1074,7 +1074,7 @@ namespace UnityEngine.Rendering.Universal
                     colorDescriptor.depthBufferBits = (int)DepthBits.None;
                     m_ColorBufferSystem.SetCameraSettings(cmd, colorDescriptor, FilterMode.Bilinear);
                     m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
-                    ConfigureCameraColorTarget(m_ActiveCameraColorAttachment.nameID);
+                    ConfigureCameraColorTarget(m_ActiveCameraColorAttachment);
                     cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.nameID);
                     //Set _AfterPostProcessTexture, users might still rely on this although it is now always the cameratarget due to swapbuffer
                     cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
