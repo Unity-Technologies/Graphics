@@ -144,6 +144,12 @@ namespace UnityEditor.Rendering.HighDefinition
                         shapeBox.center = Quaternion.Inverse(probeVolume.transform.rotation) * probeVolume.transform.position;
                         shapeBox.size = probeVolume.parameters.size;
 
+                        // Maintain fade distance in world space units during resize.
+                        // Otherwise, resize will cause the fade distance to scale based on the new shapeBox size,
+                        // which makes it hard for artists to tune.
+                        Vector3 positiveFadeAbsolutePrevious = Vector3.Scale(probeVolume.parameters.positiveFade, probeVolume.parameters.size);
+                        Vector3 negativeFadeAbsolutePrevious = Vector3.Scale(probeVolume.parameters.negativeFade, probeVolume.parameters.size);
+
                         shapeBox.monoHandle = !probeVolume.parameters.advancedFade;
                         EditorGUI.BeginChangeCheck();
                         shapeBox.DrawHandle();
@@ -152,9 +158,21 @@ namespace UnityEditor.Rendering.HighDefinition
                             Undo.RecordObjects(new Object[] { probeVolume, probeVolume.transform }, "Change Probe Volume Bounding Box");
 
                             probeVolume.parameters.size = shapeBox.size;
-
                             Vector3 delta = probeVolume.transform.rotation * shapeBox.center - probeVolume.transform.position;
-                            probeVolume.transform.position += delta; ;
+                            probeVolume.transform.position += delta;
+
+                            positiveFadeAbsolutePrevious = Vector3.Min(positiveFadeAbsolutePrevious, probeVolume.parameters.size);
+                            negativeFadeAbsolutePrevious = Vector3.Min(negativeFadeAbsolutePrevious, probeVolume.parameters.size - positiveFadeAbsolutePrevious);
+                            Vector3 sizeInverse = new Vector3(
+                                Mathf.Abs(probeVolume.parameters.size.x) > 1e-5f ? (1.0f / probeVolume.parameters.size.x) : 0.0f,
+                                Mathf.Abs(probeVolume.parameters.size.y) > 1e-5f ? (1.0f / probeVolume.parameters.size.y) : 0.0f,
+                                Mathf.Abs(probeVolume.parameters.size.z) > 1e-5f ? (1.0f / probeVolume.parameters.size.z) : 0.0f
+                            );
+                            probeVolume.parameters.positiveFade = Vector3.Scale(positiveFadeAbsolutePrevious, sizeInverse);
+                            probeVolume.parameters.negativeFade = Vector3.Scale(negativeFadeAbsolutePrevious, sizeInverse);
+
+                            blendBox.center = CenterBlendLocalPosition(probeVolume);
+                            blendBox.size = BlendSize(probeVolume);
                         }
                     }
                     break;
