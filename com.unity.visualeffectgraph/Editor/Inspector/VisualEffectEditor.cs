@@ -658,7 +658,7 @@ namespace UnityEditor.VFX
             {
                 using (new EditorGUI.DisabledGroupScope(m_ReseedOnPlay.boolValue || m_ReseedOnPlay.hasMultipleDifferentValues))
                 {
-                    EditorGUILayout.PropertyField(m_RandomSeed, Contents.randomSeed);
+                    EditorGUILayout.DelayedIntField(m_RandomSeed, Contents.randomSeed);
                     if (GUILayout.Button(Contents.setRandomSeed, EditorStyles.miniButton, Styles.MiniButtonWidth))
                     {
                         foreach (VisualEffect ve in targets)
