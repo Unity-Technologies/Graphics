@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.UI
                 });
         }
 
-        public static VFXViewWindow currentWindow;
+        public static VFXViewWindow currentWindow => WindowLayout.FindEditorWindowOfType(typeof(VFXViewWindow)) as VFXViewWindow;
 
         [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3011)]
         public static void ShowWindow()
@@ -194,8 +194,6 @@ namespace UnityEditor.VFX.UI
                 rootVisualElement.AddManipulator(m_ShortcutHandler);
             }
 
-            currentWindow = this;
-
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
             EditorApplication.wantsToQuit += Quitting_Workaround;
 #endif
@@ -226,7 +224,6 @@ namespace UnityEditor.VFX.UI
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
                 graphView.controller = null;
             }
-            currentWindow = null;
         }
 
         void OnEnterPanel(AttachToPanelEvent e)
