@@ -29,32 +29,31 @@ namespace UnityEditor.ShaderFoundry
         internal void LinkBlock(BlockDescriptor blockDescriptor, NamespaceScopes scopes, BlockLinkInstance mergedBlockLinkInstance, BlockLinkInstance blockLinkInstance)
         {
             var block = blockDescriptor.Block;
-            var mergedInputType = mergedBlockLinkInstance.InputInstance;
-            var mergedOutputType = mergedBlockLinkInstance.OutputInstance;
-            var blockInputType = blockLinkInstance.InputInstance;
-            var blockOutputType = blockLinkInstance.OutputInstance;
+            var mergedInputInstance = mergedBlockLinkInstance.InputInstance;
+            var mergedOutputInstance = mergedBlockLinkInstance.OutputInstance;
+            var blockInputInstance = blockLinkInstance.InputInstance;
+            var blockOutputInstance = blockLinkInstance.OutputInstance;
 
             // Begin a scope for the current block
             scopes.PushScope(block.Name);
 
             // Try matching all input fields
-            foreach (var input in blockInputType.Fields)
+            foreach (var input in blockInputInstance.Fields)
             {
                 // Find if there's a match for this input
-                var inputNameData = blockInputType.FindVariableOverride(input.ReferenceName);
+                var inputNameData = blockInputInstance.FindVariableOverride(input.ReferenceName);
                 bool allowNonExactMatch = inputNameData.Swizzle != 0;
                 var matchingField = scopes.Find(inputNameData.Namespace, input.Type, inputNameData.Name, allowNonExactMatch);
                 // If not, create a new input on the merged block to link to
                 if (matchingField == null)
                 {
-                    var mergedInputInstance = mergedInputType.Instance;
                     // Make the new field name unique
                     var name = $"{input.ReferenceName}_{block.Name}";
-                    var availableInput = BlockVariableLinkInstance.Construct(input.Type, name, name, mergedInputInstance, mergedInputType, input.Attributes);
-                    mergedInputType.AddField(availableInput);
+                    var availableInput = BlockVariableLinkInstance.Construct(input.Type, name, name, mergedInputInstance, input.Attributes);
+                    mergedInputInstance.AddField(availableInput);
                     matchingField = availableInput;
                     // Add the original name override so we can keep track of how to resolve this when linking later
-                    mergedInputType.AddOverride(availableInput.ReferenceName, inputNameData);
+                    mergedInputInstance.AddOverride(availableInput.ReferenceName, inputNameData);
 
                     // If this was a property, also mark this as a property on the block
                     if (availableInput.Attributes.IsProperty())
@@ -68,17 +67,17 @@ namespace UnityEditor.ShaderFoundry
                     Destination = input,
                     SourceSwizzle = inputNameData.Swizzle
                 };
-                blockInputType.AddResolvedField(input.ReferenceName, matchLink);
-                matchingField.TypeLinkInstance.AddResolvedField(matchingField.ReferenceName, matchLink);
+                blockInputInstance.AddResolvedField(input.ReferenceName, matchLink);
+                // Mark this resolution on the matching field's owner (the owner has a match for the field)
+                matchingField.Owner.AddResolvedField(matchingField.ReferenceName, matchLink);
             }
 
-            foreach (var output in blockOutputType.Fields)
+            foreach (var output in blockOutputInstance.Fields)
             {
                 // Always create an output on the merged block since anyone could use the output later.
-                var mergedOutputInstance = mergedOutputType.Instance;
                 var name = $"{output.ReferenceName}_{block.Name}";
-                var availableOutput = BlockVariableLinkInstance.Construct(output.Type, name, name, mergedOutputInstance, mergedOutputType, output.Attributes);
-                mergedOutputType.AddField(availableOutput);
+                var availableOutput = BlockVariableLinkInstance.Construct(output.Type, name, name, mergedOutputInstance, output.Attributes);
+                mergedOutputInstance.AddField(availableOutput);
 
                 // Link the new output to the block's output
                 var match = new ResolvedFieldMatch
@@ -86,11 +85,11 @@ namespace UnityEditor.ShaderFoundry
                     Source = output,
                     Destination = availableOutput,
                 };
-                mergedOutputType.AddResolvedField(availableOutput.ReferenceName, match);
+                mergedOutputInstance.AddResolvedField(availableOutput.ReferenceName, match);
 
                 // Add a name override for the output so we can keep track of how to resolve this later when linking
-                var outputNameData = blockOutputType.FindVariableOverride(output.ReferenceName);
-                mergedOutputType.AddOverride(availableOutput.ReferenceName, outputNameData);
+                var outputNameData = blockOutputInstance.FindVariableOverride(output.ReferenceName);
+                mergedOutputInstance.AddOverride(availableOutput.ReferenceName, outputNameData);
 
                 // Set both of these outputs as available in all of the current scopes
                 scopes.SetInCurrentScopeStack(output, outputNameData.Name);
@@ -107,10 +106,10 @@ namespace UnityEditor.ShaderFoundry
 
             // Setup the merged block's input/output instance types
             mergedBlockLinkInstance = new BlockLinkInstance(Container);
-            var mergedInputType = mergedBlockLinkInstance.InputInstance;
-            var mergedOutputType = mergedBlockLinkInstance.OutputInstance;
-            mergedInputType.Instance.DisplayName = mergedInputType.Instance.ReferenceName = context.InputTypeName.ToLower();
-            mergedOutputType.Instance.DisplayName = mergedOutputType.Instance.ReferenceName = context.OutputTypeName.ToLower();
+            var mergedInputInstance = mergedBlockLinkInstance.InputInstance;
+            var mergedOutputInstance = mergedBlockLinkInstance.OutputInstance;
+            mergedInputInstance.DisplayName = mergedInputInstance.ReferenceName = context.InputTypeName.ToLower();
+            mergedOutputInstance.DisplayName = mergedOutputInstance.ReferenceName = context.OutputTypeName.ToLower();
 
             scopes.PushScope(NamespaceScopes.GlobalScopeName);
             if(!string.IsNullOrEmpty(context.ScopeName))
@@ -121,8 +120,8 @@ namespace UnityEditor.ShaderFoundry
             // Add all available inputs to the input struct
             foreach(var input in context.Inputs)
             {
-                var inputInstance = BlockVariableLinkInstance.Construct(input, mergedInputType.Instance, mergedInputType);
-                mergedInputType.AddField(inputInstance);
+                var inputInstance = BlockVariableLinkInstance.Construct(input, mergedInputInstance);
+                mergedInputInstance.AddField(inputInstance);
                 scopes.SetInCurrentScopeStack(inputInstance);
             }
 
@@ -139,8 +138,8 @@ namespace UnityEditor.ShaderFoundry
             // For all available outputs, create the output field and find out who writes out to this last
             foreach (var output in context.Outputs)
             {
-                var instance = BlockVariableLinkInstance.Construct(output, mergedOutputType.Instance, mergedOutputType);
-                mergedOutputType.AddField(instance);
+                var instance = BlockVariableLinkInstance.Construct(output, mergedOutputInstance);
+                mergedOutputInstance.AddField(instance);
                 // Check if someone wrote out to this variable
                 var matchingField = scopes.Find(output.Type, output.ReferenceName, false);
                 if(matchingField != null)
@@ -150,7 +149,7 @@ namespace UnityEditor.ShaderFoundry
                         Source = matchingField,
                         Destination = instance,
                     };
-                    mergedOutputType.AddResolvedField(instance.ReferenceName, match);
+                    mergedOutputInstance.AddResolvedField(instance.ReferenceName, match);
                 }
             }
             if (!string.IsNullOrEmpty(context.ScopeName))
@@ -158,10 +157,8 @@ namespace UnityEditor.ShaderFoundry
             scopes.PopScope();
         }
 
-        internal ShaderFunction GenerateEntryPointFunction(Context context, BlockTypeLinkInstance inputTypeInstance, BlockTypeLinkInstance outputTypeInstance, List<BlockLinkInstance> blockLinkInstances)
+        internal ShaderFunction GenerateEntryPointFunction(Context context, BlockVariableLinkInstance inputInstance, BlockVariableLinkInstance outputInstance, List<BlockLinkInstance> blockLinkInstances)
         {
-            var inputInstance = inputTypeInstance.Instance;
-            var outputInstance = outputTypeInstance.Instance;
             var fnBuilder = new ShaderFunction.Builder(Container, context.Name, outputInstance.Type);
             fnBuilder.AddInput(inputInstance.Type, inputInstance.ReferenceName);
             fnBuilder.Indent();
@@ -170,15 +167,13 @@ namespace UnityEditor.ShaderFoundry
             foreach (var blockLinkInstance in blockLinkInstances)
             {
                 var block = blockLinkInstance.Block;
-                var blockInputType = blockLinkInstance.InputInstance;
-                var blockOutputType = blockLinkInstance.OutputInstance;
-                var blockInputInstance = blockInputType.Instance;
-                var blockOutputInstance = blockOutputType.Instance;
+                var blockInputInstance = blockLinkInstance.InputInstance;
+                var blockOutputInstance = blockLinkInstance.OutputInstance;
 
                 fnBuilder.AddLine($"{blockInputInstance.Type.Name} {blockInputInstance.ReferenceName};");
-                foreach (var input in blockInputType.Fields)
+                foreach (var input in blockInputInstance.Fields)
                 {
-                    var match = blockInputType.FindResolvedField(input.ReferenceName);
+                    var match = blockInputInstance.FindResolvedField(input.ReferenceName);
                     if (match != null)
                     {
                         string sourceSizzle = match.SourceSwizzle != 0 ? $".{SwizzleUtils.ToString(match.SourceSwizzle)}" : "";
@@ -192,9 +187,9 @@ namespace UnityEditor.ShaderFoundry
 
             // Generate the merged block's output type and copy all of the output fields over
             fnBuilder.AddLine($"{outputInstance.Type.Name} {outputInstance.ReferenceName};");
-            foreach (var output in outputTypeInstance.Fields)
+            foreach (var output in outputInstance.Fields)
             {
-                var match = outputTypeInstance.FindResolvedField(output.ReferenceName);
+                var match = outputInstance.FindResolvedField(output.ReferenceName);
                 if (match != null)
                     fnBuilder.AddLine($"{match.Destination.Owner.ReferenceName}.{match.Destination.ReferenceName} = {match.Source.Owner.ReferenceName}.{match.Source.ReferenceName};");
             }
@@ -206,8 +201,8 @@ namespace UnityEditor.ShaderFoundry
 
         internal BlockDescriptor Build(Context context, BlockLinkInstance mergedBlockLinkInstance, List<BlockLinkInstance> blockLinkInstances)
         {
-            var mergedInputType = mergedBlockLinkInstance.InputInstance;
-            var mergedOutputType = mergedBlockLinkInstance.OutputInstance;
+            var mergedInputInstance = mergedBlockLinkInstance.InputInstance;
+            var mergedOutputInstance = mergedBlockLinkInstance.OutputInstance;
             var blockBuilder = new Block.Builder(Container, context.Name);
 
             // Merge all types, functions, and descriptors. Make sure to do this first so that all dependent types/functions are already declared
@@ -215,21 +210,21 @@ namespace UnityEditor.ShaderFoundry
                 blockBuilder.MergeTypesFunctionsDescriptors(blockLinkInstance.Block);
 
             // Create the input/output types
-            var inputTypeBuilder = TypeUtilities.BuildStructBuilder(Container, context.InputTypeName, mergedInputType.Fields);
-            mergedInputType.Instance.Type = inputTypeBuilder.Build();
-            blockBuilder.AddType(mergedInputType.Instance.Type);
+            var inputTypeBuilder = TypeUtilities.BuildStructBuilder(Container, context.InputTypeName, mergedInputInstance.Fields);
+            mergedInputInstance.Type = inputTypeBuilder.Build();
+            blockBuilder.AddType(mergedInputInstance.Type);
 
-            var outputTypeBuilder = TypeUtilities.BuildStructBuilder(Container, context.OutputTypeName, mergedOutputType.Fields);
-            mergedOutputType.Instance.Type = outputTypeBuilder.Build();
-            blockBuilder.AddType(mergedOutputType.Instance.Type);
+            var outputTypeBuilder = TypeUtilities.BuildStructBuilder(Container, context.OutputTypeName, mergedOutputInstance.Fields);
+            mergedOutputInstance.Type = outputTypeBuilder.Build();
+            blockBuilder.AddType(mergedOutputInstance.Type);
 
-            var entryPointFunction = GenerateEntryPointFunction(context, mergedInputType, mergedOutputType, blockLinkInstances);
+            var entryPointFunction = GenerateEntryPointFunction(context, mergedInputInstance, mergedOutputInstance, blockLinkInstances);
             blockBuilder.SetEntryPointFunction(entryPointFunction);
 
             // Add all of the block input/output/property variables
-            foreach(var field in mergedInputType.ResolvedFields)
+            foreach(var field in mergedInputInstance.ResolvedFields)
                 blockBuilder.AddInput(field.Build(Container));
-            foreach (var field in mergedOutputType.ResolvedFields)
+            foreach (var field in mergedOutputInstance.ResolvedFields)
                 blockBuilder.AddOutput(field.Build(Container));
             foreach (var field in mergedBlockLinkInstance.Properties)
                 blockBuilder.AddProperty(field.Build(Container));
@@ -238,7 +233,7 @@ namespace UnityEditor.ShaderFoundry
 
             var blockDescBuilder = new BlockDescriptor.Builder(Container, mergedBlock);
             // Create the input/output name overrides. These are used later to know how the sub-items were mapped originally
-            foreach(var varOverride in mergedInputType.NameOverrides.Overrides)
+            foreach(var varOverride in mergedInputInstance.NameOverrides.Overrides)
             {
                 var overrideBuilder = new BlockVariableNameOverride.Builder(Container);
                 overrideBuilder.SourceNamespace = varOverride.Override.Namespace;
@@ -247,7 +242,7 @@ namespace UnityEditor.ShaderFoundry
                 overrideBuilder.DestinationName = varOverride.Name;
                 blockDescBuilder.AddInputOverride(overrideBuilder.Build());
             }
-            foreach (var varOverride in mergedOutputType.NameOverrides.Overrides)
+            foreach (var varOverride in mergedOutputInstance.NameOverrides.Overrides)
             {
                 var overrideBuilder = new BlockVariableNameOverride.Builder(Container);
 
