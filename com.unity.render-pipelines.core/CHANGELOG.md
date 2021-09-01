@@ -76,6 +76,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Lens Flare Thumbnails
 - Fixed Lens Flare 'radialScreenAttenuationCurve invisible'
 - Fixed Lens Flare rotation for Curve Distribution
+- Fixed potentially conflicting runtime Rendering Debugger UI command by adding an option to disable runtime UI altogether (1345783).
 
 ### Changed
 - Improved the warning messages for Volumes and their Colliders.

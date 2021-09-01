@@ -2,6 +2,7 @@ import os
 import glob
 from .shared_utils import load_json, find_matching_patterns
 from .constants import *
+from .rules import *
 
 COMMAND_START = '################################### Running next command ###################################'
 COMMAND_END = '############################################################################################'
@@ -25,7 +26,7 @@ class Execution_log():
             {
                 # This is matched if all retries fail.
                 'pattern': r'(Failed after)(.+)(retries)',
-                'tags': ['retry'],
+                'tags': [],
                 'conclusion': 'failure',
             },
             {
@@ -34,35 +35,31 @@ class Execution_log():
                 # but no working regex for matching multiline against a negative lookahead was found yet.
                 # Therefore, this pattern must come after failed retry pattern (python logic will handle recognizing this block as a successful retry)
                 'pattern': r'(Retrying)',
-                'tags': ['retry'],
+                'tags': ['successful-retry'],
                 'conclusion': 'success',
+                'add_if': add_successful_retry_if
             },
             # Order: patterns below can be in any order, and the script can match multiple patterns
             {
-                'pattern': r'(command not found)',
-                'tags': ['failure'],
-                'conclusion': 'failure',
-            },
-            {
                 #  Or with newlines: r'(packet_write_poll: Connection to)((.|\n)+)(Operation not permitted)((.|\n)+)(lost connection)',
                 'pattern': r'(packet_write_poll: Connection to)(.+)(Operation not permitted)',
-                'tags': ['packet_write_poll','instability'],
-                'conclusion': 'inconclusive',
+                'tags': ['packet_write_poll','instability', 'infrastructure'],
+                'conclusion': 'failure',
             },
             {
                 # Or: r'(LTO : error: L0496: error during communication with the LTO process: The pipe has been ended)'
                 'pattern': r'(orbis-ld stderr :LLVM ERROR: out of memory)((.|\n)+)(LLVM ERROR: out of memory)',
-                'tags': ['oom','instability'],
+                'tags': ['oom'], # instability?
                 'conclusion': 'failure',
             },
             {
                 'pattern': r'(fatal: not a git repository (or any of the parent directories): .git)',
-                'tags': ['git'],
+                'tags': ['git'], # instability?
                 'conclusion': 'failure',
             },
             {
                 'pattern': r'(LTO : error: L0492: LTOP internal error: bad allocation)',
-                'tags': ['instability', 'bad-allocation'],
+                'tags': ['instability', 'bad-allocation', 'infrastructure'],
                 'conclusion': 'failure',
             },
             {
@@ -71,8 +68,8 @@ class Execution_log():
                 'conclusion': 'failure',
             },
             {
-                'pattern': r'Reason\(s\): One or more non-test related errors or failures occurred.', # if hit this, read hoarder file
-                'tags': ['non-test'],
+                'pattern': r'Reason\(s\): One or more non-test related errors or failures occurred.',
+                'tags': [],
                 'conclusion': 'failure',
                 'redirect': [
                     UTR_LOG,
@@ -85,6 +82,7 @@ class Execution_log():
                 'pattern': r'.+',
                 'tags': ['unknown'],
                 'conclusion': 'failure',
+                'add_if': add_unknown_pattern_if
             }
         ]
 
@@ -115,8 +113,11 @@ class Execution_log():
             logs[cmd] = {}
             logs[cmd]['output'] = output
             logs[cmd]['status'] = 'Failed' if any("Command failed" in line for line in output) else 'Success'
+            logs[cmd]['retry'] = any("Retrying" in line for line in output)
 
         # if the command block succeeded overall
         overall_status = [line for line in lines if 'Commands finished with result:' in line][0].split(']')[1].split(': ')[1]
         job_succeeded = False if 'Failed' in overall_status else True
-        return logs, job_succeeded
+        has_retries = any(logs[cmd]['retry'] for cmd in logs.keys())
+        should_be_parsed = not job_succeeded or has_retries
+        return logs, should_be_parsed
