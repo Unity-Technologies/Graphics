@@ -328,10 +328,7 @@ namespace UnityEngine.Experimental.Rendering
             var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
             if (perSceneDataList.Length == 0) return;
 
-            if (m_BakingProfile == null)
-            {
-                SetBakingContext(perSceneDataList);
-            }
+            SetBakingContext(perSceneDataList);
 
             foreach (var sceneData in perSceneDataList)
             {
@@ -346,10 +343,11 @@ namespace UnityEngine.Experimental.Rendering
 
                     cell2Assets[cell.index].Add(assetPath);
                 }
+                // We need to queue the asset loading to make sure all is fine when calling refresh.
+                sceneData.QueueAssetLoading();
             }
 
             var dilationSettings = m_BakingSettings.dilationSettings;
-
 
             if (dilationSettings.dilationDistance > 0.0f)
             {
