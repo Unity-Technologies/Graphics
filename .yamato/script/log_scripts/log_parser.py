@@ -54,6 +54,9 @@ def parse_failures(execution_log, logs, local):
         cmd_output = '\n'.join(logs[cmd]['output'])
         recursively_match_patterns(logs, cmd, execution_log.get_patterns(), cmd_output)
 
+        # format all added tags
+        logs[cmd]['tags'] = format_tags(logs[cmd]['tags'])
+
         # post additional results to Yamato
         post_additional_results(logs[cmd], local)
     return
@@ -102,8 +105,8 @@ def post_additional_results(cmd, local):
     data = {
         'title': cmd['title'],
         'summary': ' | '.join(list(set([s[:500] for s in cmd['summary']]))),
-        'conclusion': get_ruling_conclusion(cmd['conclusion']),
-        'tags' : list(set(flatten_tags(cmd['tags'])))
+        'conclusion': get_ruling_conclusion(cmd['conclusion'], cmd['tags']),
+        'tags' : cmd['tags']
     }
 
     if local:
