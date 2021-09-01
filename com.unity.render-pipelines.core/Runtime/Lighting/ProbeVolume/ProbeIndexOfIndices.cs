@@ -16,6 +16,8 @@ namespace UnityEngine.Experimental.Rendering
 
         internal struct IndexMetaData
         {
+            static uint[] s_PackedValues = new uint[kUintPerEntry];
+
             internal Vector3Int minLocalIdx;
             internal Vector3Int maxLocalIdx;
             internal int firstChunkIndex;
@@ -56,8 +58,6 @@ namespace UnityEngine.Experimental.Rendering
                 vals[2] |= ((uint)maxLocalIdx.z & 0x3FF) << 20;
             }
         }
-
-        static uint[] s_PackedValues = new uint[kUintPerEntry];
 
         ComputeBuffer m_IndexOfIndicesBuffer;
         uint[] m_IndexOfIndicesData;
