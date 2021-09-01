@@ -386,6 +386,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed impossibility to release the cursor in the template.
 - Fixed assert failure when enabling the probe volume system for the first time.
 - Significantly improved performance of APV probe debug.
+- Removed DLSS keyword in settings search when NVIDIA package is not installed. (case 1358409)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
