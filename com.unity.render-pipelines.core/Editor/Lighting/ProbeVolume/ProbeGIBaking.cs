@@ -293,7 +293,12 @@ namespace UnityEngine.Experimental.Rendering
         // It is only a first iteration of the concept that won't be as impactful on memory as other options.
         internal static void RevertDilation()
         {
-            if (m_BakingProfile == null) return;
+            if (m_BakingProfile == null)
+            {
+                var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
+                if (perSceneDataList.Length == 0) return;
+                SetBakingContext(perSceneDataList);
+            }
 
             var dilationSettings = m_BakingSettings.dilationSettings;
 
@@ -321,8 +326,12 @@ namespace UnityEngine.Experimental.Rendering
         {
             Dictionary<int, List<string>> cell2Assets = new Dictionary<int, List<string>>();
             var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
+            if (perSceneDataList.Length == 0) return;
 
-            if (m_BakingProfile == null) return;
+            if (m_BakingProfile == null)
+            {
+                SetBakingContext(perSceneDataList);
+            }
 
             foreach (var sceneData in perSceneDataList)
             {
