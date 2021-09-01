@@ -616,8 +616,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_MemoryBudget = parameters.memoryBudget;
-            // Temporarily reverting recent change to always allocate L2 (which is still required for dilation/debug right now)
-            m_SHBands = ProbeVolumeSHBands.SphericalHarmonicsL2;// parameters.shBands;
+            m_SHBands = parameters.shBands;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
             InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
@@ -629,6 +628,17 @@ namespace UnityEngine.Experimental.Rendering
                 UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneBounds.UpdateSceneBounds;
             }
 #endif
+        }
+
+
+        // This is used for steps such as dilation that require the maximum order allowed to be loaded at all times. Should really never be used as a general purpose function.
+        internal void ForceSHBand(ProbeVolumeSHBands shBands)
+        {
+            if (m_ProbeReferenceVolumeInit)
+                CleanupLoadedData();
+            m_SHBands = shBands;
+            m_ProbeReferenceVolumeInit = false;
+            InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, shBands);
         }
 
         /// <summary>

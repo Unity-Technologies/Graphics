@@ -167,4 +167,50 @@ namespace UnityEditor.VFX
         protected override int[] additionnalOperands { get { return new int[] { (int)m_BufferType }; } }
         private VFXCameraBufferTypes m_BufferType;
     }
+
+    class VFXExpressionIsMainCameraOrthographic : VFXExpression
+    {
+        public VFXExpressionIsMainCameraOrthographic() : base(VFXExpression.Flags.InvalidOnGPU)
+        {
+        }
+
+        public override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.IsMainCameraOrthographic;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            if (Camera.main != null)
+                return VFXValue.Constant(Camera.main.orthographic);
+            else
+                return VFXValue.Constant(false);
+        }
+    }
+
+    class VFXExpressionGetOrthographicSizeFromMainCamera : VFXExpression
+    {
+        public VFXExpressionGetOrthographicSizeFromMainCamera() : base(VFXExpression.Flags.InvalidOnGPU)
+        {
+        }
+
+        public override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.GetOrthographicSizeFromMainCamera;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            if (Camera.main != null)
+                return VFXValue.Constant(Camera.main.orthographicSize);
+            else
+                return VFXValue.Constant(CameraType.defaultValue.orthographicSize);
+        }
+    }
 }
