@@ -370,11 +370,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the fallback sun for volumetric clouds having a non null intensity (case 1353955).
 - Removed unsupported fields from Presets of Light, Camera, and Reflection Probes (case 1335979).
 - Added a new property to control the ghosting reduction for volumetric clouds (case 1357702).
-- Removed DLSS keyword in settings search when NVIDIA package is not installed. (case 1358409)
 - Fixed the earth curvature not being properly taken into account when evaluating the sun attenuation (case 1357927).
 - Reduced the volumetric clouds pattern repetition frequency (case 1358717).
 - Fixed the clouds missing in the ambient probe and in the static and dynamic sky.
 - Fixed lens flare not rendering correctly with TAAU or DLSS
+- Removed DLSS keyword in settings search when NVIDIA package is not installed. (case 1358409)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
