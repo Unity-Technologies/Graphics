@@ -1417,10 +1417,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                         // In the case of DLSS and TAAU, the post process viewport and size for the color target have changed, thus we override them here.
                                         // When these upscalers arent set, behaviour is still the same (since the post process scale is the same as the global rt handle scale). So for simplicity, we always take this code path for custom post process color.
                                         var newProps = srcRt.rtHandleProperties;
-                                        newProps.rtHandleScale = passData.postProcessScales;
-                                        newProps.currentRenderTargetSize = passData.postProcessViewportSize;
-                                        newProps.previousRenderTargetSize = passData.postProcessViewportSize;
-                                        newProps.currentViewportSize = passData.postProcessViewportSize;
+                                        newProps.rtHandleScale = data.postProcessScales;
+                                        newProps.currentRenderTargetSize = data.postProcessViewportSize;
+                                        newProps.previousRenderTargetSize = data.postProcessViewportSize;
+                                        newProps.currentViewportSize = data.postProcessViewportSize;
                                         srcRt.SetCustomHandleProperties(newProps);
                                         dstRt.SetCustomHandleProperties(newProps);
 
