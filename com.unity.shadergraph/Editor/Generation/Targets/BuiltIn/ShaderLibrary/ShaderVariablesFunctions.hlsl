@@ -262,7 +262,7 @@ void TransformNormalizedScreenUV(inout float2 uv)
 
 float2 GetNormalizedScreenSpaceUV(float2 positionCS)
 {
-    float2 normalizedScreenSpaceUV = positionCS.xy * rcp(GetScaledScreenParams().xy);
+    float2 normalizedScreenSpaceUV = positionCS.xy * rcp(GetSourceSize().xy);
     TransformNormalizedScreenUV(normalizedScreenSpaceUV);
     return normalizedScreenSpaceUV;
 }
