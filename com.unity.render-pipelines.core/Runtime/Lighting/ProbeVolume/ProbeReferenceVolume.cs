@@ -635,7 +635,7 @@ namespace UnityEngine.Experimental.Rendering
                 CleanupLoadedData();
             m_SHBands = shBands;
             m_ProbeReferenceVolumeInit = false;
-            InitProbeReferenceVolume(kProbeIndexPoolAllocationSize, m_MemoryBudget, shBands);
+            InitProbeReferenceVolume(m_MemoryBudget, shBands);
         }
 
         /// <summary>
