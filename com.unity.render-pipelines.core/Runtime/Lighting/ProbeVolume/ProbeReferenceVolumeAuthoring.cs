@@ -75,9 +75,6 @@ namespace UnityEngine.Experimental.Rendering
 
         [SerializeField]
         ProbeReferenceVolumeProfile m_Profile = null;
-#if UNITY_EDITOR
-        ProbeReferenceVolumeProfile m_PrevProfile = null;
-#endif
 
         internal ProbeReferenceVolumeProfile profile { get { return m_Profile; } }
         internal float brickSize { get { return m_Profile.minBrickSize; } }
@@ -104,11 +101,6 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField]
         float m_VirtualOffsetBiasOutOfGeometry = 0.01f;
 
-        // In some cases Unity will magically popuplate this private field with a correct value even though it should not be serialized.
-        // The [NonSerialized] attribute allows to force the asset to be null in case a domain reload happens.
-        [NonSerialized]
-        ProbeVolumeAsset m_PrevAsset = null;
-
         [NonSerialized]
         bool m_SentDataToSceneData = false; // TODO: This is temp until we don't have a setting panel.
 #endif
@@ -117,16 +109,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public ProbeVolumeAsset volumeAsset = null;
 
-        internal void LoadProfileInformation()
-        {
-            if (m_Profile == null)
-                return;
-
-            var refVol = ProbeReferenceVolume.instance;
-            refVol.SetTRS(Vector3.zero, Quaternion.identity, m_Profile.minBrickSize);
-            refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
-            refVol.dilationValidtyThreshold = m_DilationValidityThreshold;
-        }
+#if UNITY_EDITOR
 
         // TEMP! THIS NEEDS TO BE REMOVED WHEN WE HAVE THE SETTINGS PANEL.
         void SendSceneData(bool force = false)
@@ -140,66 +123,21 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        internal void QueueAssetLoading()
-        {
-            LoadProfileInformation();
-        }
-
-        internal void QueueAssetRemoval()
-        {
-            if (volumeAsset == null)
-                return;
-
-#if UNITY_EDITOR
-            m_PrevAsset = null;
-#endif
-        }
-
         void OnEnable()
         {
-#if UNITY_EDITOR
             if (m_Profile == null)
                 m_Profile = CreateReferenceVolumeProfile(gameObject.scene, gameObject.name);
-#endif
             SendSceneData(force: true);
-            QueueAssetLoading();
         }
-
-#if UNITY_EDITOR
 
         void OnValidate()
         {
             if (!enabled || !gameObject.activeSelf)
                 return;
 
-            if (m_Profile != null)
-            {
-                m_PrevProfile = m_Profile;
-            }
-
-            if (volumeAsset != m_PrevAsset && m_PrevAsset != null)
-            {
-                ProbeReferenceVolume.instance.AddPendingAssetRemoval(m_PrevAsset);
-            }
-
-            if (volumeAsset != m_PrevAsset)
-            {
-                QueueAssetLoading();
-            }
-
-            m_PrevAsset = volumeAsset;
             SendSceneData(force: true);
         }
 
-        void OnDisable()
-        {
-            QueueAssetRemoval();
-        }
-
-        void OnDestroy()
-        {
-            QueueAssetRemoval();
-        }
 
         // IMPORTANT TODO: This is to be deleted when we have the proper setting panel.
         private void Update()

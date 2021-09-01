@@ -38,6 +38,9 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField] internal float minDistanceBetweenProbes;
         [SerializeField] internal int simplificationLevels;
 
+        internal int maxSubdivision => simplificationLevels + 1; // we add one for the top subdiv level which is the same size as a cell
+        internal float minBrickSize => Mathf.Max(0.01f, minDistanceBetweenProbes * 3.0f);
+
 
         public string GetSerializedFullPath()
         {

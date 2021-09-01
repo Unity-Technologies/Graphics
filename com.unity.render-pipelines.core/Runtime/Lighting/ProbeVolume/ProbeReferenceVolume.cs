@@ -813,6 +813,11 @@ namespace UnityEngine.Experimental.Rendering
 
             var path = asset.GetSerializedFullPath();
 
+            // Load info coming originally from profile
+            SetTRS(Vector3.zero, Quaternion.identity, asset.minBrickSize);
+            SetMaxSubdivision(asset.maxSubdivision);
+
+
             for (int i = 0; i < asset.cells.Count; ++i)
             {
                 var cell = asset.cells[i];
