@@ -10,6 +10,7 @@ from utils.execution_log import Execution_log
 from utils.utr_log import UTR_log
 from utils.unity_log import Unity_log
 from utils.shared_utils import *
+from utils.constants import *
 
 '''
 This script runs for extended Yamato reporting. It
@@ -37,11 +38,11 @@ def parse_failures(execution_log, logs, local):
 
         # skip parsing successful commands which have not retried, or failed tests (these get automatically parsed in yamato results)
         # TODO: do we also want to add additional yamato results for these?
-        if ((logs[cmd]['status'] == 'Success' and not any("Retrying" in line for line in logs[cmd]['output']))
+        if ((logs[cmd]['status'] == 'Success' and not logs[cmd]['retry'])
                 or any("Reason(s): One or more tests have failed." in line for line in logs[cmd]['output'])):
             continue
 
-        print('\nFound failed command: ', cmd, '\n')
+        print('\nFound failed or retried command: ', cmd, '\n')
 
         # initialize command data
         logs[cmd]['title'] = cmd
@@ -66,25 +67,25 @@ def recursively_match_patterns(logs, cmd, patterns, failure_string):
 
         logs[cmd]['conclusion'].append(pattern['conclusion'])
         logs[cmd]['tags'].append(pattern['tags'])
-        logs[cmd]['summary'].append(match.group(0) if pattern['tags'][0] != 'unknown' else 'Unknown failure: check logs for more details. ')
+        logs[cmd]['summary'].append(match.group(0) if pattern['pattern'] != '.+' else 'Unknown failure: check logs for more details. ')
 
         if pattern.get('redirect'):
             test_results_match = re.findall(r'(--artifacts_path=)(.+)(test-results)', cmd)[0]
             test_results_path = test_results_match[1] + test_results_match[2]
             for redirect in pattern['redirect']:
 
-                if redirect == 'utr_log':
+                if redirect == UTR_LOG:
                     try:
                         df = UTR_log(test_results_path)
                         recursively_match_patterns(logs, cmd, df.get_patterns(), df.read_log())
                     except Exception as e:
-                        print('! Failed to parse UTR TestResults.json: ', e)
-                elif redirect == 'unity_log':
+                        print(f'! Failed to parse UTR TestResults.json: ', str(e))
+                elif redirect == UNITY_LOG:
                     try:
                         df = Unity_log(test_results_path)
                         recursively_match_patterns(logs, cmd, df.get_patterns(), df.read_log())
                     except Exception as e:
-                        print('! Failed to parse UnityLog.txt', e)
+                        print(f'! Failed to parse UnityLog.txt', str(e))
 
                 else:
                     print('! Invalid redirect: ', redirect)
@@ -117,7 +118,7 @@ def post_additional_results(cmd, local):
 
 def parse_args(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--execution-log", required=False, help='Path to execution log file. If not specified, ../../Execution-*.log is used.', default=None)
+    parser.add_argument("--execution-log", required=False, help='Path to execution log file. If not specified, ../../Execution-*.log is used.', default="")
     parser.add_argument("--local", action='store_true', help='If specified, API call to post additional results is skipped.', default=False)
     args = parser.parse_args(argv)
     return args
@@ -130,9 +131,9 @@ def main(argv):
 
         # read execution log
         execution_log = Execution_log(args.execution_log)
-        logs, job_succeeded = execution_log.read_log()
+        logs, should_be_parsed = execution_log.read_log()
 
-        if not job_succeeded:
+        if should_be_parsed:
             parse_failures(execution_log, logs, args.local)
 
     except Exception as e:

@@ -46,6 +46,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool pipelineSupportsRayTracing => HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.rayTracingSupported;
 
+#if UNITY_EDITOR
+        internal static bool buildPipelineSupportsRayTracing => HDRenderPipeline.currentPipeline != null && (HDRenderPipeline.currentPipeline.m_AssetSupportsRayTracing && HDRenderPipeline.buildTargetSupportsRayTracing);
+#endif
+
         internal static bool pipelineSupportsScreenSpaceShadows => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows : false;
         #endregion
 
@@ -222,13 +226,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ColorResolveMaterial;
         }
 
+        // Flag that defines if ray tracing is supported by the current asset
+        bool m_AssetSupportsRayTracing = false;
+
         // Flag that defines if ray tracing is supported by the current asset and platform
         bool m_RayTracingSupported = false;
+
         /// <summary>
         ///  Flag that defines if ray tracing is supported by the current HDRP asset and platform
         /// </summary>
         public bool rayTracingSupported { get { return m_RayTracingSupported; } }
-
 
 #if UNITY_EDITOR
         bool m_ResourcesInitialized = false;
@@ -271,7 +278,8 @@ namespace UnityEngine.Rendering.HighDefinition
             QualitySettings.maximumLODLevel = m_GlobalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedMaximumLODLevel(m_Asset);
 
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
-            m_RayTracingSupported = GatherRayTracingSupport(m_Asset.currentPlatformRenderPipelineSettings);
+            m_RayTracingSupported = PipelineSupportsRayTracing(m_Asset.currentPlatformRenderPipelineSettings);
+            m_AssetSupportsRayTracing = m_Asset.currentPlatformRenderPipelineSettings.supportRayTracing;
 
 #if UNITY_EDITOR
             UpgradeResourcesIfNeeded();
@@ -437,9 +445,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         void UpgradeResourcesIfNeeded()
         {
-            // The first thing we need to do is to set the defines that depend on the render pipeline settings
-            m_Asset.EvaluateSettings();
-
             // Check that the serialized Resources are not broken
             m_GlobalSettings.EnsureRuntimeResources(forceReload: true);
             m_GlobalSettings.EnsureEditorResources(forceReload: true);
