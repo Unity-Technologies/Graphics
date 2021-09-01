@@ -1250,44 +1250,30 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_Vignette.intensity.value * 3f,
                 m_Vignette.smoothness.value * 5f
             );
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xrPass != null && xrPass.enabled)
             {
-                const int maxVignetteViews = 8;
-                const int vec4Count = (int)(maxVignetteViews / 2.0f + 0.5f); // 2 views in each Vector4
-
-                int viewCount = xrPass.views.Count;
-                if (viewCount > maxVignetteViews)
-                    Debug.LogWarningFormat("Vignette only support up to {0} views in XR mode", maxVignetteViews.ToString());
-
-                var v3 = new Vector4[vec4Count];
+                var v3 = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
                 float centerDeltaX = 0.5f - center.x;
                 float centerDeltaY = 0.5f - center.y;
 
-                // Pack all the view centers two by two into v3
-                for (int i = 0; i < maxVignetteViews && i < viewCount; i += 2)
+                XRView view0 = xrPass.views[0];
+                v2.x = view0.eyeCenterUV.x - centerDeltaX;
+                v2.y = view0.eyeCenterUV.y - centerDeltaY;
+                if (xrPass.views.Count == 1)
                 {
-                    int arrayIndex = i / 2;
-                    XRView view0 = xrPass.views[i];
-                    Vector4 newValue;
-                    newValue.x = view0.eyeCenterUV.x - centerDeltaX;
-                    newValue.y = view0.eyeCenterUV.y - centerDeltaY;
-                    if (i + 1 < viewCount)
-                    {
-                        XRView view1 = xrPass.views[i+1];
-                        newValue.z = view1.eyeCenterUV.x - centerDeltaX;
-                        newValue.w = view1.eyeCenterUV.y - centerDeltaY;
-                    }
-                    else
-                    {
-                        newValue.z = 0.0f;
-                        newValue.w = 0.0f;
-                    }
-
-                    v3[arrayIndex] = newValue;
+                    v3.z = v2.x;
+                    v3.w = v2.y;
+                }
+                else
+                {
+                    XRView view1 = xrPass.views[1];
+                    v3.x = view1.eyeCenterUV.x - centerDeltaX;
+                    v3.y = view1.eyeCenterUV.y - centerDeltaY;
                 }
 
-                material.SetVectorArray(ShaderConstants._Vignette_Params3, v3);
+                material.SetVector(ShaderConstants._Vignette_Params3, v3);
             }
 #endif
 
