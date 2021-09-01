@@ -1245,10 +1245,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!UnityEditor.EditorApplication.isPlaying)
             {
                 // Do not spend time interacting with the baking API if we are in playmode.
-                if (AdditionalGIBakeRequestsManager.instance.TryGetLightmapperBakeIDFromBakeID(GetBakeID(), out int lightmapperBakeID))
-                {
-                    UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(lightmapperBakeID, null);
-                }
+                AdditionalGIBakeRequestsManager.instance.SetAdditionalBakedProbes(GetBakeID(), null);
                 return;
             }
         }
@@ -1359,8 +1356,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             var octahedralDepth = new NativeArray<float>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 #endif
-            bool lightmapperBakeIDExists = AdditionalGIBakeRequestsManager.instance.TryGetLightmapperBakeIDFromBakeID(GetBakeID(), out int lightmapperBakeID);
-            if(lightmapperBakeIDExists && UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(lightmapperBakeID, sh, validity, octahedralDepth))
+            if(AdditionalGIBakeRequestsManager.instance.GetAdditionalBakedProbes(GetBakeID(), sh, validity, octahedralDepth))
             {
                 if (probeVolumeAsset == null)
                 {
@@ -1419,7 +1415,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 string parentName = (transform.parent == null) ? "null" : transform.parent.name;
                 bool isCompanionGameObject = gameObject.scene.path == "";
                 string companionString = isCompanionGameObject ? "true" : "false";
-                Debug.LogFormat("Failed to get data at id: {0}, with lightmapperBakeID {1}, with probe volume: {2}, and parent: {3}, companionGameObject: {4}", GetBakeID(), lightmapperBakeID, name, parentName, companionString);
+                Debug.LogFormat("Failed to get data at id: {0}, with probe volume: {1}, and parent: {2}, companionGameObject: {3}", GetBakeID(), name, parentName, companionString);
             }
 
             sh.Dispose();
@@ -1499,9 +1495,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorApplication.isPlaying)
                 return;
 
-            if (!AdditionalGIBakeRequestsManager.instance.TryGetLightmapperBakeIDFromBakeID(GetBakeID(), out int lightmapperBakeID))
-                return;
-
             int probeCount = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
             m_ProbePositions = new Vector3[probeCount];
 
@@ -1529,7 +1522,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(lightmapperBakeID, m_ProbePositions);
+            AdditionalGIBakeRequestsManager.instance.SetAdditionalBakedProbes(GetBakeID(), m_ProbePositions);
             bakingEnabled = true;
         }
 
