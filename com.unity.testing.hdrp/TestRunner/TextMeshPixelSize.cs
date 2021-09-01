@@ -27,7 +27,7 @@ public class TextMeshPixelSize : MonoBehaviour
             if (testSettings != null) o = testSettings.ImageComparisonSettings;
             if (o == null && targetCamera != null) o = targetCamera.gameObject.GetComponentInChildren<HDRP_TestSettings>()?.ImageComparisonSettings;
             if (o == null) o = FindObjectOfType<HDRP_TestSettings>()?.ImageComparisonSettings;
-            if (o == null) o = new ImageComparisonSettings(){TargetWidth = forceTargetDimensions.x, TargetHeight = forceTargetDimensions.y}; // use overrides as defaults
+            if (o == null) o = new ImageComparisonSettings() { TargetWidth = forceTargetDimensions.x, TargetHeight = forceTargetDimensions.y }; // use overrides as defaults
 
             return o;
         }
@@ -87,7 +87,7 @@ public class TextMeshPixelSize : MonoBehaviour
         if (textMesh.font.dynamic)
         {
             if (textMesh.fontSize != 1) textMesh.fontSize = 1;
-            if (textMesh.richText)  textMesh.richText = false;
+            if (textMesh.richText) textMesh.richText = false;
         }
     }
 

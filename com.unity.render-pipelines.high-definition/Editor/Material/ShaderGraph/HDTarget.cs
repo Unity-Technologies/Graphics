@@ -193,7 +193,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 m_CustomEditorGUI = m_CustomGUIField.value;
                 onChange();
             });
-            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => { });
 
             if (VFXViewPreference.generateOutputContextWithShaderGraph)
             {
@@ -842,7 +842,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { Pragma.Target(ShaderModel.Target50) },
             { Pragma.Raytracing("surface_shader") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
+            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS5}) },
         };
 
         // Here are the Pragma Collection we can add on top of the Basic one
