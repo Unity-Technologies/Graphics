@@ -27,13 +27,6 @@ class Unity_log():
                 'tags': ['cache', 'instability', 'infrastructure'],
                 'conclusion': 'failure',
             },
-            {
-                # this matches everything and must therefore be the last item in the list
-                'pattern': r'.+',
-                'tags': ['unknown'],
-                'conclusion': 'failure',
-                'add_if': add_unknown_pattern_if
-            }
         ]
 
     def read_log(self):

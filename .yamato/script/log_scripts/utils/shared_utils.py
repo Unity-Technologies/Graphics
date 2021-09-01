@@ -27,7 +27,8 @@ def find_matching_patterns(patterns, failure_string):
     return matches
 
 def format_tags(tags):
-    '''Flattens tags, removes duplicates, removes 'instability' if retry was successful'''
+    '''Flattens tags, removes duplicates, removes 'instability' if retry was successful
+     (latter is because we need to have either one or another, we cannot have both, so that we can distinguish them by tags)'''
     tags = list(set([tag for tag_list in tags for tag in tag_list])) # flatten and remove duplicates
     if 'instability' and 'successful-retry' in tags:
         tags.remove('instability')
@@ -47,3 +48,13 @@ def get_ruling_conclusion(conclusions, tags):
         return 'success'
     else:
         return 'failure'
+
+def add_unknown_pattern_if_appropriate(cmd):
+    '''Adds an unknown failure pattern if no patterns were matched at all, or only successful retry was matched.'''
+
+    if (len(cmd['tags']) == 0 # no pattern matched at all
+        or (len(cmd['tags']) == 1 and 'successful-retry' in cmd['tags'])): # only successful retry pattern matched
+
+        cmd['conclusion'].append('failure')
+        cmd['tags'].append('unknown')
+        cmd['summary'].append( 'Unknown failure: check logs for more details. ')

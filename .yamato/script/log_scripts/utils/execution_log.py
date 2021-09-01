@@ -75,14 +75,6 @@ class Execution_log():
                     UTR_LOG,
                     UNITY_LOG
                 ]
-            },
-            # Order: this matches everything and must therefore be the last item in the list
-            # If any previous pattern has been matched, this one is skipped
-            {
-                'pattern': r'.+',
-                'tags': ['unknown'],
-                'conclusion': 'failure',
-                'add_if': add_unknown_pattern_if
             }
         ]
 
