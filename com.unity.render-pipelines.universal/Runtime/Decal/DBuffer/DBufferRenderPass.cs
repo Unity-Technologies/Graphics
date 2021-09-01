@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal DeferredLights deferredLights { get; set; }
         private bool isDeferred => deferredLights != null;
-        internal RenderTargetIdentifier[] dBufferColorIndentifiers { get; private set; }
+        internal RTHandle[] dBufferColorIndentifiers { get; private set; }
         internal RTHandle dBufferDepthIndentifier { get; private set; }
 
         public DBufferRenderPass(Material dBufferClear, DBufferSettings settings, DecalDrawDBufferSystem drawSystem)
@@ -44,9 +44,9 @@ namespace UnityEngine.Rendering.Universal
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DBufferMesh));
 
             int dBufferCount = (int)settings.surfaceData + 1;
-            dBufferColorIndentifiers = new RenderTargetIdentifier[dBufferCount];
+            dBufferColorIndentifiers = new RTHandle[dBufferCount];
             for (int dbufferIndex = 0; dbufferIndex < dBufferCount; ++dbufferIndex)
-                dBufferColorIndentifiers[dbufferIndex] = new RenderTargetIdentifier(s_DBufferNames[dbufferIndex]);
+                dBufferColorIndentifiers[dbufferIndex] = RTHandles.Alloc(s_DBufferNames[dbufferIndex], name: s_DBufferNames[dbufferIndex]);
             m_DBufferCount = dBufferCount;
 
             dBufferDepthIndentifier = RTHandles.Alloc(s_DBufferDepthName, name: s_DBufferDepthName);
@@ -55,6 +55,8 @@ namespace UnityEngine.Rendering.Universal
         public void Dispose()
         {
             dBufferDepthIndentifier.Release();
+            foreach (var handle in dBufferColorIndentifiers)
+                handle.Release();
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -90,7 +92,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // depth
-            RenderTargetIdentifier depthIdentifier;
+            RTHandle depthHandle;
             if (!isDeferred)
             {
                 var depthDesc = renderingData.cameraData.cameraTargetDescriptor;
@@ -99,14 +101,14 @@ namespace UnityEngine.Rendering.Universal
                 depthDesc.msaaSamples = 1;
 
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferDepthName), depthDesc);
-                depthIdentifier = dBufferDepthIndentifier;
+                depthHandle = dBufferDepthIndentifier;
             }
             else
             {
-                depthIdentifier = deferredLights.DepthAttachmentIdentifier;
+                depthHandle = deferredLights.DepthAttachmentHandle;
             }
 
-            ConfigureTarget(dBufferColorIndentifiers, depthIdentifier);
+            ConfigureTarget(dBufferColorIndentifiers, depthHandle);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
