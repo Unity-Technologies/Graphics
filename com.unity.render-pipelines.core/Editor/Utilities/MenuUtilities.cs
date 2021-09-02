@@ -86,8 +86,6 @@ namespace UnityEditor.Rendering.Utilities
                 var attribute = methodInfo.GetCustomAttribute<MenuItemForRenderPipeline>();
                 foreach (Type rpAssetType in attribute.renderPipelineAssetTypes)
                 {
-                    // Note: rpAssetType == null possible and should mean built-in
-
                     if (!s_MenuMap.TryGetValue(rpAssetType, out var menuItemsForRP))
                     {
                         menuItemsForRP = new List<MenuItemData>();
@@ -120,10 +118,10 @@ namespace UnityEditor.Rendering.Utilities
                 UnregisterMenu(menuItemData); //do nothing if not registered before
 
             // add if required
-            if (GraphicsSettings.currentRenderPipeline == null || GraphicsSettings.currentRenderPipeline.Equals(null))
-                return;
 
-            Type currentSRPType = GraphicsSettings.currentRenderPipeline.GetType();
+            // Note: GraphicsSettings.currentRenderPipeline == null possible and should mean built-in
+            // though we cannot use null as key so it was early replaced by typeof(RenderPipelineAsset)
+            Type currentSRPType = GraphicsSettings.currentRenderPipeline?.GetType() ?? typeof(RenderPipelineAsset);
             if (!s_MenuMap.TryGetValue(currentSRPType, out var menuItemDatasForRP))
                 return;
 
@@ -143,17 +141,19 @@ namespace UnityEditor.Rendering.Utilities
         public MenuItemForRenderPipeline(string path, bool validate = false, int priority = 0, params Type[] renderPipelineAssetTypes)
         {
             if (renderPipelineAssetTypes == null || renderPipelineAssetTypes.Length == 0)
-                throw new ArgumentNullException("Argument cannot be null", "renderPipelineTypes");
+                throw new ArgumentNullException("Argument cannot be null. Use MenuItem instead if you don't need to filter per RenderPipeline.", "renderPipelineTypes");
 
+            // Note: rpAssetType == null possible and should mean built-in
+            // but this is not possible as a key in s_MenuMap so we use the forbiden RenderPipelineAsset type for that
             foreach (Type type in renderPipelineAssetTypes)
-                if (!typeof(RenderPipelineAsset).IsAssignableFrom(type))
+                if (!typeof(RenderPipelineAsset).IsAssignableFrom(type) && type != null)
                     throw new ArgumentException("Argument must be a RenderPipelineAsset child type", "renderPipelineTypes");
 
+            this.renderPipelineAssetTypes = renderPipelineAssetTypes
+                .Select(rpat => rpat != null ? rpat : typeof(RenderPipelineAsset)).ToArray();
             this.path = path;
-            this.renderPipelineAssetTypes = renderPipelineAssetTypes;
             this.priority = priority;
             this.validate = validate;
         }
     }
-
 }
