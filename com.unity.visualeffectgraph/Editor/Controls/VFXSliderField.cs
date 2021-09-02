@@ -124,10 +124,10 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
+                m_Range = value;
                 m_IgnoreNotification = true;
-                if ((m_Slider.lowValue != value.x || m_Slider.highValue != value.y) && value.x < value.y)
+                if (m_Slider.lowValue != m_Range.x || m_Slider.highValue != m_Range.y)
                 {
-                    m_Range = value;
                     m_Slider.lowValue = m_Range.x;
                     m_Slider.highValue = m_Range.y;
 
