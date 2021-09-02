@@ -794,17 +794,17 @@ namespace UnityEditor.VFX
                             }
 
                             callSG.builder.AppendLine("{");
-                            if (graphCode.requirements.requiresScreenPosition || graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
-                                callSG.builder.AppendLine("float4 localScreenPosition = ComputeScreenPos(VFXTransformPositionWorldToClip(i.VFX_VARYING_POSWS), _ProjectionParams.x);");
                             if (graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
-                                callSG.builder.AppendLine("float2 localNDCPosition = localScreenPosition.xy / localScreenPosition.w;");
+                                callSG.builder.AppendLine("float2 localPixelPosition = i.VFX_VARYING_POSCS.xy;");
+                            if (graphCode.requirements.requiresNDCPosition)
+                                callSG.builder.AppendLine("float2 localNDCPosition = localPixelPosition.xy / _ScreenParams.w;");
 
                             if (graphCode.requirements.requiresScreenPosition)
-                                callSG.builder.AppendLine("INSG.ScreenPosition = localScreenPosition;");
+                                callSG.builder.AppendLine("INSG.ScreenPosition = ComputeScreenPos(VFXTransformPositionWorldToClip(i.VFX_VARYING_POSWS), _ProjectionParams.x);");
                             if (graphCode.requirements.requiresNDCPosition)
-                                callSG.builder.AppendLine("INSG.NDCPosition = localNDCPosition;");
+                                callSG.builder.AppendLine("INSG.NDCPosition = localPixelPosition / _ScreenParams.xy;");
                             if (graphCode.requirements.requiresPixelPosition)
-                                callSG.builder.AppendLine("INSG.PixelPosition = INSG.NDCPosition.xy * _ScreenParams.xy;");
+                                callSG.builder.AppendLine("INSG.PixelPosition = localPixelPosition;");
                             callSG.builder.AppendLine("}");
 
                             if (graphCode.requirements.requiresViewDir != NeededCoordinateSpace.None)
