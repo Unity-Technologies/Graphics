@@ -614,7 +614,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (m_ActiveSubTarget.value == null)
                 return false;
 
-            if (m_ActiveSubTarget.value is UniversalSubTarget)
+            if (m_ActiveSubTarget.value is UniversalUnlitSubTarget)
+                return true;
+
+            if (m_ActiveSubTarget.value is UniversalLitSubTarget)
                 return true;
 
             //It excludes:
