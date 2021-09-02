@@ -161,12 +161,15 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
                         openedScenes.Add(scene);
-                        sceneData.UpdateSceneBounds(scene);
-                        Bounds localBound = sceneData.sceneBounds[scene.path];
-                        if (hasFoundBounds)
-                            globalBounds.Encapsulate(localBound);
-                        else
-                            globalBounds = localBound;
+                        if (sceneData.hasProbeVolumes.TryGetValue(scenePath, out hasProbeVolumes))
+                        {
+                            sceneData.UpdateSceneBounds(scene);
+                            Bounds localBound = sceneData.sceneBounds[scene.path];
+                            if (hasFoundBounds)
+                                globalBounds.Encapsulate(localBound);
+                            else
+                                globalBounds = localBound;
+                        }
                     }
                 }
             }
@@ -209,6 +212,9 @@ namespace UnityEngine.Experimental.Rendering
         static void OnBakeStarted()
         {
             if (!ProbeReferenceVolume.instance.isInitialized) return;
+
+            var pvList = GameObject.FindObjectsOfType<ProbeVolume>();
+            if (pvList.Length == 0) return; // We have no probe volumes.
 
             FindWorldBounds();
             var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
@@ -306,8 +312,8 @@ namespace UnityEngine.Experimental.Rendering
 
                     cell2Assets[cell.index].Add(assetPath);
                 }
-                // We need to queue the asset loading to make sure all is fine when calling refresh.
-                sceneData.QueueAssetLoading();
+                //// We need to queue the asset loading to make sure all is fine when calling refresh.
+                //sceneData.QueueAssetLoading();
             }
 
             var dilationSettings = m_BakingSettings.dilationSettings;
