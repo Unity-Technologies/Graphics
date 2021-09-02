@@ -350,7 +350,7 @@ namespace UnityEngine.Experimental.Rendering
         internal ProbeReferenceVolumeProfile GetProfileForScene(Scene scene)
         {
             var sceneGUID = GetSceneGUID(scene);
-            if (sceneProfiles.ContainsKey(sceneGUID))
+            if (sceneProfiles != null && sceneProfiles.ContainsKey(sceneGUID))
                 return sceneProfiles[sceneGUID];
 
             return null;
@@ -365,7 +365,7 @@ namespace UnityEngine.Experimental.Rendering
         internal ProbeVolumeBakingProcessSettings GetBakeSettingsForScene(Scene scene)
         {
             var sceneGUID = GetSceneGUID(scene);
-            if (sceneBakingSettings.ContainsKey(sceneGUID))
+            if (sceneBakingSettings != null && sceneBakingSettings.ContainsKey(sceneGUID))
                 return sceneBakingSettings[sceneGUID];
 
             return new ProbeVolumeBakingProcessSettings();
