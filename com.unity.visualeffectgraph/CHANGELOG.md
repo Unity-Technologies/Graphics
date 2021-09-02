@@ -101,6 +101,7 @@ The version number for this package has increased due to a version update of a r
 - Exposed Parameter placement can be moved after sanitize
 - Fix rendering artifacts on some mobile devices [Case 1149057](https://issuetracker.unity3d.com/product/unity/issues/guid/1149057/)
 - Fix compilation failure on OpenGLES [Case 1348666](https://issuetracker.unity3d.com/product/unity/issues/guid/1348666/)
+- Prevent vfx re-compilation in some cases when a value has not changed
 
 ## [11.0.0] - 2020-10-21
 ### Added
