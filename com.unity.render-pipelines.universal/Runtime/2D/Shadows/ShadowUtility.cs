@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.Universal
         };
 
 
-        static void CalculateTangents(ref NativeArray<Vector3> inVertices, ref NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector4> outTangents)
+        static void CalculateTangents(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<Vector3> contractionDirection, ref NativeArray<Vector4> outTangents)
         {
             for (int i = 0; i < inEdges.Length; i++)
             {
@@ -42,37 +42,17 @@ namespace UnityEngine.Rendering.Universal
                 Vector3 start = inVertices[v0];
                 Vector3 end = inVertices[v1];
 
-                outTangents[v0] = new Vector4(0,0, end.x, end.y);
+                Vector3 contractDir = contractionDirection[v1];
 
-                Vector4 tangent = Vector3.Cross(Vector3.Normalize(end - start), -Vector3.forward).normalized;
+                outTangents[v0] = new Vector4(contractDir.x, contractDir.y, end.x, end.y);
 
                 int additionalVerticesStart = 2 * i + inVertices.Length;
-                outTangents[additionalVerticesStart] = new Vector4(tangent.x, tangent.y, end.x, end.y);
-                outTangents[additionalVerticesStart + 1] = new Vector4(tangent.x, tangent.y, start.x, start.y);
+                outTangents[additionalVerticesStart] = new Vector4(contractDir.x, contractDir.y, end.x, end.y);
+                outTangents[additionalVerticesStart + 1] = new Vector4(contractDir.x, contractDir.y, start.x, start.y);
             }
         }
 
-        static void CalculateTangents(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector4> outTangents)
-        {
-            for (int i = 0; i < inEdges.Length; i++)
-            {
-                int v0 = inEdges[i].v0;
-                int v1 = inEdges[i].v1;
-
-                Vector3 start = inVertices[v0];
-                Vector3 end = inVertices[v1];
-
-                outTangents[v0] = new Vector4(0, 0, end.x, end.y);
-
-                Vector4 tangent = Vector3.Cross(Vector3.Normalize(end - start), -Vector3.forward).normalized;
-
-                int additionalVerticesStart = 2 * i + inVertices.Length;
-                outTangents[additionalVerticesStart] = new Vector4(tangent.x, tangent.y, end.x, end.y);
-                outTangents[additionalVerticesStart + 1] = new Vector4(tangent.x, tangent.y, start.x, start.y);
-            }
-        }
-
-        static void CalculateContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<Vector4> inTangents, NativeArray<int> inShapeStartingIndices, float contractionDistance, ref NativeArray<Vector3> outReducedVertices)
+        static void CalculateContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<Vector4> inTangents, NativeArray<int> inShapeStartingIndices, ref NativeArray<Vector3> outContractionDirection)
         {
             for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
             {
@@ -83,7 +63,6 @@ namespace UnityEngine.Rendering.Universal
 
                 int nextStartingIndex = inShapeStartingIndices[shapeIndex + 1];
                 int numEdgesInCurShape = nextStartingIndex >= 0 ? nextStartingIndex - startingIndex : inEdges.Length - startingIndex;
-
 
                 int edgeIndex = startingIndex;
                 for (int i = 0; i < numEdgesInCurShape; i++)
@@ -102,14 +81,12 @@ namespace UnityEngine.Rendering.Universal
                     Vector3 tangent0 = Vector3.Cross(Vector3.Normalize(pt1 - pt0), -Vector3.forward).normalized;
                     Vector3 tangent1 = Vector3.Cross(Vector3.Normalize(pt2 - pt1), -Vector3.forward).normalized;
 
-                    Vector3 reductionDir = (-0.5f * (tangent0 + tangent1)).normalized;
-
-                    outReducedVertices[v1] = contractionDistance * reductionDir + (Vector3)inVertices[v1];
+                    outContractionDirection[v1] = (-0.5f * (tangent0 + tangent1)).normalized;
                 }
             }
         }
 
-        static void ReorderVertices(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<Vector3> outVertices)
+        static void ApplyContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<Vector3> inContractionDirection, float inContractionDistance, ref NativeArray<Vector3> outVertices)
         {
             for(int i=0;i<inEdges.Length;i++)
             {
@@ -125,12 +102,18 @@ namespace UnityEngine.Rendering.Universal
                 int v0 = inEdges[i].v0;
                 int v1 = inEdges[i].v1;
 
-                ShadowMeshVertex originalShadowMesh = new ShadowMeshVertex(inVertices[v0], inTangents[v0]);
+                Vector4 pt0 = inVertices[v0];
+                Vector4 pt1 = inVertices[v1];
+
+                pt0.z = 1;  // for the original mesh this value is one as it cannot be stretched
+                ShadowMeshVertex originalShadowMesh = new ShadowMeshVertex(pt0, inTangents[v0]);
                 outMeshVertices[v0] = originalShadowMesh;
 
+                pt0.z = 0;
+                pt1.z = 0;
                 int additionalVerticesStart = 2 * i + inVertices.Length;
-                ShadowMeshVertex additionalVertex0 = new ShadowMeshVertex(inVertices[v0], inTangents[additionalVerticesStart]);
-                ShadowMeshVertex additionalVertex1 = new ShadowMeshVertex(inVertices[v1], inTangents[additionalVerticesStart + 1]);
+                ShadowMeshVertex additionalVertex0 = new ShadowMeshVertex(pt0, inTangents[additionalVerticesStart]);
+                ShadowMeshVertex additionalVertex1 = new ShadowMeshVertex(pt1, inTangents[additionalVerticesStart + 1]);
 
                 outMeshVertices[additionalVerticesStart] = additionalVertex0;
                 outMeshVertices[additionalVerticesStart + 1] = additionalVertex1;
@@ -200,15 +183,15 @@ namespace UnityEngine.Rendering.Universal
             int meshVertexCount = inVertices.Length + 2 * inEdges.Length;                       // Each vertex will have a duplicate that can be extruded.
             int meshIndexCount = inEdges.Length * k_VerticesPerTriangle * k_TrianglesPerEdge;  // There are two triangles per edge making a degenerate rectangle (0 area)
 
-            NativeArray<Vector3> meshReducedVertices = new NativeArray<Vector3>(inVertices.Length, Allocator.Temp);
+            NativeArray<Vector3> contractionDirection = new NativeArray<Vector3>(inVertices.Length, Allocator.Temp);
             NativeArray<Vector4> meshTangents = new NativeArray<Vector4>(meshVertexCount, Allocator.Temp);
             NativeArray<int> meshIndices = new NativeArray<int>(meshIndexCount, Allocator.Temp);
             NativeArray<ShadowMeshVertex> meshFinalVertices = new NativeArray<ShadowMeshVertex>(meshVertexCount, Allocator.Temp);
 
             // Get vertex reduction directions
-            CalculateContraction(inVertices, inEdges, meshTangents, inShapeStartingIndices, 0, ref meshReducedVertices);
-            CalculateTangents(meshReducedVertices, inEdges, ref meshTangents);                            // meshVertices contain a normal component
-            CalculateVertices(meshReducedVertices, inEdges, meshTangents, ref meshFinalVertices);
+            CalculateContraction(inVertices, inEdges, meshTangents, inShapeStartingIndices, ref contractionDirection);
+            CalculateTangents(inVertices, inEdges, contractionDirection, ref meshTangents);                            // meshVertices contain a normal component
+            CalculateVertices(inVertices, inEdges, meshTangents, ref meshFinalVertices);
             CalculateTriangles(inVertices, inEdges, ref meshIndices);
 
             // Set the mesh data
@@ -221,10 +204,10 @@ namespace UnityEngine.Rendering.Universal
             mesh.SetSubMesh(0, new SubMeshDescriptor(0, meshIndexCount));
     
 
-            BoundingSphere retBoundingSphere = CalculateBoundingSphere(ref meshReducedVertices);
+            BoundingSphere retBoundingSphere = CalculateBoundingSphere(ref inVertices);
 
+            contractionDirection.Dispose();
             meshTangents.Dispose();
-            meshReducedVertices.Dispose();
             meshIndices.Dispose();
             meshFinalVertices.Dispose();
 
@@ -254,16 +237,16 @@ namespace UnityEngine.Rendering.Universal
 
             NativeArray<Vector4> meshTangents = new NativeArray<Vector4>(meshVertexCount, Allocator.Temp);
             NativeArray<int> meshIndices = new NativeArray<int>(meshIndexCount, Allocator.Temp);
-            NativeArray<Vector3> contractedVertices = new NativeArray<Vector3>(inVertices.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            NativeArray<Vector3> contractionDirection = new NativeArray<Vector3>(inVertices.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // Get vertex reduction directions
-            CalculateTangents(inVertices, inEdges, ref meshTangents);                            // meshVertices contain a normal component
-            CalculateContraction(inVertices, inEdges, meshTangents, inShapeStartingIndices, contractionDistance, ref contractedVertices);
-            ReorderVertices(contractedVertices, inEdges, ref outOutline);
+            CalculateContraction(inVertices, inEdges, meshTangents, inShapeStartingIndices, ref contractionDirection);
+            CalculateTangents(inVertices, inEdges, contractionDirection, ref meshTangents);                            // meshVertices contain a normal component
+            ApplyContraction(inVertices, inEdges, contractionDirection, contractionDistance, ref outOutline);
 
             meshTangents.Dispose();
             meshIndices.Dispose();
-            contractedVertices.Dispose();
+            contractionDirection.Dispose();
         }
 
 
