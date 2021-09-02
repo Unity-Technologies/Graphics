@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Reflection;
+using System.Linq;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -50,10 +51,19 @@ namespace UnityEngine.Experimental.Rendering
             [SerializeField] public ProbeVolumeBakingProcessSettings settings;
         }
 
+        [System.Serializable]
+        internal struct BakingSet
+        {
+            public string name;
+            public List<string> sceneGUIDs;
+        }
+
         [SerializeField] List<SerializableBoundItem> serializedBounds;
         [SerializeField] List<SerializableHasPVItem> serializedHasVolumes;
         [SerializeField] List<SerializablePVProfile> serializedProfiles;
         [SerializeField] List<SerializablePVBakeSettings> serializedBakeSettings;
+
+        [SerializeField] List<BakingSet> serializedBakingSets;
 
         Object m_ParentAsset = null;
         /// <summary> A dictionary containing the Bounds defined by probe volumes for each scene (scene path is the key of the dictionary). </summary>
@@ -61,6 +71,7 @@ namespace UnityEngine.Experimental.Rendering
         internal Dictionary<string, bool> hasProbeVolumes;
         internal Dictionary<string, ProbeReferenceVolumeProfile> sceneProfiles;
         internal Dictionary<string, ProbeVolumeBakingProcessSettings> sceneBakingSettings;
+        internal List<BakingSet> bakingSets;
 
         /// <summary>Constructor for ProbeVolumeSceneData. </summary>
         /// <param name="parentAsset">The asset holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
@@ -71,6 +82,7 @@ namespace UnityEngine.Experimental.Rendering
             hasProbeVolumes = new Dictionary<string, bool>();
             sceneProfiles = new Dictionary<string, ProbeReferenceVolumeProfile>();
             sceneBakingSettings = new Dictionary<string, ProbeVolumeBakingProcessSettings>();
+            bakingSets = new List<BakingSet>();
 
             serializedBounds = new List<SerializableBoundItem>();
             serializedHasVolumes = new List<SerializableHasPVItem>();
@@ -98,6 +110,7 @@ namespace UnityEngine.Experimental.Rendering
             hasProbeVolumes = new Dictionary<string, bool>();
             sceneProfiles = new Dictionary<string, ProbeReferenceVolumeProfile>();
             sceneBakingSettings = new Dictionary<string, ProbeVolumeBakingProcessSettings>();
+            bakingSets = new List<BakingSet>();
 
             foreach (var boundItem in serializedBounds)
             {
@@ -118,6 +131,19 @@ namespace UnityEngine.Experimental.Rendering
             {
                 sceneBakingSettings.Add(settingsItem.sceneGUID, settingsItem.settings);
             }
+
+            foreach (var set in serializedBakingSets)
+                bakingSets.Add(set);
+
+            // Initialize baking set in case it's empty:
+            if (bakingSets.Count == 0)
+            {
+                bakingSets.Add(new BakingSet
+                {
+                    name = "Default",
+                    sceneGUIDs = serializedProfiles.Select(s => s.sceneGUID).ToList(),
+                });
+            }
         }
 
         /// <summary>
@@ -127,12 +153,14 @@ namespace UnityEngine.Experimental.Rendering
         {
             // We haven't initialized the bounds, no need to do anything here.
             if (sceneBounds == null || hasProbeVolumes == null || sceneBakingSettings == null || sceneProfiles == null ||
-                serializedBounds == null || serializedHasVolumes == null || serializedBakeSettings == null || serializedProfiles == null) return;
+                serializedBounds == null || serializedHasVolumes == null || serializedBakeSettings == null || serializedProfiles == null
+                || serializedBakingSets == null) return;
 
             serializedBounds.Clear();
             serializedHasVolumes.Clear();
             serializedProfiles.Clear();
             serializedBakeSettings.Clear();
+            serializedBakingSets.Clear();
 
             foreach (var k in sceneBounds.Keys)
             {
@@ -165,6 +193,9 @@ namespace UnityEngine.Experimental.Rendering
                 item.profile = sceneProfiles[k];
                 serializedProfiles.Add(item);
             }
+
+            foreach (var set in bakingSets)
+                serializedBakingSets.Add(set);
         }
 
 #if UNITY_EDITOR
