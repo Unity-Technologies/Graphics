@@ -65,8 +65,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AccumulationFactor = Unpack(o.Find(x => x.accumulationFactor));
             m_BiasFactor = Unpack(o.Find(x => x.biasFactor));
             m_SpeedRejectionFactor = Unpack(o.Find(x => x.speedRejectionParam));
-            m_BiasFactor                    = Unpack(o.Find(x => x.biasFactor));
-            m_SpeedRejectionFactor          = Unpack(o.Find(x => x.speedRejectionParam));
+            m_BiasFactor = Unpack(o.Find(x => x.biasFactor));
+            m_SpeedRejectionFactor = Unpack(o.Find(x => x.speedRejectionParam));
 
             // Generic ray tracing
             m_RayMiss = Unpack(o.Find(x => x.rayMiss));

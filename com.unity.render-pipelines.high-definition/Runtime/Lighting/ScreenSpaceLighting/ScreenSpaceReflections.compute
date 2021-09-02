@@ -730,37 +730,41 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float speedDiff = length(motionVectorNDC - motionVectorCenterNDC);
 #endif
 
-    float speed = speedDiff;
-
-    const float prec = 6.0f;
-    float4 remapValues = float4(0.0f, 100000.0f, 0.0f, 1.0f);
-    float usedSpeed = 1.0f - saturate(remap(speed, remapValues.x, pow(_SsrPBRSpeedRejection, prec) * remapValues.y, remapValues.z, remapValues.w));
-
 #define SMOOTH_REJECT
 
 #ifdef SMOOTH_REJECT
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed);
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speedDiff);
 #else
-    const float usedSpeedRejection = max(1e-3f, 1.0f - _SsrPBRSpeedRejection);
+    const float prec = 6.0f;
+    float4 remapValues = float4(0.0f, 1e6f, 0.0f, 1.0f);
+    float usedSpeed = 1.0f - saturate(remap(speedDiff, remapValues.x, pow(_SsrPBRSpeedRejection, prec) * remapValues.y, remapValues.z, remapValues.w));
 
+    //const float usedSpeedRejection = max(1e-3f, 1.0f - _SsrPBRSpeedRejection);
+    const float usedSpeedRejection = pow(_SsrPBRSpeedRejection, 6.0f);
+
+#if 0
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed);
+    coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed > _SsrPBRSpeedRejection ? 1.0f : coefExpAvg);
+#else
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed > _SsrPBRSpeedRejection ? 1.0f : 0.0f);
+#endif
 #endif
 
     float4 result = lerp(previous, original, coefExpAvg);
 
-#define REJECT_DEBUG_COLOR
+//#define REJECT_DEBUG_COLOR
 
 #ifdef REJECT_DEBUG_COLOR
-    result.rgb = float3(usedSpeed, 0.0f, 0.0f);
-// #ifdef SMOOTH_REJECT
-   // float debugVal = saturate(pow(speed, prec));
-   // result.rgb = (1.0f - debugVal).xxx;
-// #else
-   // if (speedDiff > _SsrPBRSpeedRejection)
-       // result.rgb = float3(1, 0, 0);
-   // else
-       // result.rgb = float3(0, 1, 0);
-// #endif
+    //result.rgb = float3(usedSpeed, 0.0f, 0.0f);
+    #ifdef SMOOTH_REJECT
+        //float debugVal = saturate(pow(speedDiff, prec));
+        result.rgb = (1.0f - speedDiff).xxx;
+    #else
+        if (speedDiff > _SsrPBRSpeedRejection)
+            result.rgb = float3(1, 0, 0);
+        else
+            result.rgb = float3(0, 1, 0);
+    #endif
 #endif
 
     uint3 intCol = asuint(result.rgb);

@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _SsrReflectsSky;
         public float _SsrAccumulationAmount;
 
-        public float   _SsrPBRSpeedRejection;
-        public float   _SsrPBRBias;
+        public float _SsrPBRSpeedRejection;
+        public float _SsrPBRBias;
     }
 }
