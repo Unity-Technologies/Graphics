@@ -506,11 +506,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     else if (ShaderGraphPreferences.allowDeprecatedBehaviors)
                     {
-                        title = node.name + $" (Deprecated V{node.sgVersion})";
+                        title = node.name + $" (Upgradable V{node.sgVersion})";
                     }
                     else
                     {
-                        title = node.name + $" (Deprecated)";
+                        title = node.name + $" (Upgradable)";
                     }
                 }
                 else
