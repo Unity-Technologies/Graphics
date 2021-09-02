@@ -3349,6 +3349,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     case Camera.RenderRequestMode.ObjectId:
                     case Camera.RenderRequestMode.EntityId:
                         shaderTagId = new ShaderTagId("Picking");
+                        // TODO: Find out why CullMode.Back does not work correctly here
+                        renderState.rasterState = new RasterState(CullMode.Off);
+                        renderState.mask = RenderStateMask.Raster;
                         break;
                     case Camera.RenderRequestMode.SelectionMask:
                         shaderTagId = new ShaderTagId("SceneSelectionPass");
