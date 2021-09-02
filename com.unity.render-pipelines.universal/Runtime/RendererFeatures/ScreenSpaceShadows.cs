@@ -68,6 +68,8 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+            m_SSShadowsPass?.Dispose();
+            m_SSShadowsPass = null;
             CoreUtils.Destroy(m_Material);
         }
 
@@ -102,15 +104,17 @@ namespace UnityEngine.Rendering.Universal
             private Material m_Material;
             private ScreenSpaceShadowsSettings m_CurrentSettings;
             private RenderTextureDescriptor m_RenderTextureDescriptor;
-            private RenderTargetHandle m_RenderTarget;
-
-            // Constants
-            private const string k_SSShadowsTextureName = "_ScreenSpaceShadowmapTexture";
+            private RTHandle m_RenderTarget;
 
             internal ScreenSpaceShadowsPass()
             {
                 m_CurrentSettings = new ScreenSpaceShadowsSettings();
-                m_RenderTarget.Init(k_SSShadowsTextureName);
+                m_RenderTarget = RTHandles.Alloc("_ScreenSpaceShadowmapTexture", "_ScreenSpaceShadowmapTexture");
+            }
+
+            public void Dispose()
+            {
+                m_RenderTarget.Release();
             }
 
             internal bool Setup(ScreenSpaceShadowsSettings featureSettings, Material material)
@@ -132,10 +136,9 @@ namespace UnityEngine.Rendering.Universal
                     ? GraphicsFormat.R8_UNorm
                     : GraphicsFormat.B8G8R8A8_UNorm;
 
-                cmd.GetTemporaryRT(m_RenderTarget.id, m_RenderTextureDescriptor, FilterMode.Point);
+                cmd.GetTemporaryRT(Shader.PropertyToID(m_RenderTarget.name), m_RenderTextureDescriptor, FilterMode.Point);
 
-                RenderTargetIdentifier renderTargetTexture = m_RenderTarget.Identifier();
-                ConfigureTarget(renderTargetTexture);
+                ConfigureTarget(m_RenderTarget);
                 ConfigureClear(ClearFlag.None, Color.white);
             }
 
@@ -162,8 +165,7 @@ namespace UnityEngine.Rendering.Universal
                     else
                     {
                         // Avoid setting and restoring camera view and projection matrices when in stereo.
-                        RenderTargetIdentifier screenSpaceShadowTexture = m_RenderTarget.Identifier();
-                        cmd.Blit(null, screenSpaceShadowTexture, m_Material);
+                        cmd.Blit(null, m_RenderTarget.nameID, m_Material);
                     }
 
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
@@ -183,7 +185,7 @@ namespace UnityEngine.Rendering.Universal
                     throw new ArgumentNullException("cmd");
                 }
 
-                cmd.ReleaseTemporaryRT(m_RenderTarget.id);
+                cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_RenderTarget.name));
             }
         }
 
@@ -192,10 +194,11 @@ namespace UnityEngine.Rendering.Universal
             // Profiling tag
             private static string m_ProfilerTag = "ScreenSpaceShadows Post";
             private static ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
+            private static readonly RTHandle k_CurrentActive = RTHandles.Alloc(BuiltinRenderTextureType.CurrentActive);
 
             public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
             {
-                ConfigureTarget(BuiltinRenderTextureType.CurrentActive);
+                ConfigureTarget(k_CurrentActive);
             }
 
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
