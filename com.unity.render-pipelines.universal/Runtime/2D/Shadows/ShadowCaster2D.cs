@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int[] m_ApplyToSortingLayers = null;
         [SerializeField] Vector3[] m_ShapePath = null;
         [SerializeField] int  m_ShapePathHash = 0;
-        [SerializeField] Mesh m_Mesh;
+        
         [SerializeField] int m_InstanceId;
         [SerializeField] Component m_ShadowShapeProvider;
         [SerializeField] float m_ShadowShapeContract;
@@ -53,10 +53,10 @@ namespace UnityEngine.Rendering.Universal
         internal ShadowCasterGroup2D  m_PreviousShadowCasterGroup = null;
         internal int                  m_PreviousShadowCastingSource;
 
-        [SerializeField]
-        internal BoundingSphere m_ProjectedBoundingSphere;
+        
+        public Mesh mesh => m_ShadowShape.mesh;
+        public BoundingSphere boundingSphere => m_ShadowShape.boundingSphere;
 
-        public Mesh mesh => m_Mesh;
         public Vector3[] shapePath => m_ShapePath;
         internal int shapePathHash { get { return m_ShapePathHash; } set { m_ShapePathHash = value; } }
 
@@ -127,9 +127,9 @@ namespace UnityEngine.Rendering.Universal
         {
             // Oddly adding and subtracting vectors is expensive here because of the new structures created...
             Vector3 deltaPos;
-            deltaPos.x = m_ProjectedBoundingSphere.position.x + m_CachedPosition.x;
-            deltaPos.y = m_ProjectedBoundingSphere.position.y + m_CachedPosition.y;
-            deltaPos.z = m_ProjectedBoundingSphere.position.z + m_CachedPosition.z;
+            deltaPos.x = boundingSphere.position.x + m_CachedPosition.x;
+            deltaPos.y = boundingSphere.position.y + m_CachedPosition.y;
+            deltaPos.z = boundingSphere.position.z + m_CachedPosition.z;
 
             deltaPos.x = light.m_CachedPosition.x - deltaPos.x;
             deltaPos.y = light.m_CachedPosition.y - deltaPos.y;
@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.Universal
 
             float distanceSq = Vector3.SqrMagnitude(deltaPos);
 
-            float radiiLength = light.boundingSphere.radius + m_ProjectedBoundingSphere.radius;
+            float radiiLength = light.boundingSphere.radius + boundingSphere.radius;
             return distanceSq <= (radiiLength * radiiLength);
         }
 
@@ -148,9 +148,6 @@ namespace UnityEngine.Rendering.Universal
 
         void SetShadowShape()
         {
-            if (m_Mesh == null)
-                m_Mesh = new Mesh();
-
             if (m_ShadowShape == null)
                 m_ShadowShape = new ShadowShape2D();
 
@@ -159,7 +156,6 @@ namespace UnityEngine.Rendering.Universal
                 NativeArray<Vector3> nativePath = new NativeArray<Vector3>(m_ShapePath, Allocator.Temp);
                 NativeArray<int> nativeIndices = new NativeArray<int>(0, Allocator.Temp);
                 m_ShadowShape.SetShape(nativePath, nativeIndices, IShadowShape2DProvider.OutlineTopology.LineStrip);
-                m_ShadowShape.GenerateShadowMesh(m_Mesh, ref m_ProjectedBoundingSphere, 0);
                 nativePath.Dispose();
                 nativeIndices.Dispose();
             }
@@ -169,7 +165,6 @@ namespace UnityEngine.Rendering.Universal
                 if(shapeProvider != null)
                 {
                     shapeProvider.OnPersistantDataCreated(m_ShadowShape);
-                    m_ShadowShape.GenerateShadowMesh(m_Mesh, ref m_ProjectedBoundingSphere, m_ShadowShapeContract);
                 }
             }
         }
@@ -217,7 +212,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected void OnEnable()
         {
-            if (m_Mesh == null || m_InstanceId != GetInstanceID())
+            if (m_ShadowShape == null || m_InstanceId != GetInstanceID())
             {
                 SetShadowShape();
                 m_InstanceId = GetInstanceID();
@@ -280,29 +275,29 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         internal void DrawPreviewOutline()
         {
-            NativeArray<Vector3> outline;
-            NativeArray<int> shapeStartingIndices;
-            float contractionDistance = m_ShadowCastingSource == ShadowCastingSources.ShapeProvider ? m_ShadowShapeContract : 0;
+            //NativeArray<Vector3> outline;
+            //NativeArray<int> shapeStartingIndices;
+            //float contractionDistance = m_ShadowCastingSource == ShadowCastingSources.ShapeProvider ? m_ShadowShapeContract : 0;
 
-            m_ShadowShape.GenerateShadowOutline(contractionDistance, out outline, out shapeStartingIndices);
-            Transform t = transform;
+            //m_ShadowShape.GenerateShadowOutline(contractionDistance, out outline, out shapeStartingIndices);
+            //Transform t = transform;
 
-            Handles.color = Color.white;
-            for (int shape=0;shape<shapeStartingIndices.Length;shape++)
-            {
-                int shapeStart = shapeStartingIndices[shape];
-                int shapeEnd = shape + 1 < shapeStartingIndices.Length ? shapeStartingIndices[shape + 1] : outline.Length;
+            //Handles.color = Color.white;
+            //for (int shape=0;shape<shapeStartingIndices.Length;shape++)
+            //{
+            //    int shapeStart = shapeStartingIndices[shape];
+            //    int shapeEnd = shape + 1 < shapeStartingIndices.Length ? shapeStartingIndices[shape + 1] : outline.Length;
 
-                for (int i=shapeStart;i<shapeEnd;i++)
-                {
-                    Vector3 lineStart = outline[i];
-                    Vector3 lineEnd = i + 1 < shapeEnd ? outline[i + 1] : outline[shapeStart];
-                    Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(lineStart), t.TransformPoint(lineEnd) });
-                }
-            }
+            //    for (int i=shapeStart;i<shapeEnd;i++)
+            //    {
+            //        Vector3 lineStart = outline[i];
+            //        Vector3 lineEnd = i + 1 < shapeEnd ? outline[i + 1] : outline[shapeStart];
+            //        Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(lineStart), t.TransformPoint(lineEnd) });
+            //    }
+            //}
             
-            outline.Dispose();
-            shapeStartingIndices.Dispose();
+            //outline.Dispose();
+            //shapeStartingIndices.Dispose();
         }
 
         void Reset()

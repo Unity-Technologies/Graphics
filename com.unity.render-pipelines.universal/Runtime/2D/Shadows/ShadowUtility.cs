@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering.Universal
 
 
         // inEdges is expected to be contiguous
-        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices, float contractionDistance)
+        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices)
         {
             Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
 
@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<ShadowMeshVertex> meshFinalVertices = new NativeArray<ShadowMeshVertex>(meshVertexCount, Allocator.Temp);
 
             // Get vertex reduction directions
-            CalculateContraction(inVertices, inEdges, meshTangents, inShapeStartingIndices, contractionDistance, ref meshReducedVertices);
+            CalculateContraction(inVertices, inEdges, meshTangents, inShapeStartingIndices, 0, ref meshReducedVertices);
             CalculateTangents(meshReducedVertices, inEdges, ref meshTangents);                            // meshVertices contain a normal component
             CalculateVertices(meshReducedVertices, inEdges, meshTangents, ref meshFinalVertices);
             CalculateTriangles(inVertices, inEdges, ref meshIndices);
