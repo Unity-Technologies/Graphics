@@ -17,7 +17,6 @@ namespace UnityEngine.Experimental.Rendering
         private SerializedProperty m_DilationValidityThreshold;
         private SerializedProperty m_DilationIterations;
         private SerializedProperty m_DilationInvSquaredWeight;
-        private SerializedProperty m_VolumeAsset;
 
         private SerializedProperty m_EnableVirtualOffset;
         private SerializedProperty m_VirtualOffsetGeometrySearchMultiplier;
@@ -42,7 +41,6 @@ namespace UnityEngine.Experimental.Rendering
             m_DilationInvSquaredWeight = serializedObject.FindProperty("m_DilationInvSquaredWeight");
             m_MaxDilationSampleDistance = serializedObject.FindProperty("m_MaxDilationSampleDistance");
             m_DilationValidityThreshold = serializedObject.FindProperty("m_DilationValidityThreshold");
-            m_VolumeAsset = serializedObject.FindProperty("volumeAsset");
             m_EnableVirtualOffset = serializedObject.FindProperty("m_EnableVirtualOffset");
             m_VirtualOffsetGeometrySearchMultiplier = serializedObject.FindProperty("m_VirtualOffsetGeometrySearchMultiplier");
             m_VirtualOffsetBiasOutOfGeometry = serializedObject.FindProperty("m_VirtualOffsetBiasOutOfGeometry");
