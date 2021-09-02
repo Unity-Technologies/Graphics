@@ -93,8 +93,8 @@ namespace UnityEditor.Rendering.Utilities
                     }
 
                     var query = menuItemsForRP.Where(mi => mi.attribute.path == attribute.path);
-                    bool alreadyHere = query.Count() > 0;
-                    var menuItemData = alreadyHere ? query.First() : new MenuItemData();
+                    bool alreadyRegistered = query.Count() > 0;
+                    var menuItemData = alreadyRegistered ? query.First() : new MenuItemData();
 
                     menuItemData.attribute = attribute;
                     if (attribute.validate)
@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering.Utilities
                     else
                         menuItemData.action = (Action)Delegate.CreateDelegate(typeof(Action), methodInfo);
 
-                    if (!alreadyHere)
+                    if (!alreadyRegistered)
                         menuItemsForRP.Add(menuItemData);
                 }
             }
