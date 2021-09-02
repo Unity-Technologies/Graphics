@@ -18,7 +18,10 @@ namespace UnityEditor.VFX.UI
     [Serializable]
     class VFXViewWindow : EditorWindow
     {
+        static VisualEffect s_LastAttachedComponent;
+
         ShortcutHandler m_ShortcutHandler;
+
         protected void SetupFramingShortcutHandler(VFXView view)
         {
             m_ShortcutHandler = new ShortcutHandler(
@@ -80,8 +83,11 @@ namespace UnityEditor.VFX.UI
             {
                 InternalLoadResource(resource);
             }
-            if (effectToAttach != null && graphView.controller != null && graphView.controller.model != null && effectToAttach.visualEffectAsset == graphView.controller.model.asset)
-                graphView.attachedComponent = effectToAttach;
+
+            if (!graphView.TryAttachTo(effectToAttach))
+            {
+                s_LastAttachedComponent = null;
+            }
         }
 
         List<VisualEffectResource> m_ResourceHistory = new List<VisualEffectResource>();
@@ -180,7 +186,7 @@ namespace UnityEditor.VFX.UI
                 var currentAsset = GetCurrentResource();
                 if (currentAsset != null)
                 {
-                    LoadResource(currentAsset);
+                    LoadResource(currentAsset, s_LastAttachedComponent);
                 }
             };
 
@@ -220,6 +226,7 @@ namespace UnityEditor.VFX.UI
 
             if (graphView != null)
             {
+                s_LastAttachedComponent = graphView.attachedComponent;
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
                 graphView.controller = null;
