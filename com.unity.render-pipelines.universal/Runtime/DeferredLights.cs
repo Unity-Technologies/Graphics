@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Output lighting result.
         internal RTHandle[] GbufferAttachments { get; set; }
-        internal RenderTargetIdentifier[] DeferredInputAttachments { get; set; }
+        internal RTHandle[] DeferredInputAttachments { get; set; }
         // Input depth texture, also bound as read-only RT
         internal RTHandle DepthAttachment { get; set; }
         //
@@ -403,10 +403,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 5)
             {
-                this.DeferredInputAttachments = new RenderTargetIdentifier[4]
+                this.DeferredInputAttachments = new RTHandle[4]
                 {
-                    this.GbufferAttachmentIdentifiers[0], this.GbufferAttachmentIdentifiers[1],
-                    this.GbufferAttachmentIdentifiers[2], this.GbufferAttachmentIdentifiers[4]
+                    GbufferAttachments[0], GbufferAttachments[1], GbufferAttachments[2], GbufferAttachments[4],
                 };
             }
             this.DepthAttachmentHandle = this.DepthAttachment;
