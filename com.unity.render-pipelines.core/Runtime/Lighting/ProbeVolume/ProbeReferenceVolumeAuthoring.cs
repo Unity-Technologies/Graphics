@@ -103,9 +103,10 @@ namespace UnityEngine.Experimental.Rendering
 
         [NonSerialized]
         bool m_SentDataToSceneData = false; // TODO: This is temp until we don't have a setting panel.
-#endif
+
         [SerializeField]
         float m_DilationValidityThreshold = 0.25f;
+#endif
 
         public ProbeVolumeAsset volumeAsset = null;
 
