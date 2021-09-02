@@ -17,11 +17,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         }
 
         // material changed check
-        public override void MaterialChanged(Material material)
+        public override void ValidateMaterial(Material material)
         {
-            if (material == null)
-                throw new ArgumentNullException("material");
-
             SetMaterialKeywords(material);
         }
 
@@ -34,15 +31,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             // Use default labelWidth
             EditorGUIUtility.labelWidth = 0f;
 
-            EditorGUI.BeginChangeCheck();
-            {
-                base.DrawSurfaceOptions(material);
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var obj in blendModeProp.targets)
-                    MaterialChanged((Material)obj);
-            }
+            base.DrawSurfaceOptions(material);
         }
 
         // material main surface inputs
@@ -51,17 +40,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             base.DrawSurfaceInputs(material);
             BakedLitGUI.Inputs(shadingModelProperties, materialEditor);
             DrawTileOffset(materialEditor, baseMapProp);
-        }
-
-        public override void DrawAdvancedOptions(Material material)
-        {
-            EditorGUI.BeginChangeCheck();
-            base.DrawAdvancedOptions(material);
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var obj in blendModeProp.targets)
-                    MaterialChanged((Material)obj);
-            }
         }
 
         public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
@@ -109,8 +87,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             {
                 material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
             }
-
-            MaterialChanged(material);
         }
     }
 }

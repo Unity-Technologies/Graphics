@@ -2,7 +2,7 @@
 
 Menu Path : **Spawn > Constant Rate**
 
-The Constant Rate Block adds a spawn count over time at a constant rate. For instance, if the rate is 10, this block tiggers 10 spawn events per second for its Spawn Context. A rate below one is also valid, if the rate is 0.5, the rate is once every two seconds.
+The Constant Rate Block adds a spawn count over time at a constant rate. For instance, if the rate is 10, this Block tiggers 10 spawn events per second for its Spawn Context. A rate below one is also valid, if the rate is 0.5, the rate is once every two seconds.
 
 ## Block compatibility
 

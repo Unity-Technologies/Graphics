@@ -13,7 +13,7 @@ The Mesh Vertex Count Operator allows you to retrieve the number of vertices in 
 | ------------ | -------- | ------------------------------------------------------------ |
 | **Source**   | Enum     | **(Inspector)** Choose the kind of source geometry, either a **Mesh** or a **Skinned Mesh Renderer** |
 
-### Operator Properties
+### Operator properties
 
 | **Input**                 | **Type**              | **Description**                                              |
 | ------------------------- | --------------------- | ------------------------------------------------------------ |

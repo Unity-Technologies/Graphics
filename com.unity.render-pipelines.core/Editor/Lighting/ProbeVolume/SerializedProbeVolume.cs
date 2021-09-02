@@ -4,26 +4,30 @@ namespace UnityEditor.Experimental.Rendering
     {
         internal SerializedProperty probeVolumeParams;
 
+        internal SerializedProperty globalVolume;
         internal SerializedProperty size;
         internal SerializedProperty maxSubdivisionMultiplier;
         internal SerializedProperty minSubdivisionMultiplier;
+        internal SerializedProperty objectLayerMask;
+        internal SerializedProperty geometryDistanceOffset;
 
-        SerializedObject m_SerializedObject;
+        internal SerializedObject serializedObject;
 
-        internal SerializedProbeVolume(SerializedObject serializedObject)
+        internal SerializedProbeVolume(SerializedObject obj)
         {
-            m_SerializedObject = serializedObject;
+            serializedObject = obj;
 
-            probeVolumeParams = m_SerializedObject.FindProperty("parameters");
-
-            size = probeVolumeParams.FindPropertyRelative("size");
-            maxSubdivisionMultiplier = probeVolumeParams.FindPropertyRelative("maxSubdivisionMultiplier");
-            minSubdivisionMultiplier = probeVolumeParams.FindPropertyRelative("minSubdivisionMultiplier");
+            globalVolume = serializedObject.FindProperty("globalVolume");
+            size = serializedObject.FindProperty("size");
+            maxSubdivisionMultiplier = serializedObject.FindProperty("maxSubdivisionMultiplier");
+            minSubdivisionMultiplier = serializedObject.FindProperty("minSubdivisionMultiplier");
+            objectLayerMask = serializedObject.FindProperty("objectLayerMask");
+            geometryDistanceOffset = serializedObject.FindProperty("geometryDistanceOffset");
         }
 
         internal void Apply()
         {
-            m_SerializedObject.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }

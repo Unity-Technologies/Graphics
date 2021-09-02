@@ -29,6 +29,8 @@ int _TwoSided;
 
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
+float4 _MainTex_TexelSize;
+float4 _MainTex_MipInfo;
 
 #ifdef EFFECT_EXTRA_TEX
     sampler2D _ExtraTex;

@@ -1,4 +1,4 @@
-#pragma only_renderers d3d11
+#pragma only_renderers d3d11 ps5
 
 #pragma kernel TemporalAccumulationFullRes TEMPORAL_ACCUMULATION=TemporalAccumulationFullRes
 #pragma kernel TemporalAccumulationHalfRes TEMPORAL_ACCUMULATION=TemporalAccumulationHalfRes HALF_RESOLUTION
@@ -206,6 +206,7 @@ void CopyHistory(uint3 dispatchThreadId : SV_DispatchThreadID)
 }
 
 int _DenoiserFilterRadius;
+float _RoughnessBasedDenoising;
 TEXTURE2D(_ReflectionFilterMapping);
 
 #define BILATERAL_FILTER_SIGMA 0.9
@@ -237,7 +238,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     // Compute the effective radius we should be using for the filtering
     const float3 viewWS = GetWorldSpaceNormalizeViewDir(center.position);
     float2 mappingUV = float2(dot(viewWS, center.normal), center.roughness);
-    float2 radiusScale = SAMPLE_TEXTURE2D_LOD(_ReflectionFilterMapping, s_linear_clamp_sampler, mappingUV, 0.0f).xy;
+    float2 radiusScale = lerp(1.0f, SAMPLE_TEXTURE2D_LOD(_ReflectionFilterMapping, s_linear_clamp_sampler, mappingUV, 0.0f).xy, _RoughnessBasedDenoising);
     #if FINAL_PASS
     const float radius = _DenoiserFilterRadius * radiusScale.x;
     #else

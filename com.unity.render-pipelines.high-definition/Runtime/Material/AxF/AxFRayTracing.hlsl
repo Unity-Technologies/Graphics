@@ -67,34 +67,18 @@ float RecursiveRenderingReflectionPerceptualSmoothness(BSDFData bsdfData)
 #endif
 
 #if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)
-void FitToStandardLit( SurfaceData surfaceData
+void FitToStandardLit( BSDFData bsdfData
                         , BuiltinData builtinData
                         , uint2 positionSS
                         , out StandardBSDFData outStandardlit)
 {
-    float3 specBRDFColor; // for carpaint, will be white otherwise
-    float3 singleFlakesComponent;
-    float scalarRoughness;
-    float coatFGD;
-
-    // We can fake flakes by mixing a component in the diffuse color
-    // or the F0, with the later maybe averaging the f0 according to roughness and V
-    GetBaseSurfaceColorAndF0(surfaceData,
-                             /*out*/ outStandardlit.baseColor,
-                             /*out*/ outStandardlit.fresnel0,
-                             /*out*/specBRDFColor,
-                             /*out*/singleFlakesComponent,
-                             /*out*/coatFGD,
-                             surfaceData.viewWS,
-                             /*mixFlakes:*/ true);
-
-    outStandardlit.specularOcclusion = surfaceData.specularOcclusion;
-
-    GetRoughnessNormalCoatMaskForFitToStandardLit(surfaceData, coatFGD, /*out*/ outStandardlit.normalWS, /*out*/ scalarRoughness, /*out*/ outStandardlit.coatMask);
-    outStandardlit.perceptualRoughness = RoughnessToPerceptualRoughness(scalarRoughness);
-
-    // diffuseFGD is one (from Lambert), but carpaint have a tint on diffuse, try to fit that here:
-    outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * specBRDFColor * surfaceData.ambientOcclusion + builtinData.emissiveColor;
+    outStandardlit.specularOcclusion = bsdfData.specularOcclusion;
+    outStandardlit.normalWS = bsdfData.normalWS;
+    outStandardlit.baseColor = bsdfData.diffuseColor;
+    outStandardlit.fresnel0 = bsdfData.specularColor;
+    outStandardlit.perceptualRoughness = bsdfData.perceptualRoughness;
+    outStandardlit.coatMask = 0;
+    outStandardlit.emissiveAndBaked = builtinData.bakeDiffuseLighting * bsdfData.specularColor * bsdfData.ambientOcclusion + builtinData.emissiveColor;
     outStandardlit.isUnlit = 0;
 }
 #endif

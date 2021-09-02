@@ -27,10 +27,43 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
+    [Serializable]
+    class SlotCapability
+    {
+        public string slotName;
+        public ShaderStageCapability capabilities = ShaderStageCapability.All;
+    }
+
+    [Serializable]
+    class SlotDependencyPair
+    {
+        public string inputSlotName;
+        public string outputSlotName;
+    }
+
+    /// Cached run-time information for slot dependency tracking within a sub-graph
+    class SlotDependencyInfo
+    {
+        internal string slotName;
+        internal ShaderStageCapability capabilities = ShaderStageCapability.All;
+        internal HashSet<string> dependencies = new HashSet<string>();
+
+        internal void AddDepencencySlotName(string slotName)
+        {
+            dependencies.Add(slotName);
+        }
+
+        internal bool ContainsSlot(MaterialSlot slot)
+        {
+            return dependencies.Contains(slot.RawDisplayName());
+        }
+    }
+
     class SubGraphData : JsonObject
     {
         public List<JsonData<AbstractShaderProperty>> inputs = new List<JsonData<AbstractShaderProperty>>();
         public List<JsonData<ShaderKeyword>> keywords = new List<JsonData<ShaderKeyword>>();
+        public List<JsonData<ShaderDropdown>> dropdowns = new List<JsonData<ShaderDropdown>>();
         public List<JsonData<AbstractShaderProperty>> nodeProperties = new List<JsonData<AbstractShaderProperty>>();
         public List<JsonData<MaterialSlot>> outputs = new List<JsonData<MaterialSlot>>();
         public List<JsonData<Target>> unsupportedTargets = new List<JsonData<Target>>();
@@ -69,6 +102,8 @@ namespace UnityEditor.ShaderGraph
 
         public DataValueEnumerable<ShaderKeyword> keywords => m_SubGraphData.keywords.SelectValue();
 
+        public DataValueEnumerable<ShaderDropdown> dropdowns => m_SubGraphData.dropdowns.SelectValue();
+
         public DataValueEnumerable<AbstractShaderProperty> nodeProperties => m_SubGraphData.nodeProperties.SelectValue();
 
         public DataValueEnumerable<MaterialSlot> outputs => m_SubGraphData.outputs.SelectValue();
@@ -79,8 +114,26 @@ namespace UnityEditor.ShaderGraph
 
         public List<string> descendents = new List<string>();       // guids of ALL file dependencies at any level, SHOULD LIST EVEN MISSING DESCENDENTS
 
-        public ShaderStageCapability effectiveShaderStage;
+        public List<SlotCapability> inputCapabilities = new List<SlotCapability>();
+        public List<SlotCapability> outputCapabilities = new List<SlotCapability>();
+        // Every unique input/output dependency pair
+        public List<SlotDependencyPair> slotDependencies = new List<SlotDependencyPair>();
 
+        Dictionary<string, SlotDependencyInfo> m_InputDependencies = new Dictionary<string, SlotDependencyInfo>();
+        Dictionary<string, SlotDependencyInfo> m_OutputDependencies = new Dictionary<string, SlotDependencyInfo>();
+
+
+        public SlotDependencyInfo GetInputDependencies(string slotName)
+        {
+            m_InputDependencies.TryGetValue(slotName, out SlotDependencyInfo result);
+            return result;
+        }
+
+        public SlotDependencyInfo GetOutputDependencies(string slotName)
+        {
+            m_OutputDependencies.TryGetValue(slotName, out SlotDependencyInfo result);
+            return result;
+        }
 
         // this is the precision that the entire subgraph is set to (indicates whether the graph is hard-coded or switchable)
         public GraphPrecision subGraphGraphPrecision;
@@ -95,7 +148,7 @@ namespace UnityEditor.ShaderGraph
 
         public PreviewMode previewMode;
 
-        public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
+        public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<ShaderDropdown> dropdowns, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
         {
             if (m_SubGraphData == null)
             {
@@ -105,6 +158,7 @@ namespace UnityEditor.ShaderGraph
 
             m_SubGraphData.inputs.Clear();
             m_SubGraphData.keywords.Clear();
+            m_SubGraphData.dropdowns.Clear();
             m_SubGraphData.nodeProperties.Clear();
             m_SubGraphData.outputs.Clear();
             m_SubGraphData.unsupportedTargets.Clear();
@@ -117,6 +171,11 @@ namespace UnityEditor.ShaderGraph
             foreach (var keyword in keywords)
             {
                 m_SubGraphData.keywords.Add(keyword);
+            }
+
+            foreach (var dropdown in dropdowns)
+            {
+                m_SubGraphData.dropdowns.Add(dropdown);
             }
 
             foreach (var nodeProperty in nodeProperties)
@@ -152,6 +211,35 @@ namespace UnityEditor.ShaderGraph
             if (!String.IsNullOrEmpty(m_SerializedSubGraphData.JSONnodeData))
             {
                 MultiJson.Deserialize(m_SubGraphData, m_SerializedSubGraphData.JSONnodeData);
+            }
+        }
+
+        internal void LoadDependencyData()
+        {
+            m_InputDependencies.Clear();
+            m_OutputDependencies.Clear();
+
+            foreach (var capabilityInfo in inputCapabilities)
+            {
+                var dependecyInfo = new SlotDependencyInfo();
+                dependecyInfo.slotName = capabilityInfo.slotName;
+                dependecyInfo.capabilities = capabilityInfo.capabilities;
+                m_InputDependencies.Add(dependecyInfo.slotName, dependecyInfo);
+            }
+            foreach (var capabilityInfo in outputCapabilities)
+            {
+                var dependecyInfo = new SlotDependencyInfo();
+                dependecyInfo.slotName = capabilityInfo.slotName;
+                dependecyInfo.capabilities = capabilityInfo.capabilities;
+                m_OutputDependencies.Add(dependecyInfo.slotName, dependecyInfo);
+            }
+            foreach (var slotDependency in slotDependencies)
+            {
+                // This shouldn't fail since every input/output must be in the above lists...
+                if (m_InputDependencies.ContainsKey(slotDependency.inputSlotName))
+                    m_InputDependencies[slotDependency.inputSlotName].AddDepencencySlotName(slotDependency.outputSlotName);
+                if (m_OutputDependencies.ContainsKey(slotDependency.outputSlotName))
+                    m_OutputDependencies[slotDependency.outputSlotName].AddDepencencySlotName(slotDependency.inputSlotName);
             }
         }
     }

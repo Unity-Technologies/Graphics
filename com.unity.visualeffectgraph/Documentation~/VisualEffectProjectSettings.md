@@ -1,7 +1,6 @@
-<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Draft:</b> The content on this page is complete, but it has not been reviewed yet.</div>
 # Visual Effect Project Settings
 
-Visual Effect Graph Project Settings is a Section in Unity Project Settings Window. You can access these settings using the **Edit/Project Settings** menu, then selecting **VFX** section.
+Visual Effect Graph Project Settings is a section in Unity Project Settings Window. You can access these settings in **Edit > Project Settings > VFX**.
 
 ![](Images/VisualEffectProjectSettings.png)
 
@@ -19,6 +18,6 @@ Visual Effect Graph Project Settings is a Section in Unity Project Settings Wind
 
 > **Note:** Fixed Delta time works in asynchronous update with `deltaTime = N * FixedTimeStep` (with `deltaTime = min(deltaTime , MaxDeltaTime)`).
 >
-> N being determined by the current framerate.
+> N is determined by the current framerate.
 >
 > In this mode, deltaTime can equal 0 at certain frames.

@@ -1,0 +1,106 @@
+
+#define URP_NEEDS_UVS (URP_USE_BASE_COLOR_MAP || URP_USE_MASK_MAP || USE_NORMAL_MAP || URP_USE_EMISSIVE_MAP)
+#define URP_USE_EMISSIVE (URP_USE_EMISSIVE_MAP || URP_USE_EMISSIVE_COLOR || URP_USE_ADDITIONAL_EMISSIVE_COLOR)
+
+${VFXBegin:VFXURPLitVaryingsMacros}
+#if (VFX_NEEDS_COLOR_INTERPOLATOR && URP_USE_BASE_COLOR) || URP_USE_ADDITIONAL_BASE_COLOR
+#define VFX_VARYING_COLOR color.rgb
+#define VFX_VARYING_ALPHA color.a
+#endif
+
+#define VFX_VARYING_SMOOTHNESS materialProperties.x
+
+#if URP_MATERIAL_TYPE_METALLIC
+#define VFX_VARYING_METALLIC materialProperties.y
+#elif URP_MATERIAL_TYPE_SPECULAR
+#define VFX_VARYING_SPECULAR specularColor
+#elif URP_MATERIAL_TYPE_TRANSLUCENT
+#define VFX_VARYING_THICKNESS materialProperties.y
+#endif
+
+#if USE_NORMAL_MAP
+#define VFX_VARYING_NORMALSCALE materialProperties.z
+#endif
+
+#if URP_USE_EMISSIVE_MAP
+#define VFX_VARYING_EMISSIVESCALE materialProperties.w
+#endif
+
+#if URP_USE_EMISSIVE_COLOR || URP_USE_ADDITIONAL_EMISSIVE_COLOR
+#define VFX_VARYING_EMISSIVE emissiveColor.rgb
+#endif
+
+#if USE_EXPOSURE_WEIGHT
+#define VFX_VARYING_EXPOSUREWEIGHT emissiveColor.a
+#endif
+${VFXEnd}
+
+${VFXBegin:VFXURPLitDeclareVaryings}
+
+#if (VFX_NEEDS_COLOR_INTERPOLATOR && URP_USE_BASE_COLOR) || URP_USE_ADDITIONAL_BASE_COLOR
+VFX_OPTIONAL_INTERPOLATION float4 color : COLOR0;
+#endif
+#if URP_MATERIAL_TYPE_SPECULAR
+VFX_OPTIONAL_INTERPOLATION float3 specularColor : COLOR1;
+#endif
+#if URP_USE_EMISSIVE
+VFX_OPTIONAL_INTERPOLATION float4 emissiveColor : COLOR2;
+#endif
+
+// x: smoothness
+// y: metallic/thickness
+// z: normal scale
+// w: emissive scale
+VFX_OPTIONAL_INTERPOLATION float4 materialProperties : TEXCOORD0;
+${VFXEnd}
+
+${VFXBegin:VFXURPLitFillVaryings}
+#ifndef VFX_SHADERGRAPH
+#ifdef VFX_VARYING_SMOOTHNESS
+${VFXLoadParameter:{smoothness}}
+o.VFX_VARYING_SMOOTHNESS = smoothness;
+#endif
+#if URP_MATERIAL_TYPE_METALLIC
+#ifdef VFX_VARYING_METALLIC
+${VFXLoadParameter:{metallic}}
+o.VFX_VARYING_METALLIC = metallic;
+#endif
+#elif URP_MATERIAL_TYPE_SPECULAR
+#ifdef VFX_VARYING_SPECULAR
+${VFXLoadParameter:{specularColor}}
+o.VFX_VARYING_SPECULAR = specularColor.rgb;
+#endif
+#elif URP_MATERIAL_TYPE_TRANSLUCENT
+#ifdef VFX_VARYING_THICKNESS
+${VFXLoadParameter:{thickness}}
+o.VFX_VARYING_THICKNESS = thickness;
+#endif
+#endif
+#if USE_NORMAL_MAP
+#ifdef VFX_VARYING_NORMALSCALE
+${VFXLoadParameter:{normalScale}}
+o.VFX_VARYING_NORMALSCALE = normalScale;
+#endif
+#endif
+#if URP_USE_EMISSIVE_MAP
+#ifdef VFX_VARYING_EMISSIVESCALE
+${VFXLoadParameter:{emissiveScale}}
+o.VFX_VARYING_EMISSIVESCALE = emissiveScale;
+#endif
+#endif
+#ifdef VFX_VARYING_EMISSIVE
+#if URP_USE_EMISSIVE_COLOR
+o.VFX_VARYING_EMISSIVE = attributes.color;
+#elif URP_USE_ADDITIONAL_EMISSIVE_COLOR
+${VFXLoadParameter:{emissiveColor}}
+o.VFX_VARYING_EMISSIVE = emissiveColor.rgb;
+#endif
+#endif
+#if URP_USE_ADDITIONAL_BASE_COLOR
+#ifdef VFX_VARYING_COLOR
+${VFXLoadParameter:{baseColor}}
+o.VFX_VARYING_COLOR = baseColor;
+#endif
+#endif
+#endif
+${VFXEnd}

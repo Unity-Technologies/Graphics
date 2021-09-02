@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // In the quality window use more space for the labels
             if (!largeLabelWidth)
                 EditorGUIUtility.labelWidth *= 2;
-            DefaultSettingsPanelIMGUI.Inspector.Draw(serialized, this);
+            HDGlobalSettingsPanelIMGUI.Inspector.Draw(serialized, this);
             if (!largeLabelWidth)
                 EditorGUIUtility.labelWidth *= 0.5f;
 

@@ -25,9 +25,11 @@ If you experience texture sampling errors while using this node in a graph which
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|  Type   | Dropdown | Default, Normal | Selects the texture type |
+| Name                     | Type     | Options         | Description |
+|:------------------------ |:---------|:----------------|:-------------------------|
+|  Type                    | Dropdown | Default, Normal | Selects the texture type |
+|  Space                   | Dropdown | Tangent, Object | Selects the space of the normal map. If Type is not Normal, this control is ignored. |
+|  Enable Global Mip Bias  | Toggle   | On, Off         | Enables the automatic global mip bias imposed by the runtime. This bias is set during certain dynamic resolution scaling algorithms to improve detail reconstruction. |
 
 ## Generated Code Example
 

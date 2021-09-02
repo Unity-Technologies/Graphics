@@ -8,13 +8,13 @@
 
 float3 Fetch(TEXTURE2D_X_PARAM(_InputTexture, _InputTextureSampler), float2 coords, float2 offset)
 {
-    float2 uv = saturate(coords + offset) * _RTHandleScale.xy;
+    float2 uv = saturate(coords + offset) * _RTHandlePostProcessScale.xy;
     return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, _InputTextureSampler, uv, 0.0).xyz;
 }
 
 CTYPE Load(TEXTURE2D_X(_InputTexture), int2 icoords, int idx, int idy)
 {
-    return LOAD_TEXTURE2D_X(_InputTexture, min(icoords + int2(idx, idy), _ScreenSize.xy - 1.0)).CTYPE_SWIZZLE;
+    return LOAD_TEXTURE2D_X(_InputTexture, min(icoords + int2(idx, idy), _PostProcessScreenSize.xy - 1.0)).CTYPE_SWIZZLE;
 }
 
 float FetchAlpha(TEXTURE2D_X_PARAM(_InputTexture, _InputTextureSampler), float2 coords, float2 offset)

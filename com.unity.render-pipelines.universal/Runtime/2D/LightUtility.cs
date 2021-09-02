@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Mathematics;
-using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
-using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal.LibTessDotNet;
 using UnityEngine.U2D;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal static class LightUtility
     {
@@ -71,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var prevCount = VCount;
             var tessIndices = tess.Elements.Select(i => i);
             var tessVertices = tess.Vertices.Select(v =>
-                new LightMeshVertex() { position =  new float3(v.Position.X, v.Position.Y, 0), color = c });
+                new LightMeshVertex() { position = new float3(v.Position.X, v.Position.Y, 0), color = c });
 
             foreach (var v in tessVertices)
                 vertices[VCount++] = v;

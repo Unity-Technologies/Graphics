@@ -29,6 +29,8 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will not be affected by temporal anti-aliasing.")]
         protected bool excludeFromTAA = false;
 
+        public virtual bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed, SerializeField, Tooltip("Specifies an offset applied to the material render queue.")]
         protected int materialOffset = 0;
 
@@ -36,8 +38,6 @@ namespace UnityEditor.VFX
         {
             return materialOffset;
         }
-
-        public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
 
         public virtual bool hasMotionVector
         {
@@ -55,7 +55,7 @@ namespace UnityEditor.VFX
 
         public virtual bool hasExcludeFromTAA => subOutput.supportsExcludeFromTAA && excludeFromTAA;
 
-        protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) {}
+        protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) { }
 
 
         public override IEnumerable<int> GetFilteredOutEnumerators(string name)
@@ -80,14 +80,14 @@ namespace UnityEditor.VFX
             get
             {
                 if (m_CurrentSubOutput == null)
-                    GetOrCreateSubOutput();
+                    m_CurrentSubOutput = GetOrCreateSubOutput();
                 return m_CurrentSubOutput;
             }
         }
 
         private VFXSRPSubOutput CreateDefaultSubOutput()
         {
-            var defaultSubOutput  = ScriptableObject.CreateInstance<VFXSRPSubOutput>();
+            var defaultSubOutput = ScriptableObject.CreateInstance<VFXSRPSubOutput>();
             defaultSubOutput.Init(this);
             return defaultSubOutput;
         }
@@ -117,8 +117,19 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
+            VFXLibrary.OnSRPChanged += OnSRPChanged;
             InitSubOutputs(m_SubOutputs, false);
             base.OnEnable();
+        }
+
+        public virtual void OnDisable()
+        {
+            VFXLibrary.OnSRPChanged -= OnSRPChanged;
+        }
+
+        private void OnSRPChanged()
+        {
+            m_CurrentSubOutput = null;
         }
 
         public List<VFXSRPSubOutput> GetSubOutputs()

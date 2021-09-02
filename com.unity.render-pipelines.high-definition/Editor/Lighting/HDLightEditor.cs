@@ -1,9 +1,9 @@
-using UnityEditor.Rendering;
-using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -60,7 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Serialized object is lossing references after an undo
             if (m_SerializedHDLight.serializedObject.targetObject != null)
             {
-                m_SerializedHDLight.serializedObject.ApplyModifiedProperties();
+                m_SerializedHDLight.serializedObject.Update();
                 foreach (var hdLightData in m_AdditionalLightDatas)
                     if (hdLightData != null)
                         hdLightData.UpdateAreaLightEmissiveMesh();
@@ -73,14 +73,22 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
             m_SerializedHDLight.Update();
-
             // Add space before the first collapsible area
             EditorGUILayout.Space();
 
             ApplyAdditionalComponentsVisibility(true);
 
             EditorGUI.BeginChangeCheck();
-            HDLightUI.Inspector.Draw(m_SerializedHDLight, this);
+
+            if (HDEditorUtils.IsPresetEditor(this))
+            {
+                HDLightUI.PresetInspector.Draw(m_SerializedHDLight, this);
+            }
+            else
+            {
+                using (new EditorGUILayout.VerticalScope())
+                    HDLightUI.Inspector.Draw(m_SerializedHDLight, this);
+            }
             if (EditorGUI.EndChangeCheck())
             {
                 m_SerializedHDLight.Apply();

@@ -97,7 +97,7 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.expanded
         {
-            get { return expanded;}
+            get { return expanded; }
         }
         bool IPropertyRMProvider.editable
         {
@@ -231,8 +231,8 @@ namespace UnityEditor.VFX.UI
             throw new NotImplementedException();
         }
 
-        void IPropertyRMProvider.StartLiveModification() {}
-        void IPropertyRMProvider.EndLiveModification() {}
+        void IPropertyRMProvider.StartLiveModification() { }
+        void IPropertyRMProvider.EndLiveModification() { }
     }
 
     class VFXMinMaxParameterController : IPropertyRMProvider
@@ -335,8 +335,8 @@ namespace UnityEditor.VFX.UI
             throw new NotImplementedException();
         }
 
-        void IPropertyRMProvider.StartLiveModification() {}
-        void IPropertyRMProvider.EndLiveModification() {}
+        void IPropertyRMProvider.StartLiveModification() { }
+        void IPropertyRMProvider.EndLiveModification() { }
     }
     class VFXParameterController : VFXController<VFXParameter>, IPropertyRMProvider, IGizmoController, IGizmoable
     {
@@ -392,7 +392,7 @@ namespace UnityEditor.VFX.UI
             if (VFXGizmoUtility.HasGizmo(model.type))
                 m_Gizmoables = new IGizmoable[] { this };
             else
-                m_Gizmoables = new IGizmoable[] {};
+                m_Gizmoables = new IGizmoable[] { };
         }
 
         string IGizmoable.name
@@ -841,14 +841,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public IGizmoable currentGizmoable { get { return this; } set {} }
+        public IGizmoable currentGizmoable { get { return this; } set { } }
 
         Dictionary<int, VFXParameterNodeController> m_Controllers = new Dictionary<int, VFXParameterNodeController>();
 
 
         public int nodeCount
         {
-            get {return m_Controllers.Count(); }
+            get { return m_Controllers.Count(); }
         }
 
 
@@ -915,7 +915,7 @@ namespace UnityEditor.VFX.UI
 
         public override string name { get { return "Value"; } }
 
-        public object[] customAttributes { get { return new object[] {}; } }
+        public object[] customAttributes { get { return new object[] { }; } }
 
         public VFXPropertyAttributes attributes
         {
@@ -947,7 +947,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return model.GetOutputSlot(0).spaceable;
+                return model.GetNbOutputSlots() > 0 && model.GetOutputSlot(0).spaceable;
             }
         }
 
@@ -991,7 +991,7 @@ namespace UnityEditor.VFX.UI
 
         public override Type portType
         {
-            get {return m_Controller.portType; }
+            get { return m_Controller.portType; }
         }
 
         public override object value
@@ -1007,14 +1007,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected override void InternalPrepare() {}
+        protected override void InternalPrepare() { }
 
         public override VFXGizmo.IProperty<T> RegisterProperty<T>(string member)
         {
             object result;
             if (m_PropertyCache.TryGetValue(member, out result))
             {
-                if (result is VFXGizmo.IProperty<T> )
+                if (result is VFXGizmo.IProperty<T>)
                     return result as VFXGizmo.IProperty<T>;
                 else
                     return VFXGizmoUtility.NullProperty<T>.defaultProperty;

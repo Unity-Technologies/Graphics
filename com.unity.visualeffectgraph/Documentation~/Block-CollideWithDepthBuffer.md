@@ -6,7 +6,7 @@ The **Collide with Depth Buffer** Block makes particles collide with a specific 
 
 ![img](Images/Block-CollideWithDepthBufferMain.png)
 
-**Important:** For the block to generate depth collision, the specified Camera must be enabled and the Game view must be visible.
+**Important:** For the Block to generate depth collision, the specified Camera must be enabled.
 
 ## Block compatibility
 

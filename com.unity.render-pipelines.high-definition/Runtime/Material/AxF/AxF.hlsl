@@ -880,7 +880,7 @@ float3  CarPaint_BTF(float thetaH, float thetaD, SurfaceData surfaceData, BSDFDa
 // Base refers to the "base layer", ie not the coat if present.
 float3 GetColorBaseFresnelF0(BSDFData bsdfData)
 {
-    return bsdfData.fresnelF0.r * bsdfData.specularColor;
+    return bsdfData.fresnel0.r * bsdfData.specularColor;
 }
 
 // For raytracing fit to standard Lit:
@@ -924,63 +924,6 @@ void GetCarPaintSpecularColorAndFlakesComponent(SurfaceData surfaceData, out flo
         singleBRDFColor = GetBRDFColor(0,0);
         singleFlakesComponent = CarPaint_BTF(0, 0, surfaceData, (BSDFData)0, /*useBSDFData:*/false);
     }
-}
-
-// For raytracing fit to standard Lit:
-// Giving V will use a codepath where V is used, this is relevant only for carpaint model
-// (cf GetColorBaseDiffuse() and GetColorBaseFresnelF0())
-void GetBaseSurfaceColorAndF0(SurfaceData surfaceData, out float3 diffuseColor, out float3 fresnel0, out float3 specBRDFColor, out float3 singleFlakesComponent, out float coatFGD, float3 V = 0, bool mixFlakes = false)
-{
-    coatFGD = 0;
-    singleFlakesComponent = (float3)0;
-    fresnel0 = (float3)0;
-    float3 specularColor = (float3)0;
-    specBRDFColor = float3(1,1,1); // only used for carpaint
-    diffuseColor = surfaceData.diffuseColor;
-
-#ifdef _AXF_BRDF_TYPE_SVBRDF
-
-    specularColor = surfaceData.specularColor;
-    fresnel0 = surfaceData.fresnelF0; // See AxfData.hlsl: the actual sampled texture is always 1 channel, if we ever find otherwise, we will use the others.
-    fresnel0 = HasFresnelTerm() ? fresnel0.r * specularColor : specularColor;
-
-#elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
-
-    GetCarPaintSpecularColorAndFlakesComponent(surfaceData, /*out*/specBRDFColor, /*out*/singleFlakesComponent, /*out*/coatFGD, V);
-
-    // For carpaint, diffuseColor is not chromatic.
-    // A chromatic diffuse albedo is the result of a scalar diffuse coefficient multiplied by the brdf color table value.
-    specularColor = specBRDFColor;
-    diffuseColor *= specBRDFColor;
-    fresnel0 = saturate(3*GetCarPaintFresnel0()); // TODO: presumably better fit using V, see also GetCarPaintSpecularColor that uses V
-    fresnel0 = fresnel0.r * specularColor;
-
-    if (mixFlakes)
-    {
-        float maxf0 = Max3(fresnel0.r, fresnel0.g, fresnel0.b);
-        fresnel0 = saturate(singleFlakesComponent + fresnel0);
-    }
-
-#endif
-
-    float baseEnergy = (1-coatFGD); // should be Sq but at this point we eyeball anyway,
-    //specularColor *= baseEnergy;
-    //diffuseColor *= baseEnergy;
-    //...commented, seems better without it.
-}
-
-void GetRoughnessNormalCoatMaskForFitToStandardLit(SurfaceData surfaceData, float coatFGD, out float3 normalWS, out float roughness, out float coatMask)
-{
-    normalWS = surfaceData.normalWS; // todo: "refract back" hack
-    // Try to simulate apparent roughness increase when he have refraction as we can't store refracted V in the GBUFFER,
-    // we could try another hack and modify the normal too.
-    roughness = GetScalarRoughness(surfaceData.specularLobe);
-    roughness = saturate(roughness * (HasClearcoatAndRefraction() ? (max(1,surfaceData.clearcoatIOR)) : 1) );
-    coatMask = HasClearcoat()? Sq(coatFGD) * Max3(surfaceData.clearcoatColor.r, surfaceData.clearcoatColor.g, surfaceData.clearcoatColor.b) : 0;
-    // Sq(coatFGD) is a hack to better fit what AxF shows vs the usage of the coatmask with Lit
-    coatMask = 0;
-    //...disable for now coat reduces too much visibility of primary surface and in any case in performance mode where we use FitToStandardLit,
-    //we will not get another reflection bounce so the coat reflection will be a fallback probe
 }
 
 float3 GetColorBaseDiffuse(BSDFData bsdfData)
@@ -1214,6 +1157,8 @@ float  MultiLobesCookTorrance(BSDFData bsdfData, float NdotL, float NdotV, float
 
         specularIntensity += coeff * CT_D(NdotH, spread) * CT_F(VdotH, F0);
     }
+
+    // FIXME: should be 4 instead of PI at the denominator, this was a mistake in the original paper
     specularIntensity *= G_CookTorrance(NdotH, NdotV, NdotL, VdotH)  // Shadowing/Masking term
         / (PI * max(1e-3, NdotV * NdotL));
 
@@ -1269,7 +1214,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     bsdfData.normalWS = surfaceData.normalWS;
     bsdfData.tangentWS = surfaceData.tangentWS;
-    bsdfData.biTangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
+    bsdfData.bitangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
 
     bsdfData.roughness = 0;
     // see AxFData.hlsl: important, this is used in PostEvaluateBSDF here and in AxFRayTracing
@@ -1279,7 +1224,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.diffuseColor = surfaceData.diffuseColor;
     bsdfData.specularColor = surfaceData.specularColor;
 
-    bsdfData.fresnelF0 = surfaceData.fresnelF0; // See AxfData.hlsl: the actual sampled texture is always 1 channel, if we ever find otherwise, we will use the others.
+    bsdfData.fresnel0 = surfaceData.fresnel0; // See AxfData.hlsl: the actual sampled texture is always 1 channel, if we ever find otherwise, we will use the others.
     bsdfData.height_mm = surfaceData.height_mm;
 
     bsdfData.roughness.xy = HasAnisotropy() ? surfaceData.specularLobe.xy : surfaceData.specularLobe.xx;
@@ -1297,7 +1242,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.clearcoatNormalWS = HasClearcoat() ? surfaceData.clearcoatNormalWS : surfaceData.normalWS;
 
     bsdfData.specularColor = GetCarPaintSpecularColor();
-    bsdfData.fresnelF0 = GetCarPaintFresnel0();
+    bsdfData.fresnel0 = GetCarPaintFresnel0();
     bsdfData.roughness.xyz = surfaceData.specularLobe.xyz; // the later stores per lobe possibly modified (for geometric specular AA) _CarPaint2_CTSpreads
     bsdfData.height_mm = 0;
 #endif
@@ -1454,7 +1399,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
 
     // todo_fresnel: TOCHECK: Make BRDF and FGD for env. consistent with dirac lights for HasFresnelTerm() handling:
     // currently, we only check it for Ward and its variants.
-    float3 tempF0 = HasFresnelTerm() ? bsdfData.fresnelF0.rrr : 1.0;
+    float3 tempF0 = HasFresnelTerm() ? bsdfData.fresnel0.rrr : 1.0;
     tempF0 *= bsdfData.specularColor; // Important to use in the PreIntegratedFGD interpolated fetches!
 
     float specularReflectivity;
@@ -1824,12 +1769,12 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
     float  F = 1.0;
     switch (AXF_SVBRDF_BRDFVARIANTS_FRESNELTYPE)
     {
-    case 1: F = F_FresnelDieletricSafe(Fresnel0ToIorSafe(bsdfData.fresnelF0.r), LdotH); break;
-    case 2: F = F_Schlick(bsdfData.fresnelF0.r, LdotH); break;
+    case 1: F = F_FresnelDieletricSafe(Fresnel0ToIorSafe(bsdfData.fresnel0.r), LdotH); break;
+    case 2: F = F_Schlick(bsdfData.fresnel0.r, LdotH); break;
     }
 
     // Evaluate normal distribution function
-    float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.biTangentWS), dot(H, bsdfData.normalWS));
+    float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.bitangentWS), dot(H, bsdfData.normalWS));
     //float2  rotH = tsH.xy / tsH.z;
     float2  rotH = tsH.xy / max(0.00001, tsH.z);
     //float2  roughness = bsdfData.roughness.xy;
@@ -1861,7 +1806,7 @@ float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, PreLi
     float2  exponents = 2 * rcp(max(0.0001,(bsdfData.roughness.xy*bsdfData.roughness.xy))) - 2;
 
     // Evaluate normal distribution function
-    float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.biTangentWS), dot(H, bsdfData.normalWS));
+    float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.bitangentWS), dot(H, bsdfData.normalWS));
     float2  rotH = tsH.xy;
 
     float3  N = 0;
@@ -1898,7 +1843,7 @@ float3  ComputeCookTorrance(float3 H, float LdotH, float NdotL, float NdotV, Pre
     float   sqNdotH = Sq(NdotH);
 
     // Evaluate Fresnel term
-    float  F = F_Schlick(bsdfData.fresnelF0.r, LdotH);
+    float  F = F_Schlick(bsdfData.fresnel0.r, LdotH);
 
     // Evaluate (isotropic) normal distribution function (Beckmann)
     float   roughness = GetScalarRoughnessFromAnisoRoughness(bsdfData.roughness.x, bsdfData.roughness.y);
@@ -1915,9 +1860,9 @@ float3  ComputeCookTorrance(float3 H, float LdotH, float NdotL, float NdotV, Pre
 float3  ComputeGGX(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
 {
     // Evaluate Fresnel term
-    float   F = F_Schlick(bsdfData.fresnelF0.r, LdotH);
+    float   F = F_Schlick(bsdfData.fresnel0.r, LdotH);
 
-    float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.biTangentWS), dot(H, bsdfData.normalWS));
+    float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.bitangentWS), dot(H, bsdfData.normalWS));
 
     // Evaluate normal distribution function (Trowbridge-Reitz)
     float N = D_GGXAniso(tsH.x, tsH.y, tsH.z, bsdfData.roughness.x, bsdfData.roughness.y);
@@ -2107,7 +2052,7 @@ CBSDF EvaluateBSDF(float3 viewWS_Clearcoat, float3 lightWS_Clearcoat, PreLightDa
 
     // Apply flakes
     //TODO_FLAKES
-    specularTerm += CarPaint_BTF(thetaH, thetaD, (SurfaceData)0, bsdfData, /*useBSDFData:*/true);;
+    specularTerm += CarPaint_BTF(thetaH, thetaD, (SurfaceData)0, bsdfData, /*useBSDFData:*/true);
 
     cbsdf.diffR = clearcoatExtinction * diffuseTerm * saturate(NdotL);
     cbsdf.specR = (clearcoatExtinction * specularTerm * saturate(NdotL) + clearcoatReflectionLobeNdotL);

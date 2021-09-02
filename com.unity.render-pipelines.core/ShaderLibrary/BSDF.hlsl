@@ -411,10 +411,12 @@ real DisneyDiffuseNoPI(real NdotV, real NdotL, real LdotV, real perceptualRoughn
     return rcp(1.03571) * (lightScatter * viewScatter);
 }
 
+#ifndef BUILTIN_TARGET_API
 real DisneyDiffuse(real NdotV, real NdotL, real LdotV, real perceptualRoughness)
 {
     return INV_PI * DisneyDiffuseNoPI(NdotV, NdotL, LdotV, perceptualRoughness);
 }
+#endif
 
 // Ref: Diffuse Lighting for GGX + Smith Microsurfaces, p. 113.
 real3 DiffuseGGXNoPI(real3 albedo, real NdotV, real NdotL, real NdotH, real LdotV, real roughness)

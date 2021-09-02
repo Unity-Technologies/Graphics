@@ -182,23 +182,9 @@ To build your Project to a Unity Player, ray tracing requires that the build use
 
 #### Scene validation
 
-To check whether it is possible to use ray tracing in a Scene, HDRP includes a menu option that validates each GameObject in the Scene. If you do not setup GameObjects correctly, this process throws warnings in the Console window. To use it:
+To check whether it is possible to use ray tracing in a Scene, HDRP includes a menu option that validates each GameObject in the Scene. If you do not setup GameObjects correctly, this process throws warnings in the Console window. For the list of things this option checks for, see [Menu items](Menu-Items.md#other). To use it:
 1. Click **Edit > Rendering > Check Scene Content for HDRP Ray Tracing**.
 2. In the Console window (menu: **Window > General > Console**), check if there are any warnings.
-
-<a name="RayTracingMeshes"></a>
-
-# Ray tracing and Meshes
-
-HDRP changes how it handles Meshes in your scene when you integrate a ray traced effect into your project.
-
-When you enable ray tracing, HDRP automatically creates a ray tracing acceleration structure. This structure allows Unity to calculate ray tracing for Meshes in your scene efficiently in real time.
-
-As a result, ray tracing can change how some Meshes appear in your scene in the following ways:
-
-- If your Mesh has a Material assigned that does not have the HDRenderPipeline tag, HDRP does not add it to the acceleration structure and does not apply any ray traced effects to the mesh as a result.
-- If your Mesh has a Decal Material assigned, HDRP does not add it to the acceleration structure and the Mesh does not appear in your scene.
-- If a Mesh has a combination of Materials that are single and double-sided, HDRP flags all Materials you have assigned to this mesh as double-sided.
 
 <a name="RayTracingEffectsOverview"></a>
 
@@ -214,8 +200,24 @@ HDRP uses ray tracing to replace some of its screen space effects, shadowing tec
 - [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
 - [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md) replaces [subsurface scattering](Subsurface-Scattering.md) with a more accurate, ray-traced, subsurface scattering technique that can use off screen data.
 
-## Ray tracing mode
+<a name="RayTracingMeshes"></a>
 
+## Ray tracing and Meshes
+
+HDRP changes how it handles Meshes in your scene when you integrate a ray traced effect into your project.
+
+When you enable ray tracing, HDRP automatically creates a ray tracing acceleration structure. This structure allows Unity to calculate ray tracing for Meshes in your scene efficiently in real time.
+
+As a result, ray tracing can change how some Meshes appear in your scene in the following ways:
+
+- If your Mesh has a Material assigned that does not have the HDRenderPipeline tag, HDRP does not add it to the acceleration structure and does not apply any ray traced effects to the mesh as a result.
+- If your Mesh has a Decal Material assigned, HDRP does not add it to the acceleration structure and the Mesh does not appear in your scene.
+- If a Mesh has a combination of Materials that are single and double-sided, HDRP flags all Materials you have assigned to this mesh as double-sided.
+
+## Ray tracing light culling
+Ray tracing requires HDRP to cull lights differently to how it culls lights for rasterization. With rasterization, only lights that affect the current frustum matter. Since ray tracing uses off-screen data for effects such as reflection, HDRP needs to take into account lights that affect off screen geometry. For this reason, HDRP defines a range around the camera where it gathers light. To control this range, use the [Light Cluster](Ray-Tracing-Light-Cluster.md) Volume override. It is important to set a range that accurately represents the environment scale. A higher range makes HDRP include lights further away, but it also increases the resource intensity of light culling for ray tracing.
+
+## Ray tracing mode
 HDRP includes two ray tracing modes that define how it evaluates certain ray-traced effects. The modes are:
 
 * **Performance**: This mode targets real-time applications. If you select this mode, ray-traced effects include presets that you can change to balance performance with quality.
@@ -256,7 +258,6 @@ HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support VFX and Terrain.
 - Does not have accurate culling for shadows, you may experience missing shadows in the ray traced effects.
 - Does not support MSAA.
-- For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
 - Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
 - Ray tracing is not supported when rendering [Reflection Probes](Reflection-Probe.md).
 - HDRP does not support [orthographic projection](HDRP-Camera.md). If you enable orthographic projection mode, you might experience rendering problems for Transparent Materials, volumetrics and planar reflections.

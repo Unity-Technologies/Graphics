@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
-namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
+namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(SampleVirtualTextureNode))]
     public class SampleVirtualTextureNodePropertyDrawer : IPropertyDrawer
@@ -74,6 +74,19 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 !node.noFeedback,
                 "Automatic Streaming",
                 out var propertyToggle));
+
+            propertySheet.Add(boolPropertyDrawer.CreateGUI((newValue) =>
+            {
+                if (node.enableGlobalMipBias == newValue)
+                    return;
+
+                node.owner.owner.RegisterCompleteObjectUndo("Enable Global Mip Bias VT Change");
+                node.enableGlobalMipBias = newValue;
+            },
+                node.enableGlobalMipBias,
+                "Use Global Mip Bias",
+                out var enableGlobalMipBias));
+
 
             // display warning if the current master node doesn't support virtual texturing
             // TODO: Add warning when no active subTarget supports VT

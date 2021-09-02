@@ -90,13 +90,16 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepareVisibleLocalVolumetricFogList,
         UpdateLocalVolumetricFogAtlas,
 
+        // Volumetric clouds
         VolumetricClouds,
         VolumetricCloudsPrepare,
         VolumetricCloudsTrace,
         VolumetricCloudsReproject,
+        VolumetricCloudsPreUpscale,
         VolumetricCloudsUpscaleAndCombine,
         VolumetricCloudsShadow,
         VolumetricCloudMapGeneration,
+        VolumetricCloudsAmbientProbe,
 
         // RT Cluster
         RaytracingBuildCluster,
@@ -141,7 +144,16 @@ namespace UnityEngine.Rendering.HighDefinition
         TemporalFilter,
         DiffuseFilter,
 
+        UpdateGlobalConstantBuffers,
+        UpdateEnvironment,
+        ConfigureKeywords,
+        RecordRenderGraph,
+
         PrepareLightsForGPU,
+        PrepareGPULightdata,
+        PrepareGPUProbeData,
+        ConvertLightsGpuFormat,
+        ProcessVisibleLights,
 
         // Profile sampler for shadow
         RenderShadowMaps,
@@ -182,6 +194,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DynamicExposure,
         ApplyExposure,
         TemporalAntialiasing,
+        DeepLearningSuperSamplingColorMask,
+        DeepLearningSuperSampling,
         DepthOfField,
         DepthOfFieldKernel,
         DepthOfFieldCoC,
@@ -193,6 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldGatherNear,
         DepthOfFieldPreCombine,
         DepthOfFieldCombine,
+        LensFlareDataDriven,
         MotionBlur,
         MotionBlurMotionVecPrep,
         MotionBlurTileMinMax,
@@ -205,13 +220,18 @@ namespace UnityEngine.Rendering.HighDefinition
         UberPost,
         FXAA,
         SMAA,
+        SceneUpsampling,
+        SetResolutionGroup,
         FinalPost,
         FinalImageHistogram,
         CustomPostProcessBeforeTAA,
         CustomPostProcessBeforePP,
+        CustomPostProcessAfterPPBlurs,
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
         ContrastAdaptiveSharpen,
+        RobustContrastAdaptiveSharpen,
+        EdgeAdaptiveSpatialUpsampling,
         PrepareProbeVolumeList,
         ProbeVolumeDebug,
 
