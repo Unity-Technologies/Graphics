@@ -146,7 +146,7 @@ namespace UnityEditor.Rendering.Utilities
             // Note: rpAssetType == null possible and should mean built-in
             // but this is not possible as a key in s_MenuMap so we use the forbiden RenderPipelineAsset type for that
             foreach (Type type in renderPipelineAssetTypes)
-                if (!typeof(RenderPipelineAsset).IsAssignableFrom(type) && type != null)
+                if (type != null && !typeof(RenderPipelineAsset).IsAssignableFrom(type))
                     throw new ArgumentException("Argument must be a RenderPipelineAsset child type", nameof(renderPipelineTypes));
 
             this.renderPipelineAssetTypes = renderPipelineAssetTypes
