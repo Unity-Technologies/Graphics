@@ -742,12 +742,23 @@ namespace UnityEditor.VFX
             graph.ValidateGraph();
 
             // Check the validity of the shader graph (unsupported keywords or shader property usage).
-            if (!VFXLibrary.currentSRPBinder.IsGraphDataValid(graph))
+            if (VFXLibrary.currentSRPBinder == null || !VFXLibrary.currentSRPBinder.IsGraphDataValid(graph))
                 return null;
 
-            var target = graph.activeTargets.FirstOrDefault();
+            var target = graph.activeTargets.Where(o =>
+            {
+                if (o.SupportsVFX())
+                {
+                    //We are assuming the target has been implemented in the same package than srp binder.
+                    var srpBinderAssembly = VFXLibrary.currentSRPBinder.GetType().Assembly;
+                    var targetAssembly = o.GetType().Assembly;
+                    if (srpBinderAssembly == targetAssembly)
+                        return true;
+                }
+                return false;
+            }).FirstOrDefault();
 
-            if (!target.TryConfigureContextData(context, contextData))
+            if (target == null || !target.TryConfigureContextData(context, contextData))
                 return null;
 
             // Use ShaderGraph to generate the VFX shader.
