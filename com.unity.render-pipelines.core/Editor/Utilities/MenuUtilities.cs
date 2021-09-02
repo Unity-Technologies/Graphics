@@ -130,14 +130,24 @@ namespace UnityEditor.Rendering.Utilities
         }
     }
 
+    /// <summary>MenuItem filtered by used render pipeline</summary>
     [AttributeUsage(AttributeTargets.Method)]
     public class MenuItemForRenderPipeline : Attribute
     {
+        /// <summary>Supported render pipeline types</summary>
         public readonly Type[] renderPipelineAssetTypes;
+        /// <summary>Path in menu tree</summary>
         public readonly string path;
+        /// <summary>Position in tree</summary>
         public readonly int priority;
+        /// <summary>Is this the validate method?</summary>
         public readonly bool validate;
 
+        /// <summary>MenuItem filtered by used render pipeline</summary>
+        /// <param name="path">Path in menu tree</param>
+        /// <param name="validate">Is this the validate method?</param>
+        /// <param name="priority">Position in tree</param>
+        /// <param name="renderPipelineAssetTypes">Supported render pipeline types</param>
         public MenuItemForRenderPipeline(string path, bool validate = false, int priority = 0, params Type[] renderPipelineAssetTypes)
         {
             if (renderPipelineAssetTypes == null || renderPipelineAssetTypes.Length == 0)
