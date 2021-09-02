@@ -151,13 +151,13 @@ namespace UnityEditor.Rendering.Utilities
         public MenuItemForRenderPipeline(string path, bool validate = false, int priority = 0, params Type[] renderPipelineAssetTypes)
         {
             if (renderPipelineAssetTypes == null || renderPipelineAssetTypes.Length == 0)
-                throw new ArgumentNullException("Argument cannot be null. Use MenuItem instead if you don't need to filter per RenderPipeline.", nameof(renderPipelineTypes));
+                throw new ArgumentNullException("Argument cannot be null. Use MenuItem instead if you don't need to filter per RenderPipeline.", nameof(renderPipelineAssetTypes));
 
             // Note: rpAssetType == null possible and should mean built-in
             // but this is not possible as a key in s_MenuMap so we use the forbiden RenderPipelineAsset type for that
             foreach (Type type in renderPipelineAssetTypes)
                 if (type != null && !typeof(RenderPipelineAsset).IsAssignableFrom(type))
-                    throw new ArgumentException("Argument must be a RenderPipelineAsset child type", nameof(renderPipelineTypes));
+                    throw new ArgumentException("Argument must be a RenderPipelineAsset child type", nameof(renderPipelineAssetTypes));
 
             this.renderPipelineAssetTypes = renderPipelineAssetTypes
                 .Select(rpat => rpat != null ? rpat : typeof(RenderPipelineAsset)).ToArray();
