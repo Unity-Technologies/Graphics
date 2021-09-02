@@ -28,7 +28,7 @@ uint GetIndexInAttributeBuffer(uint instanceIndex, uint indexInInstance)
 
 uint GetInstanceIndexFromGroupID(uint3 groupId,uint nbThreadPerGroup, uint dispatchWidth)
 {
-    return (groupId.x + dispatchWidth * groupId.y) * nbThreadPerGroup / ALIGNED_SYSTEM_CAPACITY;
+    return (1 + (groupId.x + dispatchWidth * groupId.y) * nbThreadPerGroup) / max(ALIGNED_SYSTEM_CAPACITY, nbThreadPerGroup);
 }
 
 void SetIndexAndInstanceIndex(inout VFXIndices vfxIndices)
@@ -39,32 +39,20 @@ void SetIndexAndInstanceIndex(inout VFXIndices vfxIndices)
     vfxIndices.index = GetIndexInAttributeBuffer(vfxIndices.instanceIndex, vfxIndices.particleIndex);
 }
 
-// The methods for extracting the indices are different in Compute and Output.
-// In Compute shader, it relies on the SV_GroupId and DispatchWidth which are not relevant in Output
-void VFXSetComputeInstancingIndices(
-                            uint nbParticlesPerInstance,
-                            uint3 groupId,
-                            uint nbThreadPerGroup,
-                            uint dispatchWidth,
-                            inout VFXIndices vfxIndices)
-{
-    vfxIndices.instanceIndex = GetInstanceIndexFromGroupID(groupId, nbThreadPerGroup, dispatchWidth);
-    vfxIndices.particleIndex = GetIndexInInstance(vfxIndices.index, vfxIndices.instanceIndex, nbParticlesPerInstance);
-    SetIndexAndInstanceIndex(vfxIndices);
-}
-void VFXSetOutputInstancingIndices(
-                            #if VFX_INSTANCING_VARIABLE_SIZE
-                            uint nbInstancesInDispatch,
-                            #else
-                            uint nbParticlesPerInstance,
-                            #endif
-                            inout VFXIndices vfxIndices)
+void VFXSetInstancingIndices(
+                        #if !VFX_INSTANCING_VARIABLE_SIZE
+                        uint nbParticlesPerInstance,
+                        #endif
+                        inout VFXIndices vfxIndices
+    )
 {
     #if VFX_INSTANCING_VARIABLE_SIZE
+        uint nbInstancesInDispatch, stride;
+        prefixSumInstances.GetDimensions(nbInstancesInDispatch, stride);
         vfxIndices.particleIndex = BinarySearchPrefixSum(vfxIndices.index, prefixSumInstances, nbInstancesInDispatch,vfxIndices.instanceIndex);
     #else
-        vfxIndices.instanceIndex = vfxIndices.index / nbParticlesPerInstance;
         vfxIndices.particleIndex = GetIndexInInstance(vfxIndices.index, vfxIndices.instanceIndex, nbParticlesPerInstance);
     #endif
     SetIndexAndInstanceIndex(vfxIndices);
 }
+

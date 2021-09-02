@@ -324,25 +324,26 @@ float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData st
 ${VFXEnd}
 
 ${VFXBegin:VFXSetOutputInstancingIndices}
-    uint nbInstancesInDispatch = 1; //TODO :nbInstancesInDispatch is supposed to be a uniform in the future
     VFXIndices vfxIndices;
     ZERO_INITIALIZE(VFXIndices, vfxIndices);
     vfxIndices.index = index;
 #if VFX_INSTANCING_VARIABLE_SIZE
-        VFXSetOutputInstancingIndices(nbInstancesInDispatch, vfxIndices);
+        VFXSetInstancingIndices(vfxIndices);
 #else
-        VFXSetOutputInstancingIndices(asuint(nbMax), vfxIndices);
+        uint nbParticlesPerInstance = asuint(nbMax);
+        vfxIndices.instanceIndex =  vfxIndices.index / nbParticlesPerInstance;
+        VFXSetInstancingIndices(nbParticlesPerInstance, vfxIndices);
 #endif
     index = vfxIndices.index;
     particleIndex = vfxIndices.particleIndex;
 ${VFXEnd}
 
 ${VFXBegin:VFXSetComputeInstancingIndices}
-    uint nbInstancesInDispatch = 1; //TODO :nbInstancesInDispatch is supposed to be a uniform in the future
     VFXIndices vfxIndices;
     ZERO_INITIALIZE(VFXIndices, vfxIndices);
     vfxIndices.index = index;
-    VFXSetComputeInstancingIndices(nbMax, groupId, NB_THREADS_PER_GROUP, dispatchWidth, vfxIndices);
+    vfxIndices.instanceIndex = GetInstanceIndexFromGroupID(groupId, NB_THREADS_PER_GROUP, dispatchWidth);
+    VFXSetInstancingIndices(nbMax, vfxIndices);
     index = vfxIndices.index;
     particleIndex = vfxIndices.particleIndex;
 ${VFXEnd}
