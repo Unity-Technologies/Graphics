@@ -368,14 +368,14 @@ namespace UnityEngine.Rendering.Universal
 
 
         /// <summary>
-        /// Returns the frontbuffer color target. Returns 0 if not implemented by the renderer.
+        /// Returns the frontbuffer color target. Returns null if not implemented by the renderer.
         /// It's only valid to call GetCameraColorFrontBuffer in the scope of <c>ScriptableRenderPass</c>.
         /// </summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        virtual internal RenderTargetIdentifier GetCameraColorFrontBuffer(CommandBuffer cmd)
+        virtual internal RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
         {
-            return 0;
+            return null;
         }
 
         /// <summary>

@@ -645,10 +645,27 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
         /// <seealso cref="ScriptableRenderer"/>
+        [Obsolete]
         public void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
         {
             ScriptableRenderer.SetRenderTarget(cmd, destination, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
             cmd.Blit(source, destination, material, passIndex);
+        }
+
+        /// <summary>
+        /// Add a blit command to the context for execution. This changes the active render target in the ScriptableRenderer to
+        /// destination.
+        /// </summary>
+        /// <param name="cmd">Command buffer to record command for execution.</param>
+        /// <param name="source">Source texture or target handle to blit from.</param>
+        /// <param name="destination">Destination texture or target handle to blit into. This becomes the renderer active render target.</param>
+        /// <param name="material">Material to use.</param>
+        /// <param name="passIndex">Shader pass to use. Default is 0.</param>
+        /// <seealso cref="ScriptableRenderer"/>
+        public void Blit(CommandBuffer cmd, RTHandle source, RTHandle destination, Material material = null, int passIndex = 0)
+        {
+            ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag, clearColor);
+            cmd.Blit(source.nameID, destination.nameID, material, passIndex);
         }
 
         /// <summary>
@@ -662,7 +679,7 @@ namespace UnityEngine.Rendering.Universal
         {
             var renderer = data.cameraData.renderer;
 
-            Blit(cmd, renderer.cameraColorTarget, renderer.GetCameraColorFrontBuffer(cmd), material, passIndex);
+            Blit(cmd, renderer.cameraColorTargetHandle, renderer.GetCameraColorFrontBuffer(cmd), material, passIndex);
             renderer.SwapColorBuffer(cmd);
         }
 

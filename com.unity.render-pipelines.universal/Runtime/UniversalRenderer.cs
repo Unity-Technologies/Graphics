@@ -1196,9 +1196,9 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.nameID);
         }
 
-        internal override RenderTargetIdentifier GetCameraColorFrontBuffer(CommandBuffer cmd)
+        internal override RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
         {
-            return m_ColorBufferSystem.GetFrontBuffer(cmd).nameID;
+            return m_ColorBufferSystem.GetFrontBuffer(cmd);
         }
 
         internal override void EnableSwapBufferMSAA(bool enable)
