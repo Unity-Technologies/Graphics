@@ -258,17 +258,50 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector("_LightPosition", new Vector4(lightPosition.x, lightPosition.y, lightPosition.z, 1.0f));
         }
 
-        public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
+        private static RenderTextureDescriptor GetTemporaryShadowTextureDescriptor(int width, int height, int bits)
         {
             var format = Experimental.Rendering.GraphicsFormatUtility.GetDepthStencilFormat(bits, 0);
             RenderTextureDescriptor rtd = new RenderTextureDescriptor(width, height, Experimental.Rendering.GraphicsFormat.None, format);
             rtd.shadowSamplingMode = (RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
-                && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)) ?
+                                      && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2)) ?
                 ShadowSamplingMode.CompareDepths : ShadowSamplingMode.None;
+            return rtd;
+        }
+
+        [Obsolete]
+        public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
+        {
+            var rtd = GetTemporaryShadowTextureDescriptor(width, height, bits);
             var shadowTexture = RenderTexture.GetTemporary(rtd);
             shadowTexture.filterMode = m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear;
             shadowTexture.wrapMode = TextureWrapMode.Clamp;
             return shadowTexture;
+        }
+
+        public static bool ShadowRTNeedsReAlloc(RTHandle handle, int width, int height, int bits, bool scaled)
+        {
+            if (handle == null)
+            {
+                return true;
+            }
+            var descriptor = GetTemporaryShadowTextureDescriptor(width, height, bits);
+            if (m_ForceShadowPointSampling)
+            {
+                if (handle.rt.filterMode != FilterMode.Point)
+                    return true;
+            }
+            else
+            {
+                if (handle.rt.filterMode != FilterMode.Bilinear)
+                    return true;
+            }
+            return RenderingUtils.RTHandleNeedsReAlloc(handle, descriptor, scaled);
+        }
+
+        public static RTHandle AllocShadowRT(int width, int height, int bits, string name)
+        {
+            var rtd = GetTemporaryShadowTextureDescriptor(width, height, bits);
+            return RTHandles.Alloc(rtd, m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear, TextureWrapMode.Clamp, isShadowMap: true);
         }
 
         static Matrix4x4 GetShadowTransform(Matrix4x4 proj, Matrix4x4 view)

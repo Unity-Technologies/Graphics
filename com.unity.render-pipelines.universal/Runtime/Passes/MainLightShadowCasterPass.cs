@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_SupportsBoxFilterForShadows;
 
         int m_MainLightShadowmapID;
-        internal RenderTexture m_MainLightShadowmapTexture;
+        internal RTHandle m_MainLightShadowmapTexture;
 
         Matrix4x4[] m_MainLightShadowMatrices;
         ShadowSliceData[] m_CascadeSlices;
@@ -64,6 +64,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_MainLightShadowmapID = Shader.PropertyToID("_MainLightShadowmapTexture");
             m_SupportsBoxFilterForShadows = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch;
+        }
+
+        public void Dispose()
+        {
+            m_MainLightShadowmapTexture?.Release();
         }
 
         public bool Setup(ref RenderingData renderingData)
@@ -111,7 +116,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     return false;
             }
 
-            m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits);
+            if (ShadowUtils.ShadowRTNeedsReAlloc(m_MainLightShadowmapTexture, renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, false))
+            {
+                m_MainLightShadowmapTexture?.Release();
+                m_MainLightShadowmapTexture = ShadowUtils.AllocShadowRT(renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, "_MainLightShadowmapTexture");
+            }
             m_MaxShadowDistanceSq = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
             m_CascadeBorder = renderingData.shadowData.mainLightShadowCascadeBorder;
 
@@ -120,7 +129,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(new RenderTargetIdentifier(m_MainLightShadowmapTexture), m_MainLightShadowmapTexture.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
+            ConfigureTarget(m_MainLightShadowmapTexture, m_MainLightShadowmapTexture.rt.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -130,23 +139,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderMainLightCascadeShadowmap(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
         }
 
-        /// <inheritdoc/>
-        public override void OnCameraCleanup(CommandBuffer cmd)
-        {
-            if (cmd == null)
-                throw new ArgumentNullException("cmd");
-
-            if (m_MainLightShadowmapTexture)
-            {
-                RenderTexture.ReleaseTemporary(m_MainLightShadowmapTexture);
-                m_MainLightShadowmapTexture = null;
-            }
-        }
-
         void Clear()
         {
-            m_MainLightShadowmapTexture = null;
-
             for (int i = 0; i < m_MainLightShadowMatrices.Length; ++i)
                 m_MainLightShadowMatrices[i] = Matrix4x4.identity;
 
@@ -221,7 +215,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
 
-            cmd.SetGlobalTexture(m_MainLightShadowmapID, m_MainLightShadowmapTexture);
+            cmd.SetGlobalTexture(m_MainLightShadowmapID, m_MainLightShadowmapTexture.nameID);
             cmd.SetGlobalMatrixArray(MainLightShadowConstantBuffer._WorldToShadow, m_MainLightShadowMatrices);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
                 new Vector4(light.shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias));

@@ -277,6 +277,8 @@ namespace UnityEngine.Rendering.Universal
             m_GBufferPass?.Dispose();
             m_PostProcessPasses.Dispose();
             m_ColorBufferSystem.Dispose();
+            m_MainLightShadowCasterPass?.Dispose();
+            m_AdditionalLightsShadowCasterPass?.Dispose();
 
             m_CameraDepthAttachment?.Release();
             m_XRTargetHandleAlias?.Release();
