@@ -2,6 +2,7 @@ import os
 import glob
 from .shared_utils import load_json, find_matching_patterns
 from .rules import *
+from .constants import *
 
 class Unity_log():
     ''''Handles parsing Unity log (UnityLog.txt) against known error patterns'''
@@ -19,21 +20,14 @@ class Unity_log():
             # {
             #       # commented out as this should always come paired with cache instability below
             #     'pattern': r'TcpProtobufSession::SendMessageAsync',
-            #     'tags': ['TcpProtobufSession', 'instability', 'infrastructure'],
+            #     'tags': ['TcpProtobufSession', TAG_INSTABILITY, TAG_INFRASTRUCTURE],
             #     'conclusion': 'failure',
             # },
             {
                 'pattern': r'AcceleratorClientConnectionCallback - disconnected - cacheserver-slo',
-                'tags': ['cache', 'instability', 'infrastructure'],
+                'tags': ['cache', TAG_INSTABILITY, TAG_INFRASTRUCTURE],
                 'conclusion': 'failure',
             },
-            {
-                # this matches everything and must therefore be the last item in the list
-                'pattern': r'.+',
-                'tags': ['unknown'],
-                'conclusion': 'failure',
-                'add_if': add_unknown_pattern_if
-            }
         ]
 
     def read_log(self):
