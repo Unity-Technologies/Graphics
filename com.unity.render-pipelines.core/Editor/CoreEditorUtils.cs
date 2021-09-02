@@ -102,8 +102,19 @@ namespace UnityEditor.Rendering
 
         static void HighlightTimeout()
         {
+            if (!Highlighter.active)
+            {
+                if (s_HighlightBackground != null)
+                    (k_HighlightStyleInfo.GetValue(null) as GUIStyle).normal.background = s_HighlightBackground;
+                s_HighlightBackground = null;
+
+                EditorApplication.update -= HighlightTimeout;
+                s_HighlightStart = -1.0f;
+                return;
+            }
+
             // Item is in view for the first time, register highlight drawer delegate
-            if (Highlighter.active && Highlighter.activeVisible && s_HighlightStart <= 0.0f)
+            if (Highlighter.activeVisible && s_HighlightStart <= 0.0f)
             {
                 s_HighlightStart = Time.realtimeSinceStartup;
 
@@ -118,26 +129,18 @@ namespace UnityEditor.Rendering
                 }
                 else
                 {
-                    EditorApplication.update -= HighlightTimeout;
-                    s_HighlightStart = -1.0f;
+                    Highlighter.Stop();
                 }
             }
 
             if (s_HighlightStart > 0.0f)
             {
-                // Repaint view containing the highlight
-                k_Repaint.Invoke(s_View, null);
-
                 if (Time.realtimeSinceStartup - s_HighlightStart > s_HighlightDuration)
                 {
-                    (k_HighlightStyleInfo.GetValue(null) as GUIStyle).normal.background = s_HighlightBackground;
                     Highlighter.Stop();
 
                     var windowBackend = k_WindowBackendInfo.GetValue(s_View);
                     k_GUIHandlerInfo.RemoveEventHandler(windowBackend, (Action)ControlHighlightGUI);
-
-                    EditorApplication.update -= HighlightTimeout;
-                    s_HighlightStart = -1.0f;
                 }
             }
         }
