@@ -228,7 +228,7 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public Shader probeDebugShader;
 
-        public ProbeVolumeSceneBounds sceneBounds;
+        public ProbeVolumeSceneData sceneData;
         public ProbeVolumeSHBands shBands;
     }
 
@@ -514,7 +514,7 @@ namespace UnityEngine.Experimental.Rendering
 
         internal Dictionary<int, CellInfo> cells = new Dictionary<int, CellInfo>();
 
-        internal ProbeVolumeSceneBounds sceneBounds;
+        internal ProbeVolumeSceneData sceneData;
 
 
         /// <summary>
@@ -618,11 +618,11 @@ namespace UnityEngine.Experimental.Rendering
             InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
             m_NeedsIndexRebuild = true;
-            sceneBounds = parameters.sceneBounds;
+            sceneData = parameters.sceneData;
 #if UNITY_EDITOR
-            if (sceneBounds != null)
+            if (sceneData != null)
             {
-                UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneBounds.UpdateSceneBounds;
+                UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.OnSceneSaved;
             }
 #endif
         }
@@ -821,6 +821,11 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             var path = asset.GetSerializedFullPath();
+
+            // Load info coming originally from profile
+            SetTRS(Vector3.zero, Quaternion.identity, asset.minBrickSize);
+            SetMaxSubdivision(asset.maxSubdivision);
+
 
             for (int i = 0; i < asset.cells.Count; ++i)
             {

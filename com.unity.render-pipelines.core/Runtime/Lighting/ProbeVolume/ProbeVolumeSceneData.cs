@@ -5,13 +5,23 @@ using UnityEditor;
 #endif
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Reflection;
 
 namespace UnityEngine.Experimental.Rendering
 {
+    // Add Profile and baking settings.
+
     [System.Serializable]
     /// <summary> A class containing info about the bounds defined by the probe volumes in various scenes. </summary>
-    public class ProbeVolumeSceneBounds : ISerializationCallbackReceiver
+    public class ProbeVolumeSceneData : ISerializationCallbackReceiver
     {
+        static PropertyInfo s_SceneGUID = typeof(Scene).GetProperty("guid", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
+        string GetSceneGUID(Scene scene)
+        {
+            Debug.Assert(s_SceneGUID != null, "Reflection for scene GUID failed");
+            return (string)s_SceneGUID.GetValue(scene);
+        }
+
         [System.Serializable]
         struct SerializableBoundItem
         {
@@ -26,27 +36,50 @@ namespace UnityEngine.Experimental.Rendering
             [SerializeField] public bool hasProbeVolumes;
         }
 
+        [System.Serializable]
+        struct SerializablePVProfile
+        {
+            [SerializeField] public string sceneGUID;
+            [SerializeField] public ProbeReferenceVolumeProfile profile;
+        }
+
+        [System.Serializable]
+        struct SerializablePVBakeSettings
+        {
+            [SerializeField] public string sceneGUID;
+            [SerializeField] public ProbeVolumeBakingProcessSettings settings;
+        }
+
         [SerializeField] List<SerializableBoundItem> serializedBounds;
         [SerializeField] List<SerializableHasPVItem> serializedHasVolumes;
+        [SerializeField] List<SerializablePVProfile> serializedProfiles;
+        [SerializeField] List<SerializablePVBakeSettings> serializedBakeSettings;
 
         Object m_ParentAsset = null;
         /// <summary> A dictionary containing the Bounds defined by probe volumes for each scene (scene path is the key of the dictionary). </summary>
         public Dictionary<string, Bounds> sceneBounds;
         internal Dictionary<string, bool> hasProbeVolumes;
+        internal Dictionary<string, ProbeReferenceVolumeProfile> sceneProfiles;
+        internal Dictionary<string, ProbeVolumeBakingProcessSettings> sceneBakingSettings;
 
-        /// <summary>Constructor for ProbeVolumeSceneBounds. </summary>
-        /// <param name="parentAsset">The asset holding this ProbeVolumeSceneBounds, it will be dirtied every time scene bounds are updated. </param>
-        public ProbeVolumeSceneBounds(Object parentAsset)
+        /// <summary>Constructor for ProbeVolumeSceneData. </summary>
+        /// <param name="parentAsset">The asset holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
+        public ProbeVolumeSceneData(Object parentAsset)
         {
             m_ParentAsset = parentAsset;
             sceneBounds = new Dictionary<string, Bounds>();
             hasProbeVolumes = new Dictionary<string, bool>();
+            sceneProfiles = new Dictionary<string, ProbeReferenceVolumeProfile>();
+            sceneBakingSettings = new Dictionary<string, ProbeVolumeBakingProcessSettings>();
+
             serializedBounds = new List<SerializableBoundItem>();
             serializedHasVolumes = new List<SerializableHasPVItem>();
+            serializedProfiles = new List<SerializablePVProfile>();
+            serializedBakeSettings = new List<SerializablePVBakeSettings>();
         }
 
-        /// <summary>Set a reference to the object holding this ProbeVolumeSceneBounds.</summary>
-        /// <param name="parentAsset">The object holding this ProbeVolumeSceneBounds, it will be dirtied every time scene bounds are updated. </param>
+        /// <summary>Set a reference to the object holding this ProbeVolumeSceneData.</summary>
+        /// <param name="parentAsset">The object holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
         public void SetParentObject(Object parent)
         {
             m_ParentAsset = parent;
@@ -58,10 +91,14 @@ namespace UnityEngine.Experimental.Rendering
         public void OnAfterDeserialize()
         {
             // We haven't initialized the bounds, no need to do anything here.
-            if (serializedBounds == null || serializedHasVolumes == null) return;
+            if (serializedBounds == null || serializedHasVolumes == null ||
+                serializedProfiles == null || serializedBakeSettings == null) return;
 
             sceneBounds = new Dictionary<string, Bounds>();
             hasProbeVolumes = new Dictionary<string, bool>();
+            sceneProfiles = new Dictionary<string, ProbeReferenceVolumeProfile>();
+            sceneBakingSettings = new Dictionary<string, ProbeVolumeBakingProcessSettings>();
+
             foreach (var boundItem in serializedBounds)
             {
                 sceneBounds.Add(boundItem.scenePath, boundItem.bounds);
@@ -71,6 +108,16 @@ namespace UnityEngine.Experimental.Rendering
             {
                 hasProbeVolumes.Add(boundItem.scenePath, boundItem.hasProbeVolumes);
             }
+
+            foreach (var profileItem in serializedProfiles)
+            {
+                sceneProfiles.Add(profileItem.sceneGUID, profileItem.profile);
+            }
+
+            foreach (var settingsItem in serializedBakeSettings)
+            {
+                sceneBakingSettings.Add(settingsItem.sceneGUID, settingsItem.settings);
+            }
         }
 
         /// <summary>
@@ -79,11 +126,14 @@ namespace UnityEngine.Experimental.Rendering
         public void OnBeforeSerialize()
         {
             // We haven't initialized the bounds, no need to do anything here.
-            if (sceneBounds == null || hasProbeVolumes == null ||
-                serializedBounds == null || serializedHasVolumes == null) return;
+            if (sceneBounds == null || hasProbeVolumes == null || sceneBakingSettings == null || sceneProfiles == null ||
+                serializedBounds == null || serializedHasVolumes == null || serializedBakeSettings == null || serializedProfiles == null) return;
 
             serializedBounds.Clear();
             serializedHasVolumes.Clear();
+            serializedProfiles.Clear();
+            serializedBakeSettings.Clear();
+
             foreach (var k in sceneBounds.Keys)
             {
                 SerializableBoundItem item;
@@ -98,6 +148,22 @@ namespace UnityEngine.Experimental.Rendering
                 item.scenePath = k;
                 item.hasProbeVolumes = hasProbeVolumes[k];
                 serializedHasVolumes.Add(item);
+            }
+
+            foreach (var k in sceneBakingSettings.Keys)
+            {
+                SerializablePVBakeSettings item;
+                item.sceneGUID = k;
+                item.settings = sceneBakingSettings[k];
+                serializedBakeSettings.Add(item);
+            }
+
+            foreach (var k in sceneProfiles.Keys)
+            {
+                SerializablePVProfile item;
+                item.sceneGUID = k;
+                item.profile = sceneProfiles[k];
+                serializedProfiles.Add(item);
             }
         }
 
@@ -218,6 +284,83 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        // It is important this is called after UpdateSceneBounds is called!
+        internal void EnsurePerSceneData(Scene scene)
+        {
+            if (hasProbeVolumes.ContainsKey(scene.path) && hasProbeVolumes[scene.path])
+            {
+                var perSceneData = UnityEngine.GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
+                var sceneGUID = GetSceneGUID(scene);
+
+                bool foundPerSceneData = false;
+                foreach (var data in perSceneData)
+                {
+                    if (GetSceneGUID(data.gameObject.scene) == sceneGUID)
+                    {
+                        foundPerSceneData = true;
+                    }
+                }
+
+                if (!foundPerSceneData)
+                {
+                    GameObject go = new GameObject("ProbeVolumePerSceneData");
+                    go.hideFlags |= HideFlags.HideInHierarchy;
+                    go.AddComponent<ProbeVolumePerSceneData>();
+                    SceneManager.MoveGameObjectToScene(go, scene);
+                }
+            }
+        }
+
+        internal void OnSceneSaved(Scene scene)
+        {
+            UpdateSceneBounds(scene);
+            EnsurePerSceneData(scene);
+        }
+
+
+        internal void SetProfileForScene(Scene scene, ProbeReferenceVolumeProfile profile)
+        {
+            if (sceneProfiles == null) sceneProfiles = new Dictionary<string, ProbeReferenceVolumeProfile>();
+
+            var sceneGUID = GetSceneGUID(scene);
+            sceneProfiles[sceneGUID] = profile;
+        }
+
+        internal void SetBakeSettingsForScene(Scene scene, ProbeDilationSettings dilationSettings, VirtualOffsetSettings virtualOffsetSettings)
+        {
+            if (sceneBakingSettings == null) sceneBakingSettings = new Dictionary<string, ProbeVolumeBakingProcessSettings>();
+
+            var sceneGUID = GetSceneGUID(scene);
+
+            ProbeVolumeBakingProcessSettings settings = new ProbeVolumeBakingProcessSettings();
+            settings.dilationSettings = dilationSettings;
+            settings.virtualOffsetSettings = virtualOffsetSettings;
+            sceneBakingSettings[sceneGUID] = settings;
+        }
+
+        internal ProbeReferenceVolumeProfile GetProfileForScene(Scene scene)
+        {
+            var sceneGUID = GetSceneGUID(scene);
+            if (sceneProfiles.ContainsKey(sceneGUID))
+                return sceneProfiles[sceneGUID];
+
+            return null;
+        }
+
+        internal bool BakeSettingsDefinedForScene(Scene scene)
+        {
+            var sceneGUID = GetSceneGUID(scene);
+            return sceneBakingSettings.ContainsKey(sceneGUID);
+        }
+
+        internal ProbeVolumeBakingProcessSettings GetBakeSettingsForScene(Scene scene)
+        {
+            var sceneGUID = GetSceneGUID(scene);
+            if (sceneBakingSettings.ContainsKey(sceneGUID))
+                return sceneBakingSettings[sceneGUID];
+
+            return new ProbeVolumeBakingProcessSettings();
+        }
 #endif
     }
 }

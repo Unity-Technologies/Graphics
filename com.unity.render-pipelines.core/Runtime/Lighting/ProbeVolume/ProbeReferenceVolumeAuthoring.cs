@@ -75,9 +75,6 @@ namespace UnityEngine.Experimental.Rendering
 
         [SerializeField]
         ProbeReferenceVolumeProfile m_Profile = null;
-#if UNITY_EDITOR
-        ProbeReferenceVolumeProfile m_PrevProfile = null;
-#endif
 
         internal ProbeReferenceVolumeProfile profile { get { return m_Profile; } }
         internal float brickSize { get { return m_Profile.minBrickSize; } }
@@ -104,226 +101,48 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField]
         float m_VirtualOffsetBiasOutOfGeometry = 0.01f;
 
-        // Field used for the realtime subdivision preview
         [NonSerialized]
-        internal Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>> realtimeSubdivisionInfo = new Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>>();
-
-        MeshGizmo m_MeshGizmo;
-
-        // In some cases Unity will magically popuplate this private field with a correct value even though it should not be serialized.
-        // The [NonSerialized] attribute allows to force the asset to be null in case a domain reload happens.
-        [NonSerialized]
-        ProbeVolumeAsset m_PrevAsset = null;
+        bool m_SentDataToSceneData = false; // TODO: This is temp until we don't have a setting panel.
 #endif
         [SerializeField]
         float m_DilationValidityThreshold = 0.25f;
 
         public ProbeVolumeAsset volumeAsset = null;
 
-        internal void LoadProfileInformation()
-        {
-            if (m_Profile == null)
-                return;
-
-            var refVol = ProbeReferenceVolume.instance;
-            refVol.SetTRS(Vector3.zero, Quaternion.identity, m_Profile.minBrickSize);
-            refVol.SetMaxSubdivision(m_Profile.maxSubdivision);
-            refVol.dilationValidtyThreshold = m_DilationValidityThreshold;
-        }
-
-        internal void QueueAssetLoading()
-        {
-            LoadProfileInformation();
-
-            if (volumeAsset != null)
-                ProbeReferenceVolume.instance.AddPendingAssetLoading(volumeAsset);
-        }
-
-        internal void QueueAssetRemoval()
-        {
-            if (volumeAsset == null)
-                return;
-
 #if UNITY_EDITOR
-            m_MeshGizmo?.Dispose();
-            m_MeshGizmo = null;
 
-            m_PrevAsset = null;
-#endif
-
-            ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
+        // TEMP! THIS NEEDS TO BE REMOVED WHEN WE HAVE THE SETTINGS PANEL.
+        void SendSceneData(bool force = false)
+        {
+            if (ProbeReferenceVolume.instance.sceneData == null) return;
+            if (!m_SentDataToSceneData || force)
+            {
+                ProbeReferenceVolume.instance.sceneData.SetBakeSettingsForScene(gameObject.scene, GetDilationSettings(), GetVirtualOffsetSettings());
+                ProbeReferenceVolume.instance.sceneData.SetProfileForScene(gameObject.scene, m_Profile);
+                m_SentDataToSceneData = true;
+            }
         }
 
         void OnEnable()
         {
-#if UNITY_EDITOR
             if (m_Profile == null)
                 m_Profile = CreateReferenceVolumeProfile(gameObject.scene, gameObject.name);
-#endif
-            QueueAssetLoading();
+            SendSceneData(force: true);
         }
-
-#if UNITY_EDITOR
 
         void OnValidate()
         {
             if (!enabled || !gameObject.activeSelf)
                 return;
 
-            if (m_Profile != null)
-            {
-                m_PrevProfile = m_Profile;
-            }
-
-            if (volumeAsset != m_PrevAsset && m_PrevAsset != null)
-            {
-                ProbeReferenceVolume.instance.AddPendingAssetRemoval(m_PrevAsset);
-            }
-
-            if (volumeAsset != m_PrevAsset)
-            {
-                QueueAssetLoading();
-            }
-
-            m_PrevAsset = volumeAsset;
+            SendSceneData(force: true);
         }
 
-        void OnDisable()
+
+        // IMPORTANT TODO: This is to be deleted when we have the proper setting panel.
+        private void Update()
         {
-            QueueAssetRemoval();
-        }
-
-        void OnDestroy()
-        {
-            QueueAssetRemoval();
-        }
-
-        internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))
-        {
-            if (m_Profile == null)
-                return true;
-
-            var cameraTransform = SceneView.lastActiveSceneView.camera.transform;
-
-            Vector3 cellCenterWS = cellPosition * m_Profile.cellSizeInMeters + originWS + Vector3.one * (m_Profile.cellSizeInMeters / 2.0f);
-
-            // Round down to cell size distance
-            float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / m_Profile.cellSizeInMeters) * m_Profile.cellSizeInMeters;
-
-            if (roundedDownDist > ProbeReferenceVolume.instance.debugDisplay.subdivisionViewCullingDistance)
-                return true;
-
-            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
-            var volumeAABB = new Bounds(cellCenterWS, m_Profile.cellSizeInMeters * Vector3.one);
-
-            return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
-        }
-
-        // TODO: We need to get rid of Handles.DrawWireCube to be able to have those at runtime as well.
-        void OnDrawGizmos()
-        {
-            var prv = ProbeReferenceVolume.instance;
-
-            if (!enabled || !gameObject.activeSelf || !prv.isInitialized)
-                return;
-
-            var debugDisplay = prv.debugDisplay;
-
-            if (m_MeshGizmo == null)
-                m_MeshGizmo = new MeshGizmo((int)(Mathf.Pow(3, ProbeBrickIndex.kMaxSubdivisionLevels) * 12), prv.cells.Count * 12); // 12 lines and 12 triangles per cube
-
-            m_MeshGizmo.Clear();
-
-            if (debugDisplay.drawBricks)
-            {
-                var subdivColors = prv.subdivisionDebugColors;
-
-                IEnumerable<ProbeBrickIndex.Brick> GetVisibleBricks()
-                {
-                    if (debugDisplay.realtimeSubdivision)
-                    {
-                        // realtime subdiv cells are already culled
-                        foreach (var kp in realtimeSubdivisionInfo)
-                        {
-                            var cellVolume = kp.Key;
-
-                            foreach (var brick in kp.Value)
-                            {
-                                yield return brick;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        foreach (var cellInfo in prv.cells.Values)
-                        {
-                            if (!cellInfo.loaded)
-                                continue;
-
-                            var cell = cellInfo.cell;
-                            if (ShouldCullCell(cell.position, prv.GetTransform().posWS))
-                                continue;
-
-                            if (cell.bricks == null)
-                                continue;
-
-                            foreach (var brick in cell.bricks)
-                                yield return brick;
-                        }
-                    }
-                }
-
-                foreach (var brick in GetVisibleBricks())
-                {
-                    if (brick.subdivisionLevel < 0)
-                        continue;
-
-                    float brickSize = prv.BrickSize(brick.subdivisionLevel);
-                    float minBrickSize = prv.MinBrickSize();
-                    Vector3 scaledSize = new Vector3(brickSize, brickSize, brickSize);
-                    Vector3 scaledPos = new Vector3(brick.position.x * minBrickSize, brick.position.y * minBrickSize, brick.position.z * minBrickSize) + scaledSize / 2;
-
-                    m_MeshGizmo.AddWireCube(scaledPos, scaledSize, subdivColors[brick.subdivisionLevel]);
-                }
-            }
-
-            if (debugDisplay.drawCells)
-            {
-                IEnumerable<Vector4> GetVisibleCellCentersAndState()
-                {
-                    if (debugDisplay.realtimeSubdivision)
-                    {
-                        foreach (var kp in realtimeSubdivisionInfo)
-                        {
-                            kp.Key.CalculateCenterAndSize(out var center, out var _);
-                            yield return new Vector4(center.x, center.y, center.z, 1.0f);
-                        }
-                    }
-                    else
-                    {
-                        foreach (var cellInfo in prv.cells.Values)
-                        {
-                            var cell = cellInfo.cell;
-                            if (ShouldCullCell(cell.position, prv.GetTransform().posWS))
-                                continue;
-
-                            var positionF = new Vector4(cell.position.x, cell.position.y, cell.position.z, 0.0f);
-                            var center = positionF * m_Profile.cellSizeInMeters + m_Profile.cellSizeInMeters * 0.5f * Vector4.one;
-                            center.w = cellInfo.loaded ? 1.0f : 0.0f;
-                            yield return center;
-                        }
-                    }
-                }
-
-                foreach (var center in GetVisibleCellCentersAndState())
-                {
-                    bool loaded = center.w == 1.0f;
-                    m_MeshGizmo.AddWireCube(center, Vector3.one * m_Profile.cellSizeInMeters, loaded ? new Color(0, 1, 0.5f, 1) : new Color(1, 0.0f, 0.0f, 1));
-                    m_MeshGizmo.AddCube(center, Vector3.one * m_Profile.cellSizeInMeters, loaded ? new Color(0, 1, 0.5f, 0.2f) : new Color(1, 0.0f, 0.0f, 0.2f));
-                }
-            }
-
-            m_MeshGizmo.Draw(Matrix4x4.identity, gizmoName: "Probe Volume Cell Rendering");
+            SendSceneData();
         }
 
         public ProbeDilationSettings GetDilationSettings()
