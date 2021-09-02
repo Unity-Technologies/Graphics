@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     public class ScreenSpaceShadowResolvePass : ScriptableRenderPass
     {
         Material m_ScreenSpaceShadowsMaterial;
-        RenderTargetHandle m_ScreenSpaceShadowmap;
+        RTHandle m_ScreenSpaceShadowmap;
         RenderTextureDescriptor m_RenderTextureDescriptor;
 
         public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial)
@@ -17,8 +17,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             base.profilingSampler = new ProfilingSampler(nameof(ScreenSpaceShadowResolvePass));
 
             m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
-            m_ScreenSpaceShadowmap.Init("_ScreenSpaceShadowmapTexture");
+            m_ScreenSpaceShadowmap = RTHandles.Alloc("_ScreenSpaceShadowmapTexture", "_ScreenSpaceShadowmapTexture");
             renderPassEvent = evt;
+        }
+
+        public void Dispose()
+        {
+            m_ScreenSpaceShadowmap.Release();
         }
 
         public void Setup(RenderTextureDescriptor baseDescriptor)
@@ -33,10 +38,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            cmd.GetTemporaryRT(m_ScreenSpaceShadowmap.id, m_RenderTextureDescriptor, FilterMode.Bilinear);
+            cmd.GetTemporaryRT(Shader.PropertyToID(m_ScreenSpaceShadowmap.name), m_RenderTextureDescriptor, FilterMode.Bilinear);
 
-            RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
-            ConfigureTarget(screenSpaceOcclusionTexture);
+            ConfigureTarget(m_ScreenSpaceShadowmap);
             ConfigureClear(ClearFlag.All, Color.white);
         }
 
@@ -66,8 +70,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                 {
                     // Avoid setting and restoring camera view and projection matrices when in stereo.
-                    RenderTargetIdentifier screenSpaceOcclusionTexture = m_ScreenSpaceShadowmap.Identifier();
-                    Blit(cmd, screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
+                    Blit(cmd, m_ScreenSpaceShadowmap, m_ScreenSpaceShadowmap, m_ScreenSpaceShadowsMaterial);
                 }
             }
 
@@ -81,7 +84,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            cmd.ReleaseTemporaryRT(m_ScreenSpaceShadowmap.id);
+            cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_ScreenSpaceShadowmap.name));
         }
     }
 }
