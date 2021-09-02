@@ -87,9 +87,14 @@ namespace UnityEditor.ShaderFoundry
             nameOverrides.Add(key, namespaceName, name, swizzle);
         }
 
-        internal VariableNameOverride FindVariableOverride(string referenceName)
+        internal VariableNameOverride FindLastVariableOverride(string referenceName)
         {
-            return nameOverrides.FindVariableOverride(referenceName);
+            return nameOverrides.FindLastVariableOverride(referenceName);
+        }
+
+        internal IEnumerable<VariableNameOverride> FindVariableOverrides(string referenceName)
+        {
+            return nameOverrides.FindVariableOverrides(referenceName);
         }
 
         internal BlockVariable Build(ShaderContainer container)

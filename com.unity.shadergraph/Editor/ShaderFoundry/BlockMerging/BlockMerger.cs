@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderFoundry
             foreach (var input in blockInputInstance.Fields)
             {
                 // Find if there's a match for this input
-                var inputNameData = blockInputInstance.FindVariableOverride(input.ReferenceName);
+                var inputNameData = blockInputInstance.FindLastVariableOverride(input.ReferenceName);
                 bool allowNonExactMatch = inputNameData.Swizzle != 0;
                 var matchingField = scopes.Find(inputNameData.Namespace, input.Type, inputNameData.Name, allowNonExactMatch);
                 // If not, create a new input on the merged block to link to
@@ -88,12 +88,15 @@ namespace UnityEditor.ShaderFoundry
                 mergedOutputInstance.AddResolvedField(availableOutput.ReferenceName, match);
 
                 // Add a name override for the output so we can keep track of how to resolve this later when linking
-                var outputNameData = blockOutputInstance.FindVariableOverride(output.ReferenceName);
-                mergedOutputInstance.AddOverride(availableOutput.ReferenceName, outputNameData);
+                var outputNameDatas = blockOutputInstance.FindVariableOverrides(output.ReferenceName);
+                foreach (var outputNameData in outputNameDatas)
+                {
+                    mergedOutputInstance.AddOverride(availableOutput.ReferenceName, outputNameData);
 
-                // Set both of these outputs as available in all of the current scopes
-                scopes.SetInCurrentScopeStack(output, outputNameData.Name);
-                scopes.SetInCurrentScopeStack(availableOutput, availableOutput.ReferenceName);
+                    // Set both of these outputs as available in all of the current scopes
+                    scopes.SetInCurrentScopeStack(output, outputNameData.Name);
+                    scopes.SetInCurrentScopeStack(availableOutput, availableOutput.ReferenceName);
+                }
             }
 
             scopes.PopScope();
