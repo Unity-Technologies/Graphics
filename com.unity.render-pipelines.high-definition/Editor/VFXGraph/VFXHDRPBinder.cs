@@ -44,6 +44,17 @@ namespace UnityEditor.VFX.HDRP
             { }
         }
 
+        public override bool TryGetQueueOffset(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings, out int queueOffset)
+        {
+            queueOffset = 0;
+            if (materialSettings.HasProperty(HDMaterialProperties.kTransparentSortPriority))
+            {
+                queueOffset = (int)materialSettings.GetFloat(HDMaterialProperties.kTransparentSortPriority);
+                return true;
+            }
+            return false;
+        }
+
         public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(ShaderGraphVfxAsset shader, VFXMaterialSerializedSettings materialSettings)
         {
             var blendMode = VFXAbstractRenderedOutput.BlendMode.Opaque;

@@ -1,12 +1,13 @@
 #if HAS_VFX_GRAPH
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph;
-using System.Linq;
 using Unity.Rendering.Universal;
+using UnityEditor.Rendering.Universal;
 using UnityEditor.Rendering.Universal.ShaderGraph;
-using System.Collections.Generic;
 
 namespace UnityEditor.VFX.URP
 {
@@ -22,6 +23,40 @@ namespace UnityEditor.VFX.URP
             ShaderUtils.UpdateMaterial(material, ShaderUtils.MaterialUpdateType.ModifiedShader);
             material.SetShaderPassEnabled("MotionVectors", hasMotionVector);
             material.SetShaderPassEnabled("ShadowCaster", hasShadowCasting);
+        }
+
+        public override bool TryGetQueueOffset(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings, out int queueOffset)
+        {
+            //N.B.: Queue offset is always overridable in URP
+            queueOffset = 0;
+            if (materialSettings.HasProperty(Rendering.Universal.Property.QueueOffset))
+            {
+                queueOffset = (int)materialSettings.GetFloat(Rendering.Universal.Property.QueueOffset);
+                return true;
+            }
+            return false;
+        }
+
+        public override bool TryGetCastShadowFromMaterial(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings, out bool castShadow)
+        {
+            castShadow = false;
+
+            var path = AssetDatabase.GetAssetPath(shaderGraph);
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+            if (shader.TryGetMetadataOfType<UniversalMetadata>(out var metaData) && !metaData.allowMaterialOverride)
+            {
+                castShadow = metaData.castShadows;
+                return true;
+            }
+            else
+            {
+                if (materialSettings.HasProperty(Property.CastShadows))
+                {
+                    castShadow = materialSettings.GetFloat(Property.CastShadows) != 0.0f;
+                    return true;
+                }
+            }
+            return false;
         }
 
         public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings)
@@ -44,12 +79,12 @@ namespace UnityEditor.VFX.URP
             }
             else
             {
-                if (materialSettings.HasProperty("_Surface"))
+                if (materialSettings.HasProperty(Property.SurfaceType))
                 {
-                    var surfaceType = (BaseShaderGUI.SurfaceType)materialSettings.GetFloat("_Surface");
+                    var surfaceType = (BaseShaderGUI.SurfaceType)materialSettings.GetFloat(Property.SurfaceType);
                     if (surfaceType == BaseShaderGUI.SurfaceType.Transparent)
                     {
-                        var blendMode = (BaseShaderGUI.BlendMode)materialSettings.GetFloat("_Blend");
+                        var blendMode = (BaseShaderGUI.BlendMode)materialSettings.GetFloat(Property.BlendMode);
                         switch (blendMode)
                         {
                             case BaseShaderGUI.BlendMode.Alpha: vfxBlendMode = VFXAbstractRenderedOutput.BlendMode.Alpha; break;

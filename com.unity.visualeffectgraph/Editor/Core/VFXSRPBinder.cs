@@ -29,6 +29,18 @@ namespace UnityEditor.VFX
 
         public virtual void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null) { }
 
+        public virtual bool TryGetQueueOffset(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings, out int queueOffset)
+        {
+            queueOffset = 0;
+            return false;
+        }
+
+        public virtual bool TryGetCastShadowFromMaterial(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings, out bool castShadow)
+        {
+            castShadow = false;
+            return false;
+        }
+
         public virtual VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings)
         {
             return VFXAbstractRenderedOutput.BlendMode.Opaque;
