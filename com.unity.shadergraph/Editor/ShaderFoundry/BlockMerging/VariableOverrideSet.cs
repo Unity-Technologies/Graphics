@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderFoundry
 
     internal class VariableOverrideSet
     {
-        Dictionary<string, VariableNameOverride> overrides = new Dictionary<string, VariableNameOverride>();
+        Dictionary<string, List<VariableNameOverride>> overrides = new Dictionary<string, List<VariableNameOverride>>();
 
         internal IEnumerable<(string Name, VariableNameOverride Override)> Overrides
         {
@@ -26,27 +26,45 @@ namespace UnityEditor.ShaderFoundry
             {
                 foreach(var pair in overrides)
                 {
-                    yield return (pair.Key, pair.Value);
+                    foreach(var item in pair.Value)
+                        yield return (pair.Key, item);
                 }
             }
         }
 
         internal void Add(string key, string namespaceName, string name, int swizzle)
         {
-            overrides[key] = new VariableNameOverride { Name = name, Namespace = namespaceName, Swizzle = swizzle };
+            if (!overrides.ContainsKey(key))
+                overrides.Add(key, new List<VariableNameOverride>());
+            overrides[key].Add(new VariableNameOverride { Name = name, Namespace = namespaceName, Swizzle = swizzle });
         }
 
-        internal VariableNameOverride FindVariableOverride(BlockVariableLinkInstance varInstance)
+        internal VariableNameOverride FindLastVariableOverride(BlockVariableLinkInstance varInstance)
         {
-            return FindVariableOverride(varInstance.ReferenceName);
+            return FindLastVariableOverride(varInstance.ReferenceName);
         }
 
-        internal VariableNameOverride FindVariableOverride(string referenceName)
+        internal VariableNameOverride FindLastVariableOverride(string referenceName)
         {
+            if (overrides.TryGetValue(referenceName, out var varOverrides))
+            {
+                if (varOverrides.Count != 0)
+                    return varOverrides[varOverrides.Count - 1];
+            }
+
             VariableNameOverride varOverride;
-            if (!overrides.TryGetValue(referenceName, out varOverride))
-                varOverride = new VariableNameOverride { Name = referenceName };
+            varOverride = new VariableNameOverride { Name = referenceName };
             return varOverride;
+        }
+
+        internal IEnumerable<VariableNameOverride> FindVariableOverrides(string referenceName)
+        {
+            if (overrides.TryGetValue(referenceName, out var varOverrides))
+                return varOverrides;
+
+            VariableNameOverride varOverride;
+            varOverride = new VariableNameOverride { Name = referenceName };
+            return new [] {varOverride };
         }
     }
 }

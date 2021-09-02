@@ -158,12 +158,12 @@ namespace UnityEditor.ShaderFoundry
             // Find if any input/output have matching names. If so then mark them as varyings
             foreach (var output in outputTypeInstance.ResolvedFields)
             {
-                var varOverride = outputTypeInstance.FindVariableOverride(output.ReferenceName);
+                var varOverride = outputTypeInstance.FindLastVariableOverride(output.ReferenceName);
                 availableOutputs[varOverride.Name] = output;
             }
             foreach (var input in inputTypeInstance.ResolvedFields)
             {
-                var varOverride = inputTypeInstance.FindVariableOverride(input.ReferenceName);
+                var varOverride = inputTypeInstance.FindLastVariableOverride(input.ReferenceName);
                 string name = varOverride.Name;
                 if (availableOutputs.TryGetValue(name, out var matchingOutput))
                 {
