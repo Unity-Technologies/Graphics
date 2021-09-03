@@ -6,8 +6,9 @@ namespace UnityEngine.Rendering.Universal
 {
     internal class ShadowUtility
     {
+        const int k_AdditionalVerticesPerVertex = 2;
         const int k_VerticesPerTriangle = 3;
-        const int k_TrianglesPerEdge = 2;
+        const int k_TrianglesPerEdge = 3;
         const int k_MinimumEdges = 3;
 
         static public int debugVert = 0;
@@ -122,20 +123,31 @@ namespace UnityEngine.Rendering.Universal
 
         static void CalculateTriangles(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<int> outMeshIndices)
         {
+            int prevEdge = inEdges.Length - 1;
             for (int i = 0; i < inEdges.Length; i++)
             {
-                int v0 = inEdges[i].v0;
-                int v1 = inEdges[i].v1;
+                int v0    = inEdges[i].v0;
+                int v1    = inEdges[i].v1;
+                
 
-                int additionalVerticesStart = 2 * i + inVertices.Length;
+                int additionalVerticesStart = k_AdditionalVerticesPerVertex * i + inVertices.Length;
 
-                int startingMeshIndex = k_VerticesPerTriangle * k_TrianglesPerEdge * i; 
+                int startingMeshIndex = k_VerticesPerTriangle * k_TrianglesPerEdge * i;
+                // Add a degenerate rectangle 
                 outMeshIndices[startingMeshIndex] = (ushort)v0;
                 outMeshIndices[startingMeshIndex + 1] = (ushort)additionalVerticesStart;
                 outMeshIndices[startingMeshIndex + 2] = (ushort)(additionalVerticesStart + 1);
                 outMeshIndices[startingMeshIndex + 3] = (ushort)(additionalVerticesStart + 1);
                 outMeshIndices[startingMeshIndex + 4] = (ushort)v1;
                 outMeshIndices[startingMeshIndex + 5] = (ushort)v0;
+
+                // Add a triangle to connect that rectangle to the neighboring rectangle so we have a seamless mesh
+                int prevAdditionalVertex = k_AdditionalVerticesPerVertex * prevEdge + inVertices.Length;
+                outMeshIndices[startingMeshIndex + 6] = (ushort)(additionalVerticesStart);
+                outMeshIndices[startingMeshIndex + 7] = (ushort)v0;
+                outMeshIndices[startingMeshIndex + 8] = (ushort)prevAdditionalVertex;
+
+                prevEdge = i;
             }
         }
 
