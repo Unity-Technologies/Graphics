@@ -122,37 +122,48 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateTriangles(NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, ref NativeArray<int> outMeshIndices)
+        static void CalculateTriangles(NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices, ref NativeArray<int> outMeshIndices)
         {
-            int prevEdge = inEdges.Length - 1;
-            for (int i = 0; i < inEdges.Length; i++)
+            for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
             {
-                int v0    = inEdges[i].v0;
-                int v1    = inEdges[i].v1;
-                
+                int startingIndex = inShapeStartingIndices[shapeIndex];
+                if (startingIndex < 0)
+                    return;
 
-                int additionalVerticesStart = k_AdditionalVerticesPerVertex * i + inVertices.Length;
+                int endIndex = inShapeStartingIndices.Length;
+                if ((shapeIndex + 1) < inShapeStartingIndices.Length && inShapeStartingIndices[shapeIndex + 1] > -1)
+                    endIndex = inShapeStartingIndices[shapeIndex + 1];
 
-                int startingMeshIndex = k_VerticesPerTriangle * k_TrianglesPerEdge * i;
-                // Add a degenerate rectangle 
-                outMeshIndices[startingMeshIndex] = (ushort)v0;
-                outMeshIndices[startingMeshIndex + 1] = (ushort)additionalVerticesStart;
-                outMeshIndices[startingMeshIndex + 2] = (ushort)(additionalVerticesStart + 1);
-                outMeshIndices[startingMeshIndex + 3] = (ushort)(additionalVerticesStart + 1);
-                outMeshIndices[startingMeshIndex + 4] = (ushort)v1;
-                outMeshIndices[startingMeshIndex + 5] = (ushort)v0;
+                int prevEdge = endIndex - 1;
+                for (int i = startingIndex; i < endIndex; i++)
+                {
+                    int v0 = inEdges[i].v0;
+                    int v1 = inEdges[i].v1;
 
-                // Add a triangle to connect that rectangle to the neighboring rectangle so we have a seamless mesh
-                int prevAdditionalVertex = k_AdditionalVerticesPerVertex * prevEdge + inVertices.Length;
-                outMeshIndices[startingMeshIndex + 6] = (ushort)(additionalVerticesStart);
-                outMeshIndices[startingMeshIndex + 7] = (ushort)v0;
-                outMeshIndices[startingMeshIndex + 8] = (ushort)prevAdditionalVertex;
 
-                prevEdge = i;
+                    int additionalVerticesStart = k_AdditionalVerticesPerVertex * i + inVertices.Length;
+
+                    int startingMeshIndex = k_VerticesPerTriangle * k_TrianglesPerEdge * i;
+                    // Add a degenerate rectangle 
+                    outMeshIndices[startingMeshIndex] = (ushort)v0;
+                    outMeshIndices[startingMeshIndex + 1] = (ushort)additionalVerticesStart;
+                    outMeshIndices[startingMeshIndex + 2] = (ushort)(additionalVerticesStart + 1);
+                    outMeshIndices[startingMeshIndex + 3] = (ushort)(additionalVerticesStart + 1);
+                    outMeshIndices[startingMeshIndex + 4] = (ushort)v1;
+                    outMeshIndices[startingMeshIndex + 5] = (ushort)v0;
+
+                    // Add a triangle to connect that rectangle to the neighboring rectangle so we have a seamless mesh
+                    int prevAdditionalVertex = k_AdditionalVerticesPerVertex * prevEdge + inVertices.Length;
+                    outMeshIndices[startingMeshIndex + 6] = (ushort)(additionalVerticesStart);
+                    outMeshIndices[startingMeshIndex + 7] = (ushort)v0;
+                    outMeshIndices[startingMeshIndex + 8] = (ushort)prevAdditionalVertex;
+
+                    prevEdge = i;
+                }
             }
         }
 
-        static BoundingSphere CalculateBoundingSphere(ref NativeArray<Vector3> inVertices)
+        static BoundingSphere CalculateBoundingSphere(NativeArray<Vector3> inVertices)
         {
             Debug.AssertFormat(inVertices.Length > 0, "At least one vertex is required to calculate a bounding sphere");
 
@@ -205,7 +216,7 @@ namespace UnityEngine.Rendering.Universal
             CalculateContraction(inVertices, inEdges, meshTangents, inShapeStartingIndices, ref contractionDirection);
             CalculateTangents(inVertices, inEdges, contractionDirection, ref meshTangents);                            // meshVertices contain a normal component
             CalculateVertices(inVertices, inEdges, meshTangents, ref meshFinalVertices);
-            CalculateTriangles(inVertices, inEdges, ref meshIndices);
+            CalculateTriangles(inVertices, inEdges, inShapeStartingIndices, ref meshIndices);
 
             // Set the mesh data
             mesh.SetVertexBufferParams(meshVertexCount, m_VertexLayout);
@@ -215,9 +226,8 @@ namespace UnityEngine.Rendering.Universal
 
             mesh.subMeshCount = 1;
             mesh.SetSubMesh(0, new SubMeshDescriptor(0, meshIndexCount));
-    
 
-            BoundingSphere retBoundingSphere = CalculateBoundingSphere(ref inVertices);
+            BoundingSphere retBoundingSphere = CalculateBoundingSphere(inVertices);
 
             contractionDirection.Dispose();
             meshTangents.Dispose();
