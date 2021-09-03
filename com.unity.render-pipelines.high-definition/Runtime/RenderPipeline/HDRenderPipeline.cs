@@ -3349,7 +3349,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     case Camera.RenderRequestMode.ObjectId:
                     case Camera.RenderRequestMode.EntityId:
                         shaderTagId = new ShaderTagId("Picking");
-                        // TODO: Find out why CullMode.Back does not work correctly here
+                        // Turn backface culling off. HDRP Picking passes set "Cull Off" regardless, but things
+                        // don't seem to always work properly unless it's done here as well.
                         renderState.rasterState = new RasterState(CullMode.Off);
                         renderState.mask = RenderStateMask.Raster;
                         break;
