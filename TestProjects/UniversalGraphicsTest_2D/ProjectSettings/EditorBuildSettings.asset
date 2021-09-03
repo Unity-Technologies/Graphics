@@ -44,9 +44,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/003_PixelPerfect_Cinemachine.unity
     guid: 548efbe8196c7bb41a94d25d70cf82e6
-  - enabled: 0
-    path: Assets/Scenes/003_PixelPerfect_PostProcessing.unity
-    guid: 9f750aafa54d07a43b7601615bb2c7ea
   - enabled: 1
     path: Assets/Scenes/004_Shadows_Caster_Ortho_000.unity
     guid: 304cf4847cf9c824a914e06835197176
@@ -150,6 +147,9 @@ EditorBuildSettings:
     path: Assets/Scenes/010_2D_Sprite_Mask.unity
     guid: 69088ea57141f154599d0b9cb3b27662
   - enabled: 1
+    path: Assets/Scenes/010_2D_Sprite_Mask_Normals.unity
+    guid: ed89280810f9d034f93a6efc7ca1816e
+  - enabled: 1
     path: Assets/Scenes/011_UnlitSprites.unity
     guid: c1aed1727cd63dd42882f4c9ebb99cf4
   - enabled: 1
@@ -176,6 +176,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/012_NormalTestingRotated_LightUp_Ortho.unity
     guid: 84884fed3ff237d4d9a38a1163699383
+  - enabled: 1
     path: Assets/Scenes/013_Shadergraph_AlphaBlend.unity
     guid: a845098be7b438b40a7f4dee1b6aa5aa
   - enabled: 1

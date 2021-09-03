@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph
         public RoundedPolygonNode()
         {
             name = "Rounded Polygon";
+            synonyms = new string[] { "shape" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

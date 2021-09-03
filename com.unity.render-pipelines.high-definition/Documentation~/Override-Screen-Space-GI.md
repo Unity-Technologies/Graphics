@@ -45,6 +45,7 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 | - **Half Resolution Denoiser** | Enable this feature to evaluate the spatio-temporal filter in half resolution. This decreases the resource intensity of denoising but reduces quality. |
 | - **Denoiser Radius**          | Set the radius of the spatio-temporal filter.                |
 | - **Second Denoiser Pass**     | Enable this feature to process a second denoiser pass. This helps to remove noise from the effect. |
+| **Full Resolution**            | Enable this feature to increase the ray budget to one ray per pixel, per frame. Disable this feature to decrease the ray budget to one ray per four pixels, per frame.|
 | **Depth Tolerance** | Use the slider to control the tolerance when comparing the depth of the GameObjects on screen and the depth buffer. Because the SSR algorithm can not distinguish thin GameObjects from thick ones, this property helps trace rays behind GameObjects. The algorithm applies this property to every GameObject uniformly. |
 | **Ray Miss**         | Determines what HDRP does when a screen space global illumination (SSGI) ray doesn't find an intersection. Choose from one of the following options: <br/>&#8226;**Reflection probes**: HDRP uses reflection probes in your scene to calculate the missing SSGI intersection.<br/>&#8226;**Sky**: HDRP uses the sky defined by the current [Volume](Volumes.md) settings to calculate the missing SSGI intersection.<br/>&#8226;**Both**: HDRP uses both reflection probes and the sky defined by the current [Volume](Volumes.md) settings to calculate the missing SSGI intersection.<br/>&#8226;**Nothing**: HDRP does not calculate indirect lighting when SSGI doesn't find an intersection.<br/><br/>This property is set to **Both** by default. |
 
@@ -72,6 +73,12 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 | - **Second Denoiser Pass**     | Enable this feature to process a second denoiser pass. This helps to remove noise from the effect. |
 
 ## Limitations
+
+In Deferred rendering mode, Screen Space Global Illumination and Ray-Traced Global Illumination share a buffer with emissive, which overwrites emissive data. 
+There are multiple ways to recover the emissive contribution of the scene materials: 
+* Disable [Receive SSR/SSGI](snippets/shader-properties/surface-options/receive-ssr.md) flag on the emissive materials.
+* Use [Force Forward Emissive](snippets/shader-properties/advanced-options/force-forward-emissive.md) on the emissive materials.
+* Use Forward rendering.
 
 ### Screen-space global illumination
 

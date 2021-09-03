@@ -125,11 +125,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual UnityEngine.Object[] GetHDLights()
         {
-            #if UNITY_2020_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
             var lights = Resources.FindObjectsOfTypeAll<Light>();
-            #else
+#else
             var lights = UnityEngine.Object.FindObjectsOfType<Light>();
-            #endif
+#endif
 
             foreach (Light light in lights)
             {
@@ -147,11 +147,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual UnityEngine.Object[] GetHDReflectionProbes()
         {
-            #if UNITY_2020_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
             var reflectionProbes = Resources.FindObjectsOfTypeAll<ReflectionProbe>();
-            #else
+#else
             var reflectionProbes = UnityEngine.Object.FindObjectsOfType<ReflectionProbe>();
-            #endif
+#endif
 
             foreach (ReflectionProbe probe in reflectionProbes)
             {
@@ -163,20 +163,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual UnityEngine.Object[] GetPlanarReflections()
         {
-            #if UNITY_2020_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
             return Resources.FindObjectsOfTypeAll<PlanarReflectionProbe>();
-            #else
+#else
             return UnityEngine.Object.FindObjectsOfType<PlanarReflectionProbe>();
-            #endif
+#endif
         }
 
         protected virtual UnityEngine.Object[] GetVolumes()
         {
-            #if UNITY_2020_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
             var volumes = Resources.FindObjectsOfTypeAll<Volume>();
-            #else
+#else
             var volumes = UnityEngine.Object.FindObjectsOfType<Volume>();
-            #endif
+#endif
 
             foreach (var volume in volumes)
             {
@@ -581,6 +581,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             Undo.RecordObject(lightData, "Changed contact shadow override");
                             useContactShadow.@override = overrideUseContactShadows;
+
+                            //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                            if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                                SceneView.RepaintAll();
                         }
                     }
                     else
@@ -640,6 +644,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         Undo.RecordObject(lightData, "Changed affects diffuse");
                         lightData.affectDiffuse = affectDiffuse;
+
+                        //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                        if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                            SceneView.RepaintAll();
                     }
                 }, (lprop, rprop) =>
                     {
@@ -674,6 +682,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         Undo.RecordObject(lightData, "Changed affects specular");
                         lightData.affectSpecular = affectSpecular;
+
+                        //SceneView don't update when interacting with Light Explorer when playing and pausing (1354129)
+                        if (EditorApplication.isPlaying && EditorApplication.isPaused)
+                            SceneView.RepaintAll();
                     }
                 }, (lprop, rprop) =>
                     {
