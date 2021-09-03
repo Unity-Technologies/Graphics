@@ -927,7 +927,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_AnchorMax.x
@@ -1009,7 +1009,7 @@ PrefabInstance:
       propertyPath: m_Text
       value: 'This sample shows how to add a lens flare effect to the main directional
         light of the scene. The effect is authored via the Lens Flare (SRP) component
-        on the sun light and its assigned Lens Flare Data object. '
+        on the sunlight and its assigned Lens Flare Data object. '
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}

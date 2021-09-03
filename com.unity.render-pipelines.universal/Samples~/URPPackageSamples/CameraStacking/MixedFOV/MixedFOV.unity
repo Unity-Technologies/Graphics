@@ -2196,7 +2196,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_AnchorMax.x
@@ -2272,9 +2272,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4039968741557396746, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_Text
-      value: 'This sample shows how Camera Stacking can be used in an FPS game to
+      value: This sample shows how Camera Stacking can be used in an FPS game to
         prevent the gun from clipping into walls. This setup also makes it possible
-        to have differet Field of Views for the "Level" camera and the "Gun" camera. '
+        to have different Field of Views for the "Level" camera and the "Gun" camera.
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}

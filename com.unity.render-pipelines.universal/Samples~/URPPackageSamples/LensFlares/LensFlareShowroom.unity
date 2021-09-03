@@ -451,7 +451,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1661162447}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.19115098, y: 1.026375, z: 0.3}
+  m_LocalPosition: {x: -0.12851892, y: 1.0173575, z: 0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -735,7 +735,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: 'Use this scene to ease the process of authorting lens flares.
+  m_Text: 'Use this scene to ease the process of authoring lens flares.
 
     Assign
     a Lens Flare Data object to the "Lens Flare" game object in the scene.

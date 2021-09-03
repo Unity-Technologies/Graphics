@@ -1286,7 +1286,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2877385409968955045, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_AnchorMax.x
@@ -1367,7 +1367,7 @@ PrefabInstance:
     - target: {fileID: 4039968741557396746, guid: d5fa55a16b49d4da3a93a4958cdc3180, type: 3}
       propertyPath: m_Text
       value: This sample builds on the Blob Shadow sample by adding proxy spotlights
-        using Decal Projectors. These decals modifiy the emission of surfaces inside
+        using Decal Projectors. These decals modify the emission of surfaces inside
         the projector volume. On the pipeline asset, all real time lighting is turned
         off.
       objectReference: {fileID: 0}
