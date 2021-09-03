@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => ((~thisScope) & scope) == 0;
     }
 
-    partial class HDWizard : EditorWindowWithHelpButton
+    partial class HDWizard
     {
         #region REFLECTION
 
@@ -146,6 +146,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
 
         [InitializeOnLoadMethod]
+        static void InitializeEntryListOnLoad()
+        {
+            EditorApplication.delayCall += ()=>
+                InitializeEntryList();
+        }
+
         static void InitializeEntryList()
         {
             if (EditorWindow.HasOpenInstances<HDWizard>())
@@ -154,6 +160,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 window.ReBuildEntryList();
             }
         }
+
 		Entry[] BuildEntryList()
 		{
             List<Entry> entryList = new List<Entry>();
@@ -691,7 +698,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRDirect3D12Correct()
         {
-            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 && !HDUserSettings.wizardNeedRestartAfterChangingToDX12;
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 && !HDProjectSettings.wizardNeedRestartAfterChangingToDX12;
         }
 
         void FixDXRDirect3D12(bool fromAsyncUnused)
@@ -717,14 +724,14 @@ namespace UnityEditor.Rendering.HighDefinition
                             .Concat(PlayerSettings.GetGraphicsAPIs(buidTarget))
                             .ToArray());
                 }
-                HDUserSettings.wizardNeedRestartAfterChangingToDX12 = true;
+                HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = true;
                 m_Fixer.Add(() => ChangedFirstGraphicAPI(buidTarget)); //register reboot at end of operations
             }
         }
 
         bool IsDXRDirect3D12Correct_WindowsOnly()
         {
-            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 && !HDUserSettings.wizardNeedRestartAfterChangingToDX12;
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 && !HDProjectSettings.wizardNeedRestartAfterChangingToDX12;
         }
 
         void FixDXRDirect3D12_WindowsOnly(bool fromAsyncUnused)
@@ -747,7 +754,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         .Concat(PlayerSettings.GetGraphicsAPIs(BuildTarget.StandaloneWindows64))
                         .ToArray());
             }
-            HDUserSettings.wizardNeedRestartAfterChangingToDX12 = true;
+            HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = true;
             m_Fixer.Add(() => ChangedFirstGraphicAPI(BuildTarget.StandaloneWindows64)); //register reboot at end of operations
         }
 
@@ -779,9 +786,12 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsDXRAssetCorrect()
-            => HDRenderPipeline.defaultAsset != null
-            && HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources != null
-            && SystemInfo.supportsRayTracing;
+        {
+            var selectedBuildTarget = CalculateSelectedBuildTarget();
+            return HDRenderPipeline.defaultAsset != null
+                && HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources != null
+                && (SystemInfo.supportsRayTracing || selectedBuildTarget == BuildTarget.PS5);
+        }
 
         void FixDXRAsset(bool fromAsyncUnused)
         {

@@ -237,6 +237,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void WizardBehaviourDelayed()
         {
+
+            // We can pass here if HDProjectSettings.wizardIsStartPopup is false. See WizardBehaviour()
+            if (!HDProjectSettings.wizardIsStartPopup)
+                return;
+
             if (frameToWait > 0)
                 --frameToWait;
             else
