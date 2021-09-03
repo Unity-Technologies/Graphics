@@ -1,3 +1,5 @@
+#if !UNITY_2022_1_OR_NEWER
+
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
@@ -24,3 +26,5 @@ namespace UnityEngine.U2D
         void OnPersistantDataCreated(ShadowShapes2D persistantShapeObject);
     }
 }
+
+#endif
