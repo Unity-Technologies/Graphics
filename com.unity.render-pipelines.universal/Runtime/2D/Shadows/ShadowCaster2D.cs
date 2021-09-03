@@ -304,32 +304,6 @@ namespace UnityEngine.Rendering.Universal
                 Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(contractPt1), t.TransformPoint(contractPt2) });
                 Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(contractPt2), t.TransformPoint(contractPt0) });
             }
-
-
-
-            //NativeArray<Vector3> outline;
-            //NativeArray<int> shapeStartingIndices;
-            //float contractionDistance = m_ShadowCastingSource == ShadowCastingSources.ShapeProvider ? m_ShadowShapeContract : 0;
-
-            //m_ShadowMesh.GenerateShadowOutline(contractionDistance, out outline, out shapeStartingIndices);
-            //Transform t = transform;
-
-            //Handles.color = Color.white;
-            //for (int shape=0;shape<shapeStartingIndices.Length;shape++)
-            //{
-            //    int shapeStart = shapeStartingIndices[shape];
-            //    int shapeEnd = shape + 1 < shapeStartingIndices.Length ? shapeStartingIndices[shape + 1] : outline.Length;
-
-            //    for (int i=shapeStart;i<shapeEnd;i++)
-            //    {
-            //        Vector3 lineStart = outline[i];
-            //        Vector3 lineEnd = i + 1 < shapeEnd ? outline[i + 1] : outline[shapeStart];
-            //        Handles.DrawAAPolyLine(4, new Vector3[] { t.TransformPoint(lineStart), t.TransformPoint(lineEnd) });
-            //    }
-            //}
-
-            //outline.Dispose();
-            //shapeStartingIndices.Dispose();
         }
 
         void Reset()
