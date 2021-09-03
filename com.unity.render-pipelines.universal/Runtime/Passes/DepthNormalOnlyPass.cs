@@ -40,16 +40,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (renderingData.cameraData.renderer.useDepthPriming && (renderingData.cameraData.renderType == CameraRenderType.Base || renderingData.cameraData.clearDepth))
-            {
-                ConfigureTarget(
-                    new RenderTargetIdentifier(normalHandle.nameID, 0, CubemapFace.Unknown, -1),
-                    new RenderTargetIdentifier(renderingData.cameraData.renderer.cameraDepthTarget, 0, CubemapFace.Unknown, -1)
-                );
-            }
+                ConfigureTarget(normalHandle, renderingData.cameraData.renderer.cameraDepthTargetHandle);
             else
-            {
                 ConfigureTarget(normalHandle, depthHandle);
-            }
 
             ConfigureClear(ClearFlag.All, Color.black);
         }

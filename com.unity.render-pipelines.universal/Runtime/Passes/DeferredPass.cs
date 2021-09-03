@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
         {
             var lightingAttachment = m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferLightingIndex];
-            var depthAttachment = m_DeferredLights.DepthAttachmentHandle.nameID;
+            var depthAttachment = m_DeferredLights.DepthAttachmentHandle;
             if (m_DeferredLights.UseRenderPass)
                 ConfigureInputAttachments(m_DeferredLights.DeferredInputAttachments);
 
