@@ -63,7 +63,10 @@ namespace UnityEngine.Rendering.Universal
                 if (startingIndex < 0)
                     return;
 
-                int nextStartingIndex = inShapeStartingIndices[shapeIndex + 1];
+                int nextStartingIndex = -1;
+                if(shapeIndex + 1 < inShapeStartingIndices.Length)
+                    nextStartingIndex = inShapeStartingIndices[shapeIndex + 1];
+
                 int numEdgesInCurShape = nextStartingIndex >= 0 ? nextStartingIndex - startingIndex : inEdges.Length - startingIndex;
 
                 int edgeIndex = startingIndex;
@@ -130,7 +133,7 @@ namespace UnityEngine.Rendering.Universal
                 if (startingIndex < 0)
                     return;
 
-                int endIndex = inShapeStartingIndices.Length;
+                int endIndex = inEdges.Length;
                 if ((shapeIndex + 1) < inShapeStartingIndices.Length && inShapeStartingIndices[shapeIndex + 1] > -1)
                     endIndex = inShapeStartingIndices[shapeIndex + 1];
 
