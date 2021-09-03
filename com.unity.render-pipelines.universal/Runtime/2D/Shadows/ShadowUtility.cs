@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
         };
 
 
-        static void CalculateTangents(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<Vector3> contractionDirection, ref NativeArray<Vector4> outTangents)
+        static void CalculateTangents(NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, NativeArray<Vector3> contractionDirection, ref NativeArray<Vector4> outTangents)
         {
             for (int i = 0; i < inEdges.Length; i++)
             {
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<Vector4> inTangents, NativeArray<int> inShapeStartingIndices, ref NativeArray<Vector3> outContractionDirection)
+        static void CalculateContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, NativeArray<Vector4> inTangents, NativeArray<int> inShapeStartingIndices, ref NativeArray<Vector3> outContractionDirection)
         {
             for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
             {
@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void ApplyContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<Vector3> inContractionDirection, float inContractionDistance, ref NativeArray<Vector3> outVertices)
+        static void ApplyContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, NativeArray<Vector3> inContractionDirection, float inContractionDistance, ref NativeArray<Vector3> outVertices)
         {
             for(int i=0;i<inEdges.Length;i++)
             {
@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateVertices(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<Vector4> inTangents, ref NativeArray<ShadowMeshVertex> outMeshVertices)
+        static void CalculateVertices(NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, NativeArray<Vector4> inTangents, ref NativeArray<ShadowMeshVertex> outMeshVertices)
         {
             for (int i = 0; i < inEdges.Length; i++)
             {
@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateTriangles(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, ref NativeArray<int> outMeshIndices)
+        static void CalculateTriangles(NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, ref NativeArray<int> outMeshIndices)
         {
             int prevEdge = inEdges.Length - 1;
             for (int i = 0; i < inEdges.Length; i++)
@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.Universal
 
 
         // inEdges is expected to be contiguous
-        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices)
+        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowMesh2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices)
         {
             Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
 
