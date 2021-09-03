@@ -292,12 +292,11 @@ real GetSpecularOcclusionFromBentAO_ConeCone(real3 V, real3 bentNormalWS, real3 
 
 real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS, real ambientOcclusion, real roughness)
 {
+    // Pseudo code:
     //SphericalGaussian NDF = WarpedGGXDistribution(normalWS, roughness, V);
     //SphericalGaussian Visibility = VisibilityConeSG(bentNormalWS, ambientOcclusion);
     //SphericalGaussian UpperHemisphere = UpperHemisphereSG(normalWS);
     //return saturate( InnerProduct(NDF, Visibility) / InnerProduct(NDF, UpperHemisphere) );
-
-    // Approximation of the operation above:
 
     // 1. Approximate visibility cone with a spherical gaussian of amplitude A=1
     // For a cone angle X, we can determine sharpness so that all point inside the cone have a value > Y
