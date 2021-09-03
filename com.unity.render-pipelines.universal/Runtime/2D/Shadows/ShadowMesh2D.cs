@@ -8,7 +8,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal class ShadowShape2D : IShadowShape2DProvider.ShadowShapes2D
+    internal class ShadowMesh2D : IShadowShape2DProvider.ShadowShapes2D
     {
         internal struct Edge
         {
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
         public  Mesh mesh { get => m_Mesh; }
         public  BoundingSphere boundingSphere { get => m_BoundingSphere; }
 
-        public ShadowShape2D()
+        public ShadowMesh2D()
         {
             m_Mesh = new Mesh();
         }
@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering.Universal
             return -1;
         }
 
-        ~ShadowShape2D()
+        ~ShadowMesh2D()
         {
         }
     }

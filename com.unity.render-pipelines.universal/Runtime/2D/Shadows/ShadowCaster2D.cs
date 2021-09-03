@@ -48,14 +48,13 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowShapeContract;
         [SerializeField] ShadowCastingSources m_ShadowCastingSource = ShadowCastingSources.ShapeEditor;
 
-        internal ShadowShape2D        m_ShadowShape;
+        internal ShadowMesh2D         m_ShadowMesh;
         internal ShadowCasterGroup2D  m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D  m_PreviousShadowCasterGroup = null;
         internal int                  m_PreviousShadowCastingSource;
-
         
-        public Mesh mesh => m_ShadowShape.mesh;
-        public BoundingSphere boundingSphere => m_ShadowShape.boundingSphere;
+        public Mesh mesh => m_ShadowMesh.mesh;
+        public BoundingSphere boundingSphere => m_ShadowMesh.boundingSphere;
 
         public float contractionDistance { get { return m_ShadowShapeContract; } set { m_ShadowShapeContract = value; } }
 
@@ -150,14 +149,14 @@ namespace UnityEngine.Rendering.Universal
 
         void SetShadowShape()
         {
-            if (m_ShadowShape == null)
-                m_ShadowShape = new ShadowShape2D();
+            if (m_ShadowMesh == null)
+                m_ShadowMesh = new ShadowMesh2D();
 
             if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
             {
                 NativeArray<Vector3> nativePath = new NativeArray<Vector3>(m_ShapePath, Allocator.Temp);
                 NativeArray<int> nativeIndices = new NativeArray<int>(0, Allocator.Temp);
-                m_ShadowShape.SetShape(nativePath, nativeIndices, IShadowShape2DProvider.OutlineTopology.LineStrip);
+                m_ShadowMesh.SetShape(nativePath, nativeIndices, IShadowShape2DProvider.OutlineTopology.LineStrip);
                 nativePath.Dispose();
                 nativeIndices.Dispose();
             }
@@ -166,7 +165,7 @@ namespace UnityEngine.Rendering.Universal
                 IShadowShape2DProvider shapeProvider = m_ShadowShapeProvider as IShadowShape2DProvider;
                 if(shapeProvider != null)
                 {
-                    shapeProvider.OnPersistantDataCreated(m_ShadowShape);
+                    shapeProvider.OnPersistantDataCreated(m_ShadowMesh);
                 }
             }
         }
@@ -214,7 +213,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected void OnEnable()
         {
-            if (m_ShadowShape == null || m_InstanceId != GetInstanceID())
+            if (m_ShadowMesh == null || m_InstanceId != GetInstanceID())
             {
                 SetShadowShape();
                 m_InstanceId = GetInstanceID();
@@ -312,7 +311,7 @@ namespace UnityEngine.Rendering.Universal
             //NativeArray<int> shapeStartingIndices;
             //float contractionDistance = m_ShadowCastingSource == ShadowCastingSources.ShapeProvider ? m_ShadowShapeContract : 0;
 
-            //m_ShadowShape.GenerateShadowOutline(contractionDistance, out outline, out shapeStartingIndices);
+            //m_ShadowMesh.GenerateShadowOutline(contractionDistance, out outline, out shapeStartingIndices);
             //Transform t = transform;
 
             //Handles.color = Color.white;
