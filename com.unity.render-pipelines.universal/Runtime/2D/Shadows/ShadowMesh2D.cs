@@ -20,6 +20,14 @@ namespace UnityEngine.Rendering.Universal
                 v0 = indexA;
                 v1 = indexB;
             }
+
+            public void Reverse()
+            {
+                int tmp = v0;
+                v0 = v1;
+                v1 = tmp;
+            }
+            
         }
 
         private class EdgeComparer : IEqualityComparer<Edge>
@@ -157,6 +165,52 @@ namespace UnityEngine.Rendering.Universal
             SortEdges(unsortedEdges, out outEdges, out outShapeStartingIndices);
         }
 
+        void FixWindingOrder(NativeArray<Vector3> inVertices, NativeArray<int> inShapeStartingIndices, NativeArray<Edge> inOutSortedEdges)
+        {
+            for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
+            {
+                int startingIndex = inShapeStartingIndices[shapeIndex];
+                if (startingIndex < 0)
+                    return;
+
+                int endIndex = inShapeStartingIndices.Length;
+                if ((shapeIndex + 1) < inShapeStartingIndices.Length && inShapeStartingIndices[shapeIndex + 1] > -1)
+                    endIndex = inShapeStartingIndices[shapeIndex + 1];
+
+                // Determine if the shape needs to have its winding order fixed..
+                float sum0 = 0;
+                float sum1 = 0;
+                for (int i = startingIndex; i < endIndex; i++)
+                {
+                    int v0 = inOutSortedEdges[i].v0;
+                    int v1 = inOutSortedEdges[i].v1;
+
+                    sum0 += (inVertices[v0].x * inVertices[v1].y);
+                    sum1 += (inVertices[v0].y * inVertices[v1].x);
+                }
+
+                // If the edges are backward, reverse them...
+                float twoTimesSignedArea = sum1 - sum0;
+                if (twoTimesSignedArea < 0)
+                {
+                    int count = (endIndex - startingIndex);
+                    for (int i = 0; i < (count >> 1); i++)
+                    {
+                        int edgeAIndex = startingIndex + i;
+                        int edgeBIndex = startingIndex + count - 1 - i;
+
+                        Edge edgeA = inOutSortedEdges[edgeAIndex];
+                        Edge edgeB = inOutSortedEdges[edgeBIndex];
+                        edgeA.Reverse();
+                        edgeB.Reverse();
+
+                        inOutSortedEdges[edgeAIndex] = edgeB;
+                        inOutSortedEdges[edgeBIndex] = edgeA;
+                    }
+                }
+            }
+        }
+
         void SortEdges(NativeArray<Edge> unsortedEdges, out NativeArray<Edge> sortedEdges, out NativeArray<int> shapeStartingIndices)
         {
             sortedEdges = new NativeArray<Edge>(unsortedEdges.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
@@ -207,6 +261,7 @@ namespace UnityEngine.Rendering.Universal
             if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Triangles)
             {
                 CalculateEdgesFromTriangles(indices, out edges, out shapeStartingIndices);
+                FixWindingOrder(vertices, shapeStartingIndices, edges);
 
                 m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, vertices, edges, shapeStartingIndices);
                 edges.Dispose();
@@ -223,6 +278,7 @@ namespace UnityEngine.Rendering.Universal
                 else
                     CalculateEdgesFromLineStrip(indices, out edges, out shapeStartingIndices);
 
+                FixWindingOrder(vertices, shapeStartingIndices, edges);
                 m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, vertices, edges, shapeStartingIndices);
                 edges.Dispose();
                 shapeStartingIndices.Dispose();
