@@ -92,23 +92,6 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         else
 #endif
         {
-#ifdef LIGHT_EVALUATES_MULTIPLE_SCATTERING
-            MultipleScatteringData scatteringData = EvaluateMultipleScattering_Light(posInput, L);
-
-            if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
-            {
-                // Due to self-occlusion from shadows within the scattering volume, we call this to modify the sampled position for shadows.
-                EvaluateMultipleScattering_ShadowProxy(scatteringData, posInput.positionWS);
-
-                lightLoopContext.shadowValue = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext,
-                                                                               posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
-                                                                               light.shadowIndex, L);
-            }
-
-            // Propagate the fiber count to the BSDF.
-            bsdfData.fiberCount = scatteringData.fiberCount;
-#endif
-
             SHADOW_TYPE shadow = EvaluateShadow_Directional(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData));
             float NdotL  = dot(bsdfData.normalWS, L); // No microshadowing when facing away from light (use for thin transmission as well)
             shadow *= NdotL >= 0.0 ? ComputeMicroShadowing(GetAmbientOcclusionForMicroShadowing(bsdfData), NdotL, _MicroShadowOpacity) : 1.0;
@@ -192,15 +175,6 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
         else
 #endif
         {
-#ifdef LIGHT_EVALUATES_MULTIPLE_SCATTERING
-            MultipleScatteringData scatteringData = EvaluateMultipleScattering_Light(posInput, L);
-
-            // Due to self-occlusion from shadows within the a volume, we call this to modify the sampled position for shadows.
-            EvaluateMultipleScattering_ShadowProxy(scatteringData, posInput.positionWS);
-
-            // Propagate the fiber count to the BSDF.
-            bsdfData.fiberCount = scatteringData.fiberCount;
-#endif
             // This code works for both surface reflection and thin object transmission.
             SHADOW_TYPE shadow = EvaluateShadow_Punctual(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData), L, distances);
             lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);

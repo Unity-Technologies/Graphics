@@ -25,8 +25,7 @@
 // #define HAIR_DISPLAY_REFERENCE_BSDF
 // #define HAIR_DISPLAY_REFERENCE_IBL
 
-// An extra material feature flag we utilize to compile two different versions of BSDF evaluation (one with transmission lobe
-// for analytic lights, one without transmission lobe for environment light).
+// Extra material feature flag we utilize to compile different versions of BSDF evaluation (for pre-integration, etc.)
 #define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R            (1 << 16)
 #define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT           (1 << 17)
 #define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TRT          (1 << 18)

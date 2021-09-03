@@ -228,8 +228,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 // TODO: this will cause us to load from the normal buffer first. Does this cause a performance problem?
                 float3 L = -light.forward;
 
-        // In case of multiple scattering, for now we eat the VGPR cost and evaluate the sun shadow during directional light contribution evaluation.
-#ifndef LIGHT_EVALUATES_MULTIPLE_SCATTERING
                 // Is it worth sampling the shadow map?
                 if ((light.lightDimmer > 0) && (light.shadowDimmer > 0) && // Note: Volumetric can have different dimmer, thus why we test it here
                     IsNonZeroBSDF(V, L, preLightData, bsdfData) &&
@@ -239,7 +237,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                                                                           posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
                                                                           light.shadowIndex, L);
                 }
-#endif
             }
         }
     }
