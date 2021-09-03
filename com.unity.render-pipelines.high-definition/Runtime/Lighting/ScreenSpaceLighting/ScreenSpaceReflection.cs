@@ -122,6 +122,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter accumulationFactor = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
 
         /// <summary>
+        /// Control the upper range of speed, if the the object of camera move faster this number should be increased.
+        /// The speed rejection is based used the speed of the hitted surface and the reflected surface in world space.
+        /// </summary>
+        public MinFloatParameter speedRejectionScalerFactor = new MinFloatParameter(0.0125f, 0.0f);
+
+        /// <summary>
+        /// Smooth rejection based on the speed of the surface and the hit point by the SSR. Set as true to have hard threshold
+        /// </summary>
+        public BoolParameter speedSmoothReject = new BoolParameter(false);
+
+        /// <summary>
         /// Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.
         /// </summary>
         public int rayMaxIterations

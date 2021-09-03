@@ -105,6 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_SsrTracingKernel = -1;
         int m_SsrReprojectionKernel = -1;
         int m_SsrAccumulateKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionKernel = -1;
 
         Material m_ApplyDistortionMaterial;
 
@@ -342,6 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SsrTracingKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
             m_SsrReprojectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsReprojection");
             m_SsrAccumulateKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulate");
+            m_SsrAccumulateSmoothSpeedRejectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejection");
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);

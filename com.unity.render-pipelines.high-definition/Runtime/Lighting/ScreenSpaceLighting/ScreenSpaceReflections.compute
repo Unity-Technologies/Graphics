@@ -5,9 +5,10 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-#pragma kernel ScreenSpaceReflectionsTracing        SSR_TRACE
-#pragma kernel ScreenSpaceReflectionsReprojection   SSR_REPROJECT
-#pragma kernel ScreenSpaceReflectionsAccumulate     SSR_ACCUMULATE
+#pragma kernel ScreenSpaceReflectionsTracing                        SSR_TRACE
+#pragma kernel ScreenSpaceReflectionsReprojection                   SSR_REPROJECT
+#pragma kernel ScreenSpaceReflectionsAccumulate                     SSR_ACCUMULATE MAIN_ACC=ScreenSpaceReflectionsAccumulate
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejection SSR_ACCUMULATE SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejection
 
 #pragma multi_compile _ DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
 #pragma multi_compile _ SSR_APPROX
@@ -681,7 +682,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
 #elif defined(SSR_ACCUMULATE)
 
 [numthreads(8, 8, 1)]
-void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThreadID)
+void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     uint2 positionSS = dispatchThreadId.xy;
@@ -740,12 +741,10 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float speedDiff = length(motionVectorNDC - motionVectorCenterNDC);
 #endif
 
-//#define SMOOTH_REJECT
-
-    float4 remapValues = float4(0.0f, 0.0125f, 0.0f, 1.0f);
+    float4 remapValues = float4(0.0f, /*0.0125f*/_SsrPRBSpeedRejectionScalerFactor, 0.0f, 1.0f);
     float usedSpeed = saturate(Normalize01(clamp(speedDiff, remapValues.x, remapValues.y), remapValues.x, remapValues.y));
 
-#ifdef SMOOTH_REJECT
+#ifdef SSR_SMOOTH_SPEED_REJECTION
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed);
 #else
 
@@ -763,7 +762,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
 #define REJECT_DEBUG_COLOR
 
 #ifdef REJECT_DEBUG_COLOR
-    #ifdef SMOOTH_REJECT
+    #ifdef SSR_SMOOTH_SPEED_REJECTION
         result.rgb = (usedSpeed).xxx;
     #else
         if (usedSpeed >= _SsrPBRSpeedRejection)

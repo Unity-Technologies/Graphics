@@ -22,5 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float _SsrPBRSpeedRejection;
         public float _SsrPBRBias;
+        public float _SsrPRBSpeedRejectionScalerFactor;
+        public float _SsrPBRPad0;
     }
 }
