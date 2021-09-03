@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private RTHandle source { get; set; }
         private RTHandle destination { get; set; }
+        [Obsolete]
         private int destinationID { get; set; }
 
         /// <summary>
@@ -40,6 +41,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Target</param>
+        [Obsolete]
         public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination, Downsampling downsampling)
         {
             this.source = RTHandles.Alloc(source);
@@ -64,6 +66,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (destination.rt == null)
             {
+#pragma warning disable 612
                 RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
                 descriptor.msaaSamples = 1;
                 descriptor.depthBufferBits = 0;
@@ -79,6 +82,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 cmd.GetTemporaryRT(destinationID, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
+#pragma warning restore 612
             }
             else
             {
@@ -137,12 +141,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
+#pragma warning disable 612
             if (destination.rt == null && destinationID != RenderTargetHandle.CameraTarget.id)
             {
                 cmd.ReleaseTemporaryRT(destinationID);
                 destination.Release();
                 destination = null;
             }
+#pragma warning restore 612
         }
     }
 }

@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="baseDescriptor"></param>
         /// <param name="colorHandle"></param>
+        [Obsolete]
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
             if (m_Source?.nameID != colorHandle.Identifier())
@@ -110,7 +111,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
                     cmd.Blit(m_Source.nameID, cameraTarget, m_BlitMaterial);
-                    cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
                 }
                 else
                 {
@@ -130,8 +130,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetViewport(cameraData.pixelRect);
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                     cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
-                    cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
                 }
+#pragma warning disable 612
+                // RenderTargetIdentifiers required here because of use of RenderTexture cameraData.targetTexture which is not managed by RTHandles
+                cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
+#pragma warning restore 612
             }
 
             context.ExecuteCommandBuffer(cmd);

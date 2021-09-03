@@ -573,7 +573,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
                 {
                     cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+#pragma warning disable 612
+                    // RenderTargetIdentifiers required here because of use of RenderTexture cameraData.targetTexture which is not managed by RTHandles
                     cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
+#pragma warning restore 612
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
                     if ((m_Destination.nameID == BuiltinRenderTextureType.CameraTarget && !m_UseSwapBuffer) || m_ResolveToScreen)
@@ -1412,7 +1415,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetViewport(cameraData.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
                 cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+#pragma warning disable 612
+                // RenderTargetIdentifiers required here because of use of RenderTexture cameraData.targetTexture which is not managed by RTHandles
                 cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
+#pragma warning restore 612
             }
         }
 

@@ -594,6 +594,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorTarget">Camera color target. Pass BuiltinRenderTextureType.CameraTarget if rendering to backbuffer.</param>
         /// <param name="depthTarget">Camera depth target. Pass BuiltinRenderTextureType.CameraTarget if color has depth or rendering to backbuffer.</param>
+        [Obsolete]
         public void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget)
         {
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { fallback = colorTarget };
@@ -611,6 +612,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthTarget = new RTHandleRenderTargetIdentifierCompat { handle = depthTarget };
         }
 
+        [Obsolete]
         internal void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, RenderTargetIdentifier resolveTarget)
         {
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { fallback = colorTarget };
@@ -626,6 +628,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // This should be removed when early camera color target assignment is removed.
+        [Obsolete]
         internal void ConfigureCameraColorTarget(RenderTargetIdentifier colorTarget)
         {
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { fallback = colorTarget };
@@ -1078,6 +1081,7 @@ namespace UnityEngine.Rendering.Universal
 
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
         {
+#pragma warning disable 0612
             Camera camera = cameraData.camera;
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
 
@@ -1337,6 +1341,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
+#pragma warning restore 0612
         }
 
         void BeginXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
@@ -1367,6 +1372,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        [Obsolete]
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments[0] = colorAttachment;
@@ -1420,6 +1426,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        [Obsolete]
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor, RenderBufferStoreAction colorStoreAction, RenderBufferStoreAction depthStoreAction)
         {
             m_ActiveColorAttachments[0] = colorAttachment;
@@ -1486,6 +1493,7 @@ namespace UnityEngine.Rendering.Universal
                 depthAttachment, depthLoadAction, depthStoreAction, clearFlag, clearColor);
         }
 
+        [Obsolete]
         static void SetRenderTarget(CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
@@ -1506,6 +1514,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
 
+        [Obsolete]
         static void SetRenderTarget(CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
@@ -1567,6 +1576,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        [Obsolete]
         static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments = colorAttachments;

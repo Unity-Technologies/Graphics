@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass
         /// </summary>
+        [Obsolete]
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
             RenderTargetHandle depthAttachmentHandle)

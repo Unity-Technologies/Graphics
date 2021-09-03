@@ -140,16 +140,19 @@ namespace UnityEngine.Rendering.Universal
 
         public RenderPassEvent renderPassEvent { get; set; }
 
+        [Obsolete]
         public RenderTargetIdentifier[] colorAttachments
         {
             get => m_ColorAttachmentIds;
         }
 
+        [Obsolete]
         public RenderTargetIdentifier colorAttachment
         {
             get => m_ColorAttachmentIds[0];
         }
 
+        [Obsolete]
         public RenderTargetIdentifier depthAttachment
         {
             get => m_UsesRTHandles ? new RenderTargetIdentifier(m_DepthAttachment.nameID, 0, CubemapFace.Unknown, -1) : m_DepthAttachmentId;
@@ -244,9 +247,11 @@ namespace UnityEngine.Rendering.Universal
         internal GraphicsFormat[] renderTargetFormat { get; set; }
         internal bool m_UsesRTHandles;
         RTHandle[] m_ColorAttachments;
+        [Obsolete]
         RenderTargetIdentifier[] m_ColorAttachmentIds;
         internal RTHandle[] m_InputAttachments = new RTHandle[8];
         RTHandle m_DepthAttachment;
+        [Obsolete]
         RenderTargetIdentifier m_DepthAttachmentId;
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
@@ -265,14 +270,18 @@ namespace UnityEngine.Rendering.Universal
             m_UsesRTHandles = true;
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RTHandle[] { k_CameraTarget, null, null, null, null, null, null, null };
+#pragma warning disable 612
             m_ColorAttachmentIds = new RenderTargetIdentifier[] { k_CameraTarget.nameID, 0, 0, 0, 0, 0, 0, 0 };
+#pragma warning restore 612
             m_InputAttachments = new RTHandle[] { null, null, null, null, null, null, null, null };
             m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store, 0, 0, 0, 0, 0, 0, 0 };
             m_DepthStoreAction = RenderBufferStoreAction.Store;
             m_OverriddenColorStoreActions = new bool[] { false, false, false, false, false, false, false, false };
             m_OverriddenDepthStoreAction = false;
             m_DepthAttachment = k_CameraTarget;
+#pragma warning disable 612
             m_DepthAttachmentId = m_DepthAttachment.nameID;
+#pragma warning restore 612
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
@@ -342,6 +351,7 @@ namespace UnityEngine.Rendering.Universal
             m_InputAttachments[0] = input;
         }
 
+        [Obsolete]
         internal void ConfigureInputAttachments(RenderTargetIdentifier input)
         {
             m_InputAttachments[0] = RTHandles.Alloc(input);
@@ -352,6 +362,7 @@ namespace UnityEngine.Rendering.Universal
             m_InputAttachments = inputs;
         }
 
+        [Obsolete]
         internal void ConfigureInputAttachments(RenderTargetIdentifier[] inputs)
         {
             for (int i = 0; i < inputs.Length; ++i)
@@ -377,6 +388,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
+        [Obsolete]
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
             m_DepthAttachmentId = depthAttachment;
@@ -394,10 +406,13 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment)
         {
             m_DepthAttachment = depthAttachment;
+#pragma warning disable 612
             m_DepthAttachmentId = m_DepthAttachment.nameID;
+#pragma warning restore 612
             ConfigureTarget(colorAttachment);
         }
 
+        [Obsolete]
         internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, GraphicsFormat format)
         {
             m_DepthAttachment = null;
@@ -408,7 +423,9 @@ namespace UnityEngine.Rendering.Universal
         internal void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment, GraphicsFormat format)
         {
             m_DepthAttachment = depthAttachment;
+#pragma warning disable 612
             m_DepthAttachmentId = m_DepthAttachment.nameID;
+#pragma warning restore 612
             ConfigureTarget(colorAttachment, format);
         }
 
@@ -419,6 +436,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
+        [Obsolete]
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
         {
             m_UsesRTHandles = false;
@@ -449,16 +467,19 @@ namespace UnityEngine.Rendering.Universal
                 Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
 
             m_ColorAttachments = colorAttachments;
+#pragma warning disable 612
             if (m_ColorAttachmentIds.Length != m_ColorAttachments.Length)
                 m_ColorAttachmentIds = new RenderTargetIdentifier[m_ColorAttachments.Length];
             for (var i = 0; i < m_ColorAttachmentIds.Length; ++i)
             {
                 m_ColorAttachmentIds[i] = new RenderTargetIdentifier(colorAttachments[i].nameID, 0, CubemapFace.Unknown, -1);
             }
-            m_DepthAttachment = depthAttachment;
             m_DepthAttachmentId = depthAttachment.nameID;
+#pragma warning restore 612
+            m_DepthAttachment = depthAttachment;
         }
 
+        [Obsolete]
         internal void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, GraphicsFormat[] formats)
         {
             ConfigureTarget(colorAttachments, depthAttachment);
@@ -479,6 +500,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <seealso cref="Configure"/>
+        [Obsolete]
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
             m_UsesRTHandles = false;
@@ -501,14 +523,17 @@ namespace UnityEngine.Rendering.Universal
             overrideCameraTarget = true;
 
             m_ColorAttachments[0] = colorAttachment;
+#pragma warning disable 612
             m_ColorAttachmentIds[0] = new RenderTargetIdentifier(colorAttachment.nameID, 0, CubemapFace.Unknown, -1);
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
             {
                 m_ColorAttachments[i] = null;
                 m_ColorAttachmentIds[i] = 0;
             }
+#pragma warning restore 612
         }
 
+        [Obsolete]
         internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
         {
             ConfigureTarget(colorAttachment);
@@ -551,6 +576,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <seealso cref="Configure"/>
+        [Obsolete]
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
             ConfigureTarget(colorAttachments, k_CameraTarget.nameID);
