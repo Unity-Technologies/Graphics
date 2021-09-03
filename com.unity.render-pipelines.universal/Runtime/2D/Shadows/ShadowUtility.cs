@@ -226,42 +226,5 @@ namespace UnityEngine.Rendering.Universal
 
             return retBoundingSphere;
         }
-
-        static public void GenerateShadowOutline(NativeArray<Vector3> inVertices, NativeArray<ShadowShape2D.Edge> inEdges, NativeArray<int> inShapeStartingIndices, float contractionDistance, out NativeArray<Vector3> outOutline, out NativeArray<int> outShapeStartingIndices)
-        {
-            Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
-
-            int shapeCount = 0;
-            for (;shapeCount<inShapeStartingIndices.Length;shapeCount++)
-            {
-                if (inShapeStartingIndices[shapeCount] < 0)
-                    break;
-            }
-
-            outOutline = new NativeArray<Vector3>(inVertices.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            outShapeStartingIndices = new NativeArray<int>(shapeCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-
-            for (int i = 0; i < shapeCount; i++)
-                outShapeStartingIndices[i] = inShapeStartingIndices[i];
-
-            // Setup our buffers
-            int meshVertexCount = inVertices.Length + 2 * inEdges.Length;                       // Each vertex will have a duplicate that can be extruded.
-            int meshIndexCount = inEdges.Length * k_VerticesPerTriangle * k_TrianglesPerEdge;  // There are two triangles per edge making a degenerate rectangle (0 area)
-
-            NativeArray<Vector4> meshTangents = new NativeArray<Vector4>(meshVertexCount, Allocator.Temp);
-            NativeArray<int> meshIndices = new NativeArray<int>(meshIndexCount, Allocator.Temp);
-            NativeArray<Vector3> contractionDirection = new NativeArray<Vector3>(inVertices.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-
-            // Get vertex reduction directions
-            CalculateContraction(inVertices, inEdges, meshTangents, inShapeStartingIndices, ref contractionDirection);
-            CalculateTangents(inVertices, inEdges, contractionDirection, ref meshTangents);                            // meshVertices contain a normal component
-            ApplyContraction(inVertices, inEdges, contractionDirection, contractionDistance, ref outOutline);
-
-            meshTangents.Dispose();
-            meshIndices.Dispose();
-            contractionDirection.Dispose();
-        }
-
-
     }
 }
