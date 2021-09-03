@@ -11,7 +11,7 @@ After enabling this renderer feature, you can check this pass in frame debugger.
 Compare casting shadows on opaque objects with screen space shadow texture or cascade shadow maps.
 ![Cast Shadows using screen space shadow stexture](Images/ssshadows/ssshadows-cast-shadow-using-screenspace.png)<br/>*Shadows from screen space shadow texture*
 
-![Cast shadows using cascade shadowmaps](Images/ssshadows/ssshadows-cast-shadow-using-cascades.png)<br/>*Shadows from cascade shadow maps* 
+![Cast shadows using cascade shadowmaps](Images/ssshadows/ssshadows-cast-shadow-using-cascades.png)<br/>*Shadows from cascade shadow maps*
 
 ## Adding the Screen Space Shadows Renderer Feature to a Renderer
 
