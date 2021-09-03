@@ -486,7 +486,7 @@ namespace UnityEditor.VFX.UI
             toggleBlackboard.RegisterCallback<ChangeEvent<bool>>(ToggleBlackboard);
             m_Toolbar.Add(toggleBlackboard);
 
-            m_ToggleComponentBoard = new ToolbarToggle { tooltip = "Target GameObject" };
+            m_ToggleComponentBoard = new ToolbarToggle { tooltip = "Displays controls for the GameObject currently attached" };
             m_ToggleComponentBoard.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/UIResources/VFX/controls.png")) });
             m_ToggleComponentBoard.style.borderRightWidth = 1;
             m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
