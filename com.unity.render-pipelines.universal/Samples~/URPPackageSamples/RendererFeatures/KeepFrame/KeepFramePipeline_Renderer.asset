@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f971995892640ec4f807ef396269e91e, type: 3}
+  m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
   m_Name: KeepFramePipeline_Renderer
   m_EditorClassIdentifier: 
   debugShaders:
@@ -66,4 +66,4 @@ MonoBehaviour:
   m_Active: 1
   settings:
     displayMaterial: {fileID: 2100000, guid: b02405f3a8b6143a8bf2013c469300cf, type: 2}
-    textureName: _FrameCopyTex
+    textureName: 

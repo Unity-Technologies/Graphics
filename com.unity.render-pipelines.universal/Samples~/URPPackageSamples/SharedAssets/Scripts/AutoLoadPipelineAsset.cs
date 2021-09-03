@@ -12,8 +12,19 @@ public class AutoLoadPipelineAsset : MonoBehaviour
 
     void OnEnable()
     {
+        UpdatePipeline();
+    }
+
+    void OnDisable()
+    {
+        ResetPipeline();
+    }
+
+    private void UpdatePipeline()
+    {
         if(m_PipelineAsset)
         {
+            QualitySettings.renderPipeline = null;
             if (QualitySettings.renderPipeline != null && QualitySettings.renderPipeline != m_PipelineAsset)
             {
                 m_PreviousPipelineAsset = QualitySettings.renderPipeline;
@@ -28,7 +39,7 @@ public class AutoLoadPipelineAsset : MonoBehaviour
         }
     }
 
-    void OnDisable()
+    private void ResetPipeline()
     {
         if (m_PreviousPipelineAsset)
         {

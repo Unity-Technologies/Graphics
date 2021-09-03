@@ -5,6 +5,7 @@ using UnityEngine.Rendering.Universal;
 
 public class KeepFrameFeature : ScriptableRendererFeature
 {
+    //This pass is responsible for copying color to the specified destination
     class CopyFramePass : ScriptableRenderPass
     {
         private RenderTargetIdentifier source { get; set; }
@@ -43,12 +44,14 @@ public class KeepFrameFeature : ScriptableRendererFeature
     class DrawOldFramePass : ScriptableRenderPass
     {
         private Material m_DrawOldFrameMaterial;
-        private RenderTargetHandle handle;
+        private RenderTargetHandle m_handle;
+        private string m_textureName;
 
-        public void Setup(Material drawOldFrameMaterial, RenderTargetHandle handle)
+        public void Setup(Material drawOldFrameMaterial, RenderTargetHandle handle, string textureName)
         {
             m_DrawOldFrameMaterial = drawOldFrameMaterial;
-            this.handle = handle;
+            m_handle = handle;
+            m_textureName = textureName;
         }
         
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
@@ -56,7 +59,7 @@ public class KeepFrameFeature : ScriptableRendererFeature
             RenderTextureDescriptor descriptor = cameraTextureDescripor;
             descriptor.msaaSamples = 1;
             descriptor.depthBufferBits = 0;
-            cmd.GetTemporaryRT(handle.id, descriptor,FilterMode.Bilinear);
+            cmd.GetTemporaryRT(m_handle.id, descriptor,FilterMode.Bilinear);
         }
         
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -64,7 +67,7 @@ public class KeepFrameFeature : ScriptableRendererFeature
             if (m_DrawOldFrameMaterial != null)
             {
                 CommandBuffer cmd = CommandBufferPool.Get("DrawOldFramePass");
-                cmd.SetGlobalTexture("_FrameCopyTex", handle.id);
+                cmd.SetGlobalTexture(m_textureName, m_handle.id);
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_DrawOldFrameMaterial, 0, 0);
                 cmd.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
@@ -79,7 +82,7 @@ public class KeepFrameFeature : ScriptableRendererFeature
     {
         [Tooltip("The material that is used when the old frame is redrawn at the start of the new frame (before opaques).")]
         public Material displayMaterial;
-        [Tooltip("What the to call the texture that is referenced in the display material")]
+        [Tooltip("The name of the texture used for referencing the copied frame. (_FrameCopyTex if empty)")]
         public string textureName;
     }
 
@@ -107,7 +110,7 @@ public class KeepFrameFeature : ScriptableRendererFeature
         m_CopyFrame.Setup(renderer.cameraColorTarget, m_OldFrameHandle);
         renderer.EnqueuePass(m_CopyFrame);
         
-        m_DrawOldFame.Setup(settings.displayMaterial, m_OldFrameHandle);
+        m_DrawOldFame.Setup(settings.displayMaterial, m_OldFrameHandle, String.IsNullOrEmpty(settings.textureName) ? "_FrameCopyTex" : settings.textureName);
         renderer.EnqueuePass(m_DrawOldFame);
     }
 }
