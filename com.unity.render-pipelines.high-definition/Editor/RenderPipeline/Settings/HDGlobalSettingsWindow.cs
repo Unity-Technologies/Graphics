@@ -21,12 +21,15 @@ namespace UnityEditor.Rendering.HighDefinition
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {
+            var keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDGlobalSettingsPanelIMGUI.Styles>()
+                .Concat(OverridableFrameSettingsArea.frameSettingsKeywords);
+
+            keywords = RenderPipelineSettingsUtilities.RemoveDLSSKeywords(keywords);
+
             return new SettingsProvider("Project/Graphics/HDRP Global Settings", SettingsScope.Project)
             {
                 activateHandler = s_IMGUIImpl.OnActivate,
-                keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDGlobalSettingsPanelIMGUI.Styles>()
-                    .Concat(OverridableFrameSettingsArea.frameSettingsKeywords)
-                    .ToArray(),
+                keywords = keywords.ToArray(),
                 guiHandler = s_IMGUIImpl.DoGUI,
                 titleBarGuiHandler = s_IMGUIImpl.OnTitleBarGUI
             };
