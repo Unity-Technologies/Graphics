@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where SamplerState properties could not be renamed after creation [1336126]
 - Fixed the incorrect value written to the VT feedback buffer when VT is not used.
 - Fixed compilation problems on preview shader when using hybrid renderer v2 and property desc override Hybrid Per Instance
+- Fixed a serialization bug wrt PVT property flags when using subgraphs. This fixes SRP batcher compatibility.
 
 ## [10.6.0] - 2021-04-29
 
