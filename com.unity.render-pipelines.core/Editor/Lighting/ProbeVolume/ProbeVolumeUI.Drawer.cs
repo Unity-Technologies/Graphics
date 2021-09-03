@@ -141,9 +141,9 @@ namespace UnityEditor.Experimental.Rendering
 
             // Round min and max subdiv
             int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+            // it's likely we don't have a profile loaded yet.
             if (maxSubdiv < 0)
             {
-                // it's likely we don't have a profile loaded yet.
                 if (ProbeReferenceVolume.instance.sceneData != null)
                 {
                     ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
