@@ -111,6 +111,11 @@ float remap(float value, float from1, float to1, float from2, float to2)
     return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
 }
 
+float contrast(float value, float c, float midpoint)
+{
+    return (value - midpoint) * c + midpoint;
+}
+
 // Specialization without Fresnel (see PathTracingBSDF.hlsl for the reference implementation)
 bool SampleGGX_VNDF(float roughness_,
                     float3x3 localToWorld,
@@ -707,7 +712,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
 
-#define USE_WORLD_DIFF
+// #define USE_WORLD_DIFF
 
 #ifdef USE_WORLD_DIFF
 #ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
@@ -730,40 +735,36 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float speedDiff = length(motionVectorNDC - motionVectorCenterNDC);
 #endif
 
-#define SMOOTH_REJECT
+// #define SMOOTH_REJECT
+
+float4 remapValues = float4(0.0f, 0.005f, 0.0f, 1.0f);
+float usedSpeed = 1.0f - saturate(remap(speedDiff, remapValues.x, remapValues.y, remapValues.z, remapValues.w));
+float usedSpeedSmooth = saturate(contrast(1.0f - usedSpeed, _SsrPBRSpeedRejection*4, 0.0f ));
 
 #ifdef SMOOTH_REJECT
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speedDiff);
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeedSmooth);
 #else
-    const float prec = 6.0f;
-    float4 remapValues = float4(0.0f, 1e6f, 0.0f, 1.0f);
-    float usedSpeed = 1.0f - saturate(remap(speedDiff, remapValues.x, pow(_SsrPBRSpeedRejection, prec) * remapValues.y, remapValues.z, remapValues.w));
-
-    //const float usedSpeedRejection = max(1e-3f, 1.0f - _SsrPBRSpeedRejection);
-    const float usedSpeedRejection = pow(_SsrPBRSpeedRejection, 6.0f);
 
 #if 0
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed);
-    coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed > _SsrPBRSpeedRejection ? 1.0f : coefExpAvg);
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeedSmooth);
+    coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed >= _SsrPBRSpeedRejection ? coefExpAvg :  1.0f);
 #else
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed > _SsrPBRSpeedRejection ? 1.0f : 0.0f);
-#endif
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed >= _SsrPBRSpeedRejection ? 0.0f : 1.0f);
 #endif
 
+#endif
     float4 result = lerp(previous, original, coefExpAvg);
 
-//#define REJECT_DEBUG_COLOR
+#define REJECT_DEBUG_COLOR
 
 #ifdef REJECT_DEBUG_COLOR
-    //result.rgb = float3(usedSpeed, 0.0f, 0.0f);
     #ifdef SMOOTH_REJECT
-        //float debugVal = saturate(pow(speedDiff, prec));
-        result.rgb = (1.0f - speedDiff).xxx;
+        result.rgb = (usedSpeedSmooth).xxx;
     #else
-        if (speedDiff > _SsrPBRSpeedRejection)
-            result.rgb = float3(1, 0, 0);
+        if (usedSpeed >= _SsrPBRSpeedRejection)
+            result.rgb = float3(0, 1, 0);	
         else
-            result.rgb = float3(0, 1, 0);
+            result.rgb = float3(1, 0, 0);
     #endif
 #endif
 
