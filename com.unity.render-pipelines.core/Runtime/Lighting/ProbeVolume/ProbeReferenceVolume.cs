@@ -810,7 +810,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             SetTRS(Vector3.zero, Quaternion.identity, minBrickSize);
             SetMaxSubdivision(maxSubdiv);
-
         }
 
         void LoadAsset(ProbeVolumeAsset asset)

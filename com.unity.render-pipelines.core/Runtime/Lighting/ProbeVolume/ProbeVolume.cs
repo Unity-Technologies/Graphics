@@ -199,7 +199,6 @@ namespace UnityEngine.Experimental.Rendering
             if (!ProbeReferenceVolume.instance.isInitialized || !IsResponsibleToDrawGizmo() || ProbeReferenceVolume.instance.sceneData == null)
                 return;
 
-
             var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
             if (profile == null)
                 return;
