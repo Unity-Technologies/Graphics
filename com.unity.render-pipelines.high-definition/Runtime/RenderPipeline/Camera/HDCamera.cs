@@ -356,6 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float deltaTime => time - lastTime;
 
         // Useful for the deterministic testing of motion vectors.
+        // This is currently override only in com.unity.testing.hdrp/TestRunner/OverrideTime.cs
         internal float animateMaterialsTime { get; set; } = -1;
         internal float animateMaterialsTimeLast { get; set; } = -1;
 
