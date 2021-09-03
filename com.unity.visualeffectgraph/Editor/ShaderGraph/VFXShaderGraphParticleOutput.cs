@@ -69,15 +69,11 @@ namespace UnityEditor.VFX
                 // Indicate material override from shaderGraph which is hiding output properties.
                 if (materialShadowOverride || materialQueueOffsetOverride)
                 {
-                    var castShadowMsg = materialShadowOverride ? string.Format("the castShadow ({0})", castShadow ? "true" : "false") : null;
-                    var materialOffsetMsg = materialQueueOffsetOverride ? string.Format("the materialOffset ({0})", queueOffset) : null;
-                    var msg = string.Empty;
-                    if (materialShadowOverride && materialQueueOffsetOverride)
-                        msg = string.Format("The ShaderGraph material is overriding {0} and {1} hidden settings.", castShadowMsg, materialOffsetMsg);
-                    else if (materialShadowOverride)
-                        msg = string.Format("The ShaderGraph material is overriding {0} hidden setting.", castShadowMsg);
-                    else if (materialQueueOffsetOverride)
-                        msg = string.Format("The ShaderGraph material is overriding {0} hidden setting.", materialOffsetMsg);
+                    var msg = "The ShaderGraph material is overriding some settings:";
+                    if (materialShadowOverride)
+                        msg += string.Format("\n - castShadow = {0}", castShadow ? "true" : "false");
+                    if (materialQueueOffsetOverride)
+                        msg += string.Format("\n - materialOffset = {0}", queueOffset);
                     EditorGUILayout.HelpBox(msg, MessageType.Info);
                 }
 
