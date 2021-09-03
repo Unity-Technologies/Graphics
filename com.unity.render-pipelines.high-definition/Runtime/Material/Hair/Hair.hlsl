@@ -260,6 +260,12 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
         // Absorption
         bsdfData.absorption = DiffuseColorToAbsorption(surfaceData.diffuseColor, bsdfData.roughnessRadial);
+
+    #if _USE_ADVANCED_MULTIPLE_SCATTERING
+        bsdfData.forwardScatteringTransmittance = surfaceData.forwardScatteringTransmittance;
+        bsdfData.forwardScatteringVariance = surfaceData.forwardScatteringVariance;
+        bsdfData.directIlluminationFraction = surfaceData.directIlluminationFraction;
+    #endif
     }
 
     ApplyDebugToBSDFData(bsdfData);
@@ -490,9 +496,9 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairReference.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/PreIntegratedAzimuthalScattering.hlsl"
 
-#ifdef _USE_DENSITY_VOLUME_SCATTERING
+#ifdef _USE_ADVANCED_MULTIPLE_SCATTERING
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/MultipleScattering/HairMultipleScattering.hlsl"
-#endif //_USE_DENSITY_VOLUME_SCATTERING
+#endif //_USE_ADVANCED_MULTIPLE_SCATTERING
 
 bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
 {
@@ -690,7 +696,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     #endif
 
         // Multiple Scattering
-    #if _USE_DENSITY_VOLUME_SCATTERING
+    #if _USE_ADVANCED_MULTIPLE_SCATTERING
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING))
         {
             cbsdf.specR = EvaluateMultipleScattering(cbsdf.specR, bsdfData, alpha, beta, thetaH, sinThetaI);

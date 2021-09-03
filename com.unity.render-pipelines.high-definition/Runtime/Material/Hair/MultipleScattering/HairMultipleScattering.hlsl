@@ -121,7 +121,6 @@ float3 EvaluateMultipleScattering(float3 Fs, BSDFData bsdfData, float3 alpha, fl
     // "A BSSRDF Model for Efficient Rendering of Fur with Global Illumination" (Yan et. al)
 
     // Pre-define some shorthand for the symbols.
-    const float  n    = bsdfData.fiberCount;
     const float3 af   = hairScatteringData.averageScattering[FRONT];
     const float3 ab   = hairScatteringData.averageScattering[BACK];
     const float3 sf   = hairScatteringData.averageShift[FRONT];
@@ -140,15 +139,12 @@ float3 EvaluateMultipleScattering(float3 Fs, BSDFData bsdfData, float3 alpha, fl
 
     // Approximate the transmittance by assuming that all hair strands between the shading point and the light are
     // oriented the same. This is suitable for long, straighter hair ( Eq. 6 Disney ).
-    float3 Tf = df * pow(af, n);
+    float3 Tf = bsdfData.forwardScatteringTransmittance;
 
     // Approximate the accumulated variance, by assuming strands all have the same average roughness and inclination. ( Eq. 7 Disney )
-    float3 sigmaF = Bf2 * n;
+    float3 sigmaF = bsdfData.forwardScatteringVariance;
 
-    // Blend the forward transmittance and variance toward their directly lit values. (Better than binary test)
-    const float directFraction = 1 - saturate(n);
-    Tf     = lerp(Tf,     1, directFraction);
-    sigmaF = lerp(sigmaF, 0, directFraction);
+    float directFraction = bsdfData.directIlluminationFraction;
 
     // Local scattering.
     // ------------------------------------------------------------------------------------

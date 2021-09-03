@@ -27,23 +27,27 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     surfaceData.specularOcclusion = 1.0;
 
     // copy across graph values, if defined
-    $SurfaceDescription.BaseColor:                      surfaceData.diffuseColor =                  surfaceDescription.BaseColor;
-    $SurfaceDescription.SpecularOcclusion:              surfaceData.specularOcclusion =             surfaceDescription.SpecularOcclusion;
-    $SurfaceDescription.Smoothness:                     surfaceData.perceptualSmoothness =          surfaceDescription.Smoothness;
-    $SurfaceDescription.Occlusion:                      surfaceData.ambientOcclusion =              surfaceDescription.Occlusion;
-    $SurfaceDescription.Transmittance:                  surfaceData.transmittance =                 surfaceDescription.Transmittance;
-    $SurfaceDescription.RimTransmissionIntensity:       surfaceData.rimTransmissionIntensity =      surfaceDescription.RimTransmissionIntensity;
+    $SurfaceDescription.BaseColor:                      surfaceData.diffuseColor =                   surfaceDescription.BaseColor;
+    $SurfaceDescription.SpecularOcclusion:              surfaceData.specularOcclusion =              surfaceDescription.SpecularOcclusion;
+    $SurfaceDescription.Smoothness:                     surfaceData.perceptualSmoothness =           surfaceDescription.Smoothness;
+    $SurfaceDescription.Occlusion:                      surfaceData.ambientOcclusion =               surfaceDescription.Occlusion;
+    $SurfaceDescription.Transmittance:                  surfaceData.transmittance =                  surfaceDescription.Transmittance;
+    $SurfaceDescription.RimTransmissionIntensity:       surfaceData.rimTransmissionIntensity =       surfaceDescription.RimTransmissionIntensity;
 
-    $SurfaceDescription.SpecularTint:                   surfaceData.specularTint =                  surfaceDescription.SpecularTint;
-    $SurfaceDescription.SpecularShift:                  surfaceData.specularShift =                 surfaceDescription.SpecularShift;
+    $SurfaceDescription.SpecularTint:                   surfaceData.specularTint =                   surfaceDescription.SpecularTint;
+    $SurfaceDescription.SpecularShift:                  surfaceData.specularShift =                  surfaceDescription.SpecularShift;
 
-    $SurfaceDescription.SecondarySmoothness:            surfaceData.secondaryPerceptualSmoothness = surfaceDescription.SecondarySmoothness;
-    $SurfaceDescription.SecondarySpecularTint:          surfaceData.secondarySpecularTint =         surfaceDescription.SecondarySpecularTint;
-    $SurfaceDescription.SecondarySpecularShift:         surfaceData.secondarySpecularShift =        surfaceDescription.SecondarySpecularShift;
+    $SurfaceDescription.SecondarySmoothness:            surfaceData.secondaryPerceptualSmoothness =  surfaceDescription.SecondarySmoothness;
+    $SurfaceDescription.SecondarySpecularTint:          surfaceData.secondarySpecularTint =          surfaceDescription.SecondarySpecularTint;
+    $SurfaceDescription.SecondarySpecularShift:         surfaceData.secondarySpecularShift =         surfaceDescription.SecondarySpecularShift;
 
-    $SurfaceDescription.RadialSmoothness:               surfaceData.perceptualRadialSmoothness =    surfaceDescription.RadialSmoothness;
-    $SurfaceDescription.PrimaryReflectionSmoothness:    surfaceData.primaryReflectionSmoothness =   surfaceDescription.PrimaryReflectionSmoothness;
-    $SurfaceDescription.CuticleAngle:                   surfaceData.cuticleAngle =                  surfaceDescription.CuticleAngle;
+    $SurfaceDescription.RadialSmoothness:               surfaceData.perceptualRadialSmoothness =     surfaceDescription.RadialSmoothness;
+    $SurfaceDescription.PrimaryReflectionSmoothness:    surfaceData.primaryReflectionSmoothness =    surfaceDescription.PrimaryReflectionSmoothness;
+    $SurfaceDescription.CuticleAngle:                   surfaceData.cuticleAngle =                   surfaceDescription.CuticleAngle;
+
+    $SurfaceDescription.ForwardScatteringTransmittance: surfaceData.forwardScatteringTransmittance = surfaceDescription.ForwardScatteringTransmittance;
+    $SurfaceDescription.ForwardScatteringVariance:      surfaceData.forwardScatteringVariance =      surfaceDescription.ForwardScatteringVariance;
+    $SurfaceDescription.DirectIlluminationFraction:     surfaceData.directIlluminationFraction =     surfaceDescription.DirectIlluminationFraction;
 
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = 0;

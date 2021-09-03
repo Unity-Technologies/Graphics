@@ -79,6 +79,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public float perceptualRadialSmoothness;
             [SurfaceDataAttributes("Cuticle Angle")]
             public float cuticleAngle;
+
+            // Global Scattering
+            [SurfaceDataAttributes("Scattering Transmittance")]
+            public Vector3 forwardScatteringTransmittance;
+            [SurfaceDataAttributes("Scattering Variance")]
+            public Vector3 forwardScatteringVariance;
+            [SurfaceDataAttributes("Direct Illumination")]
+            public float directIlluminationFraction;
+
         };
 
         //-----------------------------------------------------------------------------
@@ -145,8 +154,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public float roughnessRadial;
 
-            // Dual scattering
-            public float fiberCount;
+            // Global Scattering
+            public Vector3 forwardScatteringTransmittance;
+            public Vector3 forwardScatteringVariance;
+            public float directIlluminationFraction;
         };
 
 
