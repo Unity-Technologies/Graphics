@@ -57,6 +57,8 @@ namespace UnityEngine.Rendering.Universal
         public Mesh mesh => m_ShadowShape.mesh;
         public BoundingSphere boundingSphere => m_ShadowShape.boundingSphere;
 
+        public float contractionDistance { get { return m_ShadowShapeContract; } set { m_ShadowShapeContract = value; } }
+
         public Vector3[] shapePath => m_ShapePath;
         internal int shapePathHash { get { return m_ShapePathHash; } set { m_ShapePathHash = value; } }
 

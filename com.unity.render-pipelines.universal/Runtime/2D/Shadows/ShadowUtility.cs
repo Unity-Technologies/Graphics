@@ -43,13 +43,14 @@ namespace UnityEngine.Rendering.Universal
                 Vector3 start = inVertices[v0];
                 Vector3 end = inVertices[v1];
 
-                Vector3 contractDir = contractionDirection[v1];
+                Vector3 contractDir0 = contractionDirection[v0];
+                Vector3 contractDir1 = contractionDirection[v1];
 
-                outTangents[v0] = new Vector4(contractDir.x, contractDir.y, end.x, end.y);
+                outTangents[v0] = new Vector4(contractDir0.x, contractDir0.y, end.x, end.y);
 
                 int additionalVerticesStart = 2 * i + inVertices.Length;
-                outTangents[additionalVerticesStart] = new Vector4(contractDir.x, contractDir.y, end.x, end.y);
-                outTangents[additionalVerticesStart + 1] = new Vector4(contractDir.x, contractDir.y, start.x, start.y);
+                outTangents[additionalVerticesStart] = new Vector4(contractDir0.x, contractDir0.y, end.x, end.y);
+                outTangents[additionalVerticesStart + 1] = new Vector4(contractDir1.x, contractDir1.y, start.x, start.y);
             }
         }
 
