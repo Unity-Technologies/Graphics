@@ -14,11 +14,6 @@ namespace UnityEditor.ShaderGraph
             return (descriptor.semantic?.Length > 0);
         }
 
-        public static bool HasInterpolationModifier(this FieldDescriptor descriptor)
-        {
-            return !string.IsNullOrEmpty(descriptor.interpolation);
-        }
-
         public static bool HasFlag(this FieldDescriptor descriptor, StructFieldOptions options)
         {
             return (descriptor.subscriptOptions & options) == options;
