@@ -11,15 +11,17 @@ using System.Collections.Generic;
 namespace UnityEngine.Experimental.Rendering
 {
     // TODO: Use this structure in the actual authoring component rather than just a mean to group output parameters.
+    [System.Serializable]
     internal struct ProbeDilationSettings
     {
         public float dilationDistance;
         public float dilationValidityThreshold;
-        public float dilationIterations;
+        public int dilationIterations;
         public bool squaredDistWeighting;
         public float brickSize;   // Not really a dilation setting, but used during dilation.
     }
 
+    [System.Serializable]
     internal struct VirtualOffsetSettings
     {
         public bool useVirtualOffset;

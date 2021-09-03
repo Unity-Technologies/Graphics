@@ -6,6 +6,7 @@ using UnityEditor;
 namespace UnityEngine.Experimental.Rendering
 {
     // TODO: Use this structure in the actual authoring component rather than just a mean to group output parameters.
+    [System.Serializable]
     internal struct ProbeVolumeBakingProcessSettings
     {
         public ProbeDilationSettings dilationSettings;

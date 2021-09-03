@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         [System.Serializable]
-        internal struct BakingSet
+        internal class BakingSet
         {
             public string name;
             public List<string> sceneGUIDs;
@@ -65,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering
 
         [SerializeField] List<BakingSet> serializedBakingSets;
 
-        Object m_ParentAsset = null;
+        internal Object parentAsset = null;
         /// <summary> A dictionary containing the Bounds defined by probe volumes for each scene (scene path is the key of the dictionary). </summary>
         public Dictionary<string, Bounds> sceneBounds;
         internal Dictionary<string, bool> hasProbeVolumes;
@@ -77,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="parentAsset">The asset holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
         public ProbeVolumeSceneData(Object parentAsset)
         {
-            m_ParentAsset = parentAsset;
+            this.parentAsset = parentAsset;
             sceneBounds = new Dictionary<string, Bounds>();
             hasProbeVolumes = new Dictionary<string, bool>();
             sceneProfiles = new Dictionary<string, ProbeReferenceVolumeProfile>();
@@ -94,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="parentAsset">The object holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
         public void SetParentObject(Object parent)
         {
-            m_ParentAsset = parent;
+            parentAsset = parent;
         }
 
         /// <summary>
@@ -318,9 +318,9 @@ namespace UnityEngine.Experimental.Rendering
             else
                 hasProbeVolumes.Add(scene.path, boundFound);
 
-            if (m_ParentAsset != null)
+            if (parentAsset != null)
             {
-                EditorUtility.SetDirty(m_ParentAsset);
+                EditorUtility.SetDirty(parentAsset);
             }
         }
 
