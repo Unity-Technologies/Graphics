@@ -70,7 +70,6 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             Blend[_SrcBlend][_DstBlend]
             ZWrite[_ZWrite]
             Cull[_Cull]
-            ColorMask RGB
 
             HLSLPROGRAM
             #pragma target 2.0
