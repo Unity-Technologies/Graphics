@@ -153,6 +153,20 @@ Improved the quality of the physically-based Depth Of Field.
 
 This HDRP version includes a new shader that is formatted for [Custom Render Textures](https://docs.unity3d.com/Manual/class-CustomRenderTexture.html) in **Assets > Create > Shader > Custom Render Texture**. To use this shader, create a new Material and assign it to the Custom Render Texture's **Material** field.
 
+### Custom Pass Improvements
+
+This release of HDRP comes with several improvements including:
+- new API to override the camera properties: `CustomPassUtils.OverrideCameraRendering`.
+- CustomPassUtils Render functions now allows to directly write into a RenderTexture instead of the usual RTHandle.
+- The UI to add a custom pass to a volume now have a search field to filter custom passes.
+- Motion vector buffer is available through the C# API in the `CustomPassContext`.
+- A new mode on the custom pass volumes that allows to only render the custom passes on one specific camera.
+- 2 new nodes in ShaderGraph are available to sample the custom color and depth buffers of custom passes.
+
+### Custom Post Process
+
+In HDRP 12.0 the custom post processes are now using the [CommandBuffer.Blit](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.Blit.html) function for more simplicity. To learn more about Custom Post Processes in HDRP, see the [Custom Post Process documentation section](Custom-Post-Process.md).
+
 ## Issues resolved
 
 For information on issues resolved in version 12 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/changelog/CHANGELOG.html).
