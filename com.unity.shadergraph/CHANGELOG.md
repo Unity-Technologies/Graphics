@@ -58,6 +58,7 @@ The version number for this package has increased due to a version update of a r
 - Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
 - ShaderGraph SubGraphs will now report errors and warnings in a condensed single error.
 - Changed "Create Node" action in ShaderGraph stack separator context menu to "Add Block Node" and added it to main stack context menu
+- GatherTexture2D and TexelSize nodes now support all shader stages.
 
 ### Fixed
 - Fixed an issue where fog node density was incorrectly calculated.
