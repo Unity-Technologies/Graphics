@@ -741,8 +741,7 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
     float speedDiff = length(motionVectorNDC + motionVectorCenterNDC);
 #endif
 
-    float4 remapValues = float4(0.0f, /*0.0125f*/_SsrPRBSpeedRejectionScalerFactor, 0.0f, 1.0f);
-    float usedSpeed = saturate(Normalize01(clamp(speedDiff, remapValues.x, remapValues.y), remapValues.x, remapValues.y));
+    float usedSpeed = saturate(Normalize01(clamp(speedDiff, 0.0f, _SsrPRBSpeedRejectionScalerFactor), 0.0f, _SsrPRBSpeedRejectionScalerFactor));
 
 #ifdef SSR_SMOOTH_SPEED_REJECTION
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed);

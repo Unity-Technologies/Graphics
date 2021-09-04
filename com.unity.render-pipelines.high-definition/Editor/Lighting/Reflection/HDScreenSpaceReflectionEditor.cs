@@ -269,14 +269,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_UsedAlgorithm.value.intValue == (int)ScreenSpaceReflectionAlgorithm.PBRAccumulation)
                 {
                     PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
-                    //if (BeginAdditionalPropertiesScope())
+                    if (BeginAdditionalPropertiesScope())
                     {
                         PropertyField(m_BiasFactor, k_BiasFactorText);
                         PropertyField(m_SpeedRejectionFactor, k_SpeedRejectionFactorText);
                         PropertyField(m_SpeedRejectionScalerFactor, k_SpeedRejectionScalerFactorText);
                         PropertyField(m_SpeedSmoothReject, k_SpeedSmoothRejectText);
                     }
-                    //EndAdditionalPropertiesScope();
+                    EndAdditionalPropertiesScope();
                 }
             }
         }
