@@ -16,11 +16,15 @@ namespace UnityEditor
         /// </summary>
         public Vector3 anchorPosition { get; set; }
 
+        LightAnchor target;
+
         /// <summary>
         /// Initializes and returns an instance of LightAnchorHandles
         /// </summary>
-        public LightAnchorHandles()
+        /// <param name="target">Target object</param>
+        public LightAnchorHandles(LightAnchor target)
         {
+            this.target = target;
         }
 
         /// <summary>
@@ -31,7 +35,12 @@ namespace UnityEditor
             Handles.color = Color.yellow;
             Handles.DrawDottedLine(lightPosition, anchorPosition, 2f);
 
-            anchorPosition = Handles.PositionHandle(anchorPosition, Quaternion.identity);
+            // Orient the handle rotation depending on the editor pivot rotation mode
+            var handleRotation = Quaternion.identity;
+            if (Tools.pivotRotation == PivotRotation.Local && target != null)
+                handleRotation = target.transform.rotation;
+
+            anchorPosition = Handles.PositionHandle(anchorPosition, handleRotation);
         }
     }
 }
