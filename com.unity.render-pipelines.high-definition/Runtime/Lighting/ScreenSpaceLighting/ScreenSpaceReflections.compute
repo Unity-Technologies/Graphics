@@ -738,7 +738,7 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
     worldDstMotion /= worldDstMotion.w;
     float speedDiff = length(worldSrcMotion.xyz + worldDstMotion.xyz);
 #else
-    float speedDiff = length(motionVectorNDC - motionVectorCenterNDC);
+    float speedDiff = length(motionVectorNDC + motionVectorCenterNDC);
 #endif
 
     float4 remapValues = float4(0.0f, /*0.0125f*/_SsrPRBSpeedRejectionScalerFactor, 0.0f, 1.0f);
