@@ -58,7 +58,8 @@ namespace UnityEngine.Rendering.Universal
         Mesh                         m_Mesh;
         BoundingSphere               m_BoundingSphere;
 
-        bool                         m_SupportsContraction;
+        bool                         m_AllowContraction;
+        bool                         m_CorrectWindingOrder;
 
         public  Mesh mesh { get => m_Mesh; }
         public  BoundingSphere boundingSphere { get => m_BoundingSphere; }
@@ -66,18 +67,6 @@ namespace UnityEngine.Rendering.Universal
         public ShadowMesh2D()
         {
             m_Mesh = new Mesh();
-        }
-
-        public override bool supportsContraction
-        {
-            get
-            {
-                return m_SupportsContraction;
-            }
-            set
-            {
-                m_SupportsContraction = value;
-            }
         }
 
         private void CalculateEdgesFromLineStrip(NativeArray<int> indices, out NativeArray<Edge> outEdges, out NativeArray<int> outShapeStartingIndices)
@@ -253,10 +242,13 @@ namespace UnityEngine.Rendering.Universal
             edgeMap.Dispose();
         }
 
-        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, IShadowShape2DProvider.OutlineTopology outlineTopology)
+        public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, IShadowShape2DProvider.OutlineTopology outlineTopology, bool correctWindingOrder = false, bool allowContraction = true)
         {
             NativeArray<Edge> edges;
             NativeArray<int> shapeStartingIndices;
+
+            m_CorrectWindingOrder = correctWindingOrder;
+            m_AllowContraction = allowContraction;
 
             if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Triangles)
             {

@@ -18,8 +18,7 @@ namespace UnityEngine.U2D
 
         public abstract class ShadowShapes2D
         {
-            public abstract bool supportsContraction { get; set; }
-            public abstract void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, OutlineTopology outlineTopology);
+            public abstract void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, OutlineTopology outlineTopology, bool correctWindingOrder = false, bool allowContraction = true);
             public abstract void UpdateVertices(NativeArray<Vector3> vertices);
         }
 

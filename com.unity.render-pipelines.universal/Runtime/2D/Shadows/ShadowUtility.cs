@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 
@@ -239,5 +240,28 @@ namespace UnityEngine.Rendering.Universal
 
             return retBoundingSphere;
         }
+
+        static public void UpdateShadowMeshVertices(Mesh mesh, NativeArray<Vector3> inVertices)
+        {
+            int vertexCount = inVertices.Length;
+            mesh.SetVertexBufferParams(vertexCount, m_VertexLayout);
+
+            NativeArray<ShadowMeshVertex> meshVertices = new NativeArray<ShadowMeshVertex>(vertexCount, Allocator.Temp);
+            unsafe
+            {
+                ShadowMeshVertex* vertexPtr = (ShadowMeshVertex *)mesh.GetNativeVertexBufferPtr(0).ToPointer();
+                for(int i=0;i<vertexCount;i++)
+                {
+                    ShadowMeshVertex curVertex = vertexPtr[i];
+                    curVertex.position = inVertices[i];
+                    meshVertices[i] = curVertex;
+                }
+            }
+
+            mesh.SetVertexBufferData<ShadowMeshVertex>(meshVertices, 0, 0, vertexCount);
+
+            meshVertices.Dispose();
+        }
+
     }
 }
