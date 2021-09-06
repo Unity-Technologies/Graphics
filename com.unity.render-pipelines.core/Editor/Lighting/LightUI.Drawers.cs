@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering
                     valueRect.width += indent - k_ValueUnitSeparator - k_UnitWidth;
                     Rect unitRect = valueRect;
                     unitRect.x += valueRect.width - indent + k_ValueUnitSeparator;
-                    unitRect.width = k_UnitWidth + .5f;
+                    unitRect.width = k_UnitWidth + k_ValueUnitSeparator;
 
                     EditorGUI.PropertyField(valueRect, serialized.settings.colorTemperature, CoreEditorStyles.empty);
                     EditorGUI.LabelField(unitRect, Styles.lightAppearanceUnits[0]);
