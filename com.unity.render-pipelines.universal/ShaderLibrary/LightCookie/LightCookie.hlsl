@@ -13,7 +13,7 @@
 #endif
 
 
-float2 URP_LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 samplePositionWS, float4 atlasUVRect, uint2 uvWrap)
+float2 ComputeLightCookieUVDirectional(float4x4 worldToLight, float3 samplePositionWS, float4 atlasUVRect, uint2 uvWrap)
 {
     // Translate and rotate 'positionWS' into the light space.
     // Project point to light "view" plane, i.e. discard Z.
@@ -35,7 +35,7 @@ float2 URP_LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 sample
     return positionAtlasUV;
 }
 
-float2 URP_LightCookie_ComputeUVSpot(float4x4 worldToLightPerspective, float3 samplePositionWS, float4 atlasUVRect)
+float2 ComputeLightCookieUVSpot(float4x4 worldToLightPerspective, float3 samplePositionWS, float4 atlasUVRect)
 {
     // Translate, rotate and project 'positionWS' into the light clip space.
     float4 positionCS   = mul(worldToLightPerspective, float4(samplePositionWS, 1));
@@ -50,7 +50,7 @@ float2 URP_LightCookie_ComputeUVSpot(float4x4 worldToLightPerspective, float3 sa
     return positionAtlasUV;
 }
 
-float2 URP_LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS, float4 atlasUVRect)
+float2 ComputeLightCookieUVPoint(float4x4 worldToLight, float3 samplePositionWS, float4 atlasUVRect)
 {
     // Translate and rotate 'positionWS' into the light space.
     float4 positionLS  = mul(worldToLight, float4(samplePositionWS, 1));
@@ -68,48 +68,46 @@ float2 URP_LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositi
 
 
 
-real3 URP_LightCookie_SampleMainLightCookie(float3 samplePositionWS)
+real3 SampleMainLightCookie(float3 samplePositionWS)
 {
-    float2 uv = URP_LightCookie_ComputeUVDirectional(_MainLightWorldToLight, samplePositionWS, float4(1, 1, 0, 0), URP_TEXTURE_WRAP_MODE_NONE);
-    real4 color = URP_LightCookie_SampleMainLightTexture(uv);
+    float2 uv = ComputeLightCookieUVDirectional(_MainLightWorldToLight, samplePositionWS, float4(1, 1, 0, 0), URP_TEXTURE_WRAP_MODE_NONE);
+    real4 color = SampleMainLightCookieTexture(uv);
 
-    return URP_LightCookie_MainLightTextureIsRGBFormat() ? color.rgb
-             : URP_LightCookie_MainLightTextureIsAlphaFormat() ? color.aaa
+    return IsMainLightCookieTextureRGBFormat() ? color.rgb
+             : IsMainLightCookieTextureAlphaFormat() ? color.aaa
              : color.rrr;
 }
 
-real3 URP_LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float3 samplePositionWS)
+real3 SampleAdditionalLightCookie(int perObjectLightIndex, float3 samplePositionWS)
 {
-    float4 uvRect = URP_LightCookie_GetAtlasUVRect(perObjectLightIndex);
-
-    // TODO: pack into bits, read less
-    if(URP_LightCookie_IsEnabled(uvRect))
+    if(!IsLightCookieEnabled(perObjectLightIndex))
         return real3(1,1,1);
 
-    int lightType     = URP_LightCookie_GetLightType(perObjectLightIndex);
+    int lightType     = GetLightCookieLightType(perObjectLightIndex);
     int isSpot        = lightType == URP_LIGHT_TYPE_SPOT;
     int isDirectional = lightType == URP_LIGHT_TYPE_DIRECTIONAL;
 
-    float4x4 worldToLight = URP_LightCookie_GetWorldToLightMatrix(perObjectLightIndex);
+    float4x4 worldToLight = GetLightCookieWorldToLightMatrix(perObjectLightIndex);
+    float4 uvRect = GetLightCookieAtlasUVRect(perObjectLightIndex);
 
     float2 uv;
     if(isSpot)
     {
-        uv = URP_LightCookie_ComputeUVSpot(worldToLight, samplePositionWS, uvRect);
+        uv = ComputeLightCookieUVSpot(worldToLight, samplePositionWS, uvRect);
     }
     else if(isDirectional)
     {
-        uv = URP_LightCookie_ComputeUVDirectional(worldToLight, samplePositionWS, uvRect, URP_TEXTURE_WRAP_MODE_REPEAT);
+        uv = ComputeLightCookieUVDirectional(worldToLight, samplePositionWS, uvRect, URP_TEXTURE_WRAP_MODE_REPEAT);
     }
     else
     {
-        uv = URP_LightCookie_ComputeUVPoint(worldToLight, samplePositionWS, uvRect);
+        uv = ComputeLightCookieUVPoint(worldToLight, samplePositionWS, uvRect);
     }
 
-    real4 color = URP_LightCookie_SampleAdditionalLightsTexture(uv);
+    real4 color = SampleAdditionalLightsCookieAtlasTexture(uv);
 
-    return URP_LightCookie_AdditionalLightsTextureIsRGBFormat() ? color.rgb
-            : URP_LightCookie_AdditionalLightsTextureIsAlphaFormat() ? color.aaa
+    return IsAdditionalLightsCookieAtlasTextureRGBFormat() ? color.rgb
+            : IsAdditionalLightsCookieAtlasTextureAlphaFormat() ? color.aaa
             : color.rrr;
 }
 

@@ -28,6 +28,7 @@ struct VtInputParameters
     int levelMode;
     int uvMode;
     int sampleQuality;
+    int enableGlobalMipBias;
 };
 
 int VirtualTexturingLookup(
@@ -61,7 +62,7 @@ int VirtualTexturingLookup(
             dx = ddx(texCoord) * offsetPow2;
             dy = ddy(texCoord) * offsetPow2;
         }
-        // In low qauality we don't care about cache derivatives and will add the bias later
+        // In low quality we don't care about cache derivatives and will add the bias later
         else
         {
             dx = ddx(texCoord);
@@ -92,6 +93,14 @@ int VirtualTexturingLookup(
 
     if (input.levelMode != VtLevel_Lod)
     {
+        #ifdef VT_GLOBAL_MIP_BIAS_MULTIPLIER
+        if (input.enableGlobalMipBias)
+        {
+            dx *= VT_GLOBAL_MIP_BIAS_MULTIPLIER;
+            dy *= VT_GLOBAL_MIP_BIAS_MULTIPLIER;
+        }
+        #endif
+
         mipLevel = GranitePrivate_CalcMiplevelAnisotropic(grCB.tilesetBuffer, grCB.streamingTextureBuffer, dx, dy);
 
         // Simply add it here derivatives are wrong from this point onwards but not used anymore

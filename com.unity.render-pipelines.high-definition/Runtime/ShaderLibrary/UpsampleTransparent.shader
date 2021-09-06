@@ -32,6 +32,8 @@ Shader "Hidden/HDRP/UpsampleTransparent"
             return output;
         }
 
+
+        float4 _Params; //x: targetResolutionMultiplier, y: 1.0/targetResolutionMultiplier, z: unused, w: unused
         TEXTURE2D_X(_LowResTransparent);
 #ifdef NEAREST_DEPTH
         TEXTURE2D_X_FLOAT(_LowResDepthTexture);
@@ -46,7 +48,7 @@ Shader "Hidden/HDRP/UpsampleTransparent"
             float2 uv = input.texcoord;
 
             float2 fullResTexelSize = _ScreenSize.zw;
-            float2 halfResTexelSize = 2.0f * fullResTexelSize;
+            float2 halfResTexelSize = _Params.y * fullResTexelSize;
 
         #ifdef NEAREST_DEPTH
 

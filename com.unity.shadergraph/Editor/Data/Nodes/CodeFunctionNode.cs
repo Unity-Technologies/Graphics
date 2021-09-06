@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireScreenPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
+        , IMayRequirePositionPredisplacement
         , IMayRequireVertexColor
     {
         [NonSerialized]
@@ -35,46 +36,46 @@ namespace UnityEditor.ShaderGraph
         }
 
         protected struct Boolean
-        {}
+        { }
 
         protected struct Vector1
-        {}
+        { }
 
         protected struct Texture2D
-        {}
+        { }
 
         protected struct Texture2DArray
-        {}
+        { }
 
         protected struct Texture3D
-        {}
+        { }
 
         protected struct SamplerState
-        {}
+        { }
 
         protected struct Gradient
-        {}
+        { }
 
         protected struct DynamicDimensionVector
-        {}
+        { }
 
         protected struct ColorRGBA
-        {}
+        { }
 
         protected struct ColorRGB
-        {}
+        { }
 
         protected struct Matrix3x3
-        {}
+        { }
 
         protected struct Matrix2x2
-        {}
+        { }
 
         protected struct DynamicDimensionMatrix
-        {}
+        { }
 
         protected struct PropertyConnectionState
-        {}
+        { }
 
         protected enum Binding
         {
@@ -499,6 +500,18 @@ namespace UnityEditor.ShaderGraph
                 var binding = NeededCoordinateSpace.None;
                 foreach (var slot in tempSlots)
                     binding |= slot.RequiresPosition();
+                return binding;
+            }
+        }
+
+        public NeededCoordinateSpace RequiresPositionPredisplacement(ShaderStageCapability stageCapability)
+        {
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(tempSlots);
+                var binding = NeededCoordinateSpace.None;
+                foreach (var slot in tempSlots)
+                    binding |= slot.RequiresPositionPredisplacement();
                 return binding;
             }
         }

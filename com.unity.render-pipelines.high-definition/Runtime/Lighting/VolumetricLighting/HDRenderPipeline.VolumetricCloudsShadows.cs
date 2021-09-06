@@ -1,4 +1,3 @@
-using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -30,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool HasVolumetricCloudsShadows(HDCamera hdCamera, in VolumetricClouds settings)
         {
             return (HasVolumetricClouds(hdCamera, in settings)
-                && GetCurrentSunLight() != null
+                && GetMainLight() != null
                 && settings.shadows.value);
         }
 
@@ -51,24 +50,66 @@ namespace UnityEngine.Rendering.HighDefinition
             return HasVolumetricCloudsShadows_IgnoreSun(hdCamera, settings);
         }
 
-        static void TraceVolumetricCloudShadow(CommandBuffer cmd, VolumetricCloudsParameters parameters, RTHandle shadowTexture)
+        struct VolumetricCloudsShadowsParameters
+        {
+            // Data common to all volumetric cloud passes
+            public VolumetricCloudCommonData commonData;
+            public int shadowsKernel;
+        }
+
+        VolumetricCloudsShadowsParameters PrepareVolumetricCloudsShadowsParameters(HDCamera hdCamera, VolumetricClouds settings)
+        {
+            VolumetricCloudsShadowsParameters parameters = new VolumetricCloudsShadowsParameters();
+
+            // Compute the cloud model data
+            CloudModelData cloudModelData = GetCloudModelData(settings);
+
+            // Fill the common data
+            FillVolumetricCloudsCommonData(false, settings, TVolumetricCloudsCameraType.Default, in cloudModelData, ref parameters.commonData);
+
+            parameters.shadowsKernel = m_ComputeShadowCloudsKernel;
+
+            // Update the constant buffer
+            VolumetricCloudsCameraData cameraData;
+            cameraData.cameraType = parameters.commonData.cameraType;
+            cameraData.traceWidth = 1;
+            cameraData.traceHeight = 1;
+            cameraData.intermediateWidth = 1;
+            cameraData.intermediateHeight = 1;
+            cameraData.finalWidth = 1;
+            cameraData.finalHeight = 1;
+            cameraData.viewCount = 1;
+            cameraData.enableExposureControl = false;
+            cameraData.lowResolution = false;
+            cameraData.enableIntegration = false;
+            UpdateShaderVariableslClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, true);
+
+            return parameters;
+        }
+
+        static void TraceVolumetricCloudShadow(CommandBuffer cmd, VolumetricCloudsShadowsParameters parameters, RTHandle shadowTexture)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsShadow)))
             {
-                CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.localClouds);
+                CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.commonData.localClouds);
 
                 // Bind the constant buffer
-                ConstantBuffer.Push(cmd, parameters.cloudsCB, parameters.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
+                ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
 
-                // Compute the final resolution parameters
-                int shadowTX = (parameters.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
-                int shadowTY = (parameters.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudMapTexture, parameters.cloudMapTexture);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudLutTexture, parameters.cloudLutTexture);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._Worley128RGBA, parameters.worley128RGBA);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._Worley32RGB, parameters.worley32RGB);
-                cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, shadowTexture);
-                cmd.DispatchCompute(parameters.volumetricCloudsCS, parameters.shadowsKernel, shadowTX, shadowTY, parameters.viewCount);
+                // Compute the number of tiles to dispatch
+                int shadowTX = (parameters.commonData.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
+                int shadowTY = (parameters.commonData.cloudsCB._ShadowCookieResolution + (8 - 1)) / 8;
+                // Input textures
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudMapTexture, parameters.commonData.cloudMapTexture);
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._CloudLutTexture, parameters.commonData.cloudLutTexture);
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._Worley128RGBA, parameters.commonData.worley128RGBA);
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._ErosionNoise, parameters.commonData.erosionNoise);
+
+                // Output texture
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, HDShaderIDs._VolumetricCloudsShadowRW, shadowTexture);
+
+                // Evaluate the shadow
+                cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.shadowsKernel, shadowTX, shadowTY, 1);
 
                 // Bump the texture version
                 shadowTexture.rt.IncrementUpdateCount();
@@ -77,7 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class VolumetricCloudsShadowData
         {
-            public VolumetricCloudsParameters parameters;
+            public VolumetricCloudsShadowsParameters parameters;
             public TextureHandle shadowTexture;
         }
 
@@ -129,11 +170,11 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle currentHandle = RequestVolumetricCloudsShadowTexture(settings);
 
             // Evaluate and return the shadow
-            var parameters = PrepareVolumetricCloudsParameters(hdCamera, settings, true, false);
+            var parameters = PrepareVolumetricCloudsShadowsParameters(hdCamera, settings);
             TraceVolumetricCloudShadow(cmd, parameters, currentHandle);
 
             // Grab the current sun light
-            Light sunLight = GetCurrentSunLight();
+            Light sunLight = GetMainLight();
 
             // Compute the shadow size
             float groundShadowSize = settings.shadowDistance.value * 2.0f;

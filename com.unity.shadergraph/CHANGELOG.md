@@ -4,6 +4,11 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.0.0] - 2021-09-01
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -11,8 +16,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added ability to define custom vertex-to-fragment interpolators.
   - Support for the XboxSeries platform has been added.
   - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
+  - Added information about selecting and unselecting items to the Blackboard article.
   - Added View Vector Node documentation
   - Added custom interpolator thresholds on shadergraph project settings page.
+  - Added custom interpolator documentation
   - Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard.
   - Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
   - Added a new target for the built-in render pipeline, including Lit and Unlit sub-targets.
@@ -23,12 +30,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added `Use Custom Binding` option to properties. When this option is enabled, a property can be connected to a `Branch On Input Connection` node. The user provides a custom label that will be displayed on the exposed property, when it is disconnected in a graph.
   - Added new dropdown property type for subgraphs, to allow compile time branching that can be controlled from the parent graph, via the subgraph instance node.
   - Added `Dropdown` node per dropdown property, that can be used to configure the desired branch control.
+  - Added selection highlight and picking shader passes for URP target.
   - Added the ability to mark textures / colors as \[MainTexture\] and \[MainColor\].
   - Added the ability to enable tiling and offset controls for a Texture2D input.
   - Added the Split Texture Transform node to allow using/overriding the provided tiling and offset from a texture input.
   - Added `Calculate Level Of Detail Texture 2D` node, for calculating a Texture2D LOD level.
   - Added `Gather Texture 2D` node, for retrieving the four samples (red component only) that would be used for bilinear interpolation when sampling a Texture2D.
   - Added toggle "Disable Global Mip Bias" in Sample Texture 2D and Sample Texture 2D array node. This checkbox disables the runtimes automatic Mip Bias, which for instance can be activated during dynamic resolution scaling.
+  - Added `Sprite` option to Main Preview, which is similar to `Quad` but does not allow rotation. `Sprite` is used as the default preview for URP Sprite shaders.
+  - Added Tessellation Option to PositionNode settings, to provide access to the pre-displaced tessellated position.
+  - Added visible errors for invalid stage capability connections to shader graph.
+  - Added a ShaderGraph animated preview framerate throttle.
+  - Added many node synonyms for the Create Node search so that it's easier to find nodes.
 
 ### Changed
 - Properties and Keywords are no longer separated by type on the blackboard. Categories allow for any combination of properties and keywords to be grouped together as the user defines.
@@ -37,10 +50,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Asset/Create/Shader/Blank Shader Graph to Asset/Create/Shader Graph/Blank Shader Graph
 - Change Asset/Create/Shader/Sub Graph to Asset/Create/Shader Graph/Sub Graph
 - Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
+- Adjusted Blackboard article to clarify multi-select functionality
 - Limited max number of inspectable items in the Inspector View to 20 items
 - Added borders to inspector items styling, to better differentiate between separate items
 - Updated Custom Function Node to use new ShaderInclude asset type instead of TextAsset (.hlsl and .cginc softcheck remains).
 - Change BranchOnInputNode to choose NotConnected branch when generating Preview
+- Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
+- ShaderGraph SubGraphs will now report errors and warnings in a condensed single error.
+- Changed "Create Node" action in ShaderGraph stack separator context menu to "Add Block Node" and added it to main stack context menu
 
 ### Fixed
 - Fixed an issue where fog node density was incorrectly calculated.
@@ -89,6 +106,37 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the ShaderGraph transform node would generate incorrect results when transforming a direction from view space to object space [1333781] (https://issuetracker.unity3d.com/product/unity/issues/guid/1333781/)
 - Fixed a ShaderGraph issue where keyword properties could get stuck highlighted when deleted [1333738].
 - Fixed issue with ShaderGraph custom interpolator node dependency ordering [1332553].
+- Fixed SubGraph SamplerState property defaults not being respected [1336119]
+- Fixed an issue where nested subgraphs with identical SamplerState property settings could cause compile failures [1336089]
+- Fixed an issue where SamplerState properties could not be renamed after creation [1336126]
+- Fixed loading all materials from project when saving a ShaderGraph.
+- Fixed issues with double prompts for "do you want to save" when closing Shader Graph windows [1316104].
+- Fixed a ShaderGraph issue where resize handles on blackboard and graph inspector were too small [1329247] (https://issuetracker.unity3d.com/issues/shadergraph-resize-bounds-for-blackboard-and-graph-inspector-are-too-small)
+- Fixed a ShaderGraph issue where a material inspector could contain an extra set of render queue, GPU instancing, and double-sided GI controls.
+- Fixed a Shader Graph issue where property auto generated reference names were not consistent across all property types [1336937].
+- Fixed a warning in ShaderGraph about BuiltIn Shader Library assembly having no scripts.
+- Fixed ShaderGraph BuiltIn target not having collapsible foldouts in the material inspector [1339256].
+- Fixed GPU instancing support in Shadergraph [1319655] (https://issuetracker.unity3d.com/issues/shader-graph-errors-are-thrown-when-a-propertys-shader-declaration-is-set-to-hybrid-per-instance-and-exposed-is-disabled).
+- Fixed indent level in shader graph target foldout (case 1339025).
+- Fixed ShaderGraph BuiltIn target shader GUI to allow the same render queue control available on URP with the changes for case 1335795.
+- Fixed ShaderGraph BuiltIn target not to apply emission in the ForwardAdd pass to match surface shader results [1345574]. (https://issuetracker.unity3d.com/product/unity/issues/guid/1345574/)
+- Fixed Procedural Virtual Texture compatibility with SRP Batcher [1329336] (https://issuetracker.unity3d.com/issues/procedural-virtual-texture-node-will-make-a-shadergraph-incompatible-with-srp-batcher)
+- Fixed an issue where SubGraph keywords would not deduplicate before counting towards the permutation limit [1343528] (https://issuetracker.unity3d.com/issues/shader-graph-graph-is-generating-too-many-variants-error-is-thrown-when-using-subgraphs-with-keywords)
+- Fixed an issue where an informational message could cause some UI controls on the graph inspector to be pushed outside the window [1343124] (https://issuetracker.unity3d.com/product/unity/issues/guid/1343124/)
+- Fixed a ShaderGraph issue where selecting a keyword property in the blackboard would invalidate all previews, causing them to recompile [1347666] (https://issuetracker.unity3d.com/product/unity/issues/guid/1347666/)
+- Fixed the incorrect value written to the VT feedback buffer when VT is not used.
+- Fixed ShaderGraph isNaN node, which was always returning false on Vulkan and Metal platforms.
+- Fixed ShaderGraph sub-graph stage limitations to be per slot instead of per sub-graph node [1337137].
+- Disconnected nodes with errors in ShaderGraph no longer cause the imports to fail [1349311] (https://issuetracker.unity3d.com/issues/shadergraph-erroring-unconnected-node-causes-material-to-become-invalid-slash-pink)
+- ShaderGraph SubGraphs now report node warnings in the same way ShaderGraphs do [1350282].
+- Fixed ShaderGraph exception when trying to set a texture to "main texture" [1350573].
+- Fixed a ShaderGraph issue where Float properties in Integer mode would not be cast properly in graph previews [1330302](https://fogbugz.unity3d.com/f/cases/1330302/)
+- Fixed a ShaderGraph issue where hovering over a context block but not its node stack would not bring up the incorrect add menu [1351733](https://fogbugz.unity3d.com/f/cases/1351733/)
+- Fixed the BuiltIn Target to perform shader variant stripping [1345580] (https://issuetracker.unity3d.com/product/unity/issues/guid/1345580/)
+- Fixed incorrect warning while using VFXTarget
+- Fixed a bug with Sprite Targets in ShaderGraph not rendering correctly in game view [1352225]
+- Fixed compilation problems on preview shader when using hybrid renderer v2 and property desc override Hybrid Per Instance
+- Fixed a serialization bug wrt PVT property flags when using subgraphs. This fixes SRP batcher compatibility.
 
 ## [11.0.0] - 2020-10-21
 
@@ -121,6 +169,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ParallaxMapping node compile issue on GLES2
 - Fixed a selection bug with block nodes after changing tabs [1312222]
 - Fixed some shader graph compiler errors not being logged [1304162].
+- Fixed a shader graph bug where the Hue node would have a large seam with negative values [1340849].
+- Fixed an error when using camera direction with sample reflected cube map [1340538].
+- Fixed ShaderGraph's FogNode returning an incorrect density when the fog setting was disabled [1347235].
 
 ## [10.3.0] - 2020-11-03
 
@@ -258,6 +309,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added `Compute Deformation` Node to read deformed vertex data from Dots Deformations.
 - Added new graph nodes that allow sampling Virtual Textures
 - Shader Graph now uses a new file format that is much friendlier towards version control systems and humans. Existing Shader Graphs and will use the new format next time they are saved.
+- Added 'Allow Material Override' option to the built-in target for shader graph.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.

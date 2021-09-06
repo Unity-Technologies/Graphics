@@ -68,7 +68,28 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
             DecodeFromNormalBuffer(normalbuffer, normalData);
 
             #ifdef DECAL_SURFACE_GRADIENT
-            decalSurfaceData.normalWS.xyz = SurfaceGradientResolveNormal(normalData.normalWS.xyz, decalSurfaceData.normalWS.xyz);
+            // Our dbuffer has volume gradients accumulated in it.
+            //
+            // At this stage we only have the normal in the normal buffer which will already be perturbed except without decals.
+            // Since we don't have the original mesh vertex normal, it is not possible to patch the normal data with the same interpretation
+            // of the dbuffer volume gradient and other maps when we apply decals in a shader which supports SURFACE_GRADIENT
+            // and the DECAL_SURFACE_GRADIENT option is on: in that case, all maps are summed as surface gradients, along with the dbuffer
+            // volume gradient transformed as a surface gradient wrt to the mesh vertex normal.
+            //
+            // Here try our best by interpreting the normal in the normal buffer as the mesh surface normal. This is like doing re-oriented
+            // normal mapping with the decal (using a resolved perturbed normal as a new "base surface" normal to be perturbed again).
+            // We will still first resolve the decal gradient as a "normal" to be added with the normal from the normal buffer,
+            // ie we will not consider the normal in the normal buffer as a surface gradient itself to have a decal surfgrad added to it,
+            // as in that case the weight "decalSurfaceData.normalWS.w" could not possibly be of any use unless we use it as a lerp factor
+            // which we don't do anywhere in our decal processing:
+            // The reason is that normalData.normalWS.xyz is the zero surface gradient wrt to itself, and we would get
+            // SurfaceGradFrom(normalData.normalWS.xyz) * decalSurfaceData.normalWS.w = (0,0,0) * decalSurfaceData.normalWS.w = (0,0,0)
+            // regardless of the weight.
+            //
+            // So we make sure we return some sensible normal by first removing any colinear component (to the normal buffer normal)
+            // of the volume gradient before resolving it: ie convert the volume gradient to a proper surface gradient wrt to our normal:
+            float3 surfGrad = SurfaceGradientFromVolumeGradient(normalData.normalWS.xyz, decalSurfaceData.normalWS.xyz);
+            decalSurfaceData.normalWS.xyz = SurfaceGradientResolveNormal(surfGrad, decalSurfaceData.normalWS.xyz);
             #endif
             normalData.normalWS.xyz = normalize(normalData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
 

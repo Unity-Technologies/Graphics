@@ -211,8 +211,14 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ImageEffectAllowedInSceneView]
+    [URPHelpURL("universal-additional-camera-data")]
     public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
+        const string k_GizmoPath = "Packages/com.unity.render-pipelines.universal/Editor/Gizmos/";
+        const string k_BaseCameraGizmoPath = k_GizmoPath + "Camera_Base.png";
+        const string k_OverlayCameraGizmoPath = k_GizmoPath + "Camera_Base.png";
+        const string k_PostProcessingGizmoPath = k_GizmoPath + "Camera_PostProcessing.png";
+
         [FormerlySerializedAs("renderShadows"), SerializeField]
         bool m_RenderShadows = true;
 
@@ -246,7 +252,7 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("requiresColorTexture"), SerializeField]
         bool m_RequiresColorTexture = false;
 
-        [HideInInspector][SerializeField] float m_Version = 2;
+        [HideInInspector] [SerializeField] float m_Version = 2;
 
         public float version => m_Version;
 
@@ -562,17 +568,16 @@ namespace UnityEngine.Rendering.Universal
 
         public void OnDrawGizmos()
         {
-            string path = "Packages/com.unity.render-pipelines.universal/Editor/Gizmos/";
             string gizmoName = "";
             Color tint = Color.white;
 
             if (m_CameraType == CameraRenderType.Base)
             {
-                gizmoName = $"{path}Camera_Base.png";
+                gizmoName = k_BaseCameraGizmoPath;
             }
             else if (m_CameraType == CameraRenderType.Overlay)
             {
-                gizmoName = $"{path}Camera_Overlay.png";
+                gizmoName = k_OverlayCameraGizmoPath;
             }
 
 #if UNITY_2019_2_OR_NEWER
@@ -590,12 +595,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderPostProcessing)
             {
-                Gizmos.DrawIcon(transform.position, $"{path}Camera_PostProcessing.png", true, tint);
+                Gizmos.DrawIcon(transform.position, k_PostProcessingGizmoPath, true, tint);
             }
 #else
             if (renderPostProcessing)
             {
-                Gizmos.DrawIcon(transform.position, $"{path}Camera_PostProcessing.png");
+                Gizmos.DrawIcon(transform.position, k_PostProcessingGizmoPath);
             }
             Gizmos.DrawIcon(transform.position, gizmoName);
 #endif

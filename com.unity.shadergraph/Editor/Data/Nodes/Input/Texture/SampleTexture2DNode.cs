@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
         const string kUVInputName = "UV";
         const string kSamplerInputName = "Sampler";
         const string kDefaultSampleMacro = "SAMPLE_TEXTURE2D";
-        const string kSampleMacroNoBias  = "PLATFORM_SAMPLE_TEXTURE2D";
+        const string kSampleMacroNoBias = "PLATFORM_SAMPLE_TEXTURE2D";
 
 
         public override bool hasPreview { get { return true; } }
@@ -82,11 +82,11 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private bool m_DisableGlobalMipBias = false;
-        internal bool disableGlobalMipBias
+        private bool m_EnableGlobalMipBias = true;
+        internal bool enableGlobalMipBias
         {
-            set { m_DisableGlobalMipBias = value; }
-            get { return m_DisableGlobalMipBias; }
+            set { m_EnableGlobalMipBias = value; }
+            get { return m_EnableGlobalMipBias; }
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph
             var id = GetSlotValue(TextureInputId, generationMode);
             var result = string.Format("$precision4 {0} = {1}({2}.tex, {3}.samplerstate, {2}.GetTransformedUV({4}));"
                 , GetVariableNameForSlot(OutputSlotRGBAId)
-                , m_DisableGlobalMipBias ? kSampleMacroNoBias : kDefaultSampleMacro
+                , m_EnableGlobalMipBias ? kDefaultSampleMacro : kSampleMacroNoBias
                 , id
                 , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id
                 , uvName);

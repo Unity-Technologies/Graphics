@@ -19,7 +19,7 @@ A Camera Stack consists of a [Base Camera](camera-types-and-render-type.md#base-
 
 The Overlay Camera is now part of the Base Camera's Camera Stack. Unity renders the Overlay Camera's output on top of the Base Camera's output.
 
-You can add a Camera to a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](../api/UnityEngine.Rendering.Universal.UniversalAdditionalCameraData.html) component, like this:
+You can add a Camera to a Camera Stack in a script by directly manipulating the `cameraStack` property of the Base Camera's [Universal Additional Camera Data](xref:UnityEngine.Rendering.Universal.UniversalAdditionalCameraData) component, like this:
 
 ```
 var cameraData = camera.GetUniversalAdditionalCameraData();

@@ -59,10 +59,10 @@
 #define DEBUGVIEW_AXF_BSDFDATA_NORMAL_WS (1252)
 #define DEBUGVIEW_AXF_BSDFDATA_NORMAL_VIEW_SPACE (1253)
 #define DEBUGVIEW_AXF_BSDFDATA_TANGENT_WS (1254)
-#define DEBUGVIEW_AXF_BSDFDATA_BI_TANGENT_WS (1255)
+#define DEBUGVIEW_AXF_BSDFDATA_BITANGENT_WS (1255)
 #define DEBUGVIEW_AXF_BSDFDATA_DIFFUSE_COLOR (1256)
 #define DEBUGVIEW_AXF_BSDFDATA_SPECULAR_COLOR (1257)
-#define DEBUGVIEW_AXF_BSDFDATA_FRESNEL_F0 (1258)
+#define DEBUGVIEW_AXF_BSDFDATA_FRESNEL0 (1258)
 #define DEBUGVIEW_AXF_BSDFDATA_PERCEPTUAL_ROUGHNESS (1259)
 #define DEBUGVIEW_AXF_BSDFDATA_ROUGHNESS (1260)
 #define DEBUGVIEW_AXF_BSDFDATA_HEIGHT_MM (1261)
@@ -281,7 +281,7 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_AXF_BSDFDATA_TANGENT_WS:
             result = bsdfdata.tangentWS * 0.5 + 0.5;
             break;
-        case DEBUGVIEW_AXF_BSDFDATA_BI_TANGENT_WS:
+        case DEBUGVIEW_AXF_BSDFDATA_BITANGENT_WS:
             result = bsdfdata.bitangentWS * 0.5 + 0.5;
             break;
         case DEBUGVIEW_AXF_BSDFDATA_DIFFUSE_COLOR:
@@ -290,7 +290,7 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_AXF_BSDFDATA_SPECULAR_COLOR:
             result = bsdfdata.specularColor;
             break;
-        case DEBUGVIEW_AXF_BSDFDATA_FRESNEL_F0:
+        case DEBUGVIEW_AXF_BSDFDATA_FRESNEL0:
             result = bsdfdata.fresnel0;
             break;
         case DEBUGVIEW_AXF_BSDFDATA_PERCEPTUAL_ROUGHNESS:

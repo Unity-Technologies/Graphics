@@ -31,6 +31,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         uniform int _SubdivLevel;
         uniform float _CullDistance;
         uniform int _MaxAllowedSubdiv;
+        uniform float _ValidityThreshold;
 
         struct appdata
         {
@@ -47,8 +48,8 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         };
 
         UNITY_INSTANCING_BUFFER_START(Props)
-            UNITY_DEFINE_INSTANCED_PROP(float4, _Position)
-            UNITY_DEFINE_INSTANCED_PROP(float4, _Validity)
+            UNITY_DEFINE_INSTANCED_PROP(float4, _IndexInAtlas)
+            UNITY_DEFINE_INSTANCED_PROP(float, _Validity)
         UNITY_INSTANCING_BUFFER_END(Props)
 
         v2f vert(appdata v)
@@ -61,9 +62,11 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
 
             // Finer culling, degenerate the vertices of the sphere if it lies over the max distance.
             // Coarser culling has already happened on CPU.
-            float4 position = UNITY_ACCESS_INSTANCED_PROP(Props, _Position);
-            if (distance(position.xyz, _WorldSpaceCameraPos.xyz) > _CullDistance ||
-                _SubdivLevel > _MaxAllowedSubdiv)
+            float4 position = float4(UNITY_MATRIX_M._m03_m13_m23, 1);
+            int brickSize = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).w;
+
+            if (distance(position.xyz, GetCurrentViewPosition()) > _CullDistance ||
+                brickSize > _MaxAllowedSubdiv)
             {
                 o.vertex = 0;
                 o.normal = 0;
@@ -79,42 +82,72 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             return o;
         }
 
+        float3 EvalL1(float3 L0, float3 L1_R, float3 L1_G, float3 L1_B, float3 N)
+        {
+            float3 outLighting = 0;
+            L1_R = DecodeSH(L0.r, L1_R);
+            L1_G = DecodeSH(L0.g, L1_G);
+            L1_B = DecodeSH(L0.b, L1_B);
+            outLighting += SHEvalLinearL1(N, L1_R, L1_G, L1_B);
+
+            return outLighting;
+        }
+
+        float3 EvalL2(inout float3 L0, float4 L2_R, float4 L2_G, float4 L2_B, float4 L2_C, float3 N)
+        {
+            DecodeSH_L2(L0, L2_R, L2_G, L2_B, L2_C);
+
+            return SHEvalLinearL2(N, L2_R, L2_G, L2_B, L2_C);
+        }
+
         float4 frag(v2f i) : SV_Target
         {
             UNITY_SETUP_INSTANCE_ID(i);
 
             if (_ShadingMode == DEBUGPROBESHADINGMODE_SH)
             {
-                float4 position = UNITY_ACCESS_INSTANCED_PROP(Props, _Position);
+                APVResources apvRes = FillAPVResources();
+                int3 texLoc = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).xyz;
                 float3 normal = normalize(i.normal);
+
                 float3 bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
                 float3 backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
-                APVResources apvRes = FillAPVResources();
 
-                float3 uvw;
-                if (TryToGetPoolUVW(apvRes, position.xyz, 0.0, 0.0f, uvw))
-                {
-                    float L1Rx;
-                    float3 L0 = EvaluateAPVL0Point(apvRes, uvw, L1Rx);
+                float4 L0_L1Rx = apvRes.L0_L1Rx[texLoc].rgba;
+                float3 L0 = L0_L1Rx.xyz;
+                float  L1Rx = L0_L1Rx.w;
+                float4 L1G_L1Ry = apvRes.L1G_L1Ry[texLoc].rgba;
+                float4 L1B_L1Rz = apvRes.L1B_L1Rz[texLoc].rgba;
 
-#ifdef PROBE_VOLUMES_L1
-                    EvaluateAPVL1Point(apvRes, L0, L1Rx, normal, normal, uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
-#elif PROBE_VOLUMES_L2
-                    EvaluateAPVL1Point(apvRes, L0, L1Rx, normal, normal, uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
-#endif
+                bakeDiffuseLighting = EvalL1(L0, float3(L1Rx, L1G_L1Ry.w, L1B_L1Rz.w), L1G_L1Ry.xyz, L1B_L1Rz.xyz, normal);
 
-                    bakeDiffuseLighting += L0;
-                }
-                else
-                {
-                    bakeDiffuseLighting = EvaluateAmbientProbe(normal);
-                }
+        #ifdef PROBE_VOLUMES_L2
+                float4 L2_R = apvRes.L2_0[texLoc].rgba;
+                float4 L2_G = apvRes.L2_1[texLoc].rgba;
+                float4 L2_B = apvRes.L2_2[texLoc].rgba;
+                float4 L2_C = apvRes.L2_3[texLoc].rgba;
 
+                bakeDiffuseLighting += EvalL2(L0, L2_R, L2_G, L2_B, L2_C, normal);
+        #endif
+                bakeDiffuseLighting += L0;
                 return float4(bakeDiffuseLighting * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
             }
             else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY)
             {
-                return UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
+                float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
+                return lerp(float4(0, 1, 0, 1), float4(1, 0, 0, 1), validity);
+            }
+            else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY_OVER_DILATION_THRESHOLD)
+            {
+                float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
+                if (validity > _ValidityThreshold)
+                {
+                    return float4(1, 0, 0, 1);
+                }
+                else
+                {
+                    return float4(0, 1, 0, 1);
+                }
             }
 
             return _Color;

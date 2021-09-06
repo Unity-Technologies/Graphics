@@ -2,7 +2,7 @@
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 // SurfaceData is defined in Hair.cs which generates Hair.cs.hlsl
-#include "Hair.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
@@ -13,13 +13,63 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LTCAreaLight/LTCAreaLight.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/PreIntegratedFGD/PreIntegratedFGD.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/PreIntegratedAzimuthalScattering.hlsl"
 
 #define DEFAULT_HAIR_SPECULAR_VALUE 0.0465 // Hair is IOR 1.55
+
+// These H offset values (-1, 1) are used to approximate the integral for far-field azimuthal scattering.
+// For TT, the dominant contribution comes from light transmitted straight through the fiber (thus 0).
+// For TRT, a similar observation is made and v3/2 is used to approximate.
+#define HAIR_H_TT  0.0
+#define HAIR_H_TRT 0.866
+
+// #define HAIR_DISPLAY_REFERENCE_BSDF
+// #define HAIR_DISPLAY_REFERENCE_IBL
+
+// An extra material feature flag we utilize to compile two different versions of BSDF evaluation (one with transmission lobe
+// for analytic lights, one without transmission lobe for environment light).
+#define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT (1 << 16)
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
+
+// Ref: "Light Scattering from Human Hair Fibers"
+// Longitudinal scattering as modeled by a normal distribution.
+// To be used as an approximation to d'Eon et al's Energy Conserving Longitudinal Scattering Function.
+// TODO: Move me to BSDF.hlsl
+real D_LongitudinalScatteringGaussian(real theta, real beta)
+{
+    real v = theta / beta;
+
+    const real sqrtTwoPi = 2.50662827463100050241;
+    return rcp(beta * sqrtTwoPi) * exp(-0.5 * v * v);
+}
+
+float ModifiedRefractionIndex(float cosThetaD)
+{
+    // Original derivation of modified refraction index for arbitrary IOR.
+    // float sinThetaD = sqrt(1 - Sq(cosThetaD));
+    // return sqrt(Sq(eta) - Sq(sinThetaD)) / cosThetaD;
+
+    // Karis approximation for the modified refraction index for human hair (1.55)
+    return 1.19 / cosThetaD + (0.36 * cosThetaD);
+}
+
+// Ref: A Practical and Controllable Hair and Fur Model for Production Path Tracing
+float3 DiffuseColorToAbsorption(float3 diffuseColor, float azimuthalRoughness)
+{
+    float beta  = azimuthalRoughness;
+    float beta2 = beta  * beta;
+    float beta3 = beta2 * beta;
+    float beta4 = beta3 * beta;
+    float beta5 = beta4 * beta;
+
+    // Least squares fit of an inverse mapping between scattering parameters and scattering albedo.
+    float denom = 5.969 - (0.215 * beta) + (2.532 * beta2) - (10.73 * beta3) + (5.574 * beta4) + (0.245 * beta5);
+
+    float3 t = log(diffuseColor) / denom;
+    return t * t;
+}
 
 float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
 {
@@ -174,7 +224,31 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // Marschner
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
     {
-        // TODO
+        // Note: Light Path Length is computed per-light.
+
+        // Cuticle Angle
+        const float cuticleAngle = radians(surfaceData.cuticleAngle);
+        bsdfData.cuticleAngleR   = -cuticleAngle;
+        bsdfData.cuticleAngleTT  =  cuticleAngle * 0.5;
+        bsdfData.cuticleAngleTRT =  cuticleAngle * 3.0 * 0.5;
+
+        // Longitudinal Roughness
+        const float roughnessL = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+        bsdfData.roughnessR   = roughnessL;
+        bsdfData.roughnessTT  = roughnessL * 0.5;
+        bsdfData.roughnessTRT = roughnessL * 2.0;
+
+        // Azimuthal Roughness
+    #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
+        bsdfData.roughnessRadial = PerceptualSmoothnessToRoughness(surfaceData.perceptualRadialSmoothness);
+    #else
+        // Need to provide some sensible default in case of no roughened azimuthal scattering, since currently our
+        // absorption is dependent on it.
+        bsdfData.roughnessRadial = 0.5;
+    #endif
+
+        // Absorption
+        bsdfData.absorption = DiffuseColorToAbsorption(surfaceData.diffuseColor, bsdfData.roughnessRadial);
     }
 
     ApplyDebugToBSDFData(bsdfData);
@@ -252,6 +326,11 @@ struct PreLightData
 {
     float NdotV;        // Could be negative due to normal mapping, use ClampNdotV()
 
+    // Scattering
+#if _USE_DENSITY_VOLUME_SCATTERING
+
+#endif
+
     // IBL
     float3 iblR;                     // Reflected specular direction, used for IBL in EvaluateBSDF_Env()
     float  iblPerceptualRoughness;
@@ -273,6 +352,10 @@ void ClampRoughness(inout PreLightData preLightData, inout BSDFData bsdfData, fl
 {
     bsdfData.perceptualRoughness = max(RoughnessToPerceptualRoughness(minRoughness), bsdfData.perceptualRoughness);
     bsdfData.secondaryPerceptualRoughness = max(RoughnessToPerceptualRoughness(minRoughness), bsdfData.secondaryPerceptualRoughness);
+
+    bsdfData.roughnessR   = max(minRoughness, bsdfData.roughnessR);
+    bsdfData.roughnessTT  = max(minRoughness, bsdfData.roughnessTT);
+    bsdfData.roughnessTRT = max(minRoughness, bsdfData.roughnessTRT);
 }
 
 // This function is call to precompute heavy calculation before lightloop
@@ -283,6 +366,11 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
 #if _USE_LIGHT_FACING_NORMAL
     float3 N = ComputeViewFacingNormal(V, bsdfData.hairStrandDirectionWS);
+
+    // Silence the imaginary square root compiler warning for the cosThetaParam.
+    // The compiler seems to think that the dot product result between view vector and view facing normal produces
+    // a result > 1, thus producing an imaginary square root for sqrt(1 - x).
+    V = normalize(V);
 #else
     float3 N = bsdfData.normalWS;
 #endif
@@ -292,7 +380,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     float unused;
 
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
+    // Both models share usage of GGX for now due to anisotropic LTC area light limitation, and Marschner invokes the BSDF directly for the environment evaluation.
     {
         // Note: For Kajiya hair we currently rely on a single cubemap sample instead of two, as in practice smoothness of both lobe aren't too far from each other.
         // and we take smoothness of the secondary lobe as it is often more rough (it is the colored one).
@@ -301,12 +389,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         GetPreIntegratedFGDGGXAndDisneyDiffuse(clampedNdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, unused);
         // We used lambert for hair for now
         // Note: this normalization term is wrong, correct one is (1/(Pi^2)).
-        preLightData.diffuseFGD = 1.0;
-    }
-    else
-    {
-        preLightData.iblPerceptualRoughness = bsdfData.perceptualRoughness;
-        preLightData.specularFGD = 1.0;
         preLightData.diffuseFGD = 1.0;
     }
 
@@ -336,7 +418,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
     preLightData.ltcTransformSpecular      = 0.0;
     preLightData.ltcTransformSpecular._m22 = 1.0;
-    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_KAJIYA_KAY_SPECULAR, 0);
+    // IMPORTANT NOTE: For the time being, until we solve issues with Kajiya Kay anisotropy and LTC tables, hair will fall-back on GGX.
+    // To be replaced with LTCLIGHTINGMODEL_KAJIYA_KAY_SPECULAR when that table is going to be valid.
+    preLightData.ltcTransformSpecular._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODEL_GGX, 0);
 
     // Construct a right-handed view-dependent orthogonal basis around the normal
     preLightData.orthoBasisViewNormal = GetOrthoBasisViewNormal(V, N, preLightData.NdotV);
@@ -359,8 +443,16 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData 
         //builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
     }
 
-    // Premultiply (back) bake diffuse lighting information with diffuse pre-integration
-    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    {
+        // See: [NOTE-MARSCHNER-IBL]
+        builtinData.bakeDiffuseLighting *= PI;
+    }
+    else
+    {
+        // Premultiply (back) bake diffuse lighting information with diffuse pre-integration
+        builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -389,9 +481,33 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairReference.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/PreIntegratedAzimuthalScattering.hlsl"
+
 bool IsNonZeroBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
 {
     return true; // Due to either reflection or transmission being always active
+}
+
+void GetMarschnerAngle(float3 T, float3 V, float3 L,
+                       out float thetaH, out float cosThetaD, out float cosPhi)
+{
+    // Optimized math for spherical coordinate angle derivation.
+    // Ref: Light Scattering from Human Hair Fibers
+    float sinThetaI = dot(T, L);
+    float sinThetaR = dot(T, V);
+
+    float thetaI = FastASin(sinThetaI);
+    float thetaR = FastASin(sinThetaR);
+    thetaH = (thetaI + thetaR) * 0.5;
+
+    cosThetaD = cos((thetaR - thetaI) * 0.5);
+
+    // Ref: Hair Animation and Rendering in the Nalu Demo
+    // Projection onto the normal plane, and since phi is the relative angle, we take the cosine in this projection.
+    float3 LProj = L - sinThetaI * T;
+    float3 VProj = V - sinThetaR * T;
+    cosPhi = dot(LProj, VProj) * rsqrt(dot(LProj, LProj) * dot(VProj, VProj));
 }
 
 CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
@@ -416,11 +532,11 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     float clampedNdotV = ClampNdotV(NdotV);
     float clampedNdotL = saturate(NdotL);
 
-    float LdotV, NdotH, LdotH, invLenLV;
-    GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
-
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
+        float LdotV, NdotH, LdotH, invLenLV;
+        GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
+
         float3 t1 = ShiftTangent(T, N, bsdfData.specularShift);
         float3 t2 = ShiftTangent(T, N, bsdfData.secondarySpecularShift);
 
@@ -456,7 +572,108 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
     {
-        // TODO
+#ifdef HAIR_DISPLAY_REFERENCE_BSDF
+        cbsdf = EvaluateMarschnerReference(V, L, bsdfData);
+#else
+        // Approximation of the three primary paths in a hair fiber (R, TT, TRT), with concepts from:
+        // "Strand-Based Hair Rendering in Frostbite" (Tafuri 2019)
+        // "A Practical and Controllable Hair and Fur Model for Production Path Tracing" (Chiang 2016)
+        // "Physically Based Hair Shading in Unreal" (Karis 2016)
+        // "An Energy-Conserving Hair Reflectance Model" (d'Eon 2011)
+        // "Light Scattering from Human Hair Fibers" (Marschner 2003)
+
+        // Retrieve angles via spherical coordinates in the hair shading space.
+        float thetaH, cosThetaD, cosPhi;
+        GetMarschnerAngle(T, V, L, thetaH, cosThetaD, cosPhi);
+
+        // The index of refraction that can be used to analyze scattering in the normal plane (Bravais' Law).
+        float etaPrime = ModifiedRefractionIndex(cosThetaD);
+
+        // Reduced absorption coefficient.
+        // Note: Technically should divide absorption by thetaT here, but comparing to reference
+        // proved a negligible difference and thus not worth the extra computation cost.
+        float3 mu = bsdfData.absorption;
+
+        // Various terms reused between lobe evaluation.
+        float  M, D       = 0;
+        float3 A, F, T, S = 0;
+
+        // Solve the first three lobes (R, TT, TRT).
+
+        // R
+        {
+            M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleR, bsdfData.roughnessR);
+
+            // Distribution and attenuation for this path as proposed by d'Eon et al, replaced with a trig identity for cos half phi.
+            D = 0.25 * sqrt(0.5 + 0.5 * cosPhi);
+            A = F_Schlick(bsdfData.fresnel0, sqrt(0.5 + 0.5 * dot(L, V)));
+
+            S += M * A * D;
+        }
+
+        // TT
+        if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT))
+        {
+            M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleTT, bsdfData.roughnessTT);
+
+        #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
+            // This lobe's distribution is determined by sampling coefficients from a pre-integrated LUT of the distribution and evaluating a gaussian.
+            D = GetPreIntegratedAzimuthalScatteringTransmissionDistribution(bsdfData.roughnessRadial, cosThetaD, cosPhi);
+        #else
+            // Karis' approximation of Pixar's logisitic with scale of √0.35
+            D = exp(-3.65 * cosPhi - 3.98);
+        #endif
+
+            // Attenutation (Simplified for H = 0)
+            // Note: H = ~0.55 seems to be more suitable for this lobe's attenuation, but H = 0 allows us to simplify more of the math at the cost of slightly more error.
+            // Plot: https://www.desmos.com/calculator/pum8esu6ot
+            F = F_Schlick(bsdfData.fresnel0, cosThetaD);
+            T = exp(-4 * mu);
+            A = Sq(1 - F) * T;
+
+            S += M * A * D;
+        }
+
+        // TRT
+        {
+            M = D_LongitudinalScatteringGaussian(thetaH - bsdfData.cuticleAngleTRT, bsdfData.roughnessTRT);
+
+            // TODO: Move this out of the BSDF evaluation.
+        #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING
+            // This lobe's distribution is determined by Frostbite's improvement over Karis' TRT approximation (maintaining Azimuthal Roughness).
+            float scaleFactor = saturate(1.5 * (1 - bsdfData.roughnessRadial));
+        #else
+            float scaleFactor = 1;
+        #endif
+            D = scaleFactor * exp(scaleFactor * (17.0 * cosPhi - 16.78));
+
+            // Attenutation (Simplified for H = √3/2)
+            F = F_Schlick(bsdfData.fresnel0, cosThetaD * 0.5);
+            T = exp(-2 * mu * (1 + cos(2 * FastASin(HAIR_H_TRT / etaPrime))));
+            A = Sq(1 - F) * F * Sq(T);
+
+            S += M * A * D;
+        }
+
+        // Transmission event is built into the model.
+        // Some stubborn NaNs have cropped up due to the angle optimization, we suppress them here with a max for now.
+        cbsdf.specR = max(S, 0);
+    #endif
+
+        // Multiple Scattering
+    #if _USE_DENSITY_VOLUME_SCATTERING
+        cbsdf.diffR = 0;
+    #else
+    #if _USE_LIGHT_FACING_NORMAL
+        // See "Analytic Tangent Irradiance Environment Maps for Anisotropic Surfaces".
+        cbsdf.diffR = rcp(PI * PI) * clampedNdotL;
+        // Transmission is built into the model, and it's not exactly clear how to split it.
+        cbsdf.diffT = 0;
+    #else
+        // Double-sided Lambert.
+        cbsdf.diffR = Lambert() * clampedNdotL;
+    #endif // _USE_LIGHT_FACING_NORMAL
+    #endif // _USE_DENSITY_VOLUME_SCATTERING
     }
 
     return cbsdf;
@@ -471,6 +688,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SurfaceShading.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairScattering.hlsl"
 
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
@@ -768,6 +986,12 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
         return lighting;
 
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    {
+        // See: [NOTE-MARSCHNER-IBL]
+        return lighting;
+    }
+
     float3 envLighting;
     float3 positionWS = posInput.positionWS;
     float weight = 1.0;
@@ -782,7 +1006,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     envLighting = preLightData.specularFGD * preLD.rgb;
 
-    // TODO: Marschner BSDF Env
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
         // We tint the HDRI with the secondary lob specular as it is more representatative of indirect lighting on hair.
@@ -809,10 +1032,33 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.ambientOcclusion, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
     ApplyAmbientOcclusionFactor(aoFactor, builtinData, lighting);
 
+    float3 indirectDiffuse  = builtinData.bakeDiffuseLighting;
+    float3 indirectSpecular = lighting.indirect.specularReflected;
+
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
+    {
+        // [NOTE-MARSCHNER-IBL]
+        // For now we approximate Marschner IBL as proposed by Brian Karis in "Physically Based Hair Shading in Unreal":
+
+        // Modify the roughness
+        bsdfData.roughnessR   = saturate(bsdfData.roughnessR   + 0.2);
+        bsdfData.roughnessTRT = saturate(bsdfData.roughnessTRT + 0.2);
+
+        // Skip TT for the environment sample (compiler will optimizate for these two different BSDF versions)
+        bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT;
+
+        // This sample is treated as a directional light source and we evaluate the BSDF with it directly.
+        CBSDF cbsdf = EvaluateBSDF(V, bsdfData.normalWS, preLightData, bsdfData);
+
+        // Repurpose the spherical harmonic sample of the environment lighting (sampled with the modified normal).
+        indirectDiffuse  = cbsdf.diffR * builtinData.bakeDiffuseLighting * bsdfData.diffuseColor;
+        indirectSpecular = cbsdf.specR * builtinData.bakeDiffuseLighting;
+    }
+
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
-    lightLoopOutput.diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
-    lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+    lightLoopOutput.diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + indirectDiffuse + builtinData.emissiveColor;
+    lightLoopOutput.specularLighting = lighting.direct.specular + indirectSpecular;
 
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, lightLoopOutput);

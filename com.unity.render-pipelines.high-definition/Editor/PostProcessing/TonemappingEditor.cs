@@ -30,15 +30,15 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var o = new PropertyFetcher<Tonemapping>(serializedObject);
 
-            m_Mode             = Unpack(o.Find(x => x.mode));
-            m_ToeStrength      = Unpack(o.Find(x => x.toeStrength));
-            m_ToeLength        = Unpack(o.Find(x => x.toeLength));
+            m_Mode = Unpack(o.Find(x => x.mode));
+            m_ToeStrength = Unpack(o.Find(x => x.toeStrength));
+            m_ToeLength = Unpack(o.Find(x => x.toeLength));
             m_ShoulderStrength = Unpack(o.Find(x => x.shoulderStrength));
-            m_ShoulderLength   = Unpack(o.Find(x => x.shoulderLength));
-            m_ShoulderAngle    = Unpack(o.Find(x => x.shoulderAngle));
-            m_Gamma            = Unpack(o.Find(x => x.gamma));
-            m_LutTexture       = Unpack(o.Find(x => x.lutTexture));
-            m_LutContribution  = Unpack(o.Find(x => x.lutContribution));
+            m_ShoulderLength = Unpack(o.Find(x => x.shoulderLength));
+            m_ShoulderAngle = Unpack(o.Find(x => x.shoulderAngle));
+            m_Gamma = Unpack(o.Find(x => x.gamma));
+            m_LutTexture = Unpack(o.Find(x => x.lutTexture));
+            m_LutContribution = Unpack(o.Find(x => x.lutContribution));
 
             m_Material = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/Custom Tonemapper Curve"));
         }
@@ -62,11 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
 
                 // Reserve GUI space
-                using (new GUILayout.HorizontalScope())
-                {
-                    GUILayout.Space(EditorGUI.indentLevel * 15f);
-                    m_CurveRect = GUILayoutUtility.GetRect(128, 80);
-                }
+                m_CurveRect = GUILayoutUtility.GetRect(128, 80);
+                m_CurveRect.xMin += EditorGUI.indentLevel * 15f;
 
                 if (Event.current.type == EventType.Repaint)
                 {
