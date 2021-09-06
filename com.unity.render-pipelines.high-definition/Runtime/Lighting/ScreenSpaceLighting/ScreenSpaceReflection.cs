@@ -122,13 +122,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter accumulationFactor = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
 
         /// <summary>
-        /// Control the upper range of speed, if the the object of camera move faster this number should be increased.
-        /// The speed rejection is based used the speed of the hitted surface and the reflected surface in world space.
+        /// Controls the upper range of speed. The faster the objects or camera are moving, the higher this number should be.
         /// </summary>
         public MinFloatParameter speedRejectionScalerFactor = new MinFloatParameter(0.0125f, 0.0f);
 
         /// <summary>
-        /// Smooth rejection based on the speed of the surface and the hit point by the SSR. Set as true to have hard threshold
+        /// When enabled, history can be partially rejected for moving objects which gives a smoother transition. When disabled, history is either kept or totally rejected.
         /// </summary>
         public BoolParameter speedSmoothReject = new BoolParameter(false);
 
@@ -172,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter biasFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
-        /// For PBR: the internal speed rejection parameter
+        /// Controls the likelihood history will be rejected based on the previous frame motion vectors of both the surface and the hit object in world space.
         /// </summary>
         [AdditionalProperty]
         public FloatParameter speedRejectionParam = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
