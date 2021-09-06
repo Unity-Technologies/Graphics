@@ -4,7 +4,7 @@ The High Definition Render Pipeline (HDRP) stores most [Subsurface Scattering](S
 
 To create a Diffusion Profile, navigate to __Assets > Create > Rendering > HDRP Diffusion Profile__.
 
-* To use it by default, open your Project Settings and, in the **Graphics > HDRP Settings** section, add it to the __Diffusion Profile List__.
+* To use it by default, open your Project Settings and, in the **Graphics > HDRP Global Settings** section, add it to the __Diffusion Profile List__.
 * To use it in a particular [Volume](Volumes.md), select a Volume with a [Diffusion Profile Override](Override-Diffusion-Profile.md) and add it to the **Diffusion Profile List** .
 
 ## Properties
@@ -54,3 +54,15 @@ If you disable shadows on your Light, both __Transmission Modes__ give the same 
 The results change if you enable shadows. The __Thin Object__ mode (that only evaluates shadowing once, at the front face) is likely to cause self-shadowing issues (for thick objects) that can cause the object to appear completely black. The __Thick Object__ mode derives the thickness from the shadow map, taking the largest value between the baked thickness and the shadow thickness, and uses this to evaluate the light transmittance.
 
 Because you cannot control the distances HDRP derives from the shadow map, the best way to approach __Thick Object__ is to enable shadows, then adjust the __Scattering Distance__ until the overall transmission intensity is in the desired range, and then use the __Thickness Map__ to mask any shadow mapping artifacts.
+
+
+## Import a Material with a Diffusion Profile
+
+If not in [Batchmode](Documentation/ScriptReference/Application-isBatchMode.html), when importing a Material with a Diffusion Profile, Unity will prompt a dialog box to offer to automatically add the Diffusion Profile to the [HDRP Global Settings](Default-Settings-Window.md) Asset.
+
+You have 3 options:
+* Yes; the Diffusion profile is added to the active HDRP Global Settings Asset.
+* No; it isn't added automatically - ensure it is referenced in your Project so the Material works as expected.
+* Yes, for all; the Diffusion profile is added for this Material and for the other imported ones.
+
+Note that when activating a new HDRP Global Settings Asset, Unity will not automatically add the Profiles for you.

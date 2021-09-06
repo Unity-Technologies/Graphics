@@ -119,7 +119,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void AddDiffusionProfileToImportedMaterial(Material material)
         {
-            //TODOJENNY we should have a dependency over global settings to be able to add it on asset change
+            if (Application.isBatchMode)
+                return;
+
+            if (HDRenderPipelineGlobalSettings.Ensure() == null)
+                return;
+
             AddDiffusionProfileToSettings(material, diffusionProfilePropertyID);
 
             // Special Eye case that uses a node with diffusion profiles.
@@ -150,34 +155,52 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        static bool s_addDiffusionProfileAuto = false;
         static void AddDiffusionProfileToSettings(Material material, int propertyID)
         {
-            if (Application.isBatchMode || HDRenderPipelineGlobalSettings.instance == null
-                || HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList == null) return;
+            if (!material.HasProperty(propertyID))
+                return;
 
-            bool diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Length < 15;
             DiffusionProfileSettings diffusionProfile = null;
 
-            if (material.HasProperty(propertyID))
+            var diffusionProfileAsset = material.GetVector(propertyID);
+            string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset);
+            diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
+
+            if (diffusionProfile == null)
             {
-                var diffusionProfileAsset = material.GetVector(propertyID);
-                string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset);
-                diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
+                Debug.LogWarning("Tried to automatically add the Diffusion Profile " + diffusionProfile.name + " to HDRP Global Settings while Asset Database is not ready. Please fix manually.");
+                return;
+            }
 
-                if (diffusionProfile != null && !HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
+            bool needToAdd = s_addDiffusionProfileAuto;
+            if (!s_addDiffusionProfileAuto)
+            {
+                int result = EditorUtility.DisplayDialogComplex(
+                    title: "Diffusion Profile Import",
+                    message: $"A Material ({material.name}) is being imported with a diffusion profile ({diffusionProfile.name}) not already added to the HDRP Global Settings.\n If the Diffusion Profile is not referenced in the Global Settings, HDRP cannot use it.\nDo you want to add the Diffusion Profile to the HDRP Global Settings asset?",
+                    ok: "Yes",
+                    cancel: "No",
+                    alt: "Yes, for all");
+                switch (result)
                 {
-                    string materialName = material.name;
-                    string diffusionProfileName = diffusionProfile.name;
+                    case 0: //ok
+                        needToAdd = true;
+                        break;
 
-                    if (!diffusionProfileCanBeAdded)
-                        Debug.LogWarning("There is no space in the global settings to add the diffusion profile " + diffusionProfileName);
-                    else if ((!Application.isBatchMode) &&
-                             (EditorUtility.DisplayDialog("Diffusion Profile Import",
-                                 "A Material (" + materialName + ") is being imported with a diffusion profile (" + diffusionProfileName + ") not already added to the HDRP Global Settings.\n If the Diffusion Profile is not referenced in the global settings, HDRP cannot use it.\nDo you want to add the diffusion profile to the HDRP Global Settings asset?", "Yes", "No")))
-                    {
-                        diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(diffusionProfile);
-                    }
+                    case 1: //cancel
+                        needToAdd = false;
+                        break;
+
+                    case 2: // alt
+                        s_addDiffusionProfileAuto = true;
+                        needToAdd = true;
+                        break;
                 }
+            }
+            if (needToAdd)
+            {
+                HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(diffusionProfile);
             }
         }
 
@@ -314,7 +337,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // proposal: save the list of needed diffusion profile, once import is done, ask the user if they want to add it to the Global Settings if missing
             // this could have a preference behavior with "Always ask, Always add missing, Do nothing"
             // TODOJENNY: discuss with Remy M. about this
-            // AddDiffusionProfileToImportedMaterial(material);
+            AddDiffusionProfileToImportedMaterial(material);
 
             if (wasUpgraded)
             {

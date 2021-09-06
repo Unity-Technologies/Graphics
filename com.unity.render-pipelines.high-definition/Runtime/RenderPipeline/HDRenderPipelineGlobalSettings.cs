@@ -6,6 +6,7 @@ using UnityEngine.Experimental.Rendering;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 using UnityEditor;
+using System.Linq;
 #endif
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -776,21 +777,22 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool rendererListCulling;
 
 #if UNITY_EDITOR
-        internal bool AddDiffusionProfile(DiffusionProfileSettings profile)
+        internal void AddDiffusionProfile(DiffusionProfileSettings profile)
         {
-            if (diffusionProfileSettingsList.Length < 15)
-            {
-                int index = diffusionProfileSettingsList.Length;
-                System.Array.Resize(ref diffusionProfileSettingsList, index + 1);
-                diffusionProfileSettingsList[index] = profile;
-                UnityEditor.EditorUtility.SetDirty(this);
-                return true;
-            }
-            else
+            if (diffusionProfileSettingsList.Length >= 15)
             {
                 Debug.LogErrorFormat("We cannot add the diffusion profile {0} to the HDRP's Global Settings as we only allow 14 custom profiles. Please remove one before adding a new one.", profile.name);
-                return false;
+                return;
             }
+
+            bool isAlreadyInList = diffusionProfileSettingsList.Any(d => d == profile);
+            if (isAlreadyInList)
+                return;
+
+            int index = diffusionProfileSettingsList.Length;
+            System.Array.Resize(ref diffusionProfileSettingsList, index + 1);
+            diffusionProfileSettingsList[index] = profile;
+            UnityEditor.EditorUtility.SetDirty(this);
         }
 
 #endif
