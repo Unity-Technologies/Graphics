@@ -511,6 +511,10 @@ namespace UnityEngine.Rendering.Universal
                 // is given.
             }
 
+            // Make sure dimension is non zero
+            desc.width = Mathf.Max(1, desc.width);
+            desc.height = Mathf.Max(1, desc.height);
+
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
