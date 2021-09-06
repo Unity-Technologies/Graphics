@@ -934,6 +934,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 CoreUtils.SetKeyword(cmd, "LIGHT_LAYERS", hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers));
 
+                CoreUtils.SetKeyword(cmd, "_GBUFFER_NO_EMISSIVE", (m_Asset.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly &&
+                                                                    m_Asset.currentPlatformRenderPipelineSettings.supportForceForwardEmissive));
+
                 // configure keyword for both decal.shader and material
                 if (m_Asset.currentPlatformRenderPipelineSettings.supportDecals)
                 {

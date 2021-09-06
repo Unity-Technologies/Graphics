@@ -338,6 +338,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
         /// <summary>Probe Volumes SH Bands.</summary>
         public ProbeVolumeSHBands probeVolumeSHBands;
+        /// <summary>Support Force forward emissive.</summary>
+        public bool supportForceForwardEmissive;    
 
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;
