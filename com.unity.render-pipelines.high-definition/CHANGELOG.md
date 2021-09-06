@@ -374,6 +374,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reduced the volumetric clouds pattern repetition frequency (case 1358717).
 - Fixed the clouds missing in the ambient probe and in the static and dynamic sky.
 - Fixed lens flare not rendering correctly with TAAU or DLSS
+- Fixed a regression that broke punctual and directional raytraced shadows temporal denoiser (case 1360132).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
