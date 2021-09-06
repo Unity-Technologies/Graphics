@@ -114,6 +114,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Lazy<RTHandle> m_CustomPassColorBuffer;
         Lazy<RTHandle> m_CustomPassDepthBuffer;
+        // These are used to pass scene selection settings to the method that renders it
+        Camera.RenderRequestMode m_SceneSelectionMode;
+        RenderTexture            m_SceneSelectionTarget;
 
         // Constant Buffers
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
@@ -2232,6 +2235,188 @@ namespace UnityEngine.Rendering.HighDefinition
                 cullingParams.cullingOptions &= ~CullingOptions.ShadowCasters;
 
             return true;
+        }
+
+        private bool IsSceneSelectionRequest(Camera.RenderRequest renderRequest)
+        {
+            switch (renderRequest.mode)
+            {
+                case Camera.RenderRequestMode.EntityId:
+                case Camera.RenderRequestMode.ObjectId:
+                case Camera.RenderRequestMode.SelectionMask:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        protected override void ProcessRenderRequests(ScriptableRenderContext renderContext, Camera camera, List<Camera.RenderRequest> renderRequests)
+        {
+            #if false
+            var previousRT = RenderTexture.active;
+            RenderTexture.active = null;
+
+            if (m_IntermediateAfterPostProcessBufferFloat == null)
+                m_IntermediateAfterPostProcessBufferFloat = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, useDynamicScale: true, name: "AfterPostProcessFloat");
+
+            var previousPostprocessBuffer = m_IntermediateAfterPostProcessBuffer;
+            m_IntermediateAfterPostProcessBuffer = m_IntermediateAfterPostProcessBufferFloat;
+#endif
+
+            // Process RenderRequests in two batches. First, process every SceneSelection request, which
+            // is handled using a special codepath. Then, process every other request, which will go through
+            // the AOV system.
+            try
+            {
+                foreach (var request in renderRequests)
+                {
+                    if (!IsSceneSelectionRequest(request))
+                        continue;
+
+                    var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                    if (additionalCameraData == null)
+                    {
+                        camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                        additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                    }
+
+                    try
+                    {
+                        additionalCameraData.customRender += RenderSceneSelectionRequest;
+                        m_SceneSelectionMode = request.mode;
+                        m_SceneSelectionTarget = request.result;
+                        Render(renderContext, new[] {camera});
+                        // Clear the target field to make sure we're not leaking a reference to it
+                        m_SceneSelectionTarget = null;
+                    }
+                    finally
+                    {
+                        additionalCameraData.customRender -= RenderSceneSelectionRequest;
+                    }
+                }
+
+                #if false
+                bool haveAOVRequests = false;
+                var requests = new AOVRequestBuilder();
+                foreach (var request in renderRequests)
+                {
+                    if (IsSceneSelectionRequest(request))
+                        continue;
+
+                    var aovRequest = AOVRequest.NewDefault().SetRenderRequestMode(request.mode);
+                    var aovBuffers = AOVBuffers.Color;
+                    if (request.mode == Camera.RenderRequestMode.Depth ||
+                        request.mode == Camera.RenderRequestMode.WorldPosition)
+                        aovBuffers = AOVBuffers.Output;
+
+                    requests.Add(
+                        aovRequest,
+                        // NOTE: RTHandles.Alloc is never allocated because the texture is passed in explicitly.
+                        (AOVBuffers aovBufferId) => RTHandles.Alloc(request.result),
+                        null,
+                        new[] {aovBuffers},
+                        (cmd, textures, properties) =>
+                        {
+                            //if (request.result != null)
+                            //    cmd.Blit(textures[0], request.result);
+                        });
+                    haveAOVRequests = true;
+                }
+
+                if (haveAOVRequests)
+                {
+                    var additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                    if (additionaCameraData == null)
+                    {
+                        camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                        additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                    }
+
+                    additionaCameraData.SetAOVRequests(requests.Build());
+
+                    Render(renderContext, new[] {camera});
+
+                    additionaCameraData.SetAOVRequests(null);
+                }
+#endif
+            }
+            finally
+            {
+                // m_IntermediateAfterPostProcessBuffer = previousPostprocessBuffer;
+                //RenderTexture.active = previousRT;
+            }
+        }
+
+        void RenderSceneSelectionRequest(ScriptableRenderContext context, HDCamera hdCamera)
+        {
+            var cmd = CommandBufferPool.Get("RenderSceneSelectionRequest");
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderSceneSelection)))
+            {
+                cmd.SetRenderTarget(m_SceneSelectionTarget);
+                cmd.ClearRenderTarget(true, true, Color.clear);
+                cmd.SetGlobalInt("_ObjectId", 0);
+                cmd.SetGlobalInt("_PassValue", 1);
+                cmd.SetGlobalVector("_SelectionID", new Vector4((float)(int)m_SceneSelectionMode, 0, 0, 0));
+
+                hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, 0);
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+
+                var camera = hdCamera.camera;
+                camera.TryGetCullingParameters(out var cullingParameters);
+                var cullingResults = context.Cull(ref cullingParameters);
+
+                var renderState = new RenderStateBlock(RenderStateMask.Nothing);
+
+                ShaderTagId shaderTagId;
+                switch (m_SceneSelectionMode)
+                {
+                    case Camera.RenderRequestMode.ObjectId:
+                    case Camera.RenderRequestMode.EntityId:
+                        shaderTagId = new ShaderTagId("Picking");
+                        // Turn backface culling off. HDRP Picking passes set "Cull Off" regardless, but things
+                        // don't seem to always work properly unless it's done here as well.
+                        renderState.rasterState = new RasterState(CullMode.Off);
+                        renderState.mask = RenderStateMask.Raster;
+                        break;
+                    case Camera.RenderRequestMode.SelectionMask:
+                        shaderTagId = new ShaderTagId("SceneSelectionPass");
+                        renderState.rasterState = new RasterState(CullMode.Back, 0, -0.02f);
+                        // There is no Z buffer for selection mask, use blending to make sure "unoccluded" (G = 1) values
+                        // always remain on top.
+                        renderState.blendState = new BlendState
+                        {
+                            blendState0 = new RenderTargetBlendState
+                            {
+                                colorBlendOperation = BlendOp.Max,
+                                sourceColorBlendMode = BlendMode.One,
+                                destinationColorBlendMode = BlendMode.One,
+                                alphaBlendOperation = BlendOp.Max,
+                                sourceAlphaBlendMode = BlendMode.One,
+                                destinationAlphaBlendMode = BlendMode.One,
+                                writeMask = ColorWriteMask.Green | ColorWriteMask.Blue | ColorWriteMask.Alpha,
+                            }
+                        };
+                        renderState.depthState = new DepthState {compareFunction = CompareFunction.Always, writeEnabled = false};
+                        renderState.mask = RenderStateMask.Everything;
+                        break;
+                    default:
+                        return;
+                }
+
+                var drawingSettings = new DrawingSettings(
+                    shaderTagId,
+                    new SortingSettings(camera) { criteria = SortingCriteria.None});
+
+                var filteringSettings = FilteringSettings.defaultValue;
+
+                context.ExecuteCommandBuffer(cmd);
+                context.DrawRenderers(
+                    cullingResults,
+                    ref drawingSettings,
+                    ref filteringSettings,
+                    ref renderState);
+            }
         }
 
         static void OverrideCullingForRayTracing(HDCamera hdCamera, Camera camera, ref ScriptableCullingParameters cullingParams)
