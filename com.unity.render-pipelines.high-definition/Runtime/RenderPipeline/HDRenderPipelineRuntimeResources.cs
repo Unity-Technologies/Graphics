@@ -456,6 +456,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable, ReloadGroup]
         public sealed class ShaderGraphResources
         {
+            [Reload("Runtime/ShaderLibrary/SolidColor.shadergraph")]
+            public Shader objectIDPS;
         }
 
         [Serializable, ReloadGroup]
@@ -471,6 +473,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Mesh emissiveQuadMesh;
             [Reload("Runtime/RenderPipelineResources/Mesh/Sphere.fbx")]
             public Mesh sphereMesh;
+            [Reload("Runtime/RenderPipelineResources/Mesh/ProbeDebugSphere.fbx")]
+            public Mesh probeDebugSphere;
         }
 
         public ShaderResources shaders;

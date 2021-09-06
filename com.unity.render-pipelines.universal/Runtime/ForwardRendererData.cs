@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
+using UnityEditor.Rendering.Universal;
 #endif
 using System;
 
@@ -39,20 +40,45 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/MaterialError.shader")]
             public Shader materialErrorPS;
+
+            // Core blitter shaders, adapted from HDRP
+            // TODO: move to core and share with HDRP
+            [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
+            internal Shader coreBlitPS;
+            [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
+            internal Shader coreBlitColorAndDepthPS;
+
+
+            [Reload("Shaders/CameraMotionVectors.shader")]
+            public Shader cameraMotionVector;
+
+            [Reload("Shaders/ObjectMotionVectors.shader")]
+            public Shader objectMotionVector;
         }
 
-        public ShaderResources shaders = null;
+        public ShaderResources shaders;
 
-        public PostProcessData postProcessData = null;
+        public PostProcessData postProcessData;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         [Reload("Runtime/Data/XRSystemData.asset")]
-        public XRSystemData xrSystemData = null;
+        public XRSystemData xrSystemData;
 #endif
+
+        [SerializeField] LayerMask m_OpaqueLayerMask;
+        [SerializeField] LayerMask m_TransparentLayerMask;
+        [SerializeField] StencilStateData m_DefaultStencilState; // This default state is compatible with deferred renderer.
+        [SerializeField] bool m_ShadowTransparentReceive;
+        [SerializeField] RenderingMode m_RenderingMode;
+        [SerializeField] DepthPrimingMode m_DepthPrimingMode; // Default disabled because there are some outstanding issues with Text Mesh rendering.
+        [SerializeField] bool m_AccurateGbufferNormals;
+        [SerializeField] bool m_ClusteredRendering;
+        [SerializeField] TileSize m_TileSize;
 
         protected override ScriptableRenderer Create()
         {
-            throw new NotSupportedException(k_ErrorMessage);
+            Debug.LogWarning($"Forward Renderer Data has been deprecated, {name} will be upgraded to a {nameof(UniversalRendererData)}.");
+            return null;
         }
 
         public LayerMask opaqueLayerMask
