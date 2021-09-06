@@ -105,12 +105,13 @@ float4x4 VFXGetViewToWorldMatrix()
 
 float VFXSampleDepth(float4 posSS)
 {
-    return LoadSceneDepth(uint2(posSS.xy));
-}
+    float2 screenUV = GetNormalizedScreenSpaceUV(posSS.xy);
 
-float VFXLinearEyeDepth(float depth)
-{
-    return LinearEyeDepth(depth, _ZBufferParams);
+    // In URP, the depth texture is optional and could be 4x4 white texture, Load isn't appropriate in that case.
+    //float depth = LoadSceneDepth(screenUV * _ScreenParams.xy);
+    float depth = SampleSceneDepth(screenUV);
+
+    return depth;
 }
 
 void VFXApplyShadowBias(inout float4 posCS, inout float3 posWS, float3 normalWS)
