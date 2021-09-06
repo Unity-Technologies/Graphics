@@ -69,11 +69,11 @@ namespace UnityEditor.VFX
         }
 
         private static readonly SortingCriteriaComparer s_SortingCriteriaComparer = new SortingCriteriaComparer();
-        public static bool OutputNeedsOwnSort(VFXAbstractParticleOutput abstractParticleOutput, bool needsGlobalSort,
-            SortingCriterion globalSortCriterion)
+        public static bool OutputNeedsOwnSort(VFXAbstractParticleOutput abstractParticleOutput,
+            SortingCriterion globalSortCriterion, bool hasMainUpdate)
         {
             var outputSortingCriteria = new SortingCriterion(abstractParticleOutput);
-            return abstractParticleOutput.HasSorting() && needsGlobalSort &&
+            return !hasMainUpdate || abstractParticleOutput.HasSorting() &&
                    !s_SortingCriteriaComparer.Equals(outputSortingCriteria, globalSortCriterion);
         }
         public static void SetContextSortCriteria(ref VFXGlobalSort globalSort, SortingCriterion globalSortCriterion)

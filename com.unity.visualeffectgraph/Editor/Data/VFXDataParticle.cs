@@ -514,20 +514,15 @@ namespace UnityEditor.VFX
         {
             var contexts = compilableOwners.ToList();
 
-            if (!NeedsGlobalSort() &&
-                !contexts.OfType<VFXAbstractParticleOutput>().Any(o => o.NeedsOutputUpdate()))
-            {
-                //Early out with the most common case
-                m_Contexts = contexts;
-                return Enumerable.Empty<VFXContext>();
-            }
-
             m_Contexts = new List<VFXContext>(contexts.Count + 2); // Allocate max number
             int index = 0;
 
+            bool hasMainUpdate = false;
             // First add init and updates
             for (index = 0; index < contexts.Count; ++index)
             {
+                if (contexts[index].contextType == VFXContextType.Update)
+                    hasMainUpdate = true;
                 if ((contexts[index].contextType == VFXContextType.Output))
                     break;
                 m_Contexts.Add(contexts[index]);
@@ -564,7 +559,7 @@ namespace UnityEditor.VFX
                 if (abstractParticleOutput == null)
                     continue;
 
-                abstractParticleOutput.needsOwnSort = OutputNeedsOwnSort(abstractParticleOutput, needsGlobalSort, globalSortCriterion);
+                abstractParticleOutput.needsOwnSort = OutputNeedsOwnSort(abstractParticleOutput, globalSortCriterion, hasMainUpdate);
                 if (abstractParticleOutput.NeedsOutputUpdate())
                 {
                     var update = VFXContext.CreateImplicitContext<VFXOutputUpdate>(this);
@@ -595,19 +590,18 @@ namespace UnityEditor.VFX
         {
             var sortedOutputs = compilableOwners.OfType<VFXAbstractParticleOutput>()
                 .Where(o => o.CanBeCompiled() && o.HasSorting());
+            bool hasMainUpdate = compilableOwners.OfType<VFXBasicUpdate>().Any();
 
-            return sortedOutputs.Any(o =>
+            return hasMainUpdate && sortedOutputs.Any(o =>
                     !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
-
-
         }
 
         void GetGlobalSortCriterionAndSlotIfCustom(out SortingCriterion globalSortCriterion)
         {
             var globalSortedCandidates = compilableOwners.OfType<VFXAbstractParticleOutput>()
                 .Where(o => o.CanBeCompiled() && o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
-           Func<VFXAbstractParticleOutput, SortingCriterion> getVoteFunc = VFXSortingUtility.GetVoteFunc;
-           globalSortCriterion = MajorityVote(globalSortedCandidates, getVoteFunc, SortingCriteriaComparer.Default);
+            Func<VFXAbstractParticleOutput, SortingCriterion> getVoteFunc = VFXSortingUtility.GetVoteFunc;
+            globalSortCriterion = MajorityVote(globalSortedCandidates, getVoteFunc, SortingCriteriaComparer.Default);
         }
 
         public override void FillDescs(
