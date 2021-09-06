@@ -6,27 +6,23 @@ using UnityEngine.Profiling;
 namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
-    [InitializeOnLoad]
     internal static class NodeClassCache
     {
         private class PostProcessor : AssetPostprocessor
         {
             static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
             {
-                foreach (string str in deletedAssets)
+                if (knownSubGraphLookupTable != null)
                 {
-                    var guid = AssetDatabase.AssetPathToGUID(str);
-                    if (m_KnownSubGraphLookupTable.ContainsKey(guid))
+                    foreach (string str in deletedAssets)
                     {
-                        m_KnownSubGraphLookupTable.Remove(guid);
+                        var guid = AssetDatabase.AssetPathToGUID(str);
+                        knownSubGraphLookupTable.Remove(guid);
                     }
-                }
-                foreach (string str in movedFromAssetPaths)
-                {
-                    var guid = AssetDatabase.AssetPathToGUID(str);
-                    if (m_KnownSubGraphLookupTable.ContainsKey(guid))
+                    foreach (string str in movedFromAssetPaths)
                     {
-                        m_KnownSubGraphLookupTable.Remove(guid);
+                        var guid = AssetDatabase.AssetPathToGUID(str);
+                        knownSubGraphLookupTable.Remove(guid);
                     }
                 }
 
@@ -49,18 +45,36 @@ namespace UnityEditor.ShaderGraph
 
 
         private static Dictionary<Type, List<ContextFilterableAttribute>> m_KnownTypeLookupTable;
+        private static Dictionary<Type, List<ContextFilterableAttribute>> knownTypeLookupTable
+        {
+            get
+            {
+                if (m_KnownTypeLookupTable == null)
+                    ReCacheKnownNodeTypes();
+                return m_KnownTypeLookupTable;
+            }
+        }
 
         public static IEnumerable<Type> knownNodeTypes
         {
-            get => m_KnownTypeLookupTable.Keys;
+            get => knownTypeLookupTable.Keys;
         }
 
 
         private static Dictionary<string, SubGraphAsset> m_KnownSubGraphLookupTable;
+        private static Dictionary<string, SubGraphAsset> knownSubGraphLookupTable
+        {
+            get
+            {
+                if (m_KnownSubGraphLookupTable == null)
+                    ReCacheKnownNodeTypes();
+                return m_KnownSubGraphLookupTable;
+            }
+        }
 
         public static IEnumerable<SubGraphAsset> knownSubGraphAssets
         {
-            get => m_KnownSubGraphLookupTable.Values;
+            get => knownSubGraphLookupTable.Values;
         }
 
         public static void UpdateSubGraphEntry(string path)
@@ -73,20 +87,20 @@ namespace UnityEditor.ShaderGraph
             var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(path);
 
             bool valid = asset != null && asset.isValid;
-            if (m_KnownSubGraphLookupTable.TryGetValue(guid, out SubGraphAsset known))
+            if (knownSubGraphLookupTable.TryGetValue(guid, out SubGraphAsset known))
             {
                 if (!valid)
                 {
-                    m_KnownSubGraphLookupTable.Remove(guid);
+                    knownSubGraphLookupTable.Remove(guid);
                 }
                 else if (asset != known)
                 {
-                    m_KnownSubGraphLookupTable[guid] = asset;
+                    knownSubGraphLookupTable[guid] = asset;
                 }
             }
             else if (valid)
             {
-                m_KnownSubGraphLookupTable.Add(guid, asset);
+                knownSubGraphLookupTable.Add(guid, asset);
             }
         }
 
@@ -97,7 +111,7 @@ namespace UnityEditor.ShaderGraph
                 throw new ArgumentNullException("Cannot get attributes on a null Type");
             }
 
-            if (m_KnownTypeLookupTable.TryGetValue(nodeType, out List<ContextFilterableAttribute> filterableAttributes))
+            if (knownTypeLookupTable.TryGetValue(nodeType, out List<ContextFilterableAttribute> filterableAttributes))
             {
                 return filterableAttributes;
             }
@@ -120,6 +134,11 @@ namespace UnityEditor.ShaderGraph
             return null;
         }
 
+        // Need to take into account new nodes from user-land for 22.2
+        // may not be needed anymore with current rework (no more explicit node class)
+        // may need to have a prototype for 21.2 with lazy init
+        // has to happen before first import - used by Searcher for ex.
+        // how to test if we broke something: open an existing SG and try adding a new node
         private static void ReCacheKnownNodeTypes() //TODOJENNY: why cant we call that only on first use - with a singleton? (lazy init + remove initializeonload)
         {
             Profiler.BeginSample("NodeClassCache: Re-caching all known node types");
@@ -154,27 +173,6 @@ namespace UnityEditor.ShaderGraph
             }
 
             Profiler.EndSample();
-        }
-
-        private static void DebugPrintKnownNodes()
-        {
-            foreach (var entry in m_KnownTypeLookupTable)
-            {
-                var nodeType = entry.Key;
-                var filterableAttributes = entry.Value;
-                String attrs = "";
-                foreach (var filterable in filterableAttributes)
-                {
-                    attrs += filterable.ToString() + ", ";
-                }
-                Debug.Log(nodeType.ToString() + $": [{attrs}]");
-            }
-        }
-
-        static NodeClassCache()
-        {
-            ReCacheKnownNodeTypes();
-            //DebugPrintKnownNodes();
         }
     }
 }

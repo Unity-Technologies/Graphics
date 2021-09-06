@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.Universal
         // we need to ensure existing mat also have the dependency
         void OnPreprocessAsset()
         {
-            if (!assetPath.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
+            if (!UnityEditor.MaterialPostProcessor.IsMaterialPath(assetPath))
                 return;
 
             var objs = InternalEditorUtility.LoadSerializedFileAndForget(assetPath);
@@ -56,6 +56,10 @@ namespace UnityEditor.Rendering.Universal
                         continue;
 
                     context.DependsOnCustomDependency(materialVersionDependencyName);
+
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(material.shader, out var guid, out long _);
+                    //context.DependsOnArtifact(new GUID(guid)); //artifact is the result of an import
+                    context.DependsOnSourceAsset(new GUID(guid)); //TODOJENNY try this until the other one works
                 }
             }
         }
@@ -107,7 +111,7 @@ namespace UnityEditor.Rendering.Universal
                     {
                         // ShaderGraph materials NEVER had asset versioning applied prior to version 5.
                         // so if we see a ShaderGraph material with no assetVersion, set it to 5 to ensure we apply all necessary versions.
-                        assetVersion.version = 5;
+                        assetVersion.version = 5; //TODOJENNY: why 5?
                     }
                     else
                     {

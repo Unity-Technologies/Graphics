@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         private int lastMaterialNeedsUpdateHash = 0;
         protected virtual int ComputeMaterialNeedsUpdateHash() => 0;
+/*
 
         public override object saveContext
         {
@@ -38,7 +39,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 return new UniversalShaderGraphSaveContext { updateMaterials = needsUpdate };
             }
-        }
+        }*/
     }
 
     internal static class SubShaderUtils

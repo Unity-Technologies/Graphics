@@ -74,6 +74,7 @@ namespace UnityEditor.ShaderGraph
 
             //++TODOJENNY
             // MaterialGraphEditWindow - why is the Editor window not refreshing if the asset has changed (checking AssetDatabase.GetAssetDependencyHash every X frames)
+            // SG will move to GTF and no longer GraphView which is unmaintained anyway
             var windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
 
             var changedGraphGuids = importedAssets

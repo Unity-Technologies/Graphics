@@ -1,6 +1,7 @@
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 
+/*
 namespace UnityEditor.Rendering.BuiltIn
 {
     class BuiltInShaderGraphSaveContext
@@ -9,6 +10,7 @@ namespace UnityEditor.Rendering.BuiltIn
     }
 
     //TODOJENNY: see comment in com.unity.render-pipelines.high-definition\Editor\AssetProcessors\ShaderGraphMaterialsUpdater.cs
+    // check with Jessie regarding a test with SG + Built-in
     [InitializeOnLoad]
     class ShaderGraphMaterialsUpdater
     {
@@ -52,4 +54,4 @@ namespace UnityEditor.Rendering.BuiltIn
             }
         }
     }
-}
+}*/

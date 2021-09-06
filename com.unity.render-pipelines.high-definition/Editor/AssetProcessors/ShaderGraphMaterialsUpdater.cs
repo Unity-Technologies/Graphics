@@ -1,13 +1,19 @@
 using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEditorInternal;
+
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     class HDSaveContext
     {
-        public bool updateMaterials;
     }
+
+    // TODOJENNY: after talking with Antoine L. ideally we do need a dependency from Material to Shaders,
+    // since SG actually have a custom importer that generates Shaders,
+    // what we need is a dependency of Material over Shaders (key could be their guid?)
+
 
     [InitializeOnLoad]
     class ShaderGraphMaterialsUpdater
@@ -20,44 +26,10 @@ namespace UnityEditor.Rendering.HighDefinition
         // TODOJENNY: This entire file could be removed if we add dependencies between shadergraphs and their material
         // ideally on material import, a dependency is added towards its shader
         // so when the SG is modified/reimported, its linked materials will also be reimported
-        static void OnShaderGraphSaved(Shader shader, object saveContext)
+        // sss needs to active a keyword on a material
+        static void OnShaderGraphSaved()
         {
-            // In case the shader is not HDRP
-            if (!(saveContext is HDSaveContext hdSaveContext))
-                return;
-
-            //TODOJENNY: should we early exit if HDRP is not active?
-
             HDRenderPipeline.currentPipeline?.ResetPathTracing();
-
-            if (!hdSaveContext.updateMaterials)
-                return;
-
-            // Iterate over all loaded Materials
-            Material[] materials = Resources.FindObjectsOfTypeAll<Material>();
-            try
-            {
-                for (int i = 0, length = materials.Length; i < length; i++)
-                {
-                    // Only update progress bar every 10 materials
-                    if (i % 10 == 9)
-                    {
-                        EditorUtility.DisplayProgressBar(
-                            "Checking material dependencies...",
-                            $"{i} / {length} materials.",
-                            i / (float)(length - 1));
-                    }
-
-                    // Reset keywords
-                    //if (materials[i].shader.name == shader.name) - need thorough testing
-                    if (materials[i].shader == shader)
-                        HDShaderUtils.ResetMaterialKeywords(materials[i]);
-                }
-            }
-            finally
-            {
-                EditorUtility.ClearProgressBar();
-            }
         }
     }
 }

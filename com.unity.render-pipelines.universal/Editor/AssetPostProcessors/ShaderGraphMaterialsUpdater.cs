@@ -1,6 +1,7 @@
 using Unity.Rendering.Universal;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
+/*
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -55,3 +56,4 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 }
+*/

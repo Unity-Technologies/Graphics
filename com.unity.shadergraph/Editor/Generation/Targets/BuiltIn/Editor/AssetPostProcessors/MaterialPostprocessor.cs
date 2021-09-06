@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Rendering.BuiltIn;
 using UnityEngine;
+using UnityEditorInternal;
 using static UnityEditor.Rendering.BuiltIn.ShaderUtils;
 
 namespace UnityEditor.Rendering.BuiltIn
@@ -19,113 +20,106 @@ namespace UnityEditor.Rendering.BuiltIn
         }
     }
 
-    class MaterialReimporter : Editor
+    class MaterialPostprocessor : AssetPostprocessor
     {
-        // Currently this is never called because there's no way for built-in target shader graph
-        // materials to track when they need to be upgraded at a global level. To do this currently
-        // we'd have to iterate over all materials to see if they need upgrading. We may want to add a
-        // global settings object like UniversalProjectSettings but for built-in to track this.
-        static void ReimportAllMaterials()
-        {
-            string[] guids = AssetDatabase.FindAssets("t:material", null);
-            // There can be several materials subAssets per guid ( ie : FBX files ), remove duplicate guids.
-            var distinctGuids = guids.Distinct();
-
-            int materialIdx = 0;
-            int totalMaterials = distinctGuids.Count();
-            foreach (var asset in distinctGuids)
-            {
-                materialIdx++;
-                var path = AssetDatabase.GUIDToAssetPath(asset);
-                EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
-                AssetDatabase.ImportAsset(path);
-            }
-            EditorUtility.ClearProgressBar();
-
-            MaterialPostprocessor.s_NeedsSavingAssets = true;
-        }
+        public const string materialVersionDependencyName = "builtin-material-version";
 
         [InitializeOnLoadMethod]
         static void RegisterUpgraderReimport()
         {
+            UnityEditor.MaterialPostProcessor.onImportedMaterial += OnImportedMaterial;
+
+            // Register custom dependency on Material version
+            AssetDatabase.RegisterCustomDependency(materialVersionDependencyName, Hash128.Compute(MaterialPostprocessor.k_Upgraders.Length));
+            AssetDatabase.Refresh();
         }
-    }
 
-    class MaterialPostprocessor : AssetPostprocessor
-    {
+        // TODOJENNY: [HACK] remove this when Material class add custom dependency itself
+        // we need to ensure existing mat also have the dependency
+        void OnPreprocessAsset()
+        {
+            if (!UnityEditor.MaterialPostProcessor.IsMaterialPath(assetPath))
+                return;
+
+            var objs = InternalEditorUtility.LoadSerializedFileAndForget(assetPath);
+            foreach (var obj in objs)
+            {
+                if (obj is Material material)
+                {
+                    // check if Built-in material
+                    var shaderID = GetShaderID(material.shader);
+                    if (shaderID == ShaderID.Unknown)
+                        continue;
+
+                    context.DependsOnCustomDependency(materialVersionDependencyName);
+
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(material.shader, out var guid, out long _);
+                    //context.DependsOnArtifact(new GUID(guid)); //artifact is the result of an import
+                    context.DependsOnSourceAsset(new GUID(guid)); //TODOJENNY try this until the other one works
+                }
+            }
+        }
+
         public static List<string> s_CreatedAssets = new List<string>();
-        internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
-        internal static bool s_NeedsSavingAssets = false;
-
         internal static readonly Action<Material, ShaderID>[] k_Upgraders = {};
 
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        static void OnImportedMaterial(Material material, string assetPath)
         {
-            var upgradeCount = 0;
+            // Load the material and look for it's BuiltIn ShaderID.
+            // We only care about versioning materials using a known BuiltIn ShaderID.
+            // This skips any materials that only target other render pipelines, are user shaders,
+            // or are shaders we don't care to version
+            var shaderID = GetShaderID(material.shader);
+            if (shaderID == ShaderID.Unknown)
+                return;
 
-            foreach (var asset in importedAssets)
+            var wasUpgraded = false;
+
+            // Look for the BuiltIn AssetVersion
+            AssetVersion assetVersion = null;
+            var allAssets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            foreach (var subAsset in allAssets)
             {
-                // We only care about materials
-                if (!asset.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
-                    continue;
-
-                // Load the material and look for it's BuiltIn ShaderID.
-                // We only care about versioning materials using a known BuiltIn ShaderID.
-                // This skips any materials that only target other render pipelines, are user shaders,
-                // or are shaders we don't care to version
-                var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
-                var shaderID = GetShaderID(material.shader);
-                if (shaderID == ShaderID.Unknown)
-                    continue;
-
-                var wasUpgraded = false;
-
-                // Look for the BuiltIn AssetVersion
-                AssetVersion assetVersion = null;
-                var allAssets = AssetDatabase.LoadAllAssetsAtPath(asset);
-                foreach (var subAsset in allAssets)
+                if (subAsset is AssetVersion sub)
                 {
-                    if (subAsset is AssetVersion sub)
-                    {
-                        assetVersion = sub;
-                    }
+                    assetVersion = sub;
+                    break;
+                }
+            }
+
+            if (!assetVersion)
+            {
+                wasUpgraded = true;
+                assetVersion = ScriptableObject.CreateInstance<AssetVersion>();
+                assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
+
+                // The asset was newly created, force initialize them
+                if (s_CreatedAssets.Contains(assetPath))
+                {
+                    assetVersion.version = k_Upgraders.Length;
+                    s_CreatedAssets.Remove(assetPath);
+                    InitializeLatest(material, shaderID);
+                }
+                else
+                {
+                    // Assumed to be version 0 since no asset version was found
+                    assetVersion.version = 0;
                 }
 
-                if (!assetVersion)
-                {
-                    wasUpgraded = true;
-                    assetVersion = ScriptableObject.CreateInstance<AssetVersion>();
-                    // The asset was newly created, force initialize them
-                    if (s_CreatedAssets.Contains(asset))
-                    {
-                        assetVersion.version = k_Upgraders.Length;
-                        s_CreatedAssets.Remove(asset);
-                        InitializeLatest(material, shaderID);
-                    }
-                    else if (shaderID.IsShaderGraph())
-                    {
-                        // Assumed to be version 0 since no asset version was found
-                        assetVersion.version = 0;
-                    }
+                AssetDatabase.AddObjectToAsset(assetVersion, assetPath);
+            }
 
-                    assetVersion.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.NotEditable;
-                    AssetDatabase.AddObjectToAsset(assetVersion, asset);
-                }
+            // Upgrade
+            while (assetVersion.version < k_Upgraders.Length)
+            {
+                k_Upgraders[assetVersion.version](material, shaderID);
+                assetVersion.version++;
+                wasUpgraded = true;
+            }
 
-                while (assetVersion.version < k_Upgraders.Length)
-                {
-                    k_Upgraders[assetVersion.version](material, shaderID);
-                    assetVersion.version++;
-                    wasUpgraded = true;
-                }
-
-                if (wasUpgraded)
-                {
-                    upgradeCount++;
-                    EditorUtility.SetDirty(assetVersion);
-                    s_ImportedAssetThatNeedSaving.Add(asset);
-                    s_NeedsSavingAssets = true;
-                }
+            if (wasUpgraded)
+            {
+                EditorUtility.SetDirty(assetVersion);
             }
         }
 

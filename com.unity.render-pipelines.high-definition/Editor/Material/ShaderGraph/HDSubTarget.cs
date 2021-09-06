@@ -225,18 +225,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected abstract void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList);
 
-        public override object saveContext
-        {
-            get
-            {
-                int hash = ComputeMaterialNeedsUpdateHash();
-                bool needsUpdate = hash != systemData.materialNeedsUpdateHash;
-                if (needsUpdate)
-                    systemData.materialNeedsUpdateHash = hash;
-
-                return new HDSaveContext { updateMaterials = needsUpdate };
-            }
-        }
 
         public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
         {

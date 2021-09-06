@@ -229,8 +229,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             m_ActiveSubTarget.value.ProcessPreviewMaterial(material);
         }
 
-        public override object saveContext => m_ActiveSubTarget.value?.saveContext;
-
         // IHasMetaData
         public string identifier
         {

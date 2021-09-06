@@ -379,7 +379,7 @@ namespace UnityEditor.ShaderGraph
             set => m_OutputNode = value;
         }
 
-        internal delegate void SaveGraphDelegate(Shader shader, object context);
+        internal delegate void SaveGraphDelegate();
         internal static SaveGraphDelegate onSaveGraph;
 
         #region Targets

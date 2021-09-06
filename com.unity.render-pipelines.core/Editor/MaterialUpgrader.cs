@@ -308,20 +308,6 @@ namespace UnityEditor.Rendering
             m_KeywordFloatRename.Add(new KeywordFloatRename { keyword = oldName, property = newName, setVal = setVal, unsetVal = unsetVal });
         }
 
-        /// <summary>
-        /// Checking if the passed in value is a path to a Material.
-        /// </summary>
-        /// <param name="path">Path to test.</param>
-        /// <return>Returns true if the passed in value is a path to a material.</return>
-        static bool IsMaterialPath(string path) //TODOJENNY: move this to trunk
-        {
-            if (string.IsNullOrEmpty(path))
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-            return path.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase);
-        }
-
         static MaterialUpgrader GetUpgrader(List<MaterialUpgrader> upgraders, Material material)
         {
             if (material == null || material.shader == null)
@@ -390,14 +376,14 @@ namespace UnityEditor.Rendering
             int totalMaterialCount = 0;
             foreach (string s in UnityEditor.AssetDatabase.GetAllAssetPaths())
             {
-                if (IsMaterialPath(s))
+                if (UnityEditor.MaterialPostProcessor.IsMaterialPath(s))
                     totalMaterialCount++;
             }
 
             int materialIndex = 0;
             foreach (string path in UnityEditor.AssetDatabase.GetAllAssetPaths())
             {
-                if (IsMaterialPath(path))
+                if (UnityEditor.MaterialPostProcessor.IsMaterialPath(path))
                 {
                     materialIndex++;
                     if (UnityEditor.EditorUtility.DisplayCancelableProgressBar(progressBarName, string.Format("({0} of {1}) {2}", materialIndex, totalMaterialCount, path), (float)materialIndex / (float)totalMaterialCount))

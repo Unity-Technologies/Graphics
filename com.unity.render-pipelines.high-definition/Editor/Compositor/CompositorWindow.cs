@@ -152,7 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             }
 
             // keep track of shader graph changes: when the user saves a graph, we should load/reflect any new shader properties
-            GraphData.onSaveGraph += MarkShaderAsDirty;
+            GraphData.onSaveGraph += MarkCompositorAsDirty;
 
             if (compositor.profile == null)
             {
@@ -188,7 +188,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             GUILayout.EndScrollView();
         }
 
-        void MarkShaderAsDirty(Shader shader, object context)
+        void MarkCompositorAsDirty()
         {
             CompositionManager compositor = CompositionManager.GetInstance();
             if (compositor)
@@ -203,7 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         private void OnDestroy()
         {
-            GraphData.onSaveGraph -= MarkShaderAsDirty;
+            GraphData.onSaveGraph -= MarkCompositorAsDirty;
 
             Undo.undoRedoPerformed -= UndoCallback;
             s_SelectionIndex = m_Editor ? m_Editor.selectionIndex : -1;

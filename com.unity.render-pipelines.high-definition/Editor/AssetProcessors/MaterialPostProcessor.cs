@@ -9,6 +9,7 @@ using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 // Material property names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using UnityEditorInternal;
+using UnityEditor.Experimental;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -70,7 +71,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static void RegisterUpgraderReimport()
         {
             UnityEditor.MaterialPostProcessor.onImportedMaterial += OnImportedMaterial;
-            UnityEditor.MaterialPostProcessor.onImportedShaderGraph += OnImportedShaderGraph;
 
             // Register custom dependency on Material version
             AssetDatabase.RegisterCustomDependency(materialVersionDependencyName, Hash128.Compute(MaterialPostprocessor.k_Upgraders.Length));
@@ -81,7 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // we need to ensure existing mat also have the dependency
         void OnPreprocessAsset()
         {
-            if (!assetPath.EndsWith(".mat", StringComparison.InvariantCultureIgnoreCase))
+            if (!UnityEditor.MaterialPostProcessor.IsMaterialPath(assetPath))
                 return;
 
             var objs = InternalEditorUtility.LoadSerializedFileAndForget(assetPath);
@@ -94,6 +94,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         continue;
 
                     context.DependsOnCustomDependency(materialVersionDependencyName);
+
+                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(material.shader, out var guid, out long _);
+                    //context.DependsOnArtifact(new GUID(guid)); //artifact is the result of an import
+                    context.DependsOnSourceAsset(new GUID(guid)); //TODOJENNY try this until the other one works
                 }
             }
         }
@@ -115,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void AddDiffusionProfileToImportedMaterial(Material material)
         {
-            // we should have a dependency over global settings to be able to add it on asset change
+            //TODOJENNY we should have a dependency over global settings to be able to add it on asset change
             AddDiffusionProfileToSettings(material, diffusionProfilePropertyID);
 
             // Special Eye case that uses a node with diffusion profiles.
@@ -178,7 +182,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /*
-
         static void OnImportedShaderGraph(Shader shaderGraph, string assetPath)
         {
             // We intercept shadergraphs just to add them to s_ImportedAssetThatNeedSaving to make them editable when we save assets
@@ -223,7 +226,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     continue;
                 }
             }
-        }*/
+        }
+        */
 
         static void OnImportedMaterial(Material material, string assetPath)
         {
@@ -310,7 +314,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // proposal: save the list of needed diffusion profile, once import is done, ask the user if they want to add it to the Global Settings if missing
             // this could have a preference behavior with "Always ask, Always add missing, Do nothing"
             // TODOJENNY: discuss with Remy M. about this
-            AddDiffusionProfileToImportedMaterial(material);
+            // AddDiffusionProfileToImportedMaterial(material);
 
             if (wasUpgraded)
             {

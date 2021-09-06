@@ -608,14 +608,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (graphObject.graph.isSubGraph)
                 return;
 
-            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
-            if (shader == null)
-                return;
-
-            foreach (var target in graphObject.graph.activeTargets)
-            {
-                GraphData.onSaveGraph(shader, target.saveContext);
-            }
+            GraphData.onSaveGraph();
         }
 
         public void SaveAs()

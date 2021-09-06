@@ -23,6 +23,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             return bultInMetadata;
         }
 
+        /*
+
         public override object saveContext
         {
             get
@@ -32,7 +34,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 bool needsUpdate = false;
                 return new BuiltInShaderGraphSaveContext { updateMaterials = needsUpdate };
             }
-        }
+        }*/
     }
 
     internal static class SubShaderUtils
