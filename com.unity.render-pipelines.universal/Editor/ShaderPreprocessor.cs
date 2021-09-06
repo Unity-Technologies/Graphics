@@ -460,7 +460,6 @@ namespace UnityEditor.Rendering.Universal
                     return true;
             }
 
-            // TODO: make sure vulkan works after refactor
             // Do not strip accurateGbufferNormals on Mobile Vulkan as some GPUs do not support R8G8B8A8_SNorm, which then force us to use accurateGbufferNormals
             if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.Vulkan &&
                 stripTool.StripMultiCompile(m_GbufferNormalsOct, ShaderFeatures.AccurateGbufferNormals))
@@ -868,12 +867,12 @@ namespace UnityEditor.Rendering.Universal
             ShaderFeatures shaderFeatures;
             shaderFeatures = ShaderFeatures.MainLight;
 
-            //if (pipelineAsset.supportsMainLightShadows && pipelineAsset.shadowCascadeCount > 1)
-            //    shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
-            //else if (pipelineAsset.supportsMainLightShadows)
-            // Users can modify shadow cascade count at runtime, we can strip it
-            shaderFeatures |= ShaderFeatures.MainLightShadows;
-            shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
+            if (pipelineAsset.supportsMainLightShadows)
+            {
+                // User can change cascade count at runtime, so we have to include both of them for now
+                shaderFeatures |= ShaderFeatures.MainLightShadows;
+                shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
+            }
 
             if (pipelineAsset.additionalLightsRenderingMode == LightRenderingMode.PerVertex)
             {
