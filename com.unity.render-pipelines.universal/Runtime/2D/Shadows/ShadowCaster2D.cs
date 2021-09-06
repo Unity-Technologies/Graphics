@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                if (LightUtility.CheckForChange(m_ShadowShapeProvider, ref m_PreviousShadowShapeProvider) && m_ShadowShapeProvider != null)
+                if ((rebuildMesh || LightUtility.CheckForChange(m_ShadowShapeProvider, ref m_PreviousShadowShapeProvider)) && m_ShadowShapeProvider != null)
                 {
                     SetShadowShape();
                 }
