@@ -84,13 +84,5 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_EmissionOverriden;
             set => m_EmissionOverriden = value;
         }
-
-        [SerializeField]
-        bool m_ForceForwardEmissive = false;
-        public bool forceForwardEmissive
-        {
-            get => m_ForceForwardEmissive;
-            set => m_ForceForwardEmissive = value;
-        }
     }
 }

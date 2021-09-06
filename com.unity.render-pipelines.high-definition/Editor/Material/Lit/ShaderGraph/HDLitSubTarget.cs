@@ -211,25 +211,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 enumNames = Enum.GetNames(typeof(ScreenSpaceRefraction.RefractionModel)).ToList(),
                 overrideReferenceName = kRefractionModel,
             });
-
-            // Note: Due to the shader graph framework it is not possible to rely on litData.emissionOverriden
-            // to decide to add the ForceForwardEmissive property or not. The emissionOverriden setup is done after
-            // the call to AddShaderProperty
-            collector.AddShaderProperty(new BooleanShaderProperty
-            {
-                value = litData.forceForwardEmissive,
-                hidden = true,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = kForceForwardEmissive,
-            });
         }
 
         protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
             base.CollectPassKeywords(ref pass);
             pass.keywords.Add(RefractionKeyword);
-            pass.keywords.Add(CoreKeywordDescriptors.ForceForwardEmissive);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
@@ -237,7 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(litData));
             if (systemData.surfaceType == SurfaceType.Transparent)
                 blockList.AddPropertyBlock(new DistortionPropertyBlock());
-            blockList.AddPropertyBlock(new LitAdvancedOptionsPropertyBlock(litData));
+            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
         }
 
         protected override int ComputeMaterialNeedsUpdateHash()

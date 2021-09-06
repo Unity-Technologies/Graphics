@@ -826,6 +826,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static KeywordCollection GBufferKeywords = new KeywordCollection
         {
             { CoreKeywordDescriptors.LightLayers },
+            { CoreKeywordDescriptors.ForceForwardEmissive },
         };
 
         public static IncludeCollection GBufferIncludes = new IncludeCollection

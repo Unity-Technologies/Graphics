@@ -303,7 +303,7 @@ Pass
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
 
 		// If we want to force forward emissive and we have GBuffer pass, don't do anything
-		#if !(SHADERPASS == SHADERPASS_GBUFFER && defined(_FORCE_FORWARD_EMISSIVE))
+		#ifndef _GBUFFER_NO_EMISSIVE
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 		#endif
 

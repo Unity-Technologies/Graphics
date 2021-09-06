@@ -1516,12 +1516,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static KeywordDescriptor ForceForwardEmissive = new KeywordDescriptor
         {
-            displayName = "Force Forward Emissive",
-            referenceName = "_FORCE_FORWARD_EMISSIVE",
+            displayName = "GBuffer No Emissive",
+            referenceName = "_GBUFFER_NO_EMISSIVE",
             type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Global, // not local as it is use in shader stripper to discard the pass if not needed
-            // stages = KeywordShaderStage.Fragment, // not _fragment as it prevent the stripper to work
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor TransparentWritesMotionVector = new KeywordDescriptor

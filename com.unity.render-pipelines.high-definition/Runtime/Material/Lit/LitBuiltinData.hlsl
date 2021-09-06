@@ -23,7 +23,7 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     PostInitBuiltinData(V, posInput, surfaceData, builtinData);
 }
 
-#if SHADERPASS == SHADERPASS_GBUFFER && defined(_FORCE_FORWARD_EMISSIVE) // in case emissive is done in forward pass, do nothing in gbuffer pass
+#ifdef _GBUFFER_NO_EMISSIVE // in case emissive is done in forward pass, do nothing in gbuffer pass
 float3 GetEmissiveColor(SurfaceData surfaceData)
 {
     return float3(0.0, 0.0, 0.0);
@@ -50,7 +50,7 @@ float3 GetEmissiveColor(SurfaceData surfaceData, UVMapping emissiveMapMapping)
 }
 #endif // _EMISSIVE_COLOR_MAP
 
-#endif // _FORCE_FORWARD_EMISSIVE
+#endif // _GBUFFER_NO_EMISSIVE
 
 void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
 {

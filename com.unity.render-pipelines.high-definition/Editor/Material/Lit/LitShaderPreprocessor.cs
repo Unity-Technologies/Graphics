@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public LitShaderPreprocessor()
         {
-            m_ForceForwardEmissive = new UnityEngine.Rendering.ShaderKeyword("_FORCE_FORWARD_EMISSIVE");
+            m_ForceForwardEmissive = new UnityEngine.Rendering.ShaderKeyword("_GBUFFER_NO_EMISSIVE");
         }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
@@ -81,11 +81,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool isForwardEmissiveForDeferred = snippet.passName == "ForwardEmissiveForDeferred";
                 if (isForwardEmissiveForDeferred)
                 {
-                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly ||
+                        !hdrpAsset.currentPlatformRenderPipelineSettings.supportForceForwardEmissive)
+                        return true;
+                }
+
+                // Remove the force emissive forward variant of GBuffer not used in for this hdrp asset
+                if (isGBufferPass)
+                {
+                    if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportForceForwardEmissive && inputData.shaderKeywordSet.IsEnabled(m_ForceForwardEmissive))
                         return true;
 
-                    // If the pass is not used because the keyword ForceForwardEmissive is not enabled, then discard
-                    if (!inputData.shaderKeywordSet.IsEnabled(m_ForceForwardEmissive))
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportForceForwardEmissive && !inputData.shaderKeywordSet.IsEnabled(m_ForceForwardEmissive))
                         return true;
                 }
 

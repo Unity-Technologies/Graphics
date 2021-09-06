@@ -141,11 +141,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_REFRACTION_THIN", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Thin) && canHaveRefraction);
             }
-
-            if (material.HasProperty(kForceForwardEmissive))
-            {
-                CoreUtils.SetKeyword(material, "_FORCE_FORWARD_EMISSIVE", material.GetInt(kForceForwardEmissive) != 0);
-            }
         }
 
         static public void SetupStencil(Material material, bool receivesSSR, bool useSplitLighting)
@@ -233,10 +228,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             material.SetupBaseUnlitPass();
 
-            if (material.HasProperty(kForceForwardEmissive))
+            // Emissive check below is only for the lit shader
+            // It is possible that it works with SG if the SG properties have the same name.
+            if (material.FindPass(HDShaderPassNames.s_ForwardEmissiveForDeferredStr) != -1)
             {
-                // Emissive check below is only for the lit shader
-                // It is possible that it works with SG if the SG properties have the same name.
                 bool emissiveIsDisabled = false;
                 if (material.HasProperty(kUseEmissiveIntensity))
                 {
@@ -265,8 +260,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                bool forceForwardEmissive = (material.GetFloat(kForceForwardEmissive) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Opaque);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardEmissiveForDeferredStr, forceForwardEmissive && !emissiveIsDisabled);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardEmissiveForDeferredStr, ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Opaque) && !emissiveIsDisabled);
             }
         }
     }
