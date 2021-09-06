@@ -190,12 +190,10 @@ void CSMain(uint3 groupId		: SV_GroupID,
 #elif VFX_YOUNGEST_SORT_KEY
                 ${VFXLoadAttributes:{age}}
                 output.sortKey = attributes.age;
-#elif VFX_OLDEST_SORT_KEY
-                ${VFXLoadAttributes:{age}}
-                output.sortKey = - attributes.age;
 
 #endif //VFX_[CRITERION]_SORT_KEY
                 output.index = index;
+                output.sortKey *= SORTING_SIGN;
 #else
                 uint output = index;
 #endif

@@ -197,8 +197,7 @@ namespace UnityEditor.VFX
                 if (HasFeature(Features.MotionVector) && output is VFXLineOutput)
                     yield return new VFXAttributeInfo(VFXAttribute.TargetPosition, VFXAttributeMode.Read);
 
-                if (sortCriterion == SortCriteria.YoungestInFront ||
-                    sortCriterion == SortCriteria.OldestInFront)
+                if (sortCriterion == SortCriteria.YoungestInFront)
                 {
                     yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
                 }

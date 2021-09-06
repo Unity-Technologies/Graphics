@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
-                if (sortCriterion is SortCriteria.YoungestInFront or SortCriteria.OldestInFront)
+                if (sortCriterion is SortCriteria.YoungestInFront)
                 {
                     yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
                 }

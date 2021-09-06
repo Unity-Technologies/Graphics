@@ -10,7 +10,6 @@ namespace UnityEditor.VFX
         {
             DistanceToCamera,
             YoungestInFront,
-            OldestInFront,
             CameraDepth,
             Custom,
         }
@@ -31,9 +30,6 @@ namespace UnityEditor.VFX
                 case SortCriteria.YoungestInFront:
                     yield return "VFX_YOUNGEST_SORT_KEY";
                     break;
-                case SortCriteria.OldestInFront:
-                    yield return "VFX_OLDEST_SORT_KEY";
-                    break;
                 default:
                     throw new NotImplementedException("This Sorting criteria is missing an Additional Define");
             }
@@ -50,7 +46,6 @@ namespace UnityEditor.VFX
                     yield return VFXAttribute.Position;
                     break;
                 case SortCriteria.YoungestInFront:
-                case SortCriteria.OldestInFront:
                     yield return VFXAttribute.Age;
                     break;
             }
@@ -62,7 +57,7 @@ namespace UnityEditor.VFX
         }
         public static TResult MajorityVote<TResult, TVoter>(IEnumerable<TVoter> voterContainer, Func<TVoter, TResult> getVoteFunc, IEqualityComparer<TResult> comparer = null)
         {
-            Dictionary<TResult, int> voteCounts = comparer == null ? new Dictionary<TResult, int>() : new Dictionary<TResult, int>(comparer) ;
+            Dictionary<TResult, int> voteCounts = comparer == null ? new Dictionary<TResult, int>() : new Dictionary<TResult, int>(comparer);
             foreach (var voter in voterContainer)
             {
                 TResult vote = getVoteFunc(voter);
