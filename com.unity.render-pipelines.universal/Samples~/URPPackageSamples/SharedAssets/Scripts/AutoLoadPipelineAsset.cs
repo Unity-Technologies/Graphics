@@ -24,7 +24,6 @@ public class AutoLoadPipelineAsset : MonoBehaviour
     {
         if(m_PipelineAsset)
         {
-            QualitySettings.renderPipeline = null;
             if (QualitySettings.renderPipeline != null && QualitySettings.renderPipeline != m_PipelineAsset)
             {
                 m_PreviousPipelineAsset = QualitySettings.renderPipeline;
