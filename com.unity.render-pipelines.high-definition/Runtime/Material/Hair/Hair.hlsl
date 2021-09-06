@@ -408,7 +408,16 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // float3 iblN = normalize(lerp(bsdfData.normalWS, N, bsdfData.anisotropy));
     float3 iblN = N;
     preLightData.iblR = reflect(-V, iblN);
-    preLightData.iblPerceptualRoughness *= saturate(1.2 - abs(bsdfData.anisotropy));
+
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
+    {
+        preLightData.iblPerceptualRoughness *= saturate(1.2 - abs(bsdfData.anisotropy));
+    }
+    else
+    {
+        // Marschner utilizes the lowest environment mip and treats it as a directional light source to invoke the BSDF directly.
+        preLightData.iblPerceptualRoughness = 1.0;
+    }
 
     // Area light
     // UVs for sampling the LUTs
@@ -455,16 +464,8 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData 
         //builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
     }
 
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
-    {
-        // See: [NOTE-MARSCHNER-IBL]
-        builtinData.bakeDiffuseLighting *= PI;
-    }
-    else
-    {
-        // Premultiply (back) bake diffuse lighting information with diffuse pre-integration
-        builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
-    }
+    // Premultiply (back) bake diffuse lighting information with diffuse pre-integration
+    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
 }
 
 //-----------------------------------------------------------------------------
@@ -1025,12 +1026,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
         return lighting;
 
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
-    {
-        // See: [NOTE-MARSCHNER-IBL]
-        return lighting;
-    }
-
     float3 envLighting;
     float3 positionWS = posInput.positionWS;
     float weight = 1.0;
@@ -1043,12 +1038,32 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R, preLightData.iblPerceptualRoughness, intersectionDistance);
     weight *= preLD.a; // Used by planar reflection to discard pixel
 
-    envLighting = preLightData.specularFGD * preLD.rgb;
-
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_KAJIYA_KAY))
     {
+        envLighting = preLightData.specularFGD * preLD.rgb;
+
         // We tint the HDRI with the secondary lob specular as it is more representatative of indirect lighting on hair.
         envLighting *= bsdfData.secondarySpecularTint;
+    }
+    else
+    {
+        // For now we approximate Marschner IBL as proposed by Brian Karis in "Physically Based Hair Shading in Unreal":
+        // With slight variant in approach, instead of sampling a spherical harmonic of the environment, sample from the lowest mip.
+
+        // Modify the roughness to approximate a larger area light source.
+        bsdfData.roughnessR   = saturate(bsdfData.roughnessR   + 0.1);
+        bsdfData.roughnessTRT = saturate(bsdfData.roughnessTRT + 0.1);
+
+        // Skip TT for the environment sample (compiler will optimizate for these two different BSDF versions)
+        bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT;
+
+        // Skip the advanced multiple scattering evaluation.
+        bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING;
+
+        // This sample is treated as a directional light source and we evaluate the BSDF with it directly.
+        CBSDF cbsdf = EvaluateBSDF(V, bsdfData.normalWS, preLightData, bsdfData);
+
+        envLighting = cbsdf.specR * preLD.rgb * PI;
     }
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight);
@@ -1071,36 +1086,10 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.ambientOcclusion, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
     ApplyAmbientOcclusionFactor(aoFactor, builtinData, lighting);
 
-    float3 indirectDiffuse  = builtinData.bakeDiffuseLighting;
-    float3 indirectSpecular = lighting.indirect.specularReflected;
-
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER))
-    {
-        // [NOTE-MARSCHNER-IBL]
-        // For now we approximate Marschner IBL as proposed by Brian Karis in "Physically Based Hair Shading in Unreal":
-
-        // Modify the roughness
-        bsdfData.roughnessR   = saturate(bsdfData.roughnessR   + 0.2);
-        bsdfData.roughnessTRT = saturate(bsdfData.roughnessTRT + 0.2);
-
-        // Skip TT for the environment sample (compiler will optimizate for these two different BSDF versions)
-        bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT;
-
-        // Environment light falls back to Kajiya Diffuse for now.
-        bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING;
-
-        // This sample is treated as a directional light source and we evaluate the BSDF with it directly.
-        CBSDF cbsdf = EvaluateBSDF(V, bsdfData.normalWS, preLightData, bsdfData);
-
-        // Repurpose the spherical harmonic sample of the environment lighting (sampled with the modified normal).
-        indirectDiffuse  = cbsdf.diffR * builtinData.bakeDiffuseLighting * bsdfData.diffuseColor;
-        indirectSpecular = cbsdf.specR * builtinData.bakeDiffuseLighting;
-    }
-
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
-    lightLoopOutput.diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + indirectDiffuse + builtinData.emissiveColor;
-    lightLoopOutput.specularLighting = lighting.direct.specular + indirectSpecular;
+    lightLoopOutput.diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
+    lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, lightLoopOutput);
