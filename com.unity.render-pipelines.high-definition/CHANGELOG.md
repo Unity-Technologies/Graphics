@@ -385,6 +385,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light anchor min distance value + properties not working with prefabs (case 1345509).
 - Viewport and scaling of Custom post process when TAAU or DLSS are enabled (case 1352407).
 - Fixed specular occlusion sharpness and over darkening at grazing angles.
+- Fixed edge bleeding when rendering volumetric clouds.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
