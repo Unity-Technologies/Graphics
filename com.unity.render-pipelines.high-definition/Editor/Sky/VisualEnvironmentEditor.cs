@@ -223,7 +223,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!LocalWindParameterDrawer.BeginGUI(out var rect, title, parameter, mode))
             {
                 var value = parameter.value.FindPropertyRelative("customValue");
-                value.floatValue = Mathf.Max(EditorGUI.FloatField(rect, title, value.floatValue), 0.0f);
+                value.floatValue = EditorGUI.FloatField(rect, title, value.floatValue);
             }
             LocalWindParameterDrawer.EndGUI(mode);
 

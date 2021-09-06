@@ -706,16 +706,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Ray Tracing is supported if the asset setting supports it and the platform supports it
-        static internal bool GatherRayTracingSupport(RenderPipelineSettings rpSetting)
-            => rpSetting.supportRayTracing && rayTracingSupportedBySystem;
+        static internal bool PipelineSupportsRayTracing(RenderPipelineSettings rpSetting)
+            => rpSetting.supportRayTracing && currentSystemSupportsRayTracing;
 
-        static internal bool rayTracingSupportedBySystem
-            => UnityEngine.SystemInfo.supportsRayTracing
+        static internal bool currentSystemSupportsRayTracing
+            => SystemInfo.supportsRayTracing;
+
 #if UNITY_EDITOR
-            && (UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
-                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows)
+        static internal bool buildTargetSupportsRayTracing
+            => (UnityEditor.PlayerSettings.GetGraphicsAPIs(UnityEditor.EditorUserBuildSettings.activeBuildTarget)[0] == GraphicsDeviceType.Direct3D12)
+            || (UnityEditor.PlayerSettings.GetGraphicsAPIs(UnityEditor.EditorUserBuildSettings.activeBuildTarget)[0] == GraphicsDeviceType.PlayStation5);
 #endif
-        ;
 
         internal BlueNoise GetBlueNoiseManager()
         {

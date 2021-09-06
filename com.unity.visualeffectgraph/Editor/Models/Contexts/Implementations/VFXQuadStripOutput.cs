@@ -31,8 +31,8 @@ namespace UnityEditor.VFX
         }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
-
         public override bool supportsUV { get { return true; } }
+        public override bool implementsMotionVector { get { return true; } }
 
         protected IEnumerable<VFXPropertyWithValue> optionalInputProperties
         {

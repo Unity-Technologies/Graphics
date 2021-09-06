@@ -1,7 +1,7 @@
 #pragma kernel RayMarchKernel RAY_MARCH_KERNEL=RayMarchKernel
 #pragma kernel RayMarchHalfKernel RAY_MARCH_KERNEL=RayMarchHalfKernel HALF_RESOLUTION
 
-#pragma only_renderers d3d11
+#pragma only_renderers d3d11 ps5
 
 // Include and define the shader pass
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
