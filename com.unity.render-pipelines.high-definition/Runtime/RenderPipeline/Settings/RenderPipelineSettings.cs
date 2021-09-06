@@ -123,6 +123,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportProbeVolume = false,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
+
+                uiLayer = 1 << 5, // 5 by default is UI
             };
             return settings;
         }
@@ -370,6 +372,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Global lighting quality settings.</summary>
         public GlobalLightingQualitySettings lightingQualitySettings;
+
+        //// TODO_FCC: Change to Global settings?
+        public LayerMask uiLayer;
 
 #pragma warning disable 618 // Type or member is obsolete
         [Obsolete("For data migration")]

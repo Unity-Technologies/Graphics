@@ -11,6 +11,11 @@ Shader "Hidden/HDRP/FinalPass"
         #pragma multi_compile_local_fragment _ DITHER
         #pragma multi_compile_local_fragment _ ENABLE_ALPHA
         #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
+        #pragma multi_compile_local _ HDR_OUTPUT
+
+        // TODO_FCC: If HDR_OUTPUT, we entered this pass with an input color that is *not* range mapped and is in Rec2020 color space.
+        // So need to call HDRMapping(color, maxNit, minNit).
+        // If we need to composite UI, we need to do it in linear.
 
         #pragma multi_compile_local_fragment _ CATMULL_ROM_4 BYPASS
         #define DEBUG_UPSCALE_POINT 0
@@ -109,6 +114,7 @@ Shader "Hidden/HDRP/FinalPass"
             #endif //FXAA
 
             // Saturate is only needed for dither or grain to work. Otherwise we don't saturate because output might be HDR
+            // TODO_FCC: How to handle this in HDR Output?
             #if defined(GRAIN) || defined(DITHER)
             outColor = saturate(outColor);
             #endif

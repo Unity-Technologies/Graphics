@@ -3940,6 +3940,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     case TonemappingMode.Custom: passData.builderCS.EnableKeyword("TONEMAPPING_CUSTOM"); break;
                     case TonemappingMode.External: passData.builderCS.EnableKeyword("TONEMAPPING_EXTERNAL"); break;
                 }
+                if (HDROutputSettings.main.active)
+                {
+                    passData.builderCS.EnableKeyword("HDR_OUTPUT");
+                }
             }
             else
             {

@@ -199,6 +199,24 @@ namespace UnityEngine.Rendering.HighDefinition
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
         }
 
+        internal void UpdateUIMaterialBlendMode()
+        {
+            if (HDROutputSettings.main.active)
+            {
+                m_Asset.defaultUIMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                m_Asset.defaultUIMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                m_Asset.defaultUIMaterial.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                m_Asset.defaultUIMaterial.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            }
+            else
+            {
+                m_Asset.defaultUIMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                m_Asset.defaultUIMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                m_Asset.defaultUIMaterial.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                m_Asset.defaultUIMaterial.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            }
+        }
+
         readonly SkyManager m_SkyManager = new SkyManager();
         internal SkyManager skyManager { get { return m_SkyManager; } }
 
@@ -535,6 +553,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 autoDefaultReflectionProbeBaking = false
                 ,
                 enlightenLightmapper = false
+                ,
+                rendersUIOverlay = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -1011,6 +1031,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct HDCullingResults
         {
             public CullingResults cullingResults;
+            public CullingResults uiCullingResults;
             public CullingResults? customPassCullingResults;
             public HDProbeCullingResults hdProbeCullingResults;
             public DecalSystem.CullResult decalCullResults;
@@ -1250,7 +1271,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         if (needCulling)
-                            skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, ref cullingResults);
+                        {
+                            var uiLayerMask = HDROutputSettings.main.active ? m_Asset.currentPlatformRenderPipelineSettings.uiLayer : (LayerMask)0;
+                            // TODO_FCC For test, enable to see if it renders to separate without having HDR
+                            // uiLayerMask = m_Asset.currentPlatformRenderPipelineSettings.uiLayer;
+                            skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, uiLayerMask, ref cullingResults);
+                        }
                     }
 
                     if (additionalCameraData.hasCustomRender && additionalCameraData.fullscreenPassthrough)
@@ -1537,6 +1563,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         var _cullingResults = UnsafeGenericPool<HDCullingResults>.Get();
                         _cullingResults.Reset();
 
+                        var uiLayerMask = HDROutputSettings.main.active ? m_Asset.currentPlatformRenderPipelineSettings.uiLayer : (LayerMask)0;
+                        // TODO_FCC For test, enable to see if it renders to separate without having HDR
+                        // uiLayerMask = m_Asset.currentPlatformRenderPipelineSettings.uiLayer;
+
                         if (!(TryCalculateFrameParameters(
                             camera,
                             XRSystem.emptyPass,
@@ -1545,7 +1575,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             out var cullingParameters
                         )
                               && TryCull(
-                                  camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset,
+                                  camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, uiLayerMask,
                                   ref _cullingResults
                               )
                         ))
@@ -1772,6 +1802,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             RTHandles.SetReferenceSize(maxSize.x, maxSize.y);
                         }
 
+                        // If we are in HDR output mode we need to update the default UI blend mode accordingly
+                        UpdateUIMaterialBlendMode();
 
                         // Execute render request graph, in reverse order
                         for (int i = renderRequestIndicesToRender.Count - 1; i >= 0; --i)
@@ -1927,6 +1959,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var camera = hdCamera.camera;
             var cullingResults = renderRequest.cullingResults.cullingResults;
             var customPassCullingResults = renderRequest.cullingResults.customPassCullingResults ?? cullingResults;
+            var uiCullingResults = renderRequest.cullingResults.uiCullingResults;
             var hdProbeCullingResults = renderRequest.cullingResults.hdProbeCullingResults;
             var decalCullingResults = renderRequest.cullingResults.decalCullResults;
             var target = renderRequest.target;
@@ -2291,6 +2324,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SkyManager skyManager,
             ScriptableCullingParameters cullingParams,
             HDRenderPipelineAsset hdrp,
+            LayerMask uiLayerMask,
             ref HDCullingResults cullingResults
         )
         {
@@ -2346,6 +2380,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyManager.UpdateCurrentSkySettings(hdCamera);
                 skyManager.SetupAmbientProbe(hdCamera);
 
+                // TODO_FCC: Comment the following if condition to test.
+                uint castedLayerMask = (uint)(int)uiLayerMask;
+                if (HDROutputSettings.main.active)
+                {
+                    cullingParams.cullingMask &= ~castedLayerMask;
+                }
+
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
                     OverrideCullingForRayTracing(hdCamera, camera, ref cullingParams);
@@ -2363,6 +2404,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         cullingResults.customPassCullingResults = CustomPassVolume.Cull(renderContext, hdCamera);
                     }
                 }
+
+
+                if (HDROutputSettings.main.active)
+                {
+                    cullingParams.cullingMask = castedLayerMask;
+                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.UICullResults)))
+                        cullingResults.uiCullingResults = renderContext.Cull(ref cullingParams);
+                }
+
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe) && hdProbeCullState.cullingGroup != null)
                     HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);

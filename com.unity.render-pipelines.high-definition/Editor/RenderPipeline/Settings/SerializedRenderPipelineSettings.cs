@@ -34,7 +34,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportCustomPass;
         public SerializedProperty customBufferFormat;
         public SerializedScalableSetting planarReflectionResolution;
-
         public SerializedProperty supportDecals;
         public SerializedProperty supportDecalLayers;
         public SerializedProperty supportSurfaceGradient;
@@ -54,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty supportProbeVolume;
         internal SerializedProperty probeVolumeTextureSize;
         internal SerializedProperty probeVolumeSHBands;
-
+        public SerializedProperty uiLayer;
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedHDShadowInitParameters hdShadowInitParams;
@@ -111,7 +110,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportProbeVolume = root.Find((RenderPipelineSettings s) => s.supportProbeVolume);
             probeVolumeTextureSize = root.Find((RenderPipelineSettings s) => s.probeVolumeMemoryBudget);
             probeVolumeSHBands = root.Find((RenderPipelineSettings s) => s.probeVolumeSHBands);
-
+            uiLayer = root.Find((RenderPipelineSettings s) => s.uiLayer);
             supportRayTracing = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
             supportedRayTracingMode = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
 

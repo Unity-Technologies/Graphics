@@ -40,6 +40,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material defaultParticleMat;
             [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
             public Material defaultTerrainMat;
+            [Reload("Runtime/RenderPipelineResources/Material/DefaultHDUIMaterial.mat")]
+            public Material defaultUIMat;
             [Reload("Editor/RenderPipelineResources/Material/GUITextureBlit2SRGB.mat")]
             public Material GUITextureBlit2SRGB;
         }
