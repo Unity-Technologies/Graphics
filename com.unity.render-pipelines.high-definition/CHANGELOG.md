@@ -14,8 +14,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light anchor min distance value + properties not working with prefabs (case 1345509).
 - Fixed specular occlusion sharpness and over darkening at grazing angles.
 
-### changed
+### Changed
 - Visual Environment ambient mode is now Dynamic by default.
+- Improved the performance of the volumetric clouds in non-local mode when large occluders are on screen.
 
 ## [12.0.0] - 2021-01-11
 

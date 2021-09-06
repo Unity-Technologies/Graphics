@@ -432,7 +432,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, HDUtils.PackedMipChainInfo depthMipInfo)
         {
-            if (Fog.IsVolumetricFogEnabled(hdCamera))
+            if (Fog.IsVolumetricFogEnabled(hdCamera) || VolumetricCloudsRequireMaxZ(hdCamera))
             {
                 if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 {
