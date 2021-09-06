@@ -670,35 +670,46 @@ namespace UnityEditor.VFX
                         $" Use padding to mitigate this discrepancy.");
             }
 
-            if (HasSorting() && !needsOwnSort)
+            if (HasSorting())
             {
-                var modifiedAttributes = children
-                    .Where(c => c.enabled)
-                    .SelectMany(b => b.attributes)
-                    .Where(a => a.mode.HasFlag(VFXAttributeMode.Write))
-                    .Select(a => a.attrib);
-                bool isCriterionModified = false;
+                if (!needsOwnSort)
+                {
+                    var modifiedAttributes = children
+                        .Where(c => c.enabled)
+                        .SelectMany(b => b.attributes)
+                        .Where(a => a.mode.HasFlag(VFXAttributeMode.Write))
+                        .Select(a => a.attrib);
+                    bool isCriterionModified = false;
 
-                if (HasCustomSortingCriterion())
-                {
-                    HashSet<VFXExpression> sortKeyExpressions = new HashSet<VFXExpression>();
-                    var sortKeyExp = inputSlots.First(s => s.name == "sortKey").GetExpression();
-                    VFXExpression.CollectParentExpressionRecursively(sortKeyExp, sortKeyExpressions);
+                    if (HasCustomSortingCriterion())
+                    {
+                        HashSet<VFXExpression> sortKeyExpressions = new HashSet<VFXExpression>();
+                        var sortKeyExp = inputSlots.First(s => s.name == "sortKey").GetExpression();
+                        VFXExpression.CollectParentExpressionRecursively(sortKeyExp, sortKeyExpressions);
 
-                    foreach (var modifiedAttribute in modifiedAttributes)
-                        isCriterionModified |=
-                            sortKeyExpressions.Contains(new VFXAttributeExpression(modifiedAttribute));
+                        foreach (var modifiedAttribute in modifiedAttributes)
+                            isCriterionModified |=
+                                sortKeyExpressions.Contains(new VFXAttributeExpression(modifiedAttribute));
+                    }
+                    else
+                    {
+                        var usedAttributesInSorting = VFXSortingUtility.GetSortingDependantAttributes(sortMode);
+                        isCriterionModified = usedAttributesInSorting.Intersect(modifiedAttributes).Any();
+                    }
+
+                    if (isCriterionModified)
+                    {
+                        manager.RegisterError("SortingKeyOverriden", VFXErrorType.Warning,
+                            $"Sorting happens in Update, before the attributes were modified in the Output context." +
+                            $" All the modifications made here will not be taken into account during sorting.");
+                    }
                 }
-                else
+
+                if (sortMode == SortCriteria.YoungestInFront)
                 {
-                    var usedAttributesInSorting = VFXSortingUtility.GetSortingDependantAttributes(sortMode);
-                    isCriterionModified = usedAttributesInSorting.Intersect(modifiedAttributes).Any();
-                }
-                if (isCriterionModified)
-                {
-                    manager.RegisterError("SortingKeyOverriden", VFXErrorType.Warning,
-                        $"Sorting happens in Update, before the attributes were modified in the Output context." +
-                        $" All the modifications made here will not be taken into account during sorting.");
+                    if (!GetData().IsAttributeUsed(VFXAttribute.Age))
+                        manager.RegisterError("NoAgeToSort", VFXErrorType.Warning,
+                            $"The sorting mode depends on the Age attribute, which is neither set nor updated in this system.");
                 }
             }
         }
