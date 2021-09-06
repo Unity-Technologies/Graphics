@@ -5,3 +5,4 @@ This section contains information about changes to SRP Core. Each page contains 
 The list of pages is as follows:
 
 - [12](whats-new-12.md)
+- [13](whats-new-13.md)
