@@ -148,7 +148,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [InitializeOnLoadMethod]
         static void InitializeEntryListOnLoad()
         {
-            EditorApplication.delayCall += ()=>
+            EditorApplication.delayCall += () =>
                 InitializeEntryList();
         }
 
@@ -161,8 +161,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-		Entry[] BuildEntryList()
-		{
+        Entry[] BuildEntryList()
+        {
             List<Entry> entryList = new List<Entry>();
 
             // Add the general and XR entries
@@ -240,14 +240,14 @@ namespace UnityEditor.Rendering.HighDefinition
         //add your new checks in this array at the right position.
         //Both "Fix All" button and UI drawing will use it.
         //Indentation is computed in Entry if you use certain subscope.
-        
+
         Entry[] entries
         {
             get
             {
                 // due to functor, cannot static link directly in an array and need lazy init
                 if (m_Entries == null)
-                      m_Entries = BuildEntryList();
+                    m_Entries = BuildEntryList();
                 return m_Entries;
             }
         }
@@ -874,7 +874,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return false;
         }
 
-		bool IsValidBuildTarget()
+        bool IsValidBuildTarget()
         {
             return (EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64)
                 || (EditorUserBuildSettings.activeBuildTarget == BuildTarget.PS5);

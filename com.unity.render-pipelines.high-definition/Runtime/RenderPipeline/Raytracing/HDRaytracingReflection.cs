@@ -454,6 +454,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);
         }
 
-#endregion
+        #endregion
     }
 }

@@ -679,12 +679,12 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal bool currentSystemSupportsRayTracing
             => SystemInfo.supportsRayTracing;
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         static internal bool buildTargetSupportsRayTracing
             => (UnityEditor.PlayerSettings.GetGraphicsAPIs(UnityEditor.EditorUserBuildSettings.activeBuildTarget)[0] == GraphicsDeviceType.Direct3D12)
             || (UnityEditor.PlayerSettings.GetGraphicsAPIs(UnityEditor.EditorUserBuildSettings.activeBuildTarget)[0] == GraphicsDeviceType.PlayStation5);
-        #endif
-        
+#endif
+
         internal BlueNoise GetBlueNoiseManager()
         {
             return m_BlueNoise;
