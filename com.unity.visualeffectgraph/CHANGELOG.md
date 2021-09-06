@@ -4,6 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.0.0] - 2021-09-01
+
+### Fixed
+- Particles were rendered pink with some debug modes [Case 1342276](https://issuetracker.unity3d.com/product/unity/issues/guid/1342276/)
+- Removed bool from the built-in list of blittable types for GraphicsBuffer [Case 1351830](https://issuetracker.unity3d.com/product/unity/issues/guid/1351830/)
+- Extract position from a transform is wrong on GPU [Case 1353533](https://issuetracker.unity3d.com/product/unity/issues/guid/1353533/)
+- Fix potentially invalid value for pixel dimensions in HDRPCameraBinder
+
 ## [12.0.0] - 2021-01-11
 ### Added
 - Added support for Texture2D Arrays in Flipbooks
@@ -21,7 +29,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added HDRP Decal output context.
 - Motion vectors enabled for particle strips
 - Added Is Inside subgraph into VFX Graph additions package
-
+- The VFX editor automatically attach to the current selection if the selected gameobject uses the currently edited VFX asset
+- Two new buttons are available in the editor's tool bar. One will display a popup panel to handle attachement and one to lock/unlock the current attachement
 
 ### Changed
 - Allow remaking an existing link.
@@ -92,10 +101,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - GPU hang on some initialize dispatch during dichotomy (platform specific)
 - Compilation error undeclared identifier 'Infinity' [Case 1328592](https://issuetracker.unity3d.com/product/unity/issues/guid/1328592/)
 - Exposed Parameter placement can be moved after sanitize
-- Particles were rendered pink with some debug modes [Case 1342276](https://issuetracker.unity3d.com/product/unity/issues/guid/1342276/)
-- Removed bool from the built-in list of blittable types for GraphicsBuffer [Case 1351830](https://issuetracker.unity3d.com/product/unity/issues/guid/1351830/)
-- Extract position from a transform is wrong on GPU [Case 1353533](https://issuetracker.unity3d.com/product/unity/issues/guid/1353533/)
-- Fix potentially invalid value for pixel dimensions in HDRPCameraBinder
+- Fix rendering artifacts on some mobile devices [Case 1149057](https://issuetracker.unity3d.com/product/unity/issues/guid/1149057/)
+- Fix compilation failure on OpenGLES [Case 1348666](https://issuetracker.unity3d.com/product/unity/issues/guid/1348666/)
+- Don't open an empty VFX Graph Editor when assigning a VFX Asset to a Visual Effect GameObject from the inspector [Case 1347399](https://issuetracker.unity3d.com/product/unity/issues/guid/1347399/)
+- Visual Effect inspector input fields don't lose focus anymore while typing (Random seed)
 
 ## [11.0.0] - 2020-10-21
 ### Added
