@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 41513004}
   - component: {fileID: 41513003}
   m_Layer: 0
-  m_Name: SameAge
+  m_Name: 38_SameAge
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -563,7 +563,7 @@ GameObject:
   - component: {fileID: 1400640624}
   - component: {fileID: 1400640623}
   m_Layer: 0
-  m_Name: MultiOutput
+  m_Name: 38_MultiOutput
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
