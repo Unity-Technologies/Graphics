@@ -743,27 +743,12 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float usedSpeed = saturate(Normalize01(clamp(speedDiff, 0.0f, _SsrPRBSpeedRejectionScalerFactor), 0.0f, _SsrPRBSpeedRejectionScalerFactor));
 
-/*
-#ifdef SSR_SMOOTH_SPEED_REJECTION
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed);
-#else
-
-#if 0
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed);
-    coefExpAvg = usedSpeed >= _SsrPBRSpeedRejection ? 1.0f : coefExpAvg;
-#else
-    float coefExpAvg = usedSpeed >= _SsrPBRSpeedRejection ? 1.0f : _SsrAccumulationAmount;
-#endif
-
-#endif
-*/
-
 #ifdef SSR_SMOOTH_SPEED_REJECTION
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(usedSpeed * _SsrPBRSpeedRejection));
 #else
 
-#if 0
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, usedSpeed);
+#if 1
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(usedSpeed * _SsrPBRSpeedRejection));
     coefExpAvg = usedSpeed >= _SsrPBRSpeedRejection ? 1.0f : coefExpAvg;
 #else
     float coefExpAvg = usedSpeed >= _SsrPBRSpeedRejection ? 1.0f : _SsrAccumulationAmount;
