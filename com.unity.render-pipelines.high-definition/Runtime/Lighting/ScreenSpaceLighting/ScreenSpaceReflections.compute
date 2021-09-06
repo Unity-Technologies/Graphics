@@ -741,7 +741,8 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
     float speedDiff = length(motionVectorNDC + motionVectorCenterNDC);
 #endif
 
-    float usedSpeed = saturate(Normalize01(clamp(speedDiff, 0.0f, _SsrPRBSpeedRejectionScalerFactor), 0.0f, _SsrPRBSpeedRejectionScalerFactor));
+    float speedRejectionScalerFactorRemap = pow(_SsrPRBSpeedRejectionScalerFactor*0.1f, 2.0f);
+    float usedSpeed = saturate(Normalize01(clamp(speedDiff, 0.0f, speedRejectionScalerFactorRemap), 0.0f, speedRejectionScalerFactorRemap));
 
 #ifdef SSR_SMOOTH_SPEED_REJECTION
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(usedSpeed * _SsrPBRSpeedRejection));
@@ -762,12 +763,12 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 #ifdef REJECT_DEBUG_COLOR
     #ifdef SSR_SMOOTH_SPEED_REJECTION
-        result.rgb = (usedSpeed).xxx;
+        result.rgb = (saturate(usedSpeed * _SsrPBRSpeedRejection)).xxx;
     #else
         if (usedSpeed >= _SsrPBRSpeedRejection)
-            result.rgb = float3(1, 0, 0);
+            result.rgb = float3(1, 1, 1);
         else
-            result.rgb = float3(0, 1, 0);
+            result.rgb = float3(0, 0, 0);
     #endif
 #endif
 

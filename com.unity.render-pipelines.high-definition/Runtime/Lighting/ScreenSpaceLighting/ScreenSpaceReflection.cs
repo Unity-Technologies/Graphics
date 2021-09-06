@@ -124,12 +124,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the upper range of speed. The faster the objects or camera are moving, the higher this number should be.
         /// </summary>
-        public MinFloatParameter speedRejectionScalerFactor = new MinFloatParameter(0.0125f, 0.0f);
+        public ClampedFloatParameter speedRejectionScalerFactor = new ClampedFloatParameter(0.2f, 0.001f, 1f);
 
         /// <summary>
         /// When enabled, history can be partially rejected for moving objects which gives a smoother transition. When disabled, history is either kept or totally rejected.
         /// </summary>
-        public BoolParameter speedSmoothReject = new BoolParameter(false);
+        public BoolParameter speedSmoothReject = new BoolParameter(true);
 
         /// <summary>
         /// Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.
