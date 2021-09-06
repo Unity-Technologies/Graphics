@@ -9,6 +9,11 @@ namespace UnityEditor.Rendering
     /// </summary>
     public partial class LightUI
     {
+        /// <summary>
+        /// Draws the color temperature for a serialized light
+        /// </summary>
+        /// <param name="serialized">The serizalized light</param>
+        /// <param name="owner">The editor</param>
         public static void DrawColor(ISerializedLight serialized, Editor owner)
         {
             if (GraphicsSettings.lightsUseLinearIntensity && GraphicsSettings.lightsUseColorTemperature)
