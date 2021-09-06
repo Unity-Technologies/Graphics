@@ -8,6 +8,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
+    [Serializable]
     internal class ShadowMesh2D : IShadowShape2DProvider.ShadowShapes2D
     {
         internal struct Edge
@@ -55,19 +56,12 @@ namespace UnityEngine.Rendering.Universal
 
         static Dictionary<Edge, int> m_EdgeDictionary = new Dictionary<Edge, int>(new EdgeComparer());  // This is done so we don't create garbage allocating and deallocating a dictionary object
 
-        Mesh                         m_Mesh;
-        BoundingSphere               m_BoundingSphere;
-
-        bool                         m_AllowContraction;
-        bool                         m_CorrectWindingOrder;
+        [SerializeField] Mesh m_Mesh;
+        [SerializeField] BoundingSphere m_BoundingSphere;
+        [SerializeField] bool m_AllowContraction;
 
         public  Mesh mesh { get => m_Mesh; }
         public  BoundingSphere boundingSphere { get => m_BoundingSphere; }
-
-        public ShadowMesh2D()
-        {
-            m_Mesh = new Mesh();
-        }
 
         private void CalculateEdgesFromLineStrip(NativeArray<int> indices, out NativeArray<Edge> outEdges, out NativeArray<int> outShapeStartingIndices)
         {
@@ -247,8 +241,10 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<Edge> edges;
             NativeArray<int> shapeStartingIndices;
 
-            m_CorrectWindingOrder = correctWindingOrder;
             m_AllowContraction = allowContraction;
+
+            if (m_Mesh == null)
+                m_Mesh = new Mesh();
 
             if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Triangles)
             {
@@ -279,7 +275,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void UpdateVertices(NativeArray<Vector3> vertices)
         {
-            // TODO
+            ShadowUtility.UpdateShadowMeshVertices(m_Mesh, vertices);
         }
 
         int GetFirstUnusedIndex(NativeArray<bool> usedValues)
@@ -291,10 +287,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return -1;
-        }
-
-        ~ShadowMesh2D()
-        {
         }
     }
 }
