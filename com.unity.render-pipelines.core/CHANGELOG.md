@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.7.0] - 2021-07-02
 
+### Fixed
+- Fixed Volume Gizmo size when rescaling parent GameObject
+
 ## [10.6.0] - 2021-04-29
 
 ### Fixed

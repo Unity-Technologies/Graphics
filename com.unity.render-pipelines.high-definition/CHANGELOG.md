@@ -6,8 +6,34 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.7.0] - 2021-07-02
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed an issue where bloom filtering was wrong when using multiple cameras
+- Improved a bit the area cookie behavior for higher smoothness values to reduce artifacts.
+- Fixed the incorrect value written to the VT feedback buffer when VT is not used.
+- Fixed issue with sky settings being ignored when using the recorder and path tracing (case 1340507).
+- Fixed distortion when resizing the graphics compositor window in builds (case 1328968).
+- Fixed gbuffer depth debug mode for materials not rendered during the prepass.
+- Fixed Vertex Color Mode documentation for layered lit shader.
+- Fixed wobbling/tearing-like artifacts with SSAO.
+- Fixed white flash with SSR when resetting camera history (case 1335263).
+- Fixed VFX flag "Exclude From TAA" not working for some particle types.
+- Prevent any unwanted light sync when not in HDRP (case 1217575)
+- Fixed screen-space shadows with XR single-pass and camera relative rendering (1348260).
+- Fixed objects disappearing from Lookdev window when entering playmode (case 1309368).
+- Fixed tiled artifacts in refraction at borders between two reflection probes.
+- Fixed the FreeCamera and SimpleCameraController mouse rotation unusable at low framerate (case 1340344).
+- Fixed warning "Releasing render texture that is set to be RenderTexture.active!" on pipeline disposal / hdrp live editing.
+- Fixed a nullref in volume system after deleting a volume object (case 1348374).
+- Fixed update order in Graphics Compositor causing jumpy camera updates (case 1345566).
+- Fixed material inspector that allowed setting intensity to an infinite value.
+- Fixed issue when switching between non-persistent cameras when path tarcing is enabled (case 1337843).
+- Fixed issue with the LayerMaskParameter class storing an erroneous mask value (case 1345515).
+- Fixed issue with vertex color defaulting to 0.0 when not defined, in ray/path tracing (case 1348821).
+- Fixed issue with a compute dispatch being with 0 threads on extremely small resolutions.
+- Fixed incorrect light list indexing when TAA is enabled (case 1352444).
+- Fixed Additional Velocity for Alembic not taking correctly into account vertex animation
+- Fixed wrong LUT initialization in Wireframe mode.
+- Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
 
 ## [10.6.0] - 2021-04-29
 

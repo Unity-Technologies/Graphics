@@ -307,6 +307,14 @@ namespace UnityEditor.ShaderGraph
                 // Copy defaults
                 switch (prop.concreteShaderValueType)
                 {
+                    case ConcreteSlotValueType.SamplerState:
+                        {
+                            var tSlot = slot as SamplerStateMaterialSlot;
+                            var tProp = prop as SamplerStateShaderProperty;
+                            if (tSlot != null && tProp != null)
+                                tSlot.defaultSamplerState = tProp.value;
+                        }
+                        break;
                     case ConcreteSlotValueType.Matrix4:
                         {
                             var tSlot = slot as Matrix4MaterialSlot;
