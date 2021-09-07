@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// When enabled, history can be partially rejected for moving objects which gives a smoother transition. When disabled, history is either kept or totally rejected.
         /// </summary>
-        public BoolParameter speedSmoothReject = new BoolParameter(true);
+        public BoolParameter speedSmoothReject = new BoolParameter(false);
 
         /// <summary>
         /// When enabled, speed rejection used world space motion of the reflecting surface.

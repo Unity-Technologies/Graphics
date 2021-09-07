@@ -743,22 +743,26 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 #if USE_SPEED_SURFACE
     float4 srcMotion = float4(motionVectorCenterNDC.xy, deviceDepthSrc, 0.0f);
-    float4 worldSrcMotion = mul(srcMotion, UNITY_MATRIX_I_VP);
+    float4 worldSrcMotion = mul(UNITY_MATRIX_I_VP, srcMotion);
     worldSrcMotion /= worldSrcMotion.w;
 #endif
 
 #if USE_SPEED_TARGET
     float4 dstMotion = float4(motionVectorNDC.xy, deviceDepthDst, 0.0f);
-    float4 worldDstMotion = mul(dstMotion, UNITY_MATRIX_I_VP);
+    float4 worldDstMotion = mul(UNITY_MATRIX_I_VP, dstMotion);
     worldDstMotion /= worldDstMotion.w;
 #endif
 
 #if USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 0
-     float speedDiff = length(worldSrcMotion.xyz);
+    float speedDiff = length(worldSrcMotion.xyz);
 #elif USE_SPEED_SURFACE == 0 && USE_SPEED_TARGET == 1
-     float speedDiff = length(worldDstMotion.xyz);
+    float speedDiff = length(worldDstMotion.xyz);
 #elif USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 1
-     float speedDiff = length(0.5f * (worldSrcMotion.xyz + worldDstMotion.xyz));
+
+    // Here Remi
+
+    //float speedDiff = length(0.5f * (worldSrcMotion.xyz + worldDstMotion.xyz));
+    float speedDiff = length(worldSrcMotion.xyz + worldDstMotion.xyz);
 #else
     #error need at least one source of motion vector
 #endif
