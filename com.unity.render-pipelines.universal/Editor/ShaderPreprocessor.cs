@@ -358,8 +358,7 @@ namespace UnityEditor.Rendering.Universal
             var stripTool = new StripTool<ShaderFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants);
 
             // strip main light shadows, cascade and screen variants
-            // TODO: Strip disabled keyword once no light will re-use same variant
-            if (stripTool.StripMultiCompileKeepOffVariant(
+            if (stripTool.StripMultiCompile(
                 m_MainLightShadows, ShaderFeatures.MainLightShadows,
                 m_MainLightShadowsCascades, ShaderFeatures.MainLightShadowsCascade,
                 m_MainLightShadowsScreen, ShaderFeatures.ScreenSpaceShadows))
@@ -400,8 +399,7 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             // No additional light shadows
-            // TODO: Strip off variants once we support no shadow lights re-use same variant
-            if (stripTool.StripMultiCompileKeepOffVariant(m_AdditionalLightShadows, ShaderFeatures.AdditionalLightShadows))
+            if (stripTool.StripMultiCompile(m_AdditionalLightShadows, ShaderFeatures.AdditionalLightShadows))
                 return true;
 
             if (stripTool.StripMultiCompile(m_ReflectionProbeBlending, ShaderFeatures.ReflectionProbeBlending))
@@ -425,8 +423,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             // Additional light are shaded per-vertex or per-pixel.
-            // TODO: Strip off variants once we support no additional lights re-used variants
-            if (stripTool.StripMultiCompileKeepOffVariant(m_AdditionalLightsVertex, ShaderFeatures.VertexLighting,
+            if (stripTool.StripMultiCompile(m_AdditionalLightsVertex, ShaderFeatures.VertexLighting,
                 m_AdditionalLightsPixel, ShaderFeatures.AdditionalLights))
                 return true;
 

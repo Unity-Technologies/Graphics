@@ -730,8 +730,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Lights that need to be rendered in the shadow map atlas
-            if (validShadowCastingLightsCount == 0)
-                return false;
+            //if (validShadowCastingLightsCount == 0)
+            //    return false;
 
             int shadowCastingLightsBufferCount = m_ShadowSliceToAdditionalLightIndex.Count;
 
@@ -745,6 +745,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 atlasMaxY = Mathf.Max(atlasMaxY, shadowResolutionRequest.offsetY + shadowResolutionRequest.allocatedResolution);
             }
             // ...but make sure we still use power-of-two dimensions (might perform better on some hardware)
+
+            // Todo
+            atlasMaxX = Mathf.Max(atlasMaxX, 1);
+            atlasMaxY = Mathf.Max(atlasMaxY, 1);
 
             renderTargetWidth = Mathf.NextPowerOfTwo(atlasMaxX);
             renderTargetHeight = Mathf.NextPowerOfTwo(atlasMaxY);
@@ -799,8 +803,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (renderingData.shadowData.supportsAdditionalLightShadows)
-                RenderAdditionalShadowmapAtlas(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
+            //if (renderingData.shadowData.supportsAdditionalLightShadows)
+            RenderAdditionalShadowmapAtlas(ref context, ref renderingData.cullResults, ref renderingData.lightData, ref renderingData.shadowData);
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)
@@ -884,13 +888,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool softShadows = shadowData.supportsSoftShadows &&
                     (mainLightHasSoftShadows || additionalLightHasSoftShadows);
 
-                shadowData.isKeywordAdditionalLightShadowsEnabled = anyShadowSliceRenderer;
+                shadowData.isKeywordAdditionalLightShadowsEnabled = true;
                 shadowData.isKeywordSoftShadowsEnabled = softShadows;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, shadowData.isKeywordAdditionalLightShadowsEnabled);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
 
-                if (anyShadowSliceRenderer)
-                    SetupAdditionalLightsShadowReceiverConstants(cmd, ref shadowData, softShadows);
+                //if (anyShadowSliceRenderer)
+                SetupAdditionalLightsShadowReceiverConstants(cmd, ref shadowData, softShadows);
             }
 
             context.ExecuteCommandBuffer(cmd);

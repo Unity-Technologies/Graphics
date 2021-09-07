@@ -354,9 +354,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 SetupShaderLightConstants(cmd, ref renderingData);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex,
-                    additionalLightsCount > 0 && additionalLightsPerVertex && !useClusteredRendering);
+                    /*additionalLightsCount > 0 &&*/ additionalLightsPerVertex && !useClusteredRendering);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel,
-                    additionalLightsCount > 0 && !additionalLightsPerVertex && !useClusteredRendering);
+                    /*additionalLightsCount > 0 &&*/ !additionalLightsPerVertex && !useClusteredRendering);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ClusteredRendering,
                     useClusteredRendering);
 
