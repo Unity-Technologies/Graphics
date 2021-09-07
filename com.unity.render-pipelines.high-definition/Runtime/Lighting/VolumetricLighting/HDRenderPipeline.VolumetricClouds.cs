@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Intermediate values for ambient probe evaluation
         Vector4[] m_PackedCoeffsClouds;
+        ZonalHarmonicsL2 m_PhaseZHClouds;
 
         // Cloud preset maps
         Texture2D m_SparsePresetMap;
@@ -89,6 +90,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Allocate the buffers for ambient probe evaluation
             m_PackedCoeffsClouds = new Vector4[7];
+            m_PhaseZHClouds = new ZonalHarmonicsL2();
+            m_PhaseZHClouds.coeffs = new float[3];
 
             // Grab the kernels we need
             ComputeShader volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
