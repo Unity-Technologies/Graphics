@@ -935,6 +935,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DitherParams = Shader.PropertyToID("_DitherParams");
         public static readonly int _KeepAlpha = Shader.PropertyToID("_KeepAlpha");
         public static readonly int _UVTransform = Shader.PropertyToID("_UVTransform");
+        public static readonly int _UITexture = Shader.PropertyToID("_UITexture");
 
         public static readonly int _MotionVecAndDepth = Shader.PropertyToID("_MotionVecAndDepth");
         public static readonly int _TileMinMaxMotionVec = Shader.PropertyToID("_TileMinMaxMotionVec");

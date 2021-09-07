@@ -177,6 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Misc
         VolumeUpdate,
         CustomPassVolumeUpdate,
+        OffscreenUIRendering,
 
         // XR
         XRMirrorView,

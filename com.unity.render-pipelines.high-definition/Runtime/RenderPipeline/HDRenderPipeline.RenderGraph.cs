@@ -95,6 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Once render graph move is implemented, we can probably remove the branch and this.
                 ShadowResult shadowResult = new ShadowResult();
                 BuildGPULightListOutput gpuLightListOutput = new BuildGPULightListOutput();
+                TextureHandle uiBuffer = TextureHandle.nullHandle;
 
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
                 {
@@ -194,7 +195,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // No need for old stencil values here since from transparent on different features are tagged
                     ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
 
-                    colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, uiCullingResult, aovRequest, aovCustomPassBuffers);
+                    colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput,
+                        shadowResult, cullingResults, customPassCullingResults, uiCullingResult, aovRequest, aovCustomPassBuffers, out uiBuffer);
 
                     if (NeedMotionVectorForTransparent(hdCamera.frameSettings))
                     {
@@ -267,7 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Color, hdCamera, colorBuffer, aovBuffers);
                 }
 
-                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, cullingResults, hdCamera);
+                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, uiBuffer, cullingResults, hdCamera);
 
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
                 PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest, fullScreenDebugFormat);
@@ -822,25 +824,35 @@ namespace UnityEngine.Rendering.HighDefinition
             { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.clear, msaaSamples = msaaSamples, name = "UI Buffer" });
         }
 
+
+        // TODO_FCC: IMPORTANT! HANDLE OPAQUE UI, WRITE ON SAME BUFFER BUT BEFORE HAND? WE ARE ASSUME ALL UNLIT?
         TextureHandle RenderTransparentUI(RenderGraph renderGraph,
             HDCamera hdCamera,
+            TextureHandle depthBuffer,
             CullingResults cullResults)
         {
             var output = renderGraph.defaultResources.blackTextureXR;
-            if (HDROutputSettings.main.active && SupportedRenderingFeatures.active.rendersUIOverlay)
+            if (TEST_HDR() && SupportedRenderingFeatures.active.rendersUIOverlay)
             {
-                using (var builder = renderGraph.AddRenderPass<RenderOffscreenUIData>("UI Rendering", out var passData, ProfilingSampler.Get(HDProfileId.RenderForwardError)))
+                using (var builder = renderGraph.AddRenderPass<RenderOffscreenUIData>("UI Rendering", out var passData, ProfilingSampler.Get(HDProfileId.OffscreenUIRendering)))
                 {
                     builder.AllowPassCulling(false);
 
                     output = builder.UseColorBuffer(CreateOffscreenUIBuffer(renderGraph, hdCamera.msaaSamples), 0);
+                    builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+
                     passData.camera = hdCamera.camera;
                     passData.rendererList = renderGraph.CreateRendererList(CreateTransparentRendererListDesc(cullResults, hdCamera.camera, m_AllTransparentPassNames, m_CurrentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllTransparent));
+                    passData.rendererList = builder.UseRendererList(passData.rendererList);
                     passData.frameSettings = hdCamera.frameSettings;
 
                     builder.SetRenderFunc((RenderOffscreenUIData data, RenderGraphContext context) =>
                     {
-                        RenderForwardRendererList(data.frameSettings, data.rendererList, false, context.renderContext, context.cmd);
+                        // For V1 we only render screen space overlays offscreen. MAKE IT AN OPTION LATER?
+                        //  RenderForwardRendererList(data.frameSettings, data.rendererList, false, context.renderContext, context.cmd);
+                        context.renderContext.ExecuteCommandBuffer(context.cmd);
+                        context.cmd.Clear();
+                        context.renderContext.DrawUIOverlay(data.camera);
                     });
                 }
             }
@@ -1151,7 +1163,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CullingResults customPassCullingResults,
             CullingResults uiCullingResult,
             AOVRequestData aovRequest,
-            List<RTHandle> aovCustomPassBuffers)
+            List<RTHandle> aovCustomPassBuffers,
+            out TextureHandle uiBuffer)
         {
             // Transparent (non recursive) objects that are rendered in front of transparent (recursive) require the recursive rendering to be executed for that pixel.
             // This means our flagging process needs to happen before the transparent depth prepass as we use the depth to discriminate pixels that do not need recursive rendering.
@@ -1190,8 +1203,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, currentColorPyramid, lightLists, shadowResult, cullingResults, false);
             ResetCameraMipBias(hdCamera);
 
-            // TODO_FCC: TMP, MOVE FROM HERE.
-            RenderTransparentUI(renderGraph, hdCamera, uiCullingResult);
+            // TODO_FCC: TMP, MOVE FROM HERE. ALSO CONSIDER THAT FOR V1 WE MIGHT WANT TO ONLY SEPARATE OVERLAYS?
+            uiBuffer = RenderTransparentUI(renderGraph, hdCamera, prepassOutput.depthBuffer, uiCullingResult);
 
             colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
 
@@ -1954,7 +1967,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderScreenSpaceOverlayUI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
-            if (!HDROutputSettings.main.active && SupportedRenderingFeatures.active.rendersUIOverlay && hdCamera.camera.cameraType != CameraType.SceneView)
+            if (!TEST_HDR() && SupportedRenderingFeatures.active.rendersUIOverlay && hdCamera.camera.cameraType != CameraType.SceneView)
             {
                 using (var builder = renderGraph.AddRenderPass<RenderScreenSpaceOverlayData>("Screen Space Overlay UI", out var passData))
                 {

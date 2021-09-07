@@ -33,6 +33,8 @@ Shader "Hidden/HDRP/FinalPass"
         TEXTURE2D_ARRAY(_BlueNoiseTexture);
         TEXTURE2D_X(_AlphaTexture);
 
+        TEXTURE2D_X(_UITexture);
+
         SAMPLER(sampler_LinearClamp);
         SAMPLER(sampler_LinearRepeat);
 
@@ -157,6 +159,11 @@ Shader "Hidden/HDRP/FinalPass"
             // After post objects are blended according to the method described here: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
             outColor.xyz = afterPostColor.a * outColor.xyz + afterPostColor.xyz;
             #endif
+
+#if 1
+            float4 uiValue = SAMPLE_TEXTURE2D_X_LOD(_UITexture, s_point_clamp_sampler, positionNDC.xy * _RTHandleScale.xy, 0);
+            outColor = uiValue.rgb + outColor * (1.0f - uiValue.a);
+#endif
 
         #if !defined(ENABLE_ALPHA)
             return float4(outColor, outAlpha);

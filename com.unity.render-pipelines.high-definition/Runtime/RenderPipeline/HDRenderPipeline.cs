@@ -199,9 +199,21 @@ namespace UnityEngine.Rendering.HighDefinition
             return currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows ? currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots : 0;
         }
 
+        // TODO_FCC: THIS IS NEEDED FOR TESTING, REPLACE WITH HDROutputSettings.main.active LATER
+        static bool TEST_HDR()
+        {
+            //
+            return true;// HDROutputSettings.main.active;
+        }
+
+        static bool TEST_SEPARATEUICULLING()
+        {
+            return TEST_HDR() && false;
+        }
+
         internal void UpdateUIMaterialBlendMode()
         {
-            if (HDROutputSettings.main.active)
+            if (TEST_HDR())
             {
                 m_Asset.defaultUIMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
                 m_Asset.defaultUIMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
@@ -1272,7 +1284,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (needCulling)
                         {
-                            var uiLayerMask = HDROutputSettings.main.active ? m_Asset.currentPlatformRenderPipelineSettings.uiLayer : (LayerMask)0;
+                            var uiLayerMask = TEST_SEPARATEUICULLING() ? m_Asset.currentPlatformRenderPipelineSettings.uiLayer : (LayerMask)0;
                             // TODO_FCC For test, enable to see if it renders to separate without having HDR
                             // uiLayerMask = m_Asset.currentPlatformRenderPipelineSettings.uiLayer;
                             skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, uiLayerMask, ref cullingResults);
@@ -1563,7 +1575,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         var _cullingResults = UnsafeGenericPool<HDCullingResults>.Get();
                         _cullingResults.Reset();
 
-                        var uiLayerMask = HDROutputSettings.main.active ? m_Asset.currentPlatformRenderPipelineSettings.uiLayer : (LayerMask)0;
+                        var uiLayerMask = TEST_SEPARATEUICULLING() ? m_Asset.currentPlatformRenderPipelineSettings.uiLayer : (LayerMask)0;
                         // TODO_FCC For test, enable to see if it renders to separate without having HDR
                         // uiLayerMask = m_Asset.currentPlatformRenderPipelineSettings.uiLayer;
 
@@ -2382,7 +2394,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // TODO_FCC: Comment the following if condition to test.
                 uint castedLayerMask = (uint)(int)uiLayerMask;
-                if (HDROutputSettings.main.active)
+                if (TEST_HDR())
                 {
                     cullingParams.cullingMask &= ~castedLayerMask;
                 }
@@ -2406,7 +2418,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
 
-                if (HDROutputSettings.main.active)
+                if (TEST_HDR())
                 {
                     cullingParams.cullingMask = castedLayerMask;
                     using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.UICullResults)))

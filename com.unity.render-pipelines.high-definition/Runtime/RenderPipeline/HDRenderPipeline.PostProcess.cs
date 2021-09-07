@@ -433,6 +433,7 @@ namespace UnityEngine.Rendering.HighDefinition
             in PrepassOutput prepassOutput,
             TextureHandle inputColor,
             TextureHandle backBuffer,
+            TextureHandle uiBuffer,
             CullingResults cullResults,
             HDCamera hdCamera)
         {
@@ -537,7 +538,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = RobustContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source);
             }
 
-            FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, m_BlueNoise, flipYInPostProcess);
+            FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, uiBuffer, m_BlueNoise, flipYInPostProcess);
 
             bool currFrameIsTAAUpsampled = hdCamera.IsTAAUEnabled();
             bool cameraWasRunningTAA = hdCamera.previousFrameWasTAAUpsampled;
@@ -3940,7 +3941,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     case TonemappingMode.Custom: passData.builderCS.EnableKeyword("TONEMAPPING_CUSTOM"); break;
                     case TonemappingMode.External: passData.builderCS.EnableKeyword("TONEMAPPING_EXTERNAL"); break;
                 }
-                if (HDROutputSettings.main.active)
+                if (TEST_HDR())
                 {
                     passData.builderCS.EnableKeyword("HDR_OUTPUT");
                 }
@@ -4772,10 +4773,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle source;
             public TextureHandle afterPostProcessTexture;
             public TextureHandle alphaTexture;
+            public TextureHandle uiBuffer;
             public TextureHandle destination;
         }
 
-        void FinalPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle afterPostProcessTexture, TextureHandle alphaTexture, TextureHandle finalRT, TextureHandle source, BlueNoise blueNoise, bool flipY)
+        void FinalPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle afterPostProcessTexture, TextureHandle alphaTexture, TextureHandle finalRT, TextureHandle source, TextureHandle uiBuffer, BlueNoise blueNoise, bool flipY)
         {
             using (var builder = renderGraph.AddRenderPass<FinalPassData>("Final Pass", out var passData, ProfilingSampler.Get(HDProfileId.FinalPost)))
             {
@@ -4897,6 +4899,16 @@ namespace UnityEngine.Rendering.HighDefinition
                             finalPassMaterial.EnableKeyword("ENABLE_ALPHA");
                         else
                             finalPassMaterial.DisableKeyword("ENABLE_ALPHA");
+
+                        //if (TEST_HDR())
+                        //{
+                        //    finalPassMaterial.EnableKeyword("HDR_OUTPUT");
+                        //}
+                        //else
+                        //{
+                        //    finalPassMaterial.DisableKeyword("HDR_OUTPUT");
+                        //}
+                        finalPassMaterial.SetTexture(HDShaderIDs._UITexture, uiBuffer);
 
                         finalPassMaterial.SetVector(HDShaderIDs._UVTransform,
                             data.flipY
