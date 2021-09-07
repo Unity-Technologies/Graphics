@@ -7,7 +7,6 @@ using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
-using Unity.Entities;
 
 public class GraphicsTests
 {
@@ -90,15 +89,6 @@ public class GraphicsTests
         //     Object.Destroy(o);
         // }
 
-        CleanUp();
-
         XRGraphicsAutomatedTests.running = false;
     }
-
-    public void CleanUp()
-    {
-        EntityManager m_Manager = World.DefaultGameObjectInjectionWorld.EntityManager;
-        m_Manager.DestroyEntity(m_Manager.GetAllEntities());
-    }
-
 }
