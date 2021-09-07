@@ -50,6 +50,7 @@ The version number for this package has increased due to a version update of a r
 - Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
 - Added UNITY_PREV_MATRIX_M and UNITY_PREV_MATRIX_I_M shader macros to support instanced motion vector rendering
 - Added new API to customize the rtHandleProperties of a particular RTHandle. This is a temporary work around to assist with viewport setup of Custom post process when dealing with DLSS or TAAU
+- Added DebugUI.MessageBox widget to allow showing info/warning/error messages in Rendering Debugger.
 
 ### Fixed
 - Help boxes with fix buttons do not crop the label.
