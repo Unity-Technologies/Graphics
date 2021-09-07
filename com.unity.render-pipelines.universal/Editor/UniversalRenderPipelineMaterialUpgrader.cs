@@ -398,7 +398,9 @@ namespace UnityEditor.Rendering.Universal
 
         static void UpdateDetailScaleOffset(Material material)
         {
-            // In URP details tile/offset is tied to base map tile offset
+            // In URP details tile/offset is multipied with base tile/offset, where in builtin is not
+            // Basically we setup new tile/offset values that in shader they would result in same values as in builtin
+            // This archieved with inverted calculation where scale=detailScale/baseScale and tile=detailOffset-baseOffset*scale
             var baseScale = material.GetTextureScale("_BaseMap");
             var baseOffset = material.GetTextureOffset("_BaseMap");
             var detailScale = material.GetTextureScale("_DetailAlbedoMap");

@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - URP global setting for stripping post processing shader variants.
 - URP global setting for stripping off shader variants.
 
+### Fixed
+- Added warning for lit shader detailed abledo, if texture is not linear. [1342011](https://issuetracker.unity3d.com/issues/detail-maps-packed-differently-in-built-in-vs-urp)
+- Fixed lit detail correctly upgraded from standard shader. [1323725](https://issuetracker.unity3d.com/issues/urp-detail-map-tiling-is-tied-to-base-texture-tiling)
+
 ## [12.0.0] - 2021-01-11
 ### Added
 - Added support for default sprite mask shaders for the 2D Renderer in URP.
@@ -176,9 +180,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix sporadic NaN when using normal maps with XYZ-encoding [case 1351020](https://issuetracker.unity3d.com/issues/android-urp-vulkan-nan-pixels-and-bloom-post-processing-generates-visual-artifacts)
 - Support undo of URP Global Settings asset assignation (case 1342987).
 - Removed unsupported fields from Presets of Light and Camera [case 1335979].
-- Fixed an issue where Unlit and ParticlesUnlit shaders did not have HDR color selection for albedo [case 1283767](https://issuetracker.unity3d.com/issues/built-in-unlit-particle-shader-has-hdr-color-selection-for-albedo-urp-unlit-particles-do-not)
-- Added warning for lit shader detailed abledo, if texture is not linear. [1342011](https://issuetracker.unity3d.com/issues/detail-maps-packed-differently-in-built-in-vs-urp)
-- Fixed lit detail correctly upgraded from standard shader. [1323725](https://issuetracker.unity3d.com/issues/urp-detail-map-tiling-is-tied-to-base-texture-tiling)
 - Fixed graphical artefact when terrain height map is used with rendering layer mask for lighting.
 
 ### Changed
