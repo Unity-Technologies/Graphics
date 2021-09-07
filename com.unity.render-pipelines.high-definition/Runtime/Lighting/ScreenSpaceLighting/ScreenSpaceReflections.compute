@@ -721,9 +721,9 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float spd = _SsrPBRSpeedRejection;
 
-#define USE_WORLD_DIFF
+#define USE_SPEED_SURFACE 1
+#define USE_SPEED_TARGET 0
 
-#ifdef USE_WORLD_DIFF
 #ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
     float  deviceDepthSrc = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
     float  deviceDepthDst = LOAD_TEXTURE2D_X(_DepthTexture, hitSS).r;
@@ -739,9 +739,15 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
     float4 worldDstMotion = mul(dstMotion, UNITY_MATRIX_I_VP);
     worldSrcMotion /= worldSrcMotion.w;
     worldDstMotion /= worldDstMotion.w;
-    float speedDiff = length(worldSrcMotion.xyz + worldDstMotion.xyz);
+
+#if USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 0
+     float speedDiff = length(worldSrcMotion.xyz);
+#elif USE_SPEED_SURFACE == 0 && USE_SPEED_TARGET == 1
+     float speedDiff = length(worldDstMotion.xyz);
+#elif USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 1
+     float speedDiff = length(0.5f * (worldSrcMotion.xyz + worldDstMotion.xyz));
 #else
-    float speedDiff = length(motionVectorNDC + motionVectorCenterNDC);
+    #error need at least one source of motion vector
 #endif
 
     float usedSpeed = saturate(Normalize01(clamp(speedDiff, 0.0f, _SsrPRBSpeedRejectionScalerFactor), 0.0f, _SsrPRBSpeedRejectionScalerFactor));
@@ -761,7 +767,7 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float4 result = lerp(previous, original, coefExpAvg);
 
-//#define REJECT_DEBUG_COLOR
+#define REJECT_DEBUG_COLOR
 
 #ifdef REJECT_DEBUG_COLOR
     #ifdef SSR_SMOOTH_SPEED_REJECTION
