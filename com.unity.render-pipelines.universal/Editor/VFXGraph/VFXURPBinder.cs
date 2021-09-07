@@ -98,6 +98,21 @@ namespace UnityEditor.VFX.URP
             return vfxBlendMode;
         }
 
+        public override string GetShaderName(ShaderGraphVfxAsset shaderGraph)
+        {
+            var path = AssetDatabase.GetAssetPath(shaderGraph);
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+            if (shader.TryGetMetadataOfType<UniversalMetadata>(out var metaData))
+            {
+                switch (metaData.shaderID)
+                {
+                    case ShaderUtils.ShaderID.SG_Unlit: return "Unlit";
+                    case ShaderUtils.ShaderID.SG_Lit: return "Lit";
+                }
+            }
+            return string.Empty;
+        }
+
         static readonly DependencyCollection ElementSpaceDependencies = new DependencyCollection
         {
             // Interpolator dependency.
