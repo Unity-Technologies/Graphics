@@ -98,8 +98,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         shadowLightIndex, cascadeIndex, renderTargetWidth, renderTargetHeight, shadowResolution, light.shadowNearPlane,
                         out m_CascadeSplitDistances[cascadeIndex], out m_CascadeSlices[cascadeIndex]);
 
-                    //if (!success)
-                    //    return false;
+                    if (!success)
+                        return false;
                 }
             }
             else
