@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var camera = hdCamera.camera;
                 var cullingResults = renderRequest.cullingResults.cullingResults;
                 var customPassCullingResults = renderRequest.cullingResults.customPassCullingResults ?? cullingResults;
+                var uiCullingResult = renderRequest.cullingResults.uiCullingResults;
                 bool msaa = hdCamera.msaaEnabled;
                 var target = renderRequest.target;
 
@@ -193,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // No need for old stencil values here since from transparent on different features are tagged
                     ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
 
-                    colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
+                    colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, uiCullingResult, aovRequest, aovCustomPassBuffers);
 
                     if (NeedMotionVectorForTransparent(hdCamera.frameSettings))
                     {
@@ -326,6 +327,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderWireOverlay(m_RenderGraph, hdCamera, backBuffer);
 
                 RenderGizmos(m_RenderGraph, hdCamera, GizmoSubset.PostImageEffects);
+
+                RenderScreenSpaceOverlayUI(m_RenderGraph, hdCamera, backBuffer);
             }
         }
 
@@ -806,6 +809,45 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class RenderOffscreenUIData
+        {
+            public Camera camera;
+            public RendererListHandle rendererList;
+            public FrameSettings frameSettings;
+        }
+
+        TextureHandle CreateOffscreenUIBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
+        {
+            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+            { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.clear, msaaSamples = msaaSamples, name = "UI Buffer" });
+        }
+
+        TextureHandle RenderTransparentUI(RenderGraph renderGraph,
+            HDCamera hdCamera,
+            CullingResults cullResults)
+        {
+            var output = renderGraph.defaultResources.blackTextureXR;
+            if (HDROutputSettings.main.active && SupportedRenderingFeatures.active.rendersUIOverlay)
+            {
+                using (var builder = renderGraph.AddRenderPass<RenderOffscreenUIData>("UI Rendering", out var passData, ProfilingSampler.Get(HDProfileId.RenderForwardError)))
+                {
+                    builder.AllowPassCulling(false);
+
+                    output = builder.UseColorBuffer(CreateOffscreenUIBuffer(renderGraph, hdCamera.msaaSamples), 0);
+                    passData.camera = hdCamera.camera;
+                    passData.rendererList = renderGraph.CreateRendererList(CreateTransparentRendererListDesc(cullResults, hdCamera.camera, m_AllTransparentPassNames, m_CurrentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllTransparent));
+                    passData.frameSettings = hdCamera.frameSettings;
+
+                    builder.SetRenderFunc((RenderOffscreenUIData data, RenderGraphContext context) =>
+                    {
+                        RenderForwardRendererList(data.frameSettings, data.rendererList, false, context.renderContext, context.cmd);
+                    });
+                }
+            }
+
+            return output;
+        }
+
         void RenderForwardTransparent(RenderGraph renderGraph,
             HDCamera hdCamera,
             TextureHandle colorBuffer,
@@ -1107,6 +1149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowResult shadowResult,
             CullingResults cullingResults,
             CullingResults customPassCullingResults,
+            CullingResults uiCullingResult,
             AOVRequestData aovRequest,
             List<RTHandle> aovCustomPassBuffers)
         {
@@ -1146,6 +1189,9 @@ namespace UnityEngine.Rendering.HighDefinition
             ApplyCameraMipBias(hdCamera);
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, currentColorPyramid, lightLists, shadowResult, cullingResults, false);
             ResetCameraMipBias(hdCamera);
+
+            // TODO_FCC: TMP, MOVE FROM HERE.
+            RenderTransparentUI(renderGraph, hdCamera, uiCullingResult);
 
             colorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
 
@@ -1899,6 +1945,31 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 #endif
+        }
+
+        class RenderScreenSpaceOverlayData
+        {
+            public Camera camera;
+        }
+
+        void RenderScreenSpaceOverlayUI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
+        {
+            if (!HDROutputSettings.main.active && SupportedRenderingFeatures.active.rendersUIOverlay && hdCamera.camera.cameraType != CameraType.SceneView)
+            {
+                using (var builder = renderGraph.AddRenderPass<RenderScreenSpaceOverlayData>("Screen Space Overlay UI", out var passData))
+                {
+                    builder.WriteTexture(colorBuffer);
+                    passData.camera = hdCamera.camera;
+
+                    builder.SetRenderFunc(
+                        (RenderScreenSpaceOverlayData data, RenderGraphContext ctx) =>
+                        {
+                            ctx.renderContext.ExecuteCommandBuffer(ctx.cmd);
+                            ctx.cmd.Clear();
+                            ctx.renderContext.DrawUIOverlay(data.camera);
+                        });
+                }
+            }
         }
 
         static void UpdateOffscreenRenderingConstants(ref ShaderVariablesGlobal cb, bool enabled, float factor)
