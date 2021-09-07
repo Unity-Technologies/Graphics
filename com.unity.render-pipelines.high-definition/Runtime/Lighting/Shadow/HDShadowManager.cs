@@ -49,26 +49,26 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false)]
     struct HDShadowData
     {
-        public Vector3      rot0;
-        public Vector3      rot1;
-        public Vector3      rot2;
-        public Vector3      pos;
-        public Vector4      proj;
+        public Vector3 rot0;
+        public Vector3 rot1;
+        public Vector3 rot2;
+        public Vector3 pos;
+        public Vector4 proj;
 
-        public Vector2      atlasOffset;
-        public float        worldTexelSize;
-        public float        normalBias;
+        public Vector2 atlasOffset;
+        public float worldTexelSize;
+        public float normalBias;
 
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
-        public Vector4      zBufferParam;
-        public Vector4      shadowMapSize;
+        public Vector4 zBufferParam;
+        public Vector4 shadowMapSize;
 
-        public Vector4      shadowFilterParams0;
+        public Vector4 shadowFilterParams0;
 
-        public Vector3      cacheTranslationDelta;
-        public float        isInCachedAtlas;
+        public Vector3 cacheTranslationDelta;
+        public float isInCachedAtlas;
 
-        public Matrix4x4    shadowToWorld;
+        public Matrix4x4 shadowToWorld;
     }
 
     // We use a different structure for directional light because these is a lot of data there
@@ -79,68 +79,68 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // We can't use Vector4 here because the vector4[] makes this struct non blittable
         [HLSLArray(4, typeof(Vector4))]
-        public fixed float      sphereCascades[4 * 4];
+        public fixed float sphereCascades[4 * 4];
 
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
-        public Vector4          cascadeDirection;
+        public Vector4 cascadeDirection;
 
         [HLSLArray(4, typeof(float))]
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
-        public fixed float      cascadeBorders[4];
+        public fixed float cascadeBorders[4];
     }
 
     class HDShadowRequest
     {
-        public Matrix4x4            view;
+        public Matrix4x4 view;
         // Use the y flipped device projection matrix as light projection matrix
-        public Matrix4x4            deviceProjectionYFlip;
-        public Matrix4x4            deviceProjection;
-        public Matrix4x4            projection;
-        public Matrix4x4            shadowToWorld;
-        public Vector3              position;
-        public Vector4              zBufferParam;
+        public Matrix4x4 deviceProjectionYFlip;
+        public Matrix4x4 deviceProjection;
+        public Matrix4x4 projection;
+        public Matrix4x4 shadowToWorld;
+        public Vector3 position;
+        public Vector4 zBufferParam;
         // Warning: these viewport fields are updated by ProcessShadowRequests and are invalid before
-        public Rect                 dynamicAtlasViewport;
-        public Rect                 cachedAtlasViewport;
-        public bool                 zClip;
-        public Vector4[]            frustumPlanes;
+        public Rect dynamicAtlasViewport;
+        public Rect cachedAtlasViewport;
+        public bool zClip;
+        public Vector4[] frustumPlanes;
 
         // Store the final shadow indice in the shadow data array
         // Warning: the index is computed during ProcessShadowRequest and so is invalid before calling this function
-        public int                  shadowIndex;
+        public int shadowIndex;
 
         // Determine in which atlas the shadow will be rendered
-        public ShadowMapType        shadowMapType = ShadowMapType.PunctualAtlas;
+        public ShadowMapType shadowMapType = ShadowMapType.PunctualAtlas;
 
         // TODO: Remove these field once scriptable culling is here (currently required by ScriptableRenderContext.DrawShadows)
-        public int                  lightIndex;
-        public ShadowSplitData      splitData;
+        public int lightIndex;
+        public ShadowSplitData splitData;
         // end
 
-        public float                normalBias;
-        public float                worldTexelSize;
-        public float                slopeBias;
+        public float normalBias;
+        public float worldTexelSize;
+        public float slopeBias;
 
         // PCSS parameters
-        public float                shadowSoftness;
-        public int                  blockerSampleCount;
-        public int                  filterSampleCount;
-        public float                minFilterSize;
+        public float shadowSoftness;
+        public int blockerSampleCount;
+        public int filterSampleCount;
+        public float minFilterSize;
 
         // IMS parameters
-        public float                kernelSize;
-        public float                lightAngle;
-        public float                maxDepthBias;
+        public float kernelSize;
+        public float lightAngle;
+        public float maxDepthBias;
 
-        public Vector4              evsmParams;
+        public Vector4 evsmParams;
 
-        public bool         shouldUseCachedShadowData = false;
-        public bool         shouldRenderCachedComponent = false;
+        public bool shouldUseCachedShadowData = false;
+        public bool shouldRenderCachedComponent = false;
 
         public HDShadowData cachedShadowData;
 
-        public bool         isInCachedAtlas;
-        public bool         isMixedCached = false;
+        public bool isInCachedAtlas;
+        public bool isMixedCached = false;
     }
 
     enum DirectionalShadowAlgorithm
@@ -194,22 +194,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static HDShadowInitParameters NewDefault() => new HDShadowInitParameters()
         {
-            maxShadowRequests                   = k_DefaultMaxShadowRequests,
-            directionalShadowsDepthBits         = k_DefaultShadowMapDepthBits,
-            punctualLightShadowAtlas            = HDShadowAtlasInitParams.GetDefault(),
-            areaLightShadowAtlas                = HDShadowAtlasInitParams.GetDefault(),
-            cachedPunctualLightShadowAtlas      = 2048,
-            cachedAreaLightShadowAtlas          = 1024,
-            shadowResolutionDirectional         = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
-            shadowResolutionArea                = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
-            shadowResolutionPunctual            = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
-            shadowFilteringQuality              = HDShadowFilteringQuality.Medium,
-            supportScreenSpaceShadows           = false,
-            maxScreenSpaceShadowSlots           = 4,
-            screenSpaceShadowBufferFormat       = ScreenSpaceShadowFormat.R16G16B16A16,
-            maxDirectionalShadowMapResolution   = 2048,
-            maxAreaShadowMapResolution          = 2048,
-            maxPunctualShadowMapResolution      = 2048,
+            maxShadowRequests = k_DefaultMaxShadowRequests,
+            directionalShadowsDepthBits = k_DefaultShadowMapDepthBits,
+            punctualLightShadowAtlas = HDShadowAtlasInitParams.GetDefault(),
+            areaLightShadowAtlas = HDShadowAtlasInitParams.GetDefault(),
+            cachedPunctualLightShadowAtlas = 2048,
+            cachedAreaLightShadowAtlas = 1024,
+            shadowResolutionDirectional = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
+            shadowResolutionArea = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
+            shadowResolutionPunctual = new IntScalableSetting(new[] { 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
+            shadowFilteringQuality = HDShadowFilteringQuality.Medium,
+            supportScreenSpaceShadows = false,
+            maxScreenSpaceShadowSlots = 4,
+            screenSpaceShadowBufferFormat = ScreenSpaceShadowFormat.R16G16B16A16,
+            maxDirectionalShadowMapResolution = 2048,
+            maxAreaShadowMapResolution = 2048,
+            maxPunctualShadowMapResolution = 2048,
         };
 
         internal const int k_DefaultShadowAtlasResolution = 4096;
@@ -260,10 +260,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
     class HDShadowResolutionRequest
     {
-        public Rect             dynamicAtlasViewport;
-        public Rect             cachedAtlasViewport;
-        public Vector2          resolution;
-        public ShadowMapType    shadowMapType;
+        public Rect dynamicAtlasViewport;
+        public Rect cachedAtlasViewport;
+        public Vector2 resolution;
+        public ShadowMapType shadowMapType;
 
         public HDShadowResolutionRequest ShallowCopy()
         {
@@ -283,37 +283,37 @@ namespace UnityEngine.Rendering.HighDefinition
 
     class HDShadowManager
     {
-        public const int            k_DirectionalShadowCascadeCount = 4;
-        public const int            k_MinShadowMapResolution = 16;
-        public const int            k_MaxShadowMapResolution = 16384;
+        public const int k_DirectionalShadowCascadeCount = 4;
+        public const int k_MinShadowMapResolution = 16;
+        public const int k_MaxShadowMapResolution = 16384;
 
-        List<HDShadowData>          m_ShadowDatas = new List<HDShadowData>();
-        HDShadowRequest[]           m_ShadowRequests;
+        List<HDShadowData> m_ShadowDatas = new List<HDShadowData>();
+        HDShadowRequest[] m_ShadowRequests;
         HDShadowResolutionRequest[] m_ShadowResolutionRequests;
-        HDDirectionalShadowData[]   m_CachedDirectionalShadowData;
+        HDDirectionalShadowData[] m_CachedDirectionalShadowData;
 
-        HDDirectionalShadowData     m_DirectionalShadowData;
+        HDDirectionalShadowData m_DirectionalShadowData;
 
         // Structured buffer of shadow datas
-        ComputeBuffer               m_ShadowDataBuffer;
-        ComputeBuffer               m_DirectionalShadowDataBuffer;
+        ComputeBuffer m_ShadowDataBuffer;
+        ComputeBuffer m_DirectionalShadowDataBuffer;
 
         // The two shadowmaps atlases we uses, one for directional cascade (without resize) and the second for the rest of the shadows
-        HDDynamicShadowAtlas               m_CascadeAtlas;
-        HDDynamicShadowAtlas               m_Atlas;
-        HDDynamicShadowAtlas               m_AreaLightShadowAtlas;
+        HDDynamicShadowAtlas m_CascadeAtlas;
+        HDDynamicShadowAtlas m_Atlas;
+        HDDynamicShadowAtlas m_AreaLightShadowAtlas;
 
-        int                         m_MaxShadowRequests;
-        int                         m_ShadowRequestCount;
-        int                         m_CascadeCount;
-        int                         m_ShadowResolutionRequestCounter;
+        int m_MaxShadowRequests;
+        int m_ShadowRequestCount;
+        int m_CascadeCount;
+        int m_ShadowResolutionRequestCounter;
 
-        Material                    m_ClearShadowMaterial;
-        Material                    m_BlitShadowMaterial;
+        Material m_ClearShadowMaterial;
+        Material m_BlitShadowMaterial;
 
         ConstantBuffer<ShaderVariablesGlobal> m_GlobalShaderVariables;
 
-        public static HDCachedShadowManager cachedShadowManager {  get { return HDCachedShadowManager.instance; } }
+        public static HDCachedShadowManager cachedShadowManager { get { return HDCachedShadowManager.instance; } }
 
         public void InitShadowManager(HDRenderPipelineRuntimeResources renderPipelineResources, HDShadowInitParameters initParams, RenderGraph renderGraph, Shader clearShader)
         {
@@ -597,10 +597,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unsafe
             {
-                fixed(float * sphereCascadesBuffer = m_DirectionalShadowData.sphereCascades)
-                    ((Vector4 *)sphereCascadesBuffer)[cascadeIndex] = cullingSphere;
-                fixed(float * cascadeBorders = m_DirectionalShadowData.cascadeBorders)
-                cascadeBorders[cascadeIndex] = border;
+                fixed (float* sphereCascadesBuffer = m_DirectionalShadowData.sphereCascades)
+                    ((Vector4*)sphereCascadesBuffer)[cascadeIndex] = cullingSphere;
+                fixed (float* cascadeBorders = m_DirectionalShadowData.cascadeBorders)
+                    cascadeBorders[cascadeIndex] = border;
             }
         }
 
@@ -648,9 +648,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         unsafe Vector4 GetCascadeSphereAtIndex(int index)
         {
-            fixed(float * sphereCascadesBuffer = m_DirectionalShadowData.sphereCascades)
+            fixed (float* sphereCascadesBuffer = m_DirectionalShadowData.sphereCascades)
             {
-                return ((Vector4 *)sphereCascadesBuffer)[index];
+                return ((Vector4*)sphereCascadesBuffer)[index];
             }
         }
 
@@ -743,13 +743,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int first = k_DirectionalShadowCascadeCount, second = k_DirectionalShadowCascadeCount;
 
-            fixed(float *sphereBuffer = m_DirectionalShadowData.sphereCascades)
+            fixed (float* sphereBuffer = m_DirectionalShadowData.sphereCascades)
             {
-                Vector4 * sphere = (Vector4 *)sphereBuffer;
+                Vector4* sphere = (Vector4*)sphereBuffer;
                 for (int i = 0; i < k_DirectionalShadowCascadeCount; i++)
                 {
-                    first  = (first  == k_DirectionalShadowCascadeCount                       && sphere[i].w > 0.0f) ? i : first;
-                    second = ((second == k_DirectionalShadowCascadeCount || second == first)  && sphere[i].w > 0.0f) ? i : second;
+                    first = (first == k_DirectionalShadowCascadeCount && sphere[i].w > 0.0f) ? i : first;
+                    second = ((second == k_DirectionalShadowCascadeCount || second == first) && sphere[i].w > 0.0f) ? i : second;
                 }
             }
 
@@ -837,7 +837,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (shadowIndex >= m_ShadowRequestCount)
                 return;
 
-            HDShadowRequest   shadowRequest = m_ShadowRequests[shadowIndex];
+            HDShadowRequest shadowRequest = m_ShadowRequests[shadowIndex];
 
             switch (shadowRequest.shadowMapType)
             {

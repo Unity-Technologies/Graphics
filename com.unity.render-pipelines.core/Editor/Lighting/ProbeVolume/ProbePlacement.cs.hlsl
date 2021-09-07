@@ -12,8 +12,9 @@ struct GPUProbeVolumeOBB
     float3 X;
     float3 Y;
     float3 Z;
-    int minSubdivisionLevel;
-    int maxSubdivisionLevel;
+    int minControllerSubdivLevel;
+    int maxControllerSubdivLevel;
+    int maxSubdivLevelInsideVolume;
     float geometryDistanceOffset;
 };
 

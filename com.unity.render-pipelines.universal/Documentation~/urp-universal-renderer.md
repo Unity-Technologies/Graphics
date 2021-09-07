@@ -49,6 +49,14 @@ This section contains properties that define which layers the renderer draws.
 | **Opaque Layer Mask** | Select which opaque layers this Renderer draws |
 | **Transparent Layer Mask** | Select which transparent layers this Renderer draws |
 
+### Lighting
+
+This section contains properties related to lighting.
+
+| Property | Description |
+|:-|:-|
+| **Rendering&#160;Path** | Select the Rendering Path.<br/>Options:<ul><li>**Forward**: The Forward Rendering Path.</li><li>**Deferred**: The Deferred Rendering Path. For more information, see [Deferred Rendering Path](rendering/deferred-rendering-path.md).</li></ul> |
+
 ### Shadows
 
 This section contains properties related to rendering shadows.

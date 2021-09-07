@@ -1,7 +1,9 @@
 using UnityEditor;
 using System.Reflection;
 using System;
+using System.Linq;
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
@@ -10,61 +12,22 @@ namespace UnityEngine.Experimental.Rendering
     [CustomEditor(typeof(ProbeReferenceVolumeAuthoring))]
     internal class ProbeReferenceVolumeAuthoringEditor : Editor
     {
-        [InitializeOnLoad]
-        class RealtimeProbeSubdivisionDebug
-        {
-            static RealtimeProbeSubdivisionDebug()
-            {
-                EditorApplication.update -= UpdateRealtimeSubdivisionDebug;
-                EditorApplication.update += UpdateRealtimeSubdivisionDebug;
-            }
-
-            static void UpdateRealtimeSubdivisionDebug()
-            {
-                if (ProbeReferenceVolume.instance.debugDisplay.realtimeSubdivision)
-                {
-                    var probeVolumeAuthoring = FindObjectOfType<ProbeReferenceVolumeAuthoring>();
-                    var ctx = ProbeGIBaking.PrepareProbeSubdivisionContext(probeVolumeAuthoring);
-
-                    // Cull all the cells that are not visible (we don't need them for realtime debug)
-                    ctx.cells.RemoveAll(c => {
-                        return probeVolumeAuthoring.ShouldCullCell(c.position);
-                    });
-
-                    Camera activeCamera = Camera.current ?? SceneView.lastActiveSceneView.camera;
-
-                    if (activeCamera != null)
-                    {
-                        var cameraPos = activeCamera.transform.position;
-                        ctx.cells.Sort((c1, c2) => {
-                            c1.volume.CalculateCenterAndSize(out var c1Center, out var _);
-                            float c1Distance = Vector3.Distance(cameraPos, c1Center);
-
-                            c2.volume.CalculateCenterAndSize(out var c2Center, out var _);
-                            float c2Distance = Vector3.Distance(cameraPos, c2Center);
-
-                            return c1Distance.CompareTo(c2Distance);
-                        });
-                    }
-
-                    ProbeGIBaking.BakeBricks(ctx);
-                }
-            }
-        }
-
         private SerializedProperty m_Dilate;
-        private SerializedProperty m_MaxDilationSamples;
         private SerializedProperty m_MaxDilationSampleDistance;
         private SerializedProperty m_DilationValidityThreshold;
-        private SerializedProperty m_GreedyDilation;
-        private SerializedProperty m_VolumeAsset;
+        private SerializedProperty m_DilationIterations;
+        private SerializedProperty m_DilationInvSquaredWeight;
+
+        private SerializedProperty m_EnableVirtualOffset;
+        private SerializedProperty m_VirtualOffsetGeometrySearchMultiplier;
+        private SerializedProperty m_VirtualOffsetBiasOutOfGeometry;
 
         private SerializedProperty m_Profile;
 
-        internal static readonly GUIContent s_DataAssetLabel = new GUIContent("Data asset", "The asset which serializes all probe related data in this volume.");
         internal static readonly GUIContent s_ProfileAssetLabel = new GUIContent("Profile", "The asset which determines the characteristics of the probe reference volume.");
 
         private static bool DilationGroupEnabled;
+        private static bool VirtualOffsetGroupEnabled;
 
         private float DilationValidityThresholdInverted;
 
@@ -73,10 +36,14 @@ namespace UnityEngine.Experimental.Rendering
         private void OnEnable()
         {
             m_Profile = serializedObject.FindProperty("m_Profile");
-            m_MaxDilationSamples = serializedObject.FindProperty("m_MaxDilationSamples");
+            m_Dilate = serializedObject.FindProperty("m_EnableDilation");
+            m_DilationIterations = serializedObject.FindProperty("m_DilationIterations");
+            m_DilationInvSquaredWeight = serializedObject.FindProperty("m_DilationInvSquaredWeight");
             m_MaxDilationSampleDistance = serializedObject.FindProperty("m_MaxDilationSampleDistance");
             m_DilationValidityThreshold = serializedObject.FindProperty("m_DilationValidityThreshold");
-            m_VolumeAsset = serializedObject.FindProperty("volumeAsset");
+            m_EnableVirtualOffset = serializedObject.FindProperty("m_EnableVirtualOffset");
+            m_VirtualOffsetGeometrySearchMultiplier = serializedObject.FindProperty("m_VirtualOffsetGeometrySearchMultiplier");
+            m_VirtualOffsetBiasOutOfGeometry = serializedObject.FindProperty("m_VirtualOffsetBiasOutOfGeometry");
 
             DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;
         }
@@ -149,13 +116,40 @@ namespace UnityEngine.Experimental.Rendering
                     m_Profile.objectReferenceValue = asset;
                 }
 
-                m_VolumeAsset.objectReferenceValue = EditorGUILayout.ObjectField(s_DataAssetLabel, m_VolumeAsset.objectReferenceValue, typeof(ProbeVolumeAsset), false);
-
                 DilationGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(DilationGroupEnabled, "Dilation");
                 if (DilationGroupEnabled)
                 {
+                    GUIContent dilateGUI = EditorGUIUtility.TrTextContent("Dilate", "Enable probe dilation. Disable only for debug purposes.");
+                    m_Dilate.boolValue = EditorGUILayout.Toggle(dilateGUI, m_Dilate.boolValue);
+                    EditorGUI.BeginDisabledGroup(!m_Dilate.boolValue);
                     m_MaxDilationSampleDistance.floatValue = EditorGUILayout.FloatField("Dilation Distance", m_MaxDilationSampleDistance.floatValue);
                     DilationValidityThresholdInverted = EditorGUILayout.Slider("Dilation Validity Threshold", DilationValidityThresholdInverted, 0f, 1f);
+                    EditorGUILayout.LabelField("Advanced", EditorStyles.boldLabel);
+                    EditorGUI.indentLevel++;
+                    m_DilationIterations.intValue = EditorGUILayout.IntSlider("Dilation Iteration Count", m_DilationIterations.intValue, 1, 5);
+                    m_DilationInvSquaredWeight.boolValue = EditorGUILayout.Toggle("Squared Distance Weighting", m_DilationInvSquaredWeight.boolValue);
+                    EditorGUI.indentLevel--;
+
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Refresh dilation"), EditorStyles.miniButton))
+                    {
+                        ProbeGIBaking.RevertDilation();
+                        ProbeGIBaking.PerformDilation();
+                    }
+
+                    EditorGUI.EndDisabledGroup();
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
+
+                VirtualOffsetGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(VirtualOffsetGroupEnabled, "Virtual Offset (Proof of Concept)");
+                if (VirtualOffsetGroupEnabled)
+                {
+                    GUIContent virtualOffsetGUI = EditorGUIUtility.TrTextContent("Use Virtual Offset", "Push invalid probes out of geometry. Please note, this feature is currently a proof of concept, it is fairly slow and not optimal in quality.");
+                    m_EnableVirtualOffset.boolValue = EditorGUILayout.Toggle(virtualOffsetGUI, m_EnableVirtualOffset.boolValue);
+                    EditorGUI.BeginDisabledGroup(!m_EnableVirtualOffset.boolValue);
+                    m_VirtualOffsetGeometrySearchMultiplier.floatValue = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("Search multiplier", "A multiplier to be applied on the distance between two probes to derive the search distance out of geometry."), m_VirtualOffsetGeometrySearchMultiplier.floatValue);
+                    m_VirtualOffsetBiasOutOfGeometry.floatValue = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("Bias out geometry", "Determines how much a probe is pushed out of the geometry on top of the distance to closest hit."), m_VirtualOffsetBiasOutOfGeometry.floatValue);
+
+                    EditorGUI.EndDisabledGroup();
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -175,6 +169,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_MaxDilationSampleDistance.floatValue = Mathf.Max(m_MaxDilationSampleDistance.floatValue, 0);
             m_DilationValidityThreshold.floatValue = 1f - DilationValidityThresholdInverted;
+            m_VirtualOffsetGeometrySearchMultiplier.floatValue = Mathf.Clamp(m_VirtualOffsetGeometrySearchMultiplier.floatValue, 0.0f, 1.0f);
         }
     }
 }

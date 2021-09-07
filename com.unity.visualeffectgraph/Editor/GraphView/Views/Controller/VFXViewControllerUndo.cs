@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
 
             m_graphUndoCursor.index = 0;
             m_lastGraphUndoCursor = 0;
-            m_undoStack.Add(0, new SerializedState() {serializedGraph = initialState.Backup()});
+            m_undoStack.Add(0, new SerializedState() { serializedGraph = initialState.Backup() });
             m_Graph = initialState;
         }
 
@@ -46,7 +46,7 @@ namespace UnityEditor.VFX.UI
                 m_undoStack.Remove(lastCursorInStack);
                 lastCursorInStack = m_undoStack.Last().Key;
             }
-            m_undoStack.Add(m_graphUndoCursor.index, new SerializedState() {serializedGraph = graph.Backup()});
+            m_undoStack.Add(m_graphUndoCursor.index, new SerializedState() { serializedGraph = graph.Backup() });
         }
 
         public void CleanDirtyState()

@@ -1,4 +1,4 @@
-# Deep learning super sampling
+# Deep learning super sampling (DLSS)
 
 NVIDIA Deep Learning Super Sampling (DLSS) is a rendering technology that uses artificial intelligence to increase graphics performance. The High Definition Render Pipeline (HDRP) natively supports DLSS. For more information about DLSS see [Deep learning super sampling](https://docs.unity3d.com/2021.2/Documentation/Manual/deep-learning-super-sampling.html).
 
@@ -8,7 +8,16 @@ This section includes HDRP-specific requirements and compatibility information f
 
 ### Platforms
 
-HDRP does not support DLSS for **Windows** using **x86** architecture (Win32). To build your project for **Windows**, use **x86_64** architecture (Win64).
+HDRP supports DLSS on the following platforms:
+
+DirectX 11 on Windows 64 bit
+DirectX 12 on Windows 64 bit
+Vulkan on Windows 64 bit
+HDRP does not support DLSS for Metal, Linux, Windows using x86 architecture (Win32), or any other platform.
+
+To build your project for Windows, use x86_64 architecture (Win64).
+
+For information about the hardware requirements of DLSS, see [NVIDIA'S DLSS requirements](https://developer.nvidia.com/nvidia-dlss-access-program).
 
 ## Using DLSS
 

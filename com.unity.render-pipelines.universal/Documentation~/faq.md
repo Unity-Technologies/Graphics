@@ -7,7 +7,7 @@ For information about the High Definition Render Pipeline (HDRP), see the [HDRP 
 No. They're both built with the Scriptable Render Pipeline (SRP), but their render paths and light models are different.
 
 ## Can I convert from one pipeline to the other?
-You can convert from the Built-in Render Pipeline to URP. To do so, you'll have to re-write your Assets and redo the lighting in your game or app. See this upgrade guide on [installing URP into an existing Project](InstallURPIntoAProject).
+You can convert from the Built-in Render Pipeline to URP. To do so, you'll have to re-write your Assets and redo the lighting in your game or app. See this upgrade guide on [installing URP into an existing Project](InstallURPIntoAProject.md).
 
 You can use our upgrader to [upgrade Built-in Shaders to the URP Shaders](upgrading-your-shaders.md). For custom Shaders, you'll have to upgrade them manually.
 

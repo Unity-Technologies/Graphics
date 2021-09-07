@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">Environment Update Mode parameter.</param>
         /// <param name="overrideState">Initial override state.</param>
         public EnvUpdateParameter(EnvironmentUpdateMode value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">Backplate Type parameter.</param>
         /// <param name="overrideState">Initial override state.</param>
         public BackplateTypeParameter(BackplateType value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">Sky Intensity parameter.</param>
         /// <param name="overrideState">Initial override state.</param>
         public SkyIntensityParameter(SkyIntensityMode value, bool overrideState = false)
-            : base(value, overrideState) {}
+            : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -104,37 +104,37 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>Rotation of the sky.</summary>
         [Tooltip("Sets the rotation of the sky.")]
-        public ClampedFloatParameter    rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+        public ClampedFloatParameter rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         /// <summary>Intensity mode of the sky.</summary>
         [Tooltip("Specifies the intensity mode HDRP uses for the sky.")]
-        public SkyIntensityParameter    skyIntensityMode = new SkyIntensityParameter(SkyIntensityMode.Exposure);
+        public SkyIntensityParameter skyIntensityMode = new SkyIntensityParameter(SkyIntensityMode.Exposure);
         /// <summary>Exposure of the sky.</summary>
         [Tooltip("Sets the exposure of the sky in EV.")]
-        public FloatParameter           exposure = new FloatParameter(0.0f);
+        public FloatParameter exposure = new FloatParameter(0.0f);
         /// <summary>Intensity Multipler of the sky.</summary>
         [Tooltip("Sets the intensity multiplier for the sky.")]
-        public MinFloatParameter        multiplier = new MinFloatParameter(1.0f, 0.0f);
+        public MinFloatParameter multiplier = new MinFloatParameter(1.0f, 0.0f);
         /// <summary>Informative helper that displays the relative intensity (in Lux) for the current HDR texture set in HDRI Sky.</summary>
         [Tooltip("Informative helper that displays the relative intensity (in Lux) for the current HDR texture set in HDRI Sky.")]
-        public MinFloatParameter        upperHemisphereLuxValue = new MinFloatParameter(1.0f, 0.0f);
+        public MinFloatParameter upperHemisphereLuxValue = new MinFloatParameter(1.0f, 0.0f);
         /// <summary>Informative helper that displays Show the color of Shadow.</summary>
         [Tooltip("Informative helper that displays Show the color of Shadow.")]
-        public Vector3Parameter         upperHemisphereLuxColor = new Vector3Parameter(new Vector3(0, 0, 0));
+        public Vector3Parameter upperHemisphereLuxColor = new Vector3Parameter(new Vector3(0, 0, 0));
         /// <summary>Absolute intensity (in lux) of the sky.</summary>
         [Tooltip("Sets the absolute intensity (in Lux) of the current HDR texture set in HDRI Sky. Functions as a Lux intensity multiplier for the sky.")]
-        public FloatParameter           desiredLuxValue = new FloatParameter(20000);
+        public FloatParameter desiredLuxValue = new FloatParameter(20000);
         /// <summary>Update mode of the sky.</summary>
         [Tooltip("Specifies when HDRP updates the environment lighting. When set to OnDemand, use HDRenderPipeline.RequestSkyEnvironmentUpdate() to request an update.")]
-        public EnvUpdateParameter       updateMode = new EnvUpdateParameter(EnvironmentUpdateMode.OnChanged);
+        public EnvUpdateParameter updateMode = new EnvUpdateParameter(EnvironmentUpdateMode.OnChanged);
         /// <summary>In case of real-time update mode, time between updates. 0 means every frame.</summary>
         [Tooltip("Sets the period, in seconds, at which HDRP updates the environment ligting (0 means HDRP updates it every frame).")]
-        public MinFloatParameter        updatePeriod = new MinFloatParameter(0.0f, 0.0f);
+        public MinFloatParameter updatePeriod = new MinFloatParameter(0.0f, 0.0f);
         /// <summary>True if the sun disk should be included in the baking information (where available).</summary>
         [Tooltip("When enabled, HDRP uses the Sun Disk in baked lighting.")]
-        public BoolParameter            includeSunInBaking = new BoolParameter(false);
+        public BoolParameter includeSunInBaking = new BoolParameter(false);
 
 
-        static Dictionary<Type, int>  skyUniqueIDs = new Dictionary<Type, int>();
+        static Dictionary<Type, int> skyUniqueIDs = new Dictionary<Type, int>();
 
         /// <summary>
         /// Returns the hash code of the sky parameters.

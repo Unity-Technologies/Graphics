@@ -124,7 +124,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _NumTileClusteredX;
     uint _NumTileClusteredY;
     int _EnvSliceSize;
-    float _Pad7;
+    uint _EnableDecalLayers;
     float4 _ShapeParamsAndMaxScatterDists[16];
     float4 _TransmissionTintsAndFresnel0[16];
     float4 _WorldScalesAndFilterRadiiAndThicknessRemaps[16];
@@ -136,8 +136,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float2 _DecalAtlasResolution;
     uint _EnableDecals;
     uint _DecalCount;
+    float _OffScreenDownsampleFactor;
     uint _OffScreenRendering;
-    uint _OffScreenDownsampleFactor;
     uint _XRViewCount;
     int _FrameCount;
     float4 _CoarseStencilBufferSize;
@@ -145,14 +145,6 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _EnableRayTracedReflections;
     int _RaytracingFrameIndex;
     uint _EnableRecursiveRayTracing;
-    float4 _ProbeVolumeAtlasResolutionAndSliceCount;
-    float4 _ProbeVolumeAtlasResolutionAndSliceCountInverse;
-    float4 _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse;
-    int _ProbeVolumeLeakMitigationMode;
-    float _ProbeVolumeBilateralFilterWeightMin;
-    float _ProbeVolumeBilateralFilterWeight;
-    uint _EnableDecalLayers;
-    float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
     int _TransparentCameraOnlyMotionVectors;
     float _GlobalTessellationFactorMultiplier;
     float _SpecularOcclusionBlend;

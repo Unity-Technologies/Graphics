@@ -10,10 +10,12 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
 
-    // Build the Frag inputs from the intersection vertice
+    // Evaluate the incident direction
     const float3 incidentDir = WorldRayDirection();
+
+    // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, incidentDir, fragInput);
+    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
@@ -39,9 +41,7 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
 #ifdef MINIMAL_GBUFFER
     // Override all the parameters that we do not require for our minimal lit version
     standardLitData.specularOcclusion = 1.0;
-    standardLitData.perceptualRoughness = 1.0;
     standardLitData.normalWS = fragInput.tangentToWorld[2];
-    standardLitData.fresnel0 = 0.0;
     standardLitData.coatMask = 0.0;
     standardLitData.emissiveAndBaked = builtinData.emissiveColor;
 #endif
@@ -65,10 +65,12 @@ void AnyHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_RayP
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
 
-    // Build the Frag inputs from the intersection vertice
+    // Evaluate the incident direction
     const float3 incidentDir = WorldRayDirection();
+
+    // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentVertex, incidentDir, fragInput);
+    BuildFragInputsFromIntersection(currentVertex, fragInput);
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;

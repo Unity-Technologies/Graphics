@@ -31,6 +31,13 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         internal static readonly string[] foldoutNames = { "Rendering", "Lighting", "Async Compute", "Light Loop" };
         static readonly string[] columnNames = { "Debug", "Sanitized", "Overridden", "Default" };
+        static readonly string[] columnTooltips =
+        {
+            "Displays Frame Setting values you can modify for the selected Camera.",
+            "Displays the Frame Setting values that the selected Camera uses after Unity checks to see if your HDRP Asset supports them.",
+            "Displays the Frame Setting values that the selected Camera overrides.",
+            "Displays the default Frame Setting values in your current HDRP Asset."
+        };
         static readonly Dictionary<FrameSettingsField, FrameSettingsFieldAttribute> attributes;
         static Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>> attributesGroup = new Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>>();
 
@@ -186,6 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return new DebugUI.HistoryBoolField
             {
                 displayName = displayIndent + attribute.displayedName,
+                tooltip = attribute.tooltip,
                 getter = () => frameSettingsContainer.frameSettingsHistory.debug.IsEnabled(field),
                 setter = value =>
                 {
@@ -210,6 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return new DebugUI.HistoryEnumField
             {
                 displayName = displayIndent + attribute.displayedName,
+                tooltip = attribute.tooltip,
                 getter = () => frameSettingsContainer.frameSettingsHistory.debug.IsEnabled(field) ? 1 : 0,
                 setter = value =>
                 {
@@ -222,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Contrarily to other enum of DebugMenu, we do not need to stock index as
                 // it can be computed again with data in the dedicated debug section of history
                 getIndex = () => frameSettingsContainer.frameSettingsHistory.debug.IsEnabled(field) ? 1 : 0,
-                setIndex = (int a) => {},
+                setIndex = (int a) => { },
 
                 historyIndexGetter = new Func<int>[]
                 {
@@ -271,7 +280,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var panelContent = new DebugUI.Widget[foldoutNames.Length];
             for (int index = 0; index < foldoutNames.Length; ++index)
             {
-                panelContent[index] = new DebugUI.Foldout(foldoutNames[index], GenerateHistoryArea(frameSettingsContainer, index), columnNames);
+                panelContent[index] = new DebugUI.Foldout(foldoutNames[index], GenerateHistoryArea(frameSettingsContainer, index), columnNames, columnTooltips);
             }
             return panelContent;
         }

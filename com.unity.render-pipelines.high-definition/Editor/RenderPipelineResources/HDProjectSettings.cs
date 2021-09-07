@@ -11,12 +11,8 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     //As ScriptableSingleton is not usable due to internal FilePathAttribute,
     //copying mechanism here
-    class HDProjectSettings : ScriptableObject, IVersionable<HDProjectSettings.Version>
+    sealed class HDProjectSettings : HDProjectSettingsReadOnlyBase, IVersionable<HDProjectSettings.Version>
     {
-        const string filePath = "ProjectSettings/HDRPProjectSettings.asset";
-
-        [SerializeField]
-        string m_ProjectSettingFolderPath = "HDRPDefaultResources";
         [SerializeField]
         bool m_WizardPopupAtStart = true;
 
@@ -66,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal const int k_NeverProcessedMaterialVersion = -1;
 
-        public static string projectSettingsFolderPath
+        public static new string projectSettingsFolderPath
         {
             get => instance.m_ProjectSettingFolderPath;
             set
@@ -85,7 +81,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 Save();
             }
         }
-
 
         public static int materialVersionForUpgrade
         {
@@ -118,26 +113,34 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         //singleton pattern
-        static HDProjectSettings s_Instance;
-        static HDProjectSettings instance => s_Instance ?? CreateOrLoad();
-
-        HDProjectSettings()
+        static HDProjectSettings instance
         {
-            s_Instance = this;
-            // s_Instance.FillPresentPluginMaterialVersions(); <
-            // We can't call this here as the scriptable object will not be deserialized in yet
+            get
+            {
+                //In case we are early loading it through HDProjectSettingsReadOnlyBase, migration can have not been done.
+                //To not create an infinite callstack loop through "instance", destroy it to force reloading it.
+                //(migration is done at loading time)
+                if (s_Instance != null && (!(s_Instance is HDProjectSettings inst) || inst.m_Version != MigrationDescription.LastVersion<Version>()))
+                {
+                    if (!(s_Instance is HDProjectSettings))
+                        Debug.Log($"Not a HDProjectSettings: {s_Instance?.GetType()?.ToString() ?? "null" }");
+                    else
+                        Debug.Log($"Version: {(s_Instance as HDProjectSettings).m_Version}");
+                    DestroyImmediate(s_Instance);
+                    s_Instance = null;
+                }
+
+                return s_Instance as HDProjectSettings ?? CreateOrLoad();
+            }
         }
 
-        // We force the instance to be loaded/created and ready with valid values on assembly reload.
-        // We also use this so that the HDUserSettings.cs on the runtime assembly will have the HDProjectSettings proxy
-        // injected before it is used.
+        //// We force the instance to be loaded/created and ready with valid values on assembly reload.
         [InitializeOnLoadMethod]
-        static void Reset()
+        static void InitializeFillPresentPluginMaterialVersionsOnLoad()
         {
             // Make sure the cached last seen plugin versions (capped to codebase versions) and their sum is valid
             // on assembly reload.
             instance.FillPresentPluginMaterialVersions();
-            HDProjectSettingsProxy.Init(() => projectSettingsFolderPath);
         }
 
         void FillPresentPluginMaterialVersions()
@@ -164,7 +167,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     try
                     {
-                        //
                         // We clamp from above the last seen version saved in HDRP project settings by the latest
                         // known version of the code base as a precaution so we don't constantly try to upgrade
                         // potentially newer materials while the code base was seemingly downgraded (an unsupported
@@ -255,25 +257,31 @@ namespace UnityEditor.Rendering.HighDefinition
             Save();
         }
 
+        //Note: if created from HDProjectSettingsReadOnlyBase, it can be loaded fully and such as a HDProjectSettings
+        //Thus it is not loaded again and we need to ensure the migration is done when accessing data too (see instance).
+        //Never use "instance" here as it can create infinite call loop. Use s_Instance instead.
         static HDProjectSettings CreateOrLoad()
         {
             //try load: if it exists, this will trigger the call to the private ctor
             InternalEditorUtility.LoadSerializedFileAndForget(filePath);
 
+            HDProjectSettings inst = s_Instance as HDProjectSettings;
+
             //else create
-            if (s_Instance == null)
+            if (inst == null)
             {
                 HDProjectSettings created = CreateInstance<HDProjectSettings>();
                 created.hideFlags = HideFlags.HideAndDontSave;
+                inst = s_Instance as HDProjectSettings;
             }
 
             System.Diagnostics.Debug.Assert(s_Instance != null);
-            s_Instance.FillPresentPluginMaterialVersions();
+            inst.FillPresentPluginMaterialVersions();
 
-            if (k_Migration.Migrate(s_Instance))
+            if (k_Migration.Migrate(inst))
                 Save();
 
-            return s_Instance;
+            return inst;
         }
 
         static void Save()
@@ -309,16 +317,43 @@ namespace UnityEditor.Rendering.HighDefinition
         Version m_Version = MigrationDescription.LastVersion<Version>();
 #pragma warning restore 414
 
-        Version IVersionable<Version>.version { get => instance.m_Version; set => instance.m_Version = value; }
+        // Migration Case 1:
+        //   - No early migration occured, we need to access one field here and this pass by a static accessor such as HDProjectSettings.materialVersionForUpgrade
+        //   - This will request the instance which is not loaded/created yet. So the LoadOrCreate will be called that should trigger the migration.
+        //
+        // Migration Case 2:
+        //   - When opening unity Editor, the package.json have changed and request a newer version of the HDRP package.
+        //     While evreything is reimported by the ADB, the render loop will start to be called (when modal say "Load Scene" in fact).
+        //  - This can trigger a migration from former system without GlobalSettings to the new one. In this case we will try to create a
+        //    HDRenderPipelineGlobalSettings out of the HDRenderPipelineAsset in the GraphicSettings. For this asset to be created, we must
+        //    access the m_ProjectSettingFolderPath. This is done from the RuntimeAssembly and we have no certitude that the editor assembly
+        //    is loaded. This is the reason we have a base class HDProjectSettingsReadonlyBase that lives in Runtime assembly.
+        //  - Though HDProjectSettingsReadonlyBase don't see every part of the object and can just try to load it. When this is the case,
+        //    the migration is NOT triggered.
+        //  - So next time we will need access to HDProjectSettings, we need to say "Hey migrate if you need".
+        //  - For this reason, in the instance, we need to check if we need to migrate or not. This is done by checking the version and remove
+        //    the static instance in this case to force its reloading in the HDProjectSettings way (which means with Migration)
+        //
+        // When migration is triggered:
+        //  - When we call the Migrate(), the System will try first to check the version to see if migration is needed. So if IVersionable.version
+        //    use instance, we will suppress the static instance to reload it if the version is not last (see Case 2). In the end, as it is loaded
+        //    again, it will request a Migration. This is a recursive call that will lead to stack overflow. So we must not use instance in IVersionable.version
+        //  - Then if version is not the last, we will execute missing migration steps. Once again if inside a step we use instance we will cause
+        //    a recursive call like in above and will produce a stack overflow. So no HDProjectSettings.materialVersionForUpgrade but we can safely
+        //    use (s_Instance as HDProjectSettings).m_LastMaterialVersion or the given data: data.m_LastMaterialVersion.
 
+        // NEVER USE "instance" HERE as it can create infinite call loop. Use s_Instance instead. (see comment above)
+        Version IVersionable<Version>.version { get => (s_Instance as HDProjectSettings).m_Version; set => (s_Instance as HDProjectSettings).m_Version = value; }
+
+        // NEVER USE "instance" HERE as it can create infinite call loop. Use s_Instance or data instead. (see comment above)
         static readonly MigrationDescription<Version, HDProjectSettings> k_Migration = MigrationDescription.New(
             MigrationStep.New(Version.SplittedWithHDUserSettings, (HDProjectSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                HDUserSettings.wizardPopupAlreadyShownOnce = instance.m_ObsoleteWizardPopupAlreadyShownOnce;
-                HDUserSettings.wizardActiveTab = instance.m_ObsoleteWizardActiveTab;
-                HDUserSettings.wizardNeedRestartAfterChangingToDX12 = instance.m_ObsoleteWizardNeedRestartAfterChangingToDX12;
-                HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload = instance.m_ObsoleteWizardNeedToRunFixAllAgainAfterDomainReload;
+                HDUserSettings.wizardPopupAlreadyShownOnce = data.m_ObsoleteWizardPopupAlreadyShownOnce;
+                HDUserSettings.wizardActiveTab = data.m_ObsoleteWizardActiveTab;
+                HDUserSettings.wizardNeedRestartAfterChangingToDX12 = data.m_ObsoleteWizardNeedRestartAfterChangingToDX12;
+                HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload = data.m_ObsoleteWizardNeedToRunFixAllAgainAfterDomainReload;
 #pragma warning restore 618 // Type or member is obsolete
             })
         );
