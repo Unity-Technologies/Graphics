@@ -17,7 +17,7 @@ MonoBehaviour:
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 140666621263709
-      data2: 4539628436200587288
+      data2: 18374686491482751000
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -32,7 +32,7 @@ MonoBehaviour:
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
       data1: 139746950279965
-      data2: 4539628424389492760
+      data2: 18374686479671656472
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -47,7 +47,7 @@ MonoBehaviour:
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
       data1: 139720912016133
-      data2: 4539628424389492760
+      data2: 18374686479671656472
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -63,6 +63,7 @@ MonoBehaviour:
   m_RenderPipelineRayTracingResources: {fileID: 0}
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
+  afterPostProcessBlursCustomPostProcesses: []
   afterPostProcessCustomPostProcesses: []
   beforeTAACustomPostProcesses: []
   lightLayerName0: Light LayerDefault
@@ -88,10 +89,32 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 26bdddf49760c61438938733f07fa2a2, type: 2}
   - {fileID: 11400000, guid: 5a9a2dc462c7bde4f86d0615a19c2c72, type: 2}
   - {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
+  rendererListCulling: 0
   DLSSProjectId: 000000
   useDLSSCustomProjectId: 0
-  supportProbeVolumes: 0
-  apvScenesBounds:
-    serializedBounds: []
-    serializedHasVolumes: []
+  supportProbeVolumes: 1
+  supportRuntimeDebugDisplay: 0
+  apvScenesData:
+    serializedBounds:
+    - scenePath: Assets/SampleSceneAssets/Scenes/APV_Lite_SampleScene.unity
+      bounds:
+        m_Center: {x: 22.5, y: 7.5, z: 0}
+        m_Extent: {x: 49.5, y: 10.5, z: 27}
+    - scenePath: Assets/SampleSceneAssets/Scenes/APV_Full_SampleScene.unity
+      bounds:
+        m_Center: {x: 22.5, y: 7.5, z: 0}
+        m_Extent: {x: 49.5, y: 10.5, z: 27}
+    serializedHasVolumes:
+    - scenePath: Assets/SampleSceneAssets/Scenes/APV_Lite_SampleScene.unity
+      hasProbeVolumes: 1
+    - scenePath: Assets/SampleSceneAssets/Scenes/APV_Full_SampleScene.unity
+      hasProbeVolumes: 1
+    serializedProfiles:
+    - sceneGUID: 0efffa9bb3755554db7fe63068146dce
+      profile: {fileID: 11400000, guid: 2cdacae5cadd1464dbfde4538b057bd6, type: 2}
+    - sceneGUID: d2e7b533389eef94aa039371135fcff6
+      profile: {fileID: 11400000, guid: 2cdacae5cadd1464dbfde4538b057bd6, type: 2}
+    serializedBakeSettings:
+    - sceneGUID: 0efffa9bb3755554db7fe63068146dce
+    - sceneGUID: d2e7b533389eef94aa039371135fcff6
   m_Version: 3

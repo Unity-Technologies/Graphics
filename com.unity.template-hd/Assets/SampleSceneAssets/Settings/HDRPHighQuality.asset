@@ -47,7 +47,7 @@ MonoBehaviour:
     supportRuntimeAOVAPI: 0
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
-    supportProbeVolume: 0
+    supportProbeVolume: 1
     probeVolumeMemoryBudget: 1024
     probeVolumeSHBands: 1
     supportRayTracing: 0

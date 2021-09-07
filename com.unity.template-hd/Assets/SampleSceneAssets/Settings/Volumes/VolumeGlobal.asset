@@ -1,5 +1,30 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-4968080231165575516
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bd486065ce11414fa40e631affc4900, type: 3}
+  m_Name: ProbeVolumesOptions
+  m_EditorClassIdentifier: 
+  active: 1
+  normalBias:
+    m_OverrideState: 0
+    m_Value: 0.33
+  viewBias:
+    m_OverrideState: 0
+    m_Value: 0
+  scaleBiasWithMinProbeDistance:
+    m_OverrideState: 0
+    m_Value: 0
+  samplingNoise:
+    m_OverrideState: 0
+    m_Value: 0.125
 --- !u!114 &-3969488579639410846
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -239,6 +264,7 @@ MonoBehaviour:
   - {fileID: 747098994415714109}
   - {fileID: 4566301752631259820}
   - {fileID: 6726343302422785154}
+  - {fileID: -4968080231165575516}
 --- !u!114 &747098994415714109
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -711,6 +737,15 @@ MonoBehaviour:
   cloudThickness:
     m_OverrideState: 0
     m_Value: 8000
+  fadeInMode:
+    m_OverrideState: 0
+    m_Value: 0
+  fadeInStart:
+    m_OverrideState: 0
+    m_Value: 0
+  fadeInDistance:
+    m_OverrideState: 0
+    m_Value: 0
   numPrimarySteps:
     m_OverrideState: 0
     m_Value: 48
@@ -903,12 +938,9 @@ MonoBehaviour:
   shapeScale:
     m_OverrideState: 0
     m_Value: 2.5
-  shapeOffsetX:
+  shapeOffset:
     m_OverrideState: 0
-    m_Value: 0
-  shapeOffsetZ:
-    m_OverrideState: 0
-    m_Value: 0
+    m_Value: {x: 0, y: 0, z: 0}
   erosionFactor:
     m_OverrideState: 0
     m_Value: 0.5
@@ -950,9 +982,18 @@ MonoBehaviour:
   erosionSpeedMultiplier:
     m_OverrideState: 0
     m_Value: 0.25
+  verticalShapeWindSpeed:
+    m_OverrideState: 0
+    m_Value: 0
+  verticalErosionWindSpeed:
+    m_OverrideState: 0
+    m_Value: 0
   temporalAccumulationFactor:
     m_OverrideState: 0
     m_Value: 0.95
+  ghostingReduction:
+    m_OverrideState: 0
+    m_Value: 0
   shadows:
     m_OverrideState: 0
     m_Value: 0
@@ -971,11 +1012,20 @@ MonoBehaviour:
   shadowOpacityFallback:
     m_OverrideState: 0
     m_Value: 0
-  m_Version: 1
+  m_Version: 2
   m_ObsoleteWindSpeed:
     m_OverrideState: 1
     m_Value: 0
   m_ObsoleteOrientation:
+    m_OverrideState: 0
+    m_Value: 0
+  m_ObsoleteShapeOffsetX:
+    m_OverrideState: 0
+    m_Value: 0
+  m_ObsoleteShapeOffsetY:
+    m_OverrideState: 0
+    m_Value: 0
+  m_ObsoleteShapeOffsetZ:
     m_OverrideState: 0
     m_Value: 0
 --- !u!114 &8049981929359091865
