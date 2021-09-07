@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 /**
@@ -45,6 +46,7 @@ namespace UnityEditor.Rendering.Universal
 
         private List<LayerBatch> batchList;
         private ListView batchListView;
+        private int cachedSceneHandle;
 
         private bool PopulateData()
         {
@@ -53,6 +55,7 @@ namespace UnityEditor.Rendering.Universal
             if (renderer == null || renderer.lightCullResult == null)
                 return false;
 
+            cachedSceneHandle = SceneManager.GetActiveScene().handle;
             var layers = Light2DManager.GetCachedSortingLayer();
             var batches = LayerUtility.CalculateBatches(renderer.lightCullResult, out var batchCount);
 
@@ -312,8 +315,8 @@ namespace UnityEditor.Rendering.Universal
                 // Refresh if layers are added or removed
                 bool needsRefresh = false;
 
-                var layers = Light2DManager.GetCachedSortingLayer();
-                needsRefresh = layers.Count() != batchList.Sum(x => x.LayerNames.Count());
+                needsRefresh |= Light2DManager.GetCachedSortingLayer().Count() != batchList.Sum(x => x.LayerNames.Count());
+                needsRefresh |= cachedSceneHandle != SceneManager.GetActiveScene().handle;
 
                 if (needsRefresh)
                     RefreshBatchView();
