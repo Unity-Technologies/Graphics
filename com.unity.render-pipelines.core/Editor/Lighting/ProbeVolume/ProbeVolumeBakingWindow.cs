@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering
     class ProbeVolumeBakingWindow : EditorWindow
     {
         const int k_LeftPanelSize = 300; // TODO: resizable panel
+        const string k_RenameFocusKey = "Baking Set Rename Field";
 
         struct SceneData
         {
@@ -35,12 +36,13 @@ namespace UnityEngine.Experimental.Rendering
         Editor m_ProbeVolumeProfileEditor;
         SerializedObject m_SerializedObject;
         SerializedProperty m_ProbeSceneData;
+        bool m_RenameSelectedBakingSet;
 
         List<SceneData> m_ScenesInProject = new List<SceneData>();
 
         static PropertyInfo s_SceneGUID = typeof(Scene).GetProperty("guid", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
 
-        [MenuItem("Window/ProbeVolumeBakingWindow")]
+        [MenuItem("Window/Rendering/Probe Volume Settings (Experimental)")]
         static void OpenWindow()
         {
             // Get existing open window or if none, make a new one:
@@ -51,6 +53,7 @@ namespace UnityEngine.Experimental.Rendering
         void OnEnable()
         {
             m_SearchField = new SearchField();
+            titleContent = new GUIContent("Probe Volume Settings (Experimental)");
 
             RefreshSceneAssets();
             m_DrawHorizontalSplitter = typeof(EditorGUIUtility).GetMethod("DrawHorizontalSplitter", BindingFlags.NonPublic | BindingFlags.Static);
@@ -67,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering
             if (m_BakingSets != null)
                 return;
 
-            // Hum, move that somewhere else
+            // TODO: move that somewhere else
             m_SubtitleStyle = new GUIStyle(EditorStyles.boldLabel);
             m_SubtitleStyle.fontSize = 20;
 
@@ -81,8 +84,30 @@ namespace UnityEngine.Experimental.Rendering
 
             m_BakingSets.drawElementCallback = (rect, index, active, focused) =>
             {
+                // Draw the renamable label for the baking set name
+                if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != k_RenameFocusKey)
+                    m_RenameSelectedBakingSet = false;
+                if (Event.current.type == EventType.MouseDown && Event.current.clickCount == 2)
+                {
+                    if (rect.Contains(Event.current.mousePosition))
+                        m_RenameSelectedBakingSet = true;
+                }
+                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
+                    m_RenameSelectedBakingSet = false;
+
                 var set = ProbeReferenceVolume.instance.sceneData.bakingSets[index];
-                EditorGUI.LabelField(rect, set.name, EditorStyles.boldLabel);
+
+                if (m_RenameSelectedBakingSet)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    GUI.SetNextControlName(k_RenameFocusKey);
+                    set.name = EditorGUI.DelayedTextField(rect, set.name, EditorStyles.boldLabel);
+                    if (EditorGUI.EndChangeCheck())
+                        m_RenameSelectedBakingSet = false;
+                }
+                else
+                    EditorGUI.LabelField(rect, set.name, EditorStyles.boldLabel);
+
             };
             m_BakingSets.elementHeightCallback = _ => EditorGUIUtility.singleLineHeight;
             m_BakingSets.onSelectCallback = OnBakingSetSelected;
@@ -102,13 +127,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             var sceneAssets = AssetDatabase.FindAssets("t:Scene", new string[] { "Assets/" });
 
-            // Debug.Log("HEHEO: " + sceneAssets.Length);
-            // Debug.Log("A: " + m_BakingSettings.sceneProfiles.Count);
-            // foreach (var a in m_BakingSettings.sceneProfiles)
-            // {
-            //     Debug.Log(a.Key);
-            // }
-
             m_ScenesInProject = sceneAssets.Select(s =>
             {
                 var path = AssetDatabase.GUIDToAssetPath(s);
@@ -120,6 +138,20 @@ namespace UnityEngine.Experimental.Rendering
                     guid = s
                 };
             }).ToList();
+        }
+
+        SceneData FindSceneData(string guid)
+        {
+            // TODO: replace m_ScenesInProject list by a dictionary
+            var data = m_ScenesInProject.FirstOrDefault(s => s.guid == guid);
+
+            if (data.asset == null)
+            {
+                RefreshSceneAssets();
+                data = m_ScenesInProject.FirstOrDefault(s => s.guid == guid);
+            }
+
+            return data;
         }
 
         void OnBakingSetSelected(ReorderableList list)
@@ -134,16 +166,28 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var guid = set.sceneGUIDs[index];
                 // Find scene name from GUID:
-                var data = m_ScenesInProject.FirstOrDefault(s => s.guid == guid); // TODO: dictionary + update code if the scene is not found
-                EditorGUI.LabelField(rect, new GUIContent(data.asset.name, EditorGUIUtility.IconContent("SceneAsset Icon").image), EditorStyles.boldLabel);
+                var data = FindSceneData(guid);
+
+                if (data.asset != null)
+                    EditorGUI.LabelField(rect, new GUIContent(data.asset.name, EditorGUIUtility.IconContent("SceneAsset Icon").image), EditorStyles.boldLabel);
+                else
+                    EditorGUI.LabelField(rect, new GUIContent("Scene Not Found!", EditorGUIUtility.IconContent("SceneAsset Icon").image), EditorStyles.boldLabel);
             };
             m_ScenesInSet.onAddCallback = (list) =>
             {
+                // TODO: replace this generic menu by a mini-window with a search bar
                 var menu = new GenericMenu();
 
+                RefreshSceneAssets();
                 foreach (var scene in m_ScenesInProject)
                 {
                     if (set.sceneGUIDs.Contains(scene.guid))
+                        continue;
+
+                    // Only add scenes that have been setup correct for probe volumes
+                    if (!ProbeReferenceVolume.instance.sceneData.sceneProfiles.ContainsKey(scene.guid))
+                        continue;
+                    if (!ProbeReferenceVolume.instance.sceneData.sceneBakingSettings.ContainsKey(scene.guid))
                         continue;
 
                     menu.AddItem(new GUIContent(scene.asset.name), false, () =>
@@ -173,14 +217,6 @@ namespace UnityEngine.Experimental.Rendering
                 else
                     set.sceneGUIDs.Add(scene.guid);
             }
-
-            // Show only the profile from the first scene of the set (they all should be the same)
-            var guid = set.sceneGUIDs.FirstOrDefault();
-            var profile = ProbeReferenceVolume.instance.sceneData.sceneProfiles[guid];
-            if (m_ProbeVolumeProfileEditor == null)
-                m_ProbeVolumeProfileEditor = Editor.CreateEditor(profile);
-            if (m_ProbeVolumeProfileEditor.target != profile)
-                m_ProbeVolumeProfileEditor.target = profile;
         }
 
         ProbeVolumeSceneData.BakingSet GetCurrentBakingSet()
@@ -202,13 +238,33 @@ namespace UnityEngine.Experimental.Rendering
             // The window can load before the APV system
             InitializeBakingSetListIfNeeded();
 
+            EditorGUI.BeginChangeCheck();
+
             EditorGUILayout.BeginHorizontal();
             DrawLeftPanel();
             DrawSeparator();
             DrawRightPanel();
             EditorGUILayout.EndHorizontal();
 
-            // TODO: code to sync the settings between all scenes inside a set (they must use the same asset / settings)
+            if (EditorGUI.EndChangeCheck())
+            {
+                // Sync all the scene settings in the set to avoid config mismatch.
+                foreach (var set in ProbeReferenceVolume.instance.sceneData.bakingSets)
+                {
+                    if (set.sceneGUIDs?.Count == 0)
+                        continue;
+
+                    var referenceGUID = set.sceneGUIDs[0];
+                    var referenceSettings = ProbeReferenceVolume.instance.sceneData.sceneBakingSettings[referenceGUID];
+                    var referenceProfile = ProbeReferenceVolume.instance.sceneData.sceneProfiles[referenceGUID];
+
+                    foreach (var sceneGUID in set.sceneGUIDs)
+                    {
+                        ProbeReferenceVolume.instance.sceneData.sceneBakingSettings[sceneGUID] = referenceSettings;
+                        ProbeReferenceVolume.instance.sceneData.sceneProfiles[sceneGUID] = referenceProfile;
+                    }
+                }
+            }
         }
 
         void DrawLeftPanel()
@@ -236,24 +292,33 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUILayout.Space();
             m_ScenesInSet.DoLayoutList();
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Probe Volume Profile", EditorStyles.largeLabel);
-            m_ProbeVolumeProfileEditor.OnInspectorGUI();
-
-            EditorGUILayout.Space();
-            // EditorGUILayout.LabelField("Probe Volume Authoring Settings", EditorStyles.largeLabel);
-            // TODO: show dilation and other settings
-
-            // For now only show a the first scene data, maybe we can display scene by scene?
             var set = GetCurrentBakingSet();
-            var sceneGUID = set.sceneGUIDs[0];
-            var sceneBakingSettings = ProbeReferenceVolume.instance.sceneData.sceneBakingSettings[sceneGUID];
+            if (set.sceneGUIDs.Count > 0)
+            {
+                EditorGUILayout.Space();
 
-            var serializedBakedSettings = m_ProbeSceneData.FindPropertyRelative("serializedBakeSettings");
-            var s = serializedBakedSettings.GetArrayElementAtIndex(0);
-            var probeVolumeBakingSettings = s.FindPropertyRelative("settings");
+                // Show only the profile from the first scene of the set (they all should be the same)
+                var guid = set.sceneGUIDs[0];
+                var profile = ProbeReferenceVolume.instance.sceneData.sceneProfiles[guid];
+                if (m_ProbeVolumeProfileEditor == null)
+                    m_ProbeVolumeProfileEditor = Editor.CreateEditor(profile);
+                if (m_ProbeVolumeProfileEditor.target != profile)
+                    m_ProbeVolumeProfileEditor.target = profile;
 
-            EditorGUILayout.PropertyField(probeVolumeBakingSettings);
+                EditorGUILayout.LabelField("Probe Volume Profile", EditorStyles.largeLabel);
+                m_ProbeVolumeProfileEditor.OnInspectorGUI();
+
+                EditorGUILayout.Space();
+
+                var serializedBakedSettings = m_ProbeSceneData.FindPropertyRelative("serializedBakeSettings");
+                var s = serializedBakedSettings.GetArrayElementAtIndex(0);
+                var probeVolumeBakingSettings = s.FindPropertyRelative("settings");
+                EditorGUILayout.PropertyField(probeVolumeBakingSettings);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("You need to assign at least one scene to configure the baking settings", MessageType.Error, true);
+            }
 
             DrawBakeButton();
 
@@ -267,42 +332,80 @@ namespace UnityEngine.Experimental.Rendering
 
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Generate Lighting", GUILayout.Width(200)))
+            if (Lightmapping.isRunning)
             {
-                // Save current scenes:
-                if (!EditorSceneManager.SaveOpenScenes())
-                {
-                    Debug.LogError("Can't bake while a scene is dirty!");
-                    return;
-                }
-
-                var scenesToRestore = new List<Scene>();
-                for (int i = 0; i < EditorSceneManager.sceneCount; i++)
-                    scenesToRestore.Add(EditorSceneManager.GetSceneAt(i));
-
-                // for (int i = 0; i < EditorSceneManager.sceneCount; i++)
-                // EditorSceneManager.UnloadScene(EditorSceneManager.GetSceneAt(0));
-
-                bool loadFirst = true;
-                foreach (var sceneGUID in GetCurrentBakingSet().sceneGUIDs)
-                {
-                    var scene = m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID);
-
-                    if (loadFirst)
-                        EditorSceneManager.OpenScene(scene.path, OpenSceneMode.Single);
-                    else
-                        EditorSceneManager.OpenScene(scene.path, OpenSceneMode.Additive);
-                    loadFirst = false;
-
-                    if (scene.asset != null)
-                    {
-                        // UnityEditor.Experimental.Lightmapping.Bake;
-                        UnityEditor.Lightmapping.BakeAsync();
-                    }
-                }
-                // Debug.Log("TODO: Baking!");
+                if (GUILayout.Button("Cancel", GUILayout.Width(200)))
+                    Lightmapping.Cancel();
+            }
+            else
+            {
+                if (GUILayout.Button("Generate Lighting", GUILayout.Width(200)))
+                    BakeLightingForSet(GetCurrentBakingSet());
             }
             EditorGUILayout.EndHorizontal();
+        }
+
+        void BakeLightingForSet(ProbeVolumeSceneData.BakingSet set)
+        {
+            // Save current scenes:
+            if (!EditorSceneManager.SaveOpenScenes())
+            {
+                Debug.LogError("Can't bake while a scene is dirty!");
+                return;
+            }
+
+            var scenesToRestore = new List<string>();
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+                scenesToRestore.Add(EditorSceneManager.GetSceneAt(i).path);
+
+            // First, load all the scenes
+            bool loadFirst = true;
+            foreach (var sceneGUID in GetCurrentBakingSet().sceneGUIDs)
+            {
+                var scene = m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID);
+
+                if (loadFirst)
+                    EditorSceneManager.OpenScene(scene.path, OpenSceneMode.Single);
+                else
+                    EditorSceneManager.OpenScene(scene.path, OpenSceneMode.Additive);
+                loadFirst = false;
+            }
+
+            // Then we wait 1 frame for HDRP to render and bake
+            bool skipFirstFrame = true;
+            EditorApplication.update += WaitRenderAndBake;
+            void WaitRenderAndBake()
+            {
+                if (skipFirstFrame)
+                {
+                    skipFirstFrame = false;
+                    return;
+                }
+                EditorApplication.update -= WaitRenderAndBake;
+
+                UnityEditor.Lightmapping.BakeAsync();
+
+                // Enqueue scene restore operation after bake is finished
+                EditorApplication.update += RestoreScenesAfterBake;
+            }
+
+            void RestoreScenesAfterBake()
+            {
+                if (Lightmapping.isRunning)
+                    return;
+
+                EditorApplication.update -= RestoreScenesAfterBake;
+
+                bool loadFirst = true;
+                foreach (var scenePath in scenesToRestore)
+                {
+                    if (loadFirst)
+                        EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+                    else
+                        EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+                    loadFirst = false;
+                }
+            }
         }
 
         void DrawToolbar()

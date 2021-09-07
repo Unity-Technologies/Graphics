@@ -6,8 +6,8 @@ namespace UnityEngine.Experimental.Rendering
     [CustomPropertyDrawer(typeof(ProbeVolumeBakingProcessSettings))]
     class ProbeVolumeBakingProcessSettingsDrawer : PropertyDrawer
     {
-        static readonly string dilationEditorFoldoutKey = "APV_Dilation_Foldout";
-        static readonly string virtualOffsetEditorFoldoutKey = "APV_VirtualOffset_Foldout";
+        // static readonly string dilationEditorFoldoutKey = "APV_Dilation_Foldout";
+        // static readonly string virtualOffsetEditorFoldoutKey = "APV_VirtualOffset_Foldout";
 
         // Draw the property inside the given rect
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering
             // prefab override logic works on the entire property.
             EditorGUI.BeginProperty(position, label, property);
 
-            bool dilationFoldout = EditorPrefs.GetBool(dilationEditorFoldoutKey, false);
+            // bool dilationFoldout = EditorPrefs.GetBool(dilationEditorFoldoutKey, false);
 
             // sceneBakingSettings.dilationSettings.dilate
 
