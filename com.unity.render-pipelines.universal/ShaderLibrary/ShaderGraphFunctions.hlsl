@@ -63,9 +63,14 @@ float3 shadergraph_LWReflectionProbe(float3 viewDir, float3 normalOS, float lod)
 void shadergraph_LWFog(float3 positionOS, out float4 color, out float density)
 {
     color = unity_FogColor;
+    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
     float viewZ = -TransformWorldToView(TransformObjectToWorld(positionOS)).z;
     float nearZ0ToFarZ = max(viewZ - _ProjectionParams.y, 0);
+    // ComputeFogFactorZ0ToFar returns the fog "occlusion" (0 for full fog and 1 for no fog) so this has to be inverted for density.
     density = 1.0f - ComputeFogIntensity(ComputeFogFactorZ0ToFar(nearZ0ToFarZ));
+    #else
+    density = 0.0f;
+    #endif
 }
 
 // This function assumes the bitangent flip is encoded in tangentWS.w

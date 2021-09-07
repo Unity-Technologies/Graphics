@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph
         public GradientNoiseNode()
         {
             name = "Gradient Noise";
+            synonyms = new string[] { "perlin noise" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

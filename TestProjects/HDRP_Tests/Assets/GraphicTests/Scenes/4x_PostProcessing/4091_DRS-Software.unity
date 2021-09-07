@@ -130,10 +130,40 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 899321336653729202, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_Version
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 899321336653729202, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_RenderingPathCustomFrameSettings.msaaMode
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1455966451090593770, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_Version
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1455966451090593770, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_RenderingPathCustomFrameSettings.msaaMode
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 3117185047111072886, guid: 91f1cced658d376468f66760e80544da,
         type: 3}
       propertyPath: m_Name
       value: drsAllFiltersScene
+      objectReference: {fileID: 0}
+    - target: {fileID: 5632908708391148709, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_Version
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5632908708391148709, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_RenderingPathCustomFrameSettings.msaaMode
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 6768448358767245804, guid: 91f1cced658d376468f66760e80544da,
         type: 3}
@@ -143,7 +173,7 @@ PrefabInstance:
     - target: {fileID: 6768448358767245804, guid: 91f1cced658d376468f66760e80544da,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 5.1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6768448358767245804, guid: 91f1cced658d376468f66760e80544da,
         type: 3}
@@ -189,6 +219,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6863331979273999307, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: DrsFilter
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8579524855937585324, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_Version
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 8579524855937585324, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_RenderingPathCustomFrameSettings.msaaMode
+      value: 9
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 91f1cced658d376468f66760e80544da, type: 3}
@@ -251,6 +296,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AllowDynamicResolution
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: m_Version
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 114777190906822814, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
@@ -337,6 +387,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
