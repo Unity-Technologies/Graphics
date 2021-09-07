@@ -94,6 +94,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed bool from the built-in list of blittable types for GraphicsBuffer [Case 1351830](https://issuetracker.unity3d.com/product/unity/issues/guid/1351830/)
 - Extract position from a transform is wrong on GPU [Case 1353533](https://issuetracker.unity3d.com/product/unity/issues/guid/1353533/)
 - Fix potentially invalid value for pixel dimensions in HDRPCameraBinder
+- Exposed Camera property fails to upgrade and is converted to a float type [Case 1357685](https://issuetracker.unity3d.com/product/unity/issues/guid/1357685/)
 
 ## [11.0.0] - 2020-10-21
 ### Added
