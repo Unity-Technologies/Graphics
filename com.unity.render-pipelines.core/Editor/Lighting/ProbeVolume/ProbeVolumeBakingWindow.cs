@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering
     class ProbeVolumeBakingWindow : EditorWindow
     {
         const int k_LeftPanelSize = 300; // TODO: resizable panel
+        const int k_RightPanelLabelWidth = 200;
         const string k_RenameFocusKey = "Baking Set Rename Field";
 
         struct SceneData
@@ -30,13 +31,14 @@ namespace UnityEngine.Experimental.Rendering
         [NonSerialized] ReorderableList m_BakingSets = null;
         Vector2 m_LeftScrollPosition;
         Vector2 m_RightScrollPosition;
-        // ProbeVolumeSceneData m_BakingSettings;
         ReorderableList m_ScenesInSet;
         GUIStyle m_SubtitleStyle;
         Editor m_ProbeVolumeProfileEditor;
         SerializedObject m_SerializedObject;
         SerializedProperty m_ProbeSceneData;
         bool m_RenameSelectedBakingSet;
+        [System.NonSerialized]
+        bool m_StyleInitialized;
 
         List<SceneData> m_ScenesInProject = new List<SceneData>();
 
@@ -65,27 +67,35 @@ namespace UnityEngine.Experimental.Rendering
                 Object.DestroyImmediate(m_ProbeVolumeProfileEditor);
         }
 
+        void InitializeStyles()
+        {
+            if (m_StyleInitialized)
+                return;
+
+            m_SubtitleStyle = new GUIStyle(EditorStyles.boldLabel);
+            m_SubtitleStyle.fontSize = 20;
+
+            m_StyleInitialized = true;
+        }
+
         void InitializeBakingSetListIfNeeded()
         {
             if (m_BakingSets != null)
                 return;
 
-            // TODO: move that somewhere else
-            m_SubtitleStyle = new GUIStyle(EditorStyles.boldLabel);
-            m_SubtitleStyle.fontSize = 20;
-
             m_SerializedObject = new SerializedObject(ProbeReferenceVolume.instance.sceneData.parentAsset);
-            m_ProbeSceneData = m_SerializedObject.FindProperty("apvScenesData"); // TODO: read this from the scene data object
+            m_ProbeSceneData = m_SerializedObject.FindProperty(ProbeReferenceVolume.instance.sceneData.parentSceneDataPropertyName);
 
             m_BakingSets = new ReorderableList(ProbeReferenceVolume.instance.sceneData.bakingSets, typeof(ProbeVolumeSceneData.BakingSet), false, true, true, true);
 
-            m_BakingSets.drawHeaderCallback = (rect) => EditorGUI.LabelField(rect, "Baking Sets", EditorStyles.largeLabel);
+            m_BakingSets.drawHeaderCallback = (rect) => EditorGUI.LabelField(rect, "Baking Sets", m_SubtitleStyle);
             m_BakingSets.multiSelect = false;
 
             m_BakingSets.drawElementCallback = (rect, index, active, focused) =>
             {
                 // Draw the renamable label for the baking set name
-                if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != k_RenameFocusKey)
+                string key = k_RenameFocusKey + index;
+                if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
                     m_RenameSelectedBakingSet = false;
                 if (Event.current.type == EventType.MouseDown && Event.current.clickCount == 2)
                 {
@@ -100,14 +110,13 @@ namespace UnityEngine.Experimental.Rendering
                 if (m_RenameSelectedBakingSet)
                 {
                     EditorGUI.BeginChangeCheck();
-                    GUI.SetNextControlName(k_RenameFocusKey);
+                    GUI.SetNextControlName(key);
                     set.name = EditorGUI.DelayedTextField(rect, set.name, EditorStyles.boldLabel);
                     if (EditorGUI.EndChangeCheck())
                         m_RenameSelectedBakingSet = false;
                 }
                 else
                     EditorGUI.LabelField(rect, set.name, EditorStyles.boldLabel);
-
             };
             m_BakingSets.elementHeightCallback = _ => EditorGUIUtility.singleLineHeight;
             m_BakingSets.onSelectCallback = OnBakingSetSelected;
@@ -166,12 +175,23 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var guid = set.sceneGUIDs[index];
                 // Find scene name from GUID:
-                var data = FindSceneData(guid);
+                var sceneData = FindSceneData(guid);
 
-                if (data.asset != null)
-                    EditorGUI.LabelField(rect, new GUIContent(data.asset.name, EditorGUIUtility.IconContent("SceneAsset Icon").image), EditorStyles.boldLabel);
+                // TODO: Add a label on the first scene to say the the lighting settings of this scene will be used for baking
+
+                if (sceneData.asset != null)
+                    EditorGUI.LabelField(rect, new GUIContent(sceneData.asset.name, EditorGUIUtility.IconContent("SceneAsset Icon").image), EditorStyles.boldLabel);
                 else
                     EditorGUI.LabelField(rect, new GUIContent("Scene Not Found!", EditorGUIUtility.IconContent("SceneAsset Icon").image), EditorStyles.boldLabel);
+
+                // Display the lighting settings of the first scene (it will be used for baking)
+                if (index == 0)
+                {
+                    var lightingLabel = new GUIContent("Light Settings In Use", EditorGUIUtility.IconContent("LightingSettings Icon").image);
+                    var size = EditorStyles.label.CalcSize(lightingLabel);
+                    rect.xMin = rect.xMax - size.x;
+                    EditorGUI.LabelField(rect, lightingLabel);
+                }
             };
             m_ScenesInSet.onAddCallback = (list) =>
             {
@@ -227,7 +247,8 @@ namespace UnityEngine.Experimental.Rendering
 
         void OnGUI()
         {
-            DrawToolbar();
+            // TODO: add the toolbar with search field for the list
+            // DrawToolbar();
 
             if (ProbeReferenceVolume.instance?.sceneData?.bakingSets == null)
             {
@@ -236,6 +257,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // The window can load before the APV system
+            InitializeStyles();
             InitializeBakingSetListIfNeeded();
 
             EditorGUI.BeginChangeCheck();
@@ -285,6 +307,7 @@ namespace UnityEngine.Experimental.Rendering
 
         void DrawRightPanel()
         {
+            EditorGUIUtility.labelWidth = k_RightPanelLabelWidth;
             EditorGUILayout.BeginVertical();
             m_RightScrollPosition = EditorGUILayout.BeginScrollView(m_RightScrollPosition, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
 
@@ -331,16 +354,23 @@ namespace UnityEngine.Experimental.Rendering
             GUILayout.FlexibleSpace();
 
             EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("Load All Scenes In Set", GUILayout.ExpandWidth(true)))
+            {
+                LoadScenesInBakingSet(GetCurrentBakingSet());
+            }
             if (Lightmapping.isRunning)
             {
-                if (GUILayout.Button("Cancel", GUILayout.Width(200)))
+                if (GUILayout.Button("Cancel", GUILayout.ExpandWidth(true)))
                     Lightmapping.Cancel();
             }
             else
             {
-                if (GUILayout.Button("Generate Lighting", GUILayout.Width(200)))
+                if (GUILayout.Button("Generate Lighting", GUILayout.ExpandWidth(true)))
                     BakeLightingForSet(GetCurrentBakingSet());
+            }
+            if (GUILayout.Button("Clear Baked Data"))
+            {
+                Lightmapping.Clear();
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -359,17 +389,7 @@ namespace UnityEngine.Experimental.Rendering
                 scenesToRestore.Add(EditorSceneManager.GetSceneAt(i).path);
 
             // First, load all the scenes
-            bool loadFirst = true;
-            foreach (var sceneGUID in GetCurrentBakingSet().sceneGUIDs)
-            {
-                var scene = m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID);
-
-                if (loadFirst)
-                    EditorSceneManager.OpenScene(scene.path, OpenSceneMode.Single);
-                else
-                    EditorSceneManager.OpenScene(scene.path, OpenSceneMode.Additive);
-                loadFirst = false;
-            }
+            LoadScenesInBakingSet(set);
 
             // Then we wait 1 frame for HDRP to render and bake
             bool skipFirstFrame = true;
@@ -396,15 +416,23 @@ namespace UnityEngine.Experimental.Rendering
 
                 EditorApplication.update -= RestoreScenesAfterBake;
 
-                bool loadFirst = true;
-                foreach (var scenePath in scenesToRestore)
-                {
-                    if (loadFirst)
-                        EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-                    else
-                        EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
-                    loadFirst = false;
-                }
+                LoadScenes(scenesToRestore);
+            }
+        }
+
+        void LoadScenesInBakingSet(ProbeVolumeSceneData.BakingSet set)
+            => LoadScenes(GetCurrentBakingSet().sceneGUIDs.Select(sceneGUID => m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID).path));
+
+        void LoadScenes(IEnumerable<string> scenePathes)
+        {
+            bool loadFirst = true;
+            foreach (var scenePath in scenePathes)
+            {
+                if (loadFirst)
+                    EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+                else
+                    EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+                loadFirst = false;
             }
         }
 

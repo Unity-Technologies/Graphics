@@ -66,6 +66,7 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField] List<BakingSet> serializedBakingSets;
 
         internal Object parentAsset = null;
+        internal string parentSceneDataPropertyName;
         /// <summary> A dictionary containing the Bounds defined by probe volumes for each scene (scene path is the key of the dictionary). </summary>
         public Dictionary<string, Bounds> sceneBounds;
         internal Dictionary<string, bool> hasProbeVolumes;
@@ -75,9 +76,11 @@ namespace UnityEngine.Experimental.Rendering
 
         /// <summary>Constructor for ProbeVolumeSceneData. </summary>
         /// <param name="parentAsset">The asset holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
-        public ProbeVolumeSceneData(Object parentAsset)
+        /// <param name="parentSceneDataPropertyName">The name of the property holding the ProbeVolumeSceneData in the parentAsset.</param>
+        public ProbeVolumeSceneData(Object parentAsset, string parentSceneDataPropertyName)
         {
             this.parentAsset = parentAsset;
+            this.parentSceneDataPropertyName = parentSceneDataPropertyName;
             sceneBounds = new Dictionary<string, Bounds>();
             hasProbeVolumes = new Dictionary<string, bool>();
             sceneProfiles = new Dictionary<string, ProbeReferenceVolumeProfile>();
@@ -92,9 +95,11 @@ namespace UnityEngine.Experimental.Rendering
 
         /// <summary>Set a reference to the object holding this ProbeVolumeSceneData.</summary>
         /// <param name="parentAsset">The object holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
-        public void SetParentObject(Object parent)
+        /// <param name="parentSceneDataPropertyName">The name of the property holding the ProbeVolumeSceneData in the parentAsset.</param>
+        public void SetParentObject(Object parent, string parentSceneDataPropertyName)
         {
             parentAsset = parent;
+            this.parentSceneDataPropertyName = parentSceneDataPropertyName;
         }
 
         /// <summary>
