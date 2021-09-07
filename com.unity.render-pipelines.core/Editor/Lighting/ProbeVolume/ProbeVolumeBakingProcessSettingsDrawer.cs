@@ -8,6 +8,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         static class Styles
         {
+            // TODO_FCC: tooltips
             public static GUIContent dilationDistance = new GUIContent("Dilation Distance", "TODO");
             public static GUIContent dilationValidityDistance = new GUIContent("Dilation Validity Threshold", "TODO");
             public static GUIContent dilationIterationCount = new GUIContent("Dilation Iteration Count", "TODO");
