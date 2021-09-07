@@ -54,6 +54,8 @@
 
 // ----------------------------------------------------------------------------
 
+#ifndef DOTS_INSTANCING_ON // UnityPerDraw cbuffer doesn't exist with hybrid renderer
+
 CBUFFER_START(UnityPerDraw)
 
     float4x4 unity_ObjectToWorld;
@@ -95,6 +97,38 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_MotionVectorsParams;
 
 CBUFFER_END
+
+#else // else ifdef DOTS_INSTANCING_ON
+
+// Define those matrices to make sure everything compile, but this is not supposed to actually be used with DOTS_INSTANCING_ON defined.
+static const float4x4 unity_ObjectToWorld = float4x4
+(
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1
+);
+static const float4x4 unity_WorldToObject = float4x4
+(
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1
+);
+
+// Hybrid renderer doesn't support texture based probe volumes.
+static const float4 unity_ProbeVolumeParams = float4(0,0,0,0);
+static const float4x4 unity_ProbeVolumeWorldToObject = float4x4
+(
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1
+);
+static const float4 unity_ProbeVolumeSizeInv = float4(1,1,1,0);
+static const float4 unity_ProbeVolumeMin = float4(0,0,0,0);
+
+#endif
 
 CBUFFER_START(UnityPerDrawRare)
     float4x4 glstate_matrix_transpose_modelview0;
@@ -478,9 +512,6 @@ float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
 UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_ObjectToWorld)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_WorldToObject)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_WorldTransformParams)
-    UNITY_DOTS_INSTANCED_PROP(float4,   unity_RenderingLayer)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
@@ -497,22 +528,24 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 // Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared elsewhere
-#define unity_LODFade               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LODFade)
-#define unity_WorldTransformParams  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_WorldTransformParams)
-#define unity_RenderingLayer        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_RenderingLayer)
-#define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightmapST)
-#define unity_LightmapIndex         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightmapIndex)
-#define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_DynamicLightmapST)
-#define unity_SHAr                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAr)
-#define unity_SHAg                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAg)
-#define unity_SHAb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAb)
-#define unity_SHBr                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBr)
-#define unity_SHBg                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBg)
-#define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBb)
-#define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHC)
-#define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
-#define unity_MatrixPreviousM       LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousM))
-#define unity_MatrixPreviousMI      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousMI))
+#define unity_LODFade               LoadDOTSInstancedData_LODFade()
+#define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
+#define unity_LightmapIndex         UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
+#define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
+#define unity_SHAr                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHAr)
+#define unity_SHAg                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHAg)
+#define unity_SHAb                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHAb)
+#define unity_SHBr                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBr)
+#define unity_SHBg                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBg)
+#define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
+#define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHC)
+#define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
+#define unity_MatrixPreviousM       LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousM))
+#define unity_MatrixPreviousMI      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME(float3x4, unity_MatrixPreviousMI))
+
+#define unity_RenderingLayer        LoadDOTSInstancedData_RenderingLayer()
+#define unity_MotionVectorsParams   LoadDOTSInstancedData_MotionVectorsParams()
+#define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
 
 #endif
 
