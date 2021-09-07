@@ -21,8 +21,6 @@ public class GraphicsTests
     [UseGraphicsTestCases(path)]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
-        CleanUp();
-
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Always wait one frame for scene load
