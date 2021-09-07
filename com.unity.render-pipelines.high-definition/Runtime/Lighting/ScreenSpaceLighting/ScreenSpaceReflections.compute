@@ -719,6 +719,8 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
 
+    float spd = _SsrPBRSpeedRejection;
+
 #define USE_WORLD_DIFF
 
 #ifdef USE_WORLD_DIFF
@@ -745,27 +747,27 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
     float usedSpeed = saturate(Normalize01(clamp(speedDiff, 0.0f, _SsrPRBSpeedRejectionScalerFactor), 0.0f, _SsrPRBSpeedRejectionScalerFactor));
 
 #ifdef SSR_SMOOTH_SPEED_REJECTION
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(usedSpeed * _SsrPBRSpeedRejection));
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(usedSpeed * spd));
 #else
 
-#if 1
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(usedSpeed * _SsrPBRSpeedRejection));
-    coefExpAvg = usedSpeed >= _SsrPBRSpeedRejection ? 1.0f : coefExpAvg;
+#if 0
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(usedSpeed * spd));
+    coefExpAvg = usedSpeed >= spd ? 1.0f : coefExpAvg;
 #else
-    float coefExpAvg = usedSpeed >= _SsrPBRSpeedRejection ? 1.0f : _SsrAccumulationAmount;
+    float coefExpAvg = usedSpeed >= spd ? 1.0f : _SsrAccumulationAmount;
 #endif
 
 #endif
 
     float4 result = lerp(previous, original, coefExpAvg);
 
-#define REJECT_DEBUG_COLOR
+//#define REJECT_DEBUG_COLOR
 
 #ifdef REJECT_DEBUG_COLOR
     #ifdef SSR_SMOOTH_SPEED_REJECTION
-         result.rgb = HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(usedSpeed * _SsrPBRSpeedRejection)));
+         result.rgb = HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(usedSpeed * spd)));
     #else
-        if (usedSpeed >= _SsrPBRSpeedRejection)
+        if (usedSpeed >= spd)
             result.rgb = float3(1.0f, 0.0f, 0.0f);
         else
             result.rgb = float3(0.0f, 1.0f, 0.0f);
