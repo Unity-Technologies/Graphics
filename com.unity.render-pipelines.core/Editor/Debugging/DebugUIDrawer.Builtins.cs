@@ -608,21 +608,15 @@ namespace UnityEditor.Rendering
         {
             var w = Cast<DebugUI.MessageBox>(widget);
 
-            var rect = PrepareControlRect();
-
-            var style = EditorStyles.label;
-            var color = w.style switch
+            var type = w.style switch
             {
-                DebugUI.MessageBox.Style.Info => new Color32(185, 220, 255, 255),
-                DebugUI.MessageBox.Style.Warning => new Color32(231, 180, 3, 255),
-                DebugUI.MessageBox.Style.Error => new Color32(231, 75, 3, 255),
-                _ => (Color32)Color.white
+                DebugUI.MessageBox.Style.Info => MessageType.Info,
+                DebugUI.MessageBox.Style.Warning => MessageType.Warning,
+                DebugUI.MessageBox.Style.Error => MessageType.Error,
+                _ => MessageType.None
             };
 
-            var oldColor = GUI.color;
-            GUI.color = color;
-            EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), EditorStyles.helpBox);
-            GUI.color = oldColor;
+            EditorGUILayout.HelpBox(w.displayName, type);
 
             return true;
         }

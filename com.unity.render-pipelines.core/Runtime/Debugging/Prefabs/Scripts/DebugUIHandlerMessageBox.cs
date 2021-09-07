@@ -28,12 +28,10 @@ namespace UnityEngine.Rendering.UI
             {
                 case DebugUI.MessageBox.Style.Warning:
                     image.color = k_WarningBackgroundColor;
-                    nameLabel.color = k_WarningTextColor;
                     break;
 
                 case DebugUI.MessageBox.Style.Error:
                     image.color = k_ErrorBackgroundColor;
-                    nameLabel.color = k_ErrorTextColor;
                     break;
             }
         }
