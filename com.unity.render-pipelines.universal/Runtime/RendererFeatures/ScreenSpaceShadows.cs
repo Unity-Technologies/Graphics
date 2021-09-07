@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
             if (shouldEnqueue)
             {
                 bool isDeferredRenderingMode = renderer is UniversalRenderer && ((UniversalRenderer)renderer).renderingMode == RenderingMode.Deferred;
-            
+
                 m_SSShadowsPass.renderPassEvent = isDeferredRenderingMode
                     ? RenderPassEvent.AfterRenderingGbuffer
                     : RenderPassEvent.AfterRenderingPrePasses;
