@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Utilities
                     {
                         // Orphan nodes aren't a part of the graph, so we don't use an actual name in the graph data
                         // to represent them.
-                        nodeModel.SetPreviewRegistryKey(registryKey);
+                        nodeModel.SetSearcherPreviewRegistryKey(registryKey);
                     }
                     else
                     {

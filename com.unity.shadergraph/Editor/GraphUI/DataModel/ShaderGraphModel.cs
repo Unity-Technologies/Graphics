@@ -263,10 +263,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 
         public static bool DoesNodeRequireTime(GraphDataNodeModel graphDataNodeModel)
         {
-            graphDataNodeModel.TryGetNodeReader(out var nodeReader);
-
             bool nodeRequiresTime = false;
-            if (nodeReader != null)
+            if(graphDataNodeModel.TryGetNodeReader(out var nodeReader))
             {
                 // TODO: Some way of making nodes be marked as requiring time or not
                 // According to Esme, dependencies on globals/properties etc. will exist as RefNodes,
@@ -275,8 +273,24 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
                 //if(fieldReader != null)
                 //    fieldReader.TryGetValue(out nodeRequiresTime);
             }
-
             return nodeRequiresTime;
+        }
+
+        public static bool ShouldElementBeVisibleToSearcher(ShaderGraphModel shaderGraphModel, RegistryKey elementRegistryKey)
+        {
+            try
+            {
+                var registry = ((ShaderGraphStencil)shaderGraphModel.Stencil).GetRegistry();
+                var nodeBuilder = registry.GetNodeBuilder(elementRegistryKey);
+                var registryFlags = nodeBuilder.GetRegistryFlags();
+                // commented out that bit cause it throws an exception for some elements at the moment
+                return registryFlags.HasFlag(RegistryFlags.Func) /*|| registry.GetDefaultTopology(elementRegistryKey) == null*/;
+            }
+            catch(Exception exception)
+            {
+                AssertHelpers.Fail("Failed due to exception:" + exception);
+                return false;
+            }
         }
     }
 }

@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
+using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.ShaderGraph.GraphUI
@@ -47,6 +49,22 @@ namespace UnityEditor.ShaderGraph.GraphUI
         public override IGraphProcessor CreateGraphProcessor()
         {
             return new ShaderGraphProcessor();
+        }
+        public override void PopulateBlackboardCreateMenu(string sectionName, GenericMenu menu, CommandDispatcher commandDispatcher)
+        {
+            base.PopulateBlackboardCreateMenu(sectionName, menu, commandDispatcher);
+
+            menu.AddItem(new GUIContent("Create Float4"), false, () =>
+            {
+                const string newItemName = "variable";
+                var finalName = newItemName;
+                var i = 0;
+                // ReSharper disable once AccessToModifiedClosure
+                while (commandDispatcher.State.WindowState.GraphModel.VariableDeclarations.Any(v => v.Title == finalName))
+                    finalName = newItemName + i++;
+
+                commandDispatcher.Dispatch(new CreateGraphVariableDeclarationCommand(finalName, true, TypeHandle.Vector4));
+            });
         }
     }
 }

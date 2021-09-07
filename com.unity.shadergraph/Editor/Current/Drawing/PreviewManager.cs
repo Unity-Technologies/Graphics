@@ -377,6 +377,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private static readonly ProfilerMarker CollectPreviewPropertiesMarker = new ProfilerMarker("CollectPreviewProperties");
         void CollectPreviewProperties(IEnumerable<AbstractMaterialNode> nodesToCollect, PooledList<PreviewProperty> perMaterialPreviewProperties)
+
         {
             using (CollectPreviewPropertiesMarker.Auto())
             using (var tempPreviewProps = PooledList<PreviewProperty>.Get())

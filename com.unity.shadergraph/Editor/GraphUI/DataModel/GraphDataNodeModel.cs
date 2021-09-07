@@ -73,6 +73,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             return writer != null;
         }
 
+        public bool TryGetPortModel(IPortReader portReader, out IPortModel matchingPortModel)
+        {
+            foreach (var nodePortReader in PortMappings.Keys)
+            {
+                if (nodePortReader.GetName() == portReader.GetName())
+                    return PortMappings.TryGetValue(nodePortReader, out matchingPortModel);
+            }
+
+            matchingPortModel = null;
+            return false;
+        }
+
         public bool TryGetNodeReader(out INodeReader reader)
         {
             try
@@ -120,7 +132,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         /// Sets the registry key used when previewing this node. Has no effect if graphDataName has been set.
         /// </summary>
         /// <param name="key">Registry key used to preview this node.</param>
-        public void SetPreviewRegistryKey(RegistryKey key)
+        public void SetSearcherPreviewRegistryKey(RegistryKey key)
         {
             m_PreviewRegistryKey = key;
         }
