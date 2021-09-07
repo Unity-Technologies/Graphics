@@ -132,6 +132,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter speedSmoothReject = new BoolParameter(true);
 
         /// <summary>
+        /// When enabled, speed rejection used world space motion of the reflecting surface.
+        /// </summary>
+        public BoolParameter speedSurfaceOnly = new BoolParameter(true);
+
+        /// <summary>
+        /// When enabled, speed rejection used world space motion of the hit surface by the SSR.
+        /// </summary>
+        public BoolParameter speedTargetOnly = new BoolParameter(true);
+
+        /// <summary>
         /// Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.
         /// </summary>
         public int rayMaxIterations

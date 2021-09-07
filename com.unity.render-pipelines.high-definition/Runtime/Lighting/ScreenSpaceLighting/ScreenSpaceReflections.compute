@@ -5,10 +5,14 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-#pragma kernel ScreenSpaceReflectionsTracing                        SSR_TRACE
-#pragma kernel ScreenSpaceReflectionsReprojection                   SSR_REPROJECT
-#pragma kernel ScreenSpaceReflectionsAccumulate                     SSR_ACCUMULATE MAIN_ACC=ScreenSpaceReflectionsAccumulate
-#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejection SSR_ACCUMULATE SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejection
+#pragma kernel ScreenSpaceReflectionsTracing                                            SSR_TRACE
+#pragma kernel ScreenSpaceReflectionsReprojection                                       SSR_REPROJECT
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth          SSR_ACCUMULATE MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly    SSR_ACCUMULATE MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly    SSR_ACCUMULATE MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth                 SSR_ACCUMULATE SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly           SSR_ACCUMULATE SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly           SSR_ACCUMULATE SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1
 
 #pragma multi_compile _ DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
 #pragma multi_compile _ SSR_APPROX
@@ -721,24 +725,33 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float spd = _SsrPBRSpeedRejection;
 
-#define USE_SPEED_SURFACE 1
-#define USE_SPEED_TARGET 0
-
 #ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
+#if USE_SPEED_SURFACE
     float  deviceDepthSrc = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
+#endif
+#if USE_SPEED_TARGET
     float  deviceDepthDst = LOAD_TEXTURE2D_X(_DepthTexture, hitSS).r;
+#endif
 #else
+#if USE_SPEED_SURFACE
     float  deviceDepthSrc = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
+#endif
+#if USE_SPEED_TARGET
     float  deviceDepthDst = LOAD_TEXTURE2D_X(_CameraDepthTexture, hitSS).r;
 #endif
+#endif
 
+#if USE_SPEED_SURFACE
     float4 srcMotion = float4(motionVectorCenterNDC.xy, deviceDepthSrc, 0.0f);
-    float4 dstMotion = float4(motionVectorNDC.xy, deviceDepthDst, 0.0f);
-
     float4 worldSrcMotion = mul(srcMotion, UNITY_MATRIX_I_VP);
-    float4 worldDstMotion = mul(dstMotion, UNITY_MATRIX_I_VP);
     worldSrcMotion /= worldSrcMotion.w;
+#endif
+
+#if USE_SPEED_TARGET
+    float4 dstMotion = float4(motionVectorNDC.xy, deviceDepthDst, 0.0f);
+    float4 worldDstMotion = mul(dstMotion, UNITY_MATRIX_I_VP);
     worldDstMotion /= worldDstMotion.w;
+#endif
 
 #if USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 0
      float speedDiff = length(worldSrcMotion.xyz);

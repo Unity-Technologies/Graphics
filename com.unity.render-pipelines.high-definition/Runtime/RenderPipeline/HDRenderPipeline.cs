@@ -104,8 +104,12 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader m_ScreenSpaceReflectionsCS { get { return defaultResources.shaders.screenSpaceReflectionsCS; } }
         int m_SsrTracingKernel = -1;
         int m_SsrReprojectionKernel = -1;
-        int m_SsrAccumulateKernel = -1;
-        int m_SsrAccumulateSmoothSpeedRejectionKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionBothKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionSurfaceKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionHitKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionBothKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionSurfaceKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionHitKernel = -1;
 
         Material m_ApplyDistortionMaterial;
 
@@ -342,8 +346,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Initialize various compute shader resources
             m_SsrTracingKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
             m_SsrReprojectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsReprojection");
-            m_SsrAccumulateKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulate");
-            m_SsrAccumulateSmoothSpeedRejectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejection");
+            m_SsrAccumulateHardThresholdSpeedRejectionBothKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth");
+            m_SsrAccumulateHardThresholdSpeedRejectionSurfaceKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly");
+            m_SsrAccumulateHardThresholdSpeedRejectionHitKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly");
+            m_SsrAccumulateSmoothSpeedRejectionBothKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth");
+            m_SsrAccumulateSmoothSpeedRejectionSurfaceKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly");
+            m_SsrAccumulateSmoothSpeedRejectionHitKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly");
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);

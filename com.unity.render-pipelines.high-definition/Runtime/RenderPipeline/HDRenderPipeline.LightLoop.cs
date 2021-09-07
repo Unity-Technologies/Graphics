@@ -1054,8 +1054,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader ssrCS;
             public int tracingKernel;
             public int reprojectionKernel;
-            public int accumulateKernel;
-            public int accumulateSmoothSpeedRejectionKernel;
+            public int accumulateHardThresholdSpeedRejectionBothKernel;
+            public int accumulateHardThresholdSpeedRejectionSurfaceKernel;
+            public int accumulateHardThresholdSpeedRejectionHitKernel;
+            public int accumulateSmoothSpeedRejectionBothKernel;
+            public int accumulateSmoothSpeedRejectionSurfaceKernel;
+            public int accumulateSmoothSpeedRejectionHitKernel;
+
             public bool transparentSSR;
             public bool usePBRAlgo;
             public bool accumNeedClear;
@@ -1087,6 +1092,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float speedRejectionFactor;
             public float speedRejectionScalerFactor;
             public bool smoothSpeedRejection;
+            public bool motionVectorFromSurface;
+            public bool motionVectorFromHit;
         }
 
         void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, ref ShaderVariablesScreenSpaceReflection cb)
@@ -1172,8 +1179,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.ssrCS = m_ScreenSpaceReflectionsCS;
                     passData.tracingKernel = m_SsrTracingKernel;
                     passData.reprojectionKernel = m_SsrReprojectionKernel;
-                    passData.accumulateKernel = m_SsrAccumulateKernel;
-                    passData.accumulateSmoothSpeedRejectionKernel = m_SsrAccumulateSmoothSpeedRejectionKernel;
+                    passData.accumulateHardThresholdSpeedRejectionBothKernel = m_SsrAccumulateHardThresholdSpeedRejectionBothKernel;
+                    passData.accumulateHardThresholdSpeedRejectionSurfaceKernel = m_SsrAccumulateHardThresholdSpeedRejectionSurfaceKernel;
+                    passData.accumulateHardThresholdSpeedRejectionHitKernel = m_SsrAccumulateHardThresholdSpeedRejectionHitKernel;
+                    passData.accumulateSmoothSpeedRejectionBothKernel = m_SsrAccumulateSmoothSpeedRejectionBothKernel;
+                    passData.accumulateSmoothSpeedRejectionSurfaceKernel = m_SsrAccumulateSmoothSpeedRejectionSurfaceKernel;
+                    passData.accumulateSmoothSpeedRejectionHitKernel = m_SsrAccumulateSmoothSpeedRejectionHitKernel;
+
                     passData.transparentSSR = transparent;
                     passData.usePBRAlgo = usePBRAlgo;
                     passData.width = hdCamera.actualWidth;
@@ -1204,6 +1216,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.roughnessBiasFactor = volumeSettings.biasFactor.value;
                     passData.speedRejectionFactor = volumeSettings.speedRejectionParam.value;
                     passData.smoothSpeedRejection = volumeSettings.speedSmoothReject.value;
+                    passData.motionVectorFromSurface = volumeSettings.speedSurfaceOnly.value;
+                    passData.motionVectorFromHit = volumeSettings.speedTargetOnly.value;
 
                     // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                     // and much faster than fully overwriting them from within SSR shaders.
@@ -1300,9 +1314,35 @@ namespace UnityEngine.Rendering.HighDefinition
                                     {
                                         int pass;
                                         if (data.smoothSpeedRejection)
-                                            pass = data.accumulateSmoothSpeedRejectionKernel;
+                                        {
+                                            if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                            {
+                                                pass = data.accumulateSmoothSpeedRejectionBothKernel;
+                                            }
+                                            else if (data.motionVectorFromHit)
+                                            {
+                                                pass = data.accumulateSmoothSpeedRejectionHitKernel;
+                                            }
+                                            else
+                                            {
+                                                pass = data.accumulateSmoothSpeedRejectionSurfaceKernel;
+                                            }
+                                        }
                                         else
-                                            pass = data.accumulateKernel;
+                                        {
+                                            if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                            {
+                                                pass = data.accumulateHardThresholdSpeedRejectionBothKernel;
+                                            }
+                                            else if (data.motionVectorFromHit)
+                                            {
+                                                pass = data.accumulateHardThresholdSpeedRejectionHitKernel;
+                                            }
+                                            else
+                                            {
+                                                pass = data.accumulateHardThresholdSpeedRejectionSurfaceKernel;
+                                            }
+                                        }
 
                                         ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._DepthTexture, data.depthBuffer);
                                         ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._CameraDepthTexture, data.depthPyramid);

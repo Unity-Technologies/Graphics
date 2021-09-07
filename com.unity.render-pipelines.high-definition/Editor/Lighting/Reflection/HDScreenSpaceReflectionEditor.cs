@@ -25,6 +25,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_SpeedRejectionFactor;
         SerializedDataParameter m_SpeedRejectionScalerFactor;
         SerializedDataParameter m_SpeedSmoothReject;
+        SerializedDataParameter m_SpeedSurfaceOnly;
+        SerializedDataParameter m_SpeedTargetOnly;
 
         // Ray Tracing
         SerializedDataParameter m_RayMiss;
@@ -70,6 +72,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_BiasFactor = Unpack(o.Find(x => x.biasFactor));
             m_SpeedRejectionScalerFactor = Unpack(o.Find(x => x.speedRejectionScalerFactor));
             m_SpeedSmoothReject = Unpack(o.Find(x => x.speedSmoothReject));
+            m_SpeedSurfaceOnly = Unpack(o.Find(x => x.speedSurfaceOnly));
+            m_SpeedTargetOnly = Unpack(o.Find(x => x.speedTargetOnly));
 
             // Generic ray tracing
             m_RayMiss = Unpack(o.Find(x => x.rayMiss));
@@ -111,6 +115,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_SpeedRejectionFactorText = EditorGUIUtility.TrTextContent("Speed Rejection", "Controls the likelihood history will be rejected based on the previous frame motion vectors of both the surface and the hit object in world space.");
         static public readonly GUIContent k_SpeedRejectionScalerFactorText = EditorGUIUtility.TrTextContent("Speed Rejection Scaler Factor", "Controls the upper range of speed. The faster the objects or camera are moving, the higher this number should be.");
         static public readonly GUIContent k_SpeedSmoothRejectText = EditorGUIUtility.TrTextContent("Speed Smooth Rejection", "When enabled, history can be partially rejected for moving objects which gives a smoother transition. When disabled, history is either kept or totally rejected.");
+        static public readonly GUIContent k_SpeedSurfaceOnlyText = EditorGUIUtility.TrTextContent("Motion Vector from Surface", "When enabled, speed rejection used world space motion of the reflecting surface.");
+        static public readonly GUIContent k_SpeedTargetOnlyText = EditorGUIUtility.TrTextContent("Motion Vector from Hitted Surface", "When enabled, speed rejection used world space motion of the hitted surface by the SSR.");
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the reflection rays may pass behind.");
         static public readonly GUIContent k_RayMaxIterationsText = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for ray marching. Affects both correctness and performance.");
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of reflection rays. The higher this value is, the more expensive ray traced reflections are.");
@@ -275,6 +281,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_SpeedRejectionFactor, k_SpeedRejectionFactorText);
                         PropertyField(m_SpeedRejectionScalerFactor, k_SpeedRejectionScalerFactorText);
                         PropertyField(m_SpeedSmoothReject, k_SpeedSmoothRejectText);
+                        PropertyField(m_SpeedSurfaceOnly, k_SpeedSurfaceOnlyText);
+                        PropertyField(m_SpeedTargetOnly, k_SpeedTargetOnlyText);
+                        if (!m_SpeedSurfaceOnly.value.boolValue && !m_SpeedTargetOnly.value.boolValue)
+                            m_SpeedSurfaceOnly.value.boolValue = true;
                     }
                     EndAdditionalPropertiesScope();
                 }
