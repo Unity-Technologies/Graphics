@@ -16,6 +16,8 @@ namespace UnityEditor.ShaderGraph.GraphUI
 
         public override Type GetConstantNodeValueType(TypeHandle typeHandle)
         {
+            if (typeHandle == ShaderGraphExampleTypes.GraphDataEntry)
+                return typeof(GraphDataEntryConstant);
             return typeHandle == ShaderGraphExampleTypes.DayOfWeek
                 ? typeof(DayOfWeekConstant)
                 : TypeToConstantMapper.GetConstantNodeType(typeHandle);

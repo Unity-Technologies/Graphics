@@ -55,7 +55,6 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
             public string interpolationSemantic;
             public bool isFlat;
         }
-
         IReadOnlyCollection<ContextEntry> GetEntries();
     }
 

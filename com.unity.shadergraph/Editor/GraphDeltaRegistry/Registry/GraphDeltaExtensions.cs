@@ -118,7 +118,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 var connectedPort = port.GetConnectedPorts().FirstOrDefault();
                 if (connectedPort != null)
                 {
-                    var connectedNode = connectedPort.GetNode();
+                    var connectedNode = handler.GetNodeByPort(connectedPort);
                     var previousBlock = ProcessContextNode(connectedNode, handler, container, registry);
                     if (previousBlock.Inputs.Any())
                         inputType = previousBlock.EntryPointFunction.Parameters.Where(e => e.Name == "Out").FirstOrDefault().Type;
@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 var connectedPort = port.GetConnectedPorts().FirstOrDefault();
                 if(connectedPort != null)
                 {
-                    var connectedNode = connectedPort.GetNode();
+                    var connectedNode = handler.GetNodeByPort(connectedPort);
                     if (connectedNode.GetField("_referenceName", out string referenceName))
                     {
                         // reference nodes aren't functions, but are scoped to the input structure of the context node.
@@ -205,7 +205,7 @@ namespace UnityEditor.ShaderGraph.Registry
                         var connectedPort = port.GetConnectedPorts().FirstOrDefault();
                         if (connectedPort != null) // connected input port-
                         {
-                            var connectedNode = connectedPort.GetNode();
+                            var connectedNode = handler.GetNodeByPort(connectedPort);
                             if (!visitedList.Contains(connectedNode.GetName()))
                             {
                                 // This will roll out its output vars as well as the call to initialize them.

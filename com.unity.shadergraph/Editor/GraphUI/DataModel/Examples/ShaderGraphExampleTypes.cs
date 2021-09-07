@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.Registry;
 
 namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 {
@@ -15,8 +16,39 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         public static readonly List<string> Names = new(Enum.GetNames(typeof(DayOfWeek)));
     }
 
+    public class GraphDataEntryConstant : StringConstant
+    {
+        GraphDelta.IGraphHandler graphHandler;
+        public void Initialize(GraphDelta.IGraphHandler handler, string path)
+        {
+            graphHandler = handler;
+            m_Value = path;
+        }
+
+        new object ObjectValue {
+            get
+            {
+                var nodeName = m_Value.Substring(0, m_Value.IndexOf('.'));
+                var path = m_Value.Substring(m_Value.IndexOf('.')+1);
+                graphHandler.GetNodeReader(nodeName).GetField(path, out object value);
+                return value;
+            }
+
+            set
+            {
+                var nodeName = m_Value.Substring(0, m_Value.IndexOf('.'));
+                var path = m_Value.Substring(m_Value.IndexOf('.') + 1);
+                var portName = path.Substring(0, m_Value.IndexOf('.'));
+                path = path.Substring(m_Value.IndexOf('.') + 1);
+                graphHandler.GetNodeWriter(nodeName).SetPortField(portName, path, value);
+            }
+        }
+        new Type Type { get => this.ObjectValue.GetType(); }
+    }
+
     public static class ShaderGraphExampleTypes
     {
+        public static readonly TypeHandle GraphDataEntry = TypeHandleHelpers.GenerateCustomTypeHandle("GraphDataEntry");
         public static readonly TypeHandle Color = typeof(Color).GenerateTypeHandle();
         public static readonly TypeHandle AnimationClip = typeof(AnimationClip).GenerateTypeHandle();
         public static readonly TypeHandle Mesh = typeof(Mesh).GenerateTypeHandle();
