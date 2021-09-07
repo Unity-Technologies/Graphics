@@ -531,6 +531,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnableIntegration = cameraData.enableIntegration ? 1 : 0;
             cb._RenderForSky = cameraData.cameraType == TVolumetricCloudsCameraType.Sky ? 1 : 0;
 
+            // The valid max z mask is only valid if we are in non local mode
+            cb._ValidMaxZMask = settings.localClouds.value ? 0 : 1;
+
             unsafe
             {
                 for (int p = 0; p < 4; ++p)

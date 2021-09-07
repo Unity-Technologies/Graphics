@@ -274,6 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Update the cubemap face and the inverse projection matrix
                         parameters.cubemapFace = (CubemapFace)faceIdx;
                         parameters.commonData.cloudsCB._CloudsPixelCoordToViewDirWS = pixelCoordToViewDir[faceIdx];
+                        parameters.commonData.cloudsCB._ValidMaxZMask = 0;
 
                         // Render the face straight to the output cubemap
                         RenderVolumetricClouds_Sky_High(cmd, parameters, m_MpbClouds, m_IntermediateCloudsLighting0Buffer, m_IntermediateCloudsLighting1Buffer, m_IntermediateCloudsDepthBuffer, skyboxCubemap, TextureXR.GetBlackTexture());
@@ -291,6 +292,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Update the cubemap face and the inverse projection matrix
                         parameters.cubemapFace = (CubemapFace)faceIdx;
                         parameters.commonData.cloudsCB._CloudsPixelCoordToViewDirWS = pixelCoordToViewDir[faceIdx];
+                        parameters.commonData.cloudsCB._ValidMaxZMask = 0;
 
                         // Render the face straight to the output cubemap
                         TraceVolumetricClouds_Sky_Low(cmd, parameters, m_MpbClouds, m_IntermediateCloudsLighting0Buffer, m_IntermediateCloudsDepthBuffer, m_IntermediateCloudsLightingCube0Buffer, TextureXR.GetBlackTexture());
