@@ -138,6 +138,8 @@ namespace UnityEditor.Experimental.Rendering
                 EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
 
             var rect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.BeginProperty(rect, Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride);
+            EditorGUI.BeginProperty(rect, Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride);
 
             // Round min and max subdiv
             int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
@@ -170,9 +172,12 @@ namespace UnityEditor.Experimental.Rendering
             if (serialized.highestSubdivisionLevelOverride.intValue < 0)
                 serialized.highestSubdivisionLevelOverride.intValue = maxSubdiv;
 
-            serialized.highestSubdivisionLevelOverride.intValue = EditorGUILayout.IntSlider("Highest Subdivision Level", serialized.highestSubdivisionLevelOverride.intValue, 0, maxSubdiv);
-            serialized.lowestSubdivisionLevelOverride.intValue = EditorGUILayout.IntSlider("Lowest Subdivision Level", serialized.lowestSubdivisionLevelOverride.intValue, 0, maxSubdiv);
+            serialized.highestSubdivisionLevelOverride.intValue = EditorGUILayout.IntSlider(Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride.intValue, 0, maxSubdiv);
+            serialized.lowestSubdivisionLevelOverride.intValue = EditorGUILayout.IntSlider(Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride.intValue, 0, maxSubdiv);
             serialized.lowestSubdivisionLevelOverride.intValue = Mathf.Min(serialized.lowestSubdivisionLevelOverride.intValue, serialized.highestSubdivisionLevelOverride.intValue);
+            EditorGUI.EndProperty();
+            EditorGUI.EndProperty();
+
             int minSubdivInVolume = ProbeReferenceVolume.instance.GetMaxSubdivision(1.0f - ((float)serialized.highestSubdivisionLevelOverride.intValue / maxSubdiv));
             int maxSubdivInVolume = ProbeReferenceVolume.instance.GetMaxSubdivision(1 - ((float)serialized.lowestSubdivisionLevelOverride.intValue / maxSubdiv));
             EditorGUI.indentLevel--;
