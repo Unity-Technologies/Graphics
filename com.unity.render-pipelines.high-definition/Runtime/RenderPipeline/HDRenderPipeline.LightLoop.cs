@@ -1125,7 +1125,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(0.0f, -7.0f, settings.accumulationFactor.value));
             }
 
-            cb._SsrPBRSpeedRejection = Mathf.Clamp01(1.0f - settings.speedRejectionParam.value);
+            if (settings.speedSmoothReject.value)
+                cb._SsrPBRSpeedRejection = Mathf.Clamp01(1.0f - settings.speedRejectionParam.value);
+            else
+                cb._SsrPBRSpeedRejection = Mathf.Clamp01(settings.speedRejectionParam.value);
             cb._SsrPBRBias = settings.biasFactor.value;
             cb._SsrPRBSpeedRejectionScalerFactor = Mathf.Pow(settings.speedRejectionScalerFactor.value * 0.1f, 2.0f);
         }
