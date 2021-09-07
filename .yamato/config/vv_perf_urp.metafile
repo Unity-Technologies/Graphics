@@ -3,7 +3,7 @@ project:
   folder: Viking-Village-Perf
   variables:
     VV_URP_BRANCH: testing/urp-performance
-    VV_URP_REVISION: 2958a762eb0611cd1c1ed7cc1a761e4c7f9c1557
+    VV_URP_REVISION: 0fe30140b2775eb080cdf345b3ef1de10d0a4516
 
 reuse_blocks:
   unity_config:
