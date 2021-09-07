@@ -176,21 +176,37 @@ MonoBehaviour:
     Reason: Needs fixing on DX12
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 2aba95bbb991e4c538ec9da23dd8e202, type: 3}
     - {fileID: 102900000, guid: da84320af1f814011a74dc4f21cc94b1, type: 3}
     - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
+    - {fileID: 102900000, guid: 000a14f05b2ca480a978d4e207fe505d, type: 3}
     ColorSpace: -1
-    BuildPlatform: 13
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: 
+    StereoModes: 0
+    Reason: No GL on Deferred. Not supported.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 2aba95bbb991e4c538ec9da23dd8e202, type: 3}
+    - {fileID: 102900000, guid: da84320af1f814011a74dc4f21cc94b1, type: 3}
+    - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
+    - {fileID: 102900000, guid: 000a14f05b2ca480a978d4e207fe505d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
     GraphicsDevice: 11
     XrSdk: 
     StereoModes: 0
-    Reason: Not all lightcookies show. Deferred renderer incompatible with GLES3
-      (in pipe asset)? (https://fogbugz.unity3d.com/f/cases/1349811/)
+    Reason: No GLES3 on Deferred. Not supported.
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 2aba95bbb991e4c538ec9da23dd8e202, type: 3}
+    - {fileID: 102900000, guid: da84320af1f814011a74dc4f21cc94b1, type: 3}
     - {fileID: 102900000, guid: 7fd0aa748aac54e47a22af71a33c7af3, type: 3}
+    - {fileID: 102900000, guid: 000a14f05b2ca480a978d4e207fe505d, type: 3}
     ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 21
+    BuildPlatform: -2
+    GraphicsDevice: 8
     XrSdk: 
     StereoModes: 0
-    Reason: Cube light cookies render incorrectly (missing). (https://fogbugz.unity3d.com/f/cases/1349811/)
+    Reason: No GLES2 on Deferred. Not supported.
