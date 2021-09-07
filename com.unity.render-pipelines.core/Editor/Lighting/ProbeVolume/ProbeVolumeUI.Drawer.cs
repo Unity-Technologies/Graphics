@@ -178,11 +178,11 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
 
-            int minSubdivInVolume = ProbeReferenceVolume.instance.GetMaxSubdivision(1.0f - ((float)serialized.highestSubdivisionLevelOverride.intValue / maxSubdiv));
-            int maxSubdivInVolume = ProbeReferenceVolume.instance.GetMaxSubdivision(1 - ((float)serialized.lowestSubdivisionLevelOverride.intValue / maxSubdiv));
+            int minSubdivInVolume = serialized.lowestSubdivisionLevelOverride.intValue;
+            int maxSubdivInVolume = serialized.highestSubdivisionLevelOverride.intValue;
             EditorGUI.indentLevel--;
 
-            EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(minSubdivInVolume)}m and {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdivInVolume)}m", MessageType.Info);
+            EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - maxSubdivInVolume)}m and {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - minSubdivInVolume)}m", MessageType.Info);
 
             if (EditorGUI.EndChangeCheck())
             {
