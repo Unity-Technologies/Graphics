@@ -1,8 +1,8 @@
 import os
-from .shared_utils import load_json, find_matching_patterns
-from .shared_utils import *
-from .rules import *
-from .constants import *
+from utils.shared_utils import load_json, find_matching_patterns
+from utils.shared_utils import *
+from utils.rules import *
+from utils.constants import *
 
 class UTR_log():
     ''''Handles parsing UTR logs (TestResults.json) against known error patterns'''

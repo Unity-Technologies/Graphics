@@ -1,8 +1,8 @@
 import os
 import glob
-from .shared_utils import load_json, find_matching_patterns
-from .constants import *
-from .rules import *
+from utils.shared_utils import load_json, find_matching_patterns
+from utils.constants import *
+from utils.rules import *
 
 COMMAND_START = '################################### Running next command ###################################'
 COMMAND_END = '############################################################################################'
@@ -60,6 +60,11 @@ class Execution_log():
             {
                 'pattern': r'(LTO : error: L0492: LTOP internal error: bad allocation)',
                 'tags': [TAG_INSTABILITY, 'bad-allocation', TAG_INFRASTRUCTURE],
+                'conclusion': 'failure',
+            },
+            {
+                'pattern': r'(Open ERROR: Can not open the file as \[zip\] archive)',
+                'tags': ['utr-zip', TAG_INFRASTRUCTURE], # instability?
                 'conclusion': 'failure',
             },
             {
