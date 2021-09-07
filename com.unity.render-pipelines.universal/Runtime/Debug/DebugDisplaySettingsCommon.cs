@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
                     return true;
 #else
                     if (UniversalRenderPipelineGlobalSettings.instance != null)
-                        return UniversalRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
+                        return !UniversalRenderPipelineGlobalSettings.instance.stripDebugVariants;
                     return true;
 #endif
                 }
