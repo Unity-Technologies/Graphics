@@ -183,7 +183,7 @@ HDRP_Win_Vulkan_Standalone_mono_Linear_trunk:
 Build_HDRP_Win_Vulkan_Standalone_mono_Linear_trunk:
     name: Build HDRP on Win_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
@@ -254,7 +254,7 @@ HDRP_Win_Vulkan_Standalone_XR_mono_Linear_trunk:
 Build_HDRP_Win_Vulkan_Standalone_XR_mono_Linear_trunk:
     name: Build HDRP on Win_Vulkan_mono_Linear_Standalone_XR_build_Player on version trunk
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
@@ -463,7 +463,7 @@ HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
 Build_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP on Win_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
@@ -534,7 +534,7 @@ HDRP_Win_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION:
 Build_HDRP_Win_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP on Win_Vulkan_mono_Linear_Standalone_XR_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
