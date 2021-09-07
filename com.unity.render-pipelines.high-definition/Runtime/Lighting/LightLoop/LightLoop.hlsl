@@ -404,8 +404,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             builtinData.bakeDiffuseLighting = (uninitializedGI && !apvEnabled) ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
             builtinData.backBakeDiffuseLighting = (uninitializedGI && !apvEnabled) ? float3(0.0, 0.0, 0.0) : builtinData.backBakeDiffuseLighting;
         }
-
-        if (apvEnabled)
+        else
         {
             if (uninitializedGI)
             {
@@ -441,7 +440,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #endif
 
 #if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING)
-                // If we are deferred we should apply baked AO here as it was already apply for lightmap.
+                // If we are deferred we shouldn't apply baked AO here as it was already apply for lightmap.
                 // When using probe volumes for the pixel (i.e. we have uninitialized GI), we include the surfaceData.ambientOcclusion as
                 // payload information alongside the un-init flag.
                 // It should not be applied in forward as in this case the baked AO is correctly apply in PostBSDF()
@@ -452,9 +451,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
                 ApplyDebugToBuiltinData(apvBuiltinData);
 
-                builtinData.bakeDiffuseLighting = uninitializedGI ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
                 // Note: builtinDataProbeVolumes.bakeDiffuseLighting and builtinDataProbeVolumes.backBakeDiffuseLighting were combine inside of ModifyBakedDiffuseLighting().
-                builtinData.bakeDiffuseLighting += apvBuiltinData.bakeDiffuseLighting;
+                builtinData.bakeDiffuseLighting = apvBuiltinData.bakeDiffuseLighting;
             }
         }
 #endif
@@ -616,7 +614,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #endif
 
 #if !defined(_SURFACE_TYPE_TRANSPARENT)
-    // If we use the texture ssgi for ssgi or rtgi, we want to combine it with the value in the bake diffuse lighting value
+    // If we use any global illumination effect (SSGI or RTGI) we will replace fully the value of builtinData.bakeDiffuseLighting which contain nothing
     if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
     {
         BuiltinData builtinDataSSGI;
@@ -633,10 +631,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinDataSSGI);
 
 #endif
-        // In the alpha channel, we have the interpolation value that we use to blend the result of SSGI/RTGI with the other GI thechnique
-        builtinData.bakeDiffuseLighting = lerp(builtinData.bakeDiffuseLighting,
-                                            builtinDataSSGI.bakeDiffuseLighting,
-                                            LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).w);
+        builtinData.bakeDiffuseLighting = builtinDataSSGI.bakeDiffuseLighting;
     }
 #endif
 

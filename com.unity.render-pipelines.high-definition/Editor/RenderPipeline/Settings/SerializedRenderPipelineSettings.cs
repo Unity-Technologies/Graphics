@@ -45,7 +45,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportRuntimeAOVAPI;
         public SerializedProperty supportDitheringCrossFade;
         public SerializedProperty supportTerrainHole;
-        public SerializedProperty supportForceForwardEmissive;
         public SerializedProperty supportRayTracing;
         public SerializedProperty supportedRayTracingMode;
         public SerializedProperty supportDistortion;
@@ -105,7 +104,6 @@ namespace UnityEditor.Rendering.HighDefinition
             supportRuntimeAOVAPI = root.Find((RenderPipelineSettings s) => s.supportRuntimeAOVAPI);
             supportDitheringCrossFade = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
             supportTerrainHole = root.Find((RenderPipelineSettings s) => s.supportTerrainHole);
-            supportForceForwardEmissive = root.Find((RenderPipelineSettings s) => s.supportForceForwardEmissive);
             supportDistortion = root.Find((RenderPipelineSettings s) => s.supportDistortion);
             supportTransparentBackface = root.Find((RenderPipelineSettings s) => s.supportTransparentBackface);
             supportTransparentDepthPrepass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);

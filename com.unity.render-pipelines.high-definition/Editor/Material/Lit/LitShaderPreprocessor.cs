@@ -77,25 +77,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // Apply following set of rules only to lit shader (remember that LitPreprocessor is call for any shader)
             if (isBuiltInLit)
             {
-                // ForwardEmissiveForDeferred only make sense for deferred mode
-                bool isForwardEmissiveForDeferred = snippet.passName == "ForwardEmissiveForDeferred";
-                if (isForwardEmissiveForDeferred)
-                {
-                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly ||
-                        !hdrpAsset.currentPlatformRenderPipelineSettings.supportForceForwardEmissive)
-                        return true;
-                }
-
-                // Remove the force emissive forward variant of GBuffer not used in for this hdrp asset
-                if (isGBufferPass)
-                {
-                    if (!hdrpAsset.currentPlatformRenderPipelineSettings.supportForceForwardEmissive && inputData.shaderKeywordSet.IsEnabled(m_ForceForwardEmissive))
-                        return true;
-
-                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportForceForwardEmissive && !inputData.shaderKeywordSet.IsEnabled(m_ForceForwardEmissive))
-                        return true;
-                }
-
                 // Forward material don't use keyword for WriteNormalBuffer but #define so we can't test for the keyword outside of isBuiltInLit
                 // otherwise the pass will be remove for non-lit shader graph version (like StackLit)
                 bool isMotionPass = snippet.passName == "MotionVectors";
@@ -133,10 +114,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     // If transparent we don't need the depth only pass
                     if (isDepthOnlyPass)
-                        return true;
-
-                    // If transparent, we never need ForwardEmissiveForDeferred pass.
-                    if (isForwardEmissiveForDeferred)
                         return true;
                 }
             }
