@@ -7,21 +7,39 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Utilities
 {
-    class MenuUtilities
+    [InitializeOnLoad]
+    static class MenuUtilities
     {
-        class MenuItemData
+        static MenuUtilities()
         {
-            public MenuItemForRenderPipeline attribute;
-            public Action action;
-            public Func<bool> validate;
+            InitMethodsWithReflection();
+
+            ConstructMenuItemForRenderPipeline();
+
+            RenderPipelineManager.activeRenderPipelineTypeChanged += Update;
+
+            // PR on Hold due to this:
+            // We cannot guarantee that the ADB is ready - which means we cannot guarantee accessibility
+            // to the SRP asset of the current Quality level. We definitely need to push for a callback
+            // to guarantee those scenarios. (OnAssetDatabaseReady?)
+            Update();
         }
 
-        static private Dictionary<Type, List<MenuItemData>> s_MenuMap = new Dictionary<Type, List<MenuItemData>>();
+        static void Update()
+        {
+            UpdateRenderGraph();
+            UpdateLookDev();
+
+            // should always be updated last
+            UpdateMenuItemForRenderPipeline();
+        }
+
+        #region Reflection
 
         static Action<string, string, bool, int, Action, Func<bool>> s_AddMenuItem;
         static Action<string> s_RemoveMenuItem;
 
-        static MenuUtilities()
+        static void InitMethodsWithReflection()
         {
             //AddMenuItem(string name, string shortcut, bool @checked, int priority, System.Action execute, System.Func<bool> validate);
             MethodInfo addMenuItemMethodInfo = typeof(Menu).GetMethod("AddMenuItem", BindingFlags.Static | BindingFlags.NonPublic);
@@ -57,9 +75,20 @@ namespace UnityEditor.Rendering.Utilities
             s_RemoveMenuItem = Expression.Lambda<Action<string>>(
                 removeMenuItemExpressionCall,
                 nameParam).Compile();
-
-            RenderPipelineManager.activeRenderPipelineTypeChanged += UpdateMenuItemForRenderPipeline;
         }
+
+        #endregion
+
+        #region MenuItemForRenderPipeline Management
+
+        class MenuItemData
+        {
+            public MenuItemForRenderPipeline attribute;
+            public Action action;
+            public Func<bool> validate;
+        }
+
+        static private Dictionary<Type, List<MenuItemData>> s_MenuMap = new Dictionary<Type, List<MenuItemData>>();
 
         static void RegisterMenu(MenuItemData element)
             => s_AddMenuItem(element.attribute.path,
@@ -72,7 +101,6 @@ namespace UnityEditor.Rendering.Utilities
         static void UnregisterMenu(MenuItemData element)
             => s_RemoveMenuItem(element.attribute.path);
 
-        [InitializeOnLoadMethod]
         static void ConstructMenuItemForRenderPipeline()
         {
             // Construct the MenuMap
@@ -106,9 +134,6 @@ namespace UnityEditor.Rendering.Utilities
                         menuItemsForRP.Add(menuItemData);
                 }
             }
-
-            //activating menuitems
-            UpdateMenuItemForRenderPipeline();
         }
 
         static void UpdateMenuItemForRenderPipeline()
@@ -128,6 +153,46 @@ namespace UnityEditor.Rendering.Utilities
             foreach (var menuItemData in menuItemDatasForRP)
                 RegisterMenu(menuItemData);
         }
+
+        #endregion
+
+        #region Specific Menus
+
+        static void UpdateLookDev()
+        {
+            const string path = "Window/Rendering/Look Dev";
+            const int priority = 10001;
+
+            // LookDev supported if RenderPipeline implements LookDev.IDataProvider
+            if (RenderPipelineManager.currentPipeline is UnityEngine.Rendering.LookDev.IDataProvider)
+                s_AddMenuItem(path,
+                    string.Empty,
+                    false,
+                    priority,
+                    LookDev.LookDev.Open,
+                    () => true);
+            else
+                s_RemoveMenuItem(path);
+        }
+
+        static void UpdateRenderGraph()
+        {
+            const string path = "Window/Analysis/Render Graph Viewer";
+            const int priority = 10006;
+
+            // RenderGraph used if there is at least one registered
+            if (UnityEngine.Experimental.Rendering.RenderGraphModule.RenderGraph.GetRegisteredRenderGraphs().Count() > 0)
+                s_AddMenuItem(path,
+                    string.Empty,
+                    false,
+                    priority,
+                    RenderGraphModule.RenderGraphViewer.Open,
+                    () => true);
+            else
+                s_RemoveMenuItem(path);
+        }
+
+        #endregion
     }
 
     /// <summary>MenuItem filtered by used render pipeline</summary>

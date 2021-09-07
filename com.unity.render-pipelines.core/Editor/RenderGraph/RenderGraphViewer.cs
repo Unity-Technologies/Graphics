@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering.RenderGraphModule
             }
         }
 
-        public static void Open()
+        internal static void Open()
         {
             // Get existing open window or if none, make a new one:
             var window = GetWindow<RenderGraphViewer>();
