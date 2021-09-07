@@ -86,11 +86,8 @@ namespace UnityEngine.Experimental.Rendering
             m_SerializedObject = new SerializedObject(ProbeReferenceVolume.instance.sceneData.parentAsset);
             m_ProbeSceneData = m_SerializedObject.FindProperty(ProbeReferenceVolume.instance.sceneData.parentSceneDataPropertyName);
 
-            m_BakingSets = new ReorderableList(ProbeReferenceVolume.instance.sceneData.bakingSets, typeof(ProbeVolumeSceneData.BakingSet), false, true, true, true);
-
-            m_BakingSets.drawHeaderCallback = (rect) => EditorGUI.LabelField(rect, "Baking Sets", m_SubtitleStyle);
+            m_BakingSets = new ReorderableList(ProbeReferenceVolume.instance.sceneData.bakingSets, typeof(ProbeVolumeSceneData.BakingSet), false, false, true, true);
             m_BakingSets.multiSelect = false;
-
             m_BakingSets.drawElementCallback = (rect, index, active, focused) =>
             {
                 // Draw the renamable label for the baking set name
@@ -293,6 +290,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             EditorGUILayout.BeginVertical(GUILayout.Width(k_LeftPanelSize));
             m_LeftScrollPosition = EditorGUILayout.BeginScrollView(m_LeftScrollPosition, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
+            EditorGUILayout.LabelField("Baking Sets", m_SubtitleStyle);
+            EditorGUILayout.Space();
             m_BakingSets.DoLayoutList();
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndVertical();
