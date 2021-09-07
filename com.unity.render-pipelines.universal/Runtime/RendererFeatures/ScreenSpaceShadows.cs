@@ -49,13 +49,13 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool isDeferredRenderingMode = renderer is UniversalRenderer && ((UniversalRenderer)renderer).renderingMode == RenderingMode.Deferred;
-
             bool allowMainLightShadows = renderingData.shadowData.supportsMainLightShadows && renderingData.lightData.mainLightIndex != -1;
             bool shouldEnqueue = allowMainLightShadows && m_SSShadowsPass.Setup(m_Settings, m_Material);
 
             if (shouldEnqueue)
             {
+                bool isDeferredRenderingMode = renderer is UniversalRenderer && ((UniversalRenderer)renderer).renderingMode == RenderingMode.Deferred;
+            
                 m_SSShadowsPass.renderPassEvent = isDeferredRenderingMode
                     ? RenderPassEvent.AfterRenderingGbuffer
                     : RenderPassEvent.AfterRenderingPrePasses;
