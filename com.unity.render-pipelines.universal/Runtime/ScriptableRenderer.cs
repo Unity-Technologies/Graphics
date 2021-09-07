@@ -27,22 +27,22 @@ namespace UnityEngine.Rendering.Universal
         {
             private const string k_Name = nameof(ScriptableRenderer);
             public static readonly ProfilingSampler setPerCameraShaderVariables = new ProfilingSampler($"{k_Name}.{nameof(SetPerCameraShaderVariables)}");
-            public static readonly ProfilingSampler sortRenderPasses            = new ProfilingSampler($"Sort Render Passes");
-            public static readonly ProfilingSampler setupLights                 = new ProfilingSampler($"{k_Name}.{nameof(SetupLights)}");
-            public static readonly ProfilingSampler setupCamera                 = new ProfilingSampler($"Setup Camera Parameters");
-            public static readonly ProfilingSampler addRenderPasses             = new ProfilingSampler($"{k_Name}.{nameof(AddRenderPasses)}");
-            public static readonly ProfilingSampler clearRenderingState         = new ProfilingSampler($"{k_Name}.{nameof(ClearRenderingState)}");
-            public static readonly ProfilingSampler internalStartRendering      = new ProfilingSampler($"{k_Name}.{nameof(InternalStartRendering)}");
-            public static readonly ProfilingSampler internalFinishRendering     = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRendering)}");
-            public static readonly ProfilingSampler drawGizmos                  = new ProfilingSampler($"{nameof(DrawGizmos)}");
+            public static readonly ProfilingSampler sortRenderPasses = new ProfilingSampler($"Sort Render Passes");
+            public static readonly ProfilingSampler setupLights = new ProfilingSampler($"{k_Name}.{nameof(SetupLights)}");
+            public static readonly ProfilingSampler setupCamera = new ProfilingSampler($"Setup Camera Parameters");
+            public static readonly ProfilingSampler addRenderPasses = new ProfilingSampler($"{k_Name}.{nameof(AddRenderPasses)}");
+            public static readonly ProfilingSampler clearRenderingState = new ProfilingSampler($"{k_Name}.{nameof(ClearRenderingState)}");
+            public static readonly ProfilingSampler internalStartRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalStartRendering)}");
+            public static readonly ProfilingSampler internalFinishRendering = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRendering)}");
+            public static readonly ProfilingSampler drawGizmos = new ProfilingSampler($"{nameof(DrawGizmos)}");
 
             public static class RenderBlock
             {
                 private const string k_Name = nameof(RenderPassBlock);
-                public static readonly ProfilingSampler beforeRendering          = new ProfilingSampler($"{k_Name}.{nameof(RenderPassBlock.BeforeRendering)}");
-                public static readonly ProfilingSampler mainRenderingOpaque      = new ProfilingSampler($"{k_Name}.{nameof(RenderPassBlock.MainRenderingOpaque)}");
+                public static readonly ProfilingSampler beforeRendering = new ProfilingSampler($"{k_Name}.{nameof(RenderPassBlock.BeforeRendering)}");
+                public static readonly ProfilingSampler mainRenderingOpaque = new ProfilingSampler($"{k_Name}.{nameof(RenderPassBlock.MainRenderingOpaque)}");
                 public static readonly ProfilingSampler mainRenderingTransparent = new ProfilingSampler($"{k_Name}.{nameof(RenderPassBlock.MainRenderingTransparent)}");
-                public static readonly ProfilingSampler afterRendering           = new ProfilingSampler($"{k_Name}.{nameof(RenderPassBlock.AfterRendering)}");
+                public static readonly ProfilingSampler afterRendering = new ProfilingSampler($"{k_Name}.{nameof(RenderPassBlock.AfterRendering)}");
             }
 
             public static class RenderPass
@@ -448,7 +448,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool disableNativeRenderPassInFeatures = false;
 
         internal bool useRenderPassEnabled = false;
-        static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0, 0 };
+        static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[] { 0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
 
         private static RenderBufferStoreAction[] m_ActiveColorStoreActions = new RenderBufferStoreAction[]
@@ -945,7 +945,7 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(null, Profiling.RenderPass.configure))
             {
                 if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
-                    ConfigureNativeRenderPass(cmd,  renderPass, cameraData);
+                    ConfigureNativeRenderPass(cmd, renderPass, cameraData);
                 else
                     renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
 
@@ -957,7 +957,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
 
             if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
-                ExecuteNativeRenderPass(context,  renderPass, cameraData, ref  renderingData);
+                ExecuteNativeRenderPass(context, renderPass, cameraData, ref renderingData);
             else
                 renderPass.Execute(context, ref renderingData);
 
@@ -1085,7 +1085,7 @@ namespace UnityEngine.Rendering.Universal
                             SetRenderTarget(cmd, trimmedAttachments, depthAttachment, finalClearFlag, renderPass.clearColor);
                         }
 
-                    #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                         if (cameraData.xr.enabled)
                         {
                             // SetRenderTarget might alter the internal device state(winding order).
@@ -1094,7 +1094,7 @@ namespace UnityEngine.Rendering.Universal
                             bool isRenderToBackBufferTarget = (xrTargetIndex != -1) && !cameraData.xr.renderTargetIsRenderTexture;
                             cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
                         }
-                    #endif
+#endif
                     }
                 }
             }
@@ -1319,7 +1319,8 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetRenderTarget(cmd, colorAttachments, depthAttachment, clearFlag, clearColor);
         }
 
-        internal virtual void SwapColorBuffer(CommandBuffer cmd) {}
+        internal virtual void SwapColorBuffer(CommandBuffer cmd) { }
+        internal virtual void EnableSwapBufferMSAA(bool enable) { }
 
         [Conditional("UNITY_EDITOR")]
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
@@ -1477,14 +1478,14 @@ namespace UnityEngine.Rendering.Universal
                 {
                     Assertions.Assert.IsTrue(begin <= end);
                     m_Current = begin < end ? begin : end;
-                    m_End   = end >= begin ? end : begin;
+                    m_End = end >= begin ? end : begin;
                     m_Current -= 1;
                 }
 
                 public BlockRange GetEnumerator() { return this; }
                 public bool MoveNext() { return ++m_Current < m_End; }
                 public int Current { get => m_Current; }
-                public void Dispose() {}
+                public void Dispose() { }
             }
 
             public BlockRange GetRange(int index)

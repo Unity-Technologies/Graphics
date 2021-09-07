@@ -39,6 +39,11 @@ HDRP 2021.2 has various tessellation shader code to enable tessellation support 
 * HDRP has improved support of motion vectors for tessellation. Only `previousPositionRWS` is part of the varyings. HDRP also added the `MotionVectorTessellation()` function. For more information, see the `MotionVectorVertexShaderCommon.hlsl` file.
 * HDRP now evaluates the `tessellationFactor` in the vertex shader and passes it to the hull shader as an interpolator. For more information, see the `VaryingMesh.hlsl` and `VertMesh.hlsl` files.
 
+### Specular Occlusion
+
+The algorithm for computing specular occlusion from bent normals and ambient occlusion has been changed to improve visual results.
+To use the old algorithm, function calls to `GetSpecularOcclusionFromBentAO` should be replaced by calls to `GetSpecularOcclusionFromBentAO_ConeCone`
+
 ## Density Volumes
 
 Density Volumes are now known as **Local Volumetric Fog**.
@@ -84,3 +89,7 @@ From 2021.2, HDRP includes an updated `RendererList` API in the `UnityEngine.Ren
 The previous version of the API in the `UnityEngine.Experimental.Rendering` namespace is still available for compatibility purposes but is now deprecated.
 
 When the **Dynamic Render Pass Culling** option is enabled in the HDRP Global Settings, HDRP will use the new API to dynamically skip certain drawing passes based on the type of currently visible objects. For example if no objects with distortion are drawn, the Render Graph passes that draw the distortion effect (and their dependencies - like the color pyramid generation) will be skipped.
+
+## Dynamic Resolution
+
+From 2021.2, Bilinear and Lanczos upscale filters have been removed as they are mostly redundant with other better options. A project using Bilinear filter will migrate to use Catmull-Rom, if using Lanczos it will migrate to Contrast Adaptive Sharpening (CAS).  If your project was relying on those filters also consider the newly added filters TAA Upscale and FidelityFX Super Resolution 1.0.

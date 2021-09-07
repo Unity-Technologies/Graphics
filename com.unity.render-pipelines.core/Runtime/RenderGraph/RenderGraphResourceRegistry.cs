@@ -38,11 +38,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         class RenderGraphResourcesData
         {
-            public DynamicArray<IRenderGraphResource>   resourceArray = new DynamicArray<IRenderGraphResource>();
-            public int                                  sharedResourcesCount;
-            public IRenderGraphResourcePool             pool;
-            public ResourceCallback                     createResourceCallback;
-            public ResourceCallback                     releaseResourceCallback;
+            public DynamicArray<IRenderGraphResource> resourceArray = new DynamicArray<IRenderGraphResource>();
+            public int sharedResourcesCount;
+            public IRenderGraphResourcePool pool;
+            public ResourceCallback createResourceCallback;
+            public ResourceCallback releaseResourceCallback;
 
             public void Clear(bool onException, int frameIndex)
             {
@@ -85,18 +85,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        RenderGraphResourcesData[]          m_RenderGraphResources = new RenderGraphResourcesData[(int)RenderGraphResourceType.Count];
-        DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
-        RenderGraphDebugParams              m_RenderGraphDebug;
-        RenderGraphLogger                   m_ResourceLogger = new RenderGraphLogger();
-        RenderGraphLogger                   m_FrameInformationLogger; // Comes from the RenderGraph instance.
-        int                                 m_CurrentFrameIndex;
-        int                                 m_ExecutionCount;
+        RenderGraphResourcesData[] m_RenderGraphResources = new RenderGraphResourcesData[(int)RenderGraphResourceType.Count];
+        DynamicArray<RendererListResource> m_RendererListResources = new DynamicArray<RendererListResource>();
+        RenderGraphDebugParams m_RenderGraphDebug;
+        RenderGraphLogger m_ResourceLogger = new RenderGraphLogger();
+        RenderGraphLogger m_FrameInformationLogger; // Comes from the RenderGraph instance.
+        int m_CurrentFrameIndex;
+        int m_ExecutionCount;
 
-        RTHandle                            m_CurrentBackbuffer;
+        RTHandle m_CurrentBackbuffer;
 
-        const int                           kInitialRendererListCount = 256;
-        List<CoreRendererList>              m_ActiveRendererLists = new List<CoreRendererList>(kInitialRendererListCount);
+        const int kInitialRendererListCount = 256;
+        List<CoreRendererList> m_ActiveRendererLists = new List<CoreRendererList>(kInitialRendererListCount);
 
         #region Internal Interface
         internal RTHandle GetTexture(in TextureHandle handle)

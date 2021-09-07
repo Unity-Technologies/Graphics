@@ -20,6 +20,10 @@ Varyings BuildVaryings(Attributes input)
     output.positionWS = positionWS;
 #endif
 
+#ifdef VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
+    output.positionPredisplacementWS = positionWS;
+#endif
+
 #ifdef VARYINGS_NEED_NORMAL_WS
     output.normalWS = normalize(normalWS);
 #endif

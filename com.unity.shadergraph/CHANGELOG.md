@@ -4,6 +4,11 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.0.0] - 2021-09-01
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -33,7 +38,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Added `Gather Texture 2D` node, for retrieving the four samples (red component only) that would be used for bilinear interpolation when sampling a Texture2D.
   - Added toggle "Disable Global Mip Bias" in Sample Texture 2D and Sample Texture 2D array node. This checkbox disables the runtimes automatic Mip Bias, which for instance can be activated during dynamic resolution scaling.
   - Added `Sprite` option to Main Preview, which is similar to `Quad` but does not allow rotation. `Sprite` is used as the default preview for URP Sprite shaders.
+  - Added Tessellation Option to PositionNode settings, to provide access to the pre-displaced tessellated position.
   - Added visible errors for invalid stage capability connections to shader graph.
+  - Added a ShaderGraph animated preview framerate throttle.
+  - Added many node synonyms for the Create Node search so that it's easier to find nodes.
 
 ### Changed
 - Properties and Keywords are no longer separated by type on the blackboard. Categories allow for any combination of properties and keywords to be grouped together as the user defines.
@@ -49,6 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change BranchOnInputNode to choose NotConnected branch when generating Preview
 - Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
 - ShaderGraph SubGraphs will now report errors and warnings in a condensed single error.
+- Changed "Create Node" action in ShaderGraph stack separator context menu to "Add Block Node" and added it to main stack context menu
 
 ### Fixed
 - Fixed an issue where fog node density was incorrectly calculated.
@@ -122,6 +131,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - ShaderGraph SubGraphs now report node warnings in the same way ShaderGraphs do [1350282].
 - Fixed ShaderGraph exception when trying to set a texture to "main texture" [1350573].
 - Fixed a ShaderGraph issue where Float properties in Integer mode would not be cast properly in graph previews [1330302](https://fogbugz.unity3d.com/f/cases/1330302/)
+- Fixed a ShaderGraph issue where hovering over a context block but not its node stack would not bring up the incorrect add menu [1351733](https://fogbugz.unity3d.com/f/cases/1351733/)
+- Fixed the BuiltIn Target to perform shader variant stripping [1345580] (https://issuetracker.unity3d.com/product/unity/issues/guid/1345580/)
+- Fixed incorrect warning while using VFXTarget
+- Fixed a bug with Sprite Targets in ShaderGraph not rendering correctly in game view [1352225]
+- Fixed compilation problems on preview shader when using hybrid renderer v2 and property desc override Hybrid Per Instance
+- Fixed a serialization bug wrt PVT property flags when using subgraphs. This fixes SRP batcher compatibility.
 
 ## [11.0.0] - 2020-10-21
 

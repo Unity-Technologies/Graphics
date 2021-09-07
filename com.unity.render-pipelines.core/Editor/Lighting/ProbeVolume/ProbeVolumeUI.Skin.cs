@@ -11,6 +11,7 @@ namespace UnityEditor.Experimental.Rendering
             internal static readonly GUIContent s_MinMaxSubdivSlider = new GUIContent("Subdivision Controller", "Control how much the probe baking system will subdivide in this volume.\nBoth min and max values are used to compute the allowed subdivision levels inside this volume. e.g. a Min subdivision of 2 will ensure that there is at least 2 levels of subdivision everywhere in the volume.");
             internal static readonly GUIContent s_ObjectLayerMask = new GUIContent("Object Layer Mask", "Control which layers will be used to select the meshes for the probe placement algorithm.");
             internal static readonly GUIContent s_GeometryDistanceOffset = new GUIContent("Geometry Distance Offset", "Affects the minimum distance at which the subdivision system will place probes near the geometry.");
+            internal static readonly string s_ProbeVolumeChangedMessage = "The probe volume has changed since last baking or the data was never baked.\nPlease bake lighting in the lighting panel to update the lighting data.";
 
             internal static readonly Color k_GizmoColorBase = new Color32(137, 222, 144, 255);
 
