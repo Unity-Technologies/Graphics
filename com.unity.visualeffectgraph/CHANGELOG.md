@@ -98,6 +98,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix compilation failure on OpenGLES [Case 1348666](https://issuetracker.unity3d.com/product/unity/issues/guid/1348666/)
 - Don't open an empty VFX Graph Editor when assigning a VFX Asset to a Visual Effect GameObject from the inspector [Case 1347399](https://issuetracker.unity3d.com/product/unity/issues/guid/1347399/)
 - Visual Effect inspector input fields don't lose focus anymore while typing (Random seed)
+- Prevent vector truncation error in HDRP Decal template
 
 ## [11.0.0] - 2020-10-21
 ### Added
