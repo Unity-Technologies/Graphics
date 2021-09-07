@@ -132,7 +132,7 @@ namespace UnityEditor.Rendering.Universal
             title2.text = "Select any two adjacent batches to compare.";
 
             var label1 = infoView.Query<Label>("InfoLabel1").First();
-            label1.text = $"Lights in Batch {batch1.batchId}";
+            label1.text = $"Lights in <b>Batch {batch1.batchId}</b>";
 
             var bubble1 = infoView.Query<VisualElement>("InfoBubble1").First();
             bubble1.Clear();
@@ -188,22 +188,16 @@ namespace UnityEditor.Rendering.Universal
 
             var bubble1 = infoView.Query<VisualElement>("InfoBubble1").First();
             bubble1.Clear();
-            foreach (var light in batch1.Lights)
-            {
-                if (!lightSet2.Contains(light))
-                    bubble1.Add(MakeLightPill(light));
-            }
+            foreach (var light in lightSet1.Except(lightSet2))
+                bubble1.Add(MakeLightPill(light));
 
             var label2 = infoView.Query<Label>("InfoLabel2").First();
             label2.text = $"Lights only in <b>Batch {batch2.batchId}</b>";
 
             var bubble2 = infoView.Query<VisualElement>("InfoBubble2").First();
             bubble2.Clear();
-            foreach (var light in batch2.Lights)
-            {
-                if (!lightSet1.Contains(light))
-                    bubble2.Add(MakeLightPill(light));
-            }
+            foreach (var light in lightSet2.Except(lightSet1))
+                bubble2.Add(MakeLightPill(light));
         }
 
         void OnEnable()
