@@ -850,6 +850,9 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
             intermediateCoord = traceCoord.xy * 2;
     }
 
+    // Given that the rendering resolution is not guaranteed to be an even number, we need to clamp to the intermediate resolution in this case
+    intermediateCoord = min(intermediateCoord, _IntermediateScreenSize.xy - 1);
+
     // Compute the offset that shall be used (if any)
     float offset = _EnableIntegration ? GetBNDSequenceSample(intermediateCoord, _AccumulationFrameIndex, 0) : 0.0;
 

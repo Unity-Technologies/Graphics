@@ -547,6 +547,7 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
+
         internal bool isInitialized => m_ProbeReferenceVolumeInit;
 
         struct InitInfo
@@ -645,6 +646,8 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public void Cleanup()
         {
+            if (!m_ProbeReferenceVolumeInit) return;
+
             if (!m_IsInitialized)
             {
                 Debug.LogError("Probe Volume System has not been initialized first before calling cleanup.");
