@@ -52,6 +52,13 @@ namespace UnityEngine.VFX.SDF
 
         internal static uint kMaxGridSize = 1 << 24;
 
+        //TODO: Use PLATFORM_UAVS_SEPARATE_TO_RTS (or equivalent) when it will be available
+#if (UNITY_PS4 || UNITY_PS5) && (!UNITY_EDITOR)
+        private static int kNbActualRT = 1;
+#else
+        private static int kNbActualRT = 0;
+#endif
+
         internal VFXRuntimeResources m_RuntimeResources;
 
         private struct Triangle
@@ -739,10 +746,10 @@ namespace UnityEngine.VFX.SDF
             for (var i = 0; i < 3; i++)
             {
                 m_Cmd.SetRenderTarget(m_RenderTextureViews[i]);
-                m_Cmd.SetRandomWriteTarget(3, m_TrianglesInVoxels, false);
-                m_Cmd.SetRandomWriteTarget(2, m_AccumCounterBuffer, false);
-                m_Cmd.SetViewProjectionMatrices(m_ViewMat[i], m_ProjMat[i]);
                 m_Cmd.ClearRenderTarget(true, true, Color.black, 1.0f);
+                m_Cmd.SetRandomWriteTarget(3 + kNbActualRT, m_TrianglesInVoxels, false);
+                m_Cmd.SetRandomWriteTarget(2 + kNbActualRT, m_AccumCounterBuffer, false);
+                m_Cmd.SetViewProjectionMatrices(m_ViewMat[i], m_ProjMat[i]);
                 m_Cmd.DrawProcedural(Matrix4x4.identity, m_Material[i], 1, MeshTopology.Triangles, nTriangles * 3);
             }
 
@@ -767,11 +774,11 @@ namespace UnityEngine.VFX.SDF
             {
                 m_Cmd.ClearRandomWriteTargets();
                 m_Cmd.SetRenderTarget(m_RenderTextureViews[i]);
-                m_Cmd.SetRandomWriteTarget(4, m_AabbBuffer, false);
-                m_Cmd.SetRandomWriteTarget(1, m_bufferVoxel, false);
-                m_Cmd.SetRandomWriteTarget(2, m_CounterBuffer, false);
-                m_Cmd.SetViewProjectionMatrices(m_ViewMat[i], m_ProjMat[i]);
                 m_Cmd.ClearRenderTarget(true, true, Color.black, 1.0f);
+                m_Cmd.SetRandomWriteTarget(4 + kNbActualRT, m_AabbBuffer, false);
+                m_Cmd.SetRandomWriteTarget(1 + kNbActualRT, m_bufferVoxel, false);
+                m_Cmd.SetRandomWriteTarget(2 + kNbActualRT, m_CounterBuffer, false);
+                m_Cmd.SetViewProjectionMatrices(m_ViewMat[i], m_ProjMat[i]);
                 m_Cmd.DrawProcedural(Matrix4x4.identity, m_Material[i], 0, MeshTopology.Triangles, nTriangles * 3);
             }
 
