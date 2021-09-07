@@ -101,6 +101,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Unexpected compilation error while modifying ShaderGraph exposed properties [Case 1361601](https://issuetracker.unity3d.com/product/unity/issues/guid/1361601/)
 - Compilation issue while using new SG integration and SampleTexture/SampleMesh [Case 1359391](https://issuetracker.unity3d.com/product/unity/issues/guid/1359391/)
 - Eye dropper in the color fields kept updating after pressing the Esc key
+- Exposed Camera property fails to upgrade and is converted to a float type [Case 1357685](https://issuetracker.unity3d.com/product/unity/issues/guid/1357685/)
 
 ## [11.0.0] - 2020-10-21
 ### Added
