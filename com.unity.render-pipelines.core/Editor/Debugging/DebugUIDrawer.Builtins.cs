@@ -593,6 +593,42 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
+    /// Builtin Drawer for MessageBox Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.MessageBox))]
+    public sealed class DebugUIDrawerMessageBox : DebugUIDrawer
+    {
+        /// <summary>
+        /// OnGUI implementation for TextLabel DebugUIDrawer.
+        /// </summary>
+        /// <param name="widget">DebugUI Widget.</param>
+        /// <param name="state">Debug State associated with the Debug Item.</param>
+        /// <returns>The state of the widget.</returns>
+        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
+        {
+            var w = Cast<DebugUI.MessageBox>(widget);
+
+            var rect = PrepareControlRect();
+
+            var style = EditorStyles.label;
+            var color = w.style switch
+            {
+                DebugUI.MessageBox.Style.Info => new Color32(185, 220, 255, 255),
+                DebugUI.MessageBox.Style.Warning => new Color32(231, 180, 3, 255),
+                DebugUI.MessageBox.Style.Error => new Color32(231, 75, 3, 255),
+                _ => (Color32)Color.white
+            };
+
+            var oldColor = GUI.color;
+            GUI.color = color;
+            EditorGUI.LabelField(rect, EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), EditorStyles.helpBox);
+            GUI.color = oldColor;
+
+            return true;
+        }
+    }
+
+    /// <summary>
     /// Builtin Drawer for Container Debug Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.Container))]

@@ -5,6 +5,25 @@ namespace UnityEngine.Rendering.Universal
 {
     class DebugDisplaySettingsCommon : IDebugDisplaySettingsData
     {
+        internal static class WidgetFactory
+        {
+            internal static DebugUI.Widget CreateMissingDebugShadersWarning() => new DebugUI.MessageBox
+            {
+                displayName = "Warning: Missing debug shader variants. Ensure \"Strip Debug Variants\" option is disabled in URP Global Settings.",
+                style = DebugUI.MessageBox.Style.Warning,
+                isHiddenCallback = () =>
+                {
+#if UNITY_EDITOR
+                    return true;
+#else
+                    if (UniversalRenderPipelineGlobalSettings.instance != null)
+                        return UniversalRenderPipelineGlobalSettings.instance.supportRuntimeDebugDisplay;
+                    return true;
+#endif
+                }
+            };
+        }
+
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override string PanelName => "Frequently Used";
@@ -13,6 +32,8 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel()
             {
+                AddWidget(DebugDisplaySettingsCommon.WidgetFactory.CreateMissingDebugShadersWarning());
+
                 var materialSettingsData = DebugDisplaySettings.Instance.MaterialSettings;
                 AddWidget(new DebugUI.Foldout
                 {
