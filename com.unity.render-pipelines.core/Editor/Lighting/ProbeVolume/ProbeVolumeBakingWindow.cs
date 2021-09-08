@@ -343,6 +343,13 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUILayout.EndVertical();
         }
 
+        void SanitizeScenes()
+        {
+            // Remove entries in the list pointing to deleted scenes
+            foreach (var set in sceneData.bakingSets)
+                set.sceneGUIDs.RemoveAll(guid => FindSceneData(guid).asset == null);
+        }
+
         void DrawRightPanel()
         {
             EditorGUIUtility.labelWidth = k_RightPanelLabelWidth;
@@ -351,6 +358,7 @@ namespace UnityEngine.Experimental.Rendering
 
             EditorGUILayout.LabelField("Probe Volume Settings", m_SubtitleStyle);
             EditorGUILayout.Space();
+            SanitizeScenes();
             m_ScenesInSet.DoLayoutList();
 
             var set = GetCurrentBakingSet();
