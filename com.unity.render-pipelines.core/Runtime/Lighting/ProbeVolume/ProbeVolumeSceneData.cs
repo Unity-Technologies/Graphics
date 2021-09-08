@@ -55,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering
         internal class BakingSet
         {
             public string name;
-            public List<string> sceneGUIDs;
+            public List<string> sceneGUIDs = new List<string>();
         }
 
         [SerializeField] List<SerializableBoundItem> serializedBounds;

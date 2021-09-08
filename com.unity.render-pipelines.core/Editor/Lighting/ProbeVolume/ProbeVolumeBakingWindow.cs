@@ -315,7 +315,7 @@ namespace UnityEngine.Experimental.Rendering
             m_ScenesInSet.DoLayoutList();
 
             var set = GetCurrentBakingSet();
-            if (set.sceneGUIDs.Count > 0)
+            if (set.sceneGUIDs?.Count > 0)
             {
                 EditorGUILayout.Space();
 
