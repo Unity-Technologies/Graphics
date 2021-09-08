@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### changed
 - Visual Environment ambient mode is now Dynamic by default.
+- Changed the number of steps to evaluate the shadow from 9 to 16.
+
+### Added
+- Added an option for the ultra 1024x1024 mode for the volumetric cloud shadows and a filtering pass to reduce the aliasing artifacts of the clouds shadow.
 
 ## [12.0.0] - 2021-01-11
 
