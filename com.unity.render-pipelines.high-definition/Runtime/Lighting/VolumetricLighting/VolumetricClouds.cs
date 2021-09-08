@@ -80,10 +80,12 @@ namespace UnityEngine.Rendering.HighDefinition
             Medium256 = 256,
             /// <summary>The volumetric clouds shadow will be 512x512.</summary>
             High512 = 512,
+            /// <summary>The volumetric clouds shadow will be 1024x1024.</summary>
+            Ultra1024 = 1024,
         }
 
         /// <summary> </summary>
-        public const int CloudShadowResolutionCount = 4;
+        public const int CloudShadowResolutionCount = 5;
 
         /// <summary>
         /// A <see cref="VolumeParameter"/> that holds a <see cref="CloudControl"/> value.

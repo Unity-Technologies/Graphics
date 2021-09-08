@@ -481,6 +481,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CloudsAdditionalTextureRW = Shader.PropertyToID("_CloudsAdditionalTextureRW");
         public static readonly int _VolumetricCloudsTexture = Shader.PropertyToID("_VolumetricCloudsTexture");
         public static readonly int _VolumetricCloudsTextureRW = Shader.PropertyToID("_VolumetricCloudsTextureRW");
+        public static readonly int _VolumetricCloudsShadow = Shader.PropertyToID("_VolumetricCloudsShadow");
         public static readonly int _VolumetricCloudsShadowRW = Shader.PropertyToID("_VolumetricCloudsShadowRW");
         public static readonly int _VolumetricCloudsUpscaleTextureRW = Shader.PropertyToID("_VolumetricCloudsUpscaleTextureRW");
         public static readonly int _HistoryVolumetricClouds0Texture = Shader.PropertyToID("_HistoryVolumetricClouds0Texture");
