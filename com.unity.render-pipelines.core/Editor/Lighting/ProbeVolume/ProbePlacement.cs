@@ -277,7 +277,7 @@ namespace UnityEngine.Experimental.Rendering
                         // In case there is at least one brick in the sub-cell, we need to spawn the parent brick.
                         if (brickCount != brickSet.Count)
                         {
-                            float minBrickSize = subdivisionCtx.refVolume.profile.minBrickSize;
+                            float minBrickSize = subdivisionCtx.profile.minBrickSize;
                             Vector3 cellID = (cellAABB.center - cellAABB.extents) / minBrickSize;
                             float parentSubdivLevel = 3.0f;
                             for (int i = k_MaxSubdivisionInSubCell; i < ctx.maxSubdivisionLevel; i++)
@@ -350,7 +350,7 @@ namespace UnityEngine.Experimental.Rendering
             List<(Terrain terrain, ProbeReferenceVolume.Volume volume)> terrains, HashSet<Brick> brickSet)
         {
             var cellAABB = cellVolume.CalculateAABB();
-            float minBrickSize = subdivisionCtx.refVolume.profile.minBrickSize;
+            float minBrickSize = subdivisionCtx.profile.minBrickSize;
 
             cellVolume.CalculateCenterAndSize(out var center, out var _);
             var cmd = CommandBufferPool.Get($"Subdivide (Sub)Cell {center}");

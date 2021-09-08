@@ -18,13 +18,26 @@ namespace UnityEngine.Rendering
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         static void RuntimeInit()
         {
-            if (FindObjectOfType<DebugUpdater>() != null)
+            if (!DebugManager.instance.enableRuntimeUI || FindObjectOfType<DebugUpdater>() != null)
                 return;
 
+            EnableRuntime();
+        }
+
+        internal static void SetEnabled(bool enabled)
+        {
+            if (enabled)
+                EnableRuntime();
+            else
+                DisableRuntime();
+        }
+
+        static void EnableRuntime()
+        {
             var go = new GameObject { name = "[Debug Updater]" };
             var debugUpdater = go.AddComponent<DebugUpdater>();
 
-            var es = GameObject.FindObjectOfType<EventSystem>();
+            var es = FindObjectOfType<EventSystem>();
             if (es == null)
             {
                 go.AddComponent<EventSystem>();
@@ -71,6 +84,21 @@ namespace UnityEngine.Rendering
             debugUpdater.m_Orientation = Screen.orientation;
 
             DontDestroyOnLoad(go);
+
+            DebugManager.instance.EnableInputActions();
+        }
+
+        static void DisableRuntime()
+        {
+            DebugManager debugManager = DebugManager.instance;
+            debugManager.displayRuntimeUI = false;
+            debugManager.displayPersistentRuntimeUI = false;
+
+            var debugUpdater = FindObjectOfType<DebugUpdater>();
+            if (debugUpdater != null)
+            {
+                CoreUtils.Destroy(debugUpdater.gameObject);
+            }
         }
 
         void Update()
@@ -82,8 +110,7 @@ namespace UnityEngine.Rendering
             if (debugManager.GetAction(DebugAction.EnableDebugMenu) != 0.0f ||
                 debugManager.GetActionToggleDebugMenuWithTouch())
             {
-                if (debugManager.enableWindowHotkey)
-                    debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
+                debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
             }
 
             if (debugManager.displayRuntimeUI)
