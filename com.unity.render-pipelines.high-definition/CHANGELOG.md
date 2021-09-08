@@ -15,9 +15,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed specular occlusion sharpness and over darkening at grazing angles.
 - Fixed edge bleeding when rendering volumetric clouds.
 - Fixed regression in the ambient probe intensity for volumetric clouds.
+- Fixed the sun leaking from behind fully opaque clouds.
 
-### changed
+### Changed
 - Visual Environment ambient mode is now Dynamic by default.
+- Changed the volumetric clouds presets.
 
 ## [12.0.0] - 2021-01-11
 
