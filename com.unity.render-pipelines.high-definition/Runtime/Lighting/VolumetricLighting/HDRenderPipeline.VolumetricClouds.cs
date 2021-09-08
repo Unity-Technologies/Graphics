@@ -375,7 +375,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Convert to kilometers
             cb._LowestCloudAltitude = settings.lowestCloudAltitude.value;
-            cb._HighestCloudAltitude = settings.lowestCloudAltitude.value + settings.cloudThickness.value;
+
+            // When in non local mode, the camera is supposed to be always stricly under the clouds
+            // to avoid artifactss due to precision issues, when in non local, the clouds are always 1 meter above the camera.
+            if (!settings.localClouds.value)
+                cb._LowestCloudAltitude = Mathf.Max(cb._LowestCloudAltitude, 1.0f);
+
+            cb._HighestCloudAltitude = cb._LowestCloudAltitude + settings.cloudThickness.value;
             cb._EarthRadius = Mathf.Lerp(1.0f, 0.025f, settings.earthCurvature.value) * k_EarthRadius;
             cb._CloudRangeSquared.Set(Square(cb._LowestCloudAltitude + cb._EarthRadius), Square(cb._HighestCloudAltitude + cb._EarthRadius));
 
