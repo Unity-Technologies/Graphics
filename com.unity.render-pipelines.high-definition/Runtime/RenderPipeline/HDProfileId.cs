@@ -90,13 +90,16 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepareVisibleLocalVolumetricFogList,
         UpdateLocalVolumetricFogAtlas,
 
+        // Volumetric clouds
         VolumetricClouds,
         VolumetricCloudsPrepare,
         VolumetricCloudsTrace,
         VolumetricCloudsReproject,
+        VolumetricCloudsPreUpscale,
         VolumetricCloudsUpscaleAndCombine,
         VolumetricCloudsShadow,
         VolumetricCloudMapGeneration,
+        VolumetricCloudsAmbientProbe,
 
         // RT Cluster
         RaytracingBuildCluster,
@@ -191,6 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DynamicExposure,
         ApplyExposure,
         TemporalAntialiasing,
+        DeepLearningSuperSamplingColorMask,
         DeepLearningSuperSampling,
         DepthOfField,
         DepthOfFieldKernel,
@@ -222,9 +226,12 @@ namespace UnityEngine.Rendering.HighDefinition
         FinalImageHistogram,
         CustomPostProcessBeforeTAA,
         CustomPostProcessBeforePP,
+        CustomPostProcessAfterPPBlurs,
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
         ContrastAdaptiveSharpen,
+        RobustContrastAdaptiveSharpen,
+        EdgeAdaptiveSpatialUpsampling,
         PrepareProbeVolumeList,
         ProbeVolumeDebug,
 

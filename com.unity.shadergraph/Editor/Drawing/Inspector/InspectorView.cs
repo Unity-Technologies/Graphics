@@ -82,6 +82,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_NodeSettingsContainer = m_GraphInspectorView.Q<VisualElement>("NodeSettingsContainer");
             m_MaxItemsMessageLabel = m_GraphInspectorView.Q<Label>("maxItemsMessageLabel");
             m_ContentContainer.Add(m_GraphInspectorView);
+            m_ScrollView = this.Q<ScrollView>();
+            m_GraphInspectorView.Q<TabButton>("GraphSettingsButton").OnSelect += SetScrollModeHorizontal;
+            m_GraphInspectorView.Q<TabButton>("NodeSettingsButton").OnSelect += SetScrollModeHorizontalVertical;
 
             isWindowScrollable = true;
             isWindowResizable = true;
@@ -95,6 +98,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             // By default at startup, show graph settings
             m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("GraphSettingsButton"));
+        }
+
+        void SetScrollModeHorizontal(TabButton button)
+        {
+            m_ScrollView.mode = ScrollViewMode.Vertical;
+        }
+
+        void SetScrollModeHorizontalVertical(TabButton button)
+        {
+            m_ScrollView.mode = ScrollViewMode.VerticalAndHorizontal;
         }
 
         public void InitializeGraphSettings()
@@ -214,7 +227,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 if (attribute == null)
                     continue;
 
-                var propertyType = propertyInfo.GetGetMethod(true).Invoke(inspectable, new object[] {}).GetType();
+                var propertyType = propertyInfo.GetGetMethod(true).Invoke(inspectable, new object[] { }).GetType();
 
                 if (IsPropertyTypeHandled(propertyDrawerList, propertyType, out var propertyDrawerTypeToUse))
                 {

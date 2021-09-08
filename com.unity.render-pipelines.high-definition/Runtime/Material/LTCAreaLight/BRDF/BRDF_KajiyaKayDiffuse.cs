@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
     /// </summary>
     struct BRDF_KajiyaKayDiffuse : IBRDF
     {
-        public double   Eval(ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf)
+        public double Eval(ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf)
         {
             if (_tsView.z <= 0)
             {
@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
 
             _alpha = Mathf.Max(0.002f, _alpha);
 
-            double  NdotL = Math.Max(0, _tsLight.z);
+            double NdotL = Math.Max(0, _tsLight.z);
 
             // Cosine-weighted hemisphere sampling
             _pdf = NdotL / Math.PI;
@@ -32,8 +32,8 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
         {
             // Performs uniform sampling of the unit disk.
             // Ref: PBRT v3, p. 777.
-            float   r = Mathf.Sqrt(_U1);
-            float   phi = 2.0f * Mathf.PI * _U2;
+            float r = Mathf.Sqrt(_U1);
+            float phi = 2.0f * Mathf.PI * _U2;
 
             // Performs cosine-weighted sampling of the hemisphere.
             // Ref: PBRT v3, p. 780.

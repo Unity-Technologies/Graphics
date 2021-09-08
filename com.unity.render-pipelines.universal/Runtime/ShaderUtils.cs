@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.Universal
 
     public static class ShaderUtils
     {
-        static readonly string[] s_ShaderPaths  =
+        static readonly string[] s_ShaderPaths =
         {
             "Universal Render Pipeline/Lit",
             "Universal Render Pipeline/Simple Lit",
@@ -74,7 +74,12 @@ namespace UnityEngine.Rendering.Universal
             "99134b1f0c27d54469a840832a28fadf",
         };
 
-        internal static string GetShaderGUID(ShaderPathID id)
+        /// <summary>
+        /// Returns shader from shader path id.
+        /// </summary>
+        /// <param name="id">Id of shader path.</param>
+        /// <returns></returns>
+        public static string GetShaderGUID(ShaderPathID id)
         {
             int index = (int)id;
             int arrayLength = s_ShaderGUIDs.Length;

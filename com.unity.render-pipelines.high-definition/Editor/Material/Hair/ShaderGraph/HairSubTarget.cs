@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string raytracingInclude => CoreIncludes.kHairRaytracing;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Hair SubShader", "");
         protected override bool requireSplitLighting => false;
-        protected override bool supportPathtracing => false;
+        protected override bool supportPathtracing => true;
         protected override string pathtracingInclude => CoreIncludes.kHairPathtracing;
 
         HairData m_HairData;
@@ -50,13 +50,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_HairData = value;
         }
 
-        public static FieldDescriptor KajiyaKay =                new FieldDescriptor(kMaterial, "KajiyaKay", "_MATERIAL_FEATURE_HAIR_KAJIYA_KAY 1");
-        public static FieldDescriptor Marschner =                new FieldDescriptor(kMaterial, "Marschner", "_MATERIAL_FEATURE_HAIR_MARSCHNER 1");
+        public static FieldDescriptor KajiyaKay = new FieldDescriptor(kMaterial, "KajiyaKay", "_MATERIAL_FEATURE_HAIR_KAJIYA_KAY 1");
+        public static FieldDescriptor Marschner = new FieldDescriptor(kMaterial, "Marschner", "_MATERIAL_FEATURE_HAIR_MARSCHNER 1");
         public static FieldDescriptor RimTransmissionIntensity = new FieldDescriptor(string.Empty, "RimTransmissionIntensity", "_RIM_TRANSMISSION_INTENSITY 1");
-        public static FieldDescriptor HairStrandDirection =      new FieldDescriptor(string.Empty, "HairStrandDirection", "_HAIR_STRAND_DIRECTION 1");
-        public static FieldDescriptor UseLightFacingNormal =     new FieldDescriptor(string.Empty, "UseLightFacingNormal", "_USE_LIGHT_FACING_NORMAL 1");
-        public static FieldDescriptor Transmittance =            new FieldDescriptor(string.Empty, "Transmittance", "_TRANSMITTANCE 1");
-        public static FieldDescriptor ScatteringDensityVolume  = new FieldDescriptor(string.Empty, "ScatteringDensityVolume", "_USE_DENSITY_VOLUME_SCATTERING 1");
+        public static FieldDescriptor HairStrandDirection = new FieldDescriptor(string.Empty, "HairStrandDirection", "_HAIR_STRAND_DIRECTION 1");
+        public static FieldDescriptor UseLightFacingNormal = new FieldDescriptor(string.Empty, "UseLightFacingNormal", "_USE_LIGHT_FACING_NORMAL 1");
+        public static FieldDescriptor Transmittance = new FieldDescriptor(string.Empty, "Transmittance", "_TRANSMITTANCE 1");
+        public static FieldDescriptor UseRoughenedAzimuthalScattering = new FieldDescriptor(string.Empty, "UseRoughenedAzimuthalScattering", "_USE_ROUGHENED_AZIMUTHAL_SCATTERING 1");
+        public static FieldDescriptor ScatteringDensityVolume = new FieldDescriptor(string.Empty, "ScatteringDensityVolume", "_USE_DENSITY_VOLUME_SCATTERING 1");
 
         public override void GetFields(ref TargetFieldContext context)
         {
@@ -65,16 +66,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var descs = context.blocks.Select(x => x.descriptor);
 
             // Hair specific properties:
-            context.AddField(KajiyaKay,                            hairData.materialType == HairData.MaterialType.KajiyaKay);
-            context.AddField(Marschner,                            hairData.materialType == HairData.MaterialType.Marschner);
-            context.AddField(HairStrandDirection,                  descs.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection));
-            context.AddField(RimTransmissionIntensity,             descs.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
-            context.AddField(UseLightFacingNormal,                 hairData.useLightFacingNormal);
-            context.AddField(Transmittance,                        descs.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
-            context.AddField(ScatteringDensityVolume,     hairData.scatteringMode == HairData.ScatteringMode.DensityVolume);
+            context.AddField(KajiyaKay, hairData.materialType == HairData.MaterialType.KajiyaKay);
+            context.AddField(Marschner, hairData.materialType == HairData.MaterialType.Marschner);
+            context.AddField(HairStrandDirection, descs.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection));
+            context.AddField(RimTransmissionIntensity, descs.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
+            context.AddField(UseLightFacingNormal, hairData.geometryType == HairData.GeometryType.Strands);
+            context.AddField(Transmittance, descs.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
+            context.AddField(UseRoughenedAzimuthalScattering, hairData.useRoughenedAzimuthalScattering);
+            context.AddField(ScatteringDensityVolume, hairData.scatteringMode == HairData.ScatteringMode.DensityVolume);
 
             // Misc
-            context.AddField(SpecularAA,                           lightingData.specularAA &&
+            context.AddField(SpecularAA, lightingData.specularAA &&
                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
         }
@@ -84,12 +86,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetActiveBlocks(ref context);
 
             // Hair specific blocks
-            // TODO: Find common parameters between the two material types, if any.
+            context.AddBlock(HDBlockFields.SurfaceDescription.HairStrandDirection);
+
+            // Parametrization for Kajiya-Kay and Marschner models.
             if (hairData.materialType == HairData.MaterialType.KajiyaKay)
             {
                 context.AddBlock(HDBlockFields.SurfaceDescription.Transmittance);
                 context.AddBlock(HDBlockFields.SurfaceDescription.RimTransmissionIntensity);
-                context.AddBlock(HDBlockFields.SurfaceDescription.HairStrandDirection);
                 context.AddBlock(HDBlockFields.SurfaceDescription.SpecularTint);
                 context.AddBlock(HDBlockFields.SurfaceDescription.SpecularShift);
                 context.AddBlock(HDBlockFields.SurfaceDescription.SecondarySpecularTint);
@@ -98,12 +101,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             else
             {
-                context.AddBlock(HDBlockFields.SurfaceDescription.HairStrandDirection);
-                context.AddBlock(HDBlockFields.SurfaceDescription.LongitudinalRoughness);
-                context.AddBlock(HDBlockFields.SurfaceDescription.AzimuthalRoughness);
-                context.AddBlock(HDBlockFields.SurfaceDescription.PrimaryReflectionRoughness);
-                context.AddBlock(HDBlockFields.SurfaceDescription.RefractionIndex);
+                context.AddBlock(HDBlockFields.SurfaceDescription.RadialSmoothness, hairData.useRoughenedAzimuthalScattering);
                 context.AddBlock(HDBlockFields.SurfaceDescription.CuticleAngle);
+
+                // TODO: Refraction Index
+                // Right now, the Marschner model implicitly assumes a human hair IOR of 1.55.
             }
         }
 

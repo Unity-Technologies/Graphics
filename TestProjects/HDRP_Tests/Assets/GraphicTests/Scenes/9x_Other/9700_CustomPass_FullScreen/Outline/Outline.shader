@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Outline"
+Shader "Hidden/Outline"
 {
     HLSLINCLUDE
 
@@ -17,7 +17,7 @@
     #define c45 0.707107
     #define c225 0.9238795
     #define s225 0.3826834
-    
+
     #define MAXSAMPLES 8
     // Neighbour pixel positions
     static float2 samplingPositions[MAXSAMPLES] =

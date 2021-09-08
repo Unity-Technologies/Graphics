@@ -191,7 +191,7 @@
     * [User Options](Compositor-User-Options.md)
 * Debugging
   * [MatCap](MatCap.md)
-  * [Render Pipeline Debugger Window](Render-Pipeline-Debug-Window.md)
+  * [Rendering Debugger](Render-Pipeline-Debug-Window.md)
 * Virtual Reality
   * [VR Overview](VR-Overview.md)
 * Consoles
