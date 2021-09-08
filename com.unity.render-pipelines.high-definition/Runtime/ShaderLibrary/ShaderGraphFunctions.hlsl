@@ -27,20 +27,19 @@ float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStatic
     return SampleBakedGI(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap);
 }
 
-void shadergraph_HDGetMainLight(out float3 direction, out float3 color)
+float3 shadergraph_HDMainLightDirection()
 {
-    direction = 0.0f;
-    color = 0.0f;
 #if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
     uint lightIndex = _DirectionalShadowIndex;
     if (_DirectionalShadowIndex < 0)
     {
         if (_DirectionalLightCount == 0)
-            return;
+            return 0.0f;
         lightIndex = 0;
     }
-    direction = -_DirectionalLightDatas[lightIndex].forward;
-    color = _DirectionalLightDatas[lightIndex].color;
+    return -_DirectionalLightDatas[lightIndex].forward;
+#else
+    return 0.0f;
 #endif
 }
 
@@ -63,10 +62,10 @@ void shadergraph_HDGetMainLight(out float3 direction, out float3 color)
 #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 
 
-#ifdef SHADERGRAPH_GET_MAIN_LIGHT
-#undef SHADERGRAPH_GET_MAIN_LIGHT
+#ifdef SHADERGRAPH_MAIN_LIGHT_DIRECTION
+#undef SHADERGRAPH_MAIN_LIGHT_DIRECTION
 #endif
-#define SHADERGRAPH_GET_MAIN_LIGHT shadergraph_HDGetMainLight
+#define SHADERGRAPH_MAIN_LIGHT_DIRECTION shadergraph_HDMainLightDirection
 
 
 #endif // UNITY_GRAPHFUNCTIONS_HD_INCLUDED
