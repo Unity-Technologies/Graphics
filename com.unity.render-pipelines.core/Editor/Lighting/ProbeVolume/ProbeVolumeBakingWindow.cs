@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering
         SerializedProperty m_ProbeSceneData;
         bool m_RenameSelectedBakingSet;
         [System.NonSerialized]
-        bool m_StyleInitialized;
+        bool m_Initialized;
 
         List<SceneData> m_ScenesInProject = new List<SceneData>();
 
@@ -69,38 +69,40 @@ namespace UnityEngine.Experimental.Rendering
 
             RefreshSceneAssets();
             m_DrawHorizontalSplitter = typeof(EditorGUIUtility).GetMethod("DrawHorizontalSplitter", BindingFlags.NonPublic | BindingFlags.Static);
+
+            Undo.undoRedoPerformed -= RefreshAfterUndo;
+            Undo.undoRedoPerformed += RefreshAfterUndo;
         }
 
         void OnDisable()
         {
+            Undo.undoRedoPerformed -= RefreshAfterUndo;
             if (m_ProbeVolumeProfileEditor != null)
                 Object.DestroyImmediate(m_ProbeVolumeProfileEditor);
         }
 
-        void InitializeStyles()
+        void Initialize()
         {
-            if (m_StyleInitialized)
+            if (m_Initialized)
                 return;
 
             m_SubtitleStyle = new GUIStyle(EditorStyles.boldLabel);
             m_SubtitleStyle.fontSize = 20;
 
-            m_StyleInitialized = true;
-        }
-
-        void InitializeBakingSetListIfNeeded()
-        {
-            if (m_BakingSets != null)
-                return;
-
             m_SerializedObject = new SerializedObject(sceneData.parentAsset);
             m_ProbeSceneData = m_SerializedObject.FindProperty(sceneData.parentSceneDataPropertyName);
 
+            InitializeBakingSetList();
+
+            m_Initialized = true;
+        }
+
+        void InitializeBakingSetList()
+        {
             m_BakingSets = new ReorderableList(sceneData.bakingSets, typeof(ProbeVolumeSceneData.BakingSet), false, false, true, true);
             m_BakingSets.multiSelect = false;
             m_BakingSets.drawElementCallback = (rect, index, active, focused) =>
             {
-                m_SerializedObject.Update();
                 // Draw the renamable label for the baking set name
                 string key = k_RenameFocusKey + index;
                 if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
@@ -131,6 +133,7 @@ namespace UnityEngine.Experimental.Rendering
 
             m_BakingSets.onAddCallback = (list) =>
             {
+                Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added new baking set");
                 sceneData.bakingSets.Add(new ProbeVolumeSceneData.BakingSet
                 {
                     name = "New Baking Set",
@@ -146,7 +149,18 @@ namespace UnityEngine.Experimental.Rendering
                 }
             };
 
+            m_BakingSets.index = 0;
+
             OnBakingSetSelected(m_BakingSets);
+        }
+
+        void RefreshAfterUndo()
+        {
+            InitializeBakingSetList();
+
+            OnBakingSetSelected(m_BakingSets);
+
+            Repaint();
         }
 
         void RefreshSceneAssets()
@@ -239,6 +253,11 @@ namespace UnityEngine.Experimental.Rendering
 
                 menu.ShowAsContext();
             };
+            m_ScenesInSet.onRemoveCallback = (list) =>
+            {
+                Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted scene in baking set");
+                ReorderableList.defaultBehaviours.DoRemoveButton(list);
+            };
 
             void TryAddScene(SceneData scene)
             {
@@ -257,6 +276,7 @@ namespace UnityEngine.Experimental.Rendering
                     set.sceneGUIDs.Add(scene.guid);
 
                 SyncBakingSetSettings();
+                m_SerializedObject.Update();
             }
         }
 
@@ -288,8 +308,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // The window can load before the APV system
-            InitializeStyles();
-            InitializeBakingSetListIfNeeded();
+            Initialize();
 
             EditorGUI.BeginChangeCheck();
 
