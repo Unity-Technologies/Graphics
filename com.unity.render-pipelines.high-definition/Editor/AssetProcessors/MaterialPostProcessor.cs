@@ -70,40 +70,22 @@ namespace UnityEditor.Rendering.HighDefinition
         [InitializeOnLoadMethod]
         static void RegisterUpgraderReimport()
         {
-            UnityEditor.MaterialPostProcessor.onImportedMaterial += OnImportedMaterial;
+            UnityEditor.MaterialPostprocessor.OnImportedMaterial += OnImportedMaterial;
+            UnityEditor.MaterialPostprocessor.CustomShaderDependencyName += ShaderDependency;
 
             // Register custom dependency on Material version
             AssetDatabase.RegisterCustomDependency(materialVersionDependencyName, Hash128.Compute(MaterialPostprocessor.k_Upgraders.Length));
             AssetDatabase.Refresh();
         }
 
-        // TODOJENNY: [HACK] remove this when Material class add custom dependency itself
-        // we need to ensure existing mat also have the dependency
-        void OnPreprocessAsset()
+        private static string ShaderDependency(Shader shader)
         {
-            if (!UnityEditor.MaterialPostProcessor.IsMaterialPath(assetPath))
-                return;
-
-            var objs = InternalEditorUtility.LoadSerializedFileAndForget(assetPath);
-            foreach (var obj in objs)
-            {
-                if (obj is Material material)
-                {
-                    // check if URP material
-                    if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
-                        continue;
-
-                    context.DependsOnCustomDependency(materialVersionDependencyName);
-
-                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(material.shader, out var guid, out long _);
-                    //context.DependsOnArtifact(new GUID(guid)); //artifact is the result of an import
-                    context.DependsOnSourceAsset(new GUID(guid)); //TODOJENNY try this until the other one works
-                }
-            }
+            return HDShaderUtils.IsHDRPShader(shader, upgradable: true) ? materialVersionDependencyName : string.Empty;
         }
 
         internal static List<string> s_CreatedAssets = new List<string>();
 
+        //TODOJENNY: why is that here and not somewhere in its own class specialized for speedtree?
         void OnPostprocessMaterial(Material material)
         {
             if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))

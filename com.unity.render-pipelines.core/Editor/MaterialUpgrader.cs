@@ -376,14 +376,14 @@ namespace UnityEditor.Rendering
             int totalMaterialCount = 0;
             foreach (string s in UnityEditor.AssetDatabase.GetAllAssetPaths())
             {
-                if (UnityEditor.MaterialPostProcessor.IsMaterialPath(s))
+                if (UnityEditor.MaterialPostprocessor.IsMaterialPath(s))
                     totalMaterialCount++;
             }
 
             int materialIndex = 0;
             foreach (string path in UnityEditor.AssetDatabase.GetAllAssetPaths())
             {
-                if (UnityEditor.MaterialPostProcessor.IsMaterialPath(path))
+                if (UnityEditor.MaterialPostprocessor.IsMaterialPath(path))
                 {
                     materialIndex++;
                     if (UnityEditor.EditorUtility.DisplayCancelableProgressBar(progressBarName, string.Format("({0} of {1}) {2}", materialIndex, totalMaterialCount, path), (float)materialIndex / (float)totalMaterialCount))
