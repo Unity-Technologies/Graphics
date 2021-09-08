@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Assertions;
-using UnityEngine.Pool;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
@@ -12,6 +11,11 @@ namespace UnityEngine.Rendering.PostProcessing
     /// </summary>
     public sealed class PostProcessManager
     {
+        // Cached list to avoid reallocation of List<>
+        static List<PostProcessVolume> s_GetActiveVolumesCachedList = new List<PostProcessVolume>();
+        // Cached list to avoid reallocation of List<>
+        static List<PostProcessVolume> s_UpdateSettingsVolumeCachedList = new List<PostProcessVolume>();
+
         static PostProcessManager s_Instance;
 
         /// <summary>
@@ -113,17 +117,17 @@ namespace UnityEngine.Rendering.PostProcessing
             var triggerPos = onlyGlobal ? Vector3.zero : volumeTrigger.position;
 
             // Sort the cached volume list(s) for the given layer mask if needed and return it
-            using (ListPool<PostProcessVolume>.Get(out var volumes))
+            s_GetActiveVolumesCachedList.Clear();
             {
                 Exception e;
-                if ((e = m_Volumes.FindSortedVolumesByLayerMask(mask, volumes)) != null)
+                if ((e = m_Volumes.FindSortedVolumesByLayerMask(mask, s_GetActiveVolumesCachedList)) != null)
                 {
                     Debug.LogException(e);
                     return;
                 }
 
                 // Traverse all volumes
-                foreach (var volume in volumes)
+                foreach (var volume in s_GetActiveVolumesCachedList)
                 {
                     // Skip disabled volumes and volumes without any data or weight
                     if ((skipDisabled && !volume.enabled) || volume.profileRef == null || (skipZeroWeight && volume.weight <= 0f))
@@ -269,23 +273,23 @@ namespace UnityEngine.Rendering.PostProcessing
             var triggerPos = onlyGlobal ? Vector3.zero : volumeTrigger.position;
 
             // Sort the cached volume list(s) for the given layer mask if needed and return it
-            using (ListPool<PostProcessVolume>.Get(out var volumes))
+            s_UpdateSettingsVolumeCachedList.Clear();
             {
                 Exception e;
-                if ((e = m_Volumes.FindSortedVolumesByLayerMask(mask, volumes)) != null)
+                if ((e = m_Volumes.FindSortedVolumesByLayerMask(mask, s_UpdateSettingsVolumeCachedList)) != null)
                 {
                     Debug.LogException(e);
                     return;
                 }
 
                 // Traverse all volumes
-                foreach (var volume in volumes)
+                foreach (var volume in s_UpdateSettingsVolumeCachedList)
                 {
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
                     // Skip volumes that aren't in the scene currently displayed in the scene view
                     if (!IsVolumeRenderedByCamera(volume, camera))
                         continue;
-    #endif
+#endif
 
                     // Skip disabled volumes and volumes without any data or weight
                     if (!volume.enabled || volume.profileRef == null || volume.weight <= 0f)
