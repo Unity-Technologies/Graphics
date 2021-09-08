@@ -4,26 +4,29 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Volume debug settings.
     /// </summary>
-    public class VolumeDebugSettings
+    public abstract class VolumeDebugSettings<T> : IVolumeDebugSettings
+        where T : MonoBehaviour, IAdditionalData
     {
         /// <summary>Current volume component to debug.</summary>
-        internal int selectedComponent = 0;
+        public int selectedComponent { get; set; } = 0;
+
         int m_SelectedCamera = 0;
 
-        internal int selectedCameraIndex
+        /// <summary>Selected camera index</summary>
+        public int selectedCameraIndex
         {
             get
             {
 #if UNITY_EDITOR
-                if (m_SelectedCamera < 0 || m_SelectedCamera > cameras.Count + 1)
+                if (m_SelectedCamera < 0 || m_SelectedCamera > additionalCameraDatas.Count + 1)
                     return 0;
 #else
-                if (m_SelectedCamera < 0 || m_SelectedCamera > cameras.Count)
+                if (m_SelectedCamera < 0 || m_SelectedCamera > additionalCameraDatas.Count)
                     return 0;
 #endif
                 return m_SelectedCamera;
@@ -37,77 +40,40 @@ namespace UnityEngine.Rendering.HighDefinition
             get
             {
 #if UNITY_EDITOR
-                if (m_SelectedCamera <= 0 || m_SelectedCamera > cameras.Count + 1)
+                if (m_SelectedCamera <= 0 || m_SelectedCamera > additionalCameraDatas.Count + 1)
                     return null;
                 if (m_SelectedCamera == 1)
                     return SceneView.lastActiveSceneView.camera;
                 else
-                    return cameras[m_SelectedCamera - 2].GetComponent<Camera>();
+                    return additionalCameraDatas[m_SelectedCamera - 2].GetComponent<Camera>();
 #else
-                if (m_SelectedCamera <= 0 || m_SelectedCamera > cameras.Count)
+                if (m_SelectedCamera <= 0 || m_SelectedCamera > additionalCameraDatas.Count)
                     return null;
-                return cameras[m_SelectedCamera - 1].GetComponent<Camera>();
+                return additionalCameraDatas[m_SelectedCamera - 1].GetComponent<Camera>();
 #endif
+            }
+        }
+
+        /// <summary>Returns the collection of registered cameras</summary>
+        public IEnumerable<Camera> cameras
+        {
+            get
+            {
+                foreach (T additionalCameraData in additionalCameraDatas)
+                {
+                    yield return additionalCameraData.GetComponent<Camera>();
+                }
             }
         }
 
         /// <summary>Selected camera volume stack.</summary>
-        public VolumeStack selectedCameraVolumeStack
-        {
-            get
-            {
-                Camera cam = selectedCamera;
-                if (cam == null)
-                    return null;
-                var stack = HDCamera.GetOrCreate(cam).volumeStack;
-                if (stack != null)
-                    return stack;
-                return VolumeManager.instance.stack;
-            }
-        }
+        public abstract VolumeStack selectedCameraVolumeStack { get; }
 
         /// <summary>Selected camera volume layer mask.</summary>
-        public LayerMask selectedCameraLayerMask
-        {
-            get
-            {
-#if UNITY_EDITOR
-                if (m_SelectedCamera <= 0 || m_SelectedCamera > cameras.Count + 1)
-                    return (LayerMask)0;
-                if (m_SelectedCamera == 1)
-                    return -1;
-                return cameras[m_SelectedCamera - 2].volumeLayerMask;
-#else
-                if (m_SelectedCamera <= 0 || m_SelectedCamera > cameras.Count)
-                    return (LayerMask)0;
-                return cameras[m_SelectedCamera - 1].volumeLayerMask;
-#endif
-            }
-        }
+        public abstract LayerMask selectedCameraLayerMask { get; }
 
         /// <summary>Selected camera volume position.</summary>
-        public Vector3 selectedCameraPosition
-        {
-            get
-            {
-                Camera cam = selectedCamera;
-                if (cam == null)
-                    return Vector3.zero;
-
-                var anchor = HDCamera.GetOrCreate(cam).volumeAnchor;
-                if (anchor == null) // means the hdcamera has not been initialized
-                {
-                    // So we have to update the stack manually
-                    if (cam.TryGetComponent<HDAdditionalCameraData>(out var data))
-                        anchor = data.volumeAnchorOverride;
-                    if (anchor == null) anchor = cam.transform;
-                    var stack = selectedCameraVolumeStack;
-                    if (stack != null)
-                        VolumeManager.instance.Update(stack, anchor, selectedCameraLayerMask);
-                }
-                return anchor.position;
-            }
-        }
+        public abstract Vector3 selectedCameraPosition { get; }
 
         /// <summary>Type of the current component to debug.</summary>
         public Type selectedComponentType
@@ -154,18 +120,26 @@ namespace UnityEngine.Rendering.HighDefinition
             return component.Name;
         }
 
-        internal static List<HDAdditionalCameraData> cameras { get; private set; } = new List<HDAdditionalCameraData>();
+        protected static List<T> additionalCameraDatas { get; private set; } = new List<T>();
 
-        internal static void RegisterCamera(HDAdditionalCameraData camera)
+        /// <summary>
+        /// Register the camera for the Volume Debug
+        /// </summary>
+        /// <param name="additionalCamera">The camera with it's additional camera data</param>
+        public static void RegisterCamera(T additionalCamera)
         {
-            if (!cameras.Contains(camera))
-                cameras.Add(camera);
+            if (!additionalCameraDatas.Contains(additionalCamera))
+                additionalCameraDatas.Add(additionalCamera);
         }
 
-        internal static void UnRegisterCamera(HDAdditionalCameraData camera)
+        /// <summary>
+        /// Unregister the camera for the Volume Debug
+        /// </summary>
+        /// <param name="additionalCamera">The camera with it's additional camera data</param>
+        public static void UnRegisterCamera(T additionalCamera)
         {
-            if (cameras.Contains(camera))
-                cameras.Remove(camera);
+            if (additionalCameraDatas.Contains(additionalCamera))
+                additionalCameraDatas.Remove(additionalCamera);
         }
 
         internal VolumeParameter GetParameter(VolumeComponent component, FieldInfo field)
@@ -277,7 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        internal bool RefreshVolumes(Volume[] newVolumes)
+        public bool RefreshVolumes(Volume[] newVolumes)
         {
             bool ret = false;
             if (volumes == null || !newVolumes.SequenceEqual(volumes))
@@ -304,7 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return ret;
         }
 
-        internal float GetVolumeWeight(Volume volume)
+        public float GetVolumeWeight(Volume volume)
         {
             if (weights == null)
                 return 0;
@@ -323,7 +297,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return 0f;
         }
 
-        internal bool VolumeHasInfluence(Volume volume)
+        /// <summary>
+        /// Return if the <see cref="Volume"/> has influence
+        /// </summary>
+        /// <param name="volume"><see cref="Volume"/> to check the influence</param>
+        /// <returns>If the volume has influence</returns>
+        public bool VolumeHasInfluence(Volume volume)
         {
             if (weights == null)
                 return false;
