@@ -10,7 +10,7 @@ public class SkyboxCamera : MonoBehaviour
 
     private Vector3 mainCamStartPos;
     private Vector3 skyboxCamStartPos;
-    
+
     // Start is called before the first frame update
     void Start()
     {

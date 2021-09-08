@@ -4,11 +4,11 @@ using Cursor = UnityEngine.Cursor;
 [RequireComponent(typeof(CharacterController))]
 public class FirstPersonController : MonoBehaviour
 {
-    [SerializeField] 
+    [SerializeField]
     private float m_MouseSensitivity = 100f;
-    [SerializeField] 
+    [SerializeField]
     private float m_MovementSpeed = 5f;
-    [SerializeField] 
+    [SerializeField]
     private Transform m_PlayerCamera = null;
     [SerializeField]
     private bool m_MoveWithMouse = true;
@@ -17,7 +17,7 @@ public class FirstPersonController : MonoBehaviour
     private float m_XRotation = 0f;
     [SerializeField]
     private byte m_ButtonMovementFlags;
-    
+
     void Start()
     {
 #if ENABLE_INPUT_SYSTEM
@@ -43,7 +43,7 @@ public class FirstPersonController : MonoBehaviour
 
         m_XRotation -= lookInput.y;
         m_XRotation = Mathf.Clamp(m_XRotation, -90f, 90f);
-        
+
         m_PlayerCamera.localRotation = Quaternion.Euler(m_XRotation, 0, 0);
         transform.Rotate(Vector3.up * lookInput.x, Space.World);
     }
@@ -66,7 +66,7 @@ public class FirstPersonController : MonoBehaviour
             mouseX = Input.GetAxis("Mouse X") * m_MouseSensitivity * Time.deltaTime;
             mouseY = Input.GetAxis("Mouse Y") * m_MouseSensitivity * Time.deltaTime;
         }
-        return new Vector2(mouseX,mouseY);
+        return new Vector2(mouseX, mouseY);
     }
 
     private Vector3 GetMovementInput()
@@ -78,7 +78,7 @@ public class FirstPersonController : MonoBehaviour
             x = Input.GetAxis("Horizontal");
             z = Input.GetAxis("Vertical");
         }
-        
-        return new Vector3(x,0, z);
+
+        return new Vector3(x, 0, z);
     }
 }
