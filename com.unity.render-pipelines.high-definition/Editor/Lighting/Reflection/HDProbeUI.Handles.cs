@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
             switch (EditMode.editMode)
             {
                 case EditBaseShape:
-                    InfluenceVolumeUI.DrawHandles_EditBase(serialized.probeSettings.influence, owner, probe.transform);
+                    InfluenceVolumeUI.DrawHandles_EditBase(serialized.probeSettings.influence, owner, probe.transform, serialized.probeSettings.proxyCapturePositionProxySpace);
                     break;
                 case EditInfluenceShape:
                     InfluenceVolumeUI.DrawHandles_EditInfluence(serialized.probeSettings.influence, owner, probe.transform);

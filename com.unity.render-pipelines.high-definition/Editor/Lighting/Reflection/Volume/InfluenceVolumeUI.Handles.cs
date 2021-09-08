@@ -5,12 +5,12 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     partial class InfluenceVolumeUI
     {
-        public static void DrawHandles_EditBase(SerializedInfluenceVolume serialized, Editor owner, Transform transform)
+        public static void DrawHandles_EditBase(SerializedInfluenceVolume serialized, Editor owner, Transform transform, SerializedProperty proxyCapturePositionProxySpace)
         {
             switch ((InfluenceShape)serialized.shape.intValue)
             {
                 case InfluenceShape.Box:
-                    DrawBoxHandle(serialized, owner, transform, s_BoxBaseHandle);
+                    DrawBoxHandle(serialized, owner, transform, s_BoxBaseHandle, proxyCapturePositionProxySpace);
                     break;
                 case InfluenceShape.Sphere:
                     using (new Handles.DrawingScope(Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one)))
@@ -103,12 +103,14 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
         
-        static void DrawBoxHandle(SerializedInfluenceVolume serialized, Editor owner, Transform transform, HierarchicalBox box)
+        static void DrawBoxHandle(SerializedInfluenceVolume serialized, Editor owner, Transform transform, HierarchicalBox box, SerializedProperty proxyCapturePositionProxySpace)
         {
             using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, transform.rotation, Vector3.one)))
             {
                 box.center = Quaternion.Inverse(transform.rotation) * transform.position;
                 box.size = serialized.boxSize.vector3Value;
+
+                Vector3 proxyCapturePositionWS = transform.position + (transform.rotation * proxyCapturePositionProxySpace.vector3Value);
 
                 EditorGUI.BeginChangeCheck();
                 box.DrawHull(true);
@@ -118,6 +120,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     var newPosition = transform.rotation * box.center;
                     Undo.RecordObject(transform, "Moving Influence");
                     transform.position = newPosition;
+
+                    proxyCapturePositionProxySpace.vector3Value = Vector3.Max(serialized.boxSize.vector3Value * -0.5f, Vector3.Min(serialized.boxSize.vector3Value * 0.5f, Quaternion.Inverse(transform.rotation) * (proxyCapturePositionWS - transform.position)));
 
                     // Clamp blend distances
                     var blendPositive = serialized.boxBlendDistancePositive.vector3Value;
