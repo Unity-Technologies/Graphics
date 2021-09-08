@@ -690,37 +690,26 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     }
 #endif
 
-// Random TAG which we expect will never match provided emissive or lightmap value
-#define AO_IN_GBUFFER3_TAG float3((1 << 11), 1, (1 << 10))
+    // Random TAG which we expect will never match provided emissive or lightmap value
+    #define AO_IN_GBUFFER3_TAG float3((1 << 11), 1, (1 << 10))
 
     // RT3 - 11f:11f:10f
     // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor separately.
-    // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
+    // It mean that any futher process that affect bakeDiffuseLighting in the lightloop will also affect emissiveColor, like SSAO for example.
     // For APV (non lightmap case) and SSGI/RTGI/Mixed bakeDiffuseLighting is 0 and below code will simply store emissiveColor
     // Extra hack: In this last case, if emissiveColor is 0 then we store AO inside the buffer with a tag.
-    if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF
-#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
-        || !builtinData.isLightmap
-#endif
-        )
-    {
-        if (all(builtinData.emissiveColor == 0.0))
-        {
-            builtinData.emissiveColor.xz = AO_IN_GBUFFER3_TAG.xz;
-            builtinData.emissiveColor.y = surfaceData.ambientOcclusion;
-        }
-        else
-        {
-            builtinData.emissiveColor *= GetCurrentExposureMultiplier();
-        }
+    outGBuffer3 = float4(builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor, 0.0);
+    // Pre-expose lighting buffer
+    outGBuffer3.rgb *= GetCurrentExposureMultiplier();
 
-        outGBuffer3 = float4(builtinData.emissiveColor, 0.0);
-    }
-    else
+    // If this is 0 it mean that both bakeDiffuseLighting and emissiveColor are 0 and we are potentially in case of one effect
+    // so store AO instead. It doesn't matter if it is a false positive as result will be correct, this is to reduce code divergence
+    // Note: We assume that having non black baseColor * AO * lighting + Emissive is uncommon / rare (We expect mostly baseColor * AO * lighting or Emissive or baseColor * lighting + Emissive)
+    // and use this information as a tradeoff to improve quality in all others cases
+    if (all(outGBuffer3 == 0.0))
     {
-        outGBuffer3 = float4(builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor, 0.0);
-        // Pre-expose lighting buffer
-        outGBuffer3.rgb *= GetCurrentExposureMultiplier();
+        outGBuffer3.xz = AO_IN_GBUFFER3_TAG.xz;
+        outGBuffer3.y = surfaceData.ambientOcclusion;
     }
 
 #ifdef LIGHT_LAYERS
@@ -957,33 +946,31 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // In the regular case the lightmaps/lightprobe are multiply by AO before adding emissive
     float3 gbuffer3 = LOAD_TEXTURE2D_X(_GBufferTexture3, positionSS).rgb;
 
+
+    // In deferred case, AO is apply during the EncodeToGbuffer pass on bakeDiffuseLighting data but not emissive
+    // This cause quality issue because it prevent us to combine it correctly with SSAO (i.e min(SSAO, AO)) + SSAO is apply on emissive
+    // As explain in encoding step for SSGI/RTGI/Mixed and APV not using lightmap, we rely on a hack to retrieve AO
+    // Then we could use the regular path (like in Forward) and get correct rendering.
+    if (gbuffer3.xz == AO_IN_GBUFFER3_TAG.xz)
+        bsdfData.ambientOcclusion = gbuffer3.y;
+    else
+    {
+        gbuffer3 *= GetInverseCurrentExposureMultiplier();
+        bsdfData.ambientOcclusion = 1.0;
+    }
+
+    // For SSGI/RTGI/Mixed and APV not using lightmap we load the content of gbuffer3 in emissive, otherwise it is lightmap/lightprobe + emissive
     if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
         || !builtinData.isLightmap
 #endif
         )
     {
-        // In deferred case, AO is apply during the EncodeToGbuffer pass on bakeDiffuseLighting data but not emissive
-        // This cause quality issue because it prevent us to combine it correctly with SSAO (i.e min(SSAO, AO)) + SSAO is apply on emissive
-        // But in the case we are inside this condition (mean one of the SSGI/RTGI/Mixed or APV effect is on), it mean we have store emissive only and bakeDiffuseLighting will be init in lightloop.
-        // Then we could use the regular path (like in Forward) and get correct rendering.
-        // For this we rely on a hack. We assume that having baseColor + Emissive is not common and that on top of this having this combination that have AO not white is very rare. Then we chose
-        // to store AO if there is no emissive, and in case of emissive we use 1.0 for AO (i.e neutral value). This effectively prevent the rare combination describe above but should be an acceptable tradeoff.
-        if (gbuffer3.xz == AO_IN_GBUFFER3_TAG.xz)
-        {
-            bsdfData.ambientOcclusion = gbuffer3.y;
-        }
-        else
-        {
-            builtinData.emissiveColor = gbuffer3 * GetInverseCurrentExposureMultiplier();
-            bsdfData.ambientOcclusion = 1.0;
-        }
+        builtinData.emissiveColor = gbuffer3;
     }
     else
     {
-        bsdfData.ambientOcclusion = 1.0;
-        // Inverse pre-exposure
-        builtinData.bakeDiffuseLighting = gbuffer3 * GetInverseCurrentExposureMultiplier();
+        builtinData.bakeDiffuseLighting = gbuffer3;
     }
 
     ApplyDebugToBSDFData(bsdfData);
