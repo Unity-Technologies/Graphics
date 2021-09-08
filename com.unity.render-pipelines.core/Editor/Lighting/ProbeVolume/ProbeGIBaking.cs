@@ -320,9 +320,6 @@ namespace UnityEngine.Experimental.Rendering
 
             if (dilationSettings.dilationDistance > 0.0f)
             {
-                // Make sure all pending unloads are done before we reset everything through ForceSHBands.
-                ProbeReferenceVolume.instance.PerformPendingOperations();
-
                 // Force maximum sh bands to perform dilation, we need to store what sh bands was selected from the settings as we need to restore
                 // post dilation.
                 var prevSHBands = ProbeReferenceVolume.instance.shBands;
@@ -421,6 +418,9 @@ namespace UnityEngine.Experimental.Rendering
 
             // Clear baked data
             Clear();
+
+            // Make sure all pending operations are done (needs to be after the Clear to unload all previous scenes)
+            probeRefVolume.PerformPendingOperations();
 
             onAdditionalProbesBakeCompletedCalled = true;
 
