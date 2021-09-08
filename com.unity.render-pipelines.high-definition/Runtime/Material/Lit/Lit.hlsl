@@ -1822,17 +1822,29 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     // of a materia feature and the coat mask.
     float clampedNdotV = ClampNdotV(preLightData.NdotV);
     float F = F_Schlick(CLEAR_COAT_F0, clampedNdotV);
-    lighting.specularReflected = ssrLighting.rgb * (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ?
-                                                    lerp(preLightData.specularFGD, F, bsdfData.coatMask)
-                                                    : preLightData.specularFGD);
-    // Set the default weight value
-    reflectionHierarchyWeight  = ssrLighting.a;
 
-    // In case this is a clear coat material, we only need to add to the reflectionHierarchyWeight the amount of energy that the clear coat has already
-    // provided to the indirect specular lighting. That would be reflectionHierarchyWeight * F (if has a coat mask). In the environement lighting,
-    // we do something similar. The base layer coat is multiplied by (1-coatF)^2, but that we cannot do as we have no lighting to provid for the base layer.
+    // Set the default weight value
+    reflectionHierarchyWeight = ssrLighting.a;
+
+    // If this material has a clear coat, the behavior is more complex
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-        reflectionHierarchyWeight  = lerp(reflectionHierarchyWeight, reflectionHierarchyWeight * F, bsdfData.coatMask);
+    {
+        // We have three possible behaviors in this case:
+        // - The smoothness is superior or equal to 0.9, we approximate the fact that the clear coat and base layer have the same roughness and use the SSR as the indirect specular signal.
+        // - The smoothness is inferior to 0.8. We cannot use the SSR for the base layer, but we use the fresnel to lerp between the two lobes.
+        // - The smooothness is between 0.8 and 0.9, we lerp between the two behaviors.
+        float blendingFactor = lerp(0.0, 1.0, saturate((bsdfData.perceptualRoughness - 0.1) / 0.2));
+        
+        // Combine the three behaviors for the lighting signal
+        lighting.specularReflected = ssrLighting.rgb * lerp(preLightData.specularFGD, lerp(preLightData.specularFGD, F, bsdfData.coatMask), blendingFactor);
+
+        // We only need to add to the reflectionHierarchyWeight the amount of energy that the clear coat has already
+        // provided to the indirect specular lighting. That would be reflectionHierarchyWeight * F (if has a coat mask). In the environement lighting,
+        // we do something similar. The base layer coat is multiplied by (1-coatF)^2, but that we cannot do as we have no lighting to provid for the base layer.
+        reflectionHierarchyWeight  = lerp(reflectionHierarchyWeight, lerp(reflectionHierarchyWeight, reflectionHierarchyWeight * F, bsdfData.coatMask), blendingFactor);
+    }
+    else
+        lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
 
     return lighting;
 }

@@ -4220,18 +4220,27 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
         reflectanceFactorC *= preLightData.energyCompensationFactor[COAT_LOBE_IDX];
 
         float3 reflectanceFactorB = (float3)0.0;
-        for(int i = 0; i < TOTAL_NB_LOBES; i++)
+        for(int i = 0; i < BASE_NB_LOBES; i++)
         {
-            float3 lobeFactor = preLightData.specularFGD[i]; // note: includes the lobeMix factor, see PreLightData.
-            lobeFactor *= preLightData.hemiSpecularOcclusion[i];
+            float3 lobeFactor = preLightData.specularFGD[i + COAT_NB_LOBES]; // note: includes the lobeMix factor, see PreLightData.
+            lobeFactor *= preLightData.hemiSpecularOcclusion[i + COAT_NB_LOBES];
             // TODOENERGY: If vlayered, should be done in ComputeAdding with FGD formulation for non dirac lights.
             // Incorrect, but for now:
-            lobeFactor *= preLightData.energyCompensationFactor[i];
+            lobeFactor *= preLightData.energyCompensationFactor[i + COAT_NB_LOBES];
             reflectanceFactorB += lobeFactor;
         }
 
-        lighting.specularReflected = ssrLighting.rgb * lerp(reflectanceFactorB, reflectanceFactorC, bsdfData.coatMask);
-        reflectionHierarchyWeight = lerp(ssrLighting.a, ssrLighting.a * reflectanceFactorC.x, bsdfData.coatMask);
+        // Given that we have two base lobes, we need to mix them for an appproximated roughness
+        float mixedPerceptualRougness = lerp(bsdfData.perceptualRoughnessA, bsdfData.perceptualRoughnessB, bsdfData.lobeMix);
+
+        // We have three possible behaviors in this case:
+        // - The smoothness is superior or equal to 0.9, we approximate the fact that the clear coat and base layer have the same roughness and use the SSR as the indirect specular signal.
+        // - The smoothness is inferior to 0.8. We cannot use the SSR for the base layer, but we use the fresnel to lerp between the two lobes.
+        // - The smooothness is between 0.8 and 0.9, we lerp between the two behaviors.
+        float blendingFactor = lerp(0.0, 1.0, saturate((mixedPerceptualRougness - 0.1) / 0.2));
+
+        lighting.specularReflected = ssrLighting.rgb * lerp(reflectanceFactorB, lerp(reflectanceFactorB, reflectanceFactorC, bsdfData.coatMask), blendingFactor);
+        reflectionHierarchyWeight  = lerp(ssrLighting.a, lerp(ssrLighting.a, ssrLighting.a * reflectanceFactorC.x, bsdfData.coatMask), blendingFactor);
     }
     else
     {
