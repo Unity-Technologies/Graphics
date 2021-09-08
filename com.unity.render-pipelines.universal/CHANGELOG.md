@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - URP global setting for stripping post processing shader variants.
 - URP global setting for stripping off shader variants.
 
+### Changed
+- Remove use of deprecated UNITY_USE_NATIVE_HDR keyword in shaders.
+
 ## [12.0.0] - 2021-01-11
 ### Added
 - Added support for default sprite mask shaders for the 2D Renderer in URP.
