@@ -16,6 +16,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         const int k_LeftPanelSize = 300; // TODO: resizable panel
         const int k_RightPanelLabelWidth = 200;
+        const int k_ProbeVolumeIconSize = 30;
         const string k_RenameFocusKey = "Baking Set Rename Field";
 
         struct SceneData
@@ -23,6 +24,15 @@ namespace UnityEngine.Experimental.Rendering
             public SceneAsset asset;
             public string path;
             public string guid;
+        }
+
+        static class Styles
+        {
+            public static readonly Texture sceneIcon = EditorGUIUtility.IconContent("SceneAsset Icon").image;
+            public static readonly Texture probeVolumeIcon = EditorGUIUtility.IconContent("LightProbeGroup Icon").image; // For now it's not the correct icon, we need to request it
+
+            public static readonly GUIContent sceneLightingSettings = new GUIContent("Light Settings In Use", EditorGUIUtility.IconContent("LightingSettings Icon").image);
+            public static readonly GUIContent sceneNotFound = new GUIContent("Scene Not Found!", Styles.sceneIcon);
         }
 
         SearchField m_SearchField;
@@ -42,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering
 
         List<SceneData> m_ScenesInProject = new List<SceneData>();
 
-        static PropertyInfo s_SceneGUID = typeof(Scene).GetProperty("guid", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
+        ProbeVolumeSceneData sceneData => ProbeReferenceVolume.instance.sceneData;
 
         [MenuItem("Window/Rendering/Probe Volume Settings (Experimental)")]
         static void OpenWindow()
@@ -83,13 +93,14 @@ namespace UnityEngine.Experimental.Rendering
             if (m_BakingSets != null)
                 return;
 
-            m_SerializedObject = new SerializedObject(ProbeReferenceVolume.instance.sceneData.parentAsset);
-            m_ProbeSceneData = m_SerializedObject.FindProperty(ProbeReferenceVolume.instance.sceneData.parentSceneDataPropertyName);
+            m_SerializedObject = new SerializedObject(sceneData.parentAsset);
+            m_ProbeSceneData = m_SerializedObject.FindProperty(sceneData.parentSceneDataPropertyName);
 
-            m_BakingSets = new ReorderableList(ProbeReferenceVolume.instance.sceneData.bakingSets, typeof(ProbeVolumeSceneData.BakingSet), false, false, true, true);
+            m_BakingSets = new ReorderableList(sceneData.bakingSets, typeof(ProbeVolumeSceneData.BakingSet), false, false, true, true);
             m_BakingSets.multiSelect = false;
             m_BakingSets.drawElementCallback = (rect, index, active, focused) =>
             {
+                m_SerializedObject.Update();
                 // Draw the renamable label for the baking set name
                 string key = k_RenameFocusKey + index;
                 if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
@@ -102,7 +113,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
                     m_RenameSelectedBakingSet = false;
 
-                var set = ProbeReferenceVolume.instance.sceneData.bakingSets[index];
+                var set = sceneData.bakingSets[index];
 
                 if (m_RenameSelectedBakingSet)
                 {
@@ -120,10 +131,19 @@ namespace UnityEngine.Experimental.Rendering
 
             m_BakingSets.onAddCallback = (list) =>
             {
-                ProbeReferenceVolume.instance.sceneData.bakingSets.Add(new ProbeVolumeSceneData.BakingSet
+                sceneData.bakingSets.Add(new ProbeVolumeSceneData.BakingSet
                 {
                     name = "New Baking Set",
                 });
+            };
+
+            m_BakingSets.onRemoveCallback = (list) =>
+            {
+                if (EditorUtility.DisplayDialog("Delete selected baking set?", $"Do you really want to delete the baking set '{sceneData.bakingSets[list.index].name}'?", "Yes", "Cancel"))
+                {
+                    Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted baking set");
+                    ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                }
             };
 
             OnBakingSetSelected(m_BakingSets);
@@ -172,22 +192,29 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var guid = set.sceneGUIDs[index];
                 // Find scene name from GUID:
-                var sceneData = FindSceneData(guid);
+                var scene = FindSceneData(guid);
 
                 // TODO: Add a label on the first scene to say the the lighting settings of this scene will be used for baking
 
-                if (sceneData.asset != null)
-                    EditorGUI.LabelField(rect, new GUIContent(sceneData.asset.name, EditorGUIUtility.IconContent("SceneAsset Icon").image), EditorStyles.boldLabel);
+                if (scene.asset != null)
+                    EditorGUI.LabelField(rect, new GUIContent(scene.asset.name, Styles.sceneIcon), EditorStyles.boldLabel);
                 else
-                    EditorGUI.LabelField(rect, new GUIContent("Scene Not Found!", EditorGUIUtility.IconContent("SceneAsset Icon").image), EditorStyles.boldLabel);
+                    EditorGUI.LabelField(rect, Styles.sceneNotFound, EditorStyles.boldLabel);
+
+                // display the probe volume icon in the scene if it have one
+                Rect probeVolumeIconRect = rect;
+                probeVolumeIconRect.xMin = rect.xMax - k_ProbeVolumeIconSize;
+                if (sceneData.hasProbeVolumes.ContainsKey(scene.path))
+                    EditorGUI.LabelField(probeVolumeIconRect, new GUIContent(Styles.probeVolumeIcon));
 
                 // Display the lighting settings of the first scene (it will be used for baking)
                 if (index == 0)
                 {
-                    var lightingLabel = new GUIContent("Light Settings In Use", EditorGUIUtility.IconContent("LightingSettings Icon").image);
+                    Rect lightingSettingsRect = rect;
+                    var lightingLabel = Styles.sceneLightingSettings;
                     var size = EditorStyles.label.CalcSize(lightingLabel);
-                    rect.xMin = rect.xMax - size.x;
-                    EditorGUI.LabelField(rect, lightingLabel);
+                    lightingSettingsRect.xMin = rect.xMax - size.x - probeVolumeIconRect.width;
+                    EditorGUI.LabelField(lightingSettingsRect, lightingLabel);
                 }
             };
             m_ScenesInSet.onAddCallback = (list) =>
@@ -199,12 +226,6 @@ namespace UnityEngine.Experimental.Rendering
                 foreach (var scene in m_ScenesInProject)
                 {
                     if (set.sceneGUIDs.Contains(scene.guid))
-                        continue;
-
-                    // Only add scenes that have been setup correct for probe volumes
-                    if (!ProbeReferenceVolume.instance.sceneData.sceneProfiles.ContainsKey(scene.guid))
-                        continue;
-                    if (!ProbeReferenceVolume.instance.sceneData.sceneBakingSettings.ContainsKey(scene.guid))
                         continue;
 
                     menu.AddItem(new GUIContent(scene.asset.name), false, () =>
@@ -222,7 +243,7 @@ namespace UnityEngine.Experimental.Rendering
             void TryAddScene(SceneData scene)
             {
                 // Don't allow the same scene in two different sets
-                var setWithScene = ProbeReferenceVolume.instance.sceneData.bakingSets.FirstOrDefault(s => s.sceneGUIDs.Contains(scene.guid));
+                var setWithScene = sceneData.bakingSets.FirstOrDefault(s => s.sceneGUIDs.Contains(scene.guid));
                 if (setWithScene != null)
                 {
                     if (EditorUtility.DisplayDialog("Move Scene to baking set", $"The scene '{scene.asset.name}' was already added in the baking set '{setWithScene.name}'. Do you want to move it to the current set?", "Yes", "Cancel"))
@@ -238,8 +259,18 @@ namespace UnityEngine.Experimental.Rendering
 
         ProbeVolumeSceneData.BakingSet GetCurrentBakingSet()
         {
-            int index = Mathf.Clamp(m_BakingSets.index, 0, ProbeReferenceVolume.instance.sceneData.bakingSets.Count);
-            return ProbeReferenceVolume.instance.sceneData.bakingSets[index];
+            int index = Mathf.Clamp(m_BakingSets.index, 0, sceneData.bakingSets.Count);
+            return sceneData.bakingSets[index];
+        }
+
+        string GetFirstProbeVolumeSceneGUID(ProbeVolumeSceneData.BakingSet set)
+        {
+            foreach (var guid in set.sceneGUIDs)
+            {
+                if (sceneData.sceneBakingSettings.ContainsKey(guid) && sceneData.sceneProfiles.ContainsKey(guid))
+                    return guid;
+            }
+            return null;
         }
 
         void OnGUI()
@@ -249,7 +280,7 @@ namespace UnityEngine.Experimental.Rendering
 
             if (ProbeReferenceVolume.instance?.sceneData?.bakingSets == null)
             {
-                EditorGUILayout.HelpBox("No Probe Volume Data", MessageType.Error);
+                EditorGUILayout.HelpBox("Probe Volume Data Not Loaded!", MessageType.Error);
                 return;
             }
 
@@ -268,19 +299,21 @@ namespace UnityEngine.Experimental.Rendering
             if (EditorGUI.EndChangeCheck())
             {
                 // Sync all the scene settings in the set to avoid config mismatch.
-                foreach (var set in ProbeReferenceVolume.instance.sceneData.bakingSets)
+                foreach (var set in sceneData.bakingSets)
                 {
-                    if (set.sceneGUIDs?.Count == 0)
+                    var sceneGUID = GetFirstProbeVolumeSceneGUID(set);
+
+                    if (sceneGUID == null)
                         continue;
 
                     var referenceGUID = set.sceneGUIDs[0];
-                    var referenceSettings = ProbeReferenceVolume.instance.sceneData.sceneBakingSettings[referenceGUID];
-                    var referenceProfile = ProbeReferenceVolume.instance.sceneData.sceneProfiles[referenceGUID];
+                    var referenceSettings = sceneData.sceneBakingSettings[referenceGUID];
+                    var referenceProfile = sceneData.sceneProfiles[referenceGUID];
 
-                    foreach (var sceneGUID in set.sceneGUIDs)
+                    foreach (var guid in set.sceneGUIDs)
                     {
-                        ProbeReferenceVolume.instance.sceneData.sceneBakingSettings[sceneGUID] = referenceSettings;
-                        ProbeReferenceVolume.instance.sceneData.sceneProfiles[sceneGUID] = referenceProfile;
+                        sceneData.sceneBakingSettings[guid] = referenceSettings;
+                        sceneData.sceneProfiles[guid] = referenceProfile;
                     }
                 }
             }
@@ -315,13 +348,13 @@ namespace UnityEngine.Experimental.Rendering
             m_ScenesInSet.DoLayoutList();
 
             var set = GetCurrentBakingSet();
-            if (set.sceneGUIDs?.Count > 0)
+            var sceneGUID = GetFirstProbeVolumeSceneGUID(set);
+            if (sceneGUID != null)
             {
                 EditorGUILayout.Space();
 
                 // Show only the profile from the first scene of the set (they all should be the same)
-                var guid = set.sceneGUIDs[0];
-                var profile = ProbeReferenceVolume.instance.sceneData.sceneProfiles[guid];
+                var profile = ProbeReferenceVolume.instance.sceneData.sceneProfiles[sceneGUID];
                 if (m_ProbeVolumeProfileEditor == null)
                     m_ProbeVolumeProfileEditor = Editor.CreateEditor(profile);
                 if (m_ProbeVolumeProfileEditor.target != profile)
@@ -339,7 +372,7 @@ namespace UnityEngine.Experimental.Rendering
             }
             else
             {
-                EditorGUILayout.HelpBox("You need to assign at least one scene to configure the baking settings", MessageType.Error, true);
+                EditorGUILayout.HelpBox("You need to assign at least one scene with probe volumes to configure the baking settings", MessageType.Error, true);
             }
 
             DrawBakeButton();

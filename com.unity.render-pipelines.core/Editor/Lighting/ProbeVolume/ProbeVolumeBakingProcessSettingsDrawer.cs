@@ -9,17 +9,17 @@ namespace UnityEngine.Experimental.Rendering
         static class Styles
         {
             // TODO_FCC: tooltips
-            public static GUIContent dilationDistance = new GUIContent("Dilation Distance", "TODO");
-            public static GUIContent dilationValidityDistance = new GUIContent("Dilation Validity Threshold", "TODO");
-            public static GUIContent dilationIterationCount = new GUIContent("Dilation Iteration Count", "TODO");
-            public static GUIContent dilationSquaredDistanceWeighting = new GUIContent("Squared Distance Weighting", "TODO");
-            public static GUIContent useVirtualOffset = EditorGUIUtility.TrTextContent("Use Virtual Offset", "Push invalid probes out of geometry. Please note, this feature is currently a proof of concept, it is fairly slow and not optimal in quality.");
-            public static GUIContent virtualOffsetSearchMultiplier = EditorGUIUtility.TrTextContent("Search multiplier", "A multiplier to be applied on the distance between two probes to derive the search distance out of geometry.");
-            public static GUIContent virtualOffsetBiasOutGeometry = EditorGUIUtility.TrTextContent("Bias out geometry", "Determines how much a probe is pushed out of the geometry on top of the distance to closest hit.");
+            public static readonly GUIContent dilationDistance = new GUIContent("Dilation Distance", "TODO");
+            public static readonly GUIContent dilationValidityDistance = new GUIContent("Dilation Validity Threshold", "TODO");
+            public static readonly GUIContent dilationIterationCount = new GUIContent("Dilation Iteration Count", "TODO");
+            public static readonly GUIContent dilationSquaredDistanceWeighting = new GUIContent("Squared Distance Weighting", "TODO");
+            public static readonly GUIContent useVirtualOffset = EditorGUIUtility.TrTextContent("Use Virtual Offset", "Push invalid probes out of geometry. Please note, this feature is currently a proof of concept, it is fairly slow and not optimal in quality.");
+            public static readonly GUIContent virtualOffsetSearchMultiplier = EditorGUIUtility.TrTextContent("Search multiplier", "A multiplier to be applied on the distance between two probes to derive the search distance out of geometry.");
+            public static readonly GUIContent virtualOffsetBiasOutGeometry = EditorGUIUtility.TrTextContent("Bias out geometry", "Determines how much a probe is pushed out of the geometry on top of the distance to closest hit.");
 
-            public static string dilationSettingsTitle = "Dilation Settings";
-            public static string advancedTitle = "Advanced";
-            public static string virtualOffsetSettingsTitle = "Virtual Offset Settings";
+            public static readonly string dilationSettingsTitle = "Dilation Settings";
+            public static readonly string advancedTitle = "Advanced";
+            public static readonly string virtualOffsetSettingsTitle = "Virtual Offset Settings";
         }
 
         // Draw the property inside the given rect
