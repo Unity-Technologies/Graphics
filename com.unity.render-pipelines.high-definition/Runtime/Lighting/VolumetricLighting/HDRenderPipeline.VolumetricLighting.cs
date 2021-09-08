@@ -1001,6 +1001,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeMatrixParam(compute, "VolumeMatrix", m);
                             ctx.cmd.SetComputeMatrixParam(compute, "InvVolumeMatrix", m.inverse);
 
+                            ctx.cmd.SetComputeVectorParam(compute, "FogAlbedo", v.parameters.albedo);
+                            ctx.cmd.SetComputeFloatParam(compute, "FogMeanFreePath", v.parameters.meanFreePath);
+
                             if (v.setup != null)
                                 v.setup.Invoke(ctx.cmd, v.localVolumetricFogCompute, passData.kernel);
 
