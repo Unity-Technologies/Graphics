@@ -504,7 +504,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = CoreRequiredFields.Basic,
                 renderStates = CoreRenderStates.ForwardEmissiveForDeferred,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.ForwardEmissiveForDeferred, useVFX, useTessellation),
                 includes = GenerateIncludes(),
 
@@ -1327,7 +1327,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = CoreRequiredFields.Basic,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, useTessellation),
                 renderStates = FullScreenDebugRenderState,
                 includes = GenerateIncludes(),
