@@ -368,7 +368,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var shaderInputTypes = TypeCache.GetTypesWithAttribute<BlackboardInputInfo>().ToList();
             // Sort the ShaderInput by priority using the BlackboardInputInfo attribute
-            shaderInputTypes.Sort((s1, s2) => {
+            shaderInputTypes.Sort((s1, s2) =>
+            {
                 var info1 = Attribute.GetCustomAttribute(s1, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
                 var info2 = Attribute.GetCustomAttribute(s2, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
 

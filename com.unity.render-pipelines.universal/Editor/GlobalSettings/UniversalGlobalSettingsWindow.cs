@@ -65,11 +65,16 @@ namespace UnityEditor.Rendering.Universal
 
             if (serializedSettings == null || settingsSerialized != UniversalRenderPipelineGlobalSettings.instance)
             {
-                if (UniversalRenderPipeline.asset != null || UniversalRenderPipelineGlobalSettings.instance != null)
+                if (UniversalRenderPipelineGlobalSettings.instance != null)
                 {
                     settingsSerialized = UniversalRenderPipelineGlobalSettings.Ensure();
                     var serializedObject = new SerializedObject(settingsSerialized);
                     serializedSettings = new SerializedUniversalRenderPipelineGlobalSettings(serializedObject);
+                }
+                else
+                {
+                    serializedSettings = null;
+                    settingsSerialized = null;
                 }
             }
             else if (settingsSerialized != null && serializedSettings != null)
@@ -104,13 +109,25 @@ namespace UnityEditor.Rendering.Universal
 
             if (isURPinUse)
             {
-                EditorGUILayout.HelpBox(Styles.warningGlobalSettingsMissing, MessageType.Warning);
+                ShowMessageWithFixButton(Styles.warningGlobalSettingsMissing, MessageType.Warning);
             }
             else
             {
                 EditorGUILayout.HelpBox(Styles.warningUrpNotActive, MessageType.Warning);
                 if (serialized == null)
-                    EditorGUILayout.HelpBox(Styles.infoGlobalSettingsMissing, MessageType.Info);
+                    ShowMessageWithFixButton(Styles.infoGlobalSettingsMissing, MessageType.Info);
+            }
+        }
+
+        void ShowMessageWithFixButton(string helpBoxLabel, MessageType type)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.HelpBox(helpBoxLabel, type);
+                if (GUILayout.Button(Styles.fixAssetButtonLabel, GUILayout.Width(45)))
+                {
+                    UniversalRenderPipelineGlobalSettings.Ensure();
+                }
             }
         }
 
@@ -126,6 +143,7 @@ namespace UnityEditor.Rendering.Universal
                 if (EditorGUI.EndChangeCheck())
                 {
                     UniversalRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
+                    Debug.Assert(newAsset == UniversalRenderPipelineGlobalSettings.instance);
                     if (settingsSerialized != null && !settingsSerialized.Equals(null))
                         EditorUtility.SetDirty(settingsSerialized);
                 }
@@ -164,14 +182,22 @@ namespace UnityEditor.Rendering.Universal
 
             using (new EditorGUI.IndentLevelScope())
             {
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName0, Styles.lightLayerName0, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName1, Styles.lightLayerName1, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName2, Styles.lightLayerName2, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName3, Styles.lightLayerName3, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName4, Styles.lightLayerName4, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName5, Styles.lightLayerName5, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName6, Styles.lightLayerName6, GUILayout.ExpandWidth(true));
-                EditorGUILayout.DelayedTextField(serialized.lightLayerName7, Styles.lightLayerName7, GUILayout.ExpandWidth(true));
+                using (var changed = new EditorGUI.ChangeCheckScope())
+                {
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName0, Styles.lightLayerName0);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName1, Styles.lightLayerName1);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName2, Styles.lightLayerName2);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName3, Styles.lightLayerName3);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName4, Styles.lightLayerName4);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName5, Styles.lightLayerName5);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName6, Styles.lightLayerName6);
+                    EditorGUILayout.DelayedTextField(serialized.lightLayerName7, Styles.lightLayerName7);
+                    if (changed.changed)
+                    {
+                        serialized.serializedObject?.ApplyModifiedProperties();
+                        (serialized.serializedObject.targetObject as UniversalRenderPipelineGlobalSettings).UpdateRenderingLayerNames();
+                    }
+                }
             }
 
             EditorGUIUtility.labelWidth = oldWidth;
@@ -206,7 +232,9 @@ namespace UnityEditor.Rendering.Universal
 
             using (new EditorGUI.IndentLevelScope())
             {
-                EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
+                EditorGUILayout.PropertyField(serialized.stripDebugVariants, Styles.stripDebugVariantsLabel);
+                EditorGUILayout.PropertyField(serialized.stripUnusedPostProcessingVariants, Styles.stripUnusedPostProcessingVariantsLabel);
+                EditorGUILayout.PropertyField(serialized.stripUnusedVariants, Styles.stripUnusedVariantsLabel);
             }
 
             EditorGUIUtility.labelWidth = oldWidth;

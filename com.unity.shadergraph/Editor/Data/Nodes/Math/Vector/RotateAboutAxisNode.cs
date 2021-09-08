@@ -28,6 +28,7 @@ namespace UnityEditor.ShaderGraph
         public RotateAboutAxisNode()
         {
             name = "Rotate About Axis";
+            synonyms = new string[] { "pivot" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

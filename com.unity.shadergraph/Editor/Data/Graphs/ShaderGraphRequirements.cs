@@ -14,6 +14,7 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField] NeededCoordinateSpace m_RequiresTangent;
         [SerializeField] NeededCoordinateSpace m_RequiresViewDir;
         [SerializeField] NeededCoordinateSpace m_RequiresPosition;
+        [SerializeField] NeededCoordinateSpace m_RequiresPositionPredisplacement;
         [SerializeField] bool m_RequiresScreenPosition;
         [SerializeField] bool m_RequiresVertexColor;
         [SerializeField] bool m_RequiresFaceSign;
@@ -70,6 +71,12 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             get { return m_RequiresPosition; }
             internal set { m_RequiresPosition = value; }
+        }
+
+        public NeededCoordinateSpace requiresPositionPredisplacement
+        {
+            get { return m_RequiresPositionPredisplacement; }
+            internal set { m_RequiresPositionPredisplacement = value; }
         }
 
         public bool requiresScreenPosition
@@ -143,6 +150,7 @@ namespace UnityEditor.ShaderGraph.Internal
             newReqs.m_RequiresBitangent = other.m_RequiresBitangent | m_RequiresBitangent;
             newReqs.m_RequiresViewDir = other.m_RequiresViewDir | m_RequiresViewDir;
             newReqs.m_RequiresPosition = other.m_RequiresPosition | m_RequiresPosition;
+            newReqs.m_RequiresPositionPredisplacement = other.m_RequiresPositionPredisplacement | m_RequiresPositionPredisplacement;
             newReqs.m_RequiresScreenPosition = other.m_RequiresScreenPosition | m_RequiresScreenPosition;
             newReqs.m_RequiresVertexColor = other.m_RequiresVertexColor | m_RequiresVertexColor;
             newReqs.m_RequiresFaceSign = other.m_RequiresFaceSign | m_RequiresFaceSign;
@@ -169,6 +177,7 @@ namespace UnityEditor.ShaderGraph.Internal
             NeededCoordinateSpace requiresTangent = nodes.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
             NeededCoordinateSpace requiresViewDir = nodes.OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresViewDirection(stageCapability));
             NeededCoordinateSpace requiresPosition = nodes.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
+            NeededCoordinateSpace requiresPredisplacement = nodes.OfType<IMayRequirePositionPredisplacement>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPositionPredisplacement(stageCapability));
             bool requiresScreenPosition = nodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition(stageCapability));
             bool requiresVertexColor = nodes.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor(stageCapability));
             bool requiresFaceSign = nodes.OfType<IMayRequireFaceSign>().Any(x => x.RequiresFaceSign());
@@ -211,6 +220,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 m_RequiresTangent = requiresTangent,
                 m_RequiresViewDir = requiresViewDir,
                 m_RequiresPosition = requiresPosition,
+                m_RequiresPositionPredisplacement = requiresPredisplacement,
                 m_RequiresScreenPosition = requiresScreenPosition,
                 m_RequiresVertexColor = requiresVertexColor,
                 m_RequiresFaceSign = requiresFaceSign,

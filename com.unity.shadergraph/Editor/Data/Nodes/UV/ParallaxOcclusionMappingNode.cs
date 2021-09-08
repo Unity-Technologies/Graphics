@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderGraph
         public ParallaxOcclusionMappingNode()
         {
             name = "Parallax Occlusion Mapping";
+            synonyms = new string[] { "pom" };
             UpdateNodeAfterDeserialization();
         }
 

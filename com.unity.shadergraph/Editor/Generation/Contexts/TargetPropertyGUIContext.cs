@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
     {
         const int kIndentWidthInPixel = 15;
 
-        public int globalIndentLevel {get; set;} = 0;
+        public int globalIndentLevel { get; set; } = 0;
 
         public TargetPropertyGUIContext()
         {

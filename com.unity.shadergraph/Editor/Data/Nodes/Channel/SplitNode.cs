@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph
         public SplitNode()
         {
             name = "Split";
+            synonyms = new string[] { "separate" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -36,7 +37,7 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new int[] { InputSlotId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId });
         }
 
-        static int[] s_OutputSlots = {OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId};
+        static int[] s_OutputSlots = { OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId };
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {

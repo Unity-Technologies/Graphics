@@ -228,7 +228,7 @@ namespace UnityEditor.Rendering
                 for (int i = 0; i < m_Editors.Count; i++)
                 {
                     var editor = m_Editors[i];
-                    string title = editor.GetDisplayTitle();
+                    var title = editor.GetDisplayTitle();
                     int id = i; // Needed for closure capture below
 
                     m_EditorDocumentationURLs.TryGetValue(editor.target.GetType(), out var documentationURL);

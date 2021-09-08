@@ -4,18 +4,20 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.Toolbars;
+using UnityEditor.VersionControl;
+
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEditor.VFX;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEngine.Profiling;
-using System.Reflection;
-using UnityEditor.VersionControl;
 
 using PositionType = UnityEngine.UIElements.Position;
+using Task = UnityEditor.VersionControl.Task;
 
 namespace UnityEditor.VFX.UI
 {
@@ -109,7 +111,22 @@ namespace UnityEditor.VFX.UI
 
     class VFXView : GraphView, IControlledElement<VFXViewController>, IControllerListener
     {
+        private const int MaximumNameLengthInNotification = 128;
+
+        internal static class Contents
+        {
+            public static readonly GUIContent attach = EditorGUIUtility.TrTextContent("Attach");
+            public static readonly GUIContent detach = EditorGUIUtility.TrTextContent("Detach");
+            public static readonly GUIContent clickToUnlock = EditorGUIUtility.TrTextContent("Click to enable auto-attachment to selection");
+            public static readonly GUIContent clickToLock = EditorGUIUtility.TrTextContent("Click to disable auto-attachment to selection");
+            public static readonly GUIContent noSelection = EditorGUIUtility.TrTextContent("No selection");
+            public static readonly GUIContent attachedToGameObject = EditorGUIUtility.TrTextContent("Attached to {0}");
+            public static readonly GUIContent notAttached = EditorGUIUtility.TrTextContent("Select a Game Object running this VFX to attach it");
+        }
+
         public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
+
+        public bool locked { get; private set; }
 
         void IControllerListener.OnControllerEvent(ControllerEvent e)
         {
@@ -246,9 +263,6 @@ namespace UnityEditor.VFX.UI
 
             set
             {
-                if (m_ComponentBoard.parent == null)
-                    m_ToggleComponentBoard.value = true;
-
                 if (value == null)
                     m_ComponentBoard.Detach();
                 else
@@ -296,6 +310,8 @@ namespace UnityEditor.VFX.UI
                         ConnectController();
                     }
                     NewControllerSet();
+                    AttachToSelection();
+                    m_ComponentBoard.ResetPlayRate();
                 }
             }
         }
@@ -364,12 +380,14 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        VFXNodeProvider m_NodeProvider;
-        VisualElement m_Toolbar;
-        ToolbarButton m_SaveButton;
+        readonly VisualElement m_Toolbar;
+        readonly ToolbarToggle m_LockToggle;
+        readonly EditorToolbarDropdown m_AttachDropDownButton;
 
-        private bool m_IsRuntimeMode = false;
-        private bool m_ForceShaderValidation = false;
+        VFXNodeProvider m_NodeProvider;
+        ToolbarButton m_SaveButton;
+        bool m_IsRuntimeMode;
+        bool m_ForceShaderValidation;
 
 
         public static StyleSheet LoadStyleSheet(string text)
@@ -455,6 +473,17 @@ namespace UnityEditor.VFX.UI
             m_SaveButton.text = "Save";
             m_Toolbar.Add(m_SaveButton);
 
+            m_AttachDropDownButton = new EditorToolbarDropdown(Contents.attach.text, OnOpenAttachMenu);
+            m_AttachDropDownButton.name = "attach-toolbar-button";
+            m_Toolbar.Add(m_AttachDropDownButton);
+
+            m_LockToggle = new ToolbarToggle();
+            m_LockToggle.style.unityTextAlign = TextAnchor.MiddleLeft;
+            m_LockToggle.tooltip = locked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
+            m_LockToggle.name = "lock-auto-attach";
+            m_LockToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleLock);
+            m_Toolbar.Add(m_LockToggle);
+
             var spacer = new ToolbarSpacer();
             spacer.style.width = 12f;
             m_Toolbar.Add(spacer);
@@ -483,7 +512,7 @@ namespace UnityEditor.VFX.UI
             m_Toolbar.Add(toggleBlackboard);
 
             m_ToggleComponentBoard = new ToolbarToggle();
-            m_ToggleComponentBoard.text = "Target GameObject";
+            m_ToggleComponentBoard.text = "Control";
             m_ToggleComponentBoard.RegisterCallback<ChangeEvent<bool>>(ToggleComponentBoard);
             m_Toolbar.Add(m_ToggleComponentBoard);
 
@@ -497,7 +526,7 @@ namespace UnityEditor.VFX.UI
 
             // End Toolbar
 
-            m_NoAssetLabel = new Label("\n\n\nTo begin creating Visual Effects, create a new Visual Effect Graph Asset.\n(or double-click an existing Visual Effect Graph in the project view)") { name = "no-asset"};
+            m_NoAssetLabel = new Label("\n\n\nTo begin creating Visual Effects, create a new Visual Effect Graph Asset.\n(or double-click an existing Visual Effect Graph in the project view)") { name = "no-asset" };
             m_NoAssetLabel.style.position = PositionType.Absolute;
             m_NoAssetLabel.style.left = new StyleLength(40f);
             m_NoAssetLabel.style.right = new StyleLength(40f);
@@ -507,7 +536,6 @@ namespace UnityEditor.VFX.UI
             m_NoAssetLabel.style.fontSize = new StyleLength(12f);
             m_NoAssetLabel.style.color = Color.white * 0.75f;
             Add(m_NoAssetLabel);
-
 
             var createButton = new Button() { text = "Create new Visual Effect Graph" };
             m_NoAssetLabel.Add(createButton);
@@ -524,7 +552,6 @@ namespace UnityEditor.VFX.UI
             m_LockedElement.style.color = Color.white * 0.75f;
             m_LockedElement.style.display = DisplayStyle.None;
             m_LockedElement.focusable = true;
-            //m_LockedElement.RegisterCallback<MouseDownEvent>(e => e.StopPropagation());
             m_LockedElement.RegisterCallback<KeyDownEvent>(e => e.StopPropagation());
 
 
@@ -552,6 +579,7 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<ExecuteCommandEvent>(ExecuteCommand);
             RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
             RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
+            RegisterCallback<KeyDownEvent>(OnKeyDownEvent);
 
             graphViewChanged = VFXGraphViewChanged;
 
@@ -560,6 +588,14 @@ namespace UnityEditor.VFX.UI
             viewDataKey = "VFXView";
 
             RegisterCallback<GeometryChangedEvent>(OnFirstResize);
+        }
+
+        private void OnOpenAttachMenu()
+        {
+            var attachPanel = ScriptableObject.CreateInstance<VFXAttachPanel>();
+            var bounds = new Rect(ViewToScreenPosition(m_AttachDropDownButton.worldBound.position), m_AttachDropDownButton.worldBound.size);
+            bounds.xMin++;
+            attachPanel.ShowAsDropDown(bounds, attachPanel.WindowSize, new[] { PopupLocation.BelowAlignLeft });
         }
 
         void OnRefreshUI(DropdownMenuAction action)
@@ -733,11 +769,88 @@ namespace UnityEditor.VFX.UI
             board.PlaceBehind(m_Toolbar);
         }
 
+        public void AttachToSelection()
+        {
+            var vfxWindow = VFXViewWindow.currentWindow;
+            if (TryAttachTo((Selection.activeObject as GameObject)?.GetComponent<VisualEffect>()) && vfxWindow != null)
+            {
+                string truncatedObjectName = TruncateName(Selection.activeObject.name, MaximumNameLengthInNotification);
+                vfxWindow.ShowNotification(new GUIContent($"Attached to {truncatedObjectName}"), 1.5);
+                vfxWindow.Repaint();
+            }
+        }
+
+        public bool TryAttachTo(VisualEffect selectedAsset)
+        {
+            bool attached = false;
+            if (selectedAsset != null && controller?.graph.visualEffectResource.asset == selectedAsset.visualEffectAsset)
+            {
+                attached = m_ComponentBoard.Attach(selectedAsset);
+            }
+
+            UpdateToolbarButtons();
+            return attached;
+        }
+
+        internal void Detach()
+        {
+            m_ComponentBoard.Detach();
+            UpdateToolbarButtons();
+        }
+
+        public void DetachIfDeleted()
+        {
+            if (m_ComponentBoard.GetAttachedComponent() == null)
+            {
+                Detach();
+            }
+        }
+
+        private void UpdateToolbarButtons()
+        {
+            if (attachedComponent != null)
+            {
+                m_AttachDropDownButton.AddToClassList("checked");
+            }
+            else
+            {
+                m_AttachDropDownButton.RemoveFromClassList("checked");
+            }
+
+            m_LockToggle.tooltip = locked ? Contents.clickToUnlock.text : Contents.clickToLock.text;
+
+            m_AttachDropDownButton.tooltip = attachedComponent != null && !string.IsNullOrEmpty(attachedComponent.name)
+                ? string.Format(Contents.attachedToGameObject.text, TruncateName(attachedComponent.name, MaximumNameLengthInNotification))
+                : Contents.notAttached.text;
+        }
+
+        string TruncateName(string nameToTruncate, int maxLength)
+        {
+            return nameToTruncate.Length > maxLength
+                ? nameToTruncate.Substring(0, maxLength) + "..."
+                : nameToTruncate;
+        }
+
         void OnUndoPerformed()
         {
             foreach (var anchor in allDataAnchors)
             {
                 anchor.ForceUpdate();
+            }
+
+            this.m_Blackboard.ForceUpdate();
+        }
+
+        void OnToggleLock(ChangeEvent<bool> evt)
+        {
+            locked = !locked;
+            if (!locked)
+            {
+                AttachToSelection();
+            }
+            else
+            {
+                UpdateToolbarButtons();
             }
         }
 
@@ -814,13 +927,13 @@ namespace UnityEditor.VFX.UI
 
         void Delete(string cmd, AskUser askUser)
         {
-            var selection = this.selection.ToArray();
+            var currentSelection = selection.ToArray();
             var parametersToRemove = Enumerable.Empty<VFXParameterController>();
-            foreach (var category in selection.OfType<VFXBlackboardCategory>())
+            foreach (var category in currentSelection.OfType<VFXBlackboardCategory>())
             {
                 parametersToRemove = parametersToRemove.Concat(controller.RemoveCategory(m_Blackboard.GetCategoryIndex(category)));
             }
-            controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller).Concat(parametersToRemove.Cast<Controller>()), true);
+            controller.Remove(currentSelection.OfType<IControlledElement>().Select(t => t.controller).Concat(parametersToRemove.Cast<Controller>()), true);
         }
 
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
@@ -926,6 +1039,9 @@ namespace UnityEditor.VFX.UI
             {
                 m_NoAssetLabel.RemoveFromHierarchy();
                 m_Toolbar.SetEnabled(true);
+
+                m_AttachDropDownButton.SetEnabled(this.controller.graph.visualEffectResource.subgraph == null);
+                m_LockToggle.SetEnabled(this.controller.graph.visualEffectResource.subgraph == null);
 
                 if (IsAssetEditable())
                 {
@@ -1613,7 +1729,7 @@ namespace UnityEditor.VFX.UI
 
             if (startAnchor is VFXDataAnchor)
             {
-                var controllers = controller.GetCompatiblePorts((startAnchor as  VFXDataAnchor).controller, nodeAdapter);
+                var controllers = controller.GetCompatiblePorts((startAnchor as VFXDataAnchor).controller, nodeAdapter);
                 return controllers.Select(t => (Port)GetDataAnchorByController(t as VFXDataAnchorController)).ToList();
             }
             else
@@ -1985,7 +2101,7 @@ namespace UnityEditor.VFX.UI
 
         void CopyInputLinks(VFXNodeController sourceController, VFXNodeController targetController)
         {
-            foreach (var st in sourceController.inputPorts.Zip(targetController.inputPorts, (s, t) => new { source = s, target = t}))
+            foreach (var st in sourceController.inputPorts.Zip(targetController.inputPorts, (s, t) => new { source = s, target = t }))
             {
                 CopyInputLinks(st.source, st.target);
             }
@@ -2045,7 +2161,7 @@ namespace UnityEditor.VFX.UI
                 {
                     VFXContextUI topContext = flowEdge.output.GetFirstAncestorOfType<VFXContextUI>();
                     VFXContextUI bottomContext = flowEdge.input.GetFirstAncestorOfType<VFXContextUI>();
-                    if (contexts.Contains(topContext)  && !contexts.Contains(bottomContext))
+                    if (contexts.Contains(topContext) && !contexts.Contains(bottomContext))
                     {
                         float topContextBottom = topContext.layout.yMax;
                         float newTopContextBottom = topContext.layout.yMax + size;
@@ -2088,6 +2204,15 @@ namespace UnityEditor.VFX.UI
         void OnLeavePanel(DetachFromPanelEvent e)
         {
             Undo.undoRedoPerformed -= OnUndoPerformed;
+        }
+
+        private void OnKeyDownEvent(KeyDownEvent evt)
+        {
+            if (evt.keyCode == KeyCode.D && evt.modifiers == EventModifiers.Control)
+            {
+                DuplicateBlackboardFieldSelection();
+                DuplicateBlackBoardCategorySelection();
+            }
         }
 
         public void ValidateCommand(ValidateCommandEvent evt)
@@ -2152,7 +2277,7 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNodeOnEdge(DropdownMenuAction e)
         {
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, e.userData as VFXDataEdgeController), null, new Type[] { typeof(VFXOperator)}));
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, e.userData as VFXDataEdgeController), null, new Type[] { typeof(VFXOperator) }));
         }
 
         void AddNodeOnEdge(VFXNodeProvider.Descriptor desc, Vector2 position, VFXDataEdgeController edge)
@@ -2255,7 +2380,7 @@ namespace UnityEditor.VFX.UI
             }
             if (evt.target is GraphView || evt.target is Node || evt.target is Group)
             {
-                evt.menu.AppendAction("Duplicate with edges" , (a) => { DuplicateSelectionWithEdges(); },
+                evt.menu.AppendAction("Duplicate with edges", (a) => { DuplicateSelectionWithEdges(); },
                     (a) => { return canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
                 evt.menu.AppendSeparator();
             }
@@ -2264,6 +2389,50 @@ namespace UnityEditor.VFX.UI
                 evt.menu.AppendAction("Collapse Operators", CollapseOperator, e => DropdownMenuAction.Status.Normal, true);
             if (selection.OfType<VFXOperatorUI>().Any(t => t.superCollapsed))
                 evt.menu.AppendAction("Uncollapse Operators", CollapseOperator, e => DropdownMenuAction.Status.Normal, false);
+            if (selection.OfType<VFXStickyNote>().Any() && evt.menu.MenuItems().OfType<DropdownMenuAction>().All(x => x.name != "Delete"))
+            {
+                evt.menu.AppendSeparator();
+                evt.menu.AppendAction("Delete", OnDeleteStickyNote, e => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+            }
+
+            if (selection.OfType<VFXBlackboardCategory>().Any())
+            {
+                evt.menu.AppendSeparator();
+                evt.menu.AppendAction("Duplicate %d", OnDuplicateBlackBoardCategory, e => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+            }
+        }
+
+        static readonly string s_DeleteEventCommandName = GetDeleteEventCommandName();
+
+        static string GetDeleteEventCommandName()
+        {
+            var fieldInfo = Type.GetType("UnityEngine.EventCommandNames, UnityEngine")?.GetField("Delete", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+            if (fieldInfo != null)
+            {
+                if (fieldInfo.GetValue(null) is string commandName)
+                {
+                    return commandName;
+                }
+
+                Debug.Log("API has changed, Delete command name field is either null or not a string anymore");
+            }
+            else
+            {
+                Debug.Log("API has changed, could not retrieve Delete command name field using reflection");
+            }
+
+            return "Delete";
+        }
+
+        void OnDeleteStickyNote(DropdownMenuAction menuAction)
+        {
+            using var ev = ExecuteCommandEvent.GetPooled(s_DeleteEventCommandName);
+            SendEvent(ev);
+        }
+
+        private void OnDuplicateBlackBoardCategory(DropdownMenuAction obj)
+        {
+            DuplicateBlackBoardCategorySelection();
         }
 
         void CollapseOperator(DropdownMenuAction a)
@@ -2522,6 +2691,51 @@ namespace UnityEditor.VFX.UI
         {
             if (m_EdgeDragInfo != null)
                 m_EdgeDragInfo.StopEdgeDragInfo();
+        }
+
+        public void DuplicateBlackboardFieldSelection()
+        {
+            foreach (var blackboardField in selection.OfType<VFXBlackboardField>())
+            {
+                DuplicateBlackboardField(blackboardField);
+            }
+
+            m_Controller.graph.SetExpressionValueDirty();
+        }
+
+        private void DuplicateBlackBoardCategorySelection()
+        {
+            foreach (var blackboardCategory in selection.OfType<VFXBlackboardCategory>())
+            {
+                var newCategory = blackboard.AddCategory(blackboardCategory.title);
+
+                var parameters = blackboardCategory
+                    .Children()
+                    .OfType<VFXBlackboardRow>()
+                    .Select(x => DuplicateBlackboardField(x.field))
+                    .ToList();
+                parameters.ForEach(x => x.model.category = newCategory.title);
+                newCategory.SyncParameters(new HashSet<VFXParameterController>(parameters));
+            }
+        }
+
+        private VFXParameterController DuplicateBlackboardField(VFXBlackboardField blackboardField)
+        {
+            var copyName = blackboardField.controller.MakeNameUnique(blackboardField.controller.exposedName);
+            var newVfxParameter = VFXParameter.Duplicate(copyName, blackboardField.controller.model);
+            controller.AddVFXModel(Vector2.zero, newVfxParameter);
+
+            bool groupChanged = false;
+            controller.SyncControllerFromModel(ref groupChanged);
+
+            var newParameterController = blackboard.controller.parameterControllers.Single(x => x.model == newVfxParameter);
+
+            if (blackboardField.controller.spaceableAndMasterOfSpace)
+            {
+                newParameterController.space = blackboardField.controller.space;
+            }
+
+            return newParameterController;
         }
     }
 }
