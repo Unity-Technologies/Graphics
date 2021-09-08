@@ -8,11 +8,10 @@ namespace UnityEngine.Experimental.Rendering
     {
         static class Styles
         {
-            // TODO_FCC: tooltips
-            public static readonly GUIContent dilationDistance = new GUIContent("Dilation Distance", "TODO");
-            public static readonly GUIContent dilationValidityDistance = new GUIContent("Dilation Validity Threshold", "TODO");
-            public static readonly GUIContent dilationIterationCount = new GUIContent("Dilation Iteration Count", "TODO");
-            public static readonly GUIContent dilationSquaredDistanceWeighting = new GUIContent("Squared Distance Weighting", "TODO");
+            public static readonly GUIContent dilationDistance = new GUIContent("Dilation Distance", "The distance used to pick neighbouring probes to dilate into the invalid probe.");
+            public static readonly GUIContent dilationValidityDistance = new GUIContent("Dilation Validity Threshold", "The validity threshold used to identify invalid probes.");
+            public static readonly GUIContent dilationIterationCount = new GUIContent("Dilation Iteration Count", "The number of times the dilation process takes place.");
+            public static readonly GUIContent dilationSquaredDistanceWeighting = new GUIContent("Squared Distance Weighting", "Whether to weight neighbouring probe contribution using squared distance rather than linear distance.");
             public static readonly GUIContent useVirtualOffset = EditorGUIUtility.TrTextContent("Use Virtual Offset", "Push invalid probes out of geometry. Please note, this feature is currently a proof of concept, it is fairly slow and not optimal in quality.");
             public static readonly GUIContent virtualOffsetSearchMultiplier = EditorGUIUtility.TrTextContent("Search multiplier", "A multiplier to be applied on the distance between two probes to derive the search distance out of geometry.");
             public static readonly GUIContent virtualOffsetBiasOutGeometry = EditorGUIUtility.TrTextContent("Bias out geometry", "Determines how much a probe is pushed out of the geometry on top of the distance to closest hit.");
