@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### changed
 - Visual Environment ambient mode is now Dynamic by default.
+- Hide new Reflection Probe Encoding project setting for HDRP.
 
 ## [12.0.0] - 2021-01-11
 

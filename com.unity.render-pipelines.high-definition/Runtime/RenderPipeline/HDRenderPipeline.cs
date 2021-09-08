@@ -534,6 +534,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 ,
                 autoDefaultReflectionProbeBaking = false
                 ,
+                customReflectionProbeEncoding = false
+                ,
                 enlightenLightmapper = false
             };
 
