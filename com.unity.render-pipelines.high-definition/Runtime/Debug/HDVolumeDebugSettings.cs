@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
                 if (m_SelectedCamera <= 0 || m_SelectedCamera > cameras.Count)
                     return (LayerMask)0;
-                return cameras[m_SelectedCamera - 1].volumeLayerMask;
+                return additionalCameraDatas[m_SelectedCamera - 1].volumeLayerMask;
 #endif
             }
         }
