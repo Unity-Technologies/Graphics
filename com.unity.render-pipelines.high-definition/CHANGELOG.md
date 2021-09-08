@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed DLSS keyword in settings search when NVIDIA package is not installed. (case 1358409)
 - Fixed light anchor min distance value + properties not working with prefabs (case 1345509).
 - Fixed specular occlusion sharpness and over darkening at grazing angles.
+- Fixed edge bleeding when rendering volumetric clouds.
 
 ### changed
 - Visual Environment ambient mode is now Dynamic by default.
@@ -242,6 +243,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing API documentation for LTC area light code.
 - Fixed diffusion profile breaking after upgrading HDRP (case 1337892).
 - Fixed undo on light anchor.
+- Fixed invalid cast exception on HDProbe.
 - Fixed some depth comparison instabilities with volumetric clouds.
 - Fixed AxF debug output in certain configurations (case 1333780).
 - Fixed white flash when camera is reset and SSR Accumulation mode is on.
