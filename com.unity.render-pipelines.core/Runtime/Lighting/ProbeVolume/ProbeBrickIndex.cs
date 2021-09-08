@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.Rendering
         BitArray m_IndexChunks;
         int m_IndexInChunks;
         int m_NextFreeChunk;
+        int m_AvailableChunkCount;
 
         ComputeBuffer m_PhysicalIndexBuffer;
         int[] m_PhysicalIndexBufferData;
@@ -74,6 +75,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             switch (memoryBudget)
             {
+                case ProbeVolumeTextureMemoryBudget.MemoryBudgetTiny:
+                    return 16000000; // 1600;
                 case ProbeVolumeTextureMemoryBudget.MemoryBudgetLow:
                     // 16 MB - 4 million of bricks worth of space. At full resolution and a distance of 1 meter between probes, this is roughly 474 * 474 * 474 meters worth of bricks. If 0.25x on Y axis, this is equivalent to 948 * 118 * 948 meters
                     return 16000000;
@@ -98,6 +101,7 @@ namespace UnityEngine.Experimental.Rendering
             m_NeedUpdateIndexComputeBuffer = false;
 
             m_IndexInChunks = Mathf.CeilToInt((float)SizeOfPhysicalIndexFromBudget(memoryBudget) / kIndexChunkSize);
+            m_AvailableChunkCount = m_IndexInChunks;
             m_IndexChunks = new BitArray(Mathf.Max(1, m_IndexInChunks));
             int physicalBufferSize = m_IndexInChunks * kIndexChunkSize;
             m_PhysicalIndexBufferData = new int[physicalBufferSize];
@@ -109,6 +113,11 @@ namespace UnityEngine.Experimental.Rendering
             // Should be done by a compute shader
             Clear();
             Profiler.EndSample();
+        }
+
+        public int GetRemainingChunkCount()
+        {
+            return m_AvailableChunkCount;
         }
 
         internal void UploadIndexData()
@@ -200,18 +209,13 @@ namespace UnityEngine.Experimental.Rendering
             return (index & ~(mask << shift)) | ((size & mask) << shift);
         }
 
-        internal static int GetChunkCount(int brickCount)
-        {
-            return Mathf.CeilToInt((float)brickCount / kIndexChunkSize);
-        }
-
         internal bool AssignIndexChunksToCell(int bricksCount, ref CellIndexUpdateInfo cellUpdateInfo)
         {
             // We need to better handle the case where the chunks are full, this is where streaming will need to come into place swapping in/out
             // Also the current way to find an empty spot might be sub-optimal, when streaming is in place it'd be nice to have this more efficient
             // if it is meant to happen frequently.
 
-            int numberOfChunks = GetChunkCount(bricksCount);
+            int numberOfChunks = Mathf.CeilToInt((float)bricksCount / kIndexChunkSize);
 
             // Search for the first empty element with enough space.
             int firstValidChunk = -1;
@@ -250,6 +254,8 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_NextFreeChunk += Mathf.Max(0, (firstValidChunk + numberOfChunks) - m_NextFreeChunk);
+
+            m_AvailableChunkCount -= numberOfChunks;
 
             return true;
         }
@@ -351,6 +357,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 m_IndexChunks[i] = false;
             }
+            m_AvailableChunkCount += cellInfo.numberOfChunks;
         }
 
         void UpdateIndexForVoxel(Vector3Int voxel, CellIndexUpdateInfo cellInfo)

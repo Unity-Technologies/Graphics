@@ -258,6 +258,7 @@ namespace UnityEngine.Experimental.Rendering
     [Serializable]
     public enum ProbeVolumeTextureMemoryBudget
     {
+        MemoryBudgetTiny = 256,
         /// <summary>Low Budget</summary>
         MemoryBudgetLow = 512,
         /// <summary>Medium Budget</summary>
@@ -299,6 +300,23 @@ namespace UnityEngine.Experimental.Rendering
             public int shChunkCount;
         }
 
+        class CellInfoSorter : IComparer<CellInfo>
+        {
+            public Vector3 cameraPosition;
+
+            public int Compare(CellInfo x, CellInfo y)
+            {
+                float distancex = Vector3.Distance(cameraPosition, x.cell.position);
+                float distancey = Vector3.Distance(cameraPosition, y.cell.position);
+                if (distancex < distancey)
+                    return 1;
+                else if (distancex > distancey)
+                    return -1;
+                else
+                    return 0;
+            }
+        }
+
         internal class CellInfo
         {
             public Cell cell;
@@ -307,26 +325,7 @@ namespace UnityEngine.Experimental.Rendering
             public int flatIdxInCellIndices = -1;
             public bool loaded = false;
             public ProbeBrickIndex.CellIndexUpdateInfo updateInfo;
-        }
-
-        class CellSortInfo : IComparable
-        {
-            internal string sourceAsset;
-            internal Cell cell;
-            internal float distanceToCamera = 0;
-            internal Vector3 position;
-
-            public int CompareTo(object obj)
-            {
-                CellSortInfo other = obj as CellSortInfo;
-
-                if (distanceToCamera < other.distanceToCamera)
-                    return 1;
-                else if (distanceToCamera > other.distanceToCamera)
-                    return -1;
-                else
-                    return 0;
-            }
+            public int sourceAssetInstanceID;
         }
 
         internal struct Volume : IEquatable<Volume>
@@ -516,6 +515,12 @@ namespace UnityEngine.Experimental.Rendering
 
         internal ProbeVolumeSceneData sceneData;
 
+        // Streaming
+        CellInfoSorter m_CellInfoSorter = new CellInfoSorter();
+        List<CellInfo> m_LoadedCells = new List<CellInfo>();
+        List<CellInfo> m_UnloadedCells = new List<CellInfo>();
+        List<CellInfo> m_TempCellToLoadList = new List<CellInfo>();
+        List<CellInfo> m_TempCellToUnloadList = new List<CellInfo>();
 
         /// <summary>
         ///  The input to the retrieveExtraDataAction action.
@@ -538,9 +543,6 @@ namespace UnityEngine.Experimental.Rendering
         Dictionary<string, ProbeVolumeAsset> m_PendingAssetsToBeUnloaded = new Dictionary<string, ProbeVolumeAsset>();
         // Information of the probe volume asset that is being loaded (if one is pending)
         Dictionary<string, ProbeVolumeAsset> m_ActiveAssets = new Dictionary<string, ProbeVolumeAsset>();
-
-        // List of info for cells that are yet to be loaded.
-        private List<CellSortInfo> m_CellsToBeAdded = new List<CellSortInfo>();
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
@@ -612,7 +614,8 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             }
 
-            m_MemoryBudget = parameters.memoryBudget;
+            m_MemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetTiny;// parameters.memoryBudget;
+            //m_MemoryBudget = parameters.memoryBudget;
             m_SHBands = parameters.shBands;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
             InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
@@ -691,23 +694,29 @@ namespace UnityEngine.Experimental.Rendering
             ClearDebugData();
         }
 
-        internal CellInfo AddCell(Cell cell)
+        internal CellInfo AddCell(Cell cell, int assetInstanceID)
         {
             // TODO: Consider pooling this
             var cellInfo = new CellInfo();
             cellInfo.cell = cell;
             cellInfo.flatIdxInCellIndices = m_CellIndices.GetFlatIdxForCell(cell.position);
+            cellInfo.sourceAssetInstanceID = assetInstanceID;
             cells[cell.index] = cellInfo;
+
+            m_UnloadedCells.Add(cellInfo);
 
             return cellInfo;
         }
 
-        void LoadCell(CellInfo cellInfo)
+        bool LoadCell(CellInfo cellInfo)
         {
-            if (!UploadCellGPUData(cellInfo))
+            if (GetCellIndexUpdate(cellInfo.cell, out var cellUpdateInfo)) // Allocate indices
             {
-                // We need to first remove something to fit, can't load things further.
-                return;
+                return AddBricks(cellInfo, cellUpdateInfo);
+            }
+            else
+            {
+                return false;
             }
         }
 
@@ -777,12 +786,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             var key = asset.GetSerializedFullPath();
 
-            for (int i = m_CellsToBeAdded.Count - 1; i >= 0; i--)
-            {
-                if (m_CellsToBeAdded[i].sourceAsset == key)
-                    m_CellsToBeAdded.RemoveAt(i);
-            }
-
             if (m_ActiveAssets.ContainsKey(key))
             {
                 m_ActiveAssets.Remove(key);
@@ -792,6 +795,19 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var cell in asset.cells)
             {
                 RemoveCell(cell);
+            }
+
+            // Remove all cells from the asset from streaming structures
+            int assetInstanceID = asset.GetInstanceID();
+            for (int i = m_LoadedCells.Count - 1; i >= 0; i--)
+            {
+                if (m_LoadedCells[i].sourceAssetInstanceID == assetInstanceID)
+                    m_LoadedCells.RemoveAt(i);
+            }
+            for (int i = m_UnloadedCells.Count - 1; i >= 0; i--)
+            {
+                if (m_UnloadedCells[i].sourceAssetInstanceID == assetInstanceID)
+                    m_UnloadedCells.RemoveAt(i);
             }
 
             ClearDebugData();
@@ -826,15 +842,13 @@ namespace UnityEngine.Experimental.Rendering
             SetTRS(Vector3.zero, Quaternion.identity, asset.minBrickSize);
             SetMaxSubdivision(asset.maxSubdivision);
 
+            ClearDebugData();
 
+            // Add all the cells to the system.
+            // They'll be streamed in later on.
             for (int i = 0; i < asset.cells.Count; ++i)
             {
-                var cell = asset.cells[i];
-                CellSortInfo sortInfo = new CellSortInfo();
-                sortInfo.cell = cell;
-                sortInfo.position = ((Vector3)cell.position * MaxBrickSize() * 0.5f) + m_Transform.posWS;
-                sortInfo.sourceAsset = asset.GetSerializedFullPath();
-                m_CellsToBeAdded.Add(sortInfo);
+                AddCell(asset.cells[i], asset.GetInstanceID());
             }
         }
 
@@ -885,7 +899,7 @@ namespace UnityEngine.Experimental.Rendering
             m_PendingAssetsToBeUnloaded.Clear();
         }
 
-        int GetNumberOfBricksAtSubdiv(Cell cell, out Vector3Int minValidLocalIdxAtMaxRes, out Vector3Int sizeOfValidIndicesAtMaxRes)
+        internal int GetNumberOfBricksAtSubdiv(Cell cell, out Vector3Int minValidLocalIdxAtMaxRes, out Vector3Int sizeOfValidIndicesAtMaxRes)
         {
             minValidLocalIdxAtMaxRes = Vector3Int.zero;
             sizeOfValidIndicesAtMaxRes = Vector3Int.one;
@@ -930,44 +944,121 @@ namespace UnityEngine.Experimental.Rendering
             return m_Index.AssignIndexChunksToCell(brickCountsAtResolution, ref cellUpdateInfo);
         }
 
-        void AddPendingCells(bool addAll = false)
-        {
-            int count = Mathf.Min(m_NumberOfCellsLoadedPerFrame, m_CellsToBeAdded.Count);
-            count = addAll ? m_CellsToBeAdded.Count : count;
-
-            // This should never happen, *unless* an asset was baked with previous version of index buffer.
-            if (m_PendingInitInfo.pendingMinCellPosition == m_PendingInitInfo.pendingMaxCellPosition && count > 1)
-                return;
-
-            if (count != 0)
-                ClearDebugData();
-
-            for (int i = 0; i < count; ++i)
-            {
-                // Pop from queue.
-                var sortInfo = m_CellsToBeAdded[0];
-                var cell = sortInfo.cell;
-
-                // "Static loading" part
-                var cellInfo = AddCell(cell);
-
-                // Streaming part
-                LoadCell(cellInfo);
-
-                m_CellsToBeAdded.RemoveAt(0);
-            }
-        }
-
         /// <summary>
         /// Perform all the operations that are relative to changing the content or characteristics of the probe reference volume.
         /// </summary>
-        /// <param name ="addAllCells"> True when all cells are to be immediately added.</param>
-        public void PerformPendingOperations(bool addAllCells = false)
+        public void PerformPendingOperations()
         {
             PerformPendingDeletion();
             PerformPendingIndexChangeAndInit();
             PerformPendingLoading();
-            AddPendingCells(addAllCells);
+        }
+
+        public void UpdateCellStreaming(Camera camera)
+        {
+            //var cameraPosition = camera.transform.position;
+            var cameraPositionCellSpace = camera.transform.position / (MaxBrickSize() * 0.5f);
+            m_CellInfoSorter.cameraPosition = cameraPositionCellSpace;
+
+            m_UnloadedCells.Sort(m_CellInfoSorter);
+            m_LoadedCells.Sort(m_CellInfoSorter);
+
+            bool budgetReached = false;
+            int pendingLoadCount = 0;
+
+            // This is only a rough budget estimate at first.
+            // It doesn't account for fragmentation.
+            int indexChunkBudget = m_Index.GetRemainingChunkCount();
+            int shChunkBudget = m_Pool.GetRemainingChunkCount();
+
+            while (pendingLoadCount < m_NumberOfCellsLoadedPerFrame && pendingLoadCount < m_UnloadedCells.Count && !budgetReached)
+            {
+                // Enough memory, we can safely load the cell.
+                var cellInfo = m_UnloadedCells[pendingLoadCount];
+                if (cellInfo.cell.shChunkCount <= shChunkBudget && cellInfo.cell.indexChunkCount <= indexChunkBudget)
+                {
+                    // Do the actual upload to GPU memory and update indirection buffer.
+                    // This can fail if there are not enough consecutive chunks for the cell.
+                    // TODO: Defrag?
+                    if (LoadCell(cellInfo))
+                    {
+                        m_TempCellToLoadList.Add(cellInfo);
+
+                        shChunkBudget -= cellInfo.cell.shChunkCount;
+                        indexChunkBudget -= cellInfo.cell.indexChunkCount;
+                        pendingLoadCount++;
+                    }
+                    else
+                    {
+                        budgetReached = true;
+                    }
+                }
+                else
+                {
+                    budgetReached = true;
+                }
+            }
+
+            // Budget reached. We need to figure out if we can safely unload other cells to make room.
+            if (budgetReached)
+            {
+                int pendingUnloadCount = 0;
+                bool canUnloadCell = true;
+                while (canUnloadCell && pendingLoadCount < m_NumberOfCellsLoadedPerFrame && pendingLoadCount < m_UnloadedCells.Count)
+                {
+                    if (m_LoadedCells.Count - pendingUnloadCount == 0)
+                    {
+                        canUnloadCell = false;
+                        break;
+                    }
+
+                    var furthestLoadedCell = m_LoadedCells[m_LoadedCells.Count - pendingUnloadCount - 1];
+                    var closestUnloadedCell = m_UnloadedCells[pendingLoadCount];
+
+                    // Redundant work. Maybe store during first sort pass?
+                    float furthestLoadedCellDistance = Vector3.Distance(furthestLoadedCell.cell.position, cameraPositionCellSpace);
+                    float closestUnloadedCellDistance = Vector3.Distance(closestUnloadedCell.cell.position, cameraPositionCellSpace);
+
+                    // The most distant loaded cell is further than the closest unloaded cell, we can unload it.
+                    if (furthestLoadedCellDistance > closestUnloadedCellDistance)
+                    {
+                        pendingUnloadCount++;
+                        UnloadCell(furthestLoadedCell);
+                        shChunkBudget += furthestLoadedCell.cell.shChunkCount;
+                        indexChunkBudget += furthestLoadedCell.cell.indexChunkCount;
+
+                        m_TempCellToUnloadList.Add(furthestLoadedCell);
+
+                        // Are we within budget?
+                        if (closestUnloadedCell.cell.shChunkCount <= shChunkBudget && closestUnloadedCell.cell.indexChunkCount <= indexChunkBudget)
+                        {
+                            if (LoadCell(closestUnloadedCell))
+                            {
+                                m_TempCellToLoadList.Add(closestUnloadedCell);
+
+                                shChunkBudget -= closestUnloadedCell.cell.shChunkCount;
+                                indexChunkBudget -= closestUnloadedCell.cell.indexChunkCount;
+                                pendingLoadCount++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // We are in a "stable" state, all the closest cells are loaded within the budget.
+                        canUnloadCell = false;
+                    }
+                }
+
+                if (pendingUnloadCount > 0)
+                    m_LoadedCells.RemoveRange(m_LoadedCells.Count - pendingUnloadCount, pendingUnloadCount);
+            }
+
+            // Remove the cells we successfully loaded.
+            m_UnloadedCells.RemoveRange(0, pendingLoadCount);
+            m_LoadedCells.AddRange(m_TempCellToLoadList);
+            m_UnloadedCells.AddRange(m_TempCellToUnloadList);
+            m_TempCellToLoadList.Clear();
+            m_TempCellToUnloadList.Clear();
         }
 
         /// <summary>
@@ -1001,23 +1092,6 @@ namespace UnityEngine.Experimental.Rendering
                 ClearDebugData();
 
                 m_NeedLoadAsset = true;
-            }
-        }
-
-        /// <summary>
-        /// Perform sorting of pending cells to be loaded.
-        /// </summary>
-        /// <param name ="cameraPosition"> The position to sort against (closer to the position will be loaded first).</param>
-        public void SortPendingCells(Vector3 cameraPosition)
-        {
-            if (m_CellsToBeAdded.Count > 0)
-            {
-                for (int i = 0; i < m_CellsToBeAdded.Count; ++i)
-                {
-                    m_CellsToBeAdded[i].distanceToCamera = Vector3.Distance(cameraPosition, m_CellsToBeAdded[i].position);
-                }
-
-                m_CellsToBeAdded.Sort();
             }
         }
 
@@ -1082,18 +1156,6 @@ namespace UnityEngine.Experimental.Rendering
             {
                 m_PendingAssetsToBeLoaded.Clear();
                 m_ActiveAssets.Clear();
-            }
-        }
-
-        bool UploadCellGPUData(CellInfo cellInfo)
-        {
-            if (GetCellIndexUpdate(cellInfo.cell, out var cellUpdateInfo)) // Allocate indices
-            {
-                return AddBricks(cellInfo, cellUpdateInfo);
-            }
-            else
-            {
-                return false;
             }
         }
 
@@ -1241,6 +1303,24 @@ namespace UnityEngine.Experimental.Rendering
 
             m_ProbeReferenceVolumeInit = false;
             ClearDebugData();
+        }
+
+        internal int cellCount => cells.Count;
+
+        internal void ToggleCellLoading(int cellIndex)
+        {
+            if (cells.TryGetValue(cellIndex, out var cell))
+            {
+                if (cell.loaded)
+                {
+                    UnloadCell(cell);
+                }
+                else
+                {
+                    LoadCell(cell);
+                }
+            }
+
         }
     }
 }

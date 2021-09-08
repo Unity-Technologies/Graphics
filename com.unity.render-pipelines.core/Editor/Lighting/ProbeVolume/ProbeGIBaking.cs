@@ -330,7 +330,7 @@ namespace UnityEngine.Experimental.Rendering
                 for (int iterations = 0; iterations < dilationSettings.dilationIterations; ++iterations)
                 {
                     // Make sure all is loaded before performing dilation.
-                    ProbeReferenceVolume.instance.PerformPendingOperations(addAllCells: true);
+                    ProbeReferenceVolume.instance.PerformPendingOperations();
 
                     // Dilate all cells
                     List<ProbeReferenceVolume.Cell> dilatedCells = new List<ProbeReferenceVolume.Cell>(ProbeReferenceVolume.instance.cells.Values.Count);
@@ -438,8 +438,6 @@ namespace UnityEngine.Experimental.Rendering
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
                 cell.minSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision();
-                cell.indexChunkCount = ProbeBrickIndex.GetChunkCount(cell.bricks.Count);
-                cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Count);
 
                 for (int i = 0; i < numProbes; ++i)
                 {
@@ -504,7 +502,10 @@ namespace UnityEngine.Experimental.Rendering
                     cell.validity[i] = validity[j];
                 }
 
-                probeRefVolume.AddCell(cell);
+                cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell, out var minValidLocalIdxAtMaxRes, out var sizeOfValidIndicesAtMaxRes);
+                cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Count);
+
+                probeRefVolume.AddCell(cell, -1);
                 UnityEngine.Profiling.Profiler.EndSample();
             }
 

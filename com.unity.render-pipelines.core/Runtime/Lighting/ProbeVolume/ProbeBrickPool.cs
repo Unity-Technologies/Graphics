@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeBrickPool
     {
-        const int kProbeIndexPoolAllocationSize = 128;
+        const int kProbeIndexPoolAllocationSize = 64;
 
         [DebuggerDisplay("Chunk ({x}, {y}, {z})")]
         public struct BrickChunkAlloc
@@ -69,6 +69,7 @@ namespace UnityEngine.Experimental.Rendering
         DataLocation m_Pool;
         BrickChunkAlloc m_NextFreeChunk;
         Stack<BrickChunkAlloc> m_FreeList;
+        int m_AvailableChunkCount;
 
         ProbeVolumeSHBands m_SHBands;
 
@@ -88,8 +89,16 @@ namespace UnityEngine.Experimental.Rendering
             m_Pool = CreateDataLocation(width * height * depth, false, shBands, out estimatedCost);
             estimatedVMemCost = estimatedCost;
 
+            m_AvailableChunkCount = (width / (kProbeIndexPoolAllocationSize * kBrickProbeCountPerDim)) * (height / kBrickProbeCountPerDim) * (depth / kBrickProbeCountPerDim);
+
             Profiler.EndSample();
         }
+
+        public int GetRemainingChunkCount()
+        {
+            return m_AvailableChunkCount;
+        }
+
 
         internal void EnsureTextureValidity()
         {
@@ -165,11 +174,15 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
+            m_AvailableChunkCount -= numberOfBrickChunks;
+
             return true;
         }
 
         internal void Deallocate(List<BrickChunkAlloc> allocations)
         {
+            m_AvailableChunkCount += allocations.Count;
+
             foreach (var brick in allocations)
                 m_FreeList.Push(brick);
         }
