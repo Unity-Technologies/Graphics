@@ -8,6 +8,12 @@ namespace UnityEngine.Rendering.Universal
     {
         protected override ScriptableRenderer Create()
         {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                ReloadAllNullProperties();
+            }
+#endif
             switch (request.mode)
             {
                 case Camera.RenderRequestMode.SelectionMask:
@@ -15,6 +21,11 @@ namespace UnityEngine.Rendering.Universal
                 default:
                     return new RenderRequestRenderer(this);
             }
+        }
+
+        private void ReloadAllNullProperties()
+        {
+            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
         }
 
         public Camera.RenderRequest request { get; set; }

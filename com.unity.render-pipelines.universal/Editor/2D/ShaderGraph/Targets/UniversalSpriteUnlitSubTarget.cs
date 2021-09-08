@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Legacy;
-using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
