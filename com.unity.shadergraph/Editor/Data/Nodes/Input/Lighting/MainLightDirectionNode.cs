@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
 @"
 {
     #if SHADERGRAPH_PREVIEW
-    Direction = half3(0.5, 0.5, 0);
+    Direction = half3(-0.5, -0.5, 0);
     #else
     Direction = SHADERGRAPH_MAIN_LIGHT_DIRECTION();
     #endif

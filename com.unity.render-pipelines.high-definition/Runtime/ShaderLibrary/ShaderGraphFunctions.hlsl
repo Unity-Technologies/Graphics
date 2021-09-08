@@ -37,7 +37,7 @@ float3 shadergraph_HDMainLightDirection()
             return 0.0f;
         lightIndex = 0;
     }
-    return -_DirectionalLightDatas[lightIndex].forward;
+    return _DirectionalLightDatas[lightIndex].forward;
 #else
     return 0.0f;
 #endif

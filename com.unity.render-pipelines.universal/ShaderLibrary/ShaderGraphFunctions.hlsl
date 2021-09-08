@@ -99,7 +99,7 @@ float3x3 BuildTangentToWorld(float4 tangentWS, float3 normalWS)
 
 float3 shadergraph_URPMainLightDirection()
 {
-    return GetMainLight().direction;
+    return -GetMainLight().direction;
 }
 
 // Always include Shader Graph version
