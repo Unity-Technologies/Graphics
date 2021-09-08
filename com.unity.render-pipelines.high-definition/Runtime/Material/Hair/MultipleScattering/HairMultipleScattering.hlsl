@@ -1,13 +1,4 @@
-// Inform the lightloop and evaluation to perform the necesarry tracing work and invoke the hair dual scattering implementation.
-#define LIGHT_EVALUATES_MULTIPLE_SCATTERING
-
-#define STRAND_DIAMETER_MILLIMETERS 0.5
-#define STRAND_DIAMETER_METERS      (STRAND_DIAMETER_MILLIMETERS * METERS_PER_MILLIMETER)
-
-#define DIRECT_ILLUMINATION_THRESHOLD 1
-
 TEXTURE3D(_PreIntegratedHairFiberScattering);
-
 TEXTURE2D(_PreIntegratedAverageHairFiberScattering);
 
 #define FRONT 0
@@ -23,6 +14,24 @@ struct HairScatteringData
     // Average azimuthal scattering.
     float3x3 NG;
 };
+
+
+#define SQRT_INV_PI    0.56418958354775628694
+#define SQRT_3_DIV_PI  0.97720502380583984317
+#define SQRT_5_DIV_PI  1.26156626101008002412
+#define SQRT_15_DIV_PI 2.18509686118415814108
+
+float DecodeHairStrandCount(float3 L, float4 strandCountSH)
+{
+    float strandCount = 0;
+
+    strandCount += strandCountSH.x * (0.5 * SQRT_INV_PI);
+    strandCount += strandCountSH.y * (0.5 * SQRT_3_DIV_PI * L.y);
+    strandCount += strandCountSH.z * (0.5 * SQRT_3_DIV_PI * L.z);
+    strandCount += strandCountSH.w * (0.5 * SQRT_3_DIV_PI * L.x);
+
+    return 10 * strandCount;
+}
 
 float3 ScatteringSpreadGaussian(float3 x, float3 v)
 {
@@ -110,7 +119,7 @@ HairScatteringData GetHairScatteringData(BSDFData bsdfData, float3 alpha, float3
 }
 
 // void EvaluateMultipleScattering_Material(float3 V, float3 L, MultipleScatteringData lightScatteringData, inout BSDFData bsdfData)
-float3 EvaluateMultipleScattering(float3 Fs, BSDFData bsdfData, float3 alpha, float3 beta, float thetaH, float sinThetaI)
+float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3 alpha, float3 beta, float thetaH, float sinThetaI)
 {
     // Fetch the various preintegrated data.
     HairScatteringData hairScatteringData = GetHairScatteringData(bsdfData, alpha, beta, sinThetaI);
@@ -121,6 +130,7 @@ float3 EvaluateMultipleScattering(float3 Fs, BSDFData bsdfData, float3 alpha, fl
     // "A BSSRDF Model for Efficient Rendering of Fur with Global Illumination" (Yan et. al)
 
     // Pre-define some shorthand for the symbols.
+    const float  n    = DecodeHairStrandCount(L, bsdfData.strandCountSH);
     const float3 af   = hairScatteringData.averageScattering[FRONT];
     const float3 ab   = hairScatteringData.averageScattering[BACK];
     const float3 sf   = hairScatteringData.averageShift[FRONT];
@@ -139,12 +149,14 @@ float3 EvaluateMultipleScattering(float3 Fs, BSDFData bsdfData, float3 alpha, fl
 
     // Approximate the transmittance by assuming that all hair strands between the shading point and the light are
     // oriented the same. This is suitable for long, straighter hair ( Eq. 6 Disney ).
-    float3 Tf = bsdfData.forwardScatteringTransmittance;
+    float3 Tf = df * pow(af, n);
 
     // Approximate the accumulated variance, by assuming strands all have the same average roughness and inclination. ( Eq. 7 Disney )
-    float3 sigmaF = bsdfData.forwardScatteringVariance;
+    float3 sigmaF = Bf2 * n;
 
-    float directFraction = bsdfData.directIlluminationFraction;
+    const float directFraction = 1 - saturate(n);
+    Tf     = lerp(Tf,     1, directFraction);
+    sigmaF = lerp(sigmaF, 0, directFraction);
 
     // Local scattering.
     // ------------------------------------------------------------------------------------

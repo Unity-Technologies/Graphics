@@ -262,9 +262,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.absorption = DiffuseColorToAbsorption(surfaceData.diffuseColor, bsdfData.roughnessRadial);
 
     #if _USE_ADVANCED_MULTIPLE_SCATTERING
-        bsdfData.forwardScatteringTransmittance = surfaceData.forwardScatteringTransmittance;
-        bsdfData.forwardScatteringVariance = surfaceData.forwardScatteringVariance;
-        bsdfData.directIlluminationFraction = surfaceData.directIlluminationFraction;
+        bsdfData.strandCountSH = surfaceData.strandCountSH;
     #endif
     }
 
@@ -700,7 +698,7 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     #if _USE_ADVANCED_MULTIPLE_SCATTERING
         if (!HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_SCATTERING))
         {
-            cbsdf.specR = EvaluateMultipleScattering(cbsdf.specR, bsdfData, alpha, beta, thetaH, sinThetaI);
+            cbsdf.specR = EvaluateMultipleScattering(L, cbsdf.specR, bsdfData, alpha, beta, thetaH, sinThetaI);
         }
         else
     #endif

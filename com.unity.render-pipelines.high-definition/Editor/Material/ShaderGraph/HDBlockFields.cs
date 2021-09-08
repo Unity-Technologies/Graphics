@@ -130,12 +130,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(0.5f), ShaderStage.Fragment);
             public static BlockFieldDescriptor CuticleAngle = new BlockFieldDescriptor(SurfaceDescription.name, "CuticleAngle", "Cuticle Angle", "SURFACEDESCRIPTION_CUTICLEANGLE",
                 new FloatControl(3f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor ForwardScatteringTransmittance = new BlockFieldDescriptor(SurfaceDescription.name, "ForwardScatteringTransmittance", "Scattering Transmittance", "SURFACEDESCRIPTION_FORWARDSCATTERINGTRANSMITTANCE",
-                new Vector3Control(0.3f * new Vector3(1.0f, 0.65f, 0.3f)), ShaderStage.Fragment);
-            public static BlockFieldDescriptor ForwardScatteringVariance = new BlockFieldDescriptor(SurfaceDescription.name, "ForwardScatteringVariance", "Scattering Variance", "SURFACEDESCRIPTION_FORWARDSCATTERINGVARIANCE",
-                new Vector3Control(0.3f * new Vector3(1.0f, 0.65f, 0.3f)), ShaderStage.Fragment);
-            public static BlockFieldDescriptor DirectIlluminationFraction = new BlockFieldDescriptor(SurfaceDescription.name, "DirectIlluminationFraction", "Direct Illumination", "SURFACEDESCRIPTION_CUTICLEANGLE",
-                new FloatControl(0.5f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor DensitySphericalHarmonic = new BlockFieldDescriptor(SurfaceDescription.name, "DensitySphericalHarmonic", "Density Spherical Harmonic", "SURFACEDESCRIPTION_DENSITYSPHERICALHARMONIC",
+                new Vector4Control(Vector4.zero), ShaderStage.Fragment);
 
             // --------------------------------------------------
             // StackLit

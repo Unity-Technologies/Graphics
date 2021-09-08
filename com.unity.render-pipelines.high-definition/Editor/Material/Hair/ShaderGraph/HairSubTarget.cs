@@ -111,9 +111,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     // Dual Scattering Inputs (Global Scattering)
                     // Right now these inputs are provided by the demo team hair package.
-                    context.AddBlock(HDBlockFields.SurfaceDescription.ForwardScatteringTransmittance);
-                    context.AddBlock(HDBlockFields.SurfaceDescription.ForwardScatteringVariance);
-                    context.AddBlock(HDBlockFields.SurfaceDescription.DirectIlluminationFraction);
+                    context.AddBlock(HDBlockFields.SurfaceDescription.DensitySphericalHarmonic);
                 }
             }
         }
