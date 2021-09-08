@@ -75,8 +75,10 @@ if (index >= asuint(nbMax) - deadCount)
 #if USE_GEOMETRY_SHADER
 	return; // cull
 #else
+{
 	o.pos.x = VFX_NAN;
 	return o; // cull
+}
 #endif
 
 Attributes attributes = (Attributes)0;
