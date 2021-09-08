@@ -1083,6 +1083,7 @@ struct PreLightData
     float    coatPartLambdaV;
     float3   coatIblR;
     float    coatIblF;               // Fresnel term for view vector
+    float    clearCoatIndirectSpec;
     float3x3 ltcTransformCoat;       // Inverse transformation for GGX                                 (4x VGPRs)
 
 #if HAS_REFRACTION
@@ -1144,6 +1145,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         preLightData.coatPartLambdaV = GetSmithJointGGXPartLambdaV(clampedNdotV, CLEAR_COAT_ROUGHNESS);
         preLightData.coatIblR = reflect(-V, N);
         preLightData.coatIblF = F_Schlick(CLEAR_COAT_F0, clampedNdotV) * bsdfData.coatMask;
+        preLightData.clearCoatIndirectSpec = 1.0;
     }
 
     // Handle IBL + area light + multiscattering.
@@ -1829,6 +1831,9 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     // If this material has a clear coat, the behavior is more complex
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
+        // Because we do not want to have a double contribution, we need to keep track that the clear coat's indirect specular contribution was added
+        preLightData.clearCoatIndirectSpec = 1.0 - ssrLighting.a;
+
         // We have three possible behaviors in this case:
         // - The smoothness is superior or equal to 0.9, we approximate the fact that the clear coat and base layer have the same roughness and use the SSR as the indirect specular signal.
         // - The smoothness is inferior to 0.8. We cannot use the SSR for the base layer, but we use the fresnel to lerp between the two lobes.
@@ -2008,15 +2013,19 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // Evaluate the Clear Coat component if needed
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
-            // No correction needed for coatR as it is smooth
-            // Note: coat F is scalar as it is a dieletric
-            envLighting *= Sq(1.0 - preLightData.coatIblF);
+            if (preLightData.clearCoatIndirectSpec != 0.0)
+            {
+                // No correction needed for coatR as it is smooth
+                // Note: coat F is scalar as it is a dieletric
+                envLighting *= Sq(1.0 - preLightData.coatIblF);
 
-            // Evaluate the Clear Coat color
-            float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, coatR, 0.0, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
-            envLighting += preLightData.coatIblF * preLD.rgb;
+                // Evaluate the Clear Coat color
+                float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, coatR, 0.0, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
+                envLighting += preLightData.coatIblF * preLD.rgb;
 
-            // Can't attenuate diffuse lighting here, may try to apply something on bakeLighting in PostEvaluateBSDF
+                // Can't attenuate diffuse lighting here, may try to apply something on bakeLighting in PostEvaluateBSDF
+            }
+            
         }
     }
 #if HAS_REFRACTION

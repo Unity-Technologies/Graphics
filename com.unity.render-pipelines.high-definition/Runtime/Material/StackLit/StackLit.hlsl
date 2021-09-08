@@ -1046,6 +1046,9 @@ struct PreLightData
 
     float coatIeta;
 
+    // TODO write comment
+    float clearCoatIndirectSpec;
+
     // For IBLs (and analytical lights if approximation is used)
 
     float3 vLayerEnergyCoeff[NB_VLAYERS];
@@ -2663,6 +2666,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         // accordingly and are accessed by COAT|BASE_NORMAL_IDX
 
         preLightData.coatIeta = 1.0 / GetCoatEta(bsdfData);
+        preLightData.clearCoatIndirectSpec = 1.0;
 
         // First thing we need is compute the energy coefficients and new roughnesses.
         // Even if configured to do it also per analytical light, we need it for IBLs too.
@@ -4239,6 +4243,9 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
         // - The smooothness is between 0.8 and 0.9, we lerp between the two behaviors.
         float blendingFactor = lerp(0.0, 1.0, saturate((mixedPerceptualRougness - 0.1) / 0.2));
 
+        // Because we do not want to have a double contribution, we need to keep track that the clear coat's indirect specular contribution was added
+        preLightData.clearCoatIndirectSpec = 1.0 - ssrLighting.a;
+
         lighting.specularReflected = ssrLighting.rgb * lerp(reflectanceFactorB, lerp(reflectanceFactorB, reflectanceFactorC, bsdfData.coatMask), blendingFactor);
         reflectionHierarchyWeight  = lerp(ssrLighting.a, lerp(ssrLighting.a, ssrLighting.a * reflectanceFactorC.x, bsdfData.coatMask), blendingFactor);
     }
@@ -4360,6 +4367,10 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         if( (i == (0 IF_FEATURE_COAT(+1))) && _DebugEnvLobeMask.y == 0.0) continue;
         if( (i == (1 IF_FEATURE_COAT(+1))) && _DebugEnvLobeMask.z == 0.0) continue;
 #endif
+
+        // If we are going to process the clear coat and it is flagged as akready processed, skip.
+        if (i == COAT_LOBE_IDX && COAT_NB_LOBES == 1 && preLightData.clearCoatIndirectSpec == 0.0) continue;
+
         // Compiler will deal with all that:
         normal = (NB_NORMALS > 1 && i == COAT_NORMAL_IDX) ? bsdfData.coatNormalWS : bsdfData.normalWS;
 
