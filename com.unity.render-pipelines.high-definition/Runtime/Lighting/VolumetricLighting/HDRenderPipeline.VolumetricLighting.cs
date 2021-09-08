@@ -962,6 +962,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void VoxelizeComputeLocalVolumetricFogs(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle vBuffer)
         {
+            if (!Fog.IsVolumetricFogEnabled(hdCamera))
+                return;
+
             using (var builder = renderGraph.AddRenderPass<SingleComputeLocalVolumeData>("Voxelize single compute volume", out var passData))
             {
                 passData.computeLocalVolumes = m_VisibleComputeLocalVolumes;
