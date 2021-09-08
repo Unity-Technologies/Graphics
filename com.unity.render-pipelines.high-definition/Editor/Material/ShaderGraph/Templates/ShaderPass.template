@@ -302,7 +302,6 @@ Pass
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
 
-		// If we want to force forward emissive and we have GBuffer pass, don't do anything
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
         // Note this will not fully work on transparent surfaces (can check with _SURFACE_TYPE_TRANSPARENT define)
