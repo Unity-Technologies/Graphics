@@ -419,10 +419,12 @@ namespace UnityEngine.Experimental.Rendering
             GUILayout.FlexibleSpace();
 
             EditorGUILayout.BeginHorizontal();
+            EditorGUI.BeginDisabledGroup(Lightmapping.isRunning);
             if (GUILayout.Button("Load All Scenes In Set", GUILayout.ExpandWidth(true)))
-            {
                 LoadScenesInBakingSet(GetCurrentBakingSet());
-            }
+            if (GUILayout.Button("Clear Loaded Scene Data"))
+                Lightmapping.Clear();
+            EditorGUI.EndDisabledGroup();
             if (Lightmapping.isRunning)
             {
                 if (GUILayout.Button("Cancel", GUILayout.ExpandWidth(true)))
@@ -432,10 +434,6 @@ namespace UnityEngine.Experimental.Rendering
             {
                 if (GUILayout.Button("Generate Lighting", GUILayout.ExpandWidth(true)))
                     BakeLightingForSet(GetCurrentBakingSet());
-            }
-            if (GUILayout.Button("Clear Loaded Scene Data"))
-            {
-                Lightmapping.Clear();
             }
             EditorGUILayout.EndHorizontal();
         }
