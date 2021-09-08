@@ -454,8 +454,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 }
                 else // If probe volume is disabled we fallback on the ambient probes
                 {
-                    tempBuiltinData = EvaluateAmbientProbe(bsdfData.normalWS);
-                    tempBuiltinData = EvaluateAmbientProbe(-bsdfData.normalWS);
+                    tempBuiltinData.bakeDiffuseLighting = EvaluateAmbientProbe(bsdfData.normalWS);
+                    tempBuiltinData.backBakeDiffuseLighting = EvaluateAmbientProbe(-bsdfData.normalWS);
                 }
 #endif
             }
@@ -466,7 +466,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER)
 #endif
                 ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, tempBuiltinData);
-
+#endif
             // This is applied only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
             tempBuiltinData.bakeDiffuseLighting *= GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
 

@@ -7,9 +7,7 @@
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING
 #define MATERIAL_INCLUDE_TRANSMISSION
-#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl" //For APV
-#endif
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
@@ -951,7 +949,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // This cause quality issue because it prevent us to combine it correctly with SSAO (i.e min(SSAO, AO)) + SSAO is apply on emissive
     // As explain in encoding step for SSGI/RTGI/Mixed and APV not using lightmap, we rely on a hack to retrieve AO
     // Then we could use the regular path (like in Forward) and get correct rendering.
-    if (gbuffer3.xz == AO_IN_GBUFFER3_TAG.xz)
+    const float3 AoInGbuffer3Tag = AO_IN_GBUFFER3_TAG;
+    if (all(gbuffer3.xz == AoInGbuffer3Tag.xz))
         bsdfData.ambientOcclusion = gbuffer3.y;
     else
     {

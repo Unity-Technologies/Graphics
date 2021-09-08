@@ -20,7 +20,7 @@ real3 EvaluateAmbientProbe(real3 normalWS)
 }
 
 // Alias to make code less confusing as the same code is used to evaluate Ambient Probe and also to evaluate builtin light probe (which include ambient probe + local lights)
-#define EvaluateAmbientProbe EvaluateLightProbe
+#define EvaluateLightProbe EvaluateAmbientProbe
 
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
