@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph
         public VoronoiNode()
         {
             name = "Voronoi";
+            synonyms = new string[] { "worley noise" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

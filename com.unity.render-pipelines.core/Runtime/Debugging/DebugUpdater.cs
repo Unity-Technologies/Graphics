@@ -1,5 +1,5 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
-    #define USE_INPUT_SYSTEM
+#define USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.InputSystem.EnhancedTouch;
@@ -16,13 +16,26 @@ namespace UnityEngine.Rendering
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void RuntimeInit()
         {
-            if (!Debug.isDebugBuild || FindObjectOfType<DebugUpdater>() != null)
+            if (!Debug.isDebugBuild || !DebugManager.instance.enableRuntimeUI || FindObjectOfType<DebugUpdater>() != null)
                 return;
 
+            EnableRuntime();
+        }
+
+        internal static void SetEnabled(bool enabled)
+        {
+            if (enabled)
+                EnableRuntime();
+            else
+                DisableRuntime();
+        }
+
+        static void EnableRuntime()
+        {
             var go = new GameObject { name = "[Debug Updater]" };
             var debugUpdater = go.AddComponent<DebugUpdater>();
 
-            var es = GameObject.FindObjectOfType<EventSystem>();
+            var es = FindObjectOfType<EventSystem>();
             if (es == null)
             {
                 go.AddComponent<EventSystem>();
@@ -69,6 +82,21 @@ namespace UnityEngine.Rendering
             debugUpdater.m_Orientation = Screen.orientation;
 
             DontDestroyOnLoad(go);
+
+            DebugManager.instance.EnableInputActions();
+        }
+
+        static void DisableRuntime()
+        {
+            DebugManager debugManager = DebugManager.instance;
+            debugManager.displayRuntimeUI = false;
+            debugManager.displayPersistentRuntimeUI = false;
+
+            var debugUpdater = FindObjectOfType<DebugUpdater>();
+            if (debugUpdater != null)
+            {
+                CoreUtils.Destroy(debugUpdater.gameObject);
+            }
         }
 
         void Update()
@@ -80,8 +108,7 @@ namespace UnityEngine.Rendering
             if (debugManager.GetAction(DebugAction.EnableDebugMenu) != 0.0f ||
                 debugManager.GetActionToggleDebugMenuWithTouch())
             {
-                if (debugManager.enableWindowHotkey)
-                    debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
+                debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
             }
 
             if (debugManager.displayRuntimeUI)

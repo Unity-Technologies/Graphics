@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private class DiffusionProfileSerializer
         {
             [SerializeField]
-            public DiffusionProfileSettings    diffusionProfileAsset = null;
+            public DiffusionProfileSettings diffusionProfileAsset = null;
         }
 
         [SerializeField]

@@ -45,7 +45,9 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 | - **Half Resolution Denoiser** | Enable this feature to evaluate the spatio-temporal filter in half resolution. This decreases the resource intensity of denoising but reduces quality. |
 | - **Denoiser Radius**          | Set the radius of the spatio-temporal filter.                |
 | - **Second Denoiser Pass**     | Enable this feature to process a second denoiser pass. This helps to remove noise from the effect. |
+| **Full Resolution**            | Enable this feature to increase the ray budget to one ray per pixel, per frame. Disable this feature to decrease the ray budget to one ray per four pixels, per frame.|
 | **Depth Tolerance** | Use the slider to control the tolerance when comparing the depth of the GameObjects on screen and the depth buffer. Because the SSR algorithm can not distinguish thin GameObjects from thick ones, this property helps trace rays behind GameObjects. The algorithm applies this property to every GameObject uniformly. |
+| **Ray Miss**         | Determines what HDRP does when a screen space global illumination (SSGI) ray doesn't find an intersection. Choose from one of the following options: <br/>&#8226;**Reflection probes**: HDRP uses reflection probes in your scene to calculate the missing SSGI intersection.<br/>&#8226;**Sky**: HDRP uses the sky defined by the current [Volume](Volumes.md) settings to calculate the missing SSGI intersection.<br/>&#8226;**Both**: HDRP uses both reflection probes and the sky defined by the current [Volume](Volumes.md) settings to calculate the missing SSGI intersection.<br/>&#8226;**Nothing**: HDRP does not calculate indirect lighting when SSGI doesn't find an intersection.<br/><br/>This property is set to **Both** by default. |
 
 ### Ray-traced
 
@@ -53,6 +55,8 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 
 | Property                       | Description                                                  |
 | ------------------------------ | ------------------------------------------------------------ |
+| **Ray Miss**                   | Determines what HDRP does when ray-traced global illumination (RTGI) doesn't find an intersection. Choose from one of the following options: <br/>&#8226;**Reflection probes**: HDRP uses reflection probes in your scene to calculate the last RTGI bounce.<br/>&#8226;**Sky**: HDRP uses the sky defined by the current [Volume](Volumes.md) settings to calculate the last RTGI bounce.<br/>&#8226;**Both** : HDRP uses both reflection probes and the  the sky defined by the current [Volume](Volumes.md) settings to calculate the last RTGI bounce.<br/>&#8226;**Nothing**: HDRP does not calculate indirect lighting when RTGI doesn't find an intersection.<br/><br/>This property is set to **Both** by default|
+| **Last Bounce**                | Determines what HDRP does when ray-traced global illumination (RTGI) lights the last bounce. Choose from one of the following options: <br/>&#8226;**Reflection probes**: HDRP uses reflection probes in your scene to calculate the last RTGI bounce.<br/>&#8226;**Sky**: HDRP uses the sky defined by the current [Volume](Volumes.md) settings to calculate the last RTGI bounce.<br/>&#8226;**Both**:  HDRP uses both reflection probes and the sky defined by the current [Volume](Volumes.md) settings to calculate the last RTGI bounce.<br/>&#8226;**Nothing**: HDRP does not calculate indirect lighting when it evaluates the last bounce.<br/><br/>This property is set to **Both** by default. |
 | **Tracing**                    | Specifies the method HDRP uses to calculate global illumination. Depending on the option you select, the properties visible in the Inspector change. For more information on what the options do, see [tracing modes](#tracing-modes). The options are:<br/>&#8226; **Ray Marching**: Uses a screen-space ray marching solution to calculate global illumination. For the list of properties this option exposes, see [Screen-space](#screen-space).<br/>&#8226; **Ray Tracing**: Uses ray tracing to calculate global illumination. For information on ray-traced global illumination, see [ray-traced global illumination](Ray-Traced-Global-Illumination.md). For the list of properties this option exposes, see [Ray-traced](#ray-traced).<br/>&#8226; **Mixed**: Uses a combination of ray tracing and ray marching to calculate global illumination. For the list of properties this option exposes, see [Ray-traced](#ray-traced). |
 | **LayerMask**                  | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Mode**                       | Defines if HDRP should evaluate the effect in **Performance** or **Quality** mode.<br/>This property only appears if you select set **Supported Ray Tracing Mode** in your HDRP Asset to **Both**. |
@@ -69,6 +73,12 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 | - **Second Denoiser Pass**     | Enable this feature to process a second denoiser pass. This helps to remove noise from the effect. |
 
 ## Limitations
+
+In Deferred rendering mode, Screen Space Global Illumination and Ray-Traced Global Illumination share a buffer with emissive, which overwrites emissive data.
+There are multiple ways to recover the emissive contribution of the scene materials:
+* Disable [Receive SSR/SSGI](snippets/shader-properties/surface-options/receive-ssr.md) flag on the emissive materials.
+* Use [Force Forward Emissive](snippets/shader-properties/advanced-options/force-forward-emissive.md) on the emissive materials.
+* Use Forward rendering.
 
 ### Screen-space global illumination
 

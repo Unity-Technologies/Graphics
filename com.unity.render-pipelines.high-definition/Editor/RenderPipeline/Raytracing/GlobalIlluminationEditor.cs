@@ -12,13 +12,15 @@ namespace UnityEditor.Rendering.HighDefinition
         // Shared rasterization / ray tracing parameter
         SerializedDataParameter m_Enable;
         SerializedDataParameter m_Tracing;
+        SerializedDataParameter m_RayMiss;
 
         // Screen space global illumination parameters
-        SerializedDataParameter m_FallbackHierarchy;
+        SerializedDataParameter m_FullResolutionSS;
         SerializedDataParameter m_DepthBufferThickness;
         SerializedDataParameter m_RaySteps;
 
         // Ray tracing generic attributes
+        SerializedDataParameter m_LastBounce;
         SerializedDataParameter m_LayerMask;
         SerializedDataParameter m_ReceiverMotionRejection;
         SerializedDataParameter m_TextureLodBias;
@@ -56,13 +58,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_Enable = Unpack(o.Find(x => x.enable));
             m_Tracing = Unpack(o.Find(x => x.tracing));
+            m_RayMiss = Unpack(o.Find(x => x.rayMiss));
 
             // SSGI Parameters
-            m_FallbackHierarchy = Unpack(o.Find(x => x.fallbackHierarchy));
+            m_FullResolutionSS = Unpack(o.Find(x => x.fullResolutionSS));
             m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
             m_RaySteps = Unpack(o.Find(x => x.maxRaySteps));
 
             // Ray Tracing shared parameters
+            m_LastBounce = Unpack(o.Find(x => x.lastBounceFallbackHierarchy));
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
             m_ReceiverMotionRejection = Unpack(o.Find(x => x.receiverMotionRejection));
             m_TextureLodBias = Unpack(o.Find(x => x.textureLodBias));
@@ -96,8 +100,10 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of global illumination rays. The higher this value is, the more expensive ray traced global illumination is.");
+        static public readonly GUIContent k_FullResolutionSSText = EditorGUIUtility.TrTextContent("Full Resolution", "Controls if the screen space global illumination should be evaluated at half resolution.");
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Depth Tolerance", "Controls the tolerance when comparing the depth of two pixels.");
-        static public readonly GUIContent k_FallbackHierarchyText = EditorGUIUtility.TrTextContent("Fallback Hierarchy", "Controls the tolerance when comparing the depth of two pixels.");
+        static public readonly GUIContent k_RayMissFallbackHierarchyText = EditorGUIUtility.TrTextContent("Ray Miss", "Controls the fallback hierarchy for indirect diffuse in case the ray misses.");
+        static public readonly GUIContent k_LastBounceFallbackHierarchyText = EditorGUIUtility.TrTextContent("Last Bounce", "Controls the fallback hierarchy for lighting the last bounce.");
         static public readonly GUIContent k_MaxMixedRaySteps = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for mixed tracing.");
 
         static public readonly GUIContent k_DenoiseText = EditorGUIUtility.TrTextContent("Denoise", "Denoise the screen space GI.");
@@ -167,14 +173,17 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             PropertyField(m_Enable);
+            if (m_Enable.value.boolValue)
+                EditorGUILayout.HelpBox("Real-time Global Illumination overwrites emissive data in deferred rendering mode. To recover the emissive contribution, either use Force Forward Emissive or disable Receive SSR/SSGI flag on the emissive materials.", MessageType.Info);
+            EditorGUILayout.Space();
 
             // If ray tracing is supported display the content of the volume component
-            if (HDRenderPipeline.pipelineSupportsRayTracing)
+            if (HDRenderPipeline.buildPipelineSupportsRayTracing)
                 PropertyField(m_Tracing);
 
             // Flag to track if the ray tracing parameters were displayed
             RayCastingMode tracingMode = m_Tracing.value.GetEnumValue<RayCastingMode>();
-            bool rayTracingSettingsDisplayed = HDRenderPipeline.pipelineSupportsRayTracing
+            bool rayTracingSettingsDisplayed = HDRenderPipeline.buildPipelineSupportsRayTracing
                 && m_Tracing.overrideState.boolValue
                 && tracingMode != RayCastingMode.RayMarching;
 
@@ -184,6 +193,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     PropertyField(m_LayerMask);
                     PropertyField(m_TextureLodBias);
+
+                    using (new IndentLevelScope())
+                    {
+                        EditorGUILayout.LabelField("Fallback", EditorStyles.miniLabel);
+                        PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
+                        PropertyField(m_LastBounce, k_LastBounceFallbackHierarchyText);
+                    }
 
                     if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
                     {
@@ -235,8 +251,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_RaySteps);
                         DenoiserSSGUI();
                     }
+                    PropertyField(m_FullResolutionSS, k_FullResolutionSSText);
                     PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
-                    PropertyField(m_FallbackHierarchy, k_FallbackHierarchyText);
+                    PropertyField(m_RayMiss, k_RayMissFallbackHierarchyText);
                 }
             }
         }
@@ -268,7 +285,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
+            if (HDRenderPipeline.buildPipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
                 m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
             {
                 // RTGI
@@ -294,7 +311,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
+            if (HDRenderPipeline.buildPipelineSupportsRayTracing && m_Tracing.overrideState.boolValue &&
                 m_Tracing.value.GetEnumValue<RayCastingMode>() != RayCastingMode.RayMarching)
             {
                 // RTGI
@@ -321,7 +338,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool QualityEnabled()
         {
             // Quality always used for SSGI
-            if (!HDRenderPipeline.rayTracingSupportedBySystem || m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
+            if (!HDRenderPipeline.buildTargetSupportsRayTracing || m_Tracing.value.GetEnumValue<RayCastingMode>() == RayCastingMode.RayMarching)
                 return true;
 
             // Handle the quality usage for RTGI

@@ -54,6 +54,11 @@ namespace UnityEditor.Rendering
             /// Far plane content
             /// </summary>
             public static readonly GUIContent farPlaneContent = EditorGUIUtility.TrTextContent("Far", "The furthest point relative to the camera that drawing occurs.");
+
+            /// <summary>
+            /// Message displayed about unsupported fields for Camera Presets
+            /// </summary>
+            public static readonly string unsupportedPresetPropertiesMessage = L10n.Tr("When using Preset of Camera Component, only a subset of properties are supported.  Unsupported properties are hidden.");
         }
     }
 }
