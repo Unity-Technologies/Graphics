@@ -433,7 +433,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (GUILayout.Button("Generate Lighting", GUILayout.ExpandWidth(true)))
                     BakeLightingForSet(GetCurrentBakingSet());
             }
-            if (GUILayout.Button("Clear Baked Data"))
+            if (GUILayout.Button("Clear Loaded Scene Data"))
             {
                 Lightmapping.Clear();
             }
