@@ -101,6 +101,8 @@ The version number for this package has increased due to a version update of a r
 - Exposed Parameter placement can be moved after sanitize
 - Fix rendering artifacts on some mobile devices [Case 1149057](https://issuetracker.unity3d.com/product/unity/issues/guid/1149057/)
 - Fix compilation failure on OpenGLES [Case 1348666](https://issuetracker.unity3d.com/product/unity/issues/guid/1348666/)
+- Don't open an empty VFX Graph Editor when assigning a VFX Asset to a Visual Effect GameObject from the inspector [Case 1347399](https://issuetracker.unity3d.com/product/unity/issues/guid/1347399/)
+- Visual Effect inspector input fields don't lose focus anymore while typing (Random seed)
 - Subgraph output properties tooltips were not easily editable when multiline
 
 ## [11.0.0] - 2020-10-21
