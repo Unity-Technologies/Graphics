@@ -33,12 +33,12 @@ namespace UnityEngine.Rendering.PostProcessing
             }
         }
 
-        public static bool operator==(in PostProcessVolumeMeta l, in PostProcessVolumeMeta r)
+        public static bool operator ==(in PostProcessVolumeMeta l, in PostProcessVolumeMeta r)
         {
             return l.Equals(r);
         }
 
-        public static bool operator!=(in PostProcessVolumeMeta l, in PostProcessVolumeMeta r)
+        public static bool operator !=(in PostProcessVolumeMeta l, in PostProcessVolumeMeta r)
         {
             return !l.Equals(r);
         }
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.PostProcessing
 
         public Exception Add(PostProcessVolume volume, PostProcessVolumeMeta meta)
         {
-            var entry = new Entry {volume = volume, meta = meta};
+            var entry = new Entry { volume = volume, meta = meta };
             var mask = 1 << meta.layer;
             m_Volumes.Add(entry);
 
@@ -199,6 +199,7 @@ namespace UnityEngine.Rendering.PostProcessing
                     RemoveEntryFromIndex(entry);
                     AddEntryInIndex(entry, newMeta.layer);
                 }
+
                 // We use else if as a Adding and Removing will update the priority
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
                 else if (entry.meta.priority != newMeta.priority)
