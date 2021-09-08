@@ -93,3 +93,7 @@ When the **Dynamic Render Pass Culling** option is enabled in the HDRP Global Se
 ## Dynamic Resolution
 
 From 2021.2, Bilinear and Lanczos upscale filters have been removed as they are mostly redundant with other better options. A project using Bilinear filter will migrate to use Catmull-Rom, if using Lanczos it will migrate to Contrast Adaptive Sharpening (CAS).  If your project was relying on those filters also consider the newly added filters TAA Upscale and FidelityFX Super Resolution 1.0.
+
+## Ambient Mode
+
+In order to offer a better first experience to users, the Ambient Mode parameter in the Visual Environment volume component now defaults to Dynamic. This may impact existing projects where no default volume profile overriding this parameter exists. In order to return to the former behavior, you need to add a Visual Environment component to the default volume profile and override the Ambient Mode to static.
