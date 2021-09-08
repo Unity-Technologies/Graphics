@@ -133,7 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         private static readonly string[] s_SharedTemplatePath =
         {
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/",
-            "Packages/com.unity.visualeffectgraph/Editor/ShaderGraph/Templates"
+            $"{HDUtils.GetVFXPath()}/Editor/ShaderGraph/Templates"
         };
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)

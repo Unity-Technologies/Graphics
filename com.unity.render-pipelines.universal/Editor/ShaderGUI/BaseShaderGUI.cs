@@ -241,13 +241,7 @@ namespace UnityEditor
             ShaderPropertiesGUI(material);
         }
 
-        protected virtual uint materialFilter
-        {
-            get
-            {
-                return uint.MaxValue;
-            }
-        }
+        protected virtual uint materialFilter => uint.MaxValue;
 
         public virtual void OnOpenGUI(Material material, MaterialEditor materialEditor)
         {

@@ -12,9 +12,9 @@ namespace UnityEditor.VFX.HDRP
         {
             get
             {
-                if (shaderName != string.Empty)
-                    return $"Output Particle {shaderName} {primitiveType.ToString()}";
-                return "Output Particle HDRP Lit " + primitiveType.ToString();
+                return !string.IsNullOrEmpty(shaderName)
+                ? $"Output Particle {shaderName} {primitiveType.ToString()}"
+                : "Output Particle HDRP Lit " + primitiveType.ToString();
             }
         }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
