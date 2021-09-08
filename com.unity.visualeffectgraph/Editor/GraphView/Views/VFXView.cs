@@ -647,8 +647,8 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<KeyDownEvent>(OnKeyDownEvent);
 
             graphViewChanged = VFXGraphViewChanged;
-
             elementResized = VFXElementResized;
+            canPasteSerializedData = VFXCanPaste;
 
             viewDataKey = "VFXView";
 
@@ -2225,6 +2225,11 @@ namespace UnityEditor.VFX.UI
 
                 return center;
             }
+        }
+
+        private bool VFXCanPaste(string data)
+        {
+            return VFXPaste.CanPaste(this, data);
         }
 
         public void UnserializeAndPasteElements(string operationName, string data)
