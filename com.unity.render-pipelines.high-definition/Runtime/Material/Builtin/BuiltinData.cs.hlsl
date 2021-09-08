@@ -39,6 +39,7 @@ struct BuiltinData
     real2 motionVector;
     real2 distortion;
     real distortionBlur;
+    uint isLightmap;
     uint renderingLayers;
     float depthOffset;
     #if defined(UNITY_VIRTUAL_TEXTURING)

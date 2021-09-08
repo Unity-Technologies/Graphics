@@ -264,16 +264,14 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     {
         BuiltinData apvBuiltinData;
         ZERO_INITIALIZE(BuiltinData, apvBuiltinData);
-        SetAsUninitializedGI(apvBuiltinData.bakeDiffuseLighting);
-        SetAsUninitializedGI(apvBuiltinData.backBakeDiffuseLighting);
 
         EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
                                     normalData.normalWS,
-                                    -normalData.normalWS,
+                                    -normalData.normalWS, // Not used
                                     GetWorldSpaceNormalizeViewDir(posInput.positionWS),
                                     posInput.positionSS,
                                     apvBuiltinData.bakeDiffuseLighting,
-                                    apvBuiltinData.backBakeDiffuseLighting);
+                                    apvBuiltinData.backBakeDiffuseLighting); // Not used
         color = apvBuiltinData.bakeDiffuseLighting * GetCurrentExposureMultiplier();
         invalid = false;
     }

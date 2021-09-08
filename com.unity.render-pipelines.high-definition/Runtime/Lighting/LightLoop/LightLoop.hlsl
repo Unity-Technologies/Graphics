@@ -391,71 +391,91 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
 #endif
 
+        // Explanation about APV and SSGI/RTGI/Mixed effects steps in the rendering pipeline.
+        // All effects will output only Emissive inside the lighting buffer (gbuffer3) in case of deferred (For APV this is done only if we are not a lightmap).
+        // The Lightmaps/Lightprobes contribution is 0 for those cases. Code enforce it in SampleBakedGI(). The remaining code of Material pass (and the debug code)
+        // is exactly the same with or without effects on, including the EncodeToGbuffer.
+        // builtinData.isLightmap is used by APV to know if we have lightmap or not and is harcoded based on preprocessor in InitBuiltinData()
+        // AO is also store with a hack in Gbuffer3 if possible. Otherwise it is set to 1.
+        // In case of regular deferred path (when effects aren't enable) AO is already apply on lightmap and emissive is added on to of it. All is inside bakeDiffuseLighting and emissiveColor is 0. AO must be 1
+        // When effects are enabled and for APV we don't have lightmaps, bakeDiffuseLighting is 0 and emissiveColor contain emissive (Either in deferred or forward) and AO should be the real AO value.
+        // Then in the lightloop in below code we will evalaute APV or read the indirectDiffuseTexture to fill bakeDiffuseLighting.
+        // We will then just do all the regular step we do with bakeDiffuseLighting in PostInitBuiltinData()
+        // No code change is required to handle AO, it is the same for all path.
+        // Note: With current approach, Decals Emissive aren't taken into account by RTGI and by the Mixed method.
+        // Note2: With current approach, Transparent Emissive works with SSGI and RTGI but can cause artifact with Mixed (RayMarch part could get a hit and thus avoid Raytrace path)
+        // Note3: Forward opaque emissive work in all cases. The current code flow with Emissive store in GBuffer3 is only to manage the case of Opaque Lit Material with Emissive in case of deferred
+        // Note4: Only APV can handle backFace lighting, all other effects are front face only.
 
+        // If we use SSGI/RTGI/Mixed effect, we are fully replacing the value of builtinData.bakeDiffuseLighting which is 0 at this step.
+        // If we are APV we only replace the non lightmaps part.
+        bool replaceBakeDiffuseLighting = false;
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
-        float3 lightInReflDir = -1;
-        bool uninitializedGI = IsUninitializedGI(builtinData.bakeDiffuseLighting);
-        // If probe volume feature is enabled, this bit is enabled for all tiles to handle ambient probe fallback.
-        // Even so, the bound resources might be invalid in some cases, so we still need to check on _EnableProbeVolumes.
-        bool apvEnabled = (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME) && _EnableProbeVolumes;
+        float3 lightInReflDir = float3(-1, -1, -1); // This variable is used with APV for tinting reflection probe - see code for LIGHTFEATUREFLAGS_ENV
+#endif
 
-        if (!apvEnabled)
+#if !defined(_SURFACE_TYPE_TRANSPARENT) // No SSGI/RTGI/Mixed effect on transparent
+        if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
+            replaceBakeDiffuseLighting = true;
+#endif
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+        if (!builtinData.isLightmap)
+            replaceBakeDiffuseLighting = true;
+#endif
+
+        if (replaceBakeDiffuseLighting)
         {
-            builtinData.bakeDiffuseLighting = (uninitializedGI && !apvEnabled) ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
-            builtinData.backBakeDiffuseLighting = (uninitializedGI && !apvEnabled) ? float3(0.0, 0.0, 0.0) : builtinData.backBakeDiffuseLighting;
-        }
-        else
-        {
-            if (uninitializedGI)
+            BuiltinData tempBuiltinData;
+            ZERO_INITIALIZE(BuiltinData, tempBuiltinData);
+
+#if !defined(_SURFACE_TYPE_TRANSPARENT)
+            if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
             {
-                float3 R = reflect(-V, bsdfData.normalWS);
-                // Need to make sure not to apply ModifyBakedDiffuseLighting() twice to our bakeDiffuseLighting data, which could happen if we are dealing with initialized data (light maps).
-                // Create a local BuiltinData variable here, and then add results to builtinData.bakeDiffuseLighting at the end.
-                BuiltinData apvBuiltinData;
-                ZERO_INITIALIZE(BuiltinData, apvBuiltinData);
-                SetAsUninitializedGI(apvBuiltinData.bakeDiffuseLighting);
-                SetAsUninitializedGI(apvBuiltinData.backBakeDiffuseLighting);
+                tempBuiltinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz * GetInverseCurrentExposureMultiplier();
+            }
+            else
+#endif
+            {
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+                if (_EnableProbeVolumes)
+                {
+                    // Reflect normal to get lighting for reflection probe tinting
+                    float3 R = reflect(-V, bsdfData.normalWS);
 
-                EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
-                    bsdfData.normalWS,
-                    -bsdfData.normalWS,
-                    R,
-                    V,
-                    posInput.positionSS,
-                    apvBuiltinData.bakeDiffuseLighting,
-                    apvBuiltinData.backBakeDiffuseLighting,
-                    lightInReflDir);
-
-                float indirectDiffuseMultiplier = GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
-                apvBuiltinData.bakeDiffuseLighting *= indirectDiffuseMultiplier;
-                apvBuiltinData.backBakeDiffuseLighting *= indirectDiffuseMultiplier;
+                    EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
+                        bsdfData.normalWS,
+                        -bsdfData.normalWS,
+                        R,
+                        V,
+                        posInput.positionSS,
+                        tempBuiltinData.bakeDiffuseLighting,
+                        tempBuiltinData.backBakeDiffuseLighting,
+                        lightInReflDir);
+                }
+                else // If probe volume is disabled we fallback on the ambient probes
+                {
+                    tempBuiltinData = EvaluateAmbientProbe(bsdfData.normalWS);
+                    tempBuiltinData = EvaluateAmbientProbe(-bsdfData.normalWS);
+                }
+#endif
+            }
 
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
 #ifdef DEBUG_DISPLAY
-                // When the lux meter is enabled, we don't want the albedo of the material to modify the diffuse baked lighting
-                if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER)
+            // When the lux meter is enabled, we don't want the albedo of the material to modify the diffuse baked lighting
+            if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER)
 #endif
-                    ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, apvBuiltinData);
+                ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, tempBuiltinData);
 
-#endif
+            // This is applied only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
+            tempBuiltinData.bakeDiffuseLighting *= GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
 
-#if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING)
-                // If we are deferred we shouldn't apply baked AO here as it was already apply for lightmap.
-                // When using probe volumes for the pixel (i.e. we have uninitialized GI), we include the surfaceData.ambientOcclusion as
-                // payload information alongside the un-init flag.
-                // It should not be applied in forward as in this case the baked AO is correctly apply in PostBSDF()
-                // This is applied only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
-                float surfaceDataAO = ExtractPayloadFromUninitializedGI(builtinData.bakeDiffuseLighting);
-                apvBuiltinData.bakeDiffuseLighting *= surfaceDataAO;
-#endif
+            ApplyDebugToBuiltinData(tempBuiltinData); // This will not affect emissive as we don't use it
 
-                ApplyDebugToBuiltinData(apvBuiltinData);
+            // Replace original data
+            builtinData.bakeDiffuseLighting = tempBuiltinData.bakeDiffuseLighting;
 
-                // Note: builtinDataProbeVolumes.bakeDiffuseLighting and builtinDataProbeVolumes.backBakeDiffuseLighting were combine inside of ModifyBakedDiffuseLighting().
-                builtinData.bakeDiffuseLighting = apvBuiltinData.bakeDiffuseLighting;
-            }
-        }
-#endif
+        } // if (replaceBakeDiffuseLighting)
 
         // Reflection probes are sorted by volume (in the increasing order).
         if (featureFlags & LIGHTFEATUREFLAGS_ENV)
@@ -610,28 +630,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                 lightData = FetchLight(lightStart, min(++i, last));
             }
         }
-    }
-#endif
-
-#if !defined(_SURFACE_TYPE_TRANSPARENT)
-    // If we use any global illumination effect (SSGI or RTGI) we will replace fully the value of builtinData.bakeDiffuseLighting which contain nothing
-    if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
-    {
-        BuiltinData builtinDataSSGI;
-        ZERO_INITIALIZE(BuiltinData, builtinDataSSGI);
-        builtinDataSSGI.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz * GetInverseCurrentExposureMultiplier();
-        builtinDataSSGI.bakeDiffuseLighting *= GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
-
-        // TODO: try to see if we can share code with probe volume
-#ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
-#ifdef DEBUG_DISPLAY
-        // When the lux meter is enabled, we don't want the albedo of the material to modify the diffuse baked lighting
-        if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER)
-#endif
-            ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinDataSSGI);
-
-#endif
-        builtinData.bakeDiffuseLighting = builtinDataSSGI.bakeDiffuseLighting;
     }
 #endif
 
