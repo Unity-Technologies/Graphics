@@ -243,6 +243,7 @@ namespace UnityEngine.Experimental.Rendering
             void TryAddScene(SceneData scene)
             {
                 // Don't allow the same scene in two different sets
+                Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added scene in baking set");
                 var setWithScene = sceneData.bakingSets.FirstOrDefault(s => s.sceneGUIDs.Contains(scene.guid));
                 if (setWithScene != null)
                 {
@@ -254,6 +255,8 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 else
                     set.sceneGUIDs.Add(scene.guid);
+
+                SyncBakingSetSettings();
             }
         }
 
@@ -297,24 +300,27 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUILayout.EndHorizontal();
 
             if (EditorGUI.EndChangeCheck())
+                SyncBakingSetSettings();
+        }
+
+        void SyncBakingSetSettings()
+        {
+            // Sync all the scene settings in the set to avoid config mismatch.
+            foreach (var set in sceneData.bakingSets)
             {
-                // Sync all the scene settings in the set to avoid config mismatch.
-                foreach (var set in sceneData.bakingSets)
+                var sceneGUID = GetFirstProbeVolumeSceneGUID(set);
+
+                if (sceneGUID == null)
+                    continue;
+
+                var referenceGUID = set.sceneGUIDs[0];
+                var referenceSettings = sceneData.sceneBakingSettings[referenceGUID];
+                var referenceProfile = sceneData.sceneProfiles[referenceGUID];
+
+                foreach (var guid in set.sceneGUIDs)
                 {
-                    var sceneGUID = GetFirstProbeVolumeSceneGUID(set);
-
-                    if (sceneGUID == null)
-                        continue;
-
-                    var referenceGUID = set.sceneGUIDs[0];
-                    var referenceSettings = sceneData.sceneBakingSettings[referenceGUID];
-                    var referenceProfile = sceneData.sceneProfiles[referenceGUID];
-
-                    foreach (var guid in set.sceneGUIDs)
-                    {
-                        sceneData.sceneBakingSettings[guid] = referenceSettings;
-                        sceneData.sceneProfiles[guid] = referenceProfile;
-                    }
+                    sceneData.sceneBakingSettings[guid] = referenceSettings;
+                    sceneData.sceneProfiles[guid] = referenceProfile;
                 }
             }
         }
@@ -358,7 +364,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (m_ProbeVolumeProfileEditor == null)
                     m_ProbeVolumeProfileEditor = Editor.CreateEditor(profile);
                 if (m_ProbeVolumeProfileEditor.target != profile)
-                    m_ProbeVolumeProfileEditor.target = profile;
+                    Editor.CreateCachedEditor(profile, m_ProbeVolumeProfileEditor.GetType(), ref m_ProbeVolumeProfileEditor);
 
                 EditorGUILayout.LabelField("Probe Volume Profile", EditorStyles.largeLabel);
                 m_ProbeVolumeProfileEditor.OnInspectorGUI();
