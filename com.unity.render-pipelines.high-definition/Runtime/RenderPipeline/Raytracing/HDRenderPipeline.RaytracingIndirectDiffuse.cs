@@ -13,7 +13,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_RaytracingIndirectDiffuseHalfResKernel;
         int m_IndirectDiffuseUpscaleFullResKernel;
         int m_IndirectDiffuseUpscaleHalfResKernel;
-        int m_AdjustIndirectDiffuseWeightKernel;
 
         void InitRayTracedIndirectDiffuse()
         {
@@ -24,7 +23,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RaytracingIndirectDiffuseHalfResKernel = indirectDiffuseShaderCS.FindKernel("RaytracingIndirectDiffuseHalfRes");
             m_IndirectDiffuseUpscaleFullResKernel = indirectDiffuseShaderCS.FindKernel("IndirectDiffuseIntegrationUpscaleFullRes");
             m_IndirectDiffuseUpscaleHalfResKernel = indirectDiffuseShaderCS.FindKernel("IndirectDiffuseIntegrationUpscaleHalfRes");
-            m_AdjustIndirectDiffuseWeightKernel = indirectDiffuseShaderCS.FindKernel("AdjustIndirectDiffuseWeight");
         }
 
         void ReleaseRayTracedIndirectDiffuse()
@@ -264,62 +262,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public int texHeight;
             public int viewCount;
 
-            // Additional resources
-            public int adjustWeightKernel;
-            public ComputeShader adjustWeightCS;
-
             public TextureHandle depthPyramid;
             public TextureHandle stencilBuffer;
             public TextureHandle indirectDiffuseBuffer;
         }
-
-        TextureHandle AdjustRTGIWeight(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle indirectDiffuseBuffer, TextureHandle depthPyramid, TextureHandle stencilBuffer)
-        {
-            using (var builder = renderGraph.AddRenderPass<AdjustRTGIWeightPassData>("Adjust the RTGI weight", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseAdjustWeight)))
-            {
-                builder.EnableAsyncCompute(false);
-
-                // Set the camera parameters
-                passData.texWidth = hdCamera.actualWidth;
-                passData.texHeight = hdCamera.actualHeight;
-                passData.viewCount = hdCamera.viewCount;
-
-                // Grab the right kernel
-                passData.adjustWeightCS = m_GlobalSettings.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
-                passData.adjustWeightKernel = m_AdjustIndirectDiffuseWeightKernel;
-
-                passData.depthPyramid = builder.ReadTexture(depthPyramid);
-                passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
-                passData.indirectDiffuseBuffer = builder.ReadWriteTexture(indirectDiffuseBuffer);
-
-                builder.SetRenderFunc(
-                    (AdjustRTGIWeightPassData data, RenderGraphContext ctx) =>
-                    {
-                        // Input data
-                        ctx.cmd.SetComputeTextureParam(data.adjustWeightCS, data.adjustWeightKernel, HDShaderIDs._DepthTexture, data.depthPyramid);
-                        ctx.cmd.SetComputeTextureParam(data.adjustWeightCS, data.adjustWeightKernel, HDShaderIDs._StencilTexture, data.stencilBuffer, 0, RenderTextureSubElement.Stencil);
-                        ctx.cmd.SetComputeIntParams(data.adjustWeightCS, HDShaderIDs._SsrStencilBit, (int)StencilUsage.TraceReflectionRay);
-
-                        // In/Output buffer
-                        ctx.cmd.SetComputeTextureParam(data.adjustWeightCS, data.adjustWeightKernel, HDShaderIDs._IndirectDiffuseTextureRW, data.indirectDiffuseBuffer);
-
-                        // Texture dimensions
-                        int texWidth = data.texWidth;
-                        int texHeight = data.texHeight;
-
-                        // Evaluate the dispatch parameters
-                        int areaTileSize = 8;
-                        int numTilesXHR = (texWidth + (areaTileSize - 1)) / areaTileSize;
-                        int numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
-
-                        // Compute the texture
-                        ctx.cmd.DispatchCompute(data.adjustWeightCS, data.adjustWeightKernel, numTilesXHR, numTilesYHR, data.viewCount);
-                    });
-
-                return passData.indirectDiffuseBuffer;
-            }
-        }
-
+      
         static RTHandle RequestRayTracedIndirectDiffuseHistoryTexture(HDCamera hdCamera)
         {
             return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF)

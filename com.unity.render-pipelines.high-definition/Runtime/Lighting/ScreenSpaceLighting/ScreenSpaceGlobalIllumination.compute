@@ -350,11 +350,6 @@ void CONVERT_SSGI(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThrea
     // In the future mixing this with light probes should increase significantly the image quality.
     float validityMask = 1.0f;
 
-    // Does this pixel recieve SSGI?
-    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
-    if ((stencilValue & _SsrStencilBit) == 0)
-        validityMask = 0.0;
-
     // Output the color as well as the blend factor
     _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(color, validityMask);
 }
