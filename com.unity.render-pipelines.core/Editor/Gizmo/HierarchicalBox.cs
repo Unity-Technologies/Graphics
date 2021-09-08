@@ -66,7 +66,11 @@ namespace UnityEditor.Rendering
     /// </example>
     public class HierarchicalBox
     {
-        const float k_HandleSizeCoef = 0.05f;
+        // custom-begin:
+        // Artists found the box handles in Core to be hard to select and manipulate.
+        // const float k_HandleSizeCoef = 0.05f;
+        const float k_HandleSizeCoef = 0.3f;
+        // custom-end
         static Material k_Material_Cache;
         static Material k_Material => (k_Material_Cache == null || k_Material_Cache.Equals(null) ? (k_Material_Cache = new Material(Shader.Find("Hidden/UnlitTransparentColored"))) : k_Material_Cache);
         static Mesh k_MeshQuad_Cache;
@@ -147,7 +151,13 @@ namespace UnityEditor.Rendering
                         handlePosition,
                         handleOrientation,
                         HandleUtility.GetHandleSize(handlePosition) * k_HandleSizeCoef,
-                        new Handles.CapFunction(Handles.DotHandleCap),
+                        // custom-begin:
+                        // Artists found the box handles in Core to be hard to select and manipulate.
+                        // Use Cone Handles instead of Dot handles to help disambiguate directionalty.
+                        // Cone handles also produce less screenspace overlap with other box handles than the 2D Dot handles do.
+                        // new Handles.CapFunction(Handles.DotHandleCap),
+                        new Handles.CapFunction(Handles.ConeHandleCap),
+                        // custom-end
                         snapScale
                     });
             }
