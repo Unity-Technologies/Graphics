@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     cloudModelData.densityMultiplier = 0.25f;
                     cloudModelData.shapeFactor = 0.55f;
-                    cloudModelData.shapeScale = 8.0f; 
+                    cloudModelData.shapeScale = 8.0f;
                     cloudModelData.erosionFactor = 0.6f;
                     cloudModelData.erosionScale = 80.0f;
                     cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
@@ -205,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     cloudModelData.densityMultiplier = 0.35f;
                     cloudModelData.shapeFactor = 0.85f;
-                    cloudModelData.shapeScale = 3.5f; 
+                    cloudModelData.shapeScale = 3.5f;
                     cloudModelData.erosionFactor = 0.95f;
                     cloudModelData.erosionScale = 70.0f;
                     cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
