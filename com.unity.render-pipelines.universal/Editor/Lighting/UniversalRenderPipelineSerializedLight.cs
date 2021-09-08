@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty lightCookieOffsetProp { get; }                     // Multi dimensional light cookie offset.
 
         // Light layers related
-        public SerializedProperty lightLayerMask  { get; }
+        public SerializedProperty lightLayerMask { get; }
         public SerializedProperty customShadowLayers { get; }
         public SerializedProperty shadowLayerMask { get; }
 

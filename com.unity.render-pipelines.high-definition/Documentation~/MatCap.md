@@ -28,7 +28,7 @@ HDRP provides neutral and metallic default MatCaps. You can change the MatCap in
 3. Double-click the asset assigned to the **Render Pipeline Resources** property to view it in the Inspector.
 4. Go to the **Textures** section and assign your custom MatCap Texture to the **MatCap Tex** property.
 
-You can also activate MatCap view as a **Lighting Debug Mode** in the [Render Pipeline Debugger](Render-Pipeline-Debug-Window.md).
+You can also activate MatCap view as a **Lighting Debug Mode** in the [Rendering Debugger](Render-Pipeline-Debug-Window.md).
 
 ## MatCap examples
 

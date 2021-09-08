@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
         protected VFXExpressionNumericOperation(VFXExpression[] parents)
             : base(Flags.None, parents)
         {
-            m_additionnalOperands = new int[] {};
+            m_additionnalOperands = new int[] { };
         }
 
         static private object[] ToObjectArray(float input) { return new object[] { input }; }
