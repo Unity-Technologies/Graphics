@@ -91,7 +91,7 @@ Button
     border-width: 0;
     border-radius: 0;
     background-color: transparent;
-    -unity-text-align: MiddleLeft;
+    -unity-text-align: middle-left;
 }
 
 Button:hover, Toggle:hover
@@ -102,4 +102,9 @@ Button:hover, Toggle:hover
 Toggle Label
 {
     margin-left: 4px;
+}
+
+#resyncMaterial
+{
+    display: none;
 }
