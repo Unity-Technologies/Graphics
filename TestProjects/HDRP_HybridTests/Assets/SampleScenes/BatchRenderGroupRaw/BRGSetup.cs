@@ -11,6 +11,7 @@ public unsafe class BRGSetup : MonoBehaviour
 {
     public Mesh m_mesh;
     public Material m_material;
+    public float m_y;
 
     private BatchRendererGroup m_BatchRendererGroup;
     private ComputeBuffer m_GPUPersistentInstanceData;
@@ -153,7 +154,7 @@ public unsafe class BRGSetup : MonoBehaviour
                 int i = z * itemGridSize + x;
                 vectorBuffer[i * 3 + 0] = new Vector4(1, 0, 0, 0);      // hacky float3x4 layout
                 vectorBuffer[i * 3 + 1] = new Vector4(1, 0, 0, 0);
-                vectorBuffer[i * 3 + 2] = new Vector4(1, px, 0, pz);
+                vectorBuffer[i * 3 + 2] = new Vector4(1, px, m_y, pz);
             }
         }
 
