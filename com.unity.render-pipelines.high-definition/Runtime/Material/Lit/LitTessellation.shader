@@ -507,7 +507,6 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
             #pragma multi_compile_fragment _ LIGHT_LAYERS
-            #pragma multi_compile_fragment _ _GBUFFER_NO_EMISSIVE
 
         #ifndef DEBUG_DISPLAY
             // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
@@ -929,53 +928,6 @@ Shader "HDRP/LitTessellation"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
-
-            #pragma vertex Vert
-            #pragma fragment Frag
-            #pragma hull Hull
-            #pragma domain Domain
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "ForwardEmissiveForDeferred"
-            Tags{ "LightMode" = "ForwardEmissiveForDeferred" } // This pass is solely used with deferred opaque Material that have emissive
-
-            Blend One One
-            // In case of forward we want to have depth equal for opaque mesh
-            ZTest [_ZTestDepthEqualForOpaque]
-            ZWrite [_ZWrite]
-            Cull [_CullModeForward]
-
-            HLSLPROGRAM
-
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-            //enable GPU instancing support
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-            // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
-
-            #pragma multi_compile _ DEBUG_DISPLAY // This pass is only for opaque
-
-            #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED
-            // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
-            // Don't do it with debug display mode as it is possible there is no depth prepass in this case
-            #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(DEBUG_DISPLAY)
-                #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
-            #endif
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-
-            #ifdef DEBUG_DISPLAY
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-            #endif
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardEmissiveForDeferred.hlsl"
 
             #pragma vertex Vert
             #pragma fragment Frag

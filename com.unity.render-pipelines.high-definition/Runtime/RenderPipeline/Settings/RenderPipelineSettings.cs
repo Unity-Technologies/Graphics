@@ -101,7 +101,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportRuntimeAOVAPI = false,
                 supportDitheringCrossFade = true,
                 supportTerrainHole = false,
-                supportForceForwardEmissive = false,
                 planarReflectionResolution = new PlanarReflectionAtlasResolutionScalableSetting(new[] { PlanarReflectionAtlasResolution.Resolution256,
                                                                                                         PlanarReflectionAtlasResolution.Resolution1024,
                                                                                                         PlanarReflectionAtlasResolution.Resolution2048 },
@@ -339,8 +338,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
         /// <summary>Probe Volumes SH Bands.</summary>
         public ProbeVolumeSHBands probeVolumeSHBands;
-        /// <summary>Support Force forward emissive.</summary>
-        public bool supportForceForwardEmissive;    
 
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;

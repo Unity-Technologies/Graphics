@@ -147,13 +147,13 @@ void SampleBakedGI(
     bakeDiffuseLighting = float3(0, 0, 0);
     backBakeDiffuseLighting = float3(0, 0, 0);
 
-    // Check if we are RTGI in which case we don't want to read GI at all (We rely fully on the raytrace effect)
+    // Check if we have SSGI/RTGI/Mixed enabled in which case we don't want to read Lightmaps/Lightprobe at all.
+    // This behavior only apply to opaque Materials as Transparent one don't receive SSGI/RTGI/Mixed lighting.
     // The check need to be here to work with both regular shader and shader graph
-    // Note: with Probe volume it will prevent to add the UNINITIALIZED_GI tag and
-    // the ProbeVolume will not be evaluate in the lightloop which is the desired behavior
-    // Also this code only needs to be executed in the rasterization pipeline, otherwise it will lead to udnefined behaviors in ray tracing
+    // Note: With Probe volume it will prevent to add the UNINITIALIZED_GI tag and the ProbeVolume will not be evaluate in the lightloop which is the desired behavior
+    // We prevent to read GI only if we are not raytrace pass that are used to fill the RTGI/Mixed buffer need to be executed normaly
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT) && (SHADERPASS != SHADERPASS_RAYTRACING_GBUFFER)
-    if (_IndirectDiffuseMode == INDIRECTDIFFUSEMODE_RAYTRACE)
+    if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
         return;
 #endif
 

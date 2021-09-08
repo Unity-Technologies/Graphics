@@ -72,14 +72,6 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 | - **Denoiser Radius**          | Set the radius of the spatio-temporal filter.                |
 | - **Second Denoiser Pass**     | Enable this feature to process a second denoiser pass. This helps to remove noise from the effect. |
 
-## Limitations
-
-In Deferred rendering mode, Screen Space Global Illumination and Ray-Traced Global Illumination share a buffer with emissive, which overwrites emissive data.
-There are multiple ways to recover the emissive contribution of the scene materials:
-* Disable [Receive SSR/SSGI](snippets/shader-properties/surface-options/receive-ssr.md) flag on the emissive materials.
-* Use [Force Forward Emissive](snippets/shader-properties/advanced-options/force-forward-emissive.md) on the emissive materials.
-* Use Forward rendering.
-
 ### Screen-space global illumination
 
 * When rendering [Reflection Probes](Reflection-Probe.md) screen space global illumination is not supported.

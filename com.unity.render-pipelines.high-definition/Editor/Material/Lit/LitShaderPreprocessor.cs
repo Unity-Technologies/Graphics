@@ -14,11 +14,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override int Priority => 50;
 
-        protected UnityEngine.Rendering.ShaderKeyword m_ForceForwardEmissive;
-
         public LitShaderPreprocessor()
         {
-            m_ForceForwardEmissive = new UnityEngine.Rendering.ShaderKeyword("_GBUFFER_NO_EMISSIVE");
         }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)

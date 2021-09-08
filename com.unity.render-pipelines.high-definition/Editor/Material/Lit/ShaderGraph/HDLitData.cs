@@ -74,15 +74,5 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_ClearCoat;
             set => m_ClearCoat = value;
         }
-
-        // Allow to track if something is connected to emissive input
-        // will determine if we generate a force forward pass or not
-        [SerializeField]
-        bool m_EmissionOverriden;
-        public bool emissionOverriden
-        {
-            get => m_EmissionOverriden;
-            set => m_EmissionOverriden = value;
-        }
     }
 }

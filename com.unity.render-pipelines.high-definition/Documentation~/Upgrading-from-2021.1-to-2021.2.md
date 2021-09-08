@@ -15,12 +15,6 @@ From HDRP2021.2, when you apply ambient occlusion (AO) on a deferred Material to
 
 You don't need to do anything differently for forward only Materials.
 
-### New shader pass
-
-HDRP 2021.2 includes the `ForwardEmissiveForDeferred` shader pass and the associated `SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED` define for Materials that have a GBuffer pass. You can see this new pass in `Lit.shader`.
-
-When you use the Deferred Lit shader mode, Unity uses `ForwardEmissiveForDeferred` to render the emissive contribution of a Material in a separate forward pass. Otherwise, Unity ignores `ForwardEmissiveForDeferred`.
-
 ### Decals
 
 Decals in HDRP have changed in the following ways:

@@ -63,7 +63,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly(TargetsVFX(), systemData.tessellation));
             descriptor.passes.Add(HDShaderPasses.GenerateGBuffer(TargetsVFX(), systemData.tessellation));
             descriptor.passes.Add(HDShaderPasses.GenerateLitForward(TargetsVFX(), systemData.tessellation));
-            descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass(TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.EmissionOverriden, true));
             if (!systemData.tessellation) // Raytracing don't support tessellation neither VFX
                 descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
 
@@ -136,18 +135,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(SpecularAA, lightingData.specularAA &&
                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
-
-            // We need to grab the emission block to check if it is connected, or the default value is non null.
-            // If it is connected then we will generate an ForwardEmissiveForDeferred pass
-            bool emissionEnabled = false;
-            if (!context.connectedBlocks.Contains(BlockFields.SurfaceDescription.Emission))
-                emissionEnabled = !context.blocks.Contains((BlockFields.SurfaceDescription.Emission, true));
-            else
-                emissionEnabled = true;
-
-            // Note: both case are required to be compliant with the ShaderGraph framework
-            litData.emissionOverriden = emissionEnabled;
-            context.AddField(HDFields.EmissionOverriden, emissionEnabled);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -235,7 +222,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 bool subsurfaceScattering = litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
                 hash = hash * 23 + subsurfaceScattering.GetHashCode();
-                hash = hash * 23 + litData.emissionOverriden.GetHashCode();
             }
 
             return hash;
