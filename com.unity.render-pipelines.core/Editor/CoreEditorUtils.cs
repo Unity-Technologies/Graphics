@@ -89,16 +89,18 @@ namespace UnityEditor.Rendering
             return tex2;
         }
 
-        const float s_HighlightDuration = 2.0f;
+        const float k_IndentMargin = 15.0f;
+        const float k_HighlightDuration = 2.0f;
+
         static float s_HighlightStart = -1.0f;
         static Texture2D s_HighlightBackground;
         static object s_View;
 
-        static FieldInfo k_ViewInfo = typeof(Highlighter).GetField("s_View", BindingFlags.Static | BindingFlags.NonPublic);
-        static FieldInfo k_HighlightStyleInfo = typeof(Highlighter).GetField("s_HighlightStyle", BindingFlags.Static | BindingFlags.NonPublic);
-        static FieldInfo k_WindowBackendInfo = Type.GetType("UnityEditor.GUIView,UnityEditor").GetField("m_WindowBackend", BindingFlags.NonPublic | BindingFlags.Instance);
-        static EventInfo k_GUIHandlerInfo = Type.GetType("UnityEditor.UIElements.DefaultEditorWindowBackend,UnityEditor").GetEvent("overlayGUIHandler", (BindingFlags)(-1));
-        static MethodInfo k_Repaint = Type.GetType("UnityEditor.GUIView,UnityEditor").GetMethod("Repaint", (BindingFlags)(-1));
+        static readonly FieldInfo k_ViewInfo = typeof(Highlighter).GetField("s_View", BindingFlags.Static | BindingFlags.NonPublic);
+        static readonly FieldInfo k_HighlightStyleInfo = typeof(Highlighter).GetField("s_HighlightStyle", BindingFlags.Static | BindingFlags.NonPublic);
+        static readonly FieldInfo k_WindowBackendInfo = Type.GetType("UnityEditor.GUIView,UnityEditor").GetField("m_WindowBackend", BindingFlags.NonPublic | BindingFlags.Instance);
+        static readonly EventInfo k_GUIHandlerInfo = Type.GetType("UnityEditor.UIElements.DefaultEditorWindowBackend,UnityEditor").GetEvent("overlayGUIHandler", (BindingFlags)(-1));
+        static readonly MethodInfo k_Repaint = Type.GetType("UnityEditor.GUIView,UnityEditor").GetMethod("Repaint", (BindingFlags)(-1));
 
         static void HighlightTimeout()
         {
@@ -135,7 +137,7 @@ namespace UnityEditor.Rendering
 
             if (s_HighlightStart > 0.0f)
             {
-                if (Time.realtimeSinceStartup - s_HighlightStart > s_HighlightDuration)
+                if (Time.realtimeSinceStartup - s_HighlightStart > k_HighlightDuration)
                 {
                     Highlighter.Stop();
 
@@ -151,7 +153,7 @@ namespace UnityEditor.Rendering
                 return;
 
             var color = CoreEditorStyles.backgroundHighlightColor;
-            color.a = Mathf.Min(1.0f - (Time.realtimeSinceStartup - s_HighlightStart) / s_HighlightDuration, 0.8f);
+            color.a = Mathf.Min(1.0f - (Time.realtimeSinceStartup - s_HighlightStart) / k_HighlightDuration, 0.8f);
 
             EditorGUI.DrawRect(GUIUtility.ScreenToGUIRect(Highlighter.activeRect), color);
         }
@@ -198,7 +200,7 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>Draw a help box with the Fix button.</summary>
-        /// <param name="message">The message with icon if need.</param>
+        /// <param name="message">The message with icon if needed.</param>
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(GUIContent message, Action action)
         {
@@ -206,14 +208,14 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>Draw a help box with the Fix button.</summary>
-        /// <param name="message">The message with icon if need.</param>
+        /// <param name="message">The message with icon if needed.</param>
         /// <param name="buttonLabel">The button text.</param>
         /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(GUIContent message, string buttonLabel, Action action)
         {
             EditorGUILayout.BeginHorizontal();
 
-            float indent = EditorGUI.indentLevel * 15 - EditorStyles.helpBox.margin.left;
+            float indent = EditorGUI.indentLevel * k_IndentMargin - EditorStyles.helpBox.margin.left;
             GUILayoutUtility.GetRect(indent, EditorGUIUtility.singleLineHeight, EditorStyles.helpBox, GUILayout.ExpandWidth(false));
 
             Rect leftRect = GUILayoutUtility.GetRect(new GUIContent(buttonLabel), EditorStyles.miniButton, GUILayout.ExpandWidth(false));
@@ -434,7 +436,7 @@ namespace UnityEditor.Rendering
             foldoutRect.y += 1f;
             foldoutRect.width = 13f;
             foldoutRect.height = 13f;
-            foldoutRect.x = labelRect.xMin + 15 * (EditorGUI.indentLevel - 1); //fix for presset
+            foldoutRect.x = labelRect.xMin + k_IndentMargin * (EditorGUI.indentLevel - 1); //fix for presset
 
             // Background rect should be full-width
             backgroundRect.xMin = 0f;
@@ -548,7 +550,7 @@ namespace UnityEditor.Rendering
 
             var foldoutRect = backgroundRect;
             foldoutRect.y += 1f;
-            foldoutRect.x += 15 * EditorGUI.indentLevel; //GUI do not handle indent. Handle it here
+            foldoutRect.x += k_IndentMargin * EditorGUI.indentLevel; //GUI do not handle indent. Handle it here
             foldoutRect.width = 13f;
             foldoutRect.height = 13f;
 
@@ -957,7 +959,7 @@ namespace UnityEditor.Rendering
             //Suffix is a hack as sublabel only work with 1 character
             if (addMinusPrefix)
             {
-                Rect suffixRect = new Rect(rect.x - 4 - 15 * EditorGUI.indentLevel, rect.y, 100, rect.height);
+                Rect suffixRect = new Rect(rect.x - 4 - k_IndentMargin * EditorGUI.indentLevel, rect.y, 100, rect.height);
                 for (int i = 0; i < 3; ++i)
                 {
                     EditorGUI.LabelField(suffixRect, "-");
@@ -971,7 +973,7 @@ namespace UnityEditor.Rendering
                 if (colors.Length != 3)
                     throw new System.ArgumentException("colors must have 3 elements.");
 
-                Rect suffixRect = new Rect(rect.x + 7 - 15 * EditorGUI.indentLevel, rect.y, 100, rect.height);
+                Rect suffixRect = new Rect(rect.x + 7 - k_IndentMargin * EditorGUI.indentLevel, rect.y, 100, rect.height);
                 GUIStyle colorMark = new GUIStyle(EditorStyles.label);
                 colorMark.normal.textColor = colors[0];
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
