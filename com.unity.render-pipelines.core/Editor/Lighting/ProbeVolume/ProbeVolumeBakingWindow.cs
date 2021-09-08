@@ -358,7 +358,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (m_ProbeVolumeProfileEditor == null)
                     m_ProbeVolumeProfileEditor = Editor.CreateEditor(profile);
                 if (m_ProbeVolumeProfileEditor.target != profile)
-                    m_ProbeVolumeProfileEditor.target = profile;
+                    Editor.CreateCachedEditor(profile, m_ProbeVolumeProfileEditor.GetType(), ref m_ProbeVolumeProfileEditor);
 
                 EditorGUILayout.LabelField("Probe Volume Profile", EditorStyles.largeLabel);
                 m_ProbeVolumeProfileEditor.OnInspectorGUI();
