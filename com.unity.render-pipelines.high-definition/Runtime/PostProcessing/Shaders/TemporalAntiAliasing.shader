@@ -129,7 +129,7 @@ Shader "Hidden/HDRP/TemporalAA"
 
         #define _BaseBlendFactor _TaaPostParameters1.x
         #define _CentralWeight _TaaPostParameters1.y
-        #define _ExcludeTAABit _TaaPostParameters1.z
+        #define _ExcludeTAABit (uint)_TaaPostParameters1.z
 
         // TAAU specific
         float4 _TaauParameters;

@@ -4,6 +4,20 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.0.0] - 2021-09-01
+
+### Fixed
+- Fixed impossibility to release the cursor in the template.
+- Fixed assert failure when enabling the probe volume system for the first time.
+- Significantly improved performance of APV probe debug.
+- Removed DLSS keyword in settings search when NVIDIA package is not installed. (case 1358409)
+- Fixed light anchor min distance value + properties not working with prefabs (case 1345509).
+- Fixed specular occlusion sharpness and over darkening at grazing angles.
+- Fixed edge bleeding when rendering volumetric clouds.
+
+### changed
+- Visual Environment ambient mode is now Dynamic by default.
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -84,6 +98,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a property to control the fallback of the last bounce of a RTGI, RTR, RR ray to keep a previously existing side effect on user demand (case 1350590).
 - Added a parameter to control the vertical shape offset of the volumetric clouds (case 1358528).
 - Added an option to render screen space global illumination in half resolution to achieve real-time compatible performance in high resolutions (case 1353727).
+- Added a built-in custom pass to draw object IDs.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -312,7 +327,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Prevent any unwanted light sync when not in HDRP (case 1217575)
 - Fixed missing global wind parameters in the visual environment.
 - Fixed fabric IBL (Charlie) pre-convolution performance and accuracy (uses 1000x less samples and is closer match with the ground truth)
-- Fixed conflicting runtime debug menu command with an option to disable runtime debug window hotkey.
 - Fixed screen-space shadows with XR single-pass and camera relative rendering (1348260).
 - Fixed ghosting issues if the exposure changed too much (RTGI).
 - Fixed failures on platforms that do not support ray tracing due to an engine behavior change.
@@ -374,7 +388,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reduced the volumetric clouds pattern repetition frequency (case 1358717).
 - Fixed the clouds missing in the ambient probe and in the static and dynamic sky.
 - Fixed lens flare not rendering correctly with TAAU or DLSS.
-- Fixed undo operation on Probe Volume fitting to scene or selection.
+- Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
+- Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
+- Fixed ThreadMapDetail to saturate AO & smoothness strength inputs to prevent out-of-bounds values set by users (1357740)
+- Allow negative wind speed parameter.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
