@@ -254,18 +254,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return passData.outputBuffer;
             }
         }
-
-        class AdjustRTGIWeightPassData
-        {
-            // Camera parameters
-            public int texWidth;
-            public int texHeight;
-            public int viewCount;
-
-            public TextureHandle depthPyramid;
-            public TextureHandle stencilBuffer;
-            public TextureHandle indirectDiffuseBuffer;
-        }
       
         static RTHandle RequestRayTracedIndirectDiffuseHistoryTexture(HDCamera hdCamera)
         {
@@ -299,9 +287,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Denoise if required
             rtgiResult = DenoiseRTGI(renderGraph, hdCamera, rtgiResult, prepassOutput.depthPyramidTexture, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, fullResolution);
-
-            // Adjust the weight
-            rtgiResult = AdjustRTGIWeight(renderGraph, hdCamera, rtgiResult, prepassOutput.depthPyramidTexture, prepassOutput.stencilBuffer);
 
             return rtgiResult;
         }
@@ -440,9 +425,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Denoise if required
             rtgiResult = DenoiseRTGI(renderGraph, hdCamera, rtgiResult, depthPyramid, normalBuffer, motionVectors, historyValidationTexture, true);
-
-            // Adjust the weight
-            rtgiResult = AdjustRTGIWeight(renderGraph, hdCamera, rtgiResult, depthPyramid, stencilBuffer);
 
             return rtgiResult;
         }
