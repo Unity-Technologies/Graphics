@@ -96,8 +96,6 @@ namespace UnityEngine.Rendering.Universal
 
         private int CreateEdgeDictionary(NativeArray<int> indices, Dictionary<Edge, int> edgeDictionary)
         {
-            int outsideEdges = 0;
-
             edgeDictionary.Clear();
             for (int i = 0; i < indices.Length; i += 3)
             {
@@ -111,42 +109,31 @@ namespace UnityEngine.Rendering.Universal
 
                 // When a key comparison is made edges (A, B) and (B, A) are equal (see EdgeComparer)
                 if (m_EdgeDictionary.ContainsKey(edge0))
-                {
-                    outsideEdges--;
                     edgeDictionary[edge0] = edgeDictionary[edge0] + 1;
-                }
                 else
-                {
-                    outsideEdges++;
                     edgeDictionary.Add(edge0, 1);
-                }
 
                 if (edgeDictionary.ContainsKey(edge1))
-                {
-                    outsideEdges--;
                     edgeDictionary[edge1] = edgeDictionary[edge1] + 1;
-                }
                 else
-                {
-                    outsideEdges++;
                     edgeDictionary.Add(edge1, 1);
-                }
 
                 if (edgeDictionary.ContainsKey(edge2))
-                {
-                    outsideEdges--;
                     edgeDictionary[edge2] = edgeDictionary[edge2] + 1;
-                }
                 else
-                {
-                    outsideEdges++;
                     edgeDictionary.Add(edge2, 1);
-                }
+            }
+
+            // Count the outside edges
+            int outsideEdges = 0;
+            foreach (KeyValuePair<Edge, int> keyValuePair in m_EdgeDictionary)
+            {
+                if (keyValuePair.Value == 1)
+                    outsideEdges++;
             }
 
             return outsideEdges;
         }
-
 
         private void RemapEdges(NativeArray<Edge> edges, NativeArray<int> map)
         {
