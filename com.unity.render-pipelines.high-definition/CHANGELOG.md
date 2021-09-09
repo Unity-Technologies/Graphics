@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added an option for the ultra 1024x1024 mode for the volumetric cloud shadows and a filtering pass to reduce the aliasing artifacts of the clouds shadow.
+- Added a new sun light dimmer on the volumetric clouds volume (case 1364152).
 
 ## [12.0.0] - 2021-01-11
 

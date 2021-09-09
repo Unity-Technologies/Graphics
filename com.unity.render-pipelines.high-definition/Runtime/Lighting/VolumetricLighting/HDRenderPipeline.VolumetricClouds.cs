@@ -415,7 +415,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!shadowPass)
                 {
-                    cb._SunLightColor = m_lightList.directionalLights[0].color;
+                    cb._SunLightColor = m_lightList.directionalLights[0].color * settings.sunLightDimmer.value;
                 }
             }
             else
