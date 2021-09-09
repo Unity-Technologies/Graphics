@@ -628,8 +628,11 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     // as it is the most dominant one
     if (HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
     {
-        normalData.normalWS = surfaceData.coatNormalWS;
-        normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.coatPerceptualSmoothness);
+        float hasCoat = saturate(surfaceData.coatMask * FLT_MAX);
+        normalData.normalWS = lerp(surfaceData.coatNormalWS, surfaceData.normalWS, hasCoat);
+        normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(lerp(lerp(surfaceData.perceptualSmoothnessA, surfaceData.perceptualSmoothnessB, surfaceData.lobeMix),
+                                            surfaceData.coatPerceptualSmoothness,
+                                            hasCoat));
     }
     else
     {
@@ -4063,7 +4066,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                 {
                     // Compute the cookie data for the specular term
                     float3 formFactorAS =  PolygonFormFactor(LAS);
-                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LAS, formFactorAS);
+                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LAS, formFactorAS, bsdfData.perceptualRoughnessA);
                 }
     
                 // See EvaluateBSDF_Env TODOENERGY:
@@ -4077,14 +4080,14 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                     // local canonical frames we have lobe specific frames because of the anisotropic hack:
                     localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[ORTHOBASIS_VN_BASE_LOBEB_IDX]));
                 }
-                float4x3 LS = mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEB_IDX]);
-                ltcValue  = PolygonIrradiance(LS);
+                float4x3 LBS = mul(localLightVerts, preLightData.ltcTransformSpecular[BASE_LOBEB_IDX]);
+                ltcValue  = PolygonIrradiance(LBS);
                 // Only apply cookie if there is one
                 if ( lightData.cookieMode != COOKIEMODE_NONE )
                 {
                     // Compute the cookie data for the specular term
-                    float3 formFactorS =  PolygonFormFactor(LS);
-                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
+                    float3 formFactorBS =  PolygonFormFactor(LBS);
+                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LBS, formFactorBS, bsdfData.perceptualRoughnessB);
                 }
     
                 lighting.specular += preLightData.energyCompensationFactor[BASE_LOBEB_IDX] * preLightData.specularFGD[BASE_LOBEB_IDX] * ltcValue;
@@ -4111,7 +4114,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                     {
                         // Compute the cookie data for the specular term
                         float3 formFactorS =  PolygonFormFactor(LSCC);
-                        ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LSCC, formFactorS);
+                        ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LSCC, formFactorS, bsdfData.coatPerceptualRoughness);
                     }
                     lighting.specular += preLightData.energyCompensationFactor[COAT_LOBE_IDX] * preLightData.specularFGD[COAT_LOBE_IDX] * ltcValue;
                 }
@@ -4199,18 +4202,31 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     // if the coat exist, ConvertSurfaceDataToNormalData will output the roughness of the coat and we don't need
     // a boost of sharp reflections from a potentially rough bottom layer.
 
-    float3 reflectanceFactor = (float3)0.0;
-
-    if (IsVLayeredEnabled(bsdfData))
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
     {
-        reflectanceFactor = preLightData.specularFGD[COAT_LOBE_IDX];
-        reflectanceFactor *= preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX];
         // TODOENERGY: If vlayered, should be done in ComputeAdding with FGD formulation for non dirac lights.
         // Incorrect, but for now:
-        reflectanceFactor *= preLightData.energyCompensationFactor[COAT_LOBE_IDX];
+        float3 reflectanceFactorC = preLightData.specularFGD[COAT_LOBE_IDX];
+        reflectanceFactorC *= preLightData.hemiSpecularOcclusion[COAT_LOBE_IDX];
+        reflectanceFactorC *= preLightData.energyCompensationFactor[COAT_LOBE_IDX];
+
+        float3 reflectanceFactorB = (float3)0.0;
+        for(int i = 0; i < TOTAL_NB_LOBES; i++)
+        {
+            float3 lobeFactor = preLightData.specularFGD[i]; // note: includes the lobeMix factor, see PreLightData.
+            lobeFactor *= preLightData.hemiSpecularOcclusion[i];
+            // TODOENERGY: If vlayered, should be done in ComputeAdding with FGD formulation for non dirac lights.
+            // Incorrect, but for now:
+            lobeFactor *= preLightData.energyCompensationFactor[i];
+            reflectanceFactorB += lobeFactor;
+        }
+
+        lighting.specularReflected = ssrLighting.rgb * lerp(reflectanceFactorB, reflectanceFactorC, bsdfData.coatMask);
+        reflectionHierarchyWeight = lerp(ssrLighting.a, ssrLighting.a * reflectanceFactorC.x, bsdfData.coatMask);
     }
     else
     {
+        float3 reflectanceFactor = (float3)0.0;
         for(int i = 0; i < TOTAL_NB_LOBES; i++)
         {
             float3 lobeFactor = preLightData.specularFGD[i]; // note: includes the lobeMix factor, see PreLightData.
@@ -4220,11 +4236,10 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
             lobeFactor *= preLightData.energyCompensationFactor[i];
             reflectanceFactor += lobeFactor;
         }
+        // Note: RGB is already premultiplied by A.
+        lighting.specularReflected = ssrLighting.rgb * reflectanceFactor;
+        reflectionHierarchyWeight  = ssrLighting.a;
     }
-
-    // Note: RGB is already premultiplied by A.
-    lighting.specularReflected = ssrLighting.rgb * reflectanceFactor;
-    reflectionHierarchyWeight  = ssrLighting.a;
 
     return lighting;
 }

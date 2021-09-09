@@ -30,7 +30,20 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
         /// </summary>
-        public IEnumerable<Type> baseComponentTypes { get; private set; }
+        [Obsolete("Please use baseComponentTypeArray instead.")]
+        public IEnumerable<Type> baseComponentTypes
+        {
+            get
+            {
+                return baseComponentTypeArray;
+            }
+            private set
+            {
+                baseComponentTypeArray = value.ToArray();
+            }
+        }
+
+        public Type[] baseComponentTypeArray { get; private set; }
 
         // Max amount of layers available in Unity
         const int k_MaxLayerCount = 32;
@@ -75,7 +88,7 @@ namespace UnityEngine.Rendering
         public VolumeStack CreateStack()
         {
             var stack = new VolumeStack();
-            stack.Reload(baseComponentTypes);
+            stack.Reload(baseComponentTypeArray);
             return stack;
         }
 
@@ -95,12 +108,12 @@ namespace UnityEngine.Rendering
             m_ComponentsDefaultState.Clear();
 
             // Grab all the component types we can find
-            baseComponentTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
-                .Where(t => !t.IsAbstract);
+            baseComponentTypeArray = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
+                .Where(t => !t.IsAbstract).ToArray();
 
             // Keep an instance of each type to be used in a virtual lowest priority global volume
             // so that we have a default state to fallback to when exiting volumes
-            foreach (var type in baseComponentTypes)
+            foreach (var type in baseComponentTypeArray)
             {
                 var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
                 m_ComponentsDefaultState.Add(inst);
@@ -260,7 +273,7 @@ namespace UnityEngine.Rendering
 
             if (components == null)
             {
-                stack.Reload(baseComponentTypes);
+                stack.Reload(baseComponentTypeArray);
                 return;
             }
 
@@ -268,7 +281,7 @@ namespace UnityEngine.Rendering
             {
                 if (kvp.Key == null || kvp.Value == null)
                 {
-                    stack.Reload(baseComponentTypes);
+                    stack.Reload(baseComponentTypeArray);
                     return;
                 }
             }
@@ -320,6 +333,9 @@ namespace UnityEngine.Rendering
             // Traverse all volumes
             foreach (var volume in volumes)
             {
+                if (volume == null)
+                    continue;
+
 #if UNITY_EDITOR
                 // Skip volumes that aren't in the scene currently displayed in the scene view
                 if (!IsVolumeRenderedByCamera(volume, camera))
@@ -390,6 +406,7 @@ namespace UnityEngine.Rendering
         public Volume[] GetVolumes(LayerMask layerMask)
         {
             var volumes = GrabVolumes(layerMask);
+            volumes.RemoveAll(v => v == null);
             return volumes.ToArray();
         }
 

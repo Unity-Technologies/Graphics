@@ -12,7 +12,7 @@
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     // #pragma enable_d3d11_debug_symbols
 
@@ -83,7 +83,7 @@
 #endif
 
                 // Write back the data to the output structures
-                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+                ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
                 builtinData.opacity = opacity;
                 builtinData.emissiveColor = float3(0, 1, 0);
                 surfaceData.color = color;

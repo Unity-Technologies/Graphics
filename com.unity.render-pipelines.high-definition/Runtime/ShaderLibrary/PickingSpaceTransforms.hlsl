@@ -1,10 +1,11 @@
 #ifndef UNITY_PICKING_SPACE_TRANSFORMS_INCLUDED
 #define UNITY_PICKING_SPACE_TRANSFORMS_INCLUDED
 
-#ifdef SCENEPICKINGPASS
+#if defined(SCENEPICKINGPASS) || defined(SCENESELECTIONPASS)
 
 // The picking pass uses custom matrices defined directly from the c++
 // So we have to redefine the space transform functions to overwrite the used matrices
+// For the selection pass, we want to use the non jittered projection matrix to avoid object outline flickering
 
 #undef SHADEROPTIONS_CAMERA_RELATIVE_RENDERING
 
@@ -57,6 +58,19 @@ float4x4 glstate_matrix_projection;
 #define TransformWorldToTangent TransformWorldToTangent_Picking
 #define TransformTangentToObject TransformTangentToObject_Picking
 #define TransformObjectToTangent TransformObjectToTangent_Picking
+
+float4x4 ScenePickingGetCameraViewProjMatrix()
+{
+    float4x4 translationMatrix = {
+            { 1.0 ,0.0 , 0.0, -_WorldSpaceCameraPos.x },
+            { 0.0 ,1.0 , 0.0, -_WorldSpaceCameraPos.y },
+            { 0.0 ,0.0 , 1.0, -_WorldSpaceCameraPos.z },
+            { 0.0 ,0.0 , 0.0, 1.0} };
+
+    return mul(_CameraViewProjMatrix, translationMatrix);
+}
+
+#define _CameraViewProjMatrix ScenePickingGetCameraViewProjMatrix()
 
 
 // Redefine the functions using the new macros

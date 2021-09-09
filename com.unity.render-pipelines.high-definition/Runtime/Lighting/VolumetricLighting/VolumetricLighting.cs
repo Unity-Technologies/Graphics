@@ -414,6 +414,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var parameters = new GenerateMaxZParameters();
             parameters.generateMaxZCS = defaultResources.shaders.maxZCS;
+            parameters.generateMaxZCS.shaderKeywords = null;
+            bool planarReflection = hdCamera.camera.cameraType == CameraType.Reflection && hdCamera.parentCamera != null;
+            CoreUtils.SetKeyword(parameters.generateMaxZCS, "PLANAR_OBLIQUE_DEPTH", planarReflection);
+
             parameters.maxZKernel = parameters.generateMaxZCS.FindKernel("ComputeMaxZ");
             parameters.maxZDownsampleKernel = parameters.generateMaxZCS.FindKernel("ComputeFinalMask");
             parameters.dilateMaxZKernel = parameters.generateMaxZCS.FindKernel("DilateMask");
@@ -477,8 +481,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
             cmd.SetComputeFloatParam(cs, HDShaderIDs._DilationWidth, parameters.dilationWidth);
 
-            int finalMaskW = maskW / 2;
-            int finalMaskH = maskH / 2;
+            int finalMaskW = Mathf.CeilToInt(maskW / 2.0f);
+            int finalMaskH = Mathf.CeilToInt(maskH / 2.0f);
 
             dispatchX = HDUtils.DivRoundUp(finalMaskW, 8);
             dispatchY = HDUtils.DivRoundUp(finalMaskH, 8);

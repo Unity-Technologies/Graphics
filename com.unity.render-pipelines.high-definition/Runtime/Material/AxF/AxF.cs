@@ -272,6 +272,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            if (GL.wireframe)
+            {
+                m_preIntegratedFGD_Ward.Create();
+                m_preIntegratedFGD_CookTorrance.Create();
+                return;
+            }
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PreIntegradeWardCookTorrance)))
             {
                 CoreUtils.DrawFullScreen(cmd, m_preIntegratedFGDMaterial_Ward, new RenderTargetIdentifier(m_preIntegratedFGD_Ward));

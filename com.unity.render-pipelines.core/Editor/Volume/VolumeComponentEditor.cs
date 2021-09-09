@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
@@ -150,7 +151,7 @@ namespace UnityEditor.Rendering
                 .Where(
                     t => t.IsDefined(typeof(VolumeParameterDrawerAttribute), false)
                     && !t.IsAbstract
-                    );
+                );
 
             // Store them
             foreach (var type in types)
@@ -179,17 +180,27 @@ namespace UnityEditor.Rendering
             OnEnable();
         }
 
-
-        class ParameterSorter : Comparer<(GUIContent displayName, int displayOrder, SerializedDataParameter param)>
+        void GetFields(object o, List<(FieldInfo, SerializedProperty)> infos, SerializedProperty prop = null)
         {
-            public override int Compare((GUIContent displayName, int displayOrder, SerializedDataParameter param) x, (GUIContent displayName, int displayOrder, SerializedDataParameter param) y)
+            if (o == null)
+                return;
+
+            var fields = o.GetType()
+                .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            foreach (var field in fields)
             {
-                if (x.displayOrder < y.displayOrder)
-                    return -1;
-                else if (x.displayOrder == y.displayOrder)
-                    return 0;
-                else
-                    return 1;
+                if (field.FieldType.IsSubclassOf(typeof(VolumeParameter)))
+                {
+                    if ((field.GetCustomAttributes(typeof(HideInInspector), false).Length == 0) &&
+                        ((field.GetCustomAttributes(typeof(SerializeField), false).Length > 0) ||
+                         (field.IsPublic && field.GetCustomAttributes(typeof(NonSerializedAttribute), false).Length == 0)))
+                        infos.Add((field, prop == null ?
+                            serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name)));
+                }
+                else if (!field.FieldType.IsArray && field.FieldType.IsClass)
+                    GetFields(field.GetValue(o), infos, prop == null ?
+                        serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name));
             }
         }
 
@@ -202,37 +213,27 @@ namespace UnityEditor.Rendering
         /// </remarks>
         public virtual void OnEnable()
         {
-            m_Parameters = new List<(GUIContent, int, SerializedDataParameter)>();
-
             // Grab all valid serializable field on the VolumeComponent
             // TODO: Should only be done when needed / on demand as this can potentially be wasted CPU when a custom editor is in use
-            var fields = target.GetType()
-                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
-                .Where(t =>
-                    (t.IsPublic && t.GetCustomAttributes(typeof(NonSerializedAttribute), false).Length == 0) ||
-                    (t.GetCustomAttributes(typeof(SerializeField), false).Length > 0)
-                    )
-                .Where(t => t.GetCustomAttributes(typeof(HideInInspector), false).Length == 0)
+            var fields = new List<(FieldInfo, SerializedProperty)>();
+            GetFields(target, fields);
+
+            m_Parameters = fields
+                .Select(t => {
+                    var name = "";
+                    var order = 0;
+                    var attr = (DisplayInfoAttribute[])t.Item1.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
+                    if (attr.Length != 0)
+                    {
+                        name = attr[0].name;
+                        order = attr[0].order;
+                    }
+
+                    var parameter = new SerializedDataParameter(t.Item2);
+                    return (new GUIContent(name), order, parameter);
+                })
+                .OrderBy(t => t.order)
                 .ToList();
-
-            // Prepare all serialized objects for this editor
-            foreach (var field in fields)
-            {
-                var property = serializedObject.FindProperty(field.Name);
-                var name = "";
-                var order = 0;
-                var attr = (DisplayInfoAttribute[])field.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
-                if (attr.Length != 0)
-                {
-                    name = attr[0].name;
-                    order = attr[0].order;
-                }
-
-                var parameter = new SerializedDataParameter(property);
-                m_Parameters.Add((new GUIContent(name), order, parameter));
-            }
-            m_Parameters.Sort(new ParameterSorter());
         }
 
         /// <summary>
@@ -264,7 +265,7 @@ namespace UnityEditor.Rendering
             // Display every field as-is
             foreach (var parameter in m_Parameters)
             {
-                if (parameter.displayName.text != "")
+                if (!string.IsNullOrEmpty(parameter.displayName.text))
                     PropertyField(parameter.param, parameter.displayName);
                 else
                     PropertyField(parameter.param);
@@ -324,6 +325,42 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
+        /// Handles unity built-in decorators (Space, Header, Tooltips, ...) from <see cref="SerializedDataParameter"/> attributes
+        /// </summary>
+        /// <param name="property">The property to obtain the attributes and handle the decorators</param>
+        /// <param name="title">A custom label and/or tooltip that might be updated by <see cref="TooltipAttribute"/> and/or by <see cref="InspectorNameAttribute"/></param>
+        void HandleDecorators(SerializedDataParameter property, GUIContent title)
+        {
+            foreach (var attr in property.attributes)
+            {
+                if (!(attr is PropertyAttribute))
+                    continue;
+
+                switch (attr)
+                {
+                    case SpaceAttribute spaceAttribute:
+                        EditorGUILayout.GetControlRect(false, spaceAttribute.height);
+                        break;
+                    case HeaderAttribute headerAttribute:
+                    {
+                        var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight));
+                        EditorGUI.LabelField(rect, headerAttribute.header, EditorStyles.miniLabel);
+                        break;
+                    }
+                    case TooltipAttribute tooltipAttribute:
+                    {
+                        if (string.IsNullOrEmpty(title.tooltip))
+                            title.tooltip = tooltipAttribute.tooltip;
+                        break;
+                    }
+                    case InspectorNameAttribute inspectorNameAttribute:
+                        title.text = inspectorNameAttribute.displayName;
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
         /// Draws a given <see cref="SerializedDataParameter"/> in the editor using a custom label
         /// and tooltip.
         /// </summary>
@@ -331,29 +368,7 @@ namespace UnityEditor.Rendering
         /// <param name="title">A custom label and/or tooltip.</param>
         protected void PropertyField(SerializedDataParameter property, GUIContent title)
         {
-            // Handle unity built-in decorators (Space, Header, Tooltip etc)
-            foreach (var attr in property.attributes)
-            {
-                if (attr is PropertyAttribute)
-                {
-                    if (attr is SpaceAttribute)
-                    {
-                        EditorGUILayout.GetControlRect(false, (attr as SpaceAttribute).height);
-                    }
-                    else if (attr is HeaderAttribute)
-                    {
-                        var rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
-                        rect.y += 0f;
-                        rect = EditorGUI.IndentedRect(rect);
-                        EditorGUI.LabelField(rect, (attr as HeaderAttribute).header, EditorStyles.miniLabel);
-                    }
-                    else if (attr is TooltipAttribute)
-                    {
-                        if (string.IsNullOrEmpty(title.tooltip))
-                            title.tooltip = (attr as TooltipAttribute).tooltip;
-                    }
-                }
-            }
+            HandleDecorators(property, title);
 
             // Custom parameter drawer
             VolumeParameterDrawer drawer;

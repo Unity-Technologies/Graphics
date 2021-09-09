@@ -24,15 +24,6 @@ MonoBehaviour:
     Reason: Fail on DX12 XR but not DX12...
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 3f6529c22f7d2ca46814b2e7afd04ef9, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: a43874f539bb5494e86fdea5ac9df469, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -76,25 +67,6 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Disable this test as we disable the feature for Yamto on Mac
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: c566b460a3674184da6c102196a1a888, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: '[Error] Metal: Error creating pipeline state (Hidden/HDRP/Blit): output
-      of type float4 is not compatible with a MTLPixelFormatRGBA32Uint color attachement.'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 2486b40270d6e524d8762a9d2a0c1e78, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: Memory allocation test failed, 5 allocations detected.
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: ac9787fadf0b4ed4391bee6ba1d8e213, type: 3}
@@ -176,15 +148,6 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 100c0e304d8aba84186dcd9bf48e5b85, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: Memory allocation test failed, 2 allocations detected.
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 95280217564a80c45916bbb33c3159fb, type: 3}
@@ -365,3 +328,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable on  XR yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 92280049d357c564b9a9297b39e02a92, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato

@@ -4,12 +4,63 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.4.0] - 2020-01-26
+## [10.7.0] - 2021-07-02
+
+### Fixed
+- Fixed SubGraph SamplerState property defaults not being respected [1336119]
+- Fixed an issue where nested subgraphs with identical SamplerState property settings could cause compile failures [1336089]
+- Fixed an issue where SamplerState properties could not be renamed after creation [1336126]
+- Fixed the incorrect value written to the VT feedback buffer when VT is not used.
+- Fixed compilation problems on preview shader when using hybrid renderer v2 and property desc override Hybrid Per Instance
+- Fixed a serialization bug wrt PVT property flags when using subgraphs. This fixes SRP batcher compatibility.
+
+## [10.6.0] - 2021-04-29
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
-## [10.3.1] - 2020-01-26
+### Fixed
+- Fixed an issue where an integer property would be exposed in the material inspector as a float [1332564]
+- Fixed an issue where the normal vector in object space would scale with the objects scale, causing non-normalized normal vectors
+- Fixed a bug in ShaderGraph where sticky notes couldn't be copied and pasted [1221042].
+- Fixed GPU instancing support in Shadergraph [1319655] (https://issuetracker.unity3d.com/issues/shader-graph-errors-are-thrown-when-a-propertys-shader-declaration-is-set-to-hybrid-per-instance-and-exposed-is-disabled).
+- Fixed Procedural Virtual Texture compatibility with SRP Batcher [1329336] (https://issuetracker.unity3d.com/issues/procedural-virtual-texture-node-will-make-a-shadergraph-incompatible-with-srp-batcher)
+
+### Changed
+- Only ShaderGraph keywords count towards the shader permutation variant limit, SubGraph keywords do not.
+
+## [10.5.0] - 2021-04-19
+
+### Added
+- Added subshadergraphs for SpeedTree 8 shadergraph support: SpeedTree8Wind, SpeedTree8ColorAlpha, SpeedTree8Billboard. 
+- Added an HLSL file implementing a version of the Unity core LODDitheringTransition function which can be used in a Shader Graph
+
+### Fixed
+- Fixed a bug where property deduplication was failing and spamming errors [1317809] (https://issuetracker.unity3d.com/issues/console-error-when-adding-a-sample-texture-operator-when-a-sampler-state-property-is-present-in-blackboard)
+- Fixed a bug where synchronously compiling an unencountered shader variant for preview was causing long delays in graph updates [1324388]
+- Fixed an issue where double clicking a category or drop down arrow closes the searcher [1302267] (https://issuetracker.unity3d.com/issues/shadergraph-double-clicking-a-category-or-drop-down-arrow-closes-the-searcher)
+- Fixed a ShaderGraph issue where unused blocks get removed on edge replacement [1336831].
+
+### Changed
+- Updated searcher package dependency to 4.3.2
+
+## [10.4.0] - 2021-03-11
+
+### Added
+- Added padding to the shader graph blackboard window to prevent scrollbars from being overlapped by the resize region at the boundaries of the window
+- Support for the XboxSeries platform has been added.
+
+### Fixed
+- Fixed an issue where the "Node Settings" tab get switched to, overriding the "Graph Settings" tab, when user tries to modify a graph setting [1318844] (https://issuetracker.unity3d.com/issues/shader-graph-graph-settings-window-loses-focus-on-expanding-universal-dropdown-in-graph-inspector)
+- Fixed an issue where the exposed checkbox was removed from keyword inspectors [1312779] (https://issuetracker.unity3d.com/issues/shader-graph-exposed-parameter-for-keywords-removed-by-accident)
+- Fixed issue with SRP Batcher compatibility [1310624]
+- Fixed issue with Hybrid renderer compatibility [1296776]
+- Fixed an issue where the shader variant limit exceeded message was not getting passed [1304168] (https://issuetracker.unity3d.com/product/unity/issues/guid/1304168)
+- Fixed an issue where generated `BuildVertexDescriptionInputs()` produced an HLSL warning, "implicit truncation of vector type" [1299179](https://issuetracker.unity3d.com/product/unity/issues/guid/1299179/)
+- Fixed a bug in master node preview generation that failed compilation when a block was deleted [1319066] (https://issuetracker.unity3d.com/issues/shadergraph-deleting-stack-blocks-of-universal-rp-targeted-shadergraph-causes-the-main-preview-to-fail-to-compile)
+- Fixed an issue where SubGraph keywords would not deduplicate before counting towards the permutation limit [1343528] (https://issuetracker.unity3d.com/issues/shader-graph-graph-is-generating-too-many-variants-error-is-thrown-when-using-subgraphs-with-keywords)
+
+## [10.3.1] - 2021-01-26
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.

@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Number of bounces for reflection rays.
         /// </summary>
-        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 31);
+        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 8);
 
         /// <summary>
         /// Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.

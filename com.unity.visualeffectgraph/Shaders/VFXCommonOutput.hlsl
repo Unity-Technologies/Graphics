@@ -68,12 +68,36 @@ float4 VFXGetParticleColor(VFX_VARYING_PS_INPUTS i)
     return color;
 }
 
+float VFXLinearEyeDepth(float depth)
+{
+    return LinearEyeDepth(depth, _ZBufferParams);
+}
+
+float VFXLinearEyeDepthOrthographic(float depth)
+{
+#if UNITY_REVERSED_Z
+    return float(_ProjectionParams.z - (_ProjectionParams.z - _ProjectionParams.y) * depth);
+#else
+    return float(_ProjectionParams.y + (_ProjectionParams.z - _ProjectionParams.y) * depth);
+#endif
+}
+
 float VFXGetSoftParticleFade(VFX_VARYING_PS_INPUTS i)
 {
     float fade = 1.0f;
     #if USE_SOFT_PARTICLE && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)
-    float sceneZ = VFXLinearEyeDepth(VFXSampleDepth(i.VFX_VARYING_POSCS));
-    fade = saturate(i.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE * (sceneZ - i.VFX_VARYING_POSCS.w));
+    float sceneZ, selfZ;
+    if(IsPerspectiveProjection())
+    {
+        sceneZ = VFXLinearEyeDepth(VFXSampleDepth(i.VFX_VARYING_POSCS));
+        selfZ = i.VFX_VARYING_POSCS.w;
+    }
+    else
+    {
+        sceneZ = VFXLinearEyeDepthOrthographic(VFXSampleDepth(i.VFX_VARYING_POSCS));
+        selfZ = VFXLinearEyeDepthOrthographic(i.VFX_VARYING_POSCS.z);
+    }
+    fade = saturate(i.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE * (sceneZ - selfZ));
     fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
     #endif
     return fade;

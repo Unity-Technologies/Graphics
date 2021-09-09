@@ -100,15 +100,15 @@ struct LightData
     float iesCut;
     int lightType;
     float3 right;
+    float penumbraTint;
     real range;
+    int cookieMode;
+    int shadowIndex;
     float3 up;
     float rangeAttenuationScale;
     float3 color;
     float rangeAttenuationBias;
-    int cookieMode;
-    int shadowIndex;
     float4 cookieScaleOffset;
-    int contactShadowMask;
     float3 shadowTint;
     float shadowDimmer;
     float volumetricShadowDimmer;
@@ -117,11 +117,12 @@ struct LightData
     int screenSpaceShadowIndex;
     real4 shadowMaskSelector;
     real4 size;
+    int contactShadowMask;
     float diffuseDimmer;
     float specularDimmer;
+    float __unused__;
+    float2 padding;
     float isRayTracedContactShadow;
-    float penumbraTint;
-    float3 padding;
     float boxLightSafeExtent;
 };
 

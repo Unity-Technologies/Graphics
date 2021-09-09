@@ -133,11 +133,14 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     defaultSmoothness *= half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
 
 #ifndef _TERRAIN_BLEND_HEIGHT
-    // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
-    half4 opacityAsDensity = saturate((half4(diffAlbedo[0].a, diffAlbedo[1].a, diffAlbedo[2].a, diffAlbedo[3].a) - (half4(1.0, 1.0, 1.0, 1.0) - splatControl)) * 20.0);
-    opacityAsDensity += 0.001h * splatControl;      // if all weights are zero, default to what the blend mask says
-    half4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
-    splatControl = lerp(opacityAsDensity, splatControl, useOpacityAsDensityParam);
+    if(_NumLayersCount <= 4)
+    {
+        // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
+        half4 opacityAsDensity = saturate((half4(diffAlbedo[0].a, diffAlbedo[1].a, diffAlbedo[2].a, diffAlbedo[3].a) - (half4(1.0, 1.0, 1.0, 1.0) - splatControl)) * 20.0);
+        opacityAsDensity += 0.001h * splatControl;      // if all weights are zero, default to what the blend mask says
+        half4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
+        splatControl = lerp(opacityAsDensity, splatControl, useOpacityAsDensityParam);
+    }
 #endif
 
     // Now that splatControl has changed, we can compute the final weight and normalize
@@ -330,6 +333,7 @@ FragmentOutput SplatmapFragment(Varyings IN)
 half4 SplatmapFragment(Varyings IN) : SV_TARGET
 #endif
 {
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
 #ifdef _ALPHATEST_ON
     ClipHoles(IN.uvMainAndLM.xy);
 #endif
@@ -350,6 +354,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
     half4 splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
 
+    half alpha = dot(splatControl, half4(1.0h, 1.0h, 1.0h, 1.0h));
 #ifdef _TERRAIN_BLEND_HEIGHT
     // disable Height Based blend when there are more than 4 layers (multi-pass breaks the normalization)
     if (_NumLayersCount <= 4)
@@ -377,7 +382,6 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half4 maskOcclusion = half4(masks[0].g, masks[1].g, masks[2].g, masks[3].g);
     defaultOcclusion = lerp(defaultOcclusion, maskOcclusion, hasMask);
     half occlusion = dot(splatControl, defaultOcclusion);
-    half alpha = weight;
 #endif
 
     InputData inputData;
@@ -415,18 +419,14 @@ struct AttributesLean
 {
     float4 position     : POSITION;
     float3 normalOS       : NORMAL;
-#ifdef _ALPHATEST_ON
-	float2 texcoord     : TEXCOORD0;
-#endif
+    float2 texcoord     : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct VaryingsLean
 {
     float4 clipPos      : SV_POSITION;
-#ifdef _ALPHATEST_ON
     float2 texcoord     : TEXCOORD0;
-#endif
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -434,7 +434,7 @@ VaryingsLean ShadowPassVertex(AttributesLean v)
 {
     VaryingsLean o = (VaryingsLean)0;
     UNITY_SETUP_INSTANCE_ID(v);
-    TerrainInstancing(v.position, v.normalOS);
+    TerrainInstancing(v.position, v.normalOS, v.texcoord);
 
     float3 positionWS = TransformObjectToWorld(v.position.xyz);
     float3 normalWS = TransformObjectToWorldNormal(v.normalOS);
@@ -449,9 +449,7 @@ VaryingsLean ShadowPassVertex(AttributesLean v)
 
 	o.clipPos = clipPos;
 
-#ifdef _ALPHATEST_ON
-	o.texcoord = v.texcoord;
-#endif
+    o.texcoord = v.texcoord;
 
 	return o;
 }
@@ -473,9 +471,7 @@ VaryingsLean DepthOnlyVertex(AttributesLean v)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
     TerrainInstancing(v.position, v.normalOS);
     o.clipPos = TransformObjectToHClip(v.position.xyz);
-#ifdef _ALPHATEST_ON
-	o.texcoord = v.texcoord;
-#endif
+    o.texcoord = v.texcoord;
 	return o;
 }
 

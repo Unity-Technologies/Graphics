@@ -181,7 +181,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 var textPropertyDrawer = new TextPropertyDrawer();
                 propertySheet.Add(textPropertyDrawer.CreateGUI(
                     null,
-                    (string)shaderInput.referenceName,
+                    (string)shaderInput.referenceNameForEditing,
                     "Reference",
                     out var propertyVisualElement));
 
@@ -202,7 +202,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                 if(!string.IsNullOrEmpty(shaderInput.overrideReferenceName))
                     propertyVisualElement.AddToClassList("modified");
-                propertyVisualElement.SetEnabled(shaderInput.isRenamable);
+                propertyVisualElement.SetEnabled(shaderInput.isReferenceRenamable);
                 propertyVisualElement.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
             }
         }
@@ -1065,6 +1065,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     BuildEnumKeywordField(propertySheet, keyword);
                     break;
             }
+
+            BuildExposedField(propertySheet);
         }
 
         void BuildBooleanKeywordField(PropertySheet propertySheet, ShaderKeyword keyword)

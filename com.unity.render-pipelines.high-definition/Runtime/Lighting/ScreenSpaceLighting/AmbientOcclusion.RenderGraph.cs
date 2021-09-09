@@ -46,6 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         var packedData = RenderAO(renderGraph, aoParameters, depthPyramid, normalBuffer);
                         result = DenoiseAO(renderGraph, aoParameters, depthPyramid, motionVectors, packedData, currentHistory, outputHistory);
+                        result = UpsampleAO(renderGraph, aoParameters, result, depthPyramid);
                     }
                 }
             }
@@ -107,6 +108,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                     TextureHandle           currentHistory,
                                     TextureHandle           outputHistory)
         {
+            if (!parameters.temporalAccumulation && !parameters.fullResolution)
+                return aoPackedData;
+
             TextureHandle denoiseOutput;
 
             using (var builder = renderGraph.AddRenderPass<DenoiseAOPassData>("Denoise GTAO", out var passData))
@@ -147,11 +151,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 ctx.cmd);
                 });
 
-                if (parameters.fullResolution)
-                    return passData.denoiseOutput;
+                return passData.denoiseOutput;
             }
-
-            return UpsampleAO(renderGraph, parameters, denoiseOutput, depthTexture);
         }
 
         class UpsampleAOPassData
@@ -164,6 +165,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle UpsampleAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle input, TextureHandle depthTexture)
         {
+            if (parameters.fullResolution)
+                return input;
+
             using (var builder = renderGraph.AddRenderPass<UpsampleAOPassData>("Upsample GTAO", out var passData, ProfilingSampler.Get(HDProfileId.UpSampleSSAO)))
             {
                 builder.EnableAsyncCompute(parameters.runAsync);

@@ -160,7 +160,7 @@ namespace UnityEditor.VFX.Block
                 {
                     case Mode.FaceCameraPlane:
                         if (canTestStrips && hasStrips)
-                            throw new NotImplementedException("This orient mode (FaceCameraPlane) is only available for strips");
+                            throw new NotImplementedException("This orient mode (FaceCameraPlane) is not available for strips");
 
                         return @"
 float3x3 viewRot = GetVFXToViewRotMatrix();
@@ -190,7 +190,7 @@ else  // Face plane for ortho
     axisZ = normalize(axisZ);
     #endif
 }
-axisY = normalize(cross(axisZ, axisX));
+axisY = VFXSafeNormalizedCross(axisZ, axisX, float3(0,1,0));
 axisZ = cross(axisX, axisY);
 ";
                         }
@@ -221,13 +221,13 @@ else // Face plane for ortho
                             return @"
 axisX = stripTangent;
 axisZ = -normalize(position - Position);
-axisY = normalize(cross(axisZ, axisX));
+axisY = VFXSafeNormalizedCross(axisZ, axisX, float3(0,1,0));
 axisZ = cross(axisX, axisY);
 ";
                         else
                             return @"
 axisZ = normalize(position - Position);
-axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
+axisX = VFXSafeNormalizedCross(GetVFXToViewRotMatrix()[1].xyz,axisZ, float3(1,0,0));
 axisY = cross(axisZ,axisX);
 ";
 
@@ -238,7 +238,7 @@ float3 lineDir = normalize(Line_end - Line_start);
 float3 target = dot(position - Line_start,lineDir) * lineDir + Line_start;
 axisX = stripTangent;
 axisZ = normalize(position - target);
-axisY = normalize(cross(axisZ, axisX));
+axisY = VFXSafeNormalizedCross(axisZ, axisX, float3(0,1,0));
 axisZ = cross(axisX, axisY);
 ";
                         else
@@ -246,7 +246,7 @@ axisZ = cross(axisX, axisY);
 float3 lineDir = normalize(Line_end - Line_start);
 float3 target = dot(position - Line_start,lineDir) * lineDir + Line_start;
 axisZ = normalize(position - target);
-axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
+axisX = VFXSafeNormalizedCross(GetVFXToViewRotMatrix()[1].xyz,axisZ, float3(1,0,0));
 axisY = cross(axisZ,axisX);
 ";
 
@@ -271,7 +271,7 @@ axisY = cross(axisZ,axisX);
                         return @"
 axisY = Up;
 axisZ = position - GetViewVFXPosition();
-axisX = normalize(cross(axisY,axisZ));
+axisX = VFXSafeNormalizedCross(axisY, axisZ, float3(1,0,0));
 axisZ = cross(axisX,axisY);
 ";
 
@@ -282,7 +282,7 @@ axisZ = cross(axisX,axisY);
                         return @"
 axisY = normalize(velocity);
 axisZ = position - GetViewVFXPosition();
-axisX = normalize(cross(axisY,axisZ));
+axisX = VFXSafeNormalizedCross(axisY, axisZ, float3(1,0,0));
 axisZ = cross(axisX,axisY);
 ";
 
@@ -293,7 +293,7 @@ axisZ = cross(axisX,axisY);
                         return
 @"axisX = stripTangent;
 axisZ = -Front;
-axisY = normalize(cross(axisZ, axisX));
+axisY = VFXSafeNormalizedCross(axisZ, axisX, float3(0,1,0));
 axisZ = cross(axisX, axisY);
 ";
 
@@ -304,7 +304,7 @@ axisZ = cross(axisX, axisY);
                         return
 @"axisX = stripTangent;
 axisY = Up;
-axisZ = normalize(cross(axisX, axisY));
+axisZ = VFXSafeNormalizedCross(axisX, axisY, float3(0,0,1));
 axisY = cross(axisZ, axisX);
 ";
 

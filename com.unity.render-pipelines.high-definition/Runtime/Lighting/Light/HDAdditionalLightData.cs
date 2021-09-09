@@ -2085,8 +2085,8 @@ namespace UnityEngine.Rendering.HighDefinition
             HDShadowUtils.ExtractDirectionalLightData(
                 visibleLight, viewportSize, (uint)requestIndex, shadowSettings.cascadeShadowSplitCount.value,
                 shadowSettings.cascadeShadowSplits, nearPlaneOffset, cullResults, lightIndex,
-                out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                out shadowRequest.deviceProjection, out shadowRequest.splitData
+                out shadowRequest.view, out invViewProjection, out shadowRequest.projection,
+                out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
             );
 
             cullingSphere = shadowRequest.splitData.cullingSphere;
@@ -2116,8 +2116,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDShadowUtils.ExtractPointLightData(
                         visibleLight, viewportSize, shadowNearPlane,
                         normalBias, (uint)shadowIndex, filteringQuality, out shadowRequest.view,
-                        out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                        out shadowRequest.deviceProjection, out shadowRequest.splitData
+                        out invViewProjection, out shadowRequest.projection,
+                        out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
                     );
                     break;
                 case HDLightType.Spot:
@@ -2125,8 +2125,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDShadowUtils.ExtractSpotLightData(
                         spotLightShape, spotAngleForShadows, shadowNearPlane, aspectRatio, shapeWidth,
                         shapeHeight, visibleLight, viewportSize, normalBias, filteringQuality,
-                        out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                        out shadowRequest.deviceProjection, out shadowRequest.splitData
+                        out shadowRequest.view, out invViewProjection, out shadowRequest.projection,
+                        out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
                     );
                     break;
                 case HDLightType.Directional:
@@ -2140,7 +2140,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             float offset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
                             Vector3 shadowOffset = offset * visibleLight.GetForward();
                             HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, filteringQuality,
-                                out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.deviceProjection, out shadowRequest.splitData);
+                                out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData);
                             break;
                         case AreaLightShape.Tube:
                             //Tube do not cast shadow at the moment.
@@ -2246,7 +2246,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, updateType);
 
-                if (needToUpdateCachedContent)
+                if (needToUpdateCachedContent && (lightType != HDLightType.Directional ||
+                                                  hdCamera.camera.cameraType != CameraType.Reflection))
                 {
                     // Handshake with the cached shadow manager to notify about the rendering.
                     // Technically the rendering has not happened yet, but it is scheduled.
@@ -2310,7 +2311,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // shadow clip planes (used for tessellation clipping)
-            GeometryUtility.CalculateFrustumPlanes(CoreMatrixUtils.MultiplyProjectionMatrix(shadowRequest.deviceProjectionYFlip, shadowRequest.view, hasOrthoMatrix), m_ShadowFrustumPlanes);
+            GeometryUtility.CalculateFrustumPlanes(CoreMatrixUtils.MultiplyProjectionMatrix(shadowRequest.projection, shadowRequest.view, hasOrthoMatrix), m_ShadowFrustumPlanes);
             if (shadowRequest.frustumPlanes?.Length != 6)
                 shadowRequest.frustumPlanes = new Vector4[6];
             // Left, right, top, bottom, near, far.
@@ -2452,6 +2453,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
         void LateUpdate()
         {
+            // Prevent any unwanted sync when not in HDRP (case 1217575)
+            if (HDRenderPipeline.currentPipeline == null)
+                return;
+
             // We force the animation in the editor and in play mode when there is an animator component attached to the light
 #if !UNITY_EDITOR
             if (!m_Animated)

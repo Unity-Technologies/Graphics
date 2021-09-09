@@ -14,6 +14,8 @@ namespace UnityEngine.Rendering
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Free-Camera" + Documentation.endURL)]
     public class FreeCamera : MonoBehaviour
     {
+        const float k_MouseSensitivityMultiplier = 0.01f;
+
         /// <summary>
         /// Rotation speed when using a controller.
         /// </summary>
@@ -21,7 +23,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Rotation speed when using the mouse.
         /// </summary>
-        public float m_LookSpeedMouse = 10.0f;
+        public float m_LookSpeedMouse = 4.0f;
         /// <summary>
         /// Movement speed.
         /// </summary>
@@ -51,7 +53,6 @@ namespace UnityEngine.Rendering
         InputAction lookAction;
         InputAction moveAction;
         InputAction speedAction;
-        InputAction fireAction;
         InputAction yMoveAction;
 #endif
 
@@ -94,7 +95,6 @@ namespace UnityEngine.Rendering
             moveAction.Enable();
             lookAction.Enable();
             speedAction.Enable();
-            fireAction.Enable();
             yMoveAction.Enable();
 #endif
 
@@ -129,8 +129,8 @@ namespace UnityEngine.Rendering
 
 #if USE_INPUT_SYSTEM
             var lookDelta = lookAction.ReadValue<Vector2>();
-            inputRotateAxisX = lookDelta.x * m_LookSpeedMouse * Time.deltaTime;
-            inputRotateAxisY = lookDelta.y * m_LookSpeedMouse * Time.deltaTime;
+            inputRotateAxisX = lookDelta.x * m_LookSpeedMouse * k_MouseSensitivityMultiplier;
+            inputRotateAxisY = lookDelta.y * m_LookSpeedMouse * k_MouseSensitivityMultiplier;
 
             leftShift = Keyboard.current.leftShiftKey.isPressed;
             fire1 = Mouse.current?.leftButton?.isPressed == true || Gamepad.current?.xButton?.isPressed == true;
@@ -148,8 +148,8 @@ namespace UnityEngine.Rendering
                 inputRotateAxisX = Input.GetAxis(kMouseX) * m_LookSpeedMouse;
                 inputRotateAxisY = Input.GetAxis(kMouseY) * m_LookSpeedMouse;
             }
-            inputRotateAxisX += (Input.GetAxis(kRightStickX) * m_LookSpeedController * Time.deltaTime);
-            inputRotateAxisY += (Input.GetAxis(kRightStickY) * m_LookSpeedController * Time.deltaTime);
+            inputRotateAxisX += (Input.GetAxis(kRightStickX) * m_LookSpeedController * k_MouseSensitivityMultiplier);
+            inputRotateAxisY += (Input.GetAxis(kRightStickY) * m_LookSpeedController * k_MouseSensitivityMultiplier);
 
             leftShift = Input.GetKey(KeyCode.LeftShift);
             fire1 = Input.GetAxis("Fire1") > 0.0f;

@@ -118,6 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static uint s_MaterialFeatureMaskFlags = 0x000FFF;   // don't use all bits just to be safe from signed and/or float conversions :/
 
         // Screen space shadow flags
+        public static uint s_RayTracedScreenSpaceShadowFlag = 0x1000;
         public static uint s_ScreenSpaceColorShadowFlag = 0x100;
         public static uint s_InvalidScreenSpaceShadow = 0xff;
         public static uint s_ScreenSpaceShadowIndexMask = 0xff;
@@ -1328,6 +1329,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         screenSpaceShadowslot++;
                     }
+					
+                    // Raise the ray tracing flag in case the light is ray traced
+                    if (additionalLightData.WillRenderRayTracedShadow())
+                        lightData.screenSpaceShadowIndex |= (int)LightDefinitions.s_RayTracedScreenSpaceShadowFlag;
+					
                     screenSpaceShadowIndex++;
                     m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                 }
@@ -3354,6 +3360,9 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
             {
                 var proj = hdCamera.xr.enabled ? hdCamera.xr.GetProjMatrix(viewIndex) : camera.projectionMatrix;
+                // Note: we need to take into account the TAA jitter when indexing the light list
+                proj = (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing) ? hdCamera.GetJitteredProjectionMatrix(proj) : proj;
+
                 m_LightListProjMatrices[viewIndex] = proj * s_FlipMatrixLHSRHS;
 
                 for (int i = 0; i < 16; ++i)

@@ -6,7 +6,7 @@ The **Set Attribute from Map** Block is a generic Block that calculates values b
 
 To achieve different results, this Block can use various sampling modes. The sampling modes are:
 
-- **Index**, **IndexRelative**, and **Sequential** sample modes use particle indices to sample the pixels of the texture. These modes can sample [Point Caches](PointCaches.md) or [Attribute Maps](PropertyBinders.md) in various ways.
+- **Index**, **IndexRelative**, and **Sequential** sample modes use particle indices to sample the pixels of the texture. These modes can sample [Point Caches](point-cache-in-vfx-graph.md) or [Attribute Maps](PropertyBinders.md) in various ways.
 - **Sample2DLOD** and **Sample3DLOD** sample modes use 2D and 3D coordinates and a LOD factor to sample the texture. You can use these modes for projection of various values such as color or depth.
 - **Random** and **RandomUniformPerParticle** sample modes allow you to fetch random values from a pool of values stored in a texture, such as Point Caches or Attribute Maps.
 
