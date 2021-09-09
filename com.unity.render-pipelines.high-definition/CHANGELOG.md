@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed specular occlusion sharpness and over darkening at grazing angles.
 - Fixed edge bleeding when rendering volumetric clouds.
 
-### changed
+### Changed
 - Visual Environment ambient mode is now Dynamic by default.
 
 ## [12.0.0] - 2021-01-11
