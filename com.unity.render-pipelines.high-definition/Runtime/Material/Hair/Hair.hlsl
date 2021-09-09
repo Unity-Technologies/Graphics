@@ -25,6 +25,10 @@
 // #define HAIR_DISPLAY_REFERENCE_BSDF
 // #define HAIR_DISPLAY_REFERENCE_IBL
 
+#if _USE_ADVANCED_MULTIPLE_SCATTERING
+#define LIGHT_EVALUATION_NO_SHADOWS
+#endif
+
 // Extra material feature flag we utilize to compile different versions of BSDF evaluation (for pre-integration, etc.)
 #define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_R            (1 << 16)
 #define MATERIALFEATUREFLAGS_HAIR_MARSCHNER_SKIP_TT           (1 << 17)
