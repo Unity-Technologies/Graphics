@@ -1241,6 +1241,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             var center = m_Vignette.center.value;
             var aspectRatio = m_Descriptor.width / (float)m_Descriptor.height;
 
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xrPass != null && xrPass.enabled)
+            {
+                if (xrPass.singlePassEnabled)
+                    material.SetVector(ShaderConstants._Vignette_ParamsXR, xrPass.ApplyXRViewCenterOffset(center));
+                else
+                    // In multi-pass mode we need to modify the eye center with the values from .xy of the corrected
+                    // center since the version of the shader that is not single-pass will use the value in _Vignette_Params2
+                    center = xrPass.ApplyXRViewCenterOffset(center);
+            }
+#endif
+
             var v1 = new Vector4(
                 color.r, color.g, color.b,
                 m_Vignette.rounded.value ? aspectRatio : 1f
@@ -1250,25 +1263,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_Vignette.intensity.value * 3f,
                 m_Vignette.smoothness.value * 5f
             );
-
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (xrPass != null && xrPass.enabled)
-            {
-                float centerDeltaX = 0.5f - center.x;
-                float centerDeltaY = 0.5f - center.y;
-
-                v2.x = xrPass.views[0].eyeCenterUV.x - centerDeltaX;
-                v2.y = xrPass.views[0].eyeCenterUV.y - centerDeltaY;
-                if (xrPass.singlePassEnabled)
-                {
-                    // With single-pass XR, we need a new variable to contain the data for the 2nd view
-                    var v3 = new Vector4(xrPass.views[1].eyeCenterUV.x - centerDeltaX,
-                        xrPass.views[1].eyeCenterUV.y - centerDeltaY,
-                        0.0f, 0.0f);
-                    material.SetVector(ShaderConstants._Vignette_Params3, v3);
-                }
-            }
-#endif
 
             material.SetVector(ShaderConstants._Vignette_Params1, v1);
             material.SetVector(ShaderConstants._Vignette_Params2, v2);
@@ -1521,7 +1515,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _Chroma_Params = Shader.PropertyToID("_Chroma_Params");
             public static readonly int _Vignette_Params1 = Shader.PropertyToID("_Vignette_Params1");
             public static readonly int _Vignette_Params2 = Shader.PropertyToID("_Vignette_Params2");
-            public static readonly int _Vignette_Params3 = Shader.PropertyToID("_Vignette_Params3");
+            public static readonly int _Vignette_ParamsXR = Shader.PropertyToID("_Vignette_ParamsXR");
             public static readonly int _Lut_Params = Shader.PropertyToID("_Lut_Params");
             public static readonly int _UserLut_Params = Shader.PropertyToID("_UserLut_Params");
             public static readonly int _InternalLut = Shader.PropertyToID("_InternalLut");

@@ -451,6 +451,24 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal Vector4 ApplyXRViewCenterOffset(Vector2 center)
+        {
+            Vector4 result = Vector4.zero;
+            float centerDeltaX = 0.5f - center.x;
+            float centerDeltaY = 0.5f - center.y;
+
+            result.x = views[0].eyeCenterUV.x - centerDeltaX;
+            result.y = views[0].eyeCenterUV.y - centerDeltaY;
+            if (singlePassEnabled)
+            {
+                // With single-pass XR, we need a new variable to contain the data for the 2nd view
+                result.z = views[1].eyeCenterUV.x - centerDeltaX;
+                result.w = views[1].eyeCenterUV.y - centerDeltaY;
+            }
+
+            return result;
+        }
+
         // Store array to avoid allocating every frame
         private Matrix4x4[] stereoProjectionMatrix = new Matrix4x4[2];
         private Matrix4x4[] stereoViewMatrix = new Matrix4x4[2];

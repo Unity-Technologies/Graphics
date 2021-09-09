@@ -47,7 +47,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         half4 _Vignette_Params1;
         float4 _Vignette_Params2;
     #ifdef USING_STEREO_MATRICES
-        float4 _Vignette_Params3;
+        float4 _Vignette_ParamsXR;
     #endif
         float2 _Grain_Params;
         float4 _Grain_TilingParams;
@@ -72,8 +72,8 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
         #define VignetteColor           _Vignette_Params1.xyz
     #ifdef USING_STEREO_MATRICES
-        #define VignetteCenterEye0      _Vignette_Params2.xy
-        #define VignetteCenterEye1      _Vignette_Params3.xy
+        #define VignetteCenterEye0      _Vignette_ParamsXR.xy
+        #define VignetteCenterEye1      _Vignette_ParamsXR.zw
     #else
         #define VignetteCenter          _Vignette_Params2.xy
     #endif
