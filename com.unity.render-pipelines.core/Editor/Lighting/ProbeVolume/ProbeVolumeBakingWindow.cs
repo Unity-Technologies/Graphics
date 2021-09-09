@@ -127,7 +127,13 @@ namespace UnityEngine.Experimental.Rendering
                     GUI.SetNextControlName(key);
                     set.name = EditorGUI.DelayedTextField(rect, set.name, EditorStyles.boldLabel);
                     if (EditorGUI.EndChangeCheck())
+                    {
                         m_RenameSelectedBakingSet = false;
+
+                        // Rename profile asset to match name:
+                        set.profile.name = set.name;
+                        AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(set.profile), set.name);
+                    }
                 }
                 else
                     EditorGUI.LabelField(rect, set.name, EditorStyles.boldLabel);
@@ -138,10 +144,8 @@ namespace UnityEngine.Experimental.Rendering
             m_BakingSets.onAddCallback = (list) =>
             {
                 Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added new baking set");
-                sceneData.bakingSets.Add(new ProbeVolumeSceneData.BakingSet
-                {
-                    name = "New Baking Set",
-                });
+                sceneData.CreateNewBakingSet("New Baking Set");
+                OnBakingSetSelected(list);
             };
 
             m_BakingSets.onRemoveCallback = (list) =>
@@ -391,9 +395,9 @@ namespace UnityEngine.Experimental.Rendering
 
                 EditorGUILayout.Space();
 
-                var serializedBakedSettings = m_ProbeSceneData.FindPropertyRelative("serializedBakeSettings");
-                var s = serializedBakedSettings.GetArrayElementAtIndex(0);
-                var probeVolumeBakingSettings = s.FindPropertyRelative("settings");
+                var serializedSets = m_ProbeSceneData.FindPropertyRelative("serializedBakingSets");
+                var serializedSet = serializedSets.GetArrayElementAtIndex(m_BakingSets.index);
+                var probeVolumeBakingSettings = serializedSet.FindPropertyRelative("settings");
                 EditorGUILayout.PropertyField(probeVolumeBakingSettings);
             }
             else

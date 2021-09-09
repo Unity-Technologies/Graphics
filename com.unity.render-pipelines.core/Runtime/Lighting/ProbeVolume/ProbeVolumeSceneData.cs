@@ -56,6 +56,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             public string name;
             public List<string> sceneGUIDs = new List<string>();
+            public ProbeVolumeBakingProcessSettings settings;
+            public ProbeReferenceVolumeProfile profile;
         }
 
         [SerializeField] List<SerializableBoundItem> serializedBounds;
@@ -91,6 +93,8 @@ namespace UnityEngine.Experimental.Rendering
             serializedHasVolumes = new List<SerializableHasPVItem>();
             serializedProfiles = new List<SerializablePVProfile>();
             serializedBakeSettings = new List<SerializablePVBakeSettings>();
+
+            UpdateBakingSets();
         }
 
         /// <summary>Set a reference to the object holding this ProbeVolumeSceneData.</summary>
@@ -100,6 +104,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             parentAsset = parent;
             this.parentSceneDataPropertyName = parentSceneDataPropertyName;
+
+            UpdateBakingSets();
         }
 
         /// <summary>
@@ -139,16 +145,26 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var set in serializedBakingSets)
                 bakingSets.Add(set);
+        }
+
+        // This function must not be called during the serialization (because of asset creation)
+        void UpdateBakingSets()
+        {
+            foreach (var set in serializedBakingSets)
+            {
+                // Small migration code to ensure that old sets have correct settings
+                if (set.profile == null)
+                    InitializeBakingSet(set, set.name);
+            }
 
             // Initialize baking set in case it's empty:
             if (bakingSets.Count == 0)
             {
-                bakingSets.Add(new BakingSet
-                {
-                    name = "Default",
-                    sceneGUIDs = serializedProfiles.Select(s => s.sceneGUID).ToList(),
-                });
+                var set = CreateNewBakingSet("Default");
+                set.sceneGUIDs = serializedProfiles.Select(s => s.sceneGUID).ToList();
             }
+
+            SyncBakingSetSettings();
         }
 
         /// <summary>
@@ -201,6 +217,45 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var set in bakingSets)
                 serializedBakingSets.Add(set);
+        }
+
+        internal BakingSet CreateNewBakingSet(string name)
+        {
+            BakingSet set = new BakingSet();
+
+            // Initialize new baking set settings
+            InitializeBakingSet(set, name);
+            bakingSets.Add(set);
+
+            return set;
+        }
+
+        void InitializeBakingSet(BakingSet set, string name)
+        {
+            var newProfile = ScriptableObject.CreateInstance<ProbeReferenceVolumeProfile>();
+#if UNITY_EDITOR
+            ProjectWindowUtil.CreateAsset(newProfile, name + ".asset");
+#endif
+
+            set.name = name;
+            set.profile = newProfile;
+            set.settings = new ProbeVolumeBakingProcessSettings
+            {
+                dilationSettings = new ProbeDilationSettings
+                {
+                    enableDilation = true,
+                    dilationDistance = 1,
+                    dilationValidityThreshold = 0.25f,
+                    dilationIterations = 1,
+                    squaredDistWeighting = true,
+                },
+                virtualOffsetSettings = new VirtualOffsetSettings
+                {
+                    useVirtualOffset = true,
+                    outOfGeoOffset = 0.01f,
+                    searchMultiplier = 0.2f,
+                }
+            };
         }
 
 #if UNITY_EDITOR
@@ -410,17 +465,10 @@ namespace UnityEngine.Experimental.Rendering
             // Sync all the scene settings in the set to avoid config mismatch.
             foreach (var set in bakingSets)
             {
-                var sceneGUID = GetFirstProbeVolumeSceneGUID(set);
-                if (sceneGUID == null)
-                    continue;
-
-                var referenceSettings = sceneBakingSettings[sceneGUID];
-                var referenceProfile = sceneProfiles[sceneGUID];
-
                 foreach (var guid in set.sceneGUIDs)
                 {
-                    sceneBakingSettings[guid] = referenceSettings;
-                    sceneProfiles[guid] = referenceProfile;
+                    sceneBakingSettings[guid] = set.settings;
+                    sceneProfiles[guid] = set.profile;
                 }
             }
         }
