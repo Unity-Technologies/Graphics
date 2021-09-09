@@ -72,17 +72,17 @@ The reason why normal mode should be set to *None* for *thick* objects, is that 
 
 ### Subsurface scattering
 
-In path tracing, the *Transmission* option of subsurface scattering will be ignored. To get a similar behaviour, simply set the surface to be *Double-Sided* (any normal mode will do), and it will receive light from both sides.
+In path tracing, the *Transmission* option of subsurface scattering will only take effect if the surface is also set to be *Double-Sided* (any normal mode will do), in which case it will receive light from both sides.
 
 Here is an example of a sheet of fabric, lit from below by a point light:
 
 ![](Images/Path-traced-SSS-Single-sided.png)
 
-Single-sided
+Single-sided or no Transmission
 
 ![](Images/Path-traced-SSS-Double-sided.png)
 
-Double-sided
+Double-sided + Transmission
 
 ## Limitations
 
