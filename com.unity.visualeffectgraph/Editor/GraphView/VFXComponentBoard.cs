@@ -607,6 +607,9 @@ namespace UnityEditor.VFX.UI
                 path = m_AttachedComponent.gameObject.scene.name + " : " + path;
             }
 
+            if (m_Subtitle.text != path)
+                m_Subtitle.text = path;
+
             if (m_ParticleCount != null)
             {
                 int newParticleCount = 0;//m_AttachedComponent.aliveParticleCount
