@@ -594,6 +594,8 @@ MonoBehaviour:
   m_mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
   m_material: {fileID: 2100000, guid: 58f4ece444f501e418c87a1fbd419d34, type: 2}
   m_y: -10
+  m_cullRow: 1
+  m_cullMovingPeriod: 0.5
 --- !u!4 &1641896399
 Transform:
   m_ObjectHideFlags: 0
@@ -641,6 +643,8 @@ MonoBehaviour:
   m_mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
   m_material: {fileID: 2100000, guid: 58f4ece444f501e418c87a1fbd419d34, type: 2}
   m_y: 0
+  m_cullRow: 0
+  m_cullMovingPeriod: 0.5
 --- !u!4 &1718399153
 Transform:
   m_ObjectHideFlags: 0
