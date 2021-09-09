@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [13.0.0] - 2021-09-01
+### Fixed
+- Prevent vector truncation error in HDRP Decal template
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
@@ -103,6 +105,7 @@ The version number for this package has increased due to a version update of a r
 - Fix compilation failure on OpenGLES [Case 1348666](https://issuetracker.unity3d.com/product/unity/issues/guid/1348666/)
 - Don't open an empty VFX Graph Editor when assigning a VFX Asset to a Visual Effect GameObject from the inspector [Case 1347399](https://issuetracker.unity3d.com/product/unity/issues/guid/1347399/)
 - Visual Effect inspector input fields don't lose focus anymore while typing (Random seed)
+- Subgraph output properties tooltips were not easily editable when multiline
 
 ## [11.0.0] - 2020-10-21
 ### Added
