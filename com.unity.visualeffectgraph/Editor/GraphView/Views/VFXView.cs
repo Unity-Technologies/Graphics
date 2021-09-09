@@ -2412,7 +2412,7 @@ namespace UnityEditor.VFX.UI
                 if (copyMenu != null)
                 {
                     var index = evt.menu.MenuItems().IndexOf(copyMenu);
-                   evt.menu.InsertAction(index + 1, "Paste", (a) => { PasteCallback(); }, (a) => { return canPaste ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
+                    evt.menu.InsertAction(index + 1, "Paste", (a) => { PasteCallback(); }, (a) => { return canPaste ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled; });
                 }
             }
         }
