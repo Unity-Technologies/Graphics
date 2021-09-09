@@ -175,7 +175,7 @@ half4 fragExtraction(PackedVaryings packedInput) : SV_TARGET
     #endif
 
     InputData inputData;
-    BuildInputData(unpacked, surfaceDescription, inputData);
+    InitializeInputData(unpacked, surfaceDescription, inputData);
 
     ExtractionInputs extraction;
     extraction.vertexNormalWS = unpacked.normalWS;
