@@ -251,6 +251,11 @@ namespace UnityEngine.Rendering
             return false;
         }
 
+        /// <summary>
+        /// Refreshes the volumes, fetches the stored volumes on the panel
+        /// </summary>
+        /// <param name="newVolumes">The list of <see cref="Volume"/> to refresh</param>
+        /// <returns>If the volumes have been refreshed</returns>
         public bool RefreshVolumes(Volume[] newVolumes)
         {
             bool ret = false;
@@ -278,6 +283,11 @@ namespace UnityEngine.Rendering
             return ret;
         }
 
+        /// <summary>
+        /// Obtains the volume weight
+        /// </summary>
+        /// <param name="volume"><see cref="Volume"/></param>
+        /// <returns>The weight of the volume</returns>
         public float GetVolumeWeight(Volume volume)
         {
             if (weights == null)
