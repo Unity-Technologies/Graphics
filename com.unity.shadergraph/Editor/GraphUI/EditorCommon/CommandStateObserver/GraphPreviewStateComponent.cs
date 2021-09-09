@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Editor.GraphUI.Utilities;
 using UnityEditor.GraphToolsFoundation.Overdrive;
@@ -189,7 +189,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
         {
             using (var timedNodes = PooledHashSet<GraphDataNodeModel>.Get())
             {
-                m_ShaderGraphModel.GetTimeDependentNodesOnGraph(timedNodes);
+                m_ShaderGraphModel?.GetTimeDependentNodesOnGraph(timedNodes);
 
                 m_TimedPreviewKeys.Clear();
 
