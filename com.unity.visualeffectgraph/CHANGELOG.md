@@ -94,6 +94,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - GPU hang on some initialize dispatch during dichotomy (platform specific)
 - Compilation error undeclared identifier 'Infinity' [Case 1328592](https://issuetracker.unity3d.com/product/unity/issues/guid/1328592/)
 - Exposed Parameter placement can be moved after sanitize
+- Automatically offset contexts when a new node is inserted to avoid overlapping
 
 ## [11.0.0] - 2020-10-21
 ### Added
