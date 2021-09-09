@@ -78,7 +78,8 @@ def recursively_match_patterns(cmd, patterns, failure_string):
             test_results_match = re.findall(r'(--artifacts_path=)(.+)(test-results)', cmd['title'])[0]
             test_results_path = test_results_match[1] + test_results_match[2]
 
-            # check if it's mac metal (or some other copying), because then artifacts path is given as is on device, not as will be in the artifacts after copying them back over
+            # check if it's mac metal (or some other copying), because then the artifacts path in the UTR command is given as is on device,
+            # not as it will be in the artifacts after copying them back over
             mac_metal_matches = re.findall(r'(scp)(.+)(-r bokken@\$BOKKEN_DEVICE_IP:)(.+)( )(.+)', cmd['title'])
             if len(mac_metal_matches) > 0:
                 # join together the target directory of scp command (last arg), and the source directory getting copied over (usually test-results)
