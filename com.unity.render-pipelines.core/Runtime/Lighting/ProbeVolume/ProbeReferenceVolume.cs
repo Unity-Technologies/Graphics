@@ -302,15 +302,11 @@ namespace UnityEngine.Experimental.Rendering
 
         class CellInfoSorter : IComparer<CellInfo>
         {
-            public Vector3 cameraPosition;
-
             public int Compare(CellInfo x, CellInfo y)
             {
-                float distancex = Vector3.Distance(cameraPosition, x.cell.position);
-                float distancey = Vector3.Distance(cameraPosition, y.cell.position);
-                if (distancex < distancey)
+                if (x.distanceToCamera > y.distanceToCamera)
                     return 1;
-                else if (distancex > distancey)
+                else if (x.distanceToCamera < y.distanceToCamera)
                     return -1;
                 else
                     return 0;
@@ -326,6 +322,7 @@ namespace UnityEngine.Experimental.Rendering
             public bool loaded = false;
             public ProbeBrickIndex.CellIndexUpdateInfo updateInfo;
             public int sourceAssetInstanceID;
+            public float distanceToCamera;
         }
 
         internal struct Volume : IEquatable<Volume>
@@ -958,12 +955,20 @@ namespace UnityEngine.Experimental.Rendering
             PerformPendingLoading();
         }
 
+        void ComputeCellCameraDistance(Vector3 cameraPosition, List<CellInfo> cells)
+        {
+            foreach (var cellInfo in cells)
+            {
+                cellInfo.distanceToCamera = Vector3.Distance(cameraPosition, cellInfo.cell.position);
+            }
+        }
+
         public void UpdateCellStreaming(Camera camera)
         {
-            //var cameraPosition = camera.transform.position;
-            var cameraPositionCellSpace = camera.transform.position / (MaxBrickSize() * 0.5f);
-            m_CellInfoSorter.cameraPosition = cameraPositionCellSpace;
+            var cameraPositionCellSpace = (camera.transform.position - m_Transform.posWS) / (MaxBrickSize() * 0.5f);
 
+            ComputeCellCameraDistance(cameraPositionCellSpace, m_UnloadedCells);
+            ComputeCellCameraDistance(cameraPositionCellSpace, m_LoadedCells);
             m_UnloadedCells.Sort(m_CellInfoSorter);
             m_LoadedCells.Sort(m_CellInfoSorter);
 
