@@ -17,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering
         const int k_LeftPanelSize = 300; // TODO: resizable panel
         const int k_RightPanelLabelWidth = 200;
         const int k_ProbeVolumeIconSize = 30;
+        const int k_TitleTextHeight = 30;
         const string k_RenameFocusKey = "Baking Set Rename Field";
 
         struct SceneData
@@ -33,6 +34,7 @@ namespace UnityEngine.Experimental.Rendering
 
             public static readonly GUIContent sceneLightingSettings = new GUIContent("Light Settings In Use", EditorGUIUtility.IconContent("LightingSettings Icon").image);
             public static readonly GUIContent sceneNotFound = new GUIContent("Scene Not Found!", Styles.sceneIcon);
+            public static readonly GUIContent bakingSetsTitle = new GUIContent("Baking Sets", Styles.sceneIcon);
         }
 
         SearchField m_SearchField;
@@ -348,7 +350,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             EditorGUILayout.BeginVertical(GUILayout.Width(k_LeftPanelSize));
             m_LeftScrollPosition = EditorGUILayout.BeginScrollView(m_LeftScrollPosition, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
-            EditorGUILayout.LabelField("Baking Sets", m_SubtitleStyle);
+            var titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
+            EditorGUI.LabelField(titleRect, "Baking Sets", m_SubtitleStyle);
             EditorGUILayout.Space();
             m_BakingSets.DoLayoutList();
             EditorGUILayout.EndScrollView();
@@ -375,7 +378,8 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUILayout.BeginVertical();
             m_RightScrollPosition = EditorGUILayout.BeginScrollView(m_RightScrollPosition, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
 
-            EditorGUILayout.LabelField("Probe Volume Settings", m_SubtitleStyle);
+            var titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
+            EditorGUI.LabelField(titleRect, "Probe Volume Settings", m_SubtitleStyle);
             EditorGUILayout.Space();
             SanitizeScenes();
             m_ScenesInSet.DoLayoutList();
@@ -433,7 +437,12 @@ namespace UnityEngine.Experimental.Rendering
             else
             {
                 if (GUILayout.Button("Generate Lighting", GUILayout.ExpandWidth(true)))
-                    BakeLightingForSet(GetCurrentBakingSet());
+                {
+                    var menu = new GenericMenu();
+                    menu.AddItem(new GUIContent("Bake the set"), false, () => BakeLightingForSet(GetCurrentBakingSet()));
+                    menu.AddItem(new GUIContent("Bake loaded scenes"), false, () => Lightmapping.BakeAsync());
+                    menu.ShowAsContext();
+                }
             }
             EditorGUILayout.EndHorizontal();
         }
