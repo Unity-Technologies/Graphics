@@ -463,7 +463,7 @@ namespace UnityEngine.Rendering.Universal
             result.y = views[0].eyeCenterUV.y - centerDeltaY;
             if (singlePassEnabled)
             {
-                // With single-pass XR, we need a new variable to contain the data for the 2nd view
+                // With single-pass XR, we need to add the data for the 2nd view
                 result.z = views[1].eyeCenterUV.x - centerDeltaX;
                 result.w = views[1].eyeCenterUV.y - centerDeltaY;
             }
