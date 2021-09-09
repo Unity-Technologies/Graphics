@@ -45,7 +45,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.PrimaryReflectionSmoothness: surfaceData.primaryReflectionSmoothness =    surfaceDescription.PrimaryReflectionSmoothness;
     $SurfaceDescription.CuticleAngle:                surfaceData.cuticleAngle =                   surfaceDescription.CuticleAngle;
 
-    $SurfaceDescription.DensitySphericalHarmonic:    surfaceData.strandCountSH =                  surfaceDescription.DensitySphericalHarmonic;
+    $SurfaceDescription.StrandCountProbe:            surfaceData.strandCountProbe =               surfaceDescription.StrandCountProbe;
 
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = 0;

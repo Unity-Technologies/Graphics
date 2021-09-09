@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(0.5f), ShaderStage.Fragment);
             public static BlockFieldDescriptor CuticleAngle = new BlockFieldDescriptor(SurfaceDescription.name, "CuticleAngle", "Cuticle Angle", "SURFACEDESCRIPTION_CUTICLEANGLE",
                 new FloatControl(3f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor DensitySphericalHarmonic = new BlockFieldDescriptor(SurfaceDescription.name, "DensitySphericalHarmonic", "Density Spherical Harmonic", "SURFACEDESCRIPTION_DENSITYSPHERICALHARMONIC",
+            public static BlockFieldDescriptor StrandCountProbe = new BlockFieldDescriptor(SurfaceDescription.name, "StrandCountProbe", "Strand Count Probe", "SURFACEDESCRIPTION_STRANDCOUNTPROBE",
                 new Vector4Control(Vector4.zero), ShaderStage.Fragment);
 
             // --------------------------------------------------

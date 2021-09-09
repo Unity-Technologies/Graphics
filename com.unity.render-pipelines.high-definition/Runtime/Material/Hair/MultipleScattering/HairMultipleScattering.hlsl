@@ -15,22 +15,21 @@ struct HairScatteringData
     float3x3 NG;
 };
 
+#define HALF_SQRT_INV_PI    0.5 * 0.56418958354775628694
+#define HALF_SQRT_3_DIV_PI  0.5 * 0.97720502380583984317
+#define HALF_SQRT_5_DIV_PI  0.5 * 1.26156626101008002412
+#define HALF_SQRT_15_DIV_PI 0.5 * 2.18509686118415814108
 
-#define SQRT_INV_PI    0.56418958354775628694
-#define SQRT_3_DIV_PI  0.97720502380583984317
-#define SQRT_5_DIV_PI  1.26156626101008002412
-#define SQRT_15_DIV_PI 2.18509686118415814108
-
-float DecodeHairStrandCount(float3 L, float4 strandCountSH)
+float DecodeHairStrandCount(float3 L, float4 strandCountProbe)
 {
-    float strandCount = 0;
+    float4 Ylm = float4(
+        HALF_SQRT_INV_PI,
+        HALF_SQRT_3_DIV_PI * L.y,
+        HALF_SQRT_3_DIV_PI * L.z,
+        HALF_SQRT_3_DIV_PI * L.x
+    );
 
-    strandCount += strandCountSH.x * (0.5 * SQRT_INV_PI);
-    strandCount += strandCountSH.y * (0.5 * SQRT_3_DIV_PI * L.y);
-    strandCount += strandCountSH.z * (0.5 * SQRT_3_DIV_PI * L.z);
-    strandCount += strandCountSH.w * (0.5 * SQRT_3_DIV_PI * L.x);
-
-    return 10 * strandCount;
+    return dot(strandCountProbe, Ylm);
 }
 
 float3 ScatteringSpreadGaussian(float3 x, float3 v)
@@ -118,7 +117,6 @@ HairScatteringData GetHairScatteringData(BSDFData bsdfData, float3 alpha, float3
     return scatteringData;
 }
 
-// void EvaluateMultipleScattering_Material(float3 V, float3 L, MultipleScatteringData lightScatteringData, inout BSDFData bsdfData)
 float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3 alpha, float3 beta, float thetaH, float sinThetaI)
 {
     // Fetch the various preintegrated data.
@@ -130,7 +128,7 @@ float3 EvaluateMultipleScattering(float3 L, float3 Fs, BSDFData bsdfData, float3
     // "A BSSRDF Model for Efficient Rendering of Fur with Global Illumination" (Yan et. al)
 
     // Pre-define some shorthand for the symbols.
-    const float  n    = DecodeHairStrandCount(L, bsdfData.strandCountSH);
+    const float  n    = DecodeHairStrandCount(L, bsdfData.strandCountProbe);
     const float3 af   = hairScatteringData.averageScattering[FRONT];
     const float3 ab   = hairScatteringData.averageScattering[BACK];
     const float3 sf   = hairScatteringData.averageShift[FRONT];

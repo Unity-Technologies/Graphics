@@ -262,7 +262,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         bsdfData.absorption = DiffuseColorToAbsorption(surfaceData.diffuseColor, bsdfData.roughnessRadial);
 
     #if _USE_ADVANCED_MULTIPLE_SCATTERING
-        bsdfData.strandCountSH = surfaceData.strandCountSH;
+        bsdfData.strandCountProbe = surfaceData.strandCountProbe;
     #endif
     }
 

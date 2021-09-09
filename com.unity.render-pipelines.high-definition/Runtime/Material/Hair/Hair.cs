@@ -81,8 +81,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public float cuticleAngle;
 
             // Global Scattering
-            [SurfaceDataAttributes("Density Spherical Harmonic")]
-            public Vector4 strandCountSH;
+            [SurfaceDataAttributes("Strand Count Probe")]
+            public Vector4 strandCountProbe;
 
         };
 
@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float roughnessRadial;
 
             // Global Scattering
-            public Vector4 strandCountSH;
+            public Vector4 strandCountProbe;
         };
 
 

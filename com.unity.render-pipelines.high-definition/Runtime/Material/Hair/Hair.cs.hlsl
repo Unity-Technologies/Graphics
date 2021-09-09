@@ -32,7 +32,7 @@
 #define DEBUGVIEW_HAIR_SURFACEDATA_SECONDARY_SPECULAR_SHIFT (1416)
 #define DEBUGVIEW_HAIR_SURFACEDATA_AZIMUTHAL_ROUGHNESS (1417)
 #define DEBUGVIEW_HAIR_SURFACEDATA_CUTICLE_ANGLE (1418)
-#define DEBUGVIEW_HAIR_SURFACEDATA_STRAND_COUNT_SH (1419)
+#define DEBUGVIEW_HAIR_SURFACEDATA_STRAND_COUNT_PROBE (1419)
 
 //
 // UnityEngine.Rendering.HighDefinition.Hair+BSDFData:  static fields
@@ -71,7 +71,7 @@
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TT (1481)
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_TRT (1482)
 #define DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_RADIAL (1483)
-#define DEBUGVIEW_HAIR_BSDFDATA_STRAND_COUNT_SH (1484)
+#define DEBUGVIEW_HAIR_BSDFDATA_STRAND_COUNT_PROBE (1484)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Hair+SurfaceData
 // PackingRules = Exact
@@ -94,7 +94,7 @@ struct SurfaceData
     float secondarySpecularShift;
     float perceptualRadialSmoothness;
     float cuticleAngle;
-    float4 strandCountSH;
+    float4 strandCountProbe;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Hair+BSDFData
@@ -133,7 +133,7 @@ struct BSDFData
     float roughnessTT;
     float roughnessTRT;
     float roughnessRadial;
-    float4 strandCountSH;
+    float4 strandCountProbe;
 };
 
 //
@@ -203,8 +203,8 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_HAIR_SURFACEDATA_CUTICLE_ANGLE:
             result = surfacedata.cuticleAngle.xxx;
             break;
-        case DEBUGVIEW_HAIR_SURFACEDATA_STRAND_COUNT_SH:
-            result = surfacedata.strandCountSH.xyz;
+        case DEBUGVIEW_HAIR_SURFACEDATA_STRAND_COUNT_PROBE:
+            result = surfacedata.strandCountProbe.xyz;
             break;
     }
 }
@@ -319,8 +319,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_HAIR_BSDFDATA_ROUGHNESS_RADIAL:
             result = bsdfdata.roughnessRadial.xxx;
             break;
-        case DEBUGVIEW_HAIR_BSDFDATA_STRAND_COUNT_SH:
-            result = bsdfdata.strandCountSH.xyz;
+        case DEBUGVIEW_HAIR_BSDFDATA_STRAND_COUNT_PROBE:
+            result = bsdfdata.strandCountProbe.xyz;
             break;
     }
 }
