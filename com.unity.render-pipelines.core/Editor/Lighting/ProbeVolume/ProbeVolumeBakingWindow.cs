@@ -162,7 +162,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             };
 
-            m_BakingSets.index = Mathf.Clamp(EditorPrefs.GetInt(k_SelectedBakingSetKey, 0), 0, m_BakingSets.count);
+            m_BakingSets.index = Mathf.Clamp(EditorPrefs.GetInt(k_SelectedBakingSetKey, 0), 0, m_BakingSets.count - 1);
 
             OnBakingSetSelected(m_BakingSets);
         }
