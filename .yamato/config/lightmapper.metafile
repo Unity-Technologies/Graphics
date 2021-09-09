@@ -59,7 +59,7 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         model: rtx2080
         flavor: b1.large
 
