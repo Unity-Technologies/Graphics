@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.Rendering
         const int k_RightPanelLabelWidth = 200;
         const int k_ProbeVolumeIconSize = 30;
         const int k_TitleTextHeight = 30;
+        const string k_SelectedBakingSetKey = "Selected Baking Set";
         const string k_RenameFocusKey = "Baking Set Rename Field";
 
         struct SceneData
@@ -157,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             };
 
-            m_BakingSets.index = 0;
+            m_BakingSets.index = Mathf.Clamp(EditorPrefs.GetInt(k_SelectedBakingSetKey, 0), 0, m_BakingSets.count);
 
             OnBakingSetSelected(m_BakingSets);
         }
@@ -205,6 +206,7 @@ namespace UnityEngine.Experimental.Rendering
         void OnBakingSetSelected(ReorderableList list)
         {
             // Update left panel data
+            EditorPrefs.SetInt(k_SelectedBakingSetKey, list.index);
             var set = GetCurrentBakingSet();
 
             m_ScenesInSet = new ReorderableList(set.sceneGUIDs, typeof(string), true, true, true, true);
