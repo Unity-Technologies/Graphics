@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityObject = UnityEngine.Object;
@@ -183,6 +186,76 @@ namespace UnityEditor.VFX
                 }
             }
             return shaderGraph;
+        }
+
+        public GraphData LoadShaderGraphData()
+        {
+            var shaderGraph = GetOrRefreshShaderGraphObject();
+            if (shaderGraph != null)
+            {
+                var path = AssetDatabase.GetAssetPath(shaderGraph);
+
+                AssetCollection assetCollection = new AssetCollection();
+                MinimalGraphData.GatherMinimalDependenciesFromFile(path, assetCollection);
+
+                var textGraph = System.IO.File.ReadAllText(path, System.Text.Encoding.UTF8);
+                var graph = new GraphData
+                {
+                    messageManager = new MessageManager(),
+                    assetGuid = AssetDatabase.AssetPathToGUID(path)
+                };
+                //TODO: Cache the GraphData to avoid Deserialize each time
+                MultiJson.Deserialize(graph, textGraph);
+                graph.OnEnable();
+                graph.ValidateGraph();
+                return graph;
+            }
+            return null;
+        }
+
+        public override bool CanBeCompiled()
+        {
+            if (!base.CanBeCompiled())
+                return false;
+
+            var shaderGraph = GetOrRefreshShaderGraphObject();
+            if (shaderGraph != null)
+            {
+                if (VFXLibrary.currentSRPBinder == null)
+                    return false;
+
+                if (shaderGraph.generatesWithShaderGraph)
+                {
+                    var graphData = LoadShaderGraphData();
+                    return VFXLibrary.currentSRPBinder.IsGraphDataValid(graphData, out var errors);
+                }
+            }
+
+            return true;
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            var shaderGraph = GetOrRefreshShaderGraphObject();
+            if (shaderGraph != null)
+            {
+                if (VFXLibrary.currentSRPBinder == null)
+                {
+                    manager.RegisterError("NullSRPBinder", VFXErrorType.Error, "Unexpected null SRP binder");
+                }
+                else if (shaderGraph.generatesWithShaderGraph)
+                {
+                    var graphData = LoadShaderGraphData();
+                    if (!VFXLibrary.currentSRPBinder.IsGraphDataValid(graphData, out var errors))
+                    {
+                        manager.RegisterError("ShaderGraphInvalid",
+                            VFXErrorType.Error,
+                            $"({ String.Join(", ", errors)}) blackboard properties in Shader Graph are currently not supported in Visual Effect shaders.");
+                    }
+                }
+            }
+
+            base.GenerateErrors(manager);
         }
 
         public override bool hasShadowCasting

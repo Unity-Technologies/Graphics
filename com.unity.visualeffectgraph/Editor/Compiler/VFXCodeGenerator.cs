@@ -726,23 +726,13 @@ namespace UnityEditor.VFX
 
             // Reconstruct the ShaderGraph.
             var path = AssetDatabase.GetAssetPath(context.GetOrRefreshShaderGraphObject());
-
-            List<PropertyCollector.TextureInfo> configuredTextures;
             AssetCollection assetCollection = new AssetCollection();
             MinimalGraphData.GatherMinimalDependenciesFromFile(path, assetCollection);
 
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            var graph = new GraphData
-            {
-                messageManager = new MessageManager(),
-                assetGuid = AssetDatabase.AssetPathToGUID(path)
-            };
-            MultiJson.Deserialize(graph, textGraph);
-            graph.OnEnable();
-            graph.ValidateGraph();
-
+            var graph = context.LoadShaderGraphData();
             // Check the validity of the shader graph (unsupported keywords or shader property usage).
-            if (VFXLibrary.currentSRPBinder == null || !VFXLibrary.currentSRPBinder.IsGraphDataValid(graph))
+            if (graph == null || VFXLibrary.currentSRPBinder == null || !VFXLibrary.currentSRPBinder.IsGraphDataValid(graph))
                 return null;
 
             var target = graph.activeTargets.Where(o =>
@@ -762,7 +752,7 @@ namespace UnityEditor.VFX
                 return null;
 
             // Use ShaderGraph to generate the VFX shader.
-            var text = ShaderGraphImporter.GetShaderText(path, out configuredTextures, assetCollection, graph, GenerationMode.VFX, new[] { target });
+            var text = ShaderGraphImporter.GetShaderText(path, out var configuredTextures, assetCollection, graph, GenerationMode.VFX, new[] { target });
 
             // Append the shader + strip the name header (VFX stamps one in later on).
             stringBuilder.Append(text);

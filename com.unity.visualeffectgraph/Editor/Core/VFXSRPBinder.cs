@@ -62,10 +62,10 @@ namespace UnityEditor.VFX
             return s_BaseUnsupportedShaderPropertyTypes;
         }
 
-        public bool IsGraphDataValid(GraphData graph)
+        public bool IsGraphDataValid(GraphData graph, out List<string> errors)
         {
-            var valid = true;
-            var warnings = new List<string>();
+            bool valid = true;
+            errors = new List<string>();
 
             var unsupportedShaderPropertyTypes = GetUnsupportedShaderPropertyType().ToDictionary(a => a.Key, b => b.Value);
             // Filter property list for any unsupported shader properties.
@@ -73,7 +73,7 @@ namespace UnityEditor.VFX
             {
                 if (unsupportedShaderPropertyTypes.ContainsKey(property.GetType()))
                 {
-                    warnings.Add(unsupportedShaderPropertyTypes[property.GetType()]);
+                    errors.Add(unsupportedShaderPropertyTypes[property.GetType()]);
                     valid = false;
                 }
             }
@@ -81,14 +81,21 @@ namespace UnityEditor.VFX
             // VFX currently does not support the concept of per-particle keywords.
             if (graph.keywords.Any())
             {
-                warnings.Add("Keyword");
+                errors.Add("Keyword");
                 valid = false;
             }
 
-            if (!valid)
-                Debug.LogWarning($"({String.Join(", ", warnings)}) blackboard properties in Shader Graph are currently not supported in Visual Effect shaders. Falling back to default generation path.");
-
             return valid;
+        }
+
+        public bool IsGraphDataValid(GraphData graph)
+        {
+            if (!IsGraphDataValid(graph, out var errors))
+            {
+                Debug.LogWarning($"({String.Join(", ", errors)}) blackboard properties in Shader Graph are currently not supported in Visual Effect shaders.");
+                return false;
+            }
+            return true;
         }
 
         public virtual ShaderGraphBinder GetShaderGraphDescriptor(VFXContext context, VFXContextCompiledData data)
