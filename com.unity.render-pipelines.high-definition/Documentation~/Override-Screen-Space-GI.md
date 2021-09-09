@@ -75,12 +75,3 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 ### Screen-space global illumination Limitation
 
 * When rendering [Reflection Probes](Reflection-Probe.md) screen space global illumination is not supported.
-
-### Ray-traced global illumination Limitation
-
-* Currently, ray tracing in HDRP does not support [decals](decal.md). This means that ray-traced global illumination does not affect decals in your Scene.
-* Emissive decals do not contribute to global illumination because HDRP renders them later in the render pipeline.
-
-  ### Mixed global illumination
-
-* The Mixed tracing mode is only useful if Lit shader mode is Deferred and have the same limitation than Ray Tracing mode. Otherwise it is the same than Ray Tracing mode.

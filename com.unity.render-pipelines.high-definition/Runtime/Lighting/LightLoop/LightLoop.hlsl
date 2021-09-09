@@ -396,10 +396,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // Then in the lightloop in below code we will evalaute APV or read the indirectDiffuseTexture to fill bakeDiffuseLighting.
         // We will then just do all the regular step we do with bakeDiffuseLighting in PostInitBuiltinData()
         // No code change is required to handle AO, it is the same for all path.
-        // Note: With current approach, Decals Emissive aren't taken into account by RTGI and by the Mixed method.
-        // Note2: With current approach, Transparent Emissive works with SSGI and RTGI but can cause artifact with Mixed (RayMarch part could get a hit and thus avoid Raytrace path)
-        // Note3: Forward opaque emissive work in all cases. The current code flow with Emissive store in GBuffer3 is only to manage the case of Opaque Lit Material with Emissive in case of deferred
-        // Note4: Only APV can handle backFace lighting, all other effects are front face only.
+        // Note: Decals Emissive and Transparent Emissve aren't taken into account by RTGI/Mixed.
+        // Forward opaque emissive work in all cases. The current code flow with Emissive store in GBuffer3 is only to manage the case of Opaque Lit Material with Emissive in case of deferred
+        // Only APV can handle backFace lighting, all other effects are front face only.
 
         // If we use SSGI/RTGI/Mixed effect, we are fully replacing the value of builtinData.bakeDiffuseLighting which is 0 at this step.
         // If we are APV we only replace the non lightmaps part.
