@@ -11,8 +11,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ReprojectGlobalIlluminationKernel;
         int m_ReprojectGlobalIlluminationHalfKernel;
         int m_BilateralUpSampleColorKernel;
-        int m_ConvertSSGIKernel;
-        int m_ConvertSSGIHalfKernel;
 
         void InitScreenSpaceGlobalIllumination()
         {
@@ -28,8 +26,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ReprojectGlobalIlluminationKernel = ssGICS.FindKernel("ReprojectGlobalIllumination");
                 m_ReprojectGlobalIlluminationHalfKernel = ssGICS.FindKernel("ReprojectGlobalIlluminationHalf");
                 m_BilateralUpSampleColorKernel = bilateralUpsampleCS.FindKernel("BilateralUpSampleColor");
-                m_ConvertSSGIKernel = ssGICS.FindKernel("ConvertSSGI");
-                m_ConvertSSGIHalfKernel = ssGICS.FindKernel("ConvertSSGIHalf");
             }
         }
 
