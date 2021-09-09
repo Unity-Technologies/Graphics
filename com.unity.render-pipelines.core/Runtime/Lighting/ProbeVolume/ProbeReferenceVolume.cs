@@ -694,18 +694,22 @@ namespace UnityEngine.Experimental.Rendering
             ClearDebugData();
         }
 
-        internal CellInfo AddCell(Cell cell, int assetInstanceID)
+        internal void AddCell(Cell cell, int assetInstanceID)
         {
-            // TODO: Consider pooling this
-            var cellInfo = new CellInfo();
-            cellInfo.cell = cell;
-            cellInfo.flatIdxInCellIndices = m_CellIndices.GetFlatIdxForCell(cell.position);
-            cellInfo.sourceAssetInstanceID = assetInstanceID;
-            cells[cell.index] = cellInfo;
+            // The same cell can exist in more than one asset
+            // Need to check existence because we don't want to add cells more than once to streaming structures
+            // TODO: Check perf if relevant?
+            if (!cells.ContainsKey(cell.index))
+            {
+                // TODO: Consider pooling this
+                var cellInfo = new CellInfo();
+                cellInfo.cell = cell;
+                cellInfo.flatIdxInCellIndices = m_CellIndices.GetFlatIdxForCell(cell.position);
+                cellInfo.sourceAssetInstanceID = assetInstanceID;
+                cells[cell.index] = cellInfo;
 
-            m_UnloadedCells.Add(cellInfo);
-
-            return cellInfo;
+                m_UnloadedCells.Add(cellInfo);
+            }
         }
 
         bool LoadCell(CellInfo cellInfo)
