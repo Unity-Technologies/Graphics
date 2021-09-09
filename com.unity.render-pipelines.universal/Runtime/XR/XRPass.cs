@@ -451,6 +451,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        // Take a point that is center-relative (0.5, 0.5) and modify it to be placed relative to the view's center instead,
+        // respecting the asymmetric FOV (if it is used)
         internal Vector4 ApplyXRViewCenterOffset(Vector2 center)
         {
             Vector4 result = Vector4.zero;
