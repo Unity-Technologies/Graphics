@@ -53,18 +53,30 @@ class Execution_log():
                 'conclusion': 'failure',
             },
             {
-                'pattern': r'(fatal: not a git repository (or any of the parent directories): .git)',
+                'pattern': r'(fatal: not a git repository \(or any of the parent directories\): .git)',
                 'tags': ['git'], # instability?
                 'conclusion': 'failure',
             },
             {
                 'pattern': r'(LTO : error: L0492: LTOP internal error: bad allocation)',
-                'tags': [TAG_INSTABILITY, 'bad-allocation', TAG_INFRASTRUCTURE],
+                'tags': ['bad-allocation-L0492', TAG_INFRASTRUCTURE, TAG_INSTABILITY],
                 'conclusion': 'failure',
             },
             {
                 'pattern': r'(Open ERROR: Can not open the file as \[zip\] archive)',
                 'tags': ['utr-zip', TAG_INFRASTRUCTURE], # instability?
+                'conclusion': 'failure',
+            },
+            {
+                'pattern': r'(Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection\'s state is no longer correct)',
+                'tags': ['non-concurrent collections', TAG_INSTABILITY], # instability?
+                'conclusion': 'failure',
+            },
+            {
+                # occurs with artifactory issues, but due to silencing the output with -s in majority of commands,
+                # this is the best pattern to match on retry for now, unless we remove -s everywhere to match the actual output
+                'pattern': r'(curl)(.+)(https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr)(.+)',
+                'tags': ['utr-curl', TAG_INFRASTRUCTURE, TAG_INSTABILITY], # instability?
                 'conclusion': 'failure',
             },
             {
