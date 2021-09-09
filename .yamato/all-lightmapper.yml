@@ -28,10 +28,6 @@ PR_LightMapper_trunk:
          rerun: on_new_revision
       -  path: .yamato/lightmapper-linux-openglcore.yml#LightMapper_Linux_OpenGlCore_Standalone_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/lightmapper-osx-metal.yml#LightMapper_OSX_Metal_editmode_mono_Linear_trunk
-         rerun: on_new_revision
-      -  path: .yamato/lightmapper-osx-metal.yml#LightMapper_OSX_Metal_Standalone_mono_Linear_trunk
-         rerun: on_new_revision
 Extra_LightMapper_trunk:
     name: Extra LightMapper on trunk
     variables:
@@ -71,10 +67,6 @@ PR_LightMapper_CUSTOM-REVISION:
       -  path: .yamato/lightmapper-linux-openglcore.yml#LightMapper_Linux_OpenGlCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/lightmapper-linux-openglcore.yml#LightMapper_Linux_OpenGlCore_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/lightmapper-osx-metal.yml#LightMapper_OSX_Metal_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/lightmapper-osx-metal.yml#LightMapper_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 Extra_LightMapper_CUSTOM-REVISION:
     name: Extra LightMapper on CUSTOM-REVISION
