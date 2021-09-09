@@ -39,7 +39,7 @@ platforms:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
-        model: rtx1080
+        model: rtx2080
   - name: OSX
     apis:
       - name: Metal
