@@ -128,6 +128,21 @@ static const float4x4 unity_ProbeVolumeWorldToObject = float4x4
 static const float4 unity_ProbeVolumeSizeInv = float4(1,1,1,0);
 static const float4 unity_ProbeVolumeMin = float4(0,0,0,0);
 
+static const float4x4 unity_MatrixPreviousM = float4x4
+(
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1
+);
+static const float4x4 unity_MatrixPreviousMI = float4x4
+(
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1
+);
+
 #endif
 
 CBUFFER_START(UnityPerDrawRare)
