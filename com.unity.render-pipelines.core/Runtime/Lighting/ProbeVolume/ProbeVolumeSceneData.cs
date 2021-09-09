@@ -337,6 +337,21 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        internal void EnsureSceneHasProbeVolumeIsValid(Scene scene)
+        {
+            var sceneGUID = GetSceneGUID(scene);
+            var volumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
+            foreach (var volume in volumes)
+            {
+                if (GetSceneGUID(volume.gameObject.scene) == sceneGUID)
+                {
+                    hasProbeVolumes[scene.path] = true;
+                    return;
+                }
+            }
+            hasProbeVolumes[scene.path] = false;
+        }
+
         // It is important this is called after UpdateSceneBounds is called!
         internal void EnsurePerSceneData(Scene scene)
         {
@@ -412,9 +427,10 @@ namespace UnityEngine.Experimental.Rendering
 
         internal void OnSceneSaved(Scene scene)
         {
+            EnsureSceneHasProbeVolumeIsValid(scene);
             EnsureSceneIsInBakingSet(scene);
-            UpdateSceneBounds(scene);
             EnsurePerSceneData(scene);
+            UpdateSceneBounds(scene);
         }
 
         internal void SetProfileForScene(Scene scene, ProbeReferenceVolumeProfile profile)
