@@ -34,7 +34,7 @@ class Execution_log():
                 # Successful retries have no concrete pattern to match: the only difference with failed retry is that it does not contain 'Failed after n retries',
                 # but no working regex for matching multiline against a negative lookahead was found yet.
                 # Therefore, this pattern must come after failed retry pattern (python logic will handle recognizing this block as a successful retry)
-                'pattern': r'(Retrying)',
+                'pattern': r'(######################################## Retrying ########################################)',
                 'tags': [TAG_SUCCESFUL_RETRY],
                 'conclusion': 'success',
                 'add_if': add_successful_retry_if
