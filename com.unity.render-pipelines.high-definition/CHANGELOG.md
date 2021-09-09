@@ -387,6 +387,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed specular occlusion sharpness and over darkening at grazing angles.
 - Fixed edge bleeding when rendering volumetric clouds.
 - Fixed the performance of the volumetric clouds in non-local mode when large occluders are on screen.
+- Fixed a regression that broke punctual and directional raytraced shadows temporal denoiser (case 1360132).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
