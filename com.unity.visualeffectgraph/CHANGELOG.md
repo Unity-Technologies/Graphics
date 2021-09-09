@@ -99,6 +99,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Don't open an empty VFX Graph Editor when assigning a VFX Asset to a Visual Effect GameObject from the inspector [Case 1347399](https://issuetracker.unity3d.com/product/unity/issues/guid/1347399/)
 - Visual Effect inspector input fields don't lose focus anymore while typing (Random seed)
 - Prevent vector truncation error in HDRP Decal template
+- Eye dropper in the color fields kept updating after pressing the Esc key
 
 ## [11.0.0] - 2020-10-21
 ### Added
