@@ -9,6 +9,7 @@ using System.Reflection;
 using UnityEditorInternal;
 using System.Linq;
 using UnityEditor.SceneManagement;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -303,7 +304,20 @@ namespace UnityEngine.Experimental.Rendering
             // TODO: add the toolbar with search field for the list
             // DrawToolbar();
 
-            if (ProbeReferenceVolume.instance?.sceneData?.bakingSets == null)
+            string apvDisabledErrorMsg = "The Probe Volume is not enabled.";
+            var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+            if (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset")
+            {
+                apvDisabledErrorMsg += " Make sure it is enabled in the HDRP Global Settings and in the HDRP asset in use.";
+            }
+
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
+            {
+                EditorGUILayout.HelpBox(apvDisabledErrorMsg, MessageType.Error);
+                return;
+            }
+
+            if (ProbeReferenceVolume.instance.sceneData?.bakingSets == null)
             {
                 EditorGUILayout.HelpBox("Probe Volume Data Not Loaded!", MessageType.Error);
                 return;
