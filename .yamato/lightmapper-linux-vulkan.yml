@@ -33,6 +33,7 @@ LightMapper_Linux_Vulkan_editmode_mono_Linear_trunk:
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
+      -  sudo apt-get install -y ocl-icd-opencl-dev
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/LightMapper/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/LightMapper --zero-tests-are-ok=1
     after:
       -  command: python .yamato/script/log_scripts/log_parser.py
@@ -138,6 +139,7 @@ LightMapper_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
+      -  sudo apt-get install -y ocl-icd-opencl-dev
       -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/LightMapper/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/LightMapper --zero-tests-are-ok=1
     after:
       -  command: python .yamato/script/log_scripts/log_parser.py
