@@ -339,24 +339,17 @@ namespace UnityEngine.Experimental.Rendering
 
         internal void EnsureSceneHasProbeVolumeIsValid(Scene scene)
         {
-            if (hasProbeVolumes.ContainsKey(scene.path) && hasProbeVolumes[scene.path])
+            var sceneGUID = GetSceneGUID(scene);
+            var volumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
+            foreach (var volume in volumes)
             {
-                return;
-            }
-            else
-            {
-                var sceneGUID = GetSceneGUID(scene);
-                var volumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
-                foreach (var volume in volumes)
+                if (GetSceneGUID(volume.gameObject.scene) == sceneGUID)
                 {
-                    if (GetSceneGUID(volume.gameObject.scene) == sceneGUID)
-                    {
-                        hasProbeVolumes[scene.path] = true;
-                        return;
-                    }
+                    hasProbeVolumes[scene.path] = true;
+                    return;
                 }
-                hasProbeVolumes[scene.path] = false;
             }
+            hasProbeVolumes[scene.path] = false;
         }
 
         // It is important this is called after UpdateSceneBounds is called!
