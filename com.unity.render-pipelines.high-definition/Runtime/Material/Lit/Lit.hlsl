@@ -1839,7 +1839,7 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
         // - The smoothness is inferior to 0.8. We cannot use the SSR for the base layer, but we use the fresnel to lerp between the two lobes.
         // - The smooothness is between 0.8 and 0.9, we lerp between the two behaviors.
         float blendingFactor = lerp(0.0, 1.0, saturate((bsdfData.perceptualRoughness - 0.1) / 0.2));
-        
+
         // Combine the three behaviors for the lighting signal
         lighting.specularReflected = ssrLighting.rgb * lerp(preLightData.specularFGD, lerp(preLightData.specularFGD, F, bsdfData.coatMask), blendingFactor);
 
