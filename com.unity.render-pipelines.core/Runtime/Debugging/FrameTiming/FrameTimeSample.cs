@@ -24,46 +24,6 @@ namespace UnityEngine.Rendering
             RenderThreadCPUFrameTime = initValue;
             GPUFrameTime = initValue;
         }
-
-        internal void Add(FrameTimeSample other)
-        {
-            FramesPerSecond += other.FramesPerSecond;
-            FullFrameTime += other.FullFrameTime;
-            MainThreadCPUFrameTime += other.MainThreadCPUFrameTime;
-            MainThreadCPUPresentWaitTime += other.MainThreadCPUPresentWaitTime;
-            RenderThreadCPUFrameTime += other.RenderThreadCPUFrameTime;
-            GPUFrameTime += other.GPUFrameTime;
-        }
-
-        internal void Divide(float denominator)
-        {
-            FramesPerSecond /= denominator;
-            FullFrameTime /= denominator;
-            MainThreadCPUFrameTime /= denominator;
-            MainThreadCPUPresentWaitTime /= denominator;
-            RenderThreadCPUFrameTime /= denominator;
-            GPUFrameTime /= denominator;
-        }
-
-        internal void Min(FrameTimeSample other)
-        {
-            FramesPerSecond = Mathf.Min(FramesPerSecond, other.FramesPerSecond);
-            FullFrameTime = Mathf.Min(FullFrameTime, other.FullFrameTime);
-            MainThreadCPUFrameTime = Mathf.Min(MainThreadCPUFrameTime, other.MainThreadCPUFrameTime);
-            MainThreadCPUPresentWaitTime = Mathf.Min(MainThreadCPUPresentWaitTime, other.MainThreadCPUPresentWaitTime);
-            RenderThreadCPUFrameTime = Mathf.Min(RenderThreadCPUFrameTime, other.RenderThreadCPUFrameTime);
-            GPUFrameTime = Mathf.Min(GPUFrameTime, other.GPUFrameTime);
-        }
-
-        internal void Max(FrameTimeSample other)
-        {
-            FramesPerSecond = Mathf.Max(FramesPerSecond, other.FramesPerSecond);
-            FullFrameTime = Mathf.Max(FullFrameTime, other.FullFrameTime);
-            MainThreadCPUFrameTime = Mathf.Max(MainThreadCPUFrameTime, other.MainThreadCPUFrameTime);
-            MainThreadCPUPresentWaitTime = Mathf.Max(MainThreadCPUPresentWaitTime, other.MainThreadCPUPresentWaitTime);
-            RenderThreadCPUFrameTime = Mathf.Max(RenderThreadCPUFrameTime, other.RenderThreadCPUFrameTime);
-            GPUFrameTime = Mathf.Max(GPUFrameTime, other.GPUFrameTime);
-        }
     };
 
     /// <summary>
@@ -84,18 +44,59 @@ namespace UnityEngine.Rendering
 
         internal void ComputeAggregateValues()
         {
+            // Helper functions
+
+            float SampleValueAdd(float value, float other)
+            {
+                return value + other;
+            };
+
+            float SampleValueMin(float value, float other)
+            {
+                return other > 0 ? Mathf.Min(value, other) : value;
+            };
+
+            float SampleValueMax(float value, float other)
+            {
+                return Mathf.Max(value, other);
+            };
+
+            float SampleValueCountValid(float value, float other)
+            {
+                return other > 0 ? value + 1 : value;
+            };
+
+            float SampleValueDivide(float value, float other)
+            {
+                return value / other;
+            };
+
+            void ForEachSampleMember(ref FrameTimeSample aggregate, FrameTimeSample sample, Func<float, float, float> func)
+            {
+                aggregate.FramesPerSecond = func(aggregate.FramesPerSecond, sample.FramesPerSecond);
+                aggregate.FullFrameTime = func(aggregate.FullFrameTime, sample.FullFrameTime);
+                aggregate.MainThreadCPUFrameTime = func(aggregate.MainThreadCPUFrameTime, sample.MainThreadCPUFrameTime);
+                aggregate.MainThreadCPUPresentWaitTime = func(aggregate.MainThreadCPUPresentWaitTime, sample.MainThreadCPUPresentWaitTime);
+                aggregate.RenderThreadCPUFrameTime = func(aggregate.RenderThreadCPUFrameTime, sample.RenderThreadCPUFrameTime);
+                aggregate.GPUFrameTime = func(aggregate.GPUFrameTime, sample.GPUFrameTime);
+            };
+
             FrameTimeSample average = new();
             FrameTimeSample min = new(float.MaxValue);
             FrameTimeSample max = new(float.MinValue);
+            FrameTimeSample numValidSamples = new(); // Using the struct to record how many valid samples each field has
+
             for (int i = 0; i < m_Samples.Count; i++)
             {
                 var s = m_Samples[i];
-                average.Add(s);
-                min.Min(s);
-                max.Max(s);
+
+                ForEachSampleMember(ref min, s, SampleValueMin);
+                ForEachSampleMember(ref max, s, SampleValueMax);
+                ForEachSampleMember(ref average, s, SampleValueAdd);
+                ForEachSampleMember(ref numValidSamples, s, SampleValueCountValid);
             }
 
-            average.Divide(m_Samples.Count);
+            ForEachSampleMember(ref average, numValidSamples, SampleValueDivide);
 
             SampleAverage = average;
             SampleMin = min;
