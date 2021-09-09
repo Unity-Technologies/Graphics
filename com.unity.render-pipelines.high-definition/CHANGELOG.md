@@ -386,6 +386,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Viewport and scaling of Custom post process when TAAU or DLSS are enabled (case 1352407).
 - Fixed specular occlusion sharpness and over darkening at grazing angles.
 - Fixed edge bleeding when rendering volumetric clouds.
+- Fixed the performance of the volumetric clouds in non-local mode when large occluders are on screen.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
