@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.Universal
             // Add our edges to an edge list
             int outsideEdges = CreateEdgeDictionary(indices, m_EdgeDictionary);
 
-            // Determine how many elements to allocate
+            // Create unsorted edges array
             int edgeCount = 0;
             NativeArray<Edge> unsortedEdges = new NativeArray<Edge>(outsideEdges, Allocator.Temp);
             foreach (KeyValuePair<Edge, int> keyValuePair in m_EdgeDictionary)
@@ -175,22 +175,20 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Create Vertex Remapping
+            // Create vertex remapping arrays
             NativeArray<int> originalToSubsetMap = new NativeArray<int>(vertices.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             NativeArray<int> subsetToOriginalMap = new NativeArray<int>(vertices.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            // Initialize ToSubsetMap
             for (int i = 0; i < vertices.Length; i++)
                 originalToSubsetMap[i] = -1;
 
             for (int i=0; i < unsortedEdges.Length; i++)
             {
-                // Populate ToSubsetMap
                 originalToSubsetMap[unsortedEdges[i].v0] = i;
                 subsetToOriginalMap[i] = unsortedEdges[i].v0;
             }
 
-            // Remap the edges
+            // Sort edges so they are in order
             RemapEdges(unsortedEdges, originalToSubsetMap);
             SortEdges(unsortedEdges, out outEdges, out outShapeStartingIndices);
             RemapEdges(outEdges, subsetToOriginalMap);
