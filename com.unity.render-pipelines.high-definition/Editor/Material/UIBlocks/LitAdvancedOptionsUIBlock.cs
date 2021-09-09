@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <param name="expandableBit">Bit index used to store the foldout state.</param>
         /// <param name="features">Features of the block.</param>
-        public LitAdvancedOptionsUIBlock(ExpandableBit expandableBit, Features features = Features.All) : base(expandableBit, features) {}
+        public LitAdvancedOptionsUIBlock(ExpandableBit expandableBit, Features features = Features.All) : base(expandableBit, features) { }
 
         /// <summary>
         /// Loads the material properties for the block.

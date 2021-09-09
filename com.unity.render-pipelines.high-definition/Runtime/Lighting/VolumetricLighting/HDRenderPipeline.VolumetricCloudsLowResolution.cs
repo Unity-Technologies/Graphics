@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material cloudCombinePass;
         }
 
-        VolumetricCloudsParameters_LowResolution PrepareVolumetricCloudsParameters_LowResolution(HDCamera hdCamera, VolumetricClouds settings, TVolumetricCloudsCameraType cameraType)
+        VolumetricCloudsParameters_LowResolution PrepareVolumetricCloudsParameters_LowResolution(HDCamera hdCamera, int width, int height, int viewCount, bool exposureControl, VolumetricClouds settings, TVolumetricCloudsCameraType cameraType)
         {
             VolumetricCloudsParameters_LowResolution parameters = new VolumetricCloudsParameters_LowResolution();
 
@@ -39,21 +39,21 @@ namespace UnityEngine.Rendering.HighDefinition
             CloudModelData cloudModelData = GetCloudModelData(settings);
 
             // Fill the common data
-            FillVolumetricCloudsCommonData(hdCamera, settings, cameraType, in cloudModelData, ref parameters.commonData);
+            FillVolumetricCloudsCommonData(exposureControl, settings, cameraType, in cloudModelData, ref parameters.commonData);
 
             // We need to make sure that the allocated size of the history buffers and the dispatch size are perfectly equal.
             // The ideal approach would be to have a function for that returns the converted size from a viewport and texture size.
             // but for now we do it like this.
             // Final resolution at which the effect should be exported
-            parameters.finalWidth = hdCamera.actualWidth;
-            parameters.finalHeight = hdCamera.actualHeight;
+            parameters.finalWidth = width;
+            parameters.finalHeight = height;
             // Intermediate resolution at which the effect is accumulated
-            parameters.intermediateWidth = Mathf.RoundToInt(0.5f * hdCamera.actualWidth);
-            parameters.intermediateHeight = Mathf.RoundToInt(0.5f * hdCamera.actualHeight);
+            parameters.intermediateWidth = Mathf.RoundToInt(0.5f * width);
+            parameters.intermediateHeight = Mathf.RoundToInt(0.5f * height);
             // Resolution at which the effect is traced
-            parameters.traceWidth = Mathf.RoundToInt(0.25f * hdCamera.actualWidth);
-            parameters.traceHeight = Mathf.RoundToInt(0.25f * hdCamera.actualHeight);
-            parameters.viewCount = hdCamera.viewCount;
+            parameters.traceWidth = Mathf.RoundToInt(0.25f * width);
+            parameters.traceHeight = Mathf.RoundToInt(0.25f * height);
+            parameters.viewCount = viewCount;
 
             // MSAA support
             parameters.needsTemporaryBuffer = hdCamera.msaaEnabled;
@@ -86,13 +86,15 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraData.finalHeight = parameters.finalHeight;
             cameraData.viewCount = parameters.viewCount;
             cameraData.enableExposureControl = parameters.commonData.enableExposureControl;
+            cameraData.lowResolution = true;
+            cameraData.enableIntegration = false;
             UpdateShaderVariableslClouds(ref parameters.commonData.cloudsCB, hdCamera, settings, cameraData, cloudModelData, false);
 
             return parameters;
         }
 
         static void TraceVolumetricClouds_LowResolution(CommandBuffer cmd, VolumetricCloudsParameters_LowResolution parameters,
-            RTHandle colorBuffer, RTHandle depthPyramid, TextureHandle volumetricLightingTexture, TextureHandle scatteringFallbackTexture,
+            RTHandle colorBuffer, RTHandle depthPyramid, RTHandle volumetricLightingTexture, RTHandle scatteringFallbackTexture,
             RTHandle intermediateLightingBuffer0, RTHandle intermediateLightingBuffer1, RTHandle intermediateLightingBuffer2, RTHandle intermediateDepthBuffer0, RTHandle intermediateDepthBuffer1,
             RTHandle intermediateColorBuffer, RTHandle intermediateUpscaleBuffer)
         {
@@ -108,28 +110,30 @@ namespace UnityEngine.Rendering.HighDefinition
             int finalTX = (parameters.finalWidth + (8 - 1)) / 8;
             int finalTY = (parameters.finalHeight + (8 - 1)) / 8;
 
+            // Bind the sampling textures
+            BlueNoise.BindDitheredTextureSet(cmd, parameters.commonData.ditheredTextureSet);
+
             // Set the multi compiles
-            CoreUtils.SetKeyword(cmd, "FULL_RESOLUTION_CLOUDS", false);
-            CoreUtils.SetKeyword(cmd, "PLANAR_REFLECTION_CAMERA", false);
             CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", parameters.commonData.localClouds);
-            CoreUtils.SetKeyword(cmd, "CHECKER_BOARD_INTEGRATION", false);
 
             // Bind the constant buffer
             ConstantBuffer.Push(cmd, parameters.commonData.cloudsCB, parameters.commonData.volumetricCloudsCS, HDShaderIDs._ShaderVariablesClouds);
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsPrepare)))
+            if (parameters.commonData.localClouds)
             {
-                // Compute the alternative version of the mip 1 of the depth (min instead of max that is required to handle high frequency meshes (vegetation, hair)
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.depthDownscaleKernel, HDShaderIDs._DepthTexture, depthPyramid);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.depthDownscaleKernel, HDShaderIDs._HalfResDepthBufferRW, intermediateDepthBuffer0);
-                cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.depthDownscaleKernel, intermediateTX, intermediateTY, parameters.viewCount);
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsPrepare)))
+                {
+                    // Compute the alternative version of the mip 1 of the depth (min instead of max that is required to handle high frequency meshes (vegetation, hair)
+                    cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.depthDownscaleKernel, HDShaderIDs._DepthTexture, depthPyramid);
+                    cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.depthDownscaleKernel, HDShaderIDs._HalfResDepthBufferRW, intermediateDepthBuffer0);
+                    cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, parameters.depthDownscaleKernel, intermediateTX, intermediateTY, parameters.viewCount);
+                }
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudsTrace)))
             {
                 // Ray-march the clouds for this frame
                 CoreUtils.SetKeyword(cmd, "PHYSICALLY_BASED_SUN", parameters.commonData.cloudsCB._PhysicallyBasedSun == 1);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._HalfResDepthBuffer, intermediateDepthBuffer0);
+                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._VolumetricCloudsSourceDepth, intermediateDepthBuffer0);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._Worley128RGBA, parameters.commonData.worley128RGBA);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._ErosionNoise, parameters.commonData.erosionNoise);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudMapTexture, parameters.commonData.cloudMapTexture);
@@ -167,7 +171,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, targetKernel, HDShaderIDs._DepthStatusTexture, intermediateLightingBuffer2);
 
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, targetKernel, HDShaderIDs._DepthTexture, depthPyramid);
-                cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, targetKernel, HDShaderIDs._CameraColorTextureRW, colorBuffer);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, targetKernel, HDShaderIDs._CameraColorTexture, intermediateColorBuffer);
                 cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, targetKernel, HDShaderIDs._VBufferLighting, volumetricLightingTexture);
                 if (parameters.commonData.cloudsCB._PhysicallyBasedSun == 0)
@@ -183,7 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     CoreUtils.SetKeyword(cmd, "USE_INTERMEDIATE_BUFFER", true);
 
-                    // Provide this second upscaling + combine strategy in case a temporary buffer is requested (ie MSAA).
+                    // Provide this second upscaling + combine strategy in case a temporary buffer is requested (i.e. MSAA).
                     // In the case of an MSAA color target, we cannot use the in-place blending of the clouds with the color target.
                     cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, targetKernel, HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateUpscaleBuffer);
 
@@ -193,13 +196,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     parameters.cloudCombinePass.SetTexture(HDShaderIDs._VolumetricCloudsUpscaleTextureRW, intermediateUpscaleBuffer);
 
                     // Composite the clouds into the MSAA target via hardware blending.
-                    HDUtils.DrawFullScreen(cmd, parameters.cloudCombinePass, colorBuffer);
+                    HDUtils.DrawFullScreen(cmd, parameters.cloudCombinePass, colorBuffer, null, 0);
 
                     CoreUtils.SetKeyword(cmd, "USE_INTERMEDIATE_BUFFER", false);
                 }
                 else
                 {
-                    cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._CameraColorTextureRW, colorBuffer);
+                    cmd.SetComputeTextureParam(parameters.commonData.volumetricCloudsCS, parameters.upscaleAndCombineKernel, HDShaderIDs._VolumetricCloudsUpscaleTextureRW, colorBuffer);
 
                     // Perform the upscale and combine with the color buffer in place.
                     cmd.DispatchCompute(parameters.commonData.volumetricCloudsCS, targetKernel, finalTX, finalTY, parameters.viewCount);
@@ -207,10 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Reset all the multi-compiles
-            CoreUtils.SetKeyword(cmd, "FULL_RESOLUTION_CLOUDS", false);
-            CoreUtils.SetKeyword(cmd, "PLANAR_REFLECTION_CAMERA", false);
             CoreUtils.SetKeyword(cmd, "LOCAL_VOLUMETRIC_CLOUDS", false);
-            CoreUtils.SetKeyword(cmd, "CHECKER_BOARD_INTEGRATION", false);
         }
 
         class VolumetricCloudsLowResolutionData
@@ -240,30 +240,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.EnableAsyncCompute(false);
                 VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
-                passData.parameters = PrepareVolumetricCloudsParameters_LowResolution(hdCamera, settings, cameraType);
+                passData.parameters = PrepareVolumetricCloudsParameters_LowResolution(hdCamera, hdCamera.actualWidth, hdCamera.actualHeight, hdCamera.viewCount, hdCamera.exposureControlFS, settings, cameraType);
                 passData.colorBuffer = builder.ReadTexture(builder.WriteTexture(colorBuffer));
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 passData.scatteringFallbackTexture = renderGraph.defaultResources.blackTexture3DXR;
 
                 passData.intermediateLightingBuffer0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 0" });
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 0" });
                 passData.intermediateLightingBuffer1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 1 " });
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 1 " });
                 passData.intermediateLightingBuffer2 = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 2 " });
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 2 " });
                 passData.intermediateBufferDepth0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Temporary Clouds Depth Buffer 0" });
+                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Temporary Clouds Depth Buffer 0" });
                 passData.intermediateBufferDepth1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Temporary Clouds Depth Buffer 1" });
+                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Temporary Clouds Depth Buffer 1" });
 
                 passData.intermediateColorBufferCopy = passData.parameters.needExtraColorBufferCopy ? builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GetColorBufferFormat(), enableRandomWrite = true, name = "Temporary Color Buffer" }) : renderGraph.defaultResources.blackTextureXR;
+                { colorFormat = GetColorBufferFormat(), enableRandomWrite = true, name = "Temporary Color Buffer" }) : renderGraph.defaultResources.blackTextureXR;
 
                 if (passData.parameters.needsTemporaryBuffer)
                 {
                     passData.intermediateBufferUpscale = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Upscaling Buffer" });
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Upscaling Buffer" });
                 }
                 else
                 {

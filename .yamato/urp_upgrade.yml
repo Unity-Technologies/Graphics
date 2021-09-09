@@ -3,7 +3,6 @@
 name: URP_Upgrade
 test_editors:
   - name: trunk
-  - name: 2021.2
   - name: CUSTOM-REVISION
 test_platforms:
   - name: win

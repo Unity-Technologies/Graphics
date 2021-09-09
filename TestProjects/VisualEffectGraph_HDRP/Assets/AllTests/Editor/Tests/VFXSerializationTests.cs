@@ -13,6 +13,7 @@ using Object = UnityEngine.Object;
 using System.IO;
 using UnityEngine.TestTools;
 using System.Collections;
+using UnityEditor.VFX.UI;
 
 namespace UnityEditor.VFX.Test
 {
@@ -27,7 +28,7 @@ namespace UnityEditor.VFX.Test
         {
             return VisualEffectAssetEditorUtility.CreateNewAsset(path);
         }
-
+        
         [Test]
         public void Sanitize_GetSpawnCount()
         {
@@ -58,6 +59,428 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(add.inputSlots[0].HasLink());
                 Assert.IsTrue(add.inputSlots[1].HasLink());
             }
+        }
+
+        [Test]
+        public void Sanitize_Shape_To_TShape()
+        {
+            var kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSanitizeTShape.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+
+            //Sphere Volume
+            {
+                var volumes = graph.children.OfType<Operator.SphereVolume>().ToArray();
+                Assert.AreEqual(3, volumes.Count());
+
+                var volume_A = volumes.FirstOrDefault(o => !o.inputSlots[0].HasLink(true));
+                var volume_B = volumes.FirstOrDefault(o => o.inputSlots[0].HasLink(true) && o.inputSlots[0][1].LinkedSlots.First().owner is VFXParameter);
+                var volume_C = volumes.FirstOrDefault(o => o.inputSlots[0].HasLink(true) && o.inputSlots[0][1].LinkedSlots.First().owner is VFXInlineOperator);
+
+                Assert.IsNotNull(volume_A);
+                Assert.IsNotNull(volume_B);
+                Assert.IsNotNull(volume_C);
+                Assert.AreNotEqual(volume_A, volume_B);
+                Assert.AreNotEqual(volume_B, volume_C);
+
+                var tSphere = (TSphere)volume_A.inputSlots[0].value;
+                Assert.AreEqual(1.0f, tSphere.transform.position.x);
+                Assert.AreEqual(2.0f, tSphere.transform.position.y);
+                Assert.AreEqual(3.0f, tSphere.transform.position.z);
+                Assert.AreEqual(4.0f, tSphere.radius);
+
+                Assert.AreEqual(volume_B.inputSlots[0].space, volume_B.inputSlots[0][1].LinkedSlots.First().space);
+                Assert.IsTrue(volume_B.inputSlots[0][0][0].HasLink());
+                Assert.IsTrue(volume_B.inputSlots[0][1].HasLink());
+                Assert.IsTrue(volume_B.outputSlots[0].HasLink());
+
+                Assert.IsTrue(volume_C.inputSlots[0][0][0].HasLink());
+                Assert.IsTrue(volume_C.inputSlots[0][1].HasLink());
+                Assert.IsTrue(volume_C.outputSlots[0].HasLink());
+            }
+
+            //Cylinder & Cone Volume
+            {
+                var volumes = graph.children.OfType<Operator.ConeVolume>().ToArray();
+                Assert.AreEqual(6, volumes.Count());
+
+                var volume_cyl_A = volumes.FirstOrDefault(o => !o.inputSlots[0].HasLink(true) && ((float)o.inputSlots[0][0][0][1].value) == -0.5f);
+                var volume_cone_A = volumes.FirstOrDefault(o => !o.inputSlots[0].HasLink(true) && ((float)o.inputSlots[0][0][0][1].value) != -0.5f);
+
+                var tCone_cyl = (TCone)volume_cyl_A.inputSlots[0].value;
+                Assert.AreEqual(1.0f, tCone_cyl.transform.position.x);
+                Assert.AreEqual(-0.5f, tCone_cyl.transform.position.y); //has been corrected by half height
+                Assert.AreEqual(3.0f, tCone_cyl.transform.position.z);
+                Assert.AreEqual(4.0f, tCone_cyl.baseRadius);
+                Assert.AreEqual(4.0f, tCone_cyl.topRadius);
+                Assert.AreEqual(5.0f, tCone_cyl.height);
+
+                var tCone_cone = (TCone)volume_cone_A.inputSlots[0].value;
+                Assert.AreEqual(1.0f, tCone_cone.transform.position.x);
+                Assert.AreEqual(2.0f, tCone_cone.transform.position.y);
+                Assert.AreEqual(3.0f, tCone_cone.transform.position.z);
+                Assert.AreEqual(4.0f, tCone_cone.baseRadius);
+                Assert.AreEqual(5.0f, tCone_cone.topRadius);
+                Assert.AreEqual(6.0f, tCone_cone.height);
+
+                //It isn't obvious to make difference between old cylinder & old cone, basic check on other operators
+                foreach (var volume in volumes)
+                {
+                    if (volume == volume_cyl_A || volume == volume_cone_A)
+                        continue;
+
+                    foreach (var subslot in volume.inputSlots[0].children)
+                    {
+                        if (subslot.property.type == typeof(Transform))
+                        {
+                            Assert.IsTrue(subslot[0].HasLink());
+                            Assert.IsFalse(subslot[1].HasLink());
+                            Assert.IsFalse(subslot[2].HasLink());
+                        }
+                        else
+                        {
+                            Assert.IsTrue(subslot.HasLink());
+                        }
+                    }
+                }
+            }
+
+            //Circle Area
+            {
+                var volumes = graph.children.OfType<Operator.CircleArea>().ToArray();
+                Assert.AreEqual(3, volumes.Count());
+
+                var volume_A = volumes.FirstOrDefault(o => !o.inputSlots[0].HasLink(true));
+                var volume_B = volumes.FirstOrDefault(o => o.inputSlots[0].HasLink(true) && o.inputSlots[0][1].LinkedSlots.First().owner is VFXParameter);
+                var volume_C = volumes.FirstOrDefault(o => o.inputSlots[0].HasLink(true) && o.inputSlots[0][1].LinkedSlots.First().owner is VFXInlineOperator);
+
+                Assert.IsNotNull(volume_A);
+                Assert.IsNotNull(volume_B);
+                Assert.IsNotNull(volume_C);
+                Assert.AreNotEqual(volume_A, volume_B);
+                Assert.AreNotEqual(volume_B, volume_C);
+
+                var tCircle = (TCircle)volume_A.inputSlots[0].value;
+                Assert.AreEqual(1.0f, tCircle.transform.position.x);
+                Assert.AreEqual(2.0f, tCircle.transform.position.y);
+                Assert.AreEqual(3.0f, tCircle.transform.position.z);
+                Assert.AreEqual(4.0f, tCircle.radius);
+
+                Assert.AreEqual(volume_B.inputSlots[0].space, volume_B.inputSlots[0][1].LinkedSlots.First().space);
+                Assert.IsTrue(volume_B.inputSlots[0][0][0].HasLink());
+                Assert.IsTrue(volume_B.inputSlots[0][1].HasLink());
+                Assert.IsTrue(volume_B.outputSlots[0].HasLink());
+
+                Assert.IsTrue(volume_C.inputSlots[0][0][0].HasLink());
+                Assert.IsTrue(volume_C.inputSlots[0][1].HasLink());
+                Assert.IsTrue(volume_C.outputSlots[0].HasLink());
+            }
+
+            //Torus Volume
+            {
+                var volumes = graph.children.OfType<Operator.TorusVolume>().ToArray();
+                Assert.AreEqual(3, volumes.Count());
+
+                var volume_A = volumes.FirstOrDefault(o => !o.inputSlots[0].HasLink(true));
+                var volume_B = volumes.FirstOrDefault(o => o.inputSlots[0].HasLink(true) && o.inputSlots[0][1].LinkedSlots.First().owner is VFXParameter);
+                var volume_C = volumes.FirstOrDefault(o => o.inputSlots[0].HasLink(true) && o.inputSlots[0][1].LinkedSlots.First().owner is VFXInlineOperator);
+
+                Assert.IsNotNull(volume_A);
+                Assert.IsNotNull(volume_B);
+                Assert.IsNotNull(volume_C);
+                Assert.AreNotEqual(volume_A, volume_B);
+                Assert.AreNotEqual(volume_B, volume_C);
+
+                var tTorus = (TTorus)volume_A.inputSlots[0].value;
+                Assert.AreEqual(1.0f, tTorus.transform.position.x);
+                Assert.AreEqual(2.0f, tTorus.transform.position.y);
+                Assert.AreEqual(3.0f, tTorus.transform.position.z);
+                Assert.AreEqual(4.0f, tTorus.majorRadius);
+                Assert.AreEqual(5.0f, tTorus.minorRadius);
+
+                Assert.AreEqual(volume_B.inputSlots[0].space, volume_B.inputSlots[0][1].LinkedSlots.First().space);
+                Assert.IsTrue(volume_B.inputSlots[0][0][0].HasLink());
+                Assert.IsTrue(volume_B.inputSlots[0][1].HasLink());
+                Assert.IsTrue(volume_B.inputSlots[0][2].HasLink());
+                Assert.IsTrue(volume_B.outputSlots[0].HasLink());
+
+                Assert.IsTrue(volume_C.inputSlots[0][0][0].HasLink());
+                Assert.IsTrue(volume_C.inputSlots[0][1].HasLink());
+                Assert.IsTrue(volume_C.inputSlots[0][2].HasLink());
+                Assert.IsTrue(volume_C.outputSlots[0].HasLink());
+            }
+
+            //Position Sphere
+            {
+                var initialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault(o => o.label == "position_sphere");
+                Assert.IsNotNull(initialize);
+
+                var sphereBlocks = initialize.children.OfType<Block.PositionSphere>().ToArray();
+                Assert.AreEqual(4, sphereBlocks.Length);
+                foreach (var block in sphereBlocks)
+                {
+                    Assert.AreEqual(3, block.inputSlots.Count);
+
+                    if (block != sphereBlocks.Last())
+                    {
+                        Assert.IsTrue(block.inputSlots[0][0][0][0].HasLink()); //center
+                        Assert.IsTrue(block.inputSlots[0][0][1].HasLink()); //radius
+
+                        if (block == sphereBlocks.First())
+                            Assert.IsTrue(block.inputSlots[0][1]); //arc
+                    }
+                    else
+                    {
+                        var tArcSphere = (TArcSphere)block.inputSlots[0].value;
+                        Assert.AreEqual(1.0f, tArcSphere.sphere.transform.position.x);
+                        Assert.AreEqual(2.0f, tArcSphere.sphere.transform.position.y);
+                        Assert.AreEqual(3.0f, tArcSphere.sphere.transform.position.z);
+                        Assert.AreEqual(4.0f, tArcSphere.sphere.radius);
+                        Assert.AreEqual(5.0f, tArcSphere.arc);
+                    }
+
+                    Assert.AreEqual(6.0f, block.inputSlots[1].value);
+                    Assert.AreEqual(0.7f, block.inputSlots[2].value);
+                }
+            }
+
+            //Position Circle
+            {
+                var initialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault(o => o.label == "position_circle");
+                Assert.IsNotNull(initialize);
+
+                var circleBlock = initialize.children.OfType<Block.PositionCircle>().ToArray();
+                Assert.AreEqual(4, circleBlock.Length);
+                foreach (var block in circleBlock)
+                {
+                    Assert.AreEqual(3, block.inputSlots.Count);
+
+                    if (block != circleBlock.Last())
+                    {
+                        Assert.IsTrue(block.inputSlots[0][0][0][0].HasLink()); //center
+                        Assert.IsTrue(block.inputSlots[0][0][1].HasLink()); //radius
+
+                        if (block == circleBlock.First())
+                            Assert.IsTrue(block.inputSlots[0][1]); //arc
+                    }
+                    else
+                    {
+                        var tArcCircle = (TArcCircle)block.inputSlots[0].value;
+                        Assert.AreEqual(1.0f, tArcCircle.circle.transform.position.x);
+                        Assert.AreEqual(2.0f, tArcCircle.circle.transform.position.y);
+                        Assert.AreEqual(3.0f, tArcCircle.circle.transform.position.z);
+                        Assert.AreEqual(4.0f, tArcCircle.circle.radius);
+                        Assert.AreEqual(5.0f, tArcCircle.arc);
+                    }
+
+                    Assert.AreEqual(6.0f, block.inputSlots[1].value);
+                    Assert.AreEqual(0.7f, block.inputSlots[2].value);
+                }
+            }
+
+            //Position Cone
+            {
+                var initialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault(o => o.label == "position_cone");
+                Assert.IsNotNull(initialize);
+
+                var coneBlocks = initialize.children.OfType<Block.PositionCone>().ToArray();
+                Assert.AreEqual(3, coneBlocks.Length);
+                foreach (var block in coneBlocks)
+                {
+                    Assert.AreEqual(4, block.inputSlots.Count);
+
+                    if (block != coneBlocks.Last())
+                    {
+                        Assert.IsTrue(block.inputSlots[0][0][0][0].HasLink()); //center
+                        Assert.IsTrue(block.inputSlots[0][0][1].HasLink()); //baseradius
+                        Assert.IsTrue(block.inputSlots[0][0][2].HasLink()); //topRadius
+                        Assert.IsTrue(block.inputSlots[0][0][3].HasLink()); //height
+
+                        if (block == coneBlocks.First())
+                            Assert.IsTrue(block.inputSlots[0][1]); //arc
+                    }
+                    else
+                    {
+                        var tArcCone = (TArcCone)block.inputSlots[0].value;
+                        Assert.AreEqual(1.0f, tArcCone.cone.transform.position.x);
+                        Assert.AreEqual(2.0f, tArcCone.cone.transform.position.y);
+                        Assert.AreEqual(3.0f, tArcCone.cone.transform.position.z);
+                        Assert.AreEqual(4.0f, tArcCone.cone.baseRadius);
+                        Assert.AreEqual(5.0f, tArcCone.cone.topRadius);
+                        Assert.AreEqual(6.0f, tArcCone.cone.height);
+                        Assert.AreEqual(0.7f, tArcCone.arc);
+                    }
+
+                    Assert.AreEqual(8.0f, block.inputSlots[1].value);
+                    Assert.AreEqual(0.9f, block.inputSlots[2].value);
+                    Assert.AreEqual(1.0f, block.inputSlots[3].value);
+                }
+            }
+
+            //Position Torus
+            {
+                var initialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault(o => o.label == "position_torus");
+                Assert.IsNotNull(initialize);
+
+                var torusBlocks = initialize.children.OfType<Block.PositionTorus>().ToArray();
+                Assert.AreEqual(3, torusBlocks.Length);
+                foreach (var block in torusBlocks)
+                {
+                    Assert.AreEqual(3, block.inputSlots.Count);
+
+                    if (block != torusBlocks.Last())
+                    {
+                        Assert.IsTrue(block.inputSlots[0][0][0][0].HasLink()); //center
+                        Assert.IsTrue(block.inputSlots[0][0][1].HasLink()); //majorRadius
+                        Assert.IsTrue(block.inputSlots[0][0][2].HasLink()); //minorRadius
+
+                        if (block == torusBlocks.First())
+                            Assert.IsTrue(block.inputSlots[0][1]); //arc
+                    }
+                    else
+                    {
+                        var tArcTorus = (TArcTorus)block.inputSlots[0].value;
+                        Assert.AreEqual(1.0f, tArcTorus.torus.transform.position.x);
+                        Assert.AreEqual(2.0f, tArcTorus.torus.transform.position.y);
+                        Assert.AreEqual(3.0f, tArcTorus.torus.transform.position.z);
+                        Assert.AreEqual(4.0f, tArcTorus.torus.majorRadius);
+                        Assert.AreEqual(5.0f, tArcTorus.torus.minorRadius);
+                        Assert.AreEqual(0.6f, tArcTorus.arc);
+                    }
+
+                    Assert.AreEqual(7.0f, block.inputSlots[1].value);
+                    Assert.AreEqual(0.8f, block.inputSlots[2].value);
+                }
+            }
+
+            //Kill Sphere
+            {
+                var initialize = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.label == "kill_sphere");
+                Assert.IsNotNull(initialize);
+
+                var sphereBlocks = initialize.children.OfType<Block.KillSphere>().ToArray();
+                Assert.AreEqual(3, sphereBlocks.Length);
+                foreach (var block in sphereBlocks)
+                {
+                    Assert.AreEqual(1, block.inputSlots.Count);
+
+                    if (block != sphereBlocks.Last())
+                    {
+                        Assert.IsTrue(block.inputSlots[0][0][0].HasLink()); //center
+                        Assert.IsTrue(block.inputSlots[0][1].HasLink()); //radius
+                    }
+                    else
+                    {
+                        var tSphere = (TSphere)block.inputSlots[0].value;
+                        Assert.AreEqual(1.0f, tSphere.transform.position.x);
+                        Assert.AreEqual(2.0f, tSphere.transform.position.y);
+                        Assert.AreEqual(3.0f, tSphere.transform.position.z);
+                        Assert.AreEqual(4.0f, tSphere.radius);
+                    }
+                }
+            }
+
+            //Collide Sphere
+            {
+                var initialize = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.label == "collision_sphere");
+                Assert.IsNotNull(initialize);
+
+                var sphereBlocks = initialize.children.OfType<Block.CollisionSphere>().ToArray();
+                Assert.AreEqual(3, sphereBlocks.Length);
+                foreach (var block in sphereBlocks)
+                {
+                    Assert.AreEqual(6, block.inputSlots.Count);
+
+                    if (block != sphereBlocks.Last())
+                    {
+                        Assert.IsTrue(block.inputSlots[0][0][0].HasLink()); //center
+                        Assert.IsTrue(block.inputSlots[0][1].HasLink()); //radius
+                    }
+                    else
+                    {
+                        var tSphere = (TSphere)block.inputSlots[0].value;
+                        Assert.AreEqual(1.0f, tSphere.transform.position.x);
+                        Assert.AreEqual(2.0f, tSphere.transform.position.y);
+                        Assert.AreEqual(3.0f, tSphere.transform.position.z);
+                        Assert.AreEqual(4.0f, tSphere.radius);
+                    }
+
+                    Assert.AreEqual(0.2f, block.inputSlots[1].value);
+                    Assert.AreEqual(0.3f, block.inputSlots[2].value);
+                    Assert.AreEqual(0.4f, block.inputSlots[3].value);
+                    Assert.AreEqual(0.5f, block.inputSlots[4].value);
+                    Assert.AreEqual(0.6f, block.inputSlots[5].value);
+                }
+            }
+
+            //Collide Cylinder (migration to cone)
+            {
+                var initialize = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault(o => o.label == "collision_cylinder");
+                Assert.IsNotNull(initialize);
+
+                var coneBlocks = initialize.children.OfType<Block.CollisionCone>().ToArray();
+                Assert.AreEqual(3, coneBlocks.Length);
+                foreach (var block in coneBlocks)
+                {
+                    Assert.AreEqual(6, block.inputSlots.Count);
+
+                    if (block != coneBlocks.Last())
+                    {
+                        Assert.IsTrue(block.inputSlots[0][0][0].HasLink()); //center
+                        Assert.IsTrue(block.inputSlots[0][1].HasLink()); //baseradius
+                        Assert.IsTrue(block.inputSlots[0][2].HasLink()); //topRadius
+                        Assert.IsTrue(block.inputSlots[0][3].HasLink()); //height
+                    }
+                    else
+                    {
+                        var tCone = (TCone)block.inputSlots[0].value;
+                        Assert.AreEqual(1.0f, tCone.transform.position.x);
+                        Assert.AreEqual(-0.5f, tCone.transform.position.y);
+                        Assert.AreEqual(3.0f, tCone.transform.position.z);
+                        Assert.AreEqual(4.0f, tCone.baseRadius); //<= That is the trick of cylinder migration
+                        Assert.AreEqual(4.0f, tCone.topRadius);
+                        Assert.AreEqual(5.0f, tCone.height);
+                    }
+
+                    Assert.AreEqual(0.2f, block.inputSlots[1].value);
+                    Assert.AreEqual(0.3f, block.inputSlots[2].value);
+                    Assert.AreEqual(0.4f, block.inputSlots[3].value);
+                    Assert.AreEqual(0.5f, block.inputSlots[4].value);
+                    Assert.AreEqual(0.6f, block.inputSlots[5].value);
+                }
+            }
+        }
+
+        //Cover case 1352832, extension of Sanitize_Shape_To_TShape
+        [UnityTest]
+        public IEnumerator Sanitize_Shape_To_TShape_And_Check_VFXParameter_State()
+        {
+            var kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSanitizeTShape.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+            yield return null;
+
+            Assert.AreEqual(8, graph.children.OfType<VFXParameter>().Count());
+            Assert.AreEqual(11, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Count());
+            Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => o.position == Vector2.zero).Count());
+            Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => !o.linkedSlots.Any()).Count());
+            yield return null;
+
+            var window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            var resource = graph.GetResource();
+            window.LoadAsset(resource.asset, null);
+            yield return null;
+
+            Assert.AreEqual(8, graph.children.OfType<VFXParameter>().Count());
+            Assert.AreEqual(11, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Count());
+            Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => o.position == Vector2.zero).Count(), "Fail after window.LoadAsset");
+            foreach (var param in graph.children.OfType<VFXParameter>())
+            {
+                var nodes = param.nodes.Where(o => !o.linkedSlots.Any());
+                if (nodes.Any())
+                {
+                    Assert.Fail(param.exposedName + " as an orphan node");
+                }
+            }
+            Assert.AreEqual(0, graph.children.OfType<VFXParameter>().SelectMany(o => o.nodes).Where(o => !o.linkedSlots.Any()).Count()); //Orphan link
         }
 
         [OneTimeSetUpAttribute]

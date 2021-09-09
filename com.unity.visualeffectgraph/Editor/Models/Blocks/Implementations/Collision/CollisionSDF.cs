@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.Block
                     if (input.name == "FieldTransform")
                     {
                         yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(input.exp), "InvFieldTransform");
-                        yield return new VFXNamedExpression(VFXOperatorUtility.Max3(new VFXExpressionExtractScaleFromMatrix(input.exp)) , "scalingFactor");
+                        yield return new VFXNamedExpression(VFXOperatorUtility.Max3(new VFXExpressionExtractScaleFromMatrix(input.exp)), "scalingFactor");
                     }
                 }
             }
@@ -52,7 +52,7 @@ if (colliderSign * dist <= 0.0f) // collision
 {
     float3 n = SampleSDFDerivatives(DistanceField, coord);
     // back in system space
-    float3 delta = colliderSign * abs(dist) * normalize(mul(float4(n ,0), InvFieldTransform).xyz)  ;
+    float3 delta = colliderSign * abs(dist) * VFXSafeNormalize(mul(float4(n ,0), InvFieldTransform).xyz)  ;
     n = normalize(delta);
 ";
 
