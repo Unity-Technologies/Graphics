@@ -344,13 +344,11 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var set in sceneData.bakingSets)
             {
                 var sceneGUID = GetFirstProbeVolumeSceneGUID(set);
-
                 if (sceneGUID == null)
                     continue;
 
-                var referenceGUID = set.sceneGUIDs[0];
-                var referenceSettings = sceneData.sceneBakingSettings[referenceGUID];
-                var referenceProfile = sceneData.sceneProfiles[referenceGUID];
+                var referenceSettings = sceneData.sceneBakingSettings[sceneGUID];
+                var referenceProfile = sceneData.sceneProfiles[sceneGUID];
 
                 foreach (var guid in set.sceneGUIDs)
                 {
