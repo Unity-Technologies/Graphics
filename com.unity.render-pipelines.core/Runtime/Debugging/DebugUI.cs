@@ -257,9 +257,7 @@ namespace UnityEngine.Rendering
             /// <returns>The formatted value string.</returns>
             public virtual string FormatString(object value)
             {
-                if (formatString != null)
-                    return String.Format(formatString, value);
-                return $"{value}";
+                return string.IsNullOrEmpty(formatString) ? $"{value}" : string.Format(formatString, value);
             }
         }
 

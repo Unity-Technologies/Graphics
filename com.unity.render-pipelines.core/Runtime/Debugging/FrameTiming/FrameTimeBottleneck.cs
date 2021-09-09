@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering
 
     /// <summary>
     /// BottleneckHistogram represents the distribution of bottlenecks over the Bottleneck History Window,
-    /// the size of which is determined by <see cref="DebugFrameTiming.BottleneckHistorySize"/>.
+    /// the size of which is determined by <see cref="DebugFrameTiming.bottleneckHistorySize"/>.
     /// </summary>
     internal struct BottleneckHistogram
     {

@@ -66,9 +66,14 @@ namespace UnityEngine.Rendering
                 return other > 0 ? value + 1 : value;
             };
 
+            float SampleValueEnsureValid(float value, float other)
+            {
+                return other > 0 ? value : 0;
+            };
+
             float SampleValueDivide(float value, float other)
             {
-                return value / other;
+                return other > 0 ? value / other : 0;
             };
 
             void ForEachSampleMember(ref FrameTimeSample aggregate, FrameTimeSample sample, Func<float, float, float> func)
@@ -96,6 +101,8 @@ namespace UnityEngine.Rendering
                 ForEachSampleMember(ref numValidSamples, s, SampleValueCountValid);
             }
 
+            ForEachSampleMember(ref min, numValidSamples, SampleValueEnsureValid);
+            ForEachSampleMember(ref max, numValidSamples, SampleValueEnsureValid);
             ForEachSampleMember(ref average, numValidSamples, SampleValueDivide);
 
             SampleAverage = average;

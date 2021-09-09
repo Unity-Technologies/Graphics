@@ -19,12 +19,12 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Size of the Bottleneck History Window in number of samples.
         /// </summary>
-        public int BottleneckHistorySize { get; set; } = 60;
+        public int bottleneckHistorySize { get; set; } = 60;
 
         /// <summary>
         /// Size of the Sample History Window in number of samples.
         /// </summary>
-        public int SampleHistorySize { get; set; } = 30;
+        public int sampleHistorySize { get; set; } = 30;
 
         /// <summary>
         /// Update timing data from profiling counters.
@@ -47,11 +47,11 @@ namespace UnityEngine.Rendering
                 sample.GPUFrameTime = (float)timing.First().gpuFrameTime;
             }
 
-            m_FrameHistory.DiscardOldSamples(SampleHistorySize);
+            m_FrameHistory.DiscardOldSamples(sampleHistorySize);
             m_FrameHistory.Add(sample);
             m_FrameHistory.ComputeAggregateValues();
 
-            m_BottleneckHistory.DiscardOldSamples(BottleneckHistorySize);
+            m_BottleneckHistory.DiscardOldSamples(bottleneckHistorySize);
             m_BottleneckHistory.AddBottleneckFromAveragedSample(m_FrameHistory.SampleAverage);
             m_BottleneckHistory.ComputeHistogram();
         }
