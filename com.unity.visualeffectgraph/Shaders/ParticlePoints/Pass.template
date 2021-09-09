@@ -25,7 +25,10 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	${VFXProcessBlocks}
 			
 	if (!attributes.alive)
+	{
+		o.pos.x = VFX_NAN;
 		return o;
+	}
 				
 	float3 vPos = attributes.position;
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
