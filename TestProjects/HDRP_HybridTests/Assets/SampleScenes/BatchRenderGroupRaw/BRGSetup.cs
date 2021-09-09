@@ -11,9 +11,12 @@ public unsafe class BRGSetup : MonoBehaviour
 {
     public Mesh m_mesh;
     public Material m_material;
-    public float m_y;
-    public bool m_cullRow;
+    public bool m_cullTest = false;
     public float m_cullMovingPeriod = 0.5f;
+    public bool m_motionVectorTest = false;
+    public Vector3 m_center = new Vector3(0, 0, 0);
+    public float m_motionSpeed = 3.0f;
+    public float m_motionAmplitude = 2.0f;
 
     static private int itemGridSize = 30;
 
@@ -27,8 +30,10 @@ public unsafe class BRGSetup : MonoBehaviour
     private int m_itemCount;
     private bool m_initialized;
     private float m_clock;
+    private float m_phase;
     private int m_lineIdToCull;
 
+    private NativeArray<Vector4> m_sysmemBuffer;
 
     public static T* Malloc<T>(int count) where T : unmanaged
     {
@@ -67,7 +72,7 @@ public unsafe class BRGSetup : MonoBehaviour
             {
                 renderingLayerMask = 1,
                 layer = 0,
-                motionMode = MotionVectorGenerationMode.Camera,
+                motionMode = m_motionVectorTest ? MotionVectorGenerationMode.Object : MotionVectorGenerationMode.Camera,
                 shadowCastingMode = ShadowCastingMode.On,
                 receiveShadows = true,
                 staticShadowCaster = false,
@@ -77,14 +82,15 @@ public unsafe class BRGSetup : MonoBehaviour
 
         drawCommands.visibleInstances = Malloc<int>(m_itemCount);
         int n = 0;
+        int cullId = m_cullTest ? m_lineIdToCull : -1;
         for (int r = 0; r < itemGridSize; r++)
         {
-            if (r != m_lineIdToCull)
+            if ( r != cullId)
             {
                 for (int i = 0; i < itemGridSize; i++)
                 {
-                    int id = m_cullRow ? (r * itemGridSize + i) : (i * itemGridSize + r);
-                    drawCommands.visibleInstances[n++] = id;
+                    if (i != cullId)
+                        drawCommands.visibleInstances[n++] = r * itemGridSize + i;
                 }
             }
         }
@@ -100,7 +106,7 @@ public unsafe class BRGSetup : MonoBehaviour
             bufferID = m_GPUPersistanceBufferId,
             materialID = m_materialID,
             packedMeshSubmesh = new BatchPackedMeshSubmesh(m_meshID, 0),
-            flags = BatchDrawCommandFlags.None,
+            flags = m_motionVectorTest ? BatchDrawCommandFlags.HasMotion : BatchDrawCommandFlags.None,
             sortingPosition = 0
         };
 
@@ -131,22 +137,24 @@ public unsafe class BRGSetup : MonoBehaviour
 
         // Batch metadata buffer
         int objectToWorldID = Shader.PropertyToID("unity_ObjectToWorld");
-        int worldToObjectID = Shader.PropertyToID("unity_WorldToObject");
+        int matrixPreviousMID = Shader.PropertyToID("unity_MatrixPreviousM");
+
+//        int worldToObjectID = Shader.PropertyToID("unity_WorldToObject");
         int colorID = Shader.PropertyToID("_BaseColor");
 
-        var batchMetadata = new NativeArray<MetadataValue>(2, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-        batchMetadata[0] = CreateMetadataValue(objectToWorldID, 0, true);
-        batchMetadata[1] = CreateMetadataValue(colorID, itemCount * UnsafeUtility.SizeOf<Vector4>() * 3, true);
+        var batchMetadata = new NativeArray<MetadataValue>(3, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+        batchMetadata[0] = CreateMetadataValue(objectToWorldID, 0, true);       // matrices
+        batchMetadata[1] = CreateMetadataValue(matrixPreviousMID, itemCount * UnsafeUtility.SizeOf<Vector4>() * 3, true);   // previous matrices
+        batchMetadata[2] = CreateMetadataValue(colorID, itemCount * UnsafeUtility.SizeOf<Vector4>() * 3 * 2, true);     // colors
 
         // Register batch
         m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata);
 
         // Generate a grid of objects...
-        int bigDataBufferVector4Count = itemCount * 3 + itemCount;      // mat4x3, colors
-        var vectorBuffer = new NativeArray<Vector4>(bigDataBufferVector4Count, Allocator.Temp, NativeArrayOptions.ClearMemory);
+        int bigDataBufferVector4Count = itemCount * 3 * 2 + itemCount;      // mat4x3, colors
+        m_sysmemBuffer = new NativeArray<Vector4>(bigDataBufferVector4Count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
         m_GPUPersistentInstanceData = new ComputeBuffer((int)bigDataBufferVector4Count * 16 / 4, 4, ComputeBufferType.Raw);
-
         m_GPUPersistanceBufferId = m_BatchRendererGroup.RegisterBuffer(m_GPUPersistentInstanceData);
 
         // Matrices
@@ -160,6 +168,25 @@ public unsafe class BRGSetup : MonoBehaviour
                         0.0, 0.0, 0.0, 1.0
                     );
         */
+
+        UpdatePositions(m_center);
+        // Colors
+        int colorOffset = itemCount * 3 * 2;
+        for (int i = 0; i < itemCount; i++)
+        {
+            Color col = Color.HSVToRGB(((float)(i) / (float)itemCount) % 1.0f, 1.0f, 1.0f);
+
+            // write colors right after the 4x3 matrices
+            m_sysmemBuffer[colorOffset + i] = new Vector4(col.r, col.g, col.b, 1.0f);
+        }
+        m_GPUPersistentInstanceData.SetData(m_sysmemBuffer);
+
+        m_initialized = true;
+    }
+
+    void    UpdatePositions(Vector3 pos)
+    {
+        int itemCountOffset = itemGridSize * itemGridSize * 3;      // 3 float4 per matrix
         for (int z = 0; z < itemGridSize; z++)
         {
             for (int x = 0; x < itemGridSize; x++)
@@ -167,36 +194,41 @@ public unsafe class BRGSetup : MonoBehaviour
                 float px = x - itemGridSize / 2;
                 float pz = z - itemGridSize / 2;
                 int i = z * itemGridSize + x;
-                vectorBuffer[i * 3 + 0] = new Vector4(1, 0, 0, 0);      // hacky float3x4 layout
-                vectorBuffer[i * 3 + 1] = new Vector4(1, 0, 0, 0);
-                vectorBuffer[i * 3 + 2] = new Vector4(1, px, m_y, pz);
+
+                // update previous matrix with previous frame current matrix
+                m_sysmemBuffer[i * 3 + 0 + itemCountOffset] = m_sysmemBuffer[i * 3 + 0];
+                m_sysmemBuffer[i * 3 + 1 + itemCountOffset] = m_sysmemBuffer[i * 3 + 1];
+                m_sysmemBuffer[i * 3 + 2 + itemCountOffset] = m_sysmemBuffer[i * 3 + 2];
+
+                // compute the new current frame matrix
+                m_sysmemBuffer[i * 3 + 0] = new Vector4(1, 0, 0, 0);      // hacky float3x4 layout
+                m_sysmemBuffer[i * 3 + 1] = new Vector4(1, 0, 0, 0);
+                m_sysmemBuffer[i * 3 + 2] = new Vector4(1, px + pos.x, pos.y, pz+pos.z);
+
             }
         }
 
-        // Colors
-        int colorOffset = itemCount * 3;
-        for (int i = 0; i < itemCount; i++)
-        {
-            Color col = Color.HSVToRGB(((float)(i) / (float)itemCount) % 1.0f, 1.0f, 1.0f);
-
-            // write colors right after the 4x3 matrices
-            vectorBuffer[colorOffset + i] = new Vector4(col.r, col.g, col.b, 1.0f);
-        }
-
-        m_GPUPersistentInstanceData.SetData(vectorBuffer);
-
-        m_initialized = true;
     }
 
     // Update is called once per frame
     void Update()
     {
-        m_clock += Time.deltaTime;
+        m_clock += Time.fixedDeltaTime;
+        m_phase += Time.fixedDeltaTime * m_motionSpeed;
         if (m_clock >= m_cullMovingPeriod)
         {
             m_clock -= m_cullMovingPeriod;
             m_lineIdToCull = (m_lineIdToCull + 1) % itemGridSize;
         }
+
+        if ( m_motionAmplitude > 0.0f )
+        {
+            Vector3 pos = new Vector3(0, 0, Mathf.Cos(m_phase) * m_motionAmplitude);
+            UpdatePositions(pos + m_center);
+            // upload the full buffer
+            m_GPUPersistentInstanceData.SetData(m_sysmemBuffer);
+        }
+
     }
 
     private void OnDestroy()
@@ -211,6 +243,7 @@ public unsafe class BRGSetup : MonoBehaviour
 
             m_BatchRendererGroup.Dispose();
             m_GPUPersistentInstanceData.Dispose();
+            m_sysmemBuffer.Dispose();
         }
     }
 }

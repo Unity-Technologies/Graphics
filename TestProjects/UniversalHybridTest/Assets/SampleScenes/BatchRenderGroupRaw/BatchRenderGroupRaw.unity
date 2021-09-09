@@ -201,14 +201,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 33036248}
-  m_LocalRotation: {x: -0.0876902, y: 0.9044587, z: -0.22595231, w: -0.35101345}
-  m_LocalPosition: {x: 22.610802, y: 6.4644012, z: 22.579578}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0.7071068, w: 0}
+  m_LocalPosition: {x: -20.738388, y: 35.643612, z: -1.1265764}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 180}
 --- !u!114 &33036252
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -268,7 +268,7 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 2
---- !u!1 &620464167
+--- !u!1 &661130649
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -276,22 +276,22 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 620464169}
-  - component: {fileID: 620464168}
+  - component: {fileID: 661130651}
+  - component: {fileID: 661130650}
   m_Layer: 0
-  m_Name: BRGSetupTop
+  m_Name: BRGSetupMotionBlur
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &620464168
+--- !u!114 &661130650
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 620464167}
+  m_GameObject: {fileID: 661130649}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8bf5413b4c8d11b4b9ba0b4d0dd785d3, type: 3}
@@ -299,16 +299,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
   m_material: {fileID: 2100000, guid: 58f4ece444f501e418c87a1fbd419d34, type: 2}
-  m_y: -10
-  m_cullRow: 1
+  m_cullTest: 0
   m_cullMovingPeriod: 0.5
---- !u!4 &620464169
+  m_motionVectorTest: 1
+  m_center: {x: -35, y: 0, z: 0}
+  m_motionSpeed: 1
+  m_motionAmplitude: 2
+--- !u!4 &661130651
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 620464167}
+  m_GameObject: {fileID: 661130649}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.5458102, y: -1.7266469, z: 0.63718224}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -463,9 +466,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
   m_material: {fileID: 2100000, guid: 58f4ece444f501e418c87a1fbd419d34, type: 2}
-  m_y: 0
-  m_cullRow: 0
+  m_cullTest: 1
   m_cullMovingPeriod: 0.5
+  m_motionVectorTest: 0
+  m_center: {x: 0, y: 0, z: 0}
+  m_motionSpeed: 1
+  m_motionAmplitude: 2
 --- !u!4 &1718399153
 Transform:
   m_ObjectHideFlags: 0
