@@ -254,7 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return passData.outputBuffer;
             }
         }
-      
+
         static RTHandle RequestRayTracedIndirectDiffuseHistoryTexture(HDCamera hdCamera)
         {
             return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF)
