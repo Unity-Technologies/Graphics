@@ -61,7 +61,7 @@ void ApplyDebugToLighting(LightLoopContext context, inout BuiltinData builtinDat
             _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTION_LIGHTING ||
             _DebugLightingMode == DEBUGLIGHTINGMODE_REFRACTION_LIGHTING
 #if (SHADERPASS != SHADERPASS_DEFERRED_LIGHTING)
-            || _DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING // With deferred, Emissive is store in builtinData.bakeDiffuseLighting
+            || _DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING // With deferred, Emissive is store in builtinData.bakeDiffuseLighting (See Lit.hlsl EncodeToGbuffer)
 #endif
             )
         {
@@ -465,6 +465,14 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             tempBuiltinData.bakeDiffuseLighting *= GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
 
             ApplyDebugToBuiltinData(tempBuiltinData); // This will not affect emissive as we don't use it
+
+#if defined(DEBUG_DISPLAY) && (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING)
+            // We need to handle the specific case of deferred for debug lighting mode here
+            if (_DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+            {
+                tempBuiltinData.bakeDiffuseLighting = real3(0.0, 0.0, 0.0);
+            }
+#endif
 
             // Replace original data
             builtinData.bakeDiffuseLighting = tempBuiltinData.bakeDiffuseLighting;
