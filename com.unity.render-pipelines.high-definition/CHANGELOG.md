@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed DLSS keyword in settings search when NVIDIA package is not installed. (case 1358409)
 - Fixed light anchor min distance value + properties not working with prefabs (case 1345509).
 - Fixed specular occlusion sharpness and over darkening at grazing angles.
+- Fixed edge bleeding when rendering volumetric clouds.
 - Fixed the performance of the volumetric clouds in non-local mode when large occluders are on screen.
 
 ### Changed
@@ -243,6 +244,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing API documentation for LTC area light code.
 - Fixed diffusion profile breaking after upgrading HDRP (case 1337892).
 - Fixed undo on light anchor.
+- Fixed invalid cast exception on HDProbe.
 - Fixed some depth comparison instabilities with volumetric clouds.
 - Fixed AxF debug output in certain configurations (case 1333780).
 - Fixed white flash when camera is reset and SSR Accumulation mode is on.
@@ -392,6 +394,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
 - Fixed ThreadMapDetail to saturate AO & smoothness strength inputs to prevent out-of-bounds values set by users (1357740)
 - Allow negative wind speed parameter.
+- Fixed remove of the Additional Light Data when removing the Light Component.
+- Fixed remove of the Additional Camera Data when removing the Camera Component.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
