@@ -393,6 +393,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed artifacts in volumetric cloud shadows.
 - Fixed the missing parameter to control the sun light dimmer (case 1364152).
 - Fixed regression in the clouds presets.
+- Fixed remove of the Additional Light Data when removing the Light Component.
+- Fixed remove of the Additional Camera Data when removing the Camera Component.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
