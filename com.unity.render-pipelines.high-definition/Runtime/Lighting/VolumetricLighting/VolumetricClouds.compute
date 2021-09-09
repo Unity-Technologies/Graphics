@@ -599,10 +599,10 @@ float3 EvaluateSunLuminance(float3 positionWS, float3 sunDirection, float3 sunCo
 
         // Collect total density along light ray.
         float lastDist = 0;
-        for (int j = 1; j <= _NumLightSteps; j++)
+        for (int j = 0; j < _NumLightSteps; j++)
         {
             // The samples are not linearly distributed along the point-light direction due to their low number. We sample they in a logarithmic way.
-            float dist = stepSize * j;
+            float dist = stepSize * (0.25 + j);
 
             // Evaluate the current sample point
             float3 currentSamplePointWS = positionWS + sunDirection * dist;

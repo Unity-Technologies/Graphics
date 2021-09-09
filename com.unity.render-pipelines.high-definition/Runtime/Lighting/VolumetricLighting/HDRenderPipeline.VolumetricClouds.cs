@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case VolumetricClouds.CloudPresets.Sparse:
                 {
-                    cloudModelData.densityMultiplier = 0.3f;
+                    cloudModelData.densityMultiplier = 0.25f;
                     cloudModelData.shapeFactor = 0.9f;
                     cloudModelData.shapeScale = 3.0f;
                     cloudModelData.erosionFactor = 0.9f;
@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 case VolumetricClouds.CloudPresets.Cloudy:
                 {
-                    cloudModelData.densityMultiplier = 0.35f;
+                    cloudModelData.densityMultiplier = 0.3f;
                     cloudModelData.shapeFactor = 0.9f;
                     cloudModelData.shapeScale = 5.0f;
                     cloudModelData.erosionFactor = 0.9f;
@@ -203,11 +203,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 case VolumetricClouds.CloudPresets.Stormy:
                 {
-                    cloudModelData.densityMultiplier = 0.35f;
+                    cloudModelData.densityMultiplier = 0.3f;
                     cloudModelData.shapeFactor = 0.85f;
-                    cloudModelData.shapeScale = 3.5f;
+                    cloudModelData.shapeScale = 3.0f;
                     cloudModelData.erosionFactor = 0.95f;
-                    cloudModelData.erosionScale = 70.0f;
+                    cloudModelData.erosionScale = 60.0f;
                     cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
                     return;
                 }
