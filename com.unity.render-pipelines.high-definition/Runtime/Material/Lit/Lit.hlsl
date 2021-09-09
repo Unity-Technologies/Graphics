@@ -1083,7 +1083,7 @@ struct PreLightData
     float    coatPartLambdaV;
     float3   coatIblR;
     float    coatIblF;               // Fresnel term for view vector
-    float    clearCoatIndirectSpec;
+    float    clearCoatIndirectSpec;  // Weight used to support the clear coat's SSR/IBL blending
     float3x3 ltcTransformCoat;       // Inverse transformation for GGX                                 (4x VGPRs)
 
 #if HAS_REFRACTION
@@ -2013,19 +2013,15 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // Evaluate the Clear Coat component if needed
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
         {
-            if (preLightData.clearCoatIndirectSpec != 0.0)
-            {
-                // No correction needed for coatR as it is smooth
-                // Note: coat F is scalar as it is a dieletric
-                envLighting *= Sq(1.0 - preLightData.coatIblF);
+            // No correction needed for coatR as it is smooth
+            // Note: coat F is scalar as it is a dieletric
+            envLighting *= Sq(1.0 - preLightData.coatIblF);
 
-                // Evaluate the Clear Coat color
-                float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, coatR, 0.0, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
-                envLighting += preLightData.coatIblF * preLD.rgb;
+            // Evaluate the Clear Coat color
+            float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, coatR, 0.0, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
+            envLighting += preLightData.coatIblF * preLD.rgb * preLightData.clearCoatIndirectSpec;
 
-                // Can't attenuate diffuse lighting here, may try to apply something on bakeLighting in PostEvaluateBSDF
-            }
-            
+            // Can't attenuate diffuse lighting here, may try to apply something on bakeLighting in PostEvaluateBSDF
         }
     }
 #if HAS_REFRACTION

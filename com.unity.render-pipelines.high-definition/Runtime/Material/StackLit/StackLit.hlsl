@@ -1046,7 +1046,7 @@ struct PreLightData
 
     float coatIeta;
 
-    // TODO write comment
+    // Weight used to support the clear coat's SSR/IBL blending
     float clearCoatIndirectSpec;
 
     // For IBLs (and analytical lights if approximation is used)
@@ -4404,6 +4404,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // Incorrect, but just for now:
         L *= preLightData.energyCompensationFactor[i];
         L *= preLightData.hemiSpecularOcclusion[i];
+
+        // If we are going to process the clear coat, we need to take into account the coat indirect spec factor
+        L = (i == COAT_LOBE_IDX && COAT_NB_LOBES == 1) ? preLightData.clearCoatIndirectSpec : 1.0;
         envLighting += L;
     }
 
