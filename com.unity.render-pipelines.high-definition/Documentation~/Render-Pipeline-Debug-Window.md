@@ -10,23 +10,29 @@ The **Rendering Debugger** is a specific window for the Scriptable Render Pipeli
 - [Rendering](#RenderingPanel)
 - [Camera](#CameraPanel)
 
-![](Images/RenderPipelineDebug1.png)
-
-The Rendering Debugger.
+![](Images/RenderPipelineDebug1.png)<br/>*The Rendering Debugger.*
 
 ## Using the Rendering Debugger
 
-To open the Rendering Debugger in the Editor, you must first enable **Runtime Debug Shaders** in **HDRP Global Settings**:
+The Rendering Debugger window is available in the following modes:
 
-1. Go to **Edit > Project Settings > Graphics**
-2. Click **HDRP Settings**
-3. Enable **Runtime Debug Shaders**
+* The Editor.
 
-To open the Rendering Debugger, go to **Window > Analysis > Rendering Debugger**.
+* The Play mode.
 
-You can also open this window at runtime in Play Mode, or in the standalone Unity Player on any device on **Development build**. Use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller to open the window. You can disable the shortcut through the [enableWindowHotkey variable](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@12.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableWindowHotkey).
+* At runtime in the standalone Unity Player, on any device. The window is only available in **Development Builds**.
 
-You can display read-only items such as the FPS counter independently of the **Rendering Debugger**. This means that when you disable the **Rendering Debugger**, they are still visible in the top right corner of the screen. This is particularly useful if you want to track particular values without cluttering the screen.
+To open the Rendering Debugger in the Editor:
+
+* Enable **Runtime Debug Shaders** in **HDRP Global Settings** (in the menu: **Edit > Project Settings > Graphics > HDRP Settings**).
+
+* Select **Window > Analysis > Rendering Debugger**.
+
+To open the window in the Play mode, or at runtime in a Development Build, use the keyboard shortcut Ctrl+Backspace (Ctrl+Delete on macOS) or press L3 and R3 (Left Stick and Right Stick) on a controller.
+
+You can display read-only items, such as the FPS counter, independently of the **Rendering Debugger** window. When you disable the **Rendering Debugger** window, they are still visible in the top right corner of the screen. Use this functionality to track particular values without cluttering the screen.
+
+You can disable the runtime UI entirely by using the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
 
 ### Navigation at runtime
 

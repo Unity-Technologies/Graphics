@@ -299,6 +299,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return HasVolumetricClouds(hdCamera, in settings);
         }
 
+        static bool VolumetricCloudsRequireMaxZ(HDCamera hdCamera)
+        {
+            // Volumetric clouds require the max Z pass if the camera has clouds and we are in non local mode
+            VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
+            return HasVolumetricClouds(hdCamera, in settings) && !settings.localClouds.value;
+        }
+
         Texture2D GetPresetCloudMapTexture(VolumetricClouds.CloudPresets preset)
         {
             // Textures may become null if a new scene was loaded in the editor (and maybe other reasons).
@@ -439,8 +446,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ShapeScale = cloudModelData.shapeScale;
             cb._ErosionFactor = cloudModelData.erosionFactor;
             cb._ErosionScale = cloudModelData.erosionScale;
-            cb._ShapeNoiseOffset = new Vector2(settings.shapeOffsetX.value, settings.shapeOffsetZ.value);
-            cb._VerticalShapeNoiseOffset = settings.shapeOffsetY.value;
+            cb._ShapeNoiseOffset = new Vector2(settings.shapeOffset.value.x, settings.shapeOffset.value.z);
+            cb._VerticalShapeNoiseOffset = settings.shapeOffset.value.y;
 
             // If the sun has moved more than 2.0°, reduce significantly the history accumulation
             float sunAngleDifference = 0.0f;
@@ -523,6 +530,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._LowResolutionEvaluation = cameraData.lowResolution ? 1 : 0;
             cb._EnableIntegration = cameraData.enableIntegration ? 1 : 0;
             cb._RenderForSky = cameraData.cameraType == TVolumetricCloudsCameraType.Sky ? 1 : 0;
+
+            // The valid max z mask is only valid if we are in non local mode
+            cb._ValidMaxZMask = settings.localClouds.value ? 0 : 1;
 
             unsafe
             {
@@ -637,7 +647,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting)
+        void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting, TextureHandle maxZMask)
         {
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
@@ -655,14 +665,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (accumulationClouds)
             {
-                RenderVolumetricClouds_Accumulation(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting);
+                RenderVolumetricClouds_Accumulation(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
                 // Make sure to mark the history frame index validity.
                 PropagateVolumetricCloudsHistoryValidity(hdCamera, settings.localClouds.value);
             }
             else if (fullResolutionClouds)
-                RenderVolumetricClouds_FullResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting);
+                RenderVolumetricClouds_FullResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
             else
-                RenderVolumetricClouds_LowResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting);
+                RenderVolumetricClouds_LowResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
         }
 
         void PreRenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera)
