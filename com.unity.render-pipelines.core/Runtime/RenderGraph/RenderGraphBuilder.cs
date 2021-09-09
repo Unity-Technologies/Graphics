@@ -9,10 +9,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public struct RenderGraphBuilder : IDisposable
     {
-        RenderGraphPass             m_RenderPass;
+        RenderGraphPass m_RenderPass;
         RenderGraphResourceRegistry m_Resources;
-        RenderGraph                 m_RenderGraph;
-        bool                        m_Disposed;
+        RenderGraph m_RenderGraph;
+        bool m_Disposed;
 
         #region Public Interface
         /// <summary>

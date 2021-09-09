@@ -1,5 +1,5 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
-    #define USE_INPUT_SYSTEM
+#define USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 #endif
@@ -30,17 +30,17 @@ namespace UnityEngine.Rendering
 
     public sealed partial class DebugManager
     {
-        const string kEnableDebugBtn1  = "Enable Debug Button 1";
-        const string kEnableDebugBtn2  = "Enable Debug Button 2";
+        const string kEnableDebugBtn1 = "Enable Debug Button 1";
+        const string kEnableDebugBtn2 = "Enable Debug Button 2";
         const string kDebugPreviousBtn = "Debug Previous";
-        const string kDebugNextBtn     = "Debug Next";
-        const string kValidateBtn      = "Debug Validate";
-        const string kPersistentBtn    = "Debug Persistent";
-        const string kDPadVertical     = "Debug Vertical";
-        const string kDPadHorizontal   = "Debug Horizontal";
-        const string kMultiplierBtn    = "Debug Multiplier";
-        const string kResetBtn         = "Debug Reset";
-        const string kEnableDebug      = "Enable Debug";
+        const string kDebugNextBtn = "Debug Next";
+        const string kValidateBtn = "Debug Validate";
+        const string kPersistentBtn = "Debug Persistent";
+        const string kDPadVertical = "Debug Vertical";
+        const string kDPadHorizontal = "Debug Horizontal";
+        const string kMultiplierBtn = "Debug Multiplier";
+        const string kResetBtn = "Debug Reset";
+        const string kEnableDebug = "Enable Debug";
 
         DebugActionDesc[] m_DebugActions;
         DebugActionState[] m_DebugActionStates;
@@ -140,7 +140,10 @@ namespace UnityEngine.Rendering
             moveHorizontal.repeatMode = DebugActionRepeatMode.Delay;
             moveHorizontal.repeatDelay = 0.16f;
             AddAction(DebugAction.MoveHorizontal, moveHorizontal);
+        }
 
+        internal void EnableInputActions()
+        {
 #if USE_INPUT_SYSTEM
             foreach (var action in debugActionMap)
                 action.Enable();
@@ -159,7 +162,7 @@ namespace UnityEngine.Rendering
             var desc = m_DebugActions[actionIndex];
             var state = m_DebugActionStates[actionIndex];
 
-// Disable all input events if we're using the new input system
+            // Disable all input events if we're using the new input system
 #if USE_INPUT_SYSTEM
             if (state.runningAction == false)
             {

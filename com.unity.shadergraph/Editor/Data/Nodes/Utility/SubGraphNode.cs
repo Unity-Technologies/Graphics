@@ -190,7 +190,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool canSetPrecision
         {
-            get { return asset?.subGraphGraphPrecision == GraphPrecision.Graph;  }
+            get { return asset?.subGraphGraphPrecision == GraphPrecision.Graph; }
         }
 
         public override void GetInputSlots<T>(MaterialSlot startingSlot, List<T> foundSlots)

@@ -470,7 +470,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (draggedElements.ContainsKey(this))
                         draggedElements[this].Add(FindCategoryDirectChild(this, draggedElement));
                     else
-                        draggedElements.Add(this, new List<VisualElement> {FindCategoryDirectChild(this, draggedElement)});
+                        draggedElements.Add(this, new List<VisualElement> { FindCategoryDirectChild(this, draggedElement) });
                 }
                 else
                 {
@@ -480,7 +480,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (draggedElements.ContainsKey(otherCategory))
                             draggedElements[otherCategory].Add(FindCategoryDirectChild(otherCategory, draggedElement));
                         else
-                            draggedElements.Add(otherCategory, new List<VisualElement> {FindCategoryDirectChild(otherCategory, draggedElement)});
+                            draggedElements.Add(otherCategory, new List<VisualElement> { FindCategoryDirectChild(otherCategory, draggedElement) });
                     }
                 }
             }

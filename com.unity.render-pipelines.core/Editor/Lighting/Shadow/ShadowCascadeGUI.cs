@@ -16,10 +16,11 @@ namespace UnityEditor.Rendering
         private const float kSliderbarMargin = 2.0f;
         private const float kSliderbarHeight = 28.0f;
 
+        // Keep in sync with the ones in Debug.hlsl
         private static readonly Color[] kCascadeColors =
         {
             new Color(0.5f, 0.5f, 0.7f, 1.0f),
-            new Color(0.5f, 7, 0.5f, 1.0f),
+            new Color(0.5f, 0.7f, 0.5f, 1.0f),
             new Color(0.7f, 0.7f, 0.5f, 1.0f),
             new Color(0.7f, 0.5f, 0.5f, 1.0f),
         };

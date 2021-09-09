@@ -90,7 +90,7 @@ namespace UnityEditor.Rendering.Universal
             rect.height = EditorGUIUtility.singleLineHeight;
             rect.y += 1;
 
-            (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera)overlayCamera = m_SerializedCamera[index];
+            (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera) overlayCamera = m_SerializedCamera[index];
             Camera cam = overlayCamera.camera;
             if (cam != null)
             {
@@ -250,7 +250,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_SerializedCamera.Refresh();
 
-            (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera)overlayCamera = m_SerializedCamera[m_SerializedCamera.numCameras - 1];
+            (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera) overlayCamera = m_SerializedCamera[m_SerializedCamera.numCameras - 1];
             UpdateStackCameraOutput(overlayCamera.camera, overlayCamera.serializedCamera);
         }
 
@@ -318,7 +318,7 @@ namespace UnityEditor.Rendering.Universal
             int cameraCount = m_SerializedCamera.cameras.arraySize;
             for (int i = 0; i < cameraCount; ++i)
             {
-                (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera)overlayCamera = m_SerializedCamera[i];
+                (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera) overlayCamera = m_SerializedCamera[i];
                 if (overlayCamera.camera != null)
                     UpdateStackCameraOutput(overlayCamera.camera, overlayCamera.serializedCamera);
             }
@@ -500,45 +500,6 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel++;
 
             EditorGUILayout.Space();
-        }
-    }
-
-    [ScriptableRenderPipelineExtension(typeof(UniversalRenderPipelineAsset))]
-    class UniversalRenderPipelineCameraContextualMenu : IRemoveAdditionalDataContextualMenu<Camera>
-    {
-        //The call is delayed to the dispatcher to solve conflict with other SRP
-        public void RemoveComponent(Camera camera, IEnumerable<Component> dependencies)
-        {
-            // do not use keyword is to remove the additional data. It will not work
-            dependencies = dependencies.Where(c => c.GetType() != typeof(UniversalAdditionalCameraData));
-            if (dependencies.Any())
-            {
-                EditorUtility.DisplayDialog("Can't remove component", $"Can't remove Camera because {dependencies.First().GetType().Name} depends on it.", "Ok");
-                return;
-            }
-
-            var isAssetEditing = EditorUtility.IsPersistent(camera);
-            try
-            {
-                if (isAssetEditing)
-                {
-                    AssetDatabase.StartAssetEditing();
-                }
-                Undo.SetCurrentGroupName("Remove Universal Camera");
-                var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
-                if (additionalCameraData != null)
-                {
-                    Undo.DestroyObjectImmediate(additionalCameraData);
-                }
-                Undo.DestroyObjectImmediate(camera);
-            }
-            finally
-            {
-                if (isAssetEditing)
-                {
-                    AssetDatabase.StopAssetEditing();
-                }
-            }
         }
     }
 }

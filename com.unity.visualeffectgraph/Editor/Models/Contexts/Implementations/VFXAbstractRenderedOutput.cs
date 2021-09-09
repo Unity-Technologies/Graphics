@@ -55,7 +55,7 @@ namespace UnityEditor.VFX
 
         public virtual bool hasExcludeFromTAA => subOutput.supportsExcludeFromTAA && excludeFromTAA;
 
-        protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) {}
+        protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) { }
 
 
         public override IEnumerable<int> GetFilteredOutEnumerators(string name)
@@ -87,7 +87,7 @@ namespace UnityEditor.VFX
 
         private VFXSRPSubOutput CreateDefaultSubOutput()
         {
-            var defaultSubOutput  = ScriptableObject.CreateInstance<VFXSRPSubOutput>();
+            var defaultSubOutput = ScriptableObject.CreateInstance<VFXSRPSubOutput>();
             defaultSubOutput.Init(this);
             return defaultSubOutput;
         }

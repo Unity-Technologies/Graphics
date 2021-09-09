@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             InspectableAttribute attribute)
         {
             return this.CreateGUI(newEnumValue =>
-                propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newEnumValue}),
+                propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] { newEnumValue }),
                 (Enum)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 (Enum)attribute.defaultValue,

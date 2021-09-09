@@ -7,7 +7,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Intermediate values for ambient probe evaluation
         Vector4[] m_PackedCoeffsClouds;
-        ZonalHarmonicsL2 m_PhaseZHClouds;
 
         // Cloud preset maps
         Texture2D m_SparsePresetMap;
@@ -25,10 +24,13 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ReprojectCloudsKernel;
         int m_ReprojectCloudsRejectionKernel;
         int m_PreUpscaleCloudsKernel;
+        int m_PreUpscaleCloudsSkyKernel;
         int m_UpscaleAndCombineCloudsKernelColorCopy;
         int m_UpscaleAndCombineCloudsKernelColorRW;
+        int m_UpscaleAndCombineCloudsSkyKernel;
         int m_CombineCloudsKernelColorCopy;
         int m_CombineCloudsKernelColorRW;
+        int m_CombineCloudsSkyKernel;
 
         // Combine pass via hardware blending, used in case of MSAA color target.
         Material m_CloudCombinePass;
@@ -64,6 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                               0.119433f, 0.535261f, 0.324652f, 0.196912f, 0.882497f, 0.535261f, 0.0439369f, 0.196912f, 0.119433f,
                                                               0.119433f, 0.196912f, 0.0439369f, 0.535261f, 0.882497f, 0.196912f, 0.324652f, 0.535261f, 0.119433f,
                                                               0.0439369f, 0.196912f, 0.119433f, 0.196912f, 0.882497f, 0.535261f, 0.119433f, 0.535261f, 0.324652f};
+
         struct VolumetricCloudsCameraData
         {
             public TVolumetricCloudsCameraType cameraType;
@@ -86,8 +89,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Allocate the buffers for ambient probe evaluation
             m_PackedCoeffsClouds = new Vector4[7];
-            m_PhaseZHClouds = new ZonalHarmonicsL2();
-            m_PhaseZHClouds.coeffs = new float[3];
 
             // Grab the kernels we need
             ComputeShader volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
@@ -97,10 +98,13 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ReprojectCloudsKernel = volumetricCloudsCS.FindKernel("ReprojectClouds");
             m_ReprojectCloudsRejectionKernel = volumetricCloudsCS.FindKernel("ReprojectCloudsRejection");
             m_PreUpscaleCloudsKernel = volumetricCloudsCS.FindKernel("PreUpscaleClouds");
+            m_PreUpscaleCloudsSkyKernel = volumetricCloudsCS.FindKernel("PreUpscaleCloudsSky");
             m_UpscaleAndCombineCloudsKernelColorCopy = volumetricCloudsCS.FindKernel("UpscaleAndCombineClouds_ColorCopy");
             m_UpscaleAndCombineCloudsKernelColorRW = volumetricCloudsCS.FindKernel("UpscaleAndCombineClouds_ColorRW");
+            m_UpscaleAndCombineCloudsSkyKernel = volumetricCloudsCS.FindKernel("UpscaleAndCombineCloudsSky");
             m_CombineCloudsKernelColorCopy = volumetricCloudsCS.FindKernel("CombineClouds_ColorCopy");
             m_CombineCloudsKernelColorRW = volumetricCloudsCS.FindKernel("CombineClouds_ColorRW");
+            m_CombineCloudsSkyKernel = volumetricCloudsCS.FindKernel("CombineCloudsSky");
 
             // Create the material needed for the combination
             m_CloudCombinePass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.volumetricCloudsCombinePS);
@@ -111,6 +115,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Initialize the additional sub components
             InitializeVolumetricCloudsMap();
             InitializeVolumetricCloudsShadows();
+            InitializeVolumetricCloudsAmbientProbe();
+            InitializeVolumetricCloudsStaticTextures();
         }
 
         void ReleaseVolumetricClouds()
@@ -124,6 +130,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Release the additional sub components
             ReleaseVolumetricCloudsMap();
             ReleaseVolumetricCloudsShadows();
+            ReleaseVolumetricCloudsAmbientProbe();
+            ReleaseVolumetricCloudsStaticTextures();
         }
 
         void AllocatePresetTextures()
@@ -194,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     cloudModelData.densityMultiplier = 0.3f;
                     cloudModelData.shapeFactor = 0.9f;
-                    cloudModelData.shapeScale =  2.0f;
+                    cloudModelData.shapeScale = 2.0f;
                     cloudModelData.erosionFactor = 0.8f;
                     cloudModelData.erosionScale = 50.0f;
                     cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
@@ -291,6 +299,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return HasVolumetricClouds(hdCamera, in settings);
         }
 
+        static bool VolumetricCloudsRequireMaxZ(HDCamera hdCamera)
+        {
+            // Volumetric clouds require the max Z pass if the camera has clouds and we are in non local mode
+            VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
+            return HasVolumetricClouds(hdCamera, in settings) && !settings.localClouds.value;
+        }
+
         Texture2D GetPresetCloudMapTexture(VolumetricClouds.CloudPresets preset)
         {
             // Textures may become null if a new scene was loaded in the editor (and maybe other reasons).
@@ -318,7 +333,8 @@ namespace UnityEngine.Rendering.HighDefinition
             Default,
             RealtimeReflection,
             BakedReflection,
-            PlanarReflection
+            PlanarReflection,
+            Sky
         };
 
         TVolumetricCloudsCameraType GetCameraType(HDCamera hdCamera)
@@ -370,7 +386,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._NumPrimarySteps = settings.numPrimarySteps.value;
             cb._NumLightSteps = settings.numLightSteps.value;
             // 1000.0f is the maximal distance that a single step can do in theory (otherwise we endup skipping large clouds)
-            cb._MaxRayMarchingDistance = Mathf.Min(settings.cloudThickness.value / 8.0f *  cb._NumPrimarySteps, hdCamera.camera.farClipPlane);
+            cb._MaxRayMarchingDistance = Mathf.Min(settings.cloudThickness.value / 8.0f * cb._NumPrimarySteps, hdCamera.camera.farClipPlane);
             cb._CloudMapTiling.Set(settings.cloudTiling.value.x, settings.cloudTiling.value.y, settings.cloudOffset.value.x, settings.cloudOffset.value.y);
 
             cb._ScatteringTint = Color.white - settings.scatteringTint.value * 0.75f;
@@ -384,7 +400,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // PB Sun/Sky settings
             var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-            cb._PhysicallyBasedSun =  visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased ? 1 : 0;
+            cb._PhysicallyBasedSun = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased ? 1 : 0;
             Light currentSun = GetMainLight();
             if (currentSun != null)
             {
@@ -399,17 +415,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     cb._SunLightColor = m_lightList.directionalLights[0].color;
                 }
-
-                cb._ExposureSunColor = 1;
             }
             else
             {
                 cb._SunDirection = Vector3.up;
                 cb._SunRight = Vector3.right;
                 cb._SunUp = Vector3.forward;
-
                 cb._SunLightColor = Vector3.zero;
-                cb._ExposureSunColor = 0;
             }
 
             // Compute the theta angle for the wind direction
@@ -434,7 +446,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ShapeScale = cloudModelData.shapeScale;
             cb._ErosionFactor = cloudModelData.erosionFactor;
             cb._ErosionScale = cloudModelData.erosionScale;
-            cb._ShapeNoiseOffset = new Vector2(settings.shapeOffsetX.value, settings.shapeOffsetZ.value);
+            cb._ShapeNoiseOffset = new Vector2(settings.shapeOffset.value.x, settings.shapeOffset.value.z);
+            cb._VerticalShapeNoiseOffset = settings.shapeOffset.value.y;
 
             // If the sun has moved more than 2.0°, reduce significantly the history accumulation
             float sunAngleDifference = 0.0f;
@@ -488,7 +501,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Evaluate the ambient probe data
-            SetPreconvolvedAmbientLightProbe(ref cb, hdCamera, settings);
+            SetPreconvolvedAmbientLightProbe(ref cb, settings);
 
             if (shadowPass)
             {
@@ -513,8 +526,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cb._EnableFastToneMapping = cameraData.enableExposureControl ? 1 : 0;
+
             cb._LowResolutionEvaluation = cameraData.lowResolution ? 1 : 0;
             cb._EnableIntegration = cameraData.enableIntegration ? 1 : 0;
+            cb._RenderForSky = cameraData.cameraType == TVolumetricCloudsCameraType.Sky ? 1 : 0;
+
+            // The valid max z mask is only valid if we are in non local mode
+            cb._ValidMaxZMask = settings.localClouds.value ? 0 : 1;
 
             unsafe
             {
@@ -558,7 +576,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_Asset.renderPipelineResources.textures.worleyNoise32RGB;
         }
 
-        void FillVolumetricCloudsCommonData(HDCamera hdCamera, VolumetricClouds settings, TVolumetricCloudsCameraType cameraType, in CloudModelData cloudModelData, ref VolumetricCloudCommonData commonData)
+        void FillVolumetricCloudsCommonData(bool enableExposureControl, VolumetricClouds settings, TVolumetricCloudsCameraType cameraType, in CloudModelData cloudModelData, ref VolumetricCloudCommonData commonData)
         {
             commonData.cameraType = cameraType;
             commonData.localClouds = settings.localClouds.value;
@@ -592,7 +610,7 @@ namespace UnityEngine.Rendering.HighDefinition
             BlueNoise blueNoise = GetBlueNoiseManager();
             commonData.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
             commonData.sunLight = GetMainLight();
-            commonData.enableExposureControl = hdCamera.exposureControlFS;
+            commonData.enableExposureControl = enableExposureControl;
         }
 
         void UpdateVolumetricClouds(HDCamera hdCamera, in VolumetricClouds settings)
@@ -629,7 +647,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting)
+        void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting, TextureHandle maxZMask)
         {
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
@@ -647,14 +665,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (accumulationClouds)
             {
-                RenderVolumetricClouds_Accumulation(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting);
+                RenderVolumetricClouds_Accumulation(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
                 // Make sure to mark the history frame index validity.
                 PropagateVolumetricCloudsHistoryValidity(hdCamera, settings.localClouds.value);
             }
             else if (fullResolutionClouds)
-                RenderVolumetricClouds_FullResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting);
+                RenderVolumetricClouds_FullResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
             else
-                RenderVolumetricClouds_LowResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting);
+                RenderVolumetricClouds_LowResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
         }
 
         void PreRenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera)
@@ -672,6 +690,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle currentHandle = RequestVolumetricCloudsShadowTexture(settings);
                 PushFullScreenDebugTexture(m_RenderGraph, renderGraph.ImportTexture(currentHandle), FullScreenDebugMode.VolumetricCloudsShadow, xrTexture: false);
             }
+
+            // Compute the ambient probe that will be used for clouds
+            PreRenderVolumetricClouds_AmbientProbe(renderGraph, hdCamera);
 
             // Evaluate the cloud map
             PreRenderVolumetricCloudMap(renderGraph, hdCamera, in settings);
