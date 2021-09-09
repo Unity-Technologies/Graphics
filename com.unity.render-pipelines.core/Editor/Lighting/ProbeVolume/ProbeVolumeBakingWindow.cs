@@ -439,7 +439,7 @@ namespace UnityEngine.Experimental.Rendering
         void BakeLightingForSet(ProbeVolumeSceneData.BakingSet set)
         {
             // Save current scenes:
-            if (!EditorSceneManager.SaveOpenScenes())
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
             {
                 Debug.LogError("Can't bake while a scene is dirty!");
                 return;
@@ -477,8 +477,8 @@ namespace UnityEngine.Experimental.Rendering
 
                 EditorApplication.update -= RestoreScenesAfterBake;
 
-                EditorSceneManager.SaveOpenScenes();
-                LoadScenes(scenesToRestore);
+                if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                    LoadScenes(scenesToRestore);
             }
         }
 
