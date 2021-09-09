@@ -201,12 +201,6 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var set in bakingSets)
                 serializedBakingSets.Add(set);
-
-            // Check that all registered scenes are correctly
-            if (bakingSets.Count != 0)
-            {
-
-            }
         }
 
 #if UNITY_EDITOR
@@ -336,9 +330,8 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // It is important this is called after UpdateSceneBounds is called!
-        internal void EnsurePerSceneDataAndPresenceInSet(Scene scene)
+        internal void EnsurePerSceneData(Scene scene)
         {
-
             if (hasProbeVolumes.ContainsKey(scene.path) && hasProbeVolumes[scene.path])
             {
                 var perSceneData = UnityEngine.GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
@@ -360,13 +353,13 @@ namespace UnityEngine.Experimental.Rendering
                     go.AddComponent<ProbeVolumePerSceneData>();
                     SceneManager.MoveGameObjectToScene(go, scene);
                 }
-
-                EnsureSceneIsInBakingSet(sceneGUID);
             }
         }
 
-        internal void EnsureSceneIsInBakingSet(string sceneGUID)
+        internal void EnsureSceneIsInBakingSet(Scene scene)
         {
+            var sceneGUID = GetSceneGUID(scene);
+
             foreach (var set in bakingSets)
                 if (set.sceneGUIDs.Contains(sceneGUID))
                     return;
@@ -376,14 +369,45 @@ namespace UnityEngine.Experimental.Rendering
                 return; // Technically shouldn't be possible since it's blocked in the UI
 
             bakingSets[0].sceneGUIDs.Add(sceneGUID);
+            SyncBakingSetSettings();
+        }
+
+        internal string GetFirstProbeVolumeSceneGUID(ProbeVolumeSceneData.BakingSet set)
+        {
+            foreach (var guid in set.sceneGUIDs)
+            {
+                if (sceneBakingSettings.ContainsKey(guid) && sceneProfiles.ContainsKey(guid))
+                    return guid;
+            }
+            return null;
+        }
+
+        internal void SyncBakingSetSettings()
+        {
+            // Sync all the scene settings in the set to avoid config mismatch.
+            foreach (var set in bakingSets)
+            {
+                var sceneGUID = GetFirstProbeVolumeSceneGUID(set);
+                if (sceneGUID == null)
+                    continue;
+
+                var referenceSettings = sceneBakingSettings[sceneGUID];
+                var referenceProfile = sceneProfiles[sceneGUID];
+
+                foreach (var guid in set.sceneGUIDs)
+                {
+                    sceneBakingSettings[guid] = referenceSettings;
+                    sceneProfiles[guid] = referenceProfile;
+                }
+            }
         }
 
         internal void OnSceneSaved(Scene scene)
         {
+            EnsureSceneIsInBakingSet(scene);
             UpdateSceneBounds(scene);
-            EnsurePerSceneDataAndPresenceInSet(scene);
+            EnsurePerSceneData(scene);
         }
-
 
         internal void SetProfileForScene(Scene scene, ProbeReferenceVolumeProfile profile)
         {

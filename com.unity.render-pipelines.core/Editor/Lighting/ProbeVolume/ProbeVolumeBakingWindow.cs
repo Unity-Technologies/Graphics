@@ -285,7 +285,7 @@ namespace UnityEngine.Experimental.Rendering
                 else
                     set.sceneGUIDs.Add(scene.guid);
 
-                SyncBakingSetSettings();
+                sceneData.SyncBakingSetSettings();
                 m_SerializedObject.Update();
             }
         }
@@ -294,16 +294,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             int index = Mathf.Clamp(m_BakingSets.index, 0, sceneData.bakingSets.Count);
             return sceneData.bakingSets[index];
-        }
-
-        string GetFirstProbeVolumeSceneGUID(ProbeVolumeSceneData.BakingSet set)
-        {
-            foreach (var guid in set.sceneGUIDs)
-            {
-                if (sceneData.sceneBakingSettings.ContainsKey(guid) && sceneData.sceneProfiles.ContainsKey(guid))
-                    return guid;
-            }
-            return null;
         }
 
         void OnGUI()
@@ -342,27 +332,7 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUILayout.EndHorizontal();
 
             if (EditorGUI.EndChangeCheck())
-                SyncBakingSetSettings();
-        }
-
-        void SyncBakingSetSettings()
-        {
-            // Sync all the scene settings in the set to avoid config mismatch.
-            foreach (var set in sceneData.bakingSets)
-            {
-                var sceneGUID = GetFirstProbeVolumeSceneGUID(set);
-                if (sceneGUID == null)
-                    continue;
-
-                var referenceSettings = sceneData.sceneBakingSettings[sceneGUID];
-                var referenceProfile = sceneData.sceneProfiles[sceneGUID];
-
-                foreach (var guid in set.sceneGUIDs)
-                {
-                    sceneData.sceneBakingSettings[guid] = referenceSettings;
-                    sceneData.sceneProfiles[guid] = referenceProfile;
-                }
-            }
+                sceneData.SyncBakingSetSettings();
         }
 
         void DrawLeftPanel()
@@ -404,7 +374,7 @@ namespace UnityEngine.Experimental.Rendering
             m_ScenesInSet.DoLayoutList();
 
             var set = GetCurrentBakingSet();
-            var sceneGUID = GetFirstProbeVolumeSceneGUID(set);
+            var sceneGUID = sceneData.GetFirstProbeVolumeSceneGUID(set);
             if (sceneGUID != null)
             {
                 EditorGUILayout.Space();
