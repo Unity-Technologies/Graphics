@@ -113,7 +113,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var scene = EditorSceneManager.GetSceneAt(i);
                 sceneData.UpdateSceneBounds(scene);
-                sceneData.EnsurePerSceneData(scene);
+                sceneData.EnsurePerSceneDataAndPresenceInSet(scene);
                 // !!! IMPORTANT TODO !!!
                 // When we will have the concept of baking set this should be reverted, if a scene is not in the bake set it should not be considered
                 // As of now we include all open scenes as the workflow is not nice or clear. When it'll be we should *NOT* do it.

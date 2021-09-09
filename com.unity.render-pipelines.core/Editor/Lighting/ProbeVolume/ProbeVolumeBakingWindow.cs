@@ -145,6 +145,11 @@ namespace UnityEngine.Experimental.Rendering
 
             m_BakingSets.onRemoveCallback = (list) =>
             {
+                if (m_BakingSets.count == 1)
+                {
+                    EditorUtility.DisplayDialog("Can't delete baking set", "You can't delete the last Baking set. You need to have at least one.", "Ok");
+                    return;
+                }
                 if (EditorUtility.DisplayDialog("Delete selected baking set?", $"Do you really want to delete the baking set '{sceneData.bakingSets[list.index].name}'?", "Yes", "Cancel"))
                 {
                     Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted baking set");

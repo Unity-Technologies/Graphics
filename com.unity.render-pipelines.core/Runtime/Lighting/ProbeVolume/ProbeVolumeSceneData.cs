@@ -201,6 +201,12 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var set in bakingSets)
                 serializedBakingSets.Add(set);
+
+            // Check that all registered scenes are correctly
+            if (bakingSets.Count != 0)
+            {
+
+            }
         }
 
 #if UNITY_EDITOR
@@ -330,8 +336,9 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // It is important this is called after UpdateSceneBounds is called!
-        internal void EnsurePerSceneData(Scene scene)
+        internal void EnsurePerSceneDataAndPresenceInSet(Scene scene)
         {
+
             if (hasProbeVolumes.ContainsKey(scene.path) && hasProbeVolumes[scene.path])
             {
                 var perSceneData = UnityEngine.GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
@@ -353,13 +360,28 @@ namespace UnityEngine.Experimental.Rendering
                     go.AddComponent<ProbeVolumePerSceneData>();
                     SceneManager.MoveGameObjectToScene(go, scene);
                 }
+
+                EnsureSceneIsInBakingSet(sceneGUID);
             }
+        }
+
+        internal void EnsureSceneIsInBakingSet(string sceneGUID)
+        {
+            foreach (var set in bakingSets)
+                if (set.sceneGUIDs.Contains(sceneGUID))
+                    return;
+
+            // The scene is not in a baking set, we need to add it
+            if (bakingSets.Count == 0)
+                return; // Technically shouldn't be possible since it's blocked in the UI
+
+            bakingSets[0].sceneGUIDs.Add(sceneGUID);
         }
 
         internal void OnSceneSaved(Scene scene)
         {
             UpdateSceneBounds(scene);
-            EnsurePerSceneData(scene);
+            EnsurePerSceneDataAndPresenceInSet(scene);
         }
 
 
