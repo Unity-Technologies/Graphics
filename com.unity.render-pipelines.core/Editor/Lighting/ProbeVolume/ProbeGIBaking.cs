@@ -274,7 +274,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 for (int i = 0; i < cell.validity.Length; ++i)
                 {
-                    if (dilationSettings.dilationDistance > 0.0f && cell.validity[i] > dilationSettings.dilationValidityThreshold)
+                    if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && cell.validity[i] > dilationSettings.dilationValidityThreshold)
                     {
                         for (int k = 0; k < 9; ++k)
                         {
@@ -317,7 +317,7 @@ namespace UnityEngine.Experimental.Rendering
 
             var dilationSettings = m_BakingSettings.dilationSettings;
 
-            if (dilationSettings.dilationDistance > 0.0f)
+            if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f)
             {
                 // Force maximum sh bands to perform dilation, we need to store what sh bands was selected from the settings as we need to restore
                 // post dilation.
@@ -457,7 +457,7 @@ namespace UnityEngine.Experimental.Rendering
                         if (l0 == 0.0f)
                             continue;
 
-                        if (dilationSettings.dilationDistance > 0.0f && validity[j] > dilationSettings.dilationValidityThreshold)
+                        if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && validity[j] > dilationSettings.dilationValidityThreshold)
                         {
                             for (int k = 0; k < 9; ++k)
                             {

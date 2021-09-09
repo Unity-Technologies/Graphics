@@ -8,6 +8,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         static class Styles
         {
+            public static readonly GUIContent enableDilation = new GUIContent("Enable Dilation", "Whether to enable dilation after the baking.");
             public static readonly GUIContent dilationDistance = new GUIContent("Dilation Distance", "The distance used to pick neighbouring probes to dilate into the invalid probe.");
             public static readonly GUIContent dilationValidityDistance = new GUIContent("Dilation Validity Threshold", "The validity threshold used to identify invalid probes.");
             public static readonly GUIContent dilationIterationCount = new GUIContent("Dilation Iteration Count", "The number of times the dilation process takes place.");
@@ -34,6 +35,8 @@ namespace UnityEngine.Experimental.Rendering
             property.serializedObject.Update();
 
             DrawDilationSettings(dilationSettings);
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
             DrawVirtualOffsetSettings(virtualOffsetSettings);
             EditorGUI.EndProperty();
 
@@ -42,23 +45,24 @@ namespace UnityEngine.Experimental.Rendering
 
         void DrawDilationSettings(SerializedProperty dilationSettings)
         {
-            var m_MaxDilationSampleDistance = dilationSettings.FindPropertyRelative("dilationDistance");
-            var m_DilationValidityThreshold = dilationSettings.FindPropertyRelative("dilationValidityThreshold");
-            float DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;
-            var m_DilationIterations = dilationSettings.FindPropertyRelative("dilationIterations");
-            var m_DilationInvSquaredWeight = dilationSettings.FindPropertyRelative("squaredDistWeighting");
+            var enableDilation = dilationSettings.FindPropertyRelative("enableDilation");
+            var maxDilationSampleDistance = dilationSettings.FindPropertyRelative("dilationDistance");
+            var dilationValidityThreshold = dilationSettings.FindPropertyRelative("dilationValidityThreshold");
+            float dilationValidityThresholdInverted = 1f - dilationValidityThreshold.floatValue;
+            var dilationIterations = dilationSettings.FindPropertyRelative("dilationIterations");
+            var dilationInvSquaredWeight = dilationSettings.FindPropertyRelative("squaredDistWeighting");
 
             EditorGUILayout.LabelField(Styles.dilationSettingsTitle, EditorStyles.boldLabel);
-
-            m_MaxDilationSampleDistance.floatValue = Mathf.Max(EditorGUILayout.FloatField(Styles.dilationDistance, m_MaxDilationSampleDistance.floatValue), 0);
-            DilationValidityThresholdInverted = EditorGUILayout.Slider(Styles.dilationValidityDistance, DilationValidityThresholdInverted, 0f, 1f);
-            m_DilationValidityThreshold.floatValue = 1f - DilationValidityThresholdInverted;
-
-            EditorGUILayout.LabelField(Styles.advancedTitle, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            m_DilationIterations.intValue = EditorGUILayout.IntSlider(Styles.dilationIterationCount, m_DilationIterations.intValue, 1, 5);
-            m_DilationInvSquaredWeight.boolValue = EditorGUILayout.Toggle(Styles.dilationSquaredDistanceWeighting, m_DilationInvSquaredWeight.boolValue);
+            enableDilation.boolValue = EditorGUILayout.Toggle(Styles.enableDilation, enableDilation.boolValue);
+            EditorGUI.BeginDisabledGroup(!enableDilation.boolValue);
+            maxDilationSampleDistance.floatValue = Mathf.Max(EditorGUILayout.FloatField(Styles.dilationDistance, maxDilationSampleDistance.floatValue), 0);
+            dilationValidityThresholdInverted = EditorGUILayout.Slider(Styles.dilationValidityDistance, dilationValidityThresholdInverted, 0f, 1f);
+            dilationValidityThreshold.floatValue = 1f - dilationValidityThresholdInverted;
+            dilationIterations.intValue = EditorGUILayout.IntSlider(Styles.dilationIterationCount, dilationIterations.intValue, 1, 5);
+            dilationInvSquaredWeight.boolValue = EditorGUILayout.Toggle(Styles.dilationSquaredDistanceWeighting, dilationInvSquaredWeight.boolValue);
             EditorGUI.indentLevel--;
+            EditorGUI.EndDisabledGroup();
 
             // if (GUILayout.Button(EditorGUIUtility.TrTextContent("Refresh dilation"), EditorStyles.miniButton))
             // {
@@ -75,11 +79,12 @@ namespace UnityEngine.Experimental.Rendering
             var m_VirtualOffsetBiasOutOfGeometry = virtualOffsetSettings.FindPropertyRelative("outOfGeoOffset");
 
             EditorGUILayout.LabelField(Styles.virtualOffsetSettingsTitle, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
             m_EnableVirtualOffset.boolValue = EditorGUILayout.Toggle(Styles.useVirtualOffset, m_EnableVirtualOffset.boolValue);
             EditorGUI.BeginDisabledGroup(!m_EnableVirtualOffset.boolValue);
             m_VirtualOffsetGeometrySearchMultiplier.floatValue = Mathf.Clamp01(EditorGUILayout.FloatField(Styles.virtualOffsetSearchMultiplier, m_VirtualOffsetGeometrySearchMultiplier.floatValue));
             m_VirtualOffsetBiasOutOfGeometry.floatValue = EditorGUILayout.FloatField(Styles.virtualOffsetBiasOutGeometry, m_VirtualOffsetBiasOutOfGeometry.floatValue);
-
+            EditorGUI.indentLevel--;
             EditorGUI.EndDisabledGroup();
 
         }
