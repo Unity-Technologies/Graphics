@@ -90,8 +90,6 @@ Nightly_HDRP_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-hdrp.yml#HDRP_trunk
          rerun: on_new_revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_XR_mono_Linear_2021.2
-         rerun: on_new_revision
 PR_HDRP_CUSTOM-REVISION:
     name: PR HDRP on CUSTOM-REVISION
     variables:

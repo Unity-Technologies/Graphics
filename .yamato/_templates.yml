@@ -17,7 +17,7 @@ pre_pack_hdrp_template_Win_trunk:
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
+      -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     artifacts:
@@ -26,9 +26,6 @@ pre_pack_hdrp_template_Win_trunk:
               -  "com.unity.template-hd/Library/Artifacts/**"
               -  "com.unity.template-hd/Library/ArtifactDB"
               -  "com.unity.template-hd/Library/SourceAssetDB"
-        logs:
-            paths:
-              -  "Editor.log"
 pack_hdrp_template_Win_trunk:
     name: Pack HDRP Template Win trunk
     agent:
@@ -71,7 +68,7 @@ pre_pack_hdrp_template_OSX_trunk:
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
+      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     artifacts:
@@ -80,9 +77,6 @@ pre_pack_hdrp_template_OSX_trunk:
               -  "com.unity.template-hd/Library/Artifacts/**"
               -  "com.unity.template-hd/Library/ArtifactDB"
               -  "com.unity.template-hd/Library/SourceAssetDB"
-        logs:
-            paths:
-              -  "Editor.log"
 pack_hdrp_template_OSX_trunk:
     name: Pack HDRP Template OSX trunk
     agent:
@@ -163,7 +157,7 @@ pre_pack_hdrp_template_Win_CUSTOM-REVISION:
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
+      -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
     artifacts:
@@ -172,9 +166,6 @@ pre_pack_hdrp_template_Win_CUSTOM-REVISION:
               -  "com.unity.template-hd/Library/Artifacts/**"
               -  "com.unity.template-hd/Library/ArtifactDB"
               -  "com.unity.template-hd/Library/SourceAssetDB"
-        logs:
-            paths:
-              -  "Editor.log"
 pack_hdrp_template_Win_CUSTOM-REVISION:
     name: Pack HDRP Template Win CUSTOM-REVISION
     agent:
@@ -217,7 +208,7 @@ pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
+      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     artifacts:
@@ -226,9 +217,6 @@ pre_pack_hdrp_template_OSX_CUSTOM-REVISION:
               -  "com.unity.template-hd/Library/Artifacts/**"
               -  "com.unity.template-hd/Library/ArtifactDB"
               -  "com.unity.template-hd/Library/SourceAssetDB"
-        logs:
-            paths:
-              -  "Editor.log"
 pack_hdrp_template_OSX_CUSTOM-REVISION:
     name: Pack HDRP Template OSX CUSTOM-REVISION
     agent:
@@ -309,7 +297,7 @@ pre_pack_universal_template_Win_trunk:
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
+      -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
     artifacts:
@@ -318,9 +306,6 @@ pre_pack_universal_template_Win_trunk:
               -  "com.unity.template-universal/Library/Artifacts/**"
               -  "com.unity.template-universal/Library/ArtifactDB"
               -  "com.unity.template-universal/Library/SourceAssetDB"
-        logs:
-            paths:
-              -  "Editor.log"
 pack_universal_template_Win_trunk:
     name: Pack Universal Template Win trunk
     agent:
@@ -363,7 +348,7 @@ pre_pack_universal_template_OSX_trunk:
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
+      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
     artifacts:
@@ -372,9 +357,6 @@ pre_pack_universal_template_OSX_trunk:
               -  "com.unity.template-universal/Library/Artifacts/**"
               -  "com.unity.template-universal/Library/ArtifactDB"
               -  "com.unity.template-universal/Library/SourceAssetDB"
-        logs:
-            paths:
-              -  "Editor.log"
 pack_universal_template_OSX_trunk:
     name: Pack Universal Template OSX trunk
     agent:
@@ -455,7 +437,7 @@ pre_pack_universal_template_Win_CUSTOM-REVISION:
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
+      -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
     artifacts:
@@ -464,9 +446,6 @@ pre_pack_universal_template_Win_CUSTOM-REVISION:
               -  "com.unity.template-universal/Library/Artifacts/**"
               -  "com.unity.template-universal/Library/ArtifactDB"
               -  "com.unity.template-universal/Library/SourceAssetDB"
-        logs:
-            paths:
-              -  "Editor.log"
 pack_universal_template_Win_CUSTOM-REVISION:
     name: Pack Universal Template Win CUSTOM-REVISION
     agent:
@@ -509,7 +488,7 @@ pre_pack_universal_template_OSX_CUSTOM-REVISION:
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
-      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
+      -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit
     dependencies:
       -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
     artifacts:
@@ -518,9 +497,6 @@ pre_pack_universal_template_OSX_CUSTOM-REVISION:
               -  "com.unity.template-universal/Library/Artifacts/**"
               -  "com.unity.template-universal/Library/ArtifactDB"
               -  "com.unity.template-universal/Library/SourceAssetDB"
-        logs:
-            paths:
-              -  "Editor.log"
 pack_universal_template_OSX_CUSTOM-REVISION:
     name: Pack Universal Template OSX CUSTOM-REVISION
     agent:
