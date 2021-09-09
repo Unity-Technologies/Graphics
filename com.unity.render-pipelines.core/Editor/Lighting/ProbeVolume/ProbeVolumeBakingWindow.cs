@@ -481,7 +481,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 EditorApplication.update -= RestoreScenesAfterBake;
 
-                if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                     LoadScenes(scenesToRestore);
             }
         }
