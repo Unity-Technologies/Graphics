@@ -384,11 +384,16 @@ namespace UnityEngine.Experimental.Rendering
                 EditorGUILayout.Space();
 
                 // Show only the profile from the first scene of the set (they all should be the same)
-                var profile = ProbeReferenceVolume.instance.sceneData.sceneProfiles[sceneGUID];
+                if (set.profile == null)
+                {
+                    EditorUtility.DisplayDialog("Missing Probe Volume Profile Asset!", $"We couldn't find the asset profile associated with the Baking Set '{set.name}'.\nDo you want to create a new one?", "Yes");
+                    set.profile = ScriptableObject.CreateInstance<ProbeReferenceVolumeProfile>();
+                    ProjectWindowUtil.CreateAsset(set.profile, set.name + ".asset");
+                }
                 if (m_ProbeVolumeProfileEditor == null)
-                    m_ProbeVolumeProfileEditor = Editor.CreateEditor(profile);
-                if (m_ProbeVolumeProfileEditor.target != profile)
-                    Editor.CreateCachedEditor(profile, m_ProbeVolumeProfileEditor.GetType(), ref m_ProbeVolumeProfileEditor);
+                    m_ProbeVolumeProfileEditor = Editor.CreateEditor(set.profile);
+                if (m_ProbeVolumeProfileEditor.target != set.profile)
+                    Editor.CreateCachedEditor(set.profile, m_ProbeVolumeProfileEditor.GetType(), ref m_ProbeVolumeProfileEditor);
 
                 EditorGUILayout.LabelField("Probe Volume Profile", EditorStyles.largeLabel);
                 m_ProbeVolumeProfileEditor.OnInspectorGUI();
