@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.7.0] - 2021-07-02
 
+### Added
+- Added support for controlling Volume Framework Update Frequency in UI on Cameras and URP Asset as well as through scripting.
+
 ### Fixed
 - Fixed terrain hole shadowing [case 1349305]
 - Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
