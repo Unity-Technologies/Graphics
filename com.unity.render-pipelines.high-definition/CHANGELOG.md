@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sorting for mesh decals.
 - Fixed a warning when enabling tile/cluster debug.
 - Fix recursive rendering transmittance over the sky (case 1323945).
+- Fixed double contribution from the clear coat when having SSR or RTR on the Lit and StackLit shaders (case 1352424).
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
