@@ -5,11 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [13.0.0] - 2021-09-01
+
 ### Fixed
 - Prevent vector truncation error in HDRP Decal template
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+- Fix potential infinite compilation when using subgraphs [Case 1346576](https://issuetracker.unity3d.com/product/unity/issues/guid/1346576/)
+- Prevent out of sync serialization of VFX assets that could cause the asset to be dirtied without reason
+- Fix undetermitism in space with LocalToWorld and WorldToLocal operators [Case 1355820](https://issuetracker.unity3d.com/product/unity/issues/guid/1355820/)
 
 ## [12.0.0] - 2021-01-11
 ### Added
