@@ -147,16 +147,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (VolumetricCloudsAmbientProbeData data, RenderGraphContext ctx) =>
                     {
-                        // Render the sky into a low resolution cubemap
-                        data.skyManager.RenderSkyOnlyToCubemap(ctx.cmd, data.skyCubemap, false, data.skyRenderer);
+                        if (data.skyRenderer != null)
+                        {
+                            // Render the sky into a low resolution cubemap
+                            data.skyManager.RenderSkyOnlyToCubemap(ctx.cmd, data.skyCubemap, false, data.skyRenderer);
 
-                        // Evaluate the probe
-                        ctx.cmd.SetComputeTextureParam(data.computeProbeCS, data.kernel, m_AmbientProbeInputCubemap, data.skyCubemap);
-                        ctx.cmd.SetComputeBufferParam(data.computeProbeCS, data.kernel, m_AmbientProbeOutputBufferParam, data.ambientProbeBuffer);
-                        ctx.cmd.DispatchCompute(data.computeProbeCS, data.kernel, 1, 1, 1);
+                            // Evaluate the probe
+                            ctx.cmd.SetComputeTextureParam(data.computeProbeCS, data.kernel, m_AmbientProbeInputCubemap, data.skyCubemap);
+                            ctx.cmd.SetComputeBufferParam(data.computeProbeCS, data.kernel, m_AmbientProbeOutputBufferParam, data.ambientProbeBuffer);
+                            ctx.cmd.DispatchCompute(data.computeProbeCS, data.kernel, 1, 1, 1);
 
-                        // Enqueue the read back
-                        ctx.cmd.RequestAsyncReadback(data.ambientProbeBuffer, OnComputeAmbientProbeDone);
+                            // Enqueue the read back
+                            ctx.cmd.RequestAsyncReadback(data.ambientProbeBuffer, OnComputeAmbientProbeDone);
+                        }
+                        else
+                        {
+                            m_CloudsAmbientProbeIsReady = false;
+                        }
                     });
             }
         }
