@@ -292,7 +292,7 @@ namespace UnityEngine.Experimental.Rendering
 
         ProbeVolumeSceneData.BakingSet GetCurrentBakingSet()
         {
-            int index = Mathf.Clamp(m_BakingSets.index, 0, sceneData.bakingSets.Count);
+            int index = Mathf.Clamp(m_BakingSets.index, 0, sceneData.bakingSets.Count - 1);
             return sceneData.bakingSets[index];
         }
 
