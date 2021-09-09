@@ -11,6 +11,11 @@ public unsafe class BRGSetup : MonoBehaviour
 {
     public Mesh m_mesh;
     public Material m_material;
+    public float m_y;
+    public bool m_cullRow;
+    public float m_cullMovingPeriod = 0.5f;
+
+    static private int itemGridSize = 30;
 
     private BatchRendererGroup m_BatchRendererGroup;
     private ComputeBuffer m_GPUPersistentInstanceData;
@@ -21,6 +26,9 @@ public unsafe class BRGSetup : MonoBehaviour
     private BatchMeshID m_meshID;
     private int m_itemCount;
     private bool m_initialized;
+    private float m_clock;
+    private int m_lineIdToCull;
+
 
     public static T* Malloc<T>(int count) where T : unmanaged
     {
@@ -67,12 +75,27 @@ public unsafe class BRGSetup : MonoBehaviour
             }
         };
 
+        drawCommands.visibleInstances = Malloc<int>(m_itemCount);
+        int n = 0;
+        for (int r = 0; r < itemGridSize; r++)
+        {
+            if (r != m_lineIdToCull)
+            {
+                for (int i = 0; i < itemGridSize; i++)
+                {
+                    int id = m_cullRow ? (r * itemGridSize + i) : (i * itemGridSize + r);
+                    drawCommands.visibleInstances[n++] = id;
+                }
+            }
+        }
+        drawCommands.visibleInstanceCount = n;
+
         drawCommands.drawCommandCount = 1;
         drawCommands.drawCommands = Malloc<BatchDrawCommand>(1);
         drawCommands.drawCommands[0] = new BatchDrawCommand
         {
             visibleOffset = 0,
-            visibleCount = (uint)m_itemCount,
+            visibleCount = (uint)n,
             batchID = m_batchID,
             bufferID = m_GPUPersistanceBufferId,
             materialID = m_materialID,
@@ -81,12 +104,6 @@ public unsafe class BRGSetup : MonoBehaviour
             sortingPosition = 0
         };
 
-        drawCommands.visibleInstanceCount = m_itemCount;
-        drawCommands.visibleInstances = Malloc<int>(m_itemCount);
-        for (int i = 0; i < m_itemCount; i++)
-        {
-            drawCommands.visibleInstances[i] = i;
-        }
 
         drawCommands.instanceSortingPositions = null;
         drawCommands.instanceSortingPositionFloatCount = 0;
@@ -101,7 +118,6 @@ public unsafe class BRGSetup : MonoBehaviour
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
-        int itemGridSize = 30;
         int itemCount = itemGridSize * itemGridSize;
         m_itemCount = itemCount;
 
@@ -153,7 +169,7 @@ public unsafe class BRGSetup : MonoBehaviour
                 int i = z * itemGridSize + x;
                 vectorBuffer[i * 3 + 0] = new Vector4(1, 0, 0, 0);      // hacky float3x4 layout
                 vectorBuffer[i * 3 + 1] = new Vector4(1, 0, 0, 0);
-                vectorBuffer[i * 3 + 2] = new Vector4(1, px, 0, pz);
+                vectorBuffer[i * 3 + 2] = new Vector4(1, px, m_y, pz);
             }
         }
 
@@ -175,7 +191,12 @@ public unsafe class BRGSetup : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        m_clock += Time.deltaTime;
+        if (m_clock >= m_cullMovingPeriod)
+        {
+            m_clock -= m_cullMovingPeriod;
+            m_lineIdToCull = (m_lineIdToCull + 1) % itemGridSize;
+        }
     }
 
     private void OnDestroy()
