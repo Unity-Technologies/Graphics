@@ -62,9 +62,9 @@ In the Lit family of materials, when the surface type is set to *Transparent*, y
 
 For path tracing, the distinction between *Box* or *Sphere* makes no sense (as rays can intersect the real objects in the scene), and both effectively carry the common meaning of a *thick* mode, to be used on solid objects represented by a closed surface. On the other hand, *Thin* conveys the same idea as its rasterized version, and *None* is a special case of thin refractive surface, hardcoded to be fully smooth to simulate alpha blending. Additionally, transparent surfaces should be *Double-Sided*, so that they get intersected from both sides, and normal mode should be selected appropriately for each situation, as described right below.
 
-| Refraction model  | Path tracing meaning                              | Surface sidedness                       |
-|-------------------|---------------------------------------------------|-----------------------------------------|
-| *Box* or *Sphere* | *Thick* object (e.g magnifying paperweight)       | Double sided, with *None* normal mode   |
+| Refraction model  | Path tracing meaning                              | Surface sidedness                                 |
+|-------------------|---------------------------------------------------|---------------------------------------------------|
+| *Box* or *Sphere* | *Thick* object (e.g magnifying paperweight)       | Double sided, with *None* normal mode             |
 | *Thin*            | *Thin* object (e.g soap bubble or window)         | Double sided, with *Flip* or *Mirror* normal mode |
 | *None*            | *Thin* object, with smoothness = 1 and no Fresnel | Double sided, with *Flip* or *Mirror* normal mode |
 
