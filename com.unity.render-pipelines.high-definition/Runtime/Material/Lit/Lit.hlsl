@@ -704,7 +704,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     // so store AO instead. It doesn't matter if it is a false positive as result will be correct, this is to reduce code divergence
     // Note: We assume that having non black baseColor * AO * lighting + Emissive is uncommon / rare (We expect mostly baseColor * AO * lighting or Emissive or baseColor * lighting + Emissive)
     // and use this information as a tradeoff to improve quality in all others cases
-    if (all(outGBuffer3 == 0.0))
+    if (all(outGBuffer3.rgb == 0.0))
     {
         outGBuffer3.xz = AO_IN_GBUFFER3_TAG.xz;
         outGBuffer3.y = surfaceData.ambientOcclusion;
@@ -944,7 +944,6 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // In the regular case the lightmaps/lightprobe are multiply by AO before adding emissive
     float3 gbuffer3 = LOAD_TEXTURE2D_X(_GBufferTexture3, positionSS).rgb;
 
-
     // In deferred case, AO is apply during the EncodeToGbuffer pass on bakeDiffuseLighting data but not emissive
     // This cause quality issue because it prevent us to combine it correctly with SSAO (i.e min(SSAO, AO)) + SSAO is apply on emissive
     // As explain in encoding step for SSGI/RTGI/Mixed and APV not using lightmap, we rely on a hack to retrieve AO
@@ -955,20 +954,20 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     {
         gbuffer3 *= GetInverseCurrentExposureMultiplier();
         bsdfData.ambientOcclusion = 1.0;
-    }
 
-    // For SSGI/RTGI/Mixed and APV not using lightmap we load the content of gbuffer3 in emissive, otherwise it is lightmap/lightprobe + emissive
-    if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF
+        // For SSGI/RTGI/Mixed and APV not using lightmap we load the content of gbuffer3 in emissive, otherwise it is lightmap/lightprobe + emissive
+        if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
-        || !builtinData.isLightmap
+            || !builtinData.isLightmap
 #endif
-        )
-    {
-        builtinData.emissiveColor = gbuffer3;
-    }
-    else
-    {
-        builtinData.bakeDiffuseLighting = gbuffer3;
+            )
+        {
+            builtinData.emissiveColor = gbuffer3;
+        }
+        else
+        {
+            builtinData.bakeDiffuseLighting = gbuffer3;
+        }
     }
 
     ApplyDebugToBSDFData(bsdfData);
