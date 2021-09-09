@@ -119,11 +119,14 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
+            bool requiredUpdatePreviously = cameraData.requiresVolumeFrameworkUpdate;
             cameraData.volumeFrameworkUpdateMode = mode;
 
             // We only update the local volume stacks for cameras set to ViaScripting.
             // Otherwise it will be updated in every frame.
-            if (!cameraData.requiresVolumeFrameworkUpdate)
+            // We also check the previous value to make sure we're not updating when
+            // switching between Camera ViaScripting and the URP Asset set to ViaScripting
+            if (requiredUpdatePreviously && !cameraData.requiresVolumeFrameworkUpdate)
             {
                 camera.UpdateVolumeStack(cameraData);
             }
