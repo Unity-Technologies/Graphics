@@ -414,6 +414,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sorting for mesh decals.
 - Fixed a warning when enabling tile/cluster debug.
 - Fix recursive rendering transmittance over the sky (case 1323945).
+- Fixed remove of the Additional Light Data when removing the Light Component.
+- Fixed remove of the Additional Camera Data when removing the Camera Component.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
