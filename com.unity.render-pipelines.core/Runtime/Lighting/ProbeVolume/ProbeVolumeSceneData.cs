@@ -261,16 +261,24 @@ namespace UnityEngine.Experimental.Rendering
 
         internal void UpdateSceneBounds(Scene scene)
         {
+            var volumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
+
             // If we have not yet loaded any asset, we haven't initialized the probe reference volume with any info from the profile.
             // As a result we need to prime with the profile info directly stored here.
             {
                 var profile = GetProfileForScene(scene);
-                Debug.Assert(profile != null);
+                if (profile == null)
+                {
+                    if (volumes.Length > 0)
+                    {
+                        Debug.LogWarning("A probe volume is present in the scene but a profile has not been set. Please configure a profile for your scene in the Probe Volume Baking settings.");
+                    }
+                    return;
+                }
                 ProbeReferenceVolume.instance.SetTRS(Vector3.zero, Quaternion.identity, profile.minBrickSize);
                 ProbeReferenceVolume.instance.SetMaxSubdivision(profile.maxSubdivision);
             }
 
-            var volumes = UnityEngine.GameObject.FindObjectsOfType<ProbeVolume>();
             bool boundFound = false;
             Bounds newBound = new Bounds();
             foreach (var volume in volumes)
