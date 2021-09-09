@@ -32,10 +32,6 @@
 TEXTURE2D_X(_DepthTexture);
 RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);
 
-// Flag value that defines if a given pixel recieves reflections or not
-TEXTURE2D_X_UINT2(_StencilTexture);
-int _SsrStencilBit;
-
 [numthreads(RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, 1)]
 void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
