@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering
         [InitializeOnLoadMethod]
         static void RegisterAdditionalDataMenus()
         {
-            foreach(var additionalData in TypeCache.GetTypesDerivedFrom<IAdditionalData>())
+            foreach (var additionalData in TypeCache.GetTypesDerivedFrom<IAdditionalData>())
             {
                 if (additionalData.GetCustomAttributes(typeof(RequireComponent), true).FirstOrDefault() is RequireComponent rc)
                 {
