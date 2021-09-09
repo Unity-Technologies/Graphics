@@ -36,7 +36,13 @@ public class ShaderGraphIndividualTests
     public IEnumerator RunIndividualTests(TestAssetTestData data) //reference image, test hash, reference hash
     {
         Debug.Log($"starting test with {data.referenceImage}");
-        
+
+#if SetupTestAssetTestCases
+		Debug.Log("SetupTestAssetTestCases found? true");
+#else
+		Debug.Log("SetupTestAssetTestCases found? false");
+#endif
+		
         //File.AppendAllLines("Logs/Test.log", new string[] { "Test Started....." });
         // Always wait one frame for scene load
         yield return null;

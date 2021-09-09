@@ -34,14 +34,14 @@ namespace UnityEditor.Rendering.HighDefinition
         private class DiffusionProfileSerializer
         {
             [SerializeField]
-            public DiffusionProfileSettings    diffusionProfileAsset;
+            public DiffusionProfileSettings diffusionProfileAsset;
         }
 
         [SerializeField]
         string m_SerializedDiffusionProfile;
 
         [NonSerialized]
-        DiffusionProfileSettings    m_DiffusionProfileAsset;
+        DiffusionProfileSettings m_DiffusionProfileAsset;
 
         //Hide name to be consistent with Texture2DAsset node
         [ObjectControl("")]

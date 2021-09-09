@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // If ray tracing is supported display the content of the volume component
-            if (RenderPipelineManager.currentPipeline is not HDRenderPipeline {rayTracingSupported : true})
+            if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
                 return;
 
             PropertyField(m_RayTracing);

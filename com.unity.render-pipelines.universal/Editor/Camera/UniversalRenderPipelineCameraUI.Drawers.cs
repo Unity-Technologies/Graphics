@@ -38,10 +38,7 @@ namespace UnityEditor.Rendering.Universal
             CED.Group(
                 DrawerProjection
                 ),
-            PhysicalCamera.Drawer,
-            CED.Group(
-                CameraUI.Drawer_FieldClippingPlanes
-            )
+            PhysicalCamera.Drawer
         );
 
         public static readonly CED.IDrawer SectionStackSettings =
@@ -76,7 +73,7 @@ namespace UnityEditor.Rendering.Universal
         {
             int selectedRenderer = p.renderer.intValue;
             ScriptableRenderer scriptableRenderer = UniversalRenderPipeline.asset.GetRenderer(selectedRenderer);
-            bool isDeferred = scriptableRenderer is UniversalRenderer {renderingMode : RenderingMode.Deferred};
+            bool isDeferred = scriptableRenderer is UniversalRenderer { renderingMode: RenderingMode.Deferred };
 
             EditorGUI.BeginChangeCheck();
 

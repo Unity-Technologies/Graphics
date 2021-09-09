@@ -98,6 +98,8 @@ public class SetupTestAssetTestCases : IPrebuildSetup
 
     public void Setup()
     {
+		Debug.Log("Setting up SetupTestAssetTestCases");
+		
         ColorSpace colorSpace;
         BuildTarget buildPlatform;
         RuntimePlatform runtimePlatform;

@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Tonemapping effect.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Post-processing/Tonemapping")]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Tonemapping", typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Post-Processing-Tonemapping")]
     public sealed class Tonemapping : VolumeComponent, IPostProcessComponent
     {
@@ -165,6 +165,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public TonemappingModeParameter(TonemappingMode value, bool overrideState = false) : base(value, overrideState) {}
+        public TonemappingModeParameter(TonemappingMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

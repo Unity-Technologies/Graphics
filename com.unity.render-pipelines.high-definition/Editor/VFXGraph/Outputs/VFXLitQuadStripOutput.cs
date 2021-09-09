@@ -8,12 +8,13 @@ namespace UnityEditor.VFX.HDRP
     [VFXInfo(experimental = true)]
     class VFXLitQuadStripOutput : VFXAbstractParticleHDRPLitOutput
     {
-        protected VFXLitQuadStripOutput() : base(true) {}  // strips
+        protected VFXLitQuadStripOutput() : base(true) { }  // strips
 
         public override string name { get { return "Output ParticleStrip HDRP Lit Quad"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
         public override bool supportsUV { get { return true; } }
+        public override bool implementsMotionVector { get { return true; } }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, a Normal Bending Factor slider becomes available in the output which can be used to adjust the curvature of the normals.")]
         protected bool normalBending = false;
