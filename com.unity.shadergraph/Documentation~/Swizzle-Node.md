@@ -26,7 +26,7 @@ The length of the Input vector's dimension determines the channel dropdown param
 | Alpha Out | Dropdown  | Red, Green, Blue, Alpha (depending on input vector dimension) | Choose which channel from the Input vector you want to use for the Alpha channel of the Output vector. |
 
 
-## Generated Code Example
+## Generated code example
 
 The following example code represents one possible outcome of this node.
 
