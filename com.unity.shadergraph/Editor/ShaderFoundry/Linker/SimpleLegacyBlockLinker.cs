@@ -305,7 +305,8 @@ namespace UnityEditor.ShaderFoundry
             // Copy over all of the base block data
             blockBuilder.MergeTypesFunctionsDescriptors(block);
 
-            // Build the input/output types from the collected inputs and outputs
+            // Build the input/output types from the collected inputs and outputs.
+            // Do not put these types in the block's context, these need to be in the global namespace due to legacy reasons.
             var inputBuilder = new ShaderType.StructBuilder(Container, buildingContext.InputTypeName);
             foreach (var input in inputs)
                 inputBuilder.AddField(input.Source.Type, input.Source.ReferenceName);
@@ -328,7 +329,7 @@ namespace UnityEditor.ShaderFoundry
             var fnBuilder = new ShaderFunction.Builder(Container, buildingContext.FunctionName, outputType);
             fnBuilder.AddInput(inputType, inputInstanceName);
 
-            fnBuilder.AddLine($"{subBlockInputType.Name} {subBlockInputInstanceName};");
+            subBlockInputType.AddVariableDeclarationStatement(fnBuilder, subBlockInputInstanceName);
             var visitedInputs = new HashSet<string>();
             // Copy all inputs into the sub-block struct
             foreach (var inputData in inputs)
@@ -345,9 +346,10 @@ namespace UnityEditor.ShaderFoundry
                 blockBuilder.AddProperty(propData.Source);
             }
             // Call the sub-block entry point
-            fnBuilder.AddLine($"{subBlockOutputType.Name} {subBlockOutputInstanceName} = {subEntryPointFn.Name}({subBlockInputInstanceName});");
+            subEntryPointFn.AddCallStatementWithNewReturn(fnBuilder, subBlockOutputInstanceName, subBlockInputInstanceName);
+
             // Copy all outputs into the legacy description type
-            fnBuilder.AddLine($"{outputType.Name} {outputInstanceName};");
+            outputType.AddVariableDeclarationStatement(fnBuilder, outputInstanceName);
             foreach (var outputData in outputs)
             {
                 blockBuilder.AddOutput(outputData.Destination);

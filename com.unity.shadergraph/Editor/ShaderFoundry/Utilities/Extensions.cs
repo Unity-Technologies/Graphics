@@ -58,10 +58,24 @@ namespace UnityEditor.ShaderFoundry
             return false;
         }
 
+        internal static string GetFullyQualifiedName(this ShaderFunction function)
+        {
+            if (function.ParentBlock.IsValid)
+                return $"{function.ParentBlock.GetScopeName()}::{function.Name}";
+            return function.Name;
+        }
+
+        static string GetTypeName(ShaderFunction function, ShaderType type)
+        {
+            if (function.ParentBlock.Name == type.ParentBlock.Name)
+                return type.Name;
+            return type.GetFullyQualifiedName();
+        }
+
         internal static void AddDeclarationString(this ShaderFunction function, ShaderBuilder builder)
         {
             builder.Indentation();
-            builder.Add($"{function.ReturnType.Name} {function.Name}(");
+            builder.Add($"{GetTypeName(function, function.ReturnType)} {function.Name}(");
 
             var paramIndex = 0;
             foreach(var param in function.Parameters)
@@ -76,7 +90,7 @@ namespace UnityEditor.ShaderFoundry
                         builder.Add("out ");
                 }
                     
-                builder.Add($"{param.Type.Name} {param.Name}");
+                builder.Add($"{GetTypeName(function, param.Type)} {param.Name}");
                 ++paramIndex;
             }
             builder.Add(")");
@@ -90,13 +104,63 @@ namespace UnityEditor.ShaderFoundry
             builder.Deindent();
             builder.AddLine("}");
         }
+
+        internal static void AddCallString(this ShaderFunction function, ShaderBuilder builder, params string[] arguments)
+        {
+            // Can't yet use builder.Call due to namespacing
+            builder.Add(GetFullyQualifiedName(function));
+            builder.Add("(");
+            for(var i = 0; i < arguments.Length; ++i)
+            {
+                builder.Add(arguments[i]);
+                if (i != arguments.Length - 1)
+                    builder.Add(", ");
+            }
+            builder.Add(")");
+        }
+
+        internal static void AddCallStatementWithReturn(this ShaderFunction function, ShaderBuilder builder, string returnVariableName, params string[] arguments)
+        {
+            builder.Indentation();
+            builder.Add(returnVariableName);
+            builder.Add(" = ");
+            function.AddCallString(builder, arguments);
+            builder.Add(";");
+
+        }
+        internal static void AddCallStatementWithNewReturn(this ShaderFunction function, ShaderBuilder builder, string returnVariableName, params string[] arguments)
+        {
+            builder.Indentation();
+            function.ReturnType.AddVariableDeclarationString(builder, returnVariableName);
+            builder.Add(" = ");
+            function.AddCallString(builder, arguments);
+            builder.Add(";");
+        }
     }
 
     internal static class TypeExtensions
     {
-        internal static void AddVariableDeclarationString(this ShaderType type, ShaderBuilder builder, string name)
+        internal static string GetFullyQualifiedName(this ShaderType type)
         {
-            builder.Add($"{type.Name} {name}");
+            if (type.ParentBlock.IsValid)
+                return $"{type.ParentBlock.GetScopeName()}::{type.Name}";
+            return type.Name;
+        }
+
+        internal static void AddVariableDeclarationString(this ShaderType type, ShaderBuilder builder, string name, string defaultValue = null)
+        {
+            builder.Add(GetFullyQualifiedName(type));
+            builder.Add($" {name}");
+            if (!string.IsNullOrEmpty(defaultValue))
+                builder.Add($" = {defaultValue}");
+        }
+
+        internal static void AddVariableDeclarationStatement(this ShaderType type, ShaderBuilder builder, string name, string defaultValue = null)
+        {
+            builder.Indentation();
+            type.AddVariableDeclarationString(builder, name, defaultValue);
+            builder.Add(";");
+            builder.NewLine();
         }
 
         internal static void AddTypeDeclarationString(this ShaderType type, ShaderBuilder builder)
@@ -118,6 +182,14 @@ namespace UnityEditor.ShaderFoundry
         internal static bool Equals(this ShaderType self, ShaderType rhs)
         {
             return self.Name == rhs.Name;
+        }
+    }
+
+    internal static class BlockExtensions
+    {
+        internal static string GetScopeName(this Block block)
+        {
+            return $"{block.Name}Block";
         }
     }
 
@@ -191,9 +263,13 @@ namespace UnityEditor.ShaderFoundry
         internal static void MergeTypesAndFunctions(this Block.Builder builder, Block block)
         {
             foreach (var item in block.Types)
-                builder.AddType(item);
+                builder.AddReferencedType(item);
+            foreach (var item in block.ReferencedTypes)
+                builder.AddReferencedType(item);
             foreach (var item in block.Functions)
                 builder.AddFunction(item);
+            foreach (var item in block.ReferencedFunctions)
+                builder.AddReferencedFunction(item);
         }
 
         internal static void MergeDescriptors(this Block.Builder builder, Block block)

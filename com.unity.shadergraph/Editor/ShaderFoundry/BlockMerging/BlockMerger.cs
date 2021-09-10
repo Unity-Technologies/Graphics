@@ -166,6 +166,12 @@ namespace UnityEditor.ShaderFoundry
             fnBuilder.AddInput(inputInstance.Type, inputInstance.ReferenceName);
             fnBuilder.Indent();
 
+            void DeclareMatchAssignment(ResolvedFieldMatch match)
+            {
+                string sourceSizzle = match.SourceSwizzle != 0 ? $".{SwizzleUtils.ToString(match.SourceSwizzle)}" : "";
+                fnBuilder.AddLine($"{match.Destination.Owner.ReferenceName}.{match.Destination.ReferenceName} = {match.Source.Owner.ReferenceName}.{match.Source.ReferenceName}{sourceSizzle};");
+            }
+
             // For each block, construct the input's type, copy all of the input fields, and then call the entry point function
             foreach (var blockLinkInstance in blockLinkInstances)
             {
@@ -173,28 +179,26 @@ namespace UnityEditor.ShaderFoundry
                 var blockInputInstance = blockLinkInstance.InputInstance;
                 var blockOutputInstance = blockLinkInstance.OutputInstance;
 
-                fnBuilder.AddLine($"{blockInputInstance.Type.Name} {blockInputInstance.ReferenceName};");
+                blockInputInstance.Type.AddVariableDeclarationStatement(fnBuilder, blockInputInstance.ReferenceName);
                 foreach (var input in blockInputInstance.Fields)
                 {
                     var match = blockInputInstance.FindResolvedField(input.ReferenceName);
                     if (match != null)
-                    {
-                        string sourceSizzle = match.SourceSwizzle != 0 ? $".{SwizzleUtils.ToString(match.SourceSwizzle)}" : "";
-                        fnBuilder.AddLine($"{match.Destination.Owner.ReferenceName}.{match.Destination.ReferenceName} = {match.Source.Owner.ReferenceName}.{match.Source.ReferenceName}{sourceSizzle};");
-                    }
+                        DeclareMatchAssignment(match);
                 }
-                fnBuilder.AddLine($"{blockOutputInstance.Type.Name} {blockOutputInstance.ReferenceName} = {block.EntryPointFunction.Name}({blockInputInstance.ReferenceName});");
+                block.EntryPointFunction.AddCallStatementWithNewReturn(fnBuilder, blockOutputInstance.ReferenceName, blockInputInstance.ReferenceName);
+
                 // Add a newline between blocks for readability
                 fnBuilder.NewLine();
             }
 
             // Generate the merged block's output type and copy all of the output fields over
-            fnBuilder.AddLine($"{outputInstance.Type.Name} {outputInstance.ReferenceName};");
+            outputInstance.Type.AddVariableDeclarationStatement(fnBuilder, outputInstance.ReferenceName);
             foreach (var output in outputInstance.Fields)
             {
                 var match = outputInstance.FindResolvedField(output.ReferenceName);
                 if (match != null)
-                    fnBuilder.AddLine($"{match.Destination.Owner.ReferenceName}.{match.Destination.ReferenceName} = {match.Source.Owner.ReferenceName}.{match.Source.ReferenceName};");
+                    DeclareMatchAssignment(match);
             }
             fnBuilder.AddLine($"return {outputInstance.ReferenceName};");
             fnBuilder.Deindent();

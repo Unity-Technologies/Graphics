@@ -91,67 +91,57 @@ namespace UnityEditor.ShaderFoundry
 
         void BuildTemplateCustomizationPoints(Template.Builder builder, SubShaderDescriptor subShaderDescriptor, out CustomizationPoint vertexCustomizationPoint, out CustomizationPoint surfaceCustomizationPoint)
         {
-            List<FieldDescriptor> vertexFields, fragmentFields;
-            ExtractVertexAndFragmentPostFields(subShaderDescriptor, out vertexFields, out fragmentFields);
+            var vertexContext = new PostFieldsContext();
+            var fragmentContext = new PostFieldsContext();
+            foreach(var legacyPass in subShaderDescriptor.passes)
+                ExtractVertexAndFragmentPostFields(legacyPass.descriptor, vertexContext, fragmentContext);
 
             var vertexBuilder = new CustomizationPoint.Builder(Container, LegacyCustomizationPoints.VertexDescriptionCPName);
-            vertexCustomizationPoint = BuildCustomizationPoint(vertexBuilder, BuildVertexPreBlock(), BuildVertexPostBlock(vertexFields));
+            vertexCustomizationPoint = BuildCustomizationPoint(vertexBuilder, BuildVertexPreBlock(), BuildVertexPostBlock(vertexContext.Fields));
             builder.AddCustomizationPoint(vertexCustomizationPoint);
 
             var fragmentBuilder = new CustomizationPoint.Builder(Container, LegacyCustomizationPoints.SurfaceDescriptionCPName);
-            surfaceCustomizationPoint = BuildCustomizationPoint(fragmentBuilder, BuildFragmentPreBlock(), BuildFragmentPostBlock(fragmentFields));
+            surfaceCustomizationPoint = BuildCustomizationPoint(fragmentBuilder, BuildFragmentPreBlock(), BuildFragmentPostBlock(fragmentContext.Fields));
             builder.AddCustomizationPoint(surfaceCustomizationPoint);
         }
 
         void BuildLegacyTemplateEntryPoints(Template template, PassDescriptor legacyPassDescriptor, TemplatePass.Builder passBuilder, CustomizationPoint vertexCustomizationPoint, CustomizationPoint surfaceCustomizationPoint)
         {
-            List<FieldDescriptor> vertexFields, fragmentFields;
-            ExtractVertexAndFragmentPostFields(legacyPassDescriptor, out vertexFields, out fragmentFields);
+            var vertexContext = new PostFieldsContext();
+            var fragmentContext = new PostFieldsContext();
+            ExtractVertexAndFragmentPostFields(legacyPassDescriptor, vertexContext, fragmentContext);
 
-            ExtractVertex(template, passBuilder, vertexCustomizationPoint, vertexFields);
-            ExtractFragment(template, passBuilder, surfaceCustomizationPoint, fragmentFields);
+            ExtractVertex(template, passBuilder, vertexCustomizationPoint, vertexContext.Fields);
+            ExtractFragment(template, passBuilder, surfaceCustomizationPoint, fragmentContext.Fields);
         }
 
-        void ExtractVertexAndFragmentPostFields(UnityEditor.ShaderGraph.SubShaderDescriptor subShaderDescriptor, out List<FieldDescriptor> vertexFields, out List<FieldDescriptor> fragmentFields)
+        // Context object for collecting the "post fields" from a pass.
+        // This is meant to uniquely collect fields so it can also be used to merge the results across multiple passes
+        internal class PostFieldsContext
         {
-            vertexFields = new List<FieldDescriptor>();
-            fragmentFields = new List<FieldDescriptor>();
-            var vertexNames = new HashSet<string>();
-            var fragmentNames = new HashSet<string>();
-
-            foreach (var pass in subShaderDescriptor.passes)
-            {
-                var targetActiveBlockContext = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), pass.descriptor);
-                LegacyTarget.GetActiveBlocks(ref targetActiveBlockContext);
-                foreach (var field in targetActiveBlockContext.activeBlocks)
-                {
-                    if (field.shaderStage == UnityEditor.ShaderGraph.ShaderStage.Vertex && !vertexNames.Contains(field.name))
-                    {
-                        vertexNames.Add(field.name);
-                        vertexFields.Add(field);
-                    }
-                    else if (field.shaderStage == UnityEditor.ShaderGraph.ShaderStage.Fragment && !fragmentNames.Contains(field.name))
-                    {
-                        fragmentNames.Add(field.name);
-                        fragmentFields.Add(field);
-                    }
-                }
-            }
+            internal List<FieldDescriptor> Fields = new List<FieldDescriptor>();
+            internal HashSet<string> FieldNames = new HashSet<string>();
         }
 
-        void ExtractVertexAndFragmentPostFields(UnityEditor.ShaderGraph.PassDescriptor legacyPassDescriptor, out List<FieldDescriptor> vertexFields, out List<FieldDescriptor> fragmentFields)
+        void ExtractVertexAndFragmentPostFields(UnityEditor.ShaderGraph.PassDescriptor legacyPassDescriptor, PostFieldsContext vertexContext, PostFieldsContext fragmentContext)
         {
-            vertexFields = new List<FieldDescriptor>();
-            fragmentFields = new List<FieldDescriptor>();
-
             var targetActiveBlockContext = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), legacyPassDescriptor);
             LegacyTarget.GetActiveBlocks(ref targetActiveBlockContext);
-            foreach (var field in targetActiveBlockContext.activeBlocks)
+            foreach (var blockFieldDescriptor in legacyPassDescriptor.validVertexBlocks)
             {
-                if (field.shaderStage == UnityEditor.ShaderGraph.ShaderStage.Vertex)
-                    vertexFields.Add(field);
-                else if (field.shaderStage == UnityEditor.ShaderGraph.ShaderStage.Fragment)
-                    fragmentFields.Add(field);
+                if (targetActiveBlockContext.activeBlocks.Contains(blockFieldDescriptor) && !vertexContext.FieldNames.Contains(blockFieldDescriptor.name))
+                {
+                    vertexContext.FieldNames.Add(blockFieldDescriptor.name);
+                    vertexContext.Fields.Add(blockFieldDescriptor);
+                }
+            }
+            foreach (var blockFieldDescriptor in legacyPassDescriptor.validPixelBlocks)
+            {
+                if (targetActiveBlockContext.activeBlocks.Contains(blockFieldDescriptor) && !fragmentContext.FieldNames.Contains(blockFieldDescriptor.name))
+                {
+                    fragmentContext.FieldNames.Add(blockFieldDescriptor.name);
+                    fragmentContext.Fields.Add(blockFieldDescriptor);
+                }
             }
         }
 
@@ -225,8 +215,8 @@ namespace UnityEditor.ShaderFoundry
                     availableOutputs[prop.ReferenceName] = prop;
 
                 // Build the input/output type from the matching fields
-                var inputBuilder = new ShaderType.StructBuilder(Container, $"{blockName}DefaultIn");
-                var outputBuilder = new ShaderType.StructBuilder(Container, $"{blockName}DefaultOut");
+                var inputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultIn");
+                var outputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultOut");
                 HashSet<string> declaredInputs = new HashSet<string>();
                 HashSet<string> declaredOutputs = new HashSet<string>();
 
@@ -266,7 +256,7 @@ namespace UnityEditor.ShaderFoundry
                 mainBlockBuilder.AddType(outType);
 
                 // Build the actual function
-                var fnBuilder = new UnityEditor.ShaderFoundry.ShaderFunction.Builder(Container, $"{blockName}Default", outType);
+                var fnBuilder = new UnityEditor.ShaderFoundry.ShaderFunction.Builder(mainBlockBuilder, $"{blockName}Default", outType);
                 fnBuilder.AddInput(inType, "input");
 
                 fnBuilder.AddLine($"{outType.Name} output;");

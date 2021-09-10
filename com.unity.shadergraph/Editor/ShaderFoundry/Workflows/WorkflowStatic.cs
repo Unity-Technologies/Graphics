@@ -24,13 +24,9 @@ namespace UnityEditor.ShaderFoundry
             var targets = GetTargets();
             foreach (var target in targets)
             {
-                // Temporarily only build the universal renderer target. There's also not a good way to filter to sub-targets right now
-                if(target.displayName == "Universal")
-                {
-                    var assetCollection = new AssetCollection();
-                    var provider = new LegacyTemplateProvider(target, assetCollection);
-                    registry.RegisterProvider("Lit", provider, 0);
-                }
+                var assetCollection = new AssetCollection();
+                var provider = new LegacyTemplateProvider(target, assetCollection);
+                registry.RegisterProvider("Lit", provider, 0);
             }
 
             return registry;
@@ -43,7 +39,10 @@ namespace UnityEditor.ShaderFoundry
             var targetTypes = TypeCache.GetTypesDerivedFrom<Target>();
             foreach (var type in targetTypes)
             {
-                if (type.IsAbstract || type.IsGenericType || !type.IsClass || type.Name != "UniversalTarget")
+                if (type.IsAbstract || type.IsGenericType || !type.IsClass)
+                    continue;
+
+                if (/*type.Name != "BuiltInTarget" && */type.Name != "UniversalTarget")
                     continue;
 
                 var target = (Target)Activator.CreateInstance(type);
