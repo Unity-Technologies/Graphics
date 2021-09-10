@@ -5,6 +5,7 @@ using UnityEditor.Overlays;
 using UnityEditor.ShaderGraph.GraphUI.Controllers;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
+using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 using UnityEngine.UIElements;
 
@@ -22,6 +23,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
 
         PreviewController m_PreviewController;
         Preview m_Preview => m_PreviewController?.View;
+
+        static GraphWindowTickCommand s_CachedGraphWindowTickCommand = new ();
 
         public VisualElement GetGraphSubWindow<T>()
         {
@@ -75,17 +78,20 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
 
         protected void OnBecameVisible()
         {
+            var shaderGraphState = this.CommandDispatcher.State as ShaderGraphState;
+            shaderGraphState?.GraphPreviewState.SetGraphModel(this.GraphView.GraphModel as ShaderGraphModel);
         }
 
         protected override void Update()
         {
             base.Update();
+
+            CommandDispatcher.Dispatch(new GraphWindowTickCommand());
         }
 
         protected override void OnDestroy()
         {
             base.OnDestroy();
-
         }
 
         protected override GraphView CreateGraphView()

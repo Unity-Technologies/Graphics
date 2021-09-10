@@ -53,11 +53,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             // Shader Graph commands
             commandDispatcher.RegisterCommandHandler<AddRedirectNodeCommand>(AddRedirectNodeCommand.DefaultHandler);
           	commandDispatcher.RegisterCommandHandler<ChangePreviewExpandedCommand>(ChangePreviewExpandedCommand.DefaultCommandHandler);
+            commandDispatcher.RegisterCommandHandler<ChangePreviewModeCommand>(ChangePreviewModeCommand.DefaultCommandHandler);
+            commandDispatcher.RegisterCommandHandler<GraphWindowTickCommand>(GraphWindowTickCommand.DefaultCommandHandler);
 
             // Overrides for default GTF commands
             commandDispatcher.RegisterCommandHandler<CreateEdgeCommand>(ShaderGraphCommandOverrides.HandleCreateEdge);
             commandDispatcher.RegisterCommandHandler<DeleteElementsCommand>(ShaderGraphCommandOverrides.HandleDeleteElements);
             commandDispatcher.RegisterCommandHandler<BypassNodesCommand>(ShaderGraphCommandOverrides.HandleBypassNodes);
+            commandDispatcher.RegisterCommandHandler<RenameElementCommand>(ShaderGraphCommandOverrides.HandleGraphElementRenamed);
+            commandDispatcher.RegisterCommandHandler<ChangeNodeStateCommand>(ShaderGraphCommandOverrides.HandleNodeStateChanged);
+
         }
     }
 }
