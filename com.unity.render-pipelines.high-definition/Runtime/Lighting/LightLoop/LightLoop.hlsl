@@ -385,6 +385,29 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
 #endif
 
+        //---------------------------------------
+        // Sum up of operations on indirect diffuse lighting
+        // Let's define SSGI as SSGI/RTGI/Mixed or APV without lightmaps
+        // Let's define GI as Lightmaps/Lightprobe/APV with lightmaps
+
+        // By default we do those operations in deferred
+        // GBuffer pass : GI * AO + Emissive -> lightingbuffer
+        // Lightloop : indirectDiffuse = lightingbuffer; indirectDiffuse * SSAO
+        // Note that SSAO is apply on emissive in this case and we have double occlusion between AO and SSAO on indirectDiffuse
+
+        // By default we do those operation in forward
+        // Lightloop : indirectDiffuse = GI; indirectDiffuse * min(AO, SSAO) + Emissive
+
+        // With any SSGI effect we are performing those operations in deferred
+        // GBuffer pass : Emissive == 0 ? AmbientOcclusion -> EncodeIn(lightingbuffer) : Emissive -> lightingbuffer
+        // Lightloop : indirectDiffuse = SSGI; Emissive = lightingbuffer; AmbientOcclusion = Extract(lightingbuffer) or 1.0;
+        // indirectDiffuse * min(AO, SSAO) + Emissive
+        // Note that mean that we have the same behavior than forward path if Emissive is 0
+
+        // With any SSGI effect we are performing those operations in Forward
+        // Lightloop : indirectDiffuse = SSGI; indirectDiffuse * min(AO, SSAO) + Emissive
+        //---------------------------------------
+
         // Explanation about APV and SSGI/RTGI/Mixed effects steps in the rendering pipeline.
         // All effects will output only Emissive inside the lighting buffer (gbuffer3) in case of deferred (For APV this is done only if we are not a lightmap).
         // The Lightmaps/Lightprobes contribution is 0 for those cases. Code enforce it in SampleBakedGI(). The remaining code of Material pass (and the debug code)
