@@ -25,12 +25,12 @@ class Unity_log():
             # },
             {
                 'pattern': r'AcceleratorClientConnectionCallback - disconnected - cacheserver-slo',
-                'tags': ['cache', TAG_INSTABILITY, TAG_INFRASTRUCTURE],
+                'tags': ['cache',  TAG_INFRASTRUCTURE, TAG_INSTABILITY],
                 'conclusion': 'failure',
             },
             {
                 'pattern': r'(Failed to upload artifact)(.+)(to cacheserver)',
-                'tags': ['cache', TAG_INFRASTRUCTURE], # instability?
+                'tags': ['cache', TAG_INFRASTRUCTURE, TAG_POSSIBLE_INSTABILITY],
                 'conclusion': 'failure',
             },
         ]

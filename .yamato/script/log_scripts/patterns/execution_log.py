@@ -43,18 +43,18 @@ class Execution_log():
             {
                 #  Or with newlines: r'(packet_write_poll: Connection to)((.|\n)+)(Operation not permitted)((.|\n)+)(lost connection)',
                 'pattern': r'(packet_write_poll: Connection to)(.+)(Operation not permitted)',
-                'tags': ['packet_write_poll',TAG_INSTABILITY, TAG_INFRASTRUCTURE],
+                'tags': ['packet_write_poll', TAG_INFRASTRUCTURE, TAG_INSTABILITY],
                 'conclusion': 'failure',
             },
             {
                 # Or: r'(LTO : error: L0496: error during communication with the LTO process: The pipe has been ended)'
                 'pattern': r'(orbis-ld stderr :LLVM ERROR: out of memory)((.|\n)+)(LLVM ERROR: out of memory)',
-                'tags': ['oom'], # instability?
+                'tags': ['oom', TAG_POSSIBLE_INSTABILITY], # instability?
                 'conclusion': 'failure',
             },
             {
                 'pattern': r'(fatal: not a git repository \(or any of the parent directories\): .git)',
-                'tags': ['git'], # instability?
+                'tags': ['git', TAG_INFRASTRUCTURE, TAG_POSSIBLE_INSTABILITY], # instability?
                 'conclusion': 'failure',
             },
             {
@@ -64,19 +64,19 @@ class Execution_log():
             },
             {
                 'pattern': r'(Open ERROR: Can not open the file as \[zip\] archive)',
-                'tags': ['utr-zip', TAG_INFRASTRUCTURE], # instability?
+                'tags': ['utr-zip', TAG_INFRASTRUCTURE, TAG_POSSIBLE_INSTABILITY],
                 'conclusion': 'failure',
             },
             {
                 'pattern': r'(Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection\'s state is no longer correct)',
-                'tags': ['non-concurrent collections', TAG_INSTABILITY], # instability?
+                'tags': ['non-concurrent-collections', TAG_POSSIBLE_INSTABILITY],
                 'conclusion': 'failure',
             },
             {
                 # occurs with artifactory issues, but due to silencing the output with -s in majority of commands,
                 # this is the best pattern to match on retry for now, unless we remove -s everywhere to match the actual output
                 'pattern': r'(curl)(.+)(https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr)(.+)',
-                'tags': ['utr-curl', TAG_INFRASTRUCTURE, TAG_INSTABILITY], # instability?
+                'tags': ['utr-curl', TAG_INFRASTRUCTURE, TAG_POSSIBLE_INSTABILITY],
                 'conclusion': 'failure',
             },
             {
