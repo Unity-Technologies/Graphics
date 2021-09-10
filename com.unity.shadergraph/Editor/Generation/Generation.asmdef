@@ -1,0 +1,20 @@
+{
+    "name": "Unity.ShaderGraph.Generation",
+    "rootNamespace": "",
+    "references": [
+        "GUID:f00137e8794763a4fbbd0bcfb9bc600d",
+        "GUID:f0a45279a5da32548872abfb29c3bfb0",
+        "GUID:be0903cd8e1546f498710afdc59db5eb"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

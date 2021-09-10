@@ -7,6 +7,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
     public interface IDataReader : IDisposable
     {
         public string GetName();
+
+        public string GetFullPath();
     }
 
     public interface INodeReader : IDisposable, IDataReader

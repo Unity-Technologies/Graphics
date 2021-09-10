@@ -11,6 +11,29 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         private class GraphReader : IDisposable, INodeReader, IPortReader, IFieldReader, IDataReader
         {
+            public override bool Equals(object obj)
+            {
+                if(obj is GraphReader other)
+                {
+                    if(elementReference.TryGetTarget(out var myElem) && other.elementReference.TryGetTarget(out var otherElem))
+                    {
+                        return myElem == otherElem;
+                    }
+                }
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                if(elementReference.TryGetTarget(out var elem))
+                {
+                    return storageReference.GetHashCode() + elem.GetHashCode();
+                }
+                else
+                {
+                    return base.GetHashCode();
+                }
+            }
 
             private bool IsPortReader(Element element)
             {
@@ -108,6 +131,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return element.id;
             }
 
+            public string GetFullPath()
+            {
+                elementReference.TryGetTarget(out var element);
+                return element.GetFullPath();
+            }
+
             public IEnumerable<IPortReader> GetPorts()
             {
                 foreach (var subElement in GetSubElements())
@@ -192,7 +221,25 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
             public IEnumerable<IPortReader> GetConnectedPorts()
             {
-                throw new NotImplementedException();
+                if(IsInput())
+                {
+                    if (TryGetField("_Input", out var fieldReader))
+                    {
+                        fieldReader.TryGetValue<Element>(out var elementReference);
+                        yield return new GraphReader(elementReference, storageReference);
+                    }
+                }
+                else
+                {
+                    if (TryGetField("_Output", out var fieldReader))
+                    {
+                        fieldReader.TryGetValue<List<Element>>(out var elementReference);
+                        foreach (var elem in elementReference)
+                        {
+                            yield return new GraphReader(elem, storageReference);
+                        }
+                    }
+                }
             }
 
             public IEnumerable<IFieldReader> GetSubFields() => GetFields();
@@ -606,8 +653,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         public const string k_concrete = "Concrete";
         public const string k_user = "User";
 
-        private List<Element> m_nodes = new List<Element>();
-
         protected override void AddDefaultLayers()
         {
             m_layerList.AddLayer(0, k_concrete, false);
@@ -617,7 +662,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         internal INodeWriter AddNodeWriterToLayer(string layerName, string id)
         {
             GraphWriter nodeWriter = AddWriterToLayer(layerName, id, out Element addedNode);
-            m_nodes.Add(addedNode);
             return nodeWriter;
         }
 
@@ -688,15 +732,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return element;
             }
         }
-
-        public IEnumerable<INodeReader> GetNodes()
-        {
-            foreach(var node in m_nodes)
-            {
-                yield return new GraphReader(node, this);
-            }
-        }
-
 
         internal void RemoveNode(string id)
         {
