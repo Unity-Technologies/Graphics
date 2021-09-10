@@ -155,7 +155,7 @@ namespace UnityEngine.Experimental.Rendering
                     EditorUtility.DisplayDialog("Can't delete baking set", "You can't delete the last Baking set. You need to have at least one.", "Ok");
                     return;
                 }
-                if (EditorUtility.DisplayDialog("Delete selected baking set?", $"Do you really want to delete the baking set '{sceneData.bakingSets[list.index].name}'?", "Yes", "Cancel"))
+                if (EditorUtility.DisplayDialog("Delete the selected baking set?", $"Do you really want to delete the baking set '{sceneData.bakingSets[list.index].name}'?", "Yes", "Cancel"))
                 {
                     Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted baking set");
                     ReorderableList.defaultBehaviours.DoRemoveButton(list);
@@ -195,7 +195,6 @@ namespace UnityEngine.Experimental.Rendering
 
         SceneData FindSceneData(string guid)
         {
-            // TODO: replace m_ScenesInProject list by a dictionary
             var data = m_ScenesInProject.FirstOrDefault(s => s.guid == guid);
 
             if (data.asset == null)
@@ -221,8 +220,6 @@ namespace UnityEngine.Experimental.Rendering
                 var guid = set.sceneGUIDs[index];
                 // Find scene name from GUID:
                 var scene = FindSceneData(guid);
-
-                // TODO: Add a label on the first scene to say the the lighting settings of this scene will be used for baking
 
                 if (scene.asset != null)
                     EditorGUI.LabelField(rect, new GUIContent(scene.asset.name, Styles.sceneIcon), EditorStyles.boldLabel);
