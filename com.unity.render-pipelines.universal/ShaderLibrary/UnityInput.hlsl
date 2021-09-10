@@ -154,16 +154,7 @@ float4x4 unity_MatrixPreviousMI;
 float4 unity_MotionVectorsParams;
 CBUFFER_END
 
-#else
-
-// Not supported by hybrid renderer. Just define them to avoid compilation errors.
-static const float4 unity_SpecCube0_BoxMax = float4(1,1,1,1);
-static const float4 unity_SpecCube0_BoxMin = float4(0,0,0,0);
-
-static const float4 unity_SpecCube1_BoxMax = float4(1,1,1,1);
-static const float4 unity_SpecCube1_BoxMin = float4(0,0,0,0);
-
-#endif // !DOTS_INSTANCING_ON
+#endif // UNITY_DOTS_INSTANCING_ENABLED
 
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoViewBuffer)

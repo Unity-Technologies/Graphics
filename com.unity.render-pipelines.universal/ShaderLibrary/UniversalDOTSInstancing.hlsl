@@ -29,8 +29,6 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousMI)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
-// Note: Macros for unity_ObjectToWorld, unity_WorldToObject, unity_MatrixPreviousM and unity_MatrixPreviousMI are declared in UnityInstancing.hlsl
-// because of some special handling
 #define unity_LODFade               UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
 #define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
 #define unity_SpecCube0_HDR         UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SpecCube0_HDR)
@@ -44,10 +42,25 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_SHBg                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBg)
 #define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
 #define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_SHC)
-#define unity_LightIndices          float2x4(0, 0, 0, 0, 0, 0, 0, 0) // Not supported in DOTS instancing
 #define unity_LightData             LoadDOTSInstancedData_LightData()
 #define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
 #define unity_RenderingLayer        UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_RenderingLayer)
+
+// Not supported by hybrid renderer. Just define them as constants.
+// ------------------------------------------------------------------------------
+static const float2x4 unity_LightIndices = float2x4(0,0,0,0, 0,0,0,0);
+
+static const float4 unity_SpecCube0_BoxMax = float4(1,1,1,1);
+static const float4 unity_SpecCube0_BoxMin = float4(0,0,0,0);
+static const float4 unity_SpecCube0_ProbePosition = float4(0,0,0,0);
+
+static const float4 unity_SpecCube1_BoxMax = float4(1,1,1,1);
+static const float4 unity_SpecCube1_BoxMin = float4(0,0,0,0);
+static const float4 unity_SpecCube1_ProbePosition = float4(0,0,0,0);
+static const float4 unity_SpecCube1_HDR = float4(0,0,0,0);
+
+static const float4 unity_MotionVectorsParams = float4(0,1,0,1);
+
 #endif
 
 #endif

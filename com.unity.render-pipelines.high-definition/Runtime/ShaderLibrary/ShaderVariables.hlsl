@@ -98,52 +98,7 @@ CBUFFER_START(UnityPerDraw)
 
 CBUFFER_END
 
-#else // else ifdef DOTS_INSTANCING_ON
-
-// Define those matrices to make sure everything compile, but this is not supposed to actually be used with DOTS_INSTANCING_ON defined.
-static const float4x4 unity_ObjectToWorld = float4x4
-(
-    1,0,0,0,
-    0,1,0,0,
-    0,0,1,0,
-    0,0,0,1
-);
-static const float4x4 unity_WorldToObject = float4x4
-(
-    1,0,0,0,
-    0,1,0,0,
-    0,0,1,0,
-    0,0,0,1
-);
-
-// Hybrid renderer doesn't support texture based probe volumes.
-static const float4 unity_ProbeVolumeParams = float4(0,0,0,0);
-static const float4x4 unity_ProbeVolumeWorldToObject = float4x4
-(
-    1,0,0,0,
-    0,1,0,0,
-    0,0,1,0,
-    0,0,0,1
-);
-static const float4 unity_ProbeVolumeSizeInv = float4(1,1,1,0);
-static const float4 unity_ProbeVolumeMin = float4(0,0,0,0);
-
-static const float4x4 unity_MatrixPreviousM = float4x4
-(
-    1,0,0,0,
-    0,1,0,0,
-    0,0,1,0,
-    0,0,0,1
-);
-static const float4x4 unity_MatrixPreviousMI = float4x4
-(
-    1,0,0,0,
-    0,1,0,0,
-    0,0,1,0,
-    0,0,0,1
-);
-
-#endif
+#endif // DOTS_INSTANCING_ON
 
 CBUFFER_START(UnityPerDrawRare)
     float4x4 glstate_matrix_transpose_modelview0;
@@ -496,8 +451,11 @@ uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
     return Get1DAddressFromPixelCoord(pixCoord, screenSize, 0);
 }
 
+// There is no UnityPerDraw cbuffer with HybridRenderer. Those matrices don't exist, so don't try to access them
+#ifndef DOTS_INSTANCING_ON
+
 // Define Model Matrix Macro
-// Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject
+// Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject/unity_MatrixPreviousM/unity_MatrixPreviousMI
 // We need to declare inline function. Using uniform directly mean they are expand with the macro
 float4x4 GetRawUnityObjectToWorld()     { return unity_ObjectToWorld; }
 float4x4 GetRawUnityWorldToObject()     { return unity_WorldToObject; }
@@ -508,6 +466,8 @@ float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
 #define UNITY_MATRIX_I_M       ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
 #define UNITY_PREV_MATRIX_M    ApplyCameraTranslationToMatrix(GetRawUnityPrevObjectToWorld())
 #define UNITY_PREV_MATRIX_I_M  ApplyCameraTranslationToInverseMatrix(GetRawUnityPrevWorldToObject())
+
+#endif
 
 // To get instancing working, we must use UNITY_MATRIX_M/UNITY_MATRIX_I_M/UNITY_PREV_MATRIX_M/UNITY_PREV_MATRIX_I_M as UnityInstancing.hlsl redefine them
 #define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
@@ -546,7 +506,6 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousMI)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
-// Note: Macros for unity_ObjectToWorld, unity_WorldToObject, unity_MatrixPreviousM and unity_MatrixPreviousMI are declared elsewhere
 #define unity_LODFade               LoadDOTSInstancedData_LODFade()
 #define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
 #define unity_LightmapIndex         UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
@@ -563,6 +522,13 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_RenderingLayer        LoadDOTSInstancedData_RenderingLayer()
 #define unity_MotionVectorsParams   LoadDOTSInstancedData_MotionVectorsParams()
 #define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
+
+// Not supported by hybrid renderer. Just define them as constants.
+// ------------------------------------------------------------------------------
+static const float4 unity_ProbeVolumeParams = float4(0,0,0,0);
+static const float4x4 unity_ProbeVolumeWorldToObject = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+static const float4 unity_ProbeVolumeSizeInv = float4(1,1,1,0);
+static const float4 unity_ProbeVolumeMin = float4(0,0,0,0);
 
 #endif
 
