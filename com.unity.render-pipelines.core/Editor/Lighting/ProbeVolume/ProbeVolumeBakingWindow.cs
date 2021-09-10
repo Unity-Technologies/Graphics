@@ -162,7 +162,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             };
 
-            m_BakingSets.index = Mathf.Clamp(EditorPrefs.GetInt(k_SelectedBakingSetKey, 0), 0, m_BakingSets.count);
+            m_BakingSets.index = Mathf.Clamp(EditorPrefs.GetInt(k_SelectedBakingSetKey, 0), 0, m_BakingSets.count - 1);
 
             OnBakingSetSelected(m_BakingSets);
         }
@@ -229,7 +229,7 @@ namespace UnityEngine.Experimental.Rendering
                 // display the probe volume icon in the scene if it have one
                 Rect probeVolumeIconRect = rect;
                 probeVolumeIconRect.xMin = rect.xMax - k_ProbeVolumeIconSize;
-                if (sceneData.hasProbeVolumes.ContainsKey(scene.path))
+                if (sceneData.hasProbeVolumes.ContainsKey(scene.guid))
                     EditorGUI.LabelField(probeVolumeIconRect, new GUIContent(Styles.probeVolumeIcon));
 
                 // Display the lighting settings of the first scene (it will be used for baking)
