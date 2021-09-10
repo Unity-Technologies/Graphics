@@ -2,6 +2,8 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
+using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.Registry.Defs;
 
 namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
 {
@@ -91,6 +93,49 @@ namespace UnityEditor.ShaderGraph.GraphDelta.UnitTests
                 Assert.NotNull(thruEdge);
                 Assert.NotNull(normSearch);
                 Assert.AreEqual(thruEdge, normSearch);
+            }
+
+            public class TestDescriptor : Registry.Defs.IContextDescriptor
+            {
+                public IReadOnlyCollection<IContextDescriptor.ContextEntry> GetEntries()
+                {
+                    return new List<IContextDescriptor.ContextEntry>()
+                    {
+                        new IContextDescriptor.ContextEntry()
+                        {
+                            fieldName = "Foo",
+                            primitive = Registry.Types.GraphType.Primitive.Int,
+                            height = 1,
+                            length = 1,
+                            precision = Registry.Types.GraphType.Precision.Fixed,
+                            isFlat = true
+                        }
+                    };
+                }
+
+                public RegistryFlags GetRegistryFlags()
+                {
+                    throw new System.NotImplementedException();
+                }
+
+                public RegistryKey GetRegistryKey()
+                {
+                    return new RegistryKey() { Name = "TestContextDescriptor", Version = 1 };
+                }
+            }
+
+            [Test]
+            public void CanSetupContext()
+            {
+                GraphDelta graphHandler = GraphUtil.CreateGraph() as GraphDelta;
+                var registry = new Registry.Registry();
+                registry.Register<TestDescriptor>();
+                registry.Register<Registry.Types.GraphType>();
+                graphHandler.SetupContextNodes(new List<Registry.Defs.IContextDescriptor>() { new TestDescriptor() }, registry);
+                var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
+                Assert.NotNull(contextNode);
+                Assert.IsTrue(contextNode.TryGetPort("Foo", out var fooReader));
+                Assert.NotNull(fooReader);
             }
         }
     }

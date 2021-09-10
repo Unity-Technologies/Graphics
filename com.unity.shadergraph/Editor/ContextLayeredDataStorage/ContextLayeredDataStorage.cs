@@ -78,7 +78,7 @@ namespace UnityEditor.ContextLayeredDataStorage
 
         }
 
-        protected class Element<T> : Element, IDataElement
+        protected class Element<T> : Element, IDataElement 
         {
             public T data;
 

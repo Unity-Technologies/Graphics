@@ -68,6 +68,8 @@ namespace UnityEditor.ShaderFoundry
             {
                 if (paramIndex != 0)
                     builder.Add(", ");
+                if (param.IsOutput)
+                    builder.Add("out ");
                 builder.Add($"{param.Type.Name} {param.Name}");
                 ++paramIndex;
             }
