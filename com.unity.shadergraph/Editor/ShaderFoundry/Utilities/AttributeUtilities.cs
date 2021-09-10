@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderFoundry
 
         internal const string MaterialProperty = "MaterialProperty";
         internal const string PropertyVariable = "PropertyVariable";
+        internal const string UniformDeclaration = "UniformDeclaration";
         internal const string PropertyType = "PropertyType";
         internal const string DefaultValue = "DefaultValue";
         internal const string Varying = "Varying";
@@ -189,9 +190,50 @@ namespace UnityEditor.ShaderFoundry
             return null;
         }
 
-        internal string BuildDeclarationString(string referenceName)
+        internal string BuildVariableNameString(string referenceName)
         {
             return FormatString.Replace("#", referenceName);
+        }
+
+        internal string BuildDeclarationString(ShaderType type, string referenceName)
+        {
+            return $"{type.Name} {BuildVariableNameString(referenceName)}";
+        }
+    }
+
+    internal class UniformDeclarationAttribute
+    {
+        internal string Name { get; set; }
+        internal string Declaration { get; set; }
+        internal static UniformDeclarationAttribute Find(IEnumerable<ShaderAttribute> attributes)
+        {
+            var attribute = attributes.FindFirst(CommonShaderAttributes.UniformDeclaration);
+            if(attribute.IsValid)
+            {
+                var nameParam = attribute.Parameters.FindAttributeParam("name");
+                if(nameParam.IsValid)
+                {
+                    var declarationParam = attribute.Parameters.FindAttributeParam("declaration");
+                    string declaration =  declarationParam.IsValid ? declarationParam.Value : null;
+                    return new UniformDeclarationAttribute { Name = nameParam.Value, Declaration = declaration };
+                }
+            }
+            return null;
+        }
+
+        internal string BuildVariableNameString(string referenceName)
+        {
+            return Name.Replace("#", referenceName);
+        }
+
+        internal string BuildDeclarationString(ShaderType type, string referenceName)
+        {
+            // If there was no declaration string specified then just do Type Name.
+            if(Declaration == null)
+                return $"{type.Name} {BuildVariableNameString(referenceName)}";
+            // Otherwise just use the declaration string. The type is unimportant (e.g. TEXTURE2D(myTex) doesn't use the type name).
+            else
+                return Declaration.Replace("#", referenceName);
         }
     }
 
