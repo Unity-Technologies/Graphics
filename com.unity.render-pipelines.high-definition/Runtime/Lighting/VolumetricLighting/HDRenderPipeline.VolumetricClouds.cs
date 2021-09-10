@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Intermediate values for ambient probe evaluation
         Vector4[] m_PackedCoeffsClouds;
+        ZonalHarmonicsL2 m_PhaseZHClouds;
 
         // Cloud preset maps
         Texture2D m_SparsePresetMap;
@@ -89,6 +90,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Allocate the buffers for ambient probe evaluation
             m_PackedCoeffsClouds = new Vector4[7];
+            m_PhaseZHClouds = new ZonalHarmonicsL2();
+            m_PhaseZHClouds.coeffs = new float[3];
 
             // Grab the kernels we need
             ComputeShader volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
@@ -142,15 +145,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SparsePresetMap.Apply();
 
             m_CloudyPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Cloudy Texture" };
-            m_CloudyPresetMap.SetPixel(0, 0, new Color(0.9f, 0.0f, 0.2f, 1.0f));
+            m_CloudyPresetMap.SetPixel(0, 0, new Color(0.9f, 0.0f, 0.25f, 1.0f));
             m_CloudyPresetMap.Apply();
 
             m_OvercastPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Overcast Texture" };
-            m_OvercastPresetMap.SetPixel(0, 0, new Color(0.5f, 0.0f, 1.0f, 1.0f));
+            m_OvercastPresetMap.SetPixel(0, 0, new Color(0.9f, 0.0f, 0.25f, 1.0f));
             m_OvercastPresetMap.Apply();
 
             m_StormyPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Storm Texture" };
-            m_StormyPresetMap.SetPixel(0, 0, new Color(1.0f, 0.0f, 0.80f, 1.0f));
+            m_StormyPresetMap.SetPixel(0, 0, new Color(1.0f, 0.0f, 0.85f, 1.0f));
             m_StormyPresetMap.Apply();
         }
 
@@ -170,52 +173,52 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case VolumetricClouds.CloudPresets.Sparse:
                 {
-                    cloudModelData.densityMultiplier = 0.2f;
+                    cloudModelData.densityMultiplier = 0.25f;
                     cloudModelData.shapeFactor = 0.9f;
-                    cloudModelData.shapeScale = 2.0f;
-                    cloudModelData.erosionFactor = 0.6f;
-                    cloudModelData.erosionScale = 50.0f;
+                    cloudModelData.shapeScale = 3.0f;
+                    cloudModelData.erosionFactor = 0.9f;
+                    cloudModelData.erosionScale = 75.0f;
                     cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Cloudy:
                 {
                     cloudModelData.densityMultiplier = 0.3f;
-                    cloudModelData.shapeFactor = 0.85f;
-                    cloudModelData.shapeScale = 2.5f;
-                    cloudModelData.erosionFactor = 0.7f;
-                    cloudModelData.erosionScale = 55.0f;
+                    cloudModelData.shapeFactor = 0.9f;
+                    cloudModelData.shapeScale = 5.0f;
+                    cloudModelData.erosionFactor = 0.9f;
+                    cloudModelData.erosionScale = 120.0f;
                     cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Overcast:
                 {
                     cloudModelData.densityMultiplier = 0.25f;
-                    cloudModelData.shapeFactor = 0.5f;
-                    cloudModelData.shapeScale = 6.0f;
-                    cloudModelData.erosionFactor = 0.5f;
-                    cloudModelData.erosionScale = 40.0f;
+                    cloudModelData.shapeFactor = 0.55f;
+                    cloudModelData.shapeScale = 8.0f;
+                    cloudModelData.erosionFactor = 0.6f;
+                    cloudModelData.erosionScale = 80.0f;
                     cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Stormy:
                 {
                     cloudModelData.densityMultiplier = 0.3f;
-                    cloudModelData.shapeFactor = 0.9f;
-                    cloudModelData.shapeScale = 2.0f;
-                    cloudModelData.erosionFactor = 0.8f;
-                    cloudModelData.erosionScale = 50.0f;
+                    cloudModelData.shapeFactor = 0.85f;
+                    cloudModelData.shapeScale = 3.0f;
+                    cloudModelData.erosionFactor = 0.95f;
+                    cloudModelData.erosionScale = 60.0f;
                     cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
                     return;
                 }
             }
 
             // Default unused values
-            cloudModelData.densityMultiplier = 0.38729833462f;
-            cloudModelData.shapeFactor = 0.6f;
-            cloudModelData.shapeScale = 0.33333333333f;
-            cloudModelData.erosionFactor = 0.6f;
-            cloudModelData.erosionScale = 0.33333333333f;
+            cloudModelData.densityMultiplier = 0.0f;
+            cloudModelData.shapeFactor = 0.0f;
+            cloudModelData.shapeScale = 0.0f;
+            cloudModelData.erosionFactor = 0.0f;
+            cloudModelData.erosionScale = 0.0f;
             cloudModelData.erosionNoise = VolumetricClouds.CloudErosionNoise.Perlin32;
         }
 
@@ -299,6 +302,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return HasVolumetricClouds(hdCamera, in settings);
         }
 
+        static bool VolumetricCloudsRequireMaxZ(HDCamera hdCamera)
+        {
+            // Volumetric clouds require the max Z pass if the camera has clouds and we are in non local mode
+            VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
+            return HasVolumetricClouds(hdCamera, in settings) && !settings.localClouds.value;
+        }
+
         Texture2D GetPresetCloudMapTexture(VolumetricClouds.CloudPresets preset)
         {
             // Textures may become null if a new scene was loaded in the editor (and maybe other reasons).
@@ -372,7 +382,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Convert to kilometers
             cb._LowestCloudAltitude = settings.lowestCloudAltitude.value;
-            cb._HighestCloudAltitude = settings.lowestCloudAltitude.value + settings.cloudThickness.value;
+
+            // When in non local mode, the camera is supposed to be always stricly under the clouds
+            // to avoid artifactss due to precision issues, when in non local, the clouds are always 1 meter above the camera.
+            if (!settings.localClouds.value)
+                cb._LowestCloudAltitude = Mathf.Max(cb._LowestCloudAltitude, 1.0f);
+
+            cb._HighestCloudAltitude = cb._LowestCloudAltitude + settings.cloudThickness.value;
             cb._EarthRadius = Mathf.Lerp(1.0f, 0.025f, settings.earthCurvature.value) * k_EarthRadius;
             cb._CloudRangeSquared.Set(Square(cb._LowestCloudAltitude + cb._EarthRadius), Square(cb._HighestCloudAltitude + cb._EarthRadius));
 
@@ -406,7 +422,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!shadowPass)
                 {
-                    cb._SunLightColor = m_lightList.directionalLights[0].color;
+                    cb._SunLightColor = m_lightList.directionalLights[0].color * settings.sunLightDimmer.value;
                 }
             }
             else
@@ -524,6 +540,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnableIntegration = cameraData.enableIntegration ? 1 : 0;
             cb._RenderForSky = cameraData.cameraType == TVolumetricCloudsCameraType.Sky ? 1 : 0;
 
+            // The valid max z mask is only valid if we are in non local mode
+            cb._ValidMaxZMask = settings.localClouds.value ? 0 : 1;
+
             unsafe
             {
                 for (int p = 0; p < 4; ++p)
@@ -637,7 +656,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting)
+        void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting, TextureHandle maxZMask)
         {
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
@@ -655,14 +674,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (accumulationClouds)
             {
-                RenderVolumetricClouds_Accumulation(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting);
+                RenderVolumetricClouds_Accumulation(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
                 // Make sure to mark the history frame index validity.
                 PropagateVolumetricCloudsHistoryValidity(hdCamera, settings.localClouds.value);
             }
             else if (fullResolutionClouds)
-                RenderVolumetricClouds_FullResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting);
+                RenderVolumetricClouds_FullResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
             else
-                RenderVolumetricClouds_LowResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting);
+                RenderVolumetricClouds_LowResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
         }
 
         void PreRenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera)
