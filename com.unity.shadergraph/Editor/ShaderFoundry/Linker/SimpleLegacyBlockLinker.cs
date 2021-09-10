@@ -308,6 +308,7 @@ namespace UnityEditor.ShaderFoundry
             // Build the input/output types from the collected inputs and outputs.
             // Do not put these types in the block's context, these need to be in the global namespace due to legacy reasons.
             var inputBuilder = new ShaderType.StructBuilder(Container, buildingContext.InputTypeName);
+            inputBuilder.DeclaredExternally();
             foreach (var input in inputs)
                 inputBuilder.AddField(input.Source.Type, input.Source.ReferenceName);
             var inputType = inputBuilder.Build();

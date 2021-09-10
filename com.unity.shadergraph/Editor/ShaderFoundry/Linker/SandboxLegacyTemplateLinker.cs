@@ -235,15 +235,12 @@ namespace UnityEditor.ShaderFoundry
             {
                 if (!visitedRegistry.TryVisit(type))
                     return;
-                if (!type.IsStruct)
+                if (!type.IsStruct || type.IsDeclaredExternally)
                     return;
 
                 foreach (var field in type.StructFields)
                     TraverseType(field.Type);
 
-                if (type.Name == LegacyCustomizationPoints.SurfaceEntryPointInputName ||
-                    type.Name == LegacyCustomizationPoints.VertexEntryPointInputName)
-                    return;
                 allTypes.Add(type);
             }
             void TraverseTypes(IEnumerable<ShaderType> types)
