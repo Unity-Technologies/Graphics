@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
 using static UnityEditor.Rendering.BuiltIn.ShaderUtils;
 
@@ -17,7 +18,7 @@ namespace UnityEditor.Rendering.BuiltIn
         }
     }
 
-    class MaterialPostprocessor
+    class MaterialPostprocessor : AssetPostprocessor
     {
         public const string materialVersionDependencyName = "builtin-material-version";
 
@@ -25,16 +26,19 @@ namespace UnityEditor.Rendering.BuiltIn
         static void RegisterUpgraderReimport()
         {
             UnityEditor.MaterialPostprocessor.OnImportedMaterial += OnImportedMaterial;
-            UnityEditor.MaterialPostprocessor.CustomShaderDependencyName += ShaderDependency;
             // Register custom dependency on Material version
             AssetDatabase.RegisterCustomDependency(materialVersionDependencyName, Hash128.Compute(MaterialPostprocessor.k_Upgraders.Length));
             AssetDatabase.Refresh();
         }
 
-        private static string ShaderDependency(Shader shader)
+        private void OnPreprocessMaterialAsset(Material material)
         {
-            var shaderID = GetShaderID(shader);
-            return shaderID == ShaderID.Unknown ? string.Empty : materialVersionDependencyName;
+            var shaderID = GetShaderID(material.shader);
+            if(shaderID == ShaderID.Unknown)
+                return;
+            context.DependsOnCustomDependency(materialVersionDependencyName);
+            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(material.shader, out var guid, out long _);
+            context.GetArtifactFilePath(new GUID(guid), "builtin-material");
         }
 
         public static List<string> s_CreatedAssets = new List<string>();

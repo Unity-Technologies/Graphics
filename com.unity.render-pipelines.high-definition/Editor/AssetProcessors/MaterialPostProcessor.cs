@@ -71,16 +71,19 @@ namespace UnityEditor.Rendering.HighDefinition
         static void RegisterUpgraderReimport()
         {
             UnityEditor.MaterialPostprocessor.OnImportedMaterial += OnImportedMaterial;
-            UnityEditor.MaterialPostprocessor.CustomShaderDependencyName += ShaderDependency;
 
             // Register custom dependency on Material version
             AssetDatabase.RegisterCustomDependency(materialVersionDependencyName, Hash128.Compute(MaterialPostprocessor.k_Upgraders.Length));
             AssetDatabase.Refresh();
         }
 
-        private static string ShaderDependency(Shader shader)
+        private void OnPreprocessMaterialAsset(Material material)
         {
-            return HDShaderUtils.IsHDRPShader(shader, upgradable: true) ? materialVersionDependencyName : string.Empty;
+            if(!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
+                return;
+            context.DependsOnCustomDependency(materialVersionDependencyName);
+            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(material.shader, out var guid, out long _);
+            context.GetArtifactFilePath(new GUID(guid), "hdrp-material");
         }
 
         internal static List<string> s_CreatedAssets = new List<string>();

@@ -30,7 +30,6 @@ namespace UnityEditor.Rendering.Universal
         static void RegisterUpgraderReimport()
         {
             UnityEditor.MaterialPostprocessor.OnImportedMaterial += OnImportedMaterial;
-            UnityEditor.MaterialPostprocessor.CustomShaderDependencyName += ShaderDependency;
 
             // Register custom dependency on Material version
             AssetDatabase.RegisterCustomDependency(materialVersionDependencyName, Hash128.Compute(MaterialPostprocessor.k_Upgraders.Length));
@@ -39,10 +38,14 @@ namespace UnityEditor.Rendering.Universal
             //TODOJENNY: do we still need the popup to warn the user of impeding upgrade?
         }
 
-        private static string ShaderDependency(Shader shader)
+        private void OnPreprocessMaterialAsset(Material material)
         {
-            var shaderID = GetShaderID(shader);
-            return shaderID == ShaderID.Unknown ? string.Empty : materialVersionDependencyName;
+            var shaderID = GetShaderID(material.shader);
+            if(shaderID == ShaderID.Unknown)
+                return;
+            context.DependsOnCustomDependency(materialVersionDependencyName);
+            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(material.shader, out var guid, out long _);
+            context.GetArtifactFilePath(new GUID(guid), "urp-material");
         }
 
         public static List<string> s_CreatedAssets = new List<string>();
