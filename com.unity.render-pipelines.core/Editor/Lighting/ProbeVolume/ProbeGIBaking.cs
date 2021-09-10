@@ -101,45 +101,42 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public static void FindWorldBounds()
+        public static void FindWorldBounds(out bool hasFoundInvalidSetup)
         {
             ProbeReferenceVolume.instance.clearAssetsOnVolumeClear = true;
-
+            hasFoundInvalidSetup = false;
 
             var sceneData = ProbeReferenceVolume.instance.sceneData;
             HashSet<string> scenesToConsider = new HashSet<string>();
 
-            for (int i = 0; i < EditorSceneManager.sceneCount; ++i)
+            var activeScene = SceneManager.GetActiveScene();
+            var activeSet = sceneData.GetBakingSetForScene(activeScene);
+
+            // We assume that all the bounds for all the scenes in the set have been set. However we also update the scenes that are currently loaded anyway for security.
+            // and to have a new trigger to update the bounds we have.
+            int openedScenesCount = SceneManager.sceneCount;
+            for (int i=0; i<openedScenesCount; ++i)
             {
-                var scene = EditorSceneManager.GetSceneAt(i);
+                var scene = SceneManager.GetSceneAt(i);
                 sceneData.OnSceneSaved(scene); // We need to perform the same actions we do when the scene is saved.
-                // !!! IMPORTANT TODO !!!
-                // When we will have the concept of baking set this should be reverted, if a scene is not in the bake set it should not be considered
-                // As of now we include all open scenes as the workflow is not nice or clear. When it'll be we should *NOT* do it.
-                scenesToConsider.Add(scene.path);
+                if (sceneData.GetBakingSetForScene(scene) != activeSet && sceneData.SceneHasProbeVolumes(scene))
+                {
+                    Debug.LogError($"Scene at {scene.path} is loaded and has probe volumes, but not part of the same baking set as the active scene. This will result in an error. Please make sure all loaded scenes are part of the same baking sets.");
+                }
             }
 
 
-            foreach (var scene in EditorBuildSettings.scenes)
-            {
-                // We consider only scenes that exist.
-                if (System.IO.File.Exists(scene.path))
-                    scenesToConsider.Add(scene.path);
-            }
-
-
-            List<Scene> openedScenes = new List<Scene>();
             hasFoundBounds = false;
 
-            foreach (var scenePath in scenesToConsider)
+            foreach (var sceneGUID in activeSet.sceneGUIDs)
             {
                 bool hasProbeVolumes = false;
-                if (sceneData.hasProbeVolumes.TryGetValue(scenePath, out hasProbeVolumes))
+                if (sceneData.hasProbeVolumes.TryGetValue(sceneGUID, out hasProbeVolumes))
                 {
                     if (hasProbeVolumes)
                     {
                         Bounds localBound;
-                        if (sceneData.sceneBounds.TryGetValue(scenePath, out localBound))
+                        if (sceneData.sceneBounds.TryGetValue(sceneGUID, out localBound))
                         {
                             if (hasFoundBounds)
                             {
@@ -155,29 +152,8 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 else // we need to open the scene to test.
                 {
-                    // We open only if the scene still exists (might have been removed)
-                    if (System.IO.File.Exists(scenePath))
-                    {
-                        var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
-                        openedScenes.Add(scene);
-                        if (sceneData.hasProbeVolumes.TryGetValue(scenePath, out hasProbeVolumes))
-                        {
-                            sceneData.UpdateSceneBounds(scene);
-                            Bounds localBound = sceneData.sceneBounds[scene.path];
-                            if (hasFoundBounds)
-                                globalBounds.Encapsulate(localBound);
-                            else
-                                globalBounds = localBound;
-                        }
-                    }
-                }
-            }
-
-            if (openedScenes.Count > 0)
-            {
-                foreach (var scene in openedScenes)
-                {
-                    EditorSceneManager.CloseScene(scene, true);
+                    Debug.Log("The probe volume system couldn't find data for all the scenes in the baking set. Consider opening the scenes in the set and save them. Alternatively, bake the full set.");
+                    hasFoundInvalidSetup = true;
                 }
             }
         }
@@ -215,9 +191,9 @@ namespace UnityEngine.Experimental.Rendering
             var pvList = GameObject.FindObjectsOfType<ProbeVolume>();
             if (pvList.Length == 0) return; // We have no probe volumes.
 
-            FindWorldBounds();
+            FindWorldBounds(out bool hasFoundInvalidSetup);
             var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
-            if (perSceneDataList.Length == 0) return;
+            if (perSceneDataList.Length == 0 || hasFoundInvalidSetup) return;
 
             SetBakingContext(perSceneDataList);
 

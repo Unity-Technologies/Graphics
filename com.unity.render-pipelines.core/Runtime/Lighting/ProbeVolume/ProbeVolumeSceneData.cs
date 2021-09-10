@@ -26,14 +26,14 @@ namespace UnityEngine.Experimental.Rendering
         [System.Serializable]
         struct SerializableBoundItem
         {
-            [SerializeField] public string scenePath;
+            [SerializeField] public string sceneGUID;
             [SerializeField] public Bounds bounds;
         }
 
         [System.Serializable]
         struct SerializableHasPVItem
         {
-            [SerializeField] public string scenePath;
+            [SerializeField] public string sceneGUID;
             [SerializeField] public bool hasProbeVolumes;
         }
 
@@ -125,12 +125,12 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var boundItem in serializedBounds)
             {
-                sceneBounds.Add(boundItem.scenePath, boundItem.bounds);
+                sceneBounds.Add(boundItem.sceneGUID, boundItem.bounds);
             }
 
             foreach (var boundItem in serializedHasVolumes)
             {
-                hasProbeVolumes.Add(boundItem.scenePath, boundItem.hasProbeVolumes);
+                hasProbeVolumes.Add(boundItem.sceneGUID, boundItem.hasProbeVolumes);
             }
 
             foreach (var profileItem in serializedProfiles)
@@ -186,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var k in sceneBounds.Keys)
             {
                 SerializableBoundItem item;
-                item.scenePath = k;
+                item.sceneGUID = k;
                 item.bounds = sceneBounds[k];
                 serializedBounds.Add(item);
             }
@@ -194,7 +194,7 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var k in hasProbeVolumes.Keys)
             {
                 SerializableHasPVItem item;
-                item.scenePath = k;
+                item.sceneGUID = k;
                 item.hasProbeVolumes = hasProbeVolumes[k];
                 serializedHasVolumes.Add(item);
             }
@@ -334,6 +334,7 @@ namespace UnityEngine.Experimental.Rendering
                 ProbeReferenceVolume.instance.SetMaxSubdivision(profile.maxSubdivision);
             }
 
+            var sceneGUID = GetSceneGUID(scene);
             bool boundFound = false;
             Bounds newBound = new Bounds();
             foreach (var volume in volumes)
@@ -341,8 +342,8 @@ namespace UnityEngine.Experimental.Rendering
                 if (volume.globalVolume)
                     volume.UpdateGlobalVolume(scene);
 
-                var scenePath = volume.gameObject.scene.path;
-                if (scenePath == scene.path)
+                var volumeSceneGUID = GetSceneGUID(volume.gameObject.scene);
+                if (volumeSceneGUID == sceneGUID)
                 {
                     var pos = volume.gameObject.transform.position;
                     var extent = volume.GetExtents();
@@ -371,20 +372,20 @@ namespace UnityEngine.Experimental.Rendering
                     hasProbeVolumes = new Dictionary<string, bool>();
                 }
 
-                if (sceneBounds.ContainsKey(scene.path))
+                if (sceneBounds.ContainsKey(sceneGUID))
                 {
-                    sceneBounds[scene.path] = newBound;
+                    sceneBounds[sceneGUID] = newBound;
                 }
                 else
                 {
-                    sceneBounds.Add(scene.path, newBound);
+                    sceneBounds.Add(sceneGUID, newBound);
                 }
             }
 
-            if (hasProbeVolumes.ContainsKey(scene.path))
-                hasProbeVolumes[scene.path] = boundFound;
+            if (hasProbeVolumes.ContainsKey(sceneGUID))
+                hasProbeVolumes[sceneGUID] = boundFound;
             else
-                hasProbeVolumes.Add(scene.path, boundFound);
+                hasProbeVolumes.Add(sceneGUID, boundFound);
 
             if (parentAsset != null)
             {
@@ -400,20 +401,21 @@ namespace UnityEngine.Experimental.Rendering
             {
                 if (GetSceneGUID(volume.gameObject.scene) == sceneGUID)
                 {
-                    hasProbeVolumes[scene.path] = true;
+                    hasProbeVolumes[sceneGUID] = true;
                     return;
                 }
             }
-            hasProbeVolumes[scene.path] = false;
+            hasProbeVolumes[sceneGUID] = false;
         }
 
         // It is important this is called after UpdateSceneBounds is called!
         internal void EnsurePerSceneData(Scene scene)
         {
-            if (hasProbeVolumes.ContainsKey(scene.path) && hasProbeVolumes[scene.path])
+            var sceneGUID = GetSceneGUID(scene);
+
+            if (hasProbeVolumes.ContainsKey(sceneGUID) && hasProbeVolumes[sceneGUID])
             {
                 var perSceneData = UnityEngine.GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
-                var sceneGUID = GetSceneGUID(scene);
 
                 bool foundPerSceneData = false;
                 foreach (var data in perSceneData)
@@ -489,6 +491,12 @@ namespace UnityEngine.Experimental.Rendering
             sceneProfiles[sceneGUID] = profile;
         }
 
+        internal void SetProfileForScene(string sceneGUID, ProbeReferenceVolumeProfile profile)
+        {
+            if (sceneProfiles == null) sceneProfiles = new Dictionary<string, ProbeReferenceVolumeProfile>();
+            sceneProfiles[sceneGUID] = profile;
+        }
+
         internal void SetBakeSettingsForScene(Scene scene, ProbeDilationSettings dilationSettings, VirtualOffsetSettings virtualOffsetSettings)
         {
             if (sceneBakingSettings == null) sceneBakingSettings = new Dictionary<string, ProbeVolumeBakingProcessSettings>();
@@ -523,6 +531,28 @@ namespace UnityEngine.Experimental.Rendering
                 return sceneBakingSettings[sceneGUID];
 
             return new ProbeVolumeBakingProcessSettings();
+        }
+
+        // This is sub-optimal, but because is called once when kicking off a bake
+        internal BakingSet GetBakingSetForScene(Scene scene)
+        {
+            var sceneGUID = GetSceneGUID(scene);
+            foreach (var set in bakingSets)
+            {
+                foreach (var guidInSet in set.sceneGUIDs)
+                {
+                    if (guidInSet == sceneGUID)
+                        return set;
+                }
+            }
+
+            return null;
+        }
+
+        internal bool SceneHasProbeVolumes(Scene scene)
+        {
+            var sceneGUID = GetSceneGUID(scene);
+            return hasProbeVolumes != null && hasProbeVolumes.ContainsKey(sceneGUID) && hasProbeVolumes[sceneGUID];
         }
 #endif
     }
