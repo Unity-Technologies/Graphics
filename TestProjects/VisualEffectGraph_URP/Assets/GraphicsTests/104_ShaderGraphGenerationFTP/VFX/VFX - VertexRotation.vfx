@@ -5378,107 +5378,35 @@ MonoBehaviour:
     type: 3}
   materialSettings:
     m_PropertyNames:
-    - _RenderQueueType
-    - _AddPrecomputedVelocity
-    - _DepthOffsetEnable
-    - _ConservativeDepthOffsetEnable
-    - _TransparentWritingMotionVec
-    - _AlphaCutoffEnable
-    - _TransparentSortPriority
-    - _UseShadowThreshold
-    - _DoubleSidedEnable
-    - _DoubleSidedNormalMode
-    - _DoubleSidedGIMode
-    - _TransparentDepthPrepassEnable
-    - _TransparentDepthPostpassEnable
-    - _SurfaceType
-    - _BlendMode
+    - _WorkflowMode
+    - _CastShadows
+    - _ReceiveShadows
+    - _Surface
+    - _Blend
+    - _AlphaClip
     - _SrcBlend
     - _DstBlend
-    - _AlphaSrcBlend
-    - _AlphaDstBlend
-    - _AlphaToMask
-    - _AlphaToMaskInspectorValue
     - _ZWrite
-    - _TransparentZWrite
-    - _CullMode
-    - _EnableFogOnTransparent
-    - _CullModeForward
-    - _TransparentCullMode
-    - _OpaqueCullMode
-    - _ZTestDepthEqualForOpaque
-    - _ZTestTransparent
-    - _TransparentBackfaceEnable
-    - _RequireSplitLighting
-    - _ReceivesSSR
-    - _ReceivesSSRTransparent
-    - _EnableBlendModePreserveSpecularLighting
-    - _SupportDecals
-    - _StencilRef
-    - _StencilWriteMask
-    - _StencilRefDepth
-    - _StencilWriteMaskDepth
-    - _StencilRefMV
-    - _StencilWriteMaskMV
-    - _StencilRefDistortionVec
-    - _StencilWriteMaskDistortionVec
-    - _StencilWriteMaskGBuffer
-    - _StencilRefGBuffer
-    - _ZTestGBuffer
-    - _RayTracing
-    - _RefractionModel
-    - _ForceForwardEmissive
+    - _ZWriteControl
+    - _ZTest
+    - _Cull
+    - _QueueOffset
+    - _QueueControl
     m_PropertyValues:
+    - 1
+    - 0
+    - 1
+    - 1
+    - 0
+    - 0
+    - 5
+    - 10
+    - 0
+    - 0
     - 4
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
     - 2
     - 0
     - 0
-    - 0
-    - 1
-    - 0
-    - 1
-    - 0
-    - 1
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 2
-    - 1
-    - 2
-    - 2
-    - 2
-    - 4
-    - 4
-    - 0
-    - 0
-    - 1
-    - 0
-    - 1
-    - 1
-    - 0
-    - 6
-    - 0
-    - 8
-    - 32
-    - 40
-    - 4
-    - 4
-    - 14
-    - 2
-    - 4
-    - 0
-    - 0
-    - 1
   workflowMode: 0
   smoothnessSource: 0
   useBaseColorMap: 3
