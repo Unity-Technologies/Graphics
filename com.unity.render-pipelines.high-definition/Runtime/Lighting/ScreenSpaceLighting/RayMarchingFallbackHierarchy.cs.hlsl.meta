@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< HEAD:com.unity.render-pipelines.high-definition/Runtime/Lighting/MultipleScattering/MultipleScattering.hlsl.meta
-guid: 95643cfe1d8b9334188d39bfd9b97cfc
-=======
 guid: 475e9dc7baf953948a861aba6bcd1a3e
->>>>>>> master:com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/RayMarchingFallbackHierarchy.cs.hlsl.meta
 ShaderIncludeImporter:
   externalObjects: {}
   userData: 
