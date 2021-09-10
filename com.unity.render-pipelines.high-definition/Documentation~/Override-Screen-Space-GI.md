@@ -76,4 +76,3 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 
 * When rendering [Reflection Probes](Reflection-Probe.md) screen space global illumination is not supported.
 * When lit shader mode is setup to deferred the Ambient Occlusion from Lit shader will be combine with Screen space Ambient Occlusion (if it is enabled) and apply on the indirect lighting result where there is no Emissive contribution. This is similar behavior than rendering with lit shader mode setup to forward. If the Material have an emissive contribution then Ambient Occlusion is setup to one.
-

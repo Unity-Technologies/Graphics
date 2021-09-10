@@ -427,7 +427,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // If we are APV we only replace the non lightmaps part.
         bool replaceBakeDiffuseLighting = false;
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
-        float3 lightInReflDir = float3(-1, -1, -1); // This variable is used with APV for tinting reflection probe - see code for LIGHTFEATUREFLAGS_ENV
+        float3 lightInReflDir = float3(-1, -1, -1); // This variable is used with APV for reflection probe normalization - see code for LIGHTFEATUREFLAGS_ENV
 #endif
 
 #if !defined(_SURFACE_TYPE_TRANSPARENT) // No SSGI/RTGI/Mixed effect on transparent

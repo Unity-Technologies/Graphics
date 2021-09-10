@@ -706,7 +706,6 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 
 #ifdef LIGHT_LAYERS
     // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
-    // If light layers is available, we take the opportunity to store AO in it to improve quality of indirect lighting with APV/SSGI/RTGI/Mixed
     OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, (builtinData.renderingLayers & 0x000000FF) / 255.0);
 #endif
 
