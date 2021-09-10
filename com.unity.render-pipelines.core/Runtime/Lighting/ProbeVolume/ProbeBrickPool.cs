@@ -149,6 +149,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 outAllocations.Add(m_FreeList.Pop());
                 numberOfBrickChunks--;
+                m_AvailableChunkCount--;
             }
 
             for (uint i = 0; i < numberOfBrickChunks; i++)
@@ -160,6 +161,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 outAllocations.Add(m_NextFreeChunk);
+                m_AvailableChunkCount--;
 
                 m_NextFreeChunk.x += kProbeIndexPoolAllocationSize * kBrickProbeCountPerDim;
                 if (m_NextFreeChunk.x >= m_Pool.width)
@@ -173,8 +175,6 @@ namespace UnityEngine.Experimental.Rendering
                     }
                 }
             }
-
-            m_AvailableChunkCount -= numberOfBrickChunks;
 
             return true;
         }
