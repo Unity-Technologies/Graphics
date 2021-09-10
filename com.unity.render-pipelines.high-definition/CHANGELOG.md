@@ -16,15 +16,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed edge bleeding when rendering volumetric clouds.
 - Fixed regression in the ambient probe intensity for volumetric clouds.
 - Fixed the sun leaking from behind fully opaque clouds.
+- Fixed artifacts in volumetric cloud shadows.
+- Fixed the missing parameter to control the sun light dimmer (case 1364152).
+- Fixed regression in the clouds presets.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
-- Changed the volumetric clouds presets.
-- Changed the number of steps to evaluate the shadow from 9 to 16.
-
-### Added
-- Added an option for the ultra 1024x1024 mode for the volumetric cloud shadows and a filtering pass to reduce the aliasing artifacts of the clouds shadow.
-- Added a new sun light dimmer on the volumetric clouds volume (case 1364152).
 
 ## [12.0.0] - 2021-01-11
 
