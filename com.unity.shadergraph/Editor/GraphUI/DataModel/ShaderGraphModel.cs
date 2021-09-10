@@ -113,6 +113,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             return base.IsCompatiblePort(startPortModel, compatiblePortModel);
         }
 
+        public IEnumerable<IVariableDeclarationModel> GetGraphProperties()
+        {
+            return this.VariableDeclarations;
+        }
+
         public IEnumerable<IPortReader> GetInputPortsOnNode(GraphDataNodeModel nodeModel)
         {
             var nodeInstanceReader = m_GraphHandler.GetNodeReader(nodeModel.Guid.ToString());

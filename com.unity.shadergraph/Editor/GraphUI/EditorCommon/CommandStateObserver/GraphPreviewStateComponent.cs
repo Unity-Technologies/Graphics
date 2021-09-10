@@ -7,7 +7,10 @@ using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
+using UnityEngine.GraphToolsFoundation.Overdrive;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 {
@@ -32,6 +35,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
     class PreviewRenderData
     {
         public string Guid;
+        // Currently unused
         public bool isPreviewEnabled;
         public bool isPreviewExpanded;
         public PreviewShaderData shaderData;
@@ -48,7 +52,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
     {
         Dictionary<string, PreviewRenderData> KeyToPreviewDataMap = new ();
 
-        Dictionary<string, PortPreviewHandler> KeyToPreviewPropertyHandlerMap = new();
+        Dictionary<string, PortPreviewHandler> PortPreviewHandlers = new();
+
+        Dictionary<string, VariablePreviewHandler> VariablePreviewHandlers = new();
 
         MaterialPropertyBlock m_PreviewMaterialPropertyBlock = new ();
 
@@ -58,9 +64,38 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 
         ShaderGraphModel m_ShaderGraphModel;
 
+        Texture2D m_ErrorTexture;
+
+        PreviewSceneResources m_SceneResources;
+
+        PreviewRenderData m_MainPreviewRenderData;
+
         public void SetGraphModel(ShaderGraphModel shaderGraphModel)
         {
             m_ShaderGraphModel = shaderGraphModel;
+            m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
+            m_SceneResources = new PreviewSceneResources();
+            m_MainPreviewRenderData = new PreviewRenderData();
+
+            foreach (var node in shaderGraphModel.NodeModels)
+            {
+                if(node is GraphDataNodeModel { HasPreview: true } graphDataNodeModel)
+                    OnGraphDataNodeAdded(graphDataNodeModel);
+            }
+
+            // TODO: Add master preview
+        }
+
+        static Texture2D GenerateFourSquare(Color c1, Color c2)
+        {
+            var tex = new Texture2D(2, 2);
+            tex.SetPixel(0, 0, c1);
+            tex.SetPixel(0, 1, c2);
+            tex.SetPixel(1, 0, c2);
+            tex.SetPixel(1, 1, c1);
+            tex.filterMode = FilterMode.Point;
+            tex.Apply();
+            return tex;
         }
 
         public class PreviewStateUpdater : BaseUpdater<GraphPreviewStateComponent>
@@ -119,7 +154,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 
             public void UpdateNodePortConstantValue(string changedElementGuid, object newPortConstantValue, GraphDataNodeModel changedNodeModel)
             {
-                if (m_State.KeyToPreviewPropertyHandlerMap.TryGetValue(changedElementGuid, out var portPreviewHandler))
+                if (m_State.PortPreviewHandlers.TryGetValue(changedElementGuid, out var portPreviewHandler))
                 {
                     // Update value of port constant
                     portPreviewHandler.PortConstantValue = newPortConstantValue;
@@ -130,8 +165,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                     {
                         m_State.m_ElementsRequiringPreviewUpdate.Add(downStreamNode.graphDataName);
                     }
-
-                    // TODO: Handle Virtual Texture case
 
                     // Then set preview property in MPB from that
                     m_State.UpdatePortPreviewPropertyBlock(portPreviewHandler);
@@ -186,9 +219,101 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 
         void Tick()
         {
-            UpdateTopology();
+            using (var renderList2D = PooledList<PreviewRenderData>.Get())
+            using (var renderList3D = PooledList<PreviewRenderData>.Get())
+            {
+                UpdateTopology();
 
-            // TODO: Skip any previews that are currently collapsed
+                // Unify list of elements with property changes with the ones that are time-dependent to get the final list of everything that needs to be rendered
+                m_ElementsRequiringPreviewUpdate.UnionWith(m_TimeDependentPreviewKeys);
+
+                // TODO: Account for custom interpolators
+                // Need to late capture custom interpolators because of how their type changes
+                // can have downstream impacts on dynamic slots.
+                /*HashSet<AbstractMaterialNode> customProps = new HashSet<AbstractMaterialNode>();
+                PropagateNodes(
+                    new HashSet<AbstractMaterialNode>(m_NodesPropertyChanged.OfType<BlockNode>().Where(b => b.isCustomBlock)),
+                    PropagationDirection.Downstream,
+                    customProps);*/
+
+                // TODO: Account for properties from context blocks
+                // always update properties from temporary blocks created by master node preview generation
+                //m_NodesPropertyChanged.UnionWith(m_MasterNodeTempBlocks);
+
+                var nonMPBProperties = new List<IConstant>();
+                ProcessGraphProperties(nonMPBProperties);
+
+                int drawPreviewCount = 0;
+                foreach (var element in m_ElementsRequiringPreviewUpdate)
+                {
+                    var previewData = KeyToPreviewDataMap[element];
+
+                    Assert.IsNotNull(previewData);
+
+                    // Skip any previews that are currently collapsed
+                    if (previewData.isPreviewExpanded == false)
+                        continue;
+
+                    // check that we've got shaders and materials generated
+                    // if not ,replace the rendered texture with null
+                    if (previewData.shaderData.shader == null || previewData.shaderData.mat == null)
+                    {
+                        previewData.texture = null;
+                        continue;
+                        // TODO: Also notify the NodePreviewPart that we're currently compiling the shaders and it should replace it with a black texture
+                    }
+
+                    if (previewData.shaderData.hasError)
+                    {
+                        previewData.texture = m_ErrorTexture;
+                        // TODO: Also notify the NodePreviewPart that we need to replace preview image with an error texture
+                    }
+
+                    // we want to render this thing, now categorize what kind of render it is
+                    /*if (previewData == m_MasterRenderData)
+                        renderMasterPreview = true;
+                    else*/ if (previewData.previewMode == PreviewMode.Preview2D)
+                        renderList2D.Add(previewData);
+                    else
+                        renderList3D.Add(previewData);
+
+                    drawPreviewCount++;
+                }
+
+                // if we actually don't want to render anything at all, early out here
+                if (drawPreviewCount <= 0)
+                    return;
+
+                var time = Time.realtimeSinceStartup;
+                var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
+                m_PreviewMaterialPropertyBlock.SetVector("_TimeParameters", timeParameters);
+
+                EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
+
+                m_SceneResources.light0.enabled = true;
+                m_SceneResources.light0.intensity = 1.0f;
+                m_SceneResources.light0.transform.rotation = Quaternion.Euler(50f, 50f, 0);
+                m_SceneResources.light1.enabled = true;
+                m_SceneResources.light1.intensity = 1.0f;
+                m_SceneResources.camera.clearFlags = CameraClearFlags.Color;
+
+                // Render 2D previews
+                m_SceneResources.camera.transform.position = -Vector3.forward * 2;
+                m_SceneResources.camera.transform.rotation = Quaternion.identity;
+                m_SceneResources.camera.orthographicSize = 0.5f;
+                m_SceneResources.camera.orthographic = true;
+
+               foreach (var renderData in renderList2D)
+                    RenderPreview(renderData, m_SceneResources.quad, Matrix4x4.identity, nonMPBProperties);
+
+                // Render 3D previews
+                m_SceneResources.camera.transform.position = -Vector3.forward * 5;
+                m_SceneResources.camera.transform.rotation = Quaternion.identity;
+                m_SceneResources.camera.orthographic = false;
+
+                m_SceneResources.light0.enabled = false;
+                m_SceneResources.light1.enabled = false;
+            }
         }
 
         void UpdateTopology()
@@ -205,9 +330,115 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                     m_TimeDependentPreviewKeys.Add(nodeModel.graphDataName);
                 }
             }
+        }
 
-            // Unify list of elements with property changes with the ones that are time-dependent to get the final list of everything that needs to be rendered
-            m_ElementsRequiringPreviewUpdate.UnionWith(m_TimeDependentPreviewKeys);
+        void ProcessGraphProperties(IList<IConstant> nonMPBProperties)
+        {
+            var graphProperties = m_ShaderGraphModel.GetGraphProperties();
+
+            foreach (var property in graphProperties)
+            {
+                // TODO: Handle virtual texture types
+                if (/*property.InitializationModel.ObjectValue is SerializableVirtualTexture virtualTextureValue &&
+                    virtualTextureValue.layers != null*/ property.DataType == TypeHandle.Unknown)
+                {
+                    // virtual texture assignments must be pushed to the materials themselves (MaterialPropertyBlocks not supported)
+                    nonMPBProperties.Add(property.InitializationModel);
+                }
+                else
+                {
+                    // Find variable preview handler that maps to this property, and then set value on MPB
+                    var variablePreviewHandler = VariablePreviewHandlers[property.Guid.ToString()];
+                    variablePreviewHandler.SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock);
+                }
+            }
+        }
+
+        void RenderPreview(PreviewRenderData renderData, Mesh mesh, Matrix4x4 transform, IList<IConstant> nonMPBProperties)
+        {
+            //using (RenderPreviewMarker.Auto())
+            //{
+                var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
+                ShaderUtil.allowAsyncCompilation = true;
+
+                AssignPerMaterialPreviewProperties(renderData.shaderData.mat, nonMPBProperties);
+
+                var previousRenderTexture = RenderTexture.active;
+
+                //Temp workaround for alpha previews...
+                var temp = RenderTexture.GetTemporary(renderData.renderTexture.descriptor);
+                RenderTexture.active = temp;
+                Graphics.Blit(Texture2D.whiteTexture, temp, m_SceneResources.checkerboardMaterial);
+
+                // Mesh is invalid for VFXTarget
+                // We should handle this more gracefully
+                if (renderData != m_MainPreviewRenderData /*|| !m_Graph.isOnlyVFXTarget*/)
+                {
+                    m_SceneResources.camera.targetTexture = temp;
+                    Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, m_PreviewMaterialPropertyBlock, ShadowCastingMode.Off, false, null, false);
+                }
+
+                var previousUseSRP = Unsupported.useScriptableRenderPipeline;
+                Unsupported.useScriptableRenderPipeline = (renderData == m_MainPreviewRenderData);
+                m_SceneResources.camera.Render();
+                Unsupported.useScriptableRenderPipeline = previousUseSRP;
+
+                Graphics.Blit(temp, renderData.renderTexture, m_SceneResources.blitNoAlphaMaterial);
+                RenderTexture.ReleaseTemporary(temp);
+
+                RenderTexture.active = previousRenderTexture;
+                renderData.texture = renderData.renderTexture;
+
+                ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
+           // }
+        }
+
+        void AssignPerMaterialPreviewProperties(Material mat, IList<IConstant> nonMPBProperties)
+        {
+            foreach (var property in nonMPBProperties)
+            {
+                /*switch (property.Type)
+                {
+                    case PropertyType.VirtualTexture:
+
+                        // setup the VT textures on the material
+                        bool setAnyTextures = false;
+                        var vt = property.vtProperty.value;
+                        for (int layer = 0; layer < vt.layers.Count; layer++)
+                        {
+                            var texture = vt.layers[layer].layerTexture?.texture;
+                            int propIndex = mat.shader.FindPropertyIndex(vt.layers[layer].layerRefName);
+                            if (propIndex != -1)
+                            {
+                                mat.SetTexture(vt.layers[layer].layerRefName, texture);
+                                setAnyTextures = true;
+                            }
+                        }
+                        // also put in a request for the VT tiles, since preview rendering does not have feedback enabled
+                        if (setAnyTextures)
+                        {
+#if ENABLE_VIRTUALTEXTURES
+                            int stackPropertyId = Shader.PropertyToID(prop.vtProperty.referenceName);
+                            try
+                            {
+                                // Ensure we always request the mip sized 256x256
+                                int width, height;
+                                UnityEngine.Rendering.VirtualTexturing.Streaming.GetTextureStackSize(mat, stackPropertyId, out width, out height);
+                                int textureMip = (int)Math.Max(Mathf.Log(width, 2f), Mathf.Log(height, 2f));
+                                const int baseMip = 8;
+                                int mip = Math.Max(textureMip - baseMip, 0);
+                                UnityEngine.Rendering.VirtualTexturing.Streaming.RequestRegion(mat, stackPropertyId, new Rect(0.0f, 0.0f, 1.0f, 1.0f), mip, UnityEngine.Rendering.VirtualTexturing.System.AllMips);
+                            }
+                            catch (InvalidOperationException)
+                            {
+                                // This gets thrown when the system is in an indeterminate state (like a material with no textures assigned which can obviously never have a texture stack streamed).
+                                // This is valid in this case as we're still authoring the material.
+                            }
+#endif // ENABLE_VIRTUALTEXTURES
+                        }
+                        break;
+                }*/
+            }
         }
 
         void OnGraphDataNodeAdded(GraphDataNodeModel nodeModel)
@@ -249,7 +480,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 // For each port on the node, find the matching port model in its port mappings
                 nodeModel.PortMappings.TryGetValue(inputPort, out var matchingPortModel);
                 if (matchingPortModel != null)
-                    KeyToPreviewPropertyHandlerMap.Remove(matchingPortModel.Guid.ToString());
+                    PortPreviewHandlers.Remove(matchingPortModel.Guid.ToString());
             }
 
             // TODO: Clear any shader messages and shader objects related to this node as well
@@ -270,7 +501,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 nodeModel.TryGetPortModel(inputPort, out var matchingPortModel);
                 if (matchingPortModel != null)
                 {
-                    KeyToPreviewPropertyHandlerMap.Add(matchingPortModel.Guid.ToString(), portPreviewHandler);
+                    PortPreviewHandlers.Add(matchingPortModel.Guid.ToString(), portPreviewHandler);
                 }
             }
         }
@@ -325,16 +556,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                     KeyToPreviewPropertyHandlerMap.Add(matchingPortModel.Guid.ToString(), portPreviewHandler);
                 }
             }*/
-        }
-
-        void OnElementRequiringPreviewChanged()
-        {
-
-        }
-
-        void OnElementWithPreviewRemoved(string elementGuid)
-        {
-            KeyToPreviewDataMap.Remove(elementGuid);
         }
 
         protected override void Dispose(bool disposing)

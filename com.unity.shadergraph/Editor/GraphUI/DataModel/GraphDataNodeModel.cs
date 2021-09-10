@@ -125,7 +125,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         public bool IsPreviewVisible
         {
             get => m_IsPreviewExpanded;
-            set { m_IsPreviewExpanded = value; }
+            set => m_IsPreviewExpanded = value;
         }
 
         /// <summary>

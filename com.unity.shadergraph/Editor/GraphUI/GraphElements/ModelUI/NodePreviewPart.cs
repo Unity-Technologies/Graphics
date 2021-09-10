@@ -53,16 +53,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
             m_PreviewContainer = m_Root.Q<VisualElement>("previewContainer");
 
             // TODO: Handle preview collapse/expand state serialization
-            HandlePreviewStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
+            HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
 
             parent.Add(Root);
         }
 
         protected override void UpdatePartFromModel()
         {
-            // Is this where we handle the preview expansion collapse?
-            Debug.Log("Hello");
-            HandlePreviewStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
+            HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
+
+            // TODO: Also notify the NodePreviewPart that we're currently compiling the shaders and it should replace it with a black texture
+
+            // TODO: Also notify the NodePreviewPart that we need to replace preview image with an error texture
         }
 
         void OnCollapseButtonClicked(MouseDownEvent mouseDownEvent)
@@ -75,21 +77,25 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
             m_CommandDispatcher.Dispatch(new ChangePreviewExpandedCommand(true, new [] { m_GraphDataNodeModel }));
         }
 
-        void HandlePreviewStateChanged(bool previewExpanded)
+        void HandlePreviewExpansionStateChanged(bool previewExpanded)
         {
             if (previewExpanded)
             {
                 // Hide Preview expand button and show image instead (which also contains the collapse button)
                 m_ExpandButton.RemoveFromHierarchy();
-                if(m_PreviewContainer.Contains(m_PreviewImage) == false)
+                if (m_PreviewContainer.Contains(m_PreviewImage) == false)
+                {
                     m_PreviewContainer.Add(m_PreviewImage);
+                }
             }
             else
             {
                 // Hide Image and Show Preview expand button instead
                 m_PreviewImage.RemoveFromHierarchy();
-                if(m_PreviewContainer.Contains(m_ExpandButton) == false)
+                if (m_PreviewContainer.Contains(m_ExpandButton) == false)
+                {
                     m_PreviewContainer.Add(m_ExpandButton);
+                }
             }
         }
     }
