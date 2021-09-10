@@ -1,10 +1,10 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
 using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
-using UnityEngine.SceneManagement;
 using Unity.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -472,6 +472,7 @@ namespace UnityEngine.Experimental.Rendering
             public Texture3D L2_3;
         }
 
+        [DebuggerDisplay("{id}")]
         internal struct RegId
         {
             internal int id;
@@ -680,15 +681,19 @@ namespace UnityEngine.Experimental.Rendering
 
         void UnloadCell(CellInfo cellInfo)
         {
-            if (cellInfo.flatIdxInCellIndices >= 0)
-                m_CellIndices.MarkCellAsUnloaded(cellInfo.flatIdxInCellIndices);
+            // Streaming might have never loaded the cell in the first place
+            if (cellInfo.loaded)
+            {
+                if (cellInfo.flatIdxInCellIndices >= 0)
+                    m_CellIndices.MarkCellAsUnloaded(cellInfo.flatIdxInCellIndices);
 
-            ReleaseBricks(cellInfo);
+                ReleaseBricks(cellInfo);
 
-            cellInfo.loaded = false;
-            cellInfo.updateInfo = new ProbeBrickIndex.CellIndexUpdateInfo();
+                cellInfo.loaded = false;
+                cellInfo.updateInfo = new ProbeBrickIndex.CellIndexUpdateInfo();
 
-            ClearDebugData();
+                ClearDebugData();
+            }
         }
 
         internal void AddCell(Cell cell, int assetInstanceID)

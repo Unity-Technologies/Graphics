@@ -1,11 +1,4 @@
-using System;
-using System.Diagnostics;
-using System.Collections.Generic;
-using UnityEngine.Profiling;
 using UnityEngine.Rendering;
-using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
-using RegId = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.RegId;
-using Cell = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.Cell;
 
 namespace UnityEngine.Experimental.Rendering
 {
