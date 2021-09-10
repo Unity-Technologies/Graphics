@@ -281,7 +281,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_EnableWorldSpeedRejection, k_EnableSpeedRejectionText);
                     if (BeginAdditionalPropertiesScope())
                     {
-                        PropertyField(m_BiasFactor, k_BiasFactorText);
                         if (m_EnableWorldSpeedRejection.value.boolValue)
                         {
                             PropertyField(m_SpeedRejectionFactor, k_SpeedRejectionFactorText);
@@ -292,6 +291,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             if (!m_SpeedSurfaceOnly.value.boolValue && !m_SpeedTargetOnly.value.boolValue)
                                 m_SpeedSurfaceOnly.value.boolValue = true;
                         }
+                        PropertyField(m_BiasFactor, k_BiasFactorText);
                     }
                     EndAdditionalPropertiesScope();
                 }
