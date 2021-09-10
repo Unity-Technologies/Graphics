@@ -6,8 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.0.0] - 2021-09-01
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Prevent vector truncation error in HDRP Decal template
+- Fix potential infinite compilation when using subgraphs [Case 1346576](https://issuetracker.unity3d.com/product/unity/issues/guid/1346576/)
+- Prevent out of sync serialization of VFX assets that could cause the asset to be dirtied without reason
+- Fix undetermitism in space with LocalToWorld and WorldToLocal operators [Case 1355820](https://issuetracker.unity3d.com/product/unity/issues/guid/1355820/)
 
 ## [12.0.0] - 2021-01-11
 ### Added
@@ -101,6 +104,9 @@ The version number for this package has increased due to a version update of a r
 - Exposed Parameter placement can be moved after sanitize
 - Fix rendering artifacts on some mobile devices [Case 1149057](https://issuetracker.unity3d.com/product/unity/issues/guid/1149057/)
 - Fix compilation failure on OpenGLES [Case 1348666](https://issuetracker.unity3d.com/product/unity/issues/guid/1348666/)
+- Don't open an empty VFX Graph Editor when assigning a VFX Asset to a Visual Effect GameObject from the inspector [Case 1347399](https://issuetracker.unity3d.com/product/unity/issues/guid/1347399/)
+- Visual Effect inspector input fields don't lose focus anymore while typing (Random seed)
+- Subgraph output properties tooltips were not easily editable when multiline
 
 ## [11.0.0] - 2020-10-21
 ### Added

@@ -49,6 +49,8 @@ The version number for this package has increased due to a version update of a r
 - Added an option to change the visibilty of the Volumes Gizmos (Solid, Wireframe, Everything), available at Preferences > Core Render Pipeline
 - Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
 - Added UNITY_PREV_MATRIX_M and UNITY_PREV_MATRIX_I_M shader macros to support instanced motion vector rendering
+- Added new API to customize the rtHandleProperties of a particular RTHandle. This is a temporary work around to assist with viewport setup of Custom post process when dealing with DLSS or TAAU
+- Added `IAdditionalData` interface to identify the additional datas on the core package.
 
 ### Fixed
 - Help boxes with fix buttons do not crop the label.
