@@ -753,7 +753,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ShadowMaps] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Shadowmask] &= renderPipelineSettings.supportShadowMask && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ContactShadows] &= !preview;
-            bool pipelineSupportsRayTracing = HDRenderPipeline.GatherRayTracingSupport(renderPipelineSettings);
+            bool pipelineSupportsRayTracing = HDRenderPipeline.PipelineSupportsRayTracing(renderPipelineSettings);
             // Ray tracing effects are not allowed on reflection probes due to the accumulation process.
             bool rayTracingActive = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= pipelineSupportsRayTracing && !preview && temporalAccumulationAllowed;
 
