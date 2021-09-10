@@ -942,7 +942,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // This cause quality issue because it prevent us to combine it correctly with SSAO (i.e min(SSAO, AO)) + SSAO is apply on emissive
     // As explain in encoding step for SSGI/RTGI/Mixed and APV not using lightmap, we rely on a hack to retrieve AO
     // Then we could use the regular path (like in Forward) and get correct rendering.
-    if (all(gbuffer3.xz == AO_IN_GBUFFER3_TAG.xz))
+    if (all(gbuffer3.xz == AO_IN_GBUFFER3_TAG.xz)) //Note: this check is duplicate in debugViewMaterialGBuffer.shader
         bsdfData.ambientOcclusion = gbuffer3.y;
     else
     {
