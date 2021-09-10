@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -27,7 +27,7 @@ public class Editmode_Bake_Tests
     }
 
     [UnityTest]
-    public IEnumerator BakingWithATrousFiltering_DoesNotFallback () 
+    public IEnumerator BakingWithATrousFiltering_DoesNotFallback ()
     {
         EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/BakeATrous.unity", OpenSceneMode.Single);
         yield return null;
@@ -49,9 +49,9 @@ public class Editmode_Bake_Tests
 
         // Check that we did not fallback to CPULM
         Assert.AreEqual(lightingSettings.lightmapper, LightingSettings.Lightmapper.ProgressiveGPU);
-     
+
         Lightmapping.Clear();
-        Lightmapping.ClearLightingDataAsset();    
+        Lightmapping.ClearLightingDataAsset();
     }
 
     // Case1356606
@@ -85,7 +85,6 @@ public class Editmode_Bake_Tests
         Assert.IsTrue(lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveGPU, "Using GPU Lightmapper after initial bake.");
 
         clearAll();
-    } 
+    }
     */
 }
-

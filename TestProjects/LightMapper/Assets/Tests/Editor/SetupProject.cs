@@ -1,4 +1,4 @@
-//This script is copied from UniversalRP TestProject 
+//This script is copied from UniversalRP TestProject
 // https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/master/TestProjects/UniversalGraphicsTest/Assets/Test/Editor/SetupProject.cs
 
 using System;
@@ -13,7 +13,7 @@ public static class SetupProject
 {
     public static void ApplySettings()
     {
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         var options = new Dictionary<string, Action>
         {
             { "gamma", () => PlayerSettings.colorSpace = ColorSpace.Gamma },
@@ -31,18 +31,18 @@ public static class SetupProject
             if (options.TryGetValue(arg, out action))
                 action();
         }
-        #endif
+#endif
     }
 
     static void SetGraphicsAPI(GraphicsDeviceType api)
     {
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         var currentTarget = EditorUserBuildSettings.activeBuildTarget;
         PlayerSettings.SetGraphicsAPIs(currentTarget, new [] { api } );
-        #endif
+#endif
     }
-    
-    #if UNITY_ANDROID
+
+#if UNITY_ANDROID
     //from: https://github.com/Unity-Technologies/ScriptableRenderPipeline/commit/34a7fe3574a38fff71cffd5ea48e28be473dffde#diff-d3827c2d1c2b7fcec2d272024df1a0b6
     [InitializeOnLoad]
     public class SetAndroidSdk
@@ -61,5 +61,5 @@ public static class SetupProject
             }
         }
     }
-    #endif
+#endif
 }
