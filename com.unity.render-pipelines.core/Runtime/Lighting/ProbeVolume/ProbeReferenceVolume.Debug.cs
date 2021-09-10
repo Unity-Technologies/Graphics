@@ -53,6 +53,8 @@ namespace UnityEngine.Experimental.Rendering
 
         internal float dilationValidtyThreshold = 0.25f; // We ned to store this here to access it
 
+        // Field used for the realtime subdivision preview
+        internal Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>> realtimeSubdivisionInfo = new Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>>();
 
         /// <summary>
         /// Render Probe Volume related debug
@@ -207,6 +209,12 @@ namespace UnityEngine.Experimental.Rendering
 
                 GeometryUtility.CalculateFrustumPlanes(camera, m_DebugFrustumPlanes);
 
+                m_DebugMaterial.shaderKeywords = null;
+                if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL1)
+                    m_DebugMaterial.EnableKeyword("PROBE_VOLUMES_L1");
+                else if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                    m_DebugMaterial.EnableKeyword("PROBE_VOLUMES_L2");
+
                 foreach (var debug in m_CellDebugData)
                 {
                     if (ShouldCullCell(debug.cellPosition, camera.transform, m_DebugFrustumPlanes))
@@ -232,6 +240,7 @@ namespace UnityEngine.Experimental.Rendering
         void ClearDebugData()
         {
             m_CellDebugData.Clear();
+            realtimeSubdivisionInfo.Clear();
         }
 
         void CreateInstancedProbes()
