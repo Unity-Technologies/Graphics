@@ -93,7 +93,7 @@ namespace UnityEditor.VFX.UI
             m_CurrentPopup?.Close();
         }
 
-        private Vector2 GetPopupPosition() => VFXViewWindow.currentWindow.graphView.ViewToScreenPosition(worldBound.position) + new Vector2(0, worldBound.height);
+        private Vector2 GetPopupPosition() => VFXViewWindow.currentWindow.graphView.ViewToScreenPosition(worldBound.position);
 
         private void OnTogglePopup()
         {
@@ -127,7 +127,6 @@ namespace UnityEditor.VFX.UI
                 m_CurrentPopup.ShowAsDropDown(bounds, GetPopupSize(), new[] { PopupLocation.BelowAlignLeft, PopupLocation.AboveAlignLeft });
                 m_CurrentPopup.minSize = GetPopupSize();
                 m_CurrentPopup.maxSize = m_CurrentPopup.minSize;
-                m_CurrentPopup.position = new Rect(bounds.position, m_CurrentPopup.minSize);
                 GetNextFocusable(null, m_PopupContent.Children(), false)?.Focus();
             }
             else if (m_CurrentPopup != null)

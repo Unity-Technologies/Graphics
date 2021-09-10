@@ -460,11 +460,6 @@ namespace UnityEditor.VFX.UI
             var compileDropDownButton = new VFXCompileDropdownButton(this);
             m_Toolbar.Add(compileDropDownButton);
 
-            m_BackButton = new Button { tooltip = "Back to parent", name = "BackButton" };
-            m_BackButton.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "back.png")) });
-            m_BackButton.clicked += OnBackToParent;
-            m_Toolbar.Add(m_BackButton);
-
             m_LinkedIcon = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "Linked.png"));
             m_UnlinkedIcon = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "UnLinked.png"));
             m_AttachDropDownButton = new EditorToolbarDropdown(m_UnlinkedIcon, OnOpenAttachMenu);
@@ -477,6 +472,12 @@ namespace UnityEditor.VFX.UI
             m_LockToggle.name = "lock-auto-attach";
             m_LockToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleLock);
             m_Toolbar.Add(m_LockToggle);
+
+            m_BackButton = new Button { tooltip = "Back to parent", name = "BackButton" };
+            m_BackButton.Add(new Image { image = EditorGUIUtility.LoadIcon(Path.Combine(EditorResources.iconsPath, "back.png")) });
+            m_BackButton.clicked += OnBackToParent;
+            m_Toolbar.Add(m_BackButton);
+
             var flexSpacer = new ToolbarSpacer();
             flexSpacer.style.flexGrow = 1f;
             m_Toolbar.Add(flexSpacer);
@@ -541,7 +542,7 @@ namespace UnityEditor.VFX.UI
 
             Add(m_LockedElement);
             Add(m_Toolbar);
-            m_Toolbar.SetEnabled(false);
+            SetToolbarEnabled(false);
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
@@ -589,6 +590,15 @@ namespace UnityEditor.VFX.UI
 
         [NonSerialized]
         List<IconBadge> m_CompileBadges = new List<IconBadge>();
+
+        private void SetToolbarEnabled(bool enabled)
+        {
+            m_Toolbar
+                .Children()
+                .Where(x => x is not VFXHelpDropdownButton)
+                .ToList()
+                .ForEach(x => x.SetEnabled(enabled));
+        }
 
         private void RegisterError(VFXModel model, VFXErrorOrigin errorOrigin, string error, VFXErrorType type, string description)
         {
@@ -998,7 +1008,7 @@ namespace UnityEditor.VFX.UI
             if (controller != null)
             {
                 m_NoAssetLabel.RemoveFromHierarchy();
-                m_Toolbar.SetEnabled(true);
+                SetToolbarEnabled(true);
 
                 m_AttachDropDownButton.SetEnabled(this.controller.graph.visualEffectResource.subgraph == null);
                 m_LockToggle.SetEnabled(this.controller.graph.visualEffectResource.subgraph == null);
@@ -1019,7 +1029,7 @@ namespace UnityEditor.VFX.UI
                 if (m_NoAssetLabel.parent == null)
                 {
                     Add(m_NoAssetLabel);
-                    m_Toolbar.SetEnabled(false);
+                    SetToolbarEnabled(false);
                 }
             }
         }

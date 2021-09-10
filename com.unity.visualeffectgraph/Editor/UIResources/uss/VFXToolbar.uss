@@ -99,6 +99,11 @@ Button:hover, Toggle:hover
     background-color: var(--unity-colors-highlight-background);
 }
 
+Button:disabled
+{
+    opacity: 0.5;
+}
+
 Toggle Label
 {
     margin-left: 4px;
