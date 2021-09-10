@@ -5370,7 +5370,7 @@
     "m_ObjectId": "d30f1aa1a02847c89af2bab89f780e13",
     "m_MaterialType": 1,
     "m_ScatteringMode": 1,
-    "m_GeometryType": 0,
+    "m_GeometryType": 1,
     "m_UseRoughenedAzimuthalScattering": true
 }
 
