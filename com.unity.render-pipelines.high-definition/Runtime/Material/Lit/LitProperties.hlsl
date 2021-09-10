@@ -144,12 +144,11 @@ float4 _UVMappingMaskEmissive;
 float4 _InvPrimScale; // Only XY are used
 
 // Wind
-// TEMP: Hide this as the generic name conflicts with hair package.
-// float _InitialBend;
-// float _Stiffness;
-// float _Drag;
-// float _ShiverDrag;
-// float _ShiverDirectionality;
+float _InitialBend;
+float _Stiffness;
+float _Drag;
+float _ShiverDrag;
+float _ShiverDirectionality;
 
 // Specular AA
 float _EnableGeometricSpecularAA;
