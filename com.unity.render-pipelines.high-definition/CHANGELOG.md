@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light anchor min distance value + properties not working with prefabs (case 1345509).
 - Fixed specular occlusion sharpness and over darkening at grazing angles.
 - Fixed edge bleeding when rendering volumetric clouds.
+- Fixed the performance of the volumetric clouds in non-local mode when large occluders are on screen.
+- Fixed a regression that broke punctual and directional raytraced shadows temporal denoiser (case 1360132).
 - Fixed regression in the ambient probe intensity for volumetric clouds.
 - Fixed the sun leaking from behind fully opaque clouds.
 - Fixed artifacts in volumetric cloud shadows.
@@ -398,6 +400,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
 - Fixed ThreadMapDetail to saturate AO & smoothness strength inputs to prevent out-of-bounds values set by users (1357740)
 - Allow negative wind speed parameter.
+- Fixed remove of the Additional Light Data when removing the Light Component.
+- Fixed remove of the Additional Camera Data when removing the Camera Component.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

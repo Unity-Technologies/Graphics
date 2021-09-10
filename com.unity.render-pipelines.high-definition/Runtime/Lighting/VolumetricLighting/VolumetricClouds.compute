@@ -75,6 +75,7 @@
 TEXTURE2D_X(_HalfResDepthBuffer);
 TEXTURE2D_X(_DepthTexture);
 TEXTURE2D_X(_VolumetricCloudsSourceDepth);
+TEXTURE2D_X(_MaxZMaskTexture);
 Texture2D<float4> _CloudMapTexture;
 Texture2D<float3> _CloudLutTexture;
 
@@ -836,6 +837,17 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
     // If this is bigger than the trace size, we are done
     if (any(traceCoord.xy >= uint2(_TraceScreenSize.xy)))
         return;
+
+#if !defined(LOCAL_VOLUMETRIC_CLOUDS)
+    // Clear the cloud value
+    _CloudsLightingTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = float4(0.0, 0.0, 0.0, 1.0);
+
+    // Grab the depth 2x2 region just to be safe
+    float4 d = GATHER_RED_TEXTURE2D_X(_MaxZMaskTexture, s_point_clamp_sampler, traceCoord.xy / _TraceScreenSize.xy * _RTHandleScale.xy);
+    // If there is any background pixel in the region we need to trace, otherwise we skip.
+    if (all(d != 1e10f) && _ValidMaxZMask)
+        return;
+#endif
 
     // Depending on if we are in full res or not, use a different intermediate coord
     uint2 intermediateCoord = traceCoord.xy; // Full resolution case
