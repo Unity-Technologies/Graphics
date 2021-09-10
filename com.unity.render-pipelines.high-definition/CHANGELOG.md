@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed edge bleeding when rendering volumetric clouds.
 - Fixed the performance of the volumetric clouds in non-local mode when large occluders are on screen.
 - Fixed a regression that broke punctual and directional raytraced shadows temporal denoiser (case 1360132).
+- Fixed regression in the ambient probe intensity for volumetric clouds.
+- Fixed the sun leaking from behind fully opaque clouds.
+- Fixed artifacts in volumetric cloud shadows.
+- Fixed the missing parameter to control the sun light dimmer (case 1364152).
+- Fixed regression in the clouds presets.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
