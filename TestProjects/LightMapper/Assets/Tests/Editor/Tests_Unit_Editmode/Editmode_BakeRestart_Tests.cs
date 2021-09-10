@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -62,7 +62,7 @@ public class Editmode_BakeRestart_Tests
     }
 
     [UnityTest]
-    public IEnumerator ActivateDirectLighting_DuringABake_DoesNotFallback () 
+    public IEnumerator ActivateDirectLighting_DuringABake_DoesNotFallback ()
     {
         EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/BakeRestartScene.unity", OpenSceneMode.Single);
         yield return null;
@@ -88,11 +88,11 @@ public class Editmode_BakeRestart_Tests
         {
             yield return null;
         }
-        
+
         // Make sure it is still baking before we
         // switch the light on and restart the bake
         Assert.IsTrue(Lightmapping.isBaking);
-        
+
         // Activate the light, cause the bake to restart
         dirLightGO.SetActive(true);
 
@@ -106,13 +106,13 @@ public class Editmode_BakeRestart_Tests
         // Check that we did not fallback to CPULM
         Assert.AreEqual(lightingSettings.lightmapper, LightingSettings.Lightmapper.ProgressiveGPU);
 
-        Lightmapping.Cancel();        
+        Lightmapping.Cancel();
         Lightmapping.Clear();
-        Lightmapping.ClearLightingDataAsset();    
-    }    
+        Lightmapping.ClearLightingDataAsset();
+    }
 
     [UnityTest]
-    public IEnumerator ActivateAO_DuringABake_DoesNotFallback () 
+    public IEnumerator ActivateAO_DuringABake_DoesNotFallback ()
     {
         EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/BakeRestartScene.unity", OpenSceneMode.Single);
         yield return null;
@@ -126,7 +126,7 @@ public class Editmode_BakeRestart_Tests
         GameObject dirLightGO = GameObject.FindGameObjectsWithTag("TheLight")[0];
         dirLightGO.SetActive(false);
         lightingSettings.ao = false;
-        
+
         Lightmapping.Clear();
         Lightmapping.BakeAsync();
 
@@ -134,11 +134,11 @@ public class Editmode_BakeRestart_Tests
         {
             yield return null;
         }
-        
+
         // Make sure it is still baking before we
         // switch the AO on and restart the bake
         Assert.IsTrue(Lightmapping.isBaking);
-        
+
         // Switch AO on, cause the bake to restart
         lightingSettings.ao = true;
 
@@ -152,13 +152,13 @@ public class Editmode_BakeRestart_Tests
         // Check that we did not fallback to CPULM
         Assert.AreEqual(lightingSettings.lightmapper, LightingSettings.Lightmapper.ProgressiveGPU);
 
-        Lightmapping.Cancel();        
+        Lightmapping.Cancel();
         Lightmapping.Clear();
-        Lightmapping.ClearLightingDataAsset();    
+        Lightmapping.ClearLightingDataAsset();
     }
 
     [UnityTest]
-    public IEnumerator ActivateShadowmask_DuringABake_DoesNotFallback () 
+    public IEnumerator ActivateShadowmask_DuringABake_DoesNotFallback ()
     {
         EditorSceneManager.OpenScene("Assets/Tests/Editor/Tests_Unit_Editmode/BakeRestartScene.unity", OpenSceneMode.Single);
         yield return null;
@@ -175,7 +175,7 @@ public class Editmode_BakeRestart_Tests
         dirLightGO.SetActive(true);
         Light light = dirLightGO.GetComponent(typeof(Light)) as Light;
         light.lightmapBakeType = LightmapBakeType.Baked;
-        
+
         Lightmapping.Clear();
         Lightmapping.BakeAsync();
 
@@ -183,11 +183,11 @@ public class Editmode_BakeRestart_Tests
         {
             yield return null;
         }
-        
+
         // Make sure it is still baking before we
         // switch the light mode and restart the bake
         Assert.IsTrue(Lightmapping.isBaking);
-        
+
         // Switch the light to shadowmask, cause the bake to restart
         light.lightmapBakeType = LightmapBakeType.Mixed;
 
@@ -201,9 +201,9 @@ public class Editmode_BakeRestart_Tests
         // Check that we did not fallback to CPULM
         Assert.AreEqual(lightingSettings.lightmapper, LightingSettings.Lightmapper.ProgressiveGPU);
 
-        Lightmapping.Cancel();        
+        Lightmapping.Cancel();
         Lightmapping.Clear();
-        Lightmapping.ClearLightingDataAsset();    
+        Lightmapping.ClearLightingDataAsset();
     }
 
     [Test] // Case1356714

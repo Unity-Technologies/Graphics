@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.PerformanceTesting;
 using UnityEngine;
@@ -18,7 +18,7 @@ public class PerformanceTestSettingsCustom : MonoBehaviour
 
     [Header("AllocatedMemoryForGraphicsDevice")]
     public SampleUnit unitAllocatedGfxDriverMem = SampleUnit.Megabyte;
-    
+
     [HideInInspector] public SampleGroup[] def_profiler;
     [HideInInspector] public SampleGroup def_allocatedMem;
     [HideInInspector] public SampleGroup def_allocatedGfxMem;
@@ -27,16 +27,16 @@ public class PerformanceTestSettingsCustom : MonoBehaviour
 
     public void SetUp()
     {
-        if(!doneSetUp)
+        if (!doneSetUp)
         {
             def_profiler = new SampleGroup[profilerMarkers.Length];
-            for(int i=0; i< def_profiler.Length; i++)
+            for (int i = 0; i < def_profiler.Length; i++)
             {
-                def_profiler[i] = new SampleGroup(profilerMarkers[i],unitProfiler,false);
+                def_profiler[i] = new SampleGroup(profilerMarkers[i], unitProfiler, false);
             }
 
-            def_allocatedGfxMem = new SampleGroup("TotalAllocatedMemoryForGraphicsDriver", unitAllocatedGfxDriverMem,false);
-            def_allocatedMem = new SampleGroup("TotalAllocatedMemory", unitAllocatedMem,false);
+            def_allocatedGfxMem = new SampleGroup("TotalAllocatedMemoryForGraphicsDriver", unitAllocatedGfxDriverMem, false);
+            def_allocatedMem = new SampleGroup("TotalAllocatedMemory", unitAllocatedMem, false);
 
             doneSetUp = true;
         }
