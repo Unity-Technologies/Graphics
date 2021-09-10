@@ -258,6 +258,19 @@ namespace UnityEngine.Experimental.Rendering
             };
         }
 
+        internal void SyncBakingSetSettings()
+        {
+            // Sync all the scene settings in the set to avoid config mismatch.
+            foreach (var set in bakingSets)
+            {
+                foreach (var guid in set.sceneGUIDs)
+                {
+                    sceneBakingSettings[guid] = set.settings;
+                    sceneProfiles[guid] = set.profile;
+                }
+            }
+        }
+
 #if UNITY_EDITOR
         private int FindInflatingBrickSize(Vector3 size)
         {
@@ -460,19 +473,6 @@ namespace UnityEngine.Experimental.Rendering
                     return guid;
             }
             return null;
-        }
-
-        internal void SyncBakingSetSettings()
-        {
-            // Sync all the scene settings in the set to avoid config mismatch.
-            foreach (var set in bakingSets)
-            {
-                foreach (var guid in set.sceneGUIDs)
-                {
-                    sceneBakingSettings[guid] = set.settings;
-                    sceneProfiles[guid] = set.profile;
-                }
-            }
         }
 
         internal void OnSceneSaved(Scene scene)
