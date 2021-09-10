@@ -11,16 +11,16 @@ namespace UnityEngine.Rendering
     /// </summary>
     public interface IVolumeDebugSettings
     {
-        /// <summary>Selected component</summary>
+        /// <summary>Selected component.</summary>
         int selectedComponent { get; set; }
 
         /// <summary>Current camera to debug.</summary>
         Camera selectedCamera { get; }
 
-        /// <summary>Returns the collection of registered cameras</summary>
+        /// <summary>Returns the collection of registered cameras.</summary>
         IEnumerable<Camera> cameras { get; }
 
-        /// <summary>Selected camera index</summary>
+        /// <summary>Selected camera index.</summary>
         int selectedCameraIndex { get; set; }
 
         /// <summary>Selected camera volume stack.</summary>
@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Obtains the Volumes
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The list of <see cref="Volume"/></returns>
         Volume[] GetVolumes();
 
         /// <summary>

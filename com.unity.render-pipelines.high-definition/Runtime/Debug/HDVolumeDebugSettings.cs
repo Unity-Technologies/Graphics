@@ -26,15 +26,15 @@ namespace UnityEngine.Rendering.HighDefinition
             get
             {
 #if UNITY_EDITOR
-                if (selectedCameraIndex <= 0 || selectedCameraIndex > additionalCameraDatas.Count + 1)
+                if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count + 1)
                     return (LayerMask)0;
-                if (selectedCameraIndex == 1)
+                if (m_SelectedCameraIndex == 1)
                     return -1;
-                return additionalCameraDatas[selectedCameraIndex - 2].volumeLayerMask;
+                return additionalCameraDatas[m_SelectedCameraIndex - 2].volumeLayerMask;
 #else
-                if (m_SelectedCamera <= 0 || m_SelectedCamera > cameras.Count)
+                if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count)
                     return (LayerMask)0;
-                return additionalCameraDatas[m_SelectedCamera - 1].volumeLayerMask;
+                return additionalCameraDatas[m_SelectedCameraIndex - 1].volumeLayerMask;
 #endif
             }
         }

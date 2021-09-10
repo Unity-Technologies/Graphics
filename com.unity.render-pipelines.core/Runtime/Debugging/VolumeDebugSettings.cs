@@ -15,23 +15,23 @@ namespace UnityEngine.Rendering
         /// <summary>Current volume component to debug.</summary>
         public int selectedComponent { get; set; } = 0;
 
-        int m_SelectedCamera = 0;
+        protected int m_SelectedCameraIndex = 0;
 
-        /// <summary>Selected camera index</summary>
+        /// <summary>Selected camera index.</summary>
         public int selectedCameraIndex
         {
             get
             {
 #if UNITY_EDITOR
-                if (m_SelectedCamera < 0 || m_SelectedCamera > additionalCameraDatas.Count + 1)
+                if (m_SelectedCameraIndex < 0 || m_SelectedCameraIndex > additionalCameraDatas.Count + 1)
                     return 0;
 #else
-                if (m_SelectedCamera < 0 || m_SelectedCamera > additionalCameraDatas.Count)
+                if (m_SelectedCameraIndex < 0 || m_SelectedCameraIndex > additionalCameraDatas.Count)
                     return 0;
 #endif
-                return m_SelectedCamera;
+                return m_SelectedCameraIndex;
             }
-            set { m_SelectedCamera = value; }
+            set { m_SelectedCameraIndex = value; }
         }
 
         /// <summary>Current camera to debug.</summary>
@@ -40,21 +40,21 @@ namespace UnityEngine.Rendering
             get
             {
 #if UNITY_EDITOR
-                if (m_SelectedCamera <= 0 || m_SelectedCamera > additionalCameraDatas.Count + 1)
+                if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count + 1)
                     return null;
-                if (m_SelectedCamera == 1)
+                if (m_SelectedCameraIndex == 1)
                     return SceneView.lastActiveSceneView.camera;
                 else
-                    return additionalCameraDatas[m_SelectedCamera - 2].GetComponent<Camera>();
+                    return additionalCameraDatas[m_SelectedCameraIndex - 2].GetComponent<Camera>();
 #else
-                if (m_SelectedCamera <= 0 || m_SelectedCamera > additionalCameraDatas.Count)
+                if (m_SelectedCameraIndex <= 0 || m_SelectedCameraIndex > additionalCameraDatas.Count)
                     return null;
-                return additionalCameraDatas[m_SelectedCamera - 1].GetComponent<Camera>();
+                return additionalCameraDatas[m_SelectedCameraIndex - 1].GetComponent<Camera>();
 #endif
             }
         }
 
-        /// <summary>Returns the collection of registered cameras</summary>
+        /// <summary>Returns the collection of registered cameras.</summary>
         public IEnumerable<Camera> cameras
         {
             get
@@ -123,9 +123,9 @@ namespace UnityEngine.Rendering
         protected static List<T> additionalCameraDatas { get; private set; } = new List<T>();
 
         /// <summary>
-        /// Register the camera for the Volume Debug
+        /// Register the camera for the Volume Debug.
         /// </summary>
-        /// <param name="additionalCamera">The camera with it's additional camera data</param>
+        /// <param name="additionalCamera">The AdditionalCameraData of the camera to be registered.</param>
         public static void RegisterCamera(T additionalCamera)
         {
             if (!additionalCameraDatas.Contains(additionalCamera))
@@ -133,9 +133,9 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Unregister the camera for the Volume Debug
+        /// Unregister the camera for the Volume Debug.
         /// </summary>
-        /// <param name="additionalCamera">The camera with it's additional camera data</param>
+        /// <param name="additionalCamera">The AdditionalCameraData of the camera to be registered.</param>
         public static void UnRegisterCamera(T additionalCamera)
         {
             if (additionalCameraDatas.Contains(additionalCamera))
