@@ -36,6 +36,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override bool supportPathtracing => true;
         protected override string pathtracingInclude => CoreIncludes.kHairPathtracing;
 
+        // Only allow advanced scattering for Marschner Strands explicitly set to advanced.
+        private bool useAdvancedMultipleScattering =>
+            hairData.materialType == ShaderGraph.HairData.MaterialType.Marschner &&
+            hairData.geometryType == HairData.GeometryType.Strands &&
+            hairData.scatteringMode == HairData.ScatteringMode.Advanced;
+
         HairData m_HairData;
 
         HairData IRequiresData<HairData>.data
@@ -73,7 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(UseLightFacingNormal, hairData.geometryType == HairData.GeometryType.Strands);
             context.AddField(Transmittance, descs.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
             context.AddField(UseRoughenedAzimuthalScattering, hairData.useRoughenedAzimuthalScattering);
-            context.AddField(ScatteringAdvanced, hairData.scatteringMode == HairData.ScatteringMode.Advanced);
+            context.AddField(ScatteringAdvanced, useAdvancedMultipleScattering);
 
             // Misc
             context.AddField(SpecularAA, lightingData.specularAA &&
@@ -107,12 +113,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // TODO: Refraction Index
                 // Right now, the Marschner model implicitly assumes a human hair IOR of 1.55.
 
-                if (hairData.scatteringMode == HairData.ScatteringMode.Advanced)
-                {
-                    // Dual Scattering Inputs (Global Scattering)
-                    // Right now these inputs are provided by the demo team hair package.
-                    context.AddBlock(HDBlockFields.SurfaceDescription.StrandCountProbe);
-                }
+                // Dual Scattering Inputs (Global Scattering)
+                // Right now these inputs are provided by the demo team hair package.
+                context.AddBlock(HDBlockFields.SurfaceDescription.StrandCountProbe, useAdvancedMultipleScattering);
             }
         }
 

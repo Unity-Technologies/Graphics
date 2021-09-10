@@ -55,7 +55,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (hairData.materialType == HairData.MaterialType.Marschner)
             {
-                AddProperty(Styles.scatteringMode, () => hairData.scatteringMode, (newValue) => hairData.scatteringMode = newValue);
+                // For now only allow scattering mode for strands, as the multiple scattering was developed against this for 21.2.
+                if (hairData.geometryType == HairData.GeometryType.Strands)
+                    AddProperty(Styles.scatteringMode, () => hairData.scatteringMode, (newValue) => hairData.scatteringMode = newValue);
+
                 AddProperty(Styles.useRoughenedAzimuthalScattering, () => hairData.useRoughenedAzimuthalScattering, (newValue) => hairData.useRoughenedAzimuthalScattering = newValue);
             }
         }
