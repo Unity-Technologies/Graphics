@@ -73,10 +73,8 @@ namespace UnityEditor.ShaderFoundry
             propertyBuilder.DisplayName = displayName;
             propertyBuilder.Type = container._Texture2D;
             
-            // [PropertyType(propertyTypeName)] is used to fill out the type in the material attribute.
-            propertyBuilder.AddAttribute(new ShaderAttribute.Builder(container, CommonShaderAttributes.PropertyType).Param("2D").Build());
-            // Default expression is everything after the equal sign in the declaration
-            propertyBuilder.DefaultExpression = "\"white\" {}";
+            // Add [MaterialProperty] to define the property block variable
+            AddMaterialPropertyAttribute(propertyBuilder, referenceName, displayName, "2D", "\"white\" {}");
             var textureProperty = propertyBuilder.Build();
             properties.Add(textureProperty);
 
@@ -87,6 +85,7 @@ namespace UnityEditor.ShaderFoundry
             var texture2DInputBuilder = new BlockVariable.Builder(container);
             texture2DInputBuilder.ReferenceName = referenceName;
             texture2DInputBuilder.Type = container._Texture2D;
+            AddUniformDeclarationAttribute(texture2DInputBuilder, texture2DInputBuilder.ReferenceName, $"TEXTURE2D({referenceName})");
             texture2DInputBuilder.AddAttribute(globalLocationAttribute);
             var texture2DInput = texture2DInputBuilder.Build();
             inputs.Add(texture2DInput);
@@ -94,6 +93,7 @@ namespace UnityEditor.ShaderFoundry
             var samplerBuilder = new BlockVariable.Builder(container);
             samplerBuilder.ReferenceName = $"sampler{referenceName}";
             samplerBuilder.Type = container._SamplerState;
+            AddUniformDeclarationAttribute(samplerBuilder, samplerBuilder.ReferenceName, "SAMPLER(#)");
             samplerBuilder.AddAttribute(globalLocationAttribute);
             var sampler = samplerBuilder.Build();
             inputs.Add(sampler);
@@ -111,6 +111,39 @@ namespace UnityEditor.ShaderFoundry
             stBuilder.AddAttribute(perMaterialLocationAttribute);
             var st = stBuilder.Build();
             inputs.Add(st);
+        }
+
+        static void AddMaterialPropertyAttribute(BlockVariable.Builder variableBuilder, string referenceName, string displayName, string propertyType, string defaultValueExpression, string attributes = null)
+        {
+            // [MaterialProperty("declaration")] is used to define the material property block statement.
+            // For instance, adding: [MaterialProperty("_tex(\"tex\", 2D)")] will declare `_tex("tex", 2D)`.
+            string attributesString = attributes != null ? $"[attributes]" : "";
+            string paramString = $"{attributesString}{referenceName}(\"{displayName}\", {propertyType})";
+            var attributeBuilder = new ShaderAttribute.Builder(variableBuilder.Container, CommonShaderAttributes.MaterialProperty);
+            var paramBuilder = new ShaderAttributeParam.Builder(variableBuilder.Container, null, paramString);
+            attributeBuilder.Param(paramBuilder.Build());
+            variableBuilder.AddAttribute(attributeBuilder.Build());
+            variableBuilder.DefaultExpression = defaultValueExpression;
+        }
+
+        static void AddUniformDeclarationAttribute(BlockVariable.Builder variableBuilder, string referenceName, string declarationString = null)
+        {
+            // [UniformDeclaration(name = "name", declaration = "declaration")] is used to define the uniform variable in the shader pass.
+            // Declaration is optional. If it's not declared then the variable type is used, otherwise the declaration string is used.
+            // [UniformDeclaration(name = "#")] float4 _data;
+            // Will declare: float4 _data;
+            // [UniformDeclaration(name = "#", declaration = "TEXTURE2D(#)")] Texture2D _tex;
+            // Will declare: TEXTURE2D(_tex);
+            // This is needed because the uniform declaration doesn't always match the runtime types.
+            var attributeBuilder = new ShaderAttribute.Builder(variableBuilder.Container, CommonShaderAttributes.UniformDeclaration);
+            var nameParamBuilder = new ShaderAttributeParam.Builder(variableBuilder.Container, "name", referenceName);
+            attributeBuilder.Param(nameParamBuilder.Build());
+            if (declarationString != null)
+            {
+                var declarationParamBuilder = new ShaderAttributeParam.Builder(variableBuilder.Container, "declaration", declarationString);
+                attributeBuilder.Param(declarationParamBuilder.Build());
+            }
+            variableBuilder.AddAttribute(attributeBuilder.Build());
         }
 
         // Cheat and do a hard-coded lookup of the UniversalTarget for testing.
