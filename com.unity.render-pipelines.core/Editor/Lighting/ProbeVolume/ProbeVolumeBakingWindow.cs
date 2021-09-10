@@ -351,7 +351,7 @@ namespace UnityEngine.Experimental.Rendering
         void DrawSeparator()
         {
             EditorGUILayout.BeginVertical(GUILayout.Width(2));
-            m_DrawHorizontalSplitter?.Invoke(null, new object[] { new Rect(k_LeftPanelSize, 20, 2, position.height) }); // TODO: remove magic numbers
+            m_DrawHorizontalSplitter?.Invoke(null, new object[] { new Rect(k_LeftPanelSize, 20, 2, position.height) });
             EditorGUILayout.EndVertical();
         }
 
