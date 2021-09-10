@@ -4368,9 +4368,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         if( (i == (1 IF_FEATURE_COAT(+1))) && _DebugEnvLobeMask.z == 0.0) continue;
 #endif
 
-        // If we are going to process the clear coat and it is flagged as akready processed, skip.
-        if (i == COAT_LOBE_IDX && COAT_NB_LOBES == 1 && preLightData.clearCoatIndirectSpec == 0.0) continue;
-
         // Compiler will deal with all that:
         normal = (NB_NORMALS > 1 && i == COAT_NORMAL_IDX) ? bsdfData.coatNormalWS : bsdfData.normalWS;
 
