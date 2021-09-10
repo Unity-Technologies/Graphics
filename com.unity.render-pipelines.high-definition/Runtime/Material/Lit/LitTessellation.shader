@@ -988,7 +988,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
 
             #undef TESSELLATION_ON
@@ -1034,7 +1034,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
 
             #undef TESSELLATION_ON
@@ -1077,7 +1077,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
 
             #undef TESSELLATION_ON
@@ -1115,7 +1115,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
 
             #undef TESSELLATION_ON
@@ -1146,7 +1146,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
 
             #undef TESSELLATION_ON
@@ -1180,7 +1180,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
 
             #undef TESSELLATION_ON

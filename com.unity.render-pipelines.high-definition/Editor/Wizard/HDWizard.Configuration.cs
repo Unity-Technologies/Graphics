@@ -618,13 +618,19 @@ namespace UnityEditor.Rendering.HighDefinition
             => FixAllEntryInScope(InclusiveMode.DXR);
 
         bool IsDXRAutoGraphicsAPICorrect()
-            => !PlayerSettings.GetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget());
+        {
+            var selectedBuildTarget = CalculateSelectedBuildTarget();
+            return (!PlayerSettings.GetUseDefaultGraphicsAPIs(selectedBuildTarget)) || (selectedBuildTarget == BuildTarget.PS5);
+        }
 
         void FixDXRAutoGraphicsAPI(bool fromAsyncUnused)
             => PlayerSettings.SetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget(), false);
 
         bool IsDXRDirect3D12Correct()
-            => (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12) && !HDProjectSettings.wizardNeedRestartAfterChangingToDX12;
+        {
+            var selectedBuildTarget = CalculateSelectedBuildTarget();
+            return (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 || (selectedBuildTarget == BuildTarget.PS5)) && !HDProjectSettings.wizardNeedRestartAfterChangingToDX12;
+        }
 
         void FixDXRDirect3D12(bool fromAsyncUnused)
         {
@@ -682,10 +688,13 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsDXRAssetCorrect()
-            => HDRenderPipeline.defaultAsset != null
-            && HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources != null
-            && SystemInfo.supportsRayTracing;
-        
+        {
+            var selectedBuildTarget = CalculateSelectedBuildTarget();
+            return HDRenderPipeline.defaultAsset != null
+                && HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources != null
+                && (SystemInfo.supportsRayTracing || selectedBuildTarget == BuildTarget.PS5);
+        }
+
         void FixDXRAsset(bool fromAsyncUnused)
         {
             if (!IsHdrpAssetGraphicsUsedCorrect())
@@ -768,13 +777,14 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsArchitecture64Bits()
-            => EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64;
+        {
+            return (EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64) || (EditorUserBuildSettings.activeBuildTarget == BuildTarget.PS5);
+        }
 
-
-		void FixArchitecture64Bits(bool fromAsyncUnused)
-		{
-			EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
-		}
+        void FixArchitecture64Bits(bool fromAsyncUnused)
+        {
+            EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+        }
 
         bool IsDXRStaticBatchingCorrect()
             => !GetStaticBatching(CalculateSelectedBuildTarget());

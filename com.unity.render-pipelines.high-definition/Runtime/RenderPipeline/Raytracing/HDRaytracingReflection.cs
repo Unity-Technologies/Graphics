@@ -484,7 +484,11 @@ namespace UnityEngine.Rendering.HighDefinition
             rtrQRenderingParameters.shaderVariablesRayTracingCB._RaytracingRayMaxLength = rtrQRenderingParameters.rayLength;
             rtrQRenderingParameters.shaderVariablesRayTracingCB._RaytracingNumSamples = rtrQRenderingParameters.sampleCount;
             // Set the number of bounces for reflections
+#if NO_RAY_RECURSION
+            rtrQRenderingParameters.shaderVariablesRayTracingCB._RaytracingMaxRecursion = 1;
+#else
             rtrQRenderingParameters.shaderVariablesRayTracingCB._RaytracingMaxRecursion = rtrQRenderingParameters.bounceCount;
+#endif
             rtrQRenderingParameters.shaderVariablesRayTracingCB._RayTracingDiffuseLightingOnly = 0;
             ConstantBuffer.PushGlobal(cmd, rtrQRenderingParameters.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 

@@ -781,7 +781,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { Pragma.Target(ShaderModel.Target50) },
             { Pragma.Raytracing("surface_shader") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
+            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.PS5}) },
         };
     }
 #endregion
