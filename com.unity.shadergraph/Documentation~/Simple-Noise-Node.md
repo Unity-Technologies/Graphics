@@ -4,7 +4,7 @@
 
 Generates a simple, or [Value](https://en.wikipedia.org/wiki/Value_noise), noise based on input **UV**. The scale of the generated noise is controlled by input **Scale**.
 
-You can also choose to use two different hashing methods for calculating the noise. As of Unity version 2021.2, the Simple Noise node defaults to the **Deterministic** hash, to ensure consistent results for noise generation across platforms. 
+You can also choose to use two different hashing methods for calculating the noise. As of Unity version 2021.2, the Simple Noise node defaults to the **Deterministic** hash, to ensure consistent results for noise generation across platforms.
 
 ## Ports
 
