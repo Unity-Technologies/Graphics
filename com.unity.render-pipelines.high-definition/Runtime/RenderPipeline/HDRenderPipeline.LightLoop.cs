@@ -1054,6 +1054,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader ssrCS;
             public int tracingKernel;
             public int reprojectionKernel;
+            public int accumulateNoWorldSpeedRejectionKernel;
             public int accumulateHardThresholdSpeedRejectionBothKernel;
             public int accumulateHardThresholdSpeedRejectionSurfaceKernel;
             public int accumulateHardThresholdSpeedRejectionHitKernel;
@@ -1091,6 +1092,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float roughnessBiasFactor;
             public float speedRejectionFactor;
             public float speedRejectionScalerFactor;
+            public bool enableWorldSmoothRejection;
             public bool smoothSpeedRejection;
             public bool motionVectorFromSurface;
             public bool motionVectorFromHit;
@@ -1182,6 +1184,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.ssrCS = m_ScreenSpaceReflectionsCS;
                     passData.tracingKernel = m_SsrTracingKernel;
                     passData.reprojectionKernel = m_SsrReprojectionKernel;
+                    passData.accumulateNoWorldSpeedRejectionKernel = m_SsrAccumulateNoWorldSpeedRejectionKernel;
                     passData.accumulateHardThresholdSpeedRejectionBothKernel = m_SsrAccumulateHardThresholdSpeedRejectionBothKernel;
                     passData.accumulateHardThresholdSpeedRejectionSurfaceKernel = m_SsrAccumulateHardThresholdSpeedRejectionSurfaceKernel;
                     passData.accumulateHardThresholdSpeedRejectionHitKernel = m_SsrAccumulateHardThresholdSpeedRejectionHitKernel;
@@ -1218,6 +1221,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     passData.roughnessBiasFactor = volumeSettings.biasFactor.value;
                     passData.speedRejectionFactor = volumeSettings.speedRejectionParam.value;
+                    passData.enableWorldSmoothRejection = volumeSettings.enableWorldSpeedRejection.value;
                     passData.smoothSpeedRejection = volumeSettings.speedSmoothReject.value;
                     passData.motionVectorFromSurface = volumeSettings.speedSurfaceOnly.value;
                     passData.motionVectorFromHit = volumeSettings.speedTargetOnly.value;
@@ -1316,34 +1320,29 @@ namespace UnityEngine.Rendering.HighDefinition
                                     using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.SsrAccumulate)))
                                     {
                                         int pass;
-                                        if (data.smoothSpeedRejection)
+                                        if (!data.enableWorldSmoothRejection)
                                         {
-                                            if (data.motionVectorFromSurface && data.motionVectorFromHit)
-                                            {
-                                                pass = data.accumulateSmoothSpeedRejectionBothKernel;
-                                            }
-                                            else if (data.motionVectorFromHit)
-                                            {
-                                                pass = data.accumulateSmoothSpeedRejectionHitKernel;
-                                            }
-                                            else
-                                            {
-                                                pass = data.accumulateSmoothSpeedRejectionSurfaceKernel;
-                                            }
+                                            pass = data.accumulateNoWorldSpeedRejectionKernel;
                                         }
                                         else
                                         {
-                                            if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                            if (data.smoothSpeedRejection)
                                             {
-                                                pass = data.accumulateHardThresholdSpeedRejectionBothKernel;
-                                            }
-                                            else if (data.motionVectorFromHit)
-                                            {
-                                                pass = data.accumulateHardThresholdSpeedRejectionHitKernel;
+                                                if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                    pass = data.accumulateSmoothSpeedRejectionBothKernel;
+                                                else if (data.motionVectorFromHit)
+                                                    pass = data.accumulateSmoothSpeedRejectionHitKernel;
+                                                else
+                                                    pass = data.accumulateSmoothSpeedRejectionSurfaceKernel;
                                             }
                                             else
                                             {
-                                                pass = data.accumulateHardThresholdSpeedRejectionSurfaceKernel;
+                                                if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                    pass = data.accumulateHardThresholdSpeedRejectionBothKernel;
+                                                else if (data.motionVectorFromHit)
+                                                    pass = data.accumulateHardThresholdSpeedRejectionHitKernel;
+                                                else
+                                                    pass = data.accumulateHardThresholdSpeedRejectionSurfaceKernel;
                                             }
                                         }
 

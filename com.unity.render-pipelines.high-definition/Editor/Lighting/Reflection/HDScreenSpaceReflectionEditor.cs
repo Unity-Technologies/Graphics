@@ -22,6 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DepthBufferThickness;
         SerializedDataParameter m_AccumulationFactor;
         SerializedDataParameter m_BiasFactor;
+        SerializedDataParameter m_EnableWorldSpeedRejection;
         SerializedDataParameter m_SpeedRejectionFactor;
         SerializedDataParameter m_SpeedRejectionScalerFactor;
         SerializedDataParameter m_SpeedSmoothReject;
@@ -70,6 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_BiasFactor = Unpack(o.Find(x => x.biasFactor));
             m_SpeedRejectionFactor = Unpack(o.Find(x => x.speedRejectionParam));
             m_BiasFactor = Unpack(o.Find(x => x.biasFactor));
+            m_EnableWorldSpeedRejection = Unpack(o.Find(x => x.enableWorldSpeedRejection));
             m_SpeedRejectionScalerFactor = Unpack(o.Find(x => x.speedRejectionScalerFactor));
             m_SpeedSmoothReject = Unpack(o.Find(x => x.speedSmoothReject));
             m_SpeedSurfaceOnly = Unpack(o.Find(x => x.speedSurfaceOnly));
@@ -112,6 +114,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_ScreenFaceDistanceText = EditorGUIUtility.TrTextContent("Screen Edge Fade Distance", "Controls the distance at which HDRP fades out SSR near the edge of the screen.");
         static public readonly GUIContent k_AccumulationFactorText = EditorGUIUtility.TrTextContent("Accumulation Factor", "Controls Controls the amount of accumulation (0 no accumulation, 1 just accumulate).");
         static public readonly GUIContent k_BiasFactorText = EditorGUIUtility.TrTextContent("Roughness Bias", "Controls the relative roughness offset. A low value means material roughness stays the same, a high value means smoother reflections.");
+        static public readonly GUIContent k_EnableSpeedRejectionText = EditorGUIUtility.TrTextContent("World Space Speed Rejection", "When enabled, speed from will be computed in world space to reject samples.");
         static public readonly GUIContent k_SpeedRejectionFactorText = EditorGUIUtility.TrTextContent("Speed Rejection", "Controls the likelihood history will be rejected based on the previous frame motion vectors of both the surface and the hit object in world space.");
         static public readonly GUIContent k_SpeedRejectionScalerFactorText = EditorGUIUtility.TrTextContent("Speed Rejection Scaler Factor", "Controls the upper range of speed. The faster the objects or camera are moving, the higher this number should be.");
         static public readonly GUIContent k_SpeedSmoothRejectText = EditorGUIUtility.TrTextContent("Speed Smooth Rejection", "When enabled, history can be partially rejected for moving objects which gives a smoother transition. When disabled, history is either kept or totally rejected.");
@@ -275,16 +278,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_UsedAlgorithm.value.intValue == (int)ScreenSpaceReflectionAlgorithm.PBRAccumulation)
                 {
                     PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
+                    PropertyField(m_EnableWorldSpeedRejection, k_EnableSpeedRejectionText);
                     if (BeginAdditionalPropertiesScope())
                     {
                         PropertyField(m_BiasFactor, k_BiasFactorText);
-                        PropertyField(m_SpeedRejectionFactor, k_SpeedRejectionFactorText);
-                        PropertyField(m_SpeedRejectionScalerFactor, k_SpeedRejectionScalerFactorText);
-                        PropertyField(m_SpeedSmoothReject, k_SpeedSmoothRejectText);
-                        PropertyField(m_SpeedSurfaceOnly, k_SpeedSurfaceOnlyText);
-                        PropertyField(m_SpeedTargetOnly, k_SpeedTargetOnlyText);
-                        if (!m_SpeedSurfaceOnly.value.boolValue && !m_SpeedTargetOnly.value.boolValue)
-                            m_SpeedSurfaceOnly.value.boolValue = true;
+                        if (m_EnableWorldSpeedRejection.value.boolValue)
+                        {
+                            PropertyField(m_SpeedRejectionFactor, k_SpeedRejectionFactorText);
+                            PropertyField(m_SpeedRejectionScalerFactor, k_SpeedRejectionScalerFactorText);
+                            PropertyField(m_SpeedSmoothReject, k_SpeedSmoothRejectText);
+                            PropertyField(m_SpeedSurfaceOnly, k_SpeedSurfaceOnlyText);
+                            PropertyField(m_SpeedTargetOnly, k_SpeedTargetOnlyText);
+                            if (!m_SpeedSurfaceOnly.value.boolValue && !m_SpeedTargetOnly.value.boolValue)
+                                m_SpeedSurfaceOnly.value.boolValue = true;
+                        }
                     }
                     EndAdditionalPropertiesScope();
                 }

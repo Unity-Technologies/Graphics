@@ -142,6 +142,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter speedTargetOnly = new BoolParameter(true);
 
         /// <summary>
+        /// When enabled, world space speed from Motion vector is used to reject samples.
+        /// </summary>
+        public BoolParameter enableWorldSpeedRejection = new BoolParameter(false);
+
+        /// <summary>
         /// Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.
         /// </summary>
         public int rayMaxIterations

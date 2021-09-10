@@ -7,12 +7,13 @@
 
 #pragma kernel ScreenSpaceReflectionsTracing                                            SSR_TRACE
 #pragma kernel ScreenSpaceReflectionsReprojection                                       SSR_REPROJECT
-#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth          SSR_ACCUMULATE MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1
-#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly    SSR_ACCUMULATE MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0
-#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly    SSR_ACCUMULATE MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1
-#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth                 SSR_ACCUMULATE SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1
-#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly           SSR_ACCUMULATE SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0
-#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly           SSR_ACCUMULATE SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejection                    SSR_ACCUMULATE MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejection
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth          SSR_ACCUMULATE WORLD_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly    SSR_ACCUMULATE WORLD_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly    SSR_ACCUMULATE WORLD_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth                 SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly           SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly           SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1
 
 #pragma multi_compile _ DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
 #pragma multi_compile _ SSR_APPROX
@@ -723,8 +724,7 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
 
-    float spd = _SsrPBRSpeedRejection;
-
+#ifdef WORLD_SPEED_REJECTION
 #ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
 #if USE_SPEED_SURFACE
     float  deviceDepthSrc = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
@@ -758,10 +758,6 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 #elif USE_SPEED_SURFACE == 0 && USE_SPEED_TARGET == 1
     float speedDiff = length(worldDstMotion.xyz);
 #elif USE_SPEED_SURFACE == 1 && USE_SPEED_TARGET == 1
-
-    // Here Remi
-
-    //float speedDiff = length(0.5f * (worldSrcMotion.xyz + worldDstMotion.xyz));
     float speedDiff = length(worldSrcMotion.xyz + worldDstMotion.xyz);
 #else
     #error need at least one source of motion vector
@@ -770,31 +766,37 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
     float usedSpeed = saturate(Normalize01(clamp(speedDiff, 0.0f, _SsrPRBSpeedRejectionScalerFactor), 0.0f, _SsrPRBSpeedRejectionScalerFactor));
 
 #ifdef SSR_SMOOTH_SPEED_REJECTION
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(usedSpeed * spd));
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(usedSpeed * _SsrPBRSpeedRejection));
 #else
 
-#if 0
-    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(usedSpeed * spd));
-    coefExpAvg = usedSpeed >= spd ? 1.0f : coefExpAvg;
-#else
-    float coefExpAvg = usedSpeed >= spd ? 1.0f : _SsrAccumulationAmount;
+    float coefExpAvg = usedSpeed >= _SsrPBRSpeedRejection ? 1.0f : _SsrAccumulationAmount;
+
 #endif
+#else
+    float speedSrc = length(motionVectorCenterNDC);
+    float speedDst = length(motionVectorCenterNDC);
+    float speed = saturate((speedDst + speedSrc) * 128.0f); // 128 is arbitrary
 
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed);
 #endif
 
     float4 result = lerp(previous, original, coefExpAvg);
 
 #define REJECT_DEBUG_COLOR
 
+#ifdef WORLD_SPEED_REJECTION
 #ifdef REJECT_DEBUG_COLOR
     #ifdef SSR_SMOOTH_SPEED_REJECTION
-         result.rgb = HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(usedSpeed * spd)));
+         result.rgb = HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(usedSpeed * _SsrPBRSpeedRejection)));
     #else
-        if (usedSpeed >= spd)
+        if (usedSpeed >= _SsrPBRSpeedRejection)
             result.rgb = float3(1.0f, 0.0f, 0.0f);
         else
             result.rgb = float3(0.0f, 1.0f, 0.0f);
     #endif
+#endif
+#else
+    result.rgb = HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), speed));
 #endif
 
     uint3 intCol = asuint(result.rgb);
