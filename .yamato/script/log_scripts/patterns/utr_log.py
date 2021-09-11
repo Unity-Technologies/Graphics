@@ -1,8 +1,8 @@
 import os
-from .shared_utils import load_json, find_matching_patterns
-from .shared_utils import *
-from .rules import *
-from .constants import *
+from utils.shared_utils import load_json, find_matching_patterns
+from utils.shared_utils import *
+from utils.rules import *
+from utils.constants import *
 
 class UTR_log():
     ''''Handles parsing UTR logs (TestResults.json) against known error patterns'''
@@ -25,7 +25,7 @@ class UTR_log():
             # },
             {
                 'pattern': r'System.AggregateException: One or more errors occurred. \(Detected that ios-deploy is not running when attempting to establish player connection.\)',
-                'tags': ['ios-deploy', TAG_INFRASTRUCTURE], # instability?
+                'tags': ['ios-deploy', TAG_INFRASTRUCTURE, TAG_POSSIBLE_INSTABILITY],
                 'conclusion': 'failure',
             }
         ]
