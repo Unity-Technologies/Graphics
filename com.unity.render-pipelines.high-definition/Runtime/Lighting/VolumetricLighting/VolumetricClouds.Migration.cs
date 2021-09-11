@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Initial,
             GlobalWind,
+            ShapeOffset,
 
             Count
         }
@@ -45,6 +46,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     customValue = c.m_ObsoleteOrientation.value
                 };
 #pragma warning restore 618
+            }),
+            MigrationStep.New(Version.ShapeOffset, (VolumetricClouds c) =>
+            {
+#pragma warning disable 618 // Type or member is obsolete
+                c.shapeOffset.overrideState = c.m_ObsoleteShapeOffsetX.overrideState || c.m_ObsoleteShapeOffsetY.overrideState || c.m_ObsoleteShapeOffsetZ.overrideState;
+                c.shapeOffset.value = new Vector3(c.m_ObsoleteShapeOffsetX.value, c.m_ObsoleteShapeOffsetY.value, c.m_ObsoleteShapeOffsetZ.value);
+#pragma warning restore 618
             })
         );
 
@@ -61,5 +69,13 @@ namespace UnityEngine.Rendering.HighDefinition
         MinFloatParameter m_ObsoleteWindSpeed = new MinFloatParameter(1.0f, 0.0f);
         [SerializeField, FormerlySerializedAs("orientation"), Obsolete("For Data Migration")]
         ClampedFloatParameter m_ObsoleteOrientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+
+        [SerializeField, FormerlySerializedAs("shapeOffsetX"), Obsolete("For Data Migration")]
+        FloatParameter m_ObsoleteShapeOffsetX = new FloatParameter(0.0f);
+        [SerializeField, FormerlySerializedAs("shapeOffsetY"), Obsolete("For Data Migration")]
+        FloatParameter m_ObsoleteShapeOffsetY = new FloatParameter(0.0f);
+        [SerializeField, FormerlySerializedAs("shapeOffsetZ"), Obsolete("For Data Migration")]
+        FloatParameter m_ObsoleteShapeOffsetZ = new FloatParameter(0.0f);
+
     }
 }

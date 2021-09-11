@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionCondition()
             : this(VFXValueType.Float, VFXCondition.Equal, VFXValue.Constant(0.0f), VFXValue.Constant(0.0f))
-        {}
+        { }
 
         public VFXExpressionCondition(VFXValueType type, VFXCondition cond, VFXExpression left, VFXExpression right) : base(VFXExpression.Flags.None, new VFXExpression[] { left, right })
         {
@@ -49,12 +49,12 @@ namespace UnityEditor.VFX
             bool res = false;
             switch (condition)
             {
-                case VFXCondition.Equal:            res = comp == 0; break;
-                case VFXCondition.NotEqual:         res = comp != 0; break;
-                case VFXCondition.Less:             res = comp < 0; break;
-                case VFXCondition.LessOrEqual:      res = comp <= 0; break;
-                case VFXCondition.Greater:          res = comp > 0; break;
-                case VFXCondition.GreaterOrEqual:   res = comp >= 0; break;
+                case VFXCondition.Equal: res = comp == 0; break;
+                case VFXCondition.NotEqual: res = comp != 0; break;
+                case VFXCondition.Less: res = comp < 0; break;
+                case VFXCondition.LessOrEqual: res = comp <= 0; break;
+                case VFXCondition.Greater: res = comp > 0; break;
+                case VFXCondition.GreaterOrEqual: res = comp >= 0; break;
                 default: throw new NotImplementedException("Invalid VFXCondition: " + condition);
             }
 
@@ -65,9 +65,9 @@ namespace UnityEditor.VFX
         {
             switch (type)
             {
-                case VFXValueType.Float:    return Evaluate<float>(constParents);
-                case VFXValueType.Int32:    return Evaluate<int>(constParents);
-                case VFXValueType.Uint32:   return Evaluate<uint>(constParents);
+                case VFXValueType.Float: return Evaluate<float>(constParents);
+                case VFXValueType.Int32: return Evaluate<int>(constParents);
+                case VFXValueType.Uint32: return Evaluate<uint>(constParents);
                 default: throw new NotImplementedException("This type is not handled by condition expression: " + type);
             }
         }
@@ -77,12 +77,12 @@ namespace UnityEditor.VFX
             string comparator = null;
             switch (condition)
             {
-                case VFXCondition.Equal:            comparator = "==";  break;
-                case VFXCondition.NotEqual:         comparator = "!=";  break;
-                case VFXCondition.Less:             comparator = "<";   break;
-                case VFXCondition.LessOrEqual:      comparator = "<=";  break;
-                case VFXCondition.Greater:          comparator = ">";   break;
-                case VFXCondition.GreaterOrEqual:   comparator = ">=";  break;
+                case VFXCondition.Equal: comparator = "=="; break;
+                case VFXCondition.NotEqual: comparator = "!="; break;
+                case VFXCondition.Less: comparator = "<"; break;
+                case VFXCondition.LessOrEqual: comparator = "<="; break;
+                case VFXCondition.Greater: comparator = ">"; break;
+                case VFXCondition.GreaterOrEqual: comparator = ">="; break;
             }
 
             return string.Format("{0} {1} {2}", parents[0], comparator, parents[1]);
@@ -105,7 +105,7 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionBranch()
             : this(VFXValue.Constant(true), VFXValue.Constant(0.0f), VFXValue.Constant(0.0f))
-        {}
+        { }
 
         public VFXExpressionBranch(VFXExpression pred, VFXExpression trueExp, VFXExpression falseExp)
             : base(VFXExpression.Flags.None, new VFXExpression[] { pred, trueExp, falseExp })

@@ -6,9 +6,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
     struct RenderGraphLogIndent : IDisposable
     {
-        int                 m_Indentation;
-        RenderGraphLogger   m_Logger;
-        bool                m_Disposed;
+        int m_Indentation;
+        RenderGraphLogger m_Logger;
+        bool m_Disposed;
 
         public RenderGraphLogIndent(RenderGraphLogger logger, int indentation = 1)
         {
@@ -43,8 +43,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     class RenderGraphLogger
     {
         Dictionary<string, StringBuilder> m_LogMap = new Dictionary<string, StringBuilder>(); // Can log multiple instances before flush everything.
-        StringBuilder   m_CurrentBuilder;
-        int             m_CurrentIndentation;
+        StringBuilder m_CurrentBuilder;
+        int m_CurrentIndentation;
 
         public void Initialize(string logName)
         {

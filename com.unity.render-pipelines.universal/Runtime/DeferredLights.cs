@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using Unity.Collections;
@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // This is an overlay camera being rendered.
         internal bool IsOverlay { get; set; }
         // Not all platforms support R8G8B8A8_SNorm, so we need to check for the support and force accurate GBuffer normals and relevant shader variants
-        private  bool m_AccurateGbufferNormals;
+        private bool m_AccurateGbufferNormals;
         internal bool AccurateGbufferNormals
         {
             get { return m_AccurateGbufferNormals; }

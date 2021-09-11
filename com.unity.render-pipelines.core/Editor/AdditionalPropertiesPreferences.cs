@@ -23,9 +23,9 @@ namespace UnityEditor.Rendering
             public static readonly int[] additionalPropertiesValues = { 1, 0 };
         }
 
-        static List<Type>                   s_VolumeComponentEditorTypes;
-        static TypeCache.MethodCollection   s_AdditionalPropertiesVisibilityMethods;
-        static bool                         s_ShowAllAdditionalProperties = false;
+        static List<Type> s_VolumeComponentEditorTypes;
+        static TypeCache.MethodCollection s_AdditionalPropertiesVisibilityMethods;
+        static bool s_ShowAllAdditionalProperties = false;
 
         static AdditionalPropertiesPreferences()
         {

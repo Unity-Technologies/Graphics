@@ -66,9 +66,9 @@ namespace UnityEditor.VFXToolbox
                 if (bytes.Length < 10)
                     throw new Exception("Malformed VF File, invalid header (less than 10 bytes)");
 
-                width =     BitConverter.ToUInt16(bytes, 4);
-                height =    BitConverter.ToUInt16(bytes, 6);
-                depth =     BitConverter.ToUInt16(bytes, 8);
+                width = BitConverter.ToUInt16(bytes, 4);
+                height = BitConverter.ToUInt16(bytes, 6);
+                depth = BitConverter.ToUInt16(bytes, 8);
 
                 int requiredLength = 10 + (4 * channels * (width * height * depth));
 

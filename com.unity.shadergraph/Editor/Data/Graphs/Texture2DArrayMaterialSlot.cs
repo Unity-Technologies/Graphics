@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph
     class Texture2DArrayMaterialSlot : MaterialSlot
     {
         public Texture2DArrayMaterialSlot()
-        {}
+        { }
 
         public Texture2DArrayMaterialSlot(
             int slotId,
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
             ShaderStageCapability shaderStageCapability = ShaderStageCapability.All,
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden)
-        {}
+        { }
 
         [SerializeField]
         bool m_BareResource = false;
@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph
         public override bool isDefaultValue => true;
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
-        {}
+        { }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {

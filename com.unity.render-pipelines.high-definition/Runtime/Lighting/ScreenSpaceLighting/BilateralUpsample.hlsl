@@ -170,6 +170,6 @@ float4 BilUpColor3x3(float highDepth, in NeighborhoodUpsampleData3x3 data)
                         + data.lowValue6 * combinedWeightsB.z
                         + data.lowValue7 * combinedWeightsB.w
                         + data.lowValue8 * combinedWeightsC
-                        + _NoiseFilterStrength;
+                        + float4(_NoiseFilterStrength, _NoiseFilterStrength, _NoiseFilterStrength, 0.0);
     return WeightedSum / TotalWeight;
 }

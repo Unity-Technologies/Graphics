@@ -18,7 +18,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Tessellation Options");
 
-            public static string tessellationModeStr = "Tessellation Mode";
             public static readonly string[] tessellationModeNames = Enum.GetNames(typeof(TessellationMode));
 
             public static GUIContent tessellationText = new GUIContent("Tessellation Options", "Tessellation options");
@@ -32,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Shader graph
             public static GUIContent tessellationEnableText = new GUIContent("Tessellation", "When enabled, HDRP active tessellation for this Material.");
-            public static GUIContent tessellationModeText = new GUIContent("Tessellation Mode", "Specifies the method HDRP uses to tessellate the mesh.");
+            public static GUIContent tessellationModeText = new GUIContent("Tessellation Mode", "Specifies the method HDRP uses to tessellate the mesh. None uses only the Displacement Map to tessellate the mesh. Phong tessellation applies additional Phong tessellation interpolation for smoother mesh.");
         }
 
         // tessellation params
@@ -111,7 +110,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var mode = (TessellationMode)tessellationMode.floatValue;
 
             EditorGUI.BeginChangeCheck();
-            mode = (TessellationMode)EditorGUILayout.Popup(Styles.tessellationModeStr, (int)mode, Styles.tessellationModeNames);
+            mode = (TessellationMode)EditorGUILayout.Popup(Styles.tessellationModeText, (int)mode, Styles.tessellationModeNames);
             if (EditorGUI.EndChangeCheck())
             {
                 materialEditor.RegisterPropertyChangeUndo("Tessellation Mode");
