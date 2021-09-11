@@ -458,7 +458,7 @@ namespace UnityEngine.Rendering.Universal
             public RTHandle handle;
             public RenderTargetIdentifier fallback;
             public bool useRTHandle => handle != null;
-            public RenderTargetIdentifier nameID => useRTHandle ? handle.nameID : fallback;
+            public RenderTargetIdentifier nameID => useRTHandle ? new RenderTargetIdentifier(handle.nameID, 0, CubemapFace.Unknown, -1) : fallback;
         }
 
         RTHandleRenderTargetIdentifierCompat m_CameraColorTarget;
