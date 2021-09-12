@@ -1805,6 +1805,7 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // ----------------------------------------------------------------------------
 
 IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
+                                                    // Note: We use inout here with PreLightData for a hack we do with clear coat to transfer value of clearCoatIndirectSpec but it should be avoided for other Material
                                                     inout PreLightData   preLightData,
                                                     BSDFData       bsdfData,
                                                     inout float    reflectionHierarchyWeight)
@@ -1829,6 +1830,11 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     reflectionHierarchyWeight = ssrLighting.a;
 
     // If this material has a clear coat, the behavior is more complex
+    // For clear coat we change a bit how reflection hierarchy is handled
+    // With a regular Material, we do SSR to get lighting then fallback on other method based on reflectionHierarchyWeight
+    // but for clear coat Material we try to do this mechanism separately for each layer. So clear coat do SSR then fallback but with the weight of clearCoatIndirectSpec
+    // base layer will get reamining energy of coat layer via reflectionHierarchyWeight with the fallback (i.e the cubemap).
+    // On top of this above we also add an additional hack to limit the smoothness used on based layer depending on coat layer for SSR application (See below)
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         // Because we do not want to have a double contribution, we need to keep track that the clear coat's indirect specular contribution was added
