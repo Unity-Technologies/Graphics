@@ -189,9 +189,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _ReflectionLightingLayers;
 
         public float _MicroShadowOpacity;
-        public uint  _EnableProbeVolumes;
-        public uint  _ProbeVolumeCount;
-        public float _Pad6;
+        public uint _EnableProbeVolumes;
+        public uint _ProbeVolumeCount;
+        public float _SlopeScaleDepthBias;
 
         public Vector4  _CookieAtlasSize;
         public Vector4  _CookieAtlasData;
