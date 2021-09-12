@@ -62,6 +62,10 @@ namespace UnityEngine.Rendering.Universal
         public Vector3[] shapePath => m_ShapePath;
         internal int shapePathHash { get { return m_ShapePathHash; } set { m_ShapePathHash = value; } }
 
+        public ShadowCastingSources shadowCastingSource { get { return m_ShadowCastingSource; } set { m_ShadowCastingSource = value; } }
+
+        internal IShadowShape2DProvider shadowShape2DProvider { get { return m_ShadowShapeProvider as IShadowShape2DProvider; } set { m_ShadowShapeProvider = value as Component; } }
+
         int m_PreviousShadowGroup = 0;
         bool m_PreviousCastsShadows = true;
         int m_PreviousPathHash = 0;
