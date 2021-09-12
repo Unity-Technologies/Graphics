@@ -125,15 +125,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected void OnSceneGUI()
         {
-            if (target == null)
-                return;
-
-            var soo = m_SerializedHDProbePerTarget[target];
-            if (soo == null)
-                return;
-
             EditorGUI.BeginChangeCheck();
-
+            var soo = m_SerializedHDProbePerTarget[target];
             soo.Update();
             HDProbeUI.DrawHandles(soo, this);
 
