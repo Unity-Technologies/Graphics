@@ -4,6 +4,29 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.0.0] - 2021-09-01
+
+### Fixed
+- Fixed impossibility to release the cursor in the template.
+- Fixed assert failure when enabling the probe volume system for the first time.
+- Significantly improved performance of APV probe debug.
+- Removed DLSS keyword in settings search when NVIDIA package is not installed. (case 1358409)
+- Fixed light anchor min distance value + properties not working with prefabs (case 1345509).
+- Fixed specular occlusion sharpness and over darkening at grazing angles.
+- Fixed edge bleeding when rendering volumetric clouds.
+- Fixed the performance of the volumetric clouds in non-local mode when large occluders are on screen.
+- Fixed a regression that broke punctual and directional raytraced shadows temporal denoiser (case 1360132).
+- Fixed regression in the ambient probe intensity for volumetric clouds.
+- Fixed the sun leaking from behind fully opaque clouds.
+- Fixed artifacts in volumetric cloud shadows.
+- Fixed the missing parameter to control the sun light dimmer (case 1364152).
+- Fixed regression in the clouds presets.
+- Fixed the way we are handling emissive for SSGI/RTGI/Mixed and APV and remove ForceForwardEmissive code
+- Fixed EmissiveLighting Debug Light mode not managing correctly emissive for unlit
+
+### Changed
+- Visual Environment ambient mode is now Dynamic by default.
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -229,6 +252,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing API documentation for LTC area light code.
 - Fixed diffusion profile breaking after upgrading HDRP (case 1337892).
 - Fixed undo on light anchor.
+- Fixed invalid cast exception on HDProbe.
 - Fixed some depth comparison instabilities with volumetric clouds.
 - Fixed AxF debug output in certain configurations (case 1333780).
 - Fixed white flash when camera is reset and SSR Accumulation mode is on.
@@ -313,7 +337,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Prevent any unwanted light sync when not in HDRP (case 1217575)
 - Fixed missing global wind parameters in the visual environment.
 - Fixed fabric IBL (Charlie) pre-convolution performance and accuracy (uses 1000x less samples and is closer match with the ground truth)
-- Fixed conflicting runtime debug menu command with an option to disable runtime debug window hotkey.
 - Fixed screen-space shadows with XR single-pass and camera relative rendering (1348260).
 - Fixed ghosting issues if the exposure changed too much (RTGI).
 - Fixed failures on platforms that do not support ray tracing due to an engine behavior change.
@@ -377,6 +400,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lens flare not rendering correctly with TAAU or DLSS.
 - Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
+- Fixed ThreadMapDetail to saturate AO & smoothness strength inputs to prevent out-of-bounds values set by users (1357740)
+- Allow negative wind speed parameter.
+- Fixed remove of the Additional Light Data when removing the Light Component.
+- Fixed remove of the Additional Camera Data when removing the Camera Component.
 - Fixed a null ref exception when no opaque objects are rendered.
 - Fixed issue with depth slope scale depth bias when a material uses depth offset.
 - Fixed shadow sampling artifact when using the spot light shadow option 'custom spot angle'

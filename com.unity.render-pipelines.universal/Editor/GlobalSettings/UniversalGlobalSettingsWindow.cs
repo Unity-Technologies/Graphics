@@ -232,7 +232,9 @@ namespace UnityEditor.Rendering.Universal
 
             using (new EditorGUI.IndentLevelScope())
             {
-                EditorGUILayout.PropertyField(serialized.supportRuntimeDebugDisplay, Styles.supportRuntimeDebugDisplayContentLabel);
+                EditorGUILayout.PropertyField(serialized.stripDebugVariants, Styles.stripDebugVariantsLabel);
+                EditorGUILayout.PropertyField(serialized.stripUnusedPostProcessingVariants, Styles.stripUnusedPostProcessingVariantsLabel);
+                EditorGUILayout.PropertyField(serialized.stripUnusedVariants, Styles.stripUnusedVariantsLabel);
             }
 
             EditorGUIUtility.labelWidth = oldWidth;
