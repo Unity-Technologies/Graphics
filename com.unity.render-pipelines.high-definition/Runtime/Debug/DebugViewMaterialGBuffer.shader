@@ -85,7 +85,7 @@ Shader "Hidden/HDRP/DebugViewMaterialGBuffer"
                 {
                     result = builtinData.bakeDiffuseLighting;
                     #define AO_IN_GBUFFER3_TAG float3((1 << 11), 1, (1 << 10))
-                    if (!all(gbuffer3.xz == AO_IN_GBUFFER3_TAG.xz))
+                    if (!all(result.xz == AO_IN_GBUFFER3_TAG.xz))
                         result *= GetInverseCurrentExposureMultiplier();
                     needLinearToSRGB = true;
                 }
