@@ -343,8 +343,7 @@ namespace UnityEngine.Experimental.Rendering
                     }
                     return;
                 }
-                ProbeReferenceVolume.instance.SetTRS(Vector3.zero, Quaternion.identity, profile.minBrickSize);
-                ProbeReferenceVolume.instance.SetMaxSubdivision(profile.maxSubdivision);
+                ProbeReferenceVolume.instance.SetMinBrickAndMaxSubdiv(profile.minBrickSize, profile.maxSubdivision);
             }
 
             var sceneGUID = GetSceneGUID(scene);
