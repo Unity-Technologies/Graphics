@@ -501,6 +501,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed the Cloud Offset to Cloud Map Offset in the volumetric clouds volume component (case 1358528).
 - Made debug panel mip bias functions internal, not public.
 - Visual Environment ambient mode is now Dynamic by default.
+- Surface ReflectionTypeLoadExceptions in HDUtils.GetRenderPipelineMaterialList(). Without surfacing these exceptions, developers cannot act on any underlying reflection errors in the HDRP assembly.
 
 ## [11.0.0] - 2020-10-21
 
