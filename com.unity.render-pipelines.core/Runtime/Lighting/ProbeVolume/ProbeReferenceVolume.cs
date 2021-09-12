@@ -806,6 +806,12 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        internal void SetMinBrickAndMaxSubdiv(float minBrickSize, int maxSubdiv)
+        {
+            SetTRS(Vector3.zero, Quaternion.identity, minBrickSize);
+            SetMaxSubdivision(maxSubdiv);
+        }
+
         void LoadAsset(ProbeVolumeAsset asset)
         {
             if (asset.Version != (int)ProbeVolumeAsset.AssetVersion.Current)
@@ -817,9 +823,7 @@ namespace UnityEngine.Experimental.Rendering
             var path = asset.GetSerializedFullPath();
 
             // Load info coming originally from profile
-            SetTRS(Vector3.zero, Quaternion.identity, asset.minBrickSize);
-            SetMaxSubdivision(asset.maxSubdivision);
-
+            SetMinBrickAndMaxSubdiv(asset.minBrickSize, asset.maxSubdivision);
 
             for (int i = 0; i < asset.cells.Count; ++i)
             {
