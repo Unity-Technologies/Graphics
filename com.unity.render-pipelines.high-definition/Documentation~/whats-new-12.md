@@ -6,18 +6,6 @@ This page contains an overview of new features, improvements, and issues resolve
 
 The following list of features are new to version 12 of the High Definition Render Pipeline (HDRP), as part of  Unity 2021.2.
 
-### Render the Emissive contribution of a Lit Deferred Material in a separate forward pass.
-
-From HDRP 12.0, you can render the Emissive contribution of a Lit Material in a separate forward pass when the **Lit Shader Mode** is set to **Both** or **Deferred** in the [HDRP global settings](Default-Settings-Window.md) window. To do this, enable the new **Force Forward Emissive** property in the **Advanced options** of a [Lit Shader](Lit-Shader.md) or a [Layered Lit Shader](Layered-Lit-Shader.md).  You can do this instead of using a GBuffer pass.
-
-You can also make a group of Materials or GameObjects use Force Forward Emissive in the following Menu path: **Edit > Render Pipeline > HD Render Pipeline > Force Forward Emissive on Material > Enable In Selection**.
-
-You can use this new behaviour to fix artefacts when you use [Screen Space Global Illumination](Override-Screen-Space-GI.md), with or without Raytracing enabled. When you enable the **Force Forward Emissive**  property, Unity renders the Emissive Object and its contribution in the scene. You can use this in the same way for Adaptive probe volumes.
-
-#### Limitations
-
-When Unity performs a separate pass for the Emissive contribution, it also performs an additional `DrawCall`. This means it uses more resources on your CPU.
-
 ### Adding Tessellation support for ShaderGraph Master Stack
 
 From HDRP 12.0, you can enable [tessellation](Tessellation.md) on any HDRP [Master Stack](master-stack-hdrp.md). The option is in the Master Stack settings and adds two new inputs to the Vertex Block:

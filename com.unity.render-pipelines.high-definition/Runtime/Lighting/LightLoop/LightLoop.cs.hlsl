@@ -32,7 +32,6 @@
 #define LIGHTFEATUREFLAGS_SKY (65536)
 #define LIGHTFEATUREFLAGS_SSREFRACTION (131072)
 #define LIGHTFEATUREFLAGS_SSREFLECTION (262144)
-#define LIGHTFEATUREFLAGS_PROBE_VOLUME (524288)
 
 //
 // UnityEngine.Rendering.HighDefinition.LightDefinitions:  static fields

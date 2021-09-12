@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering
                 EditorGUILayout.HelpBox(Styles.simplificationLevelsHighWarning, MessageType.Warning);
             }
             EditorGUILayout.PropertyField(m_MinDistanceBetweenProbes, Styles.minDistanceBetweenProbes);
-            EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {profile.minDistanceBetweenProbes}m and {profile.cellSizeInMeters}m", MessageType.Info);
+            EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {profile.minDistanceBetweenProbes}m and {profile.cellSizeInMeters / 3.0f}m", MessageType.Info);
 
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();

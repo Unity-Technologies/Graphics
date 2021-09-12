@@ -1,14 +1,14 @@
 import os
 import glob
-from .shared_utils import load_json, find_matching_patterns
-from .rules import *
-from .constants import *
+from utils.shared_utils import load_json, find_matching_patterns
+from utils.rules import *
+from utils.constants import *
 
 class Unity_log():
     ''''Handles parsing Unity log (UnityLog.txt) against known error patterns'''
 
     def __init__(self, path_to_log):
-        self.path = glob.glob(os.path.join(path_to_log,"*/**/",'UnityLog.txt'))[0]
+        self.path = glob.glob(os.path.join(path_to_log,"*","**",'UnityLog.txt'))[0]
         self.patterns = self.get_patterns()
 
     def get_patterns(self):
@@ -25,7 +25,12 @@ class Unity_log():
             # },
             {
                 'pattern': r'AcceleratorClientConnectionCallback - disconnected - cacheserver-slo',
-                'tags': ['cache', TAG_INSTABILITY, TAG_INFRASTRUCTURE],
+                'tags': ['cache',  TAG_INFRASTRUCTURE, TAG_INSTABILITY],
+                'conclusion': 'failure',
+            },
+            {
+                'pattern': r'(Failed to upload artifact)(.+)(to cacheserver)',
+                'tags': ['cache', TAG_INFRASTRUCTURE, TAG_POSSIBLE_INSTABILITY],
                 'conclusion': 'failure',
             },
         ]
