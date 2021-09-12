@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed artifacts in volumetric cloud shadows.
 - Fixed the missing parameter to control the sun light dimmer (case 1364152).
 - Fixed regression in the clouds presets.
+- Fixed the way we are handling emissive for SSGI/RTGI/Mixed and APV and remove ForceForwardEmissive code
+- Fixed EmissiveLighting Debug Light mode not managing correctly emissive for unlit
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.

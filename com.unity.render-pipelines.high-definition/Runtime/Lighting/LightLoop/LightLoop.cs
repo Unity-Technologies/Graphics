@@ -82,7 +82,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Sky = 1 << 16,
         SSRefraction = 1 << 17,
         SSReflection = 1 << 18,
-        ProbeVolume = 1 << 19
         // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
     }
 
