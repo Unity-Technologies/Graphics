@@ -78,7 +78,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             Selection.activeGameObject = go;
         }
 
-        static void CreateLight(MenuCommand menuCommand, string name, Light2D.LightType type)
+        static Light2D CreateLight(MenuCommand menuCommand, Light2D.LightType type, Vector3[] shapePath = null)
         {
             GameObject go = ObjectFactory.CreateGameObject(name, typeof(Light2D));
             Light2D light2D = go.GetComponent<Light2D>();
@@ -92,6 +92,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             lightData.instance_id = light2D.GetInstanceID();
             lightData.light_type = light2D.lightType;
             Analytics.Renderer2DAnalytics.instance.SendData(Analytics.AnalyticsDataTypes.k_LightDataString, lightData);
+
+            return light2D;
         }
 
         static bool CreateLightValidation()
@@ -115,6 +117,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         static void CreateSpriteLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, "Sprite Light 2D", Light2D.LightType.Sprite);
+            ResourceReloader.ReloadAllNullIn(light, UniversalRenderPipelineAsset.packagePath);
         }
         [MenuItem("GameObject/Light/2D/Sprite Light 2D (Experimental)", true, -100)]
         static bool CreateSpriteLight2DValidation()
