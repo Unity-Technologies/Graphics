@@ -159,8 +159,6 @@ namespace UnityEditor.Experimental.Rendering
             {
                 if (ProbeReferenceVolume.instance.sceneData != null)
                 {
-                    ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
-
                     var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(pv.gameObject.scene);
 
                     if (profile != null)
