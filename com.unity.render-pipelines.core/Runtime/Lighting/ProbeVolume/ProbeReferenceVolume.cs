@@ -547,8 +547,10 @@ namespace UnityEngine.Experimental.Rendering
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
+        bool m_EnabledBySRP = false;
 
         internal bool isInitialized => m_ProbeReferenceVolumeInit;
+        internal bool enabledBySRP => m_EnabledBySRP;
 
         struct InitInfo
         {
@@ -606,6 +608,7 @@ namespace UnityEngine.Experimental.Rendering
 
         /// <summary>
         /// Initialize the Probe Volume system
+        /// </summary>
         /// <param name="parameters">Initialization parameters.</param>
         public void Initialize(in ProbeVolumeSystemParameters parameters)
         {
@@ -628,8 +631,18 @@ namespace UnityEngine.Experimental.Rendering
                 UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.OnSceneSaved;
             }
 #endif
+            m_EnabledBySRP = true;
         }
 
+        /// <summary>
+        /// Communicate to the Probe Volume system whether the SRP enables Probe Volume.
+        /// It is important to keep in mind that this is not used by the system for anything else but book-keeping,
+        /// the SRP is still responsible to disable anything Probe volume related on SRP side.
+        /// </summary>
+        public void SetEnableStateFromSRP(bool srpEnablesPV)
+        {
+            m_EnabledBySRP = srpEnablesPV;
+        }
 
         // This is used for steps such as dilation that require the maximum order allowed to be loaded at all times. Should really never be used as a general purpose function.
         internal void ForceSHBand(ProbeVolumeSHBands shBands)
