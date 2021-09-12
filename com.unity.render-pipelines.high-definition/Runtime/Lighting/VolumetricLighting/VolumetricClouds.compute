@@ -23,6 +23,7 @@
 
 // Shadows
 #pragma kernel ComputeVolumetricCloudsShadow
+#pragma kernel FilterVolumetricCloudsShadow
 
 #pragma multi_compile _ PHYSICALLY_BASED_SUN
 #pragma multi_compile _ LOCAL_VOLUMETRIC_CLOUDS
@@ -74,6 +75,7 @@
 TEXTURE2D_X(_HalfResDepthBuffer);
 TEXTURE2D_X(_DepthTexture);
 TEXTURE2D_X(_VolumetricCloudsSourceDepth);
+TEXTURE2D_X(_MaxZMaskTexture);
 Texture2D<float4> _CloudMapTexture;
 Texture2D<float3> _CloudLutTexture;
 
@@ -598,10 +600,10 @@ float3 EvaluateSunLuminance(float3 positionWS, float3 sunDirection, float3 sunCo
 
         // Collect total density along light ray.
         float lastDist = 0;
-        for (int j = 1; j <= _NumLightSteps; j++)
+        for (int j = 0; j < _NumLightSteps; j++)
         {
             // The samples are not linearly distributed along the point-light direction due to their low number. We sample they in a logarithmic way.
-            float dist = stepSize * j;
+            float dist = stepSize * (0.25 + j);
 
             // Evaluate the current sample point
             float3 currentSamplePointWS = positionWS + sunDirection * dist;
@@ -836,6 +838,17 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
     if (any(traceCoord.xy >= uint2(_TraceScreenSize.xy)))
         return;
 
+#if !defined(LOCAL_VOLUMETRIC_CLOUDS)
+    // Clear the cloud value
+    _CloudsLightingTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = float4(0.0, 0.0, 0.0, 1.0);
+
+    // Grab the depth 2x2 region just to be safe
+    float4 d = GATHER_RED_TEXTURE2D_X(_MaxZMaskTexture, s_point_clamp_sampler, traceCoord.xy / _TraceScreenSize.xy * _RTHandleScale.xy);
+    // If there is any background pixel in the region we need to trace, otherwise we skip.
+    if (all(d != 1e10f) && _ValidMaxZMask)
+        return;
+#endif
+
     // Depending on if we are in full res or not, use a different intermediate coord
     uint2 intermediateCoord = traceCoord.xy; // Full resolution case
     if (_LowResolutionEvaluation)
@@ -849,6 +862,9 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
         else
             intermediateCoord = traceCoord.xy * 2;
     }
+
+    // Given that the rendering resolution is not guaranteed to be an even number, we need to clamp to the intermediate resolution in this case
+    intermediateCoord = min(intermediateCoord, _IntermediateScreenSize.xy - 1);
 
     // Compute the offset that shall be used (if any)
     float offset = _EnableIntegration ? GetBNDSequenceSample(intermediateCoord, _AccumulationFrameIndex, 0) : 0.0;
@@ -1544,9 +1560,9 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
         float startDistance = intersectionO.x;
         float totalDistance = intersectionI.x - intersectionO.x;
 
-        float stepSize = totalDistance / 10;
+        float stepSize = totalDistance / 16;
 
-        for (int i = 1; i <= 8; ++i)
+        for (int i = 0; i < 16; ++i)
         {
             // Compute the sphere intersection position
             float3 positionWS = rayOriginWS + rayDirection * (intersectionO.x + stepSize * i);
@@ -1561,11 +1577,76 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
             if (cloudProperties.density > CLOUD_DENSITY_TRESHOLD)
             {
                 // Apply the extinction
-                const float3 currentStepExtinction = exp(- _ScatteringTint.xyz * cloudProperties.density * cloudProperties.sigmaT * stepSize);
+                const float3 currentStepExtinction = exp(-_ScatteringTint.xyz * cloudProperties.density * cloudProperties.sigmaT * stepSize);
                 transmittance *= Luminance(currentStepExtinction);
             }
         }
     }
 
     _VolumetricCloudsShadowRW[currentCoords.xy] = lerp(1.0 - _ShadowIntensity, 1.0, transmittance);
+}
+
+// LDS used to pre-fetch the neighborhood data a 8x8 region with a one pixel border (10x10)
+groupshared uint gs_cacheShadow[100];
+
+TEXTURE2D(_VolumetricCloudsShadow);
+
+void FillShadowLDSData(uint elementIndex, uint2 groupOrigin)
+{
+    // Define which value we will be acessing with this worker thread
+    int acessCoordX = elementIndex % 10;
+    int acessCoordY = elementIndex / 10;
+
+    // The initial position of the access
+    int2 originXY = (int2)groupOrigin - int2(1, 1) + int2(acessCoordX, acessCoordY);
+
+    // Compute the sample position
+    int2 tapCoord = int2(clamp(originXY.x, 0, _ShadowCookieResolution - 1), clamp(originXY.y, 0, _ShadowCookieResolution - 1));
+
+    // Read the value from the texture
+    float3 shadowValue = LOAD_TEXTURE2D(_VolumetricCloudsShadow, tapCoord.xy).xyz;
+
+    // Pack it and store it into the LDS
+    gs_cacheShadow[elementIndex] = PackToR11G11B10f(shadowValue);
+}
+
+uint ShadowOffsetToLDSAdress(uint2 groupThreadId, int2 offset)
+{
+    // Compute the tap coordinate in the 10x10 grid
+    uint2 tapAddress = (uint2)((int2)(groupThreadId + 1) + offset);
+    return clamp((uint)(tapAddress.x) % 10 + tapAddress.y * 10, 0, 99);
+}
+
+[numthreads(8, 8, 1)]
+void FilterVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, int groupIndex : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(currentCoords.z);
+
+    // Fill the LDS with the shadow data
+    if (groupIndex < 50)
+    {
+        FillShadowLDSData(groupIndex * 2, groupId * 8);
+        FillShadowLDSData(groupIndex * 2 + 1, groupId * 8);
+    }
+    GroupMemoryBarrierWithGroupSync();
+
+    // Grab the center pixel
+    float3 centerShadow = UnpackFromR11G11B10f(gs_cacheShadow[ShadowOffsetToLDSAdress(groupThreadId, int2(0, 0))]);
+
+    // Average the 3x3 rgion
+    float3 filteredShadow = UnpackFromR11G11B10f(gs_cacheShadow[ShadowOffsetToLDSAdress(groupThreadId, int2(-1, -1))]);
+    filteredShadow += UnpackFromR11G11B10f(gs_cacheShadow[ShadowOffsetToLDSAdress(groupThreadId, int2(0, -1))]);
+    filteredShadow += UnpackFromR11G11B10f(gs_cacheShadow[ShadowOffsetToLDSAdress(groupThreadId, int2(1, -1))]);
+    filteredShadow += UnpackFromR11G11B10f(gs_cacheShadow[ShadowOffsetToLDSAdress(groupThreadId, int2(-1, 0))]);
+    filteredShadow += centerShadow;
+    filteredShadow += UnpackFromR11G11B10f(gs_cacheShadow[ShadowOffsetToLDSAdress(groupThreadId, int2(1, 0))]);
+    filteredShadow += UnpackFromR11G11B10f(gs_cacheShadow[ShadowOffsetToLDSAdress(groupThreadId, int2(-1, 1))]);
+    filteredShadow += UnpackFromR11G11B10f(gs_cacheShadow[ShadowOffsetToLDSAdress(groupThreadId, int2(0, 1))]);
+    filteredShadow += UnpackFromR11G11B10f(gs_cacheShadow[ShadowOffsetToLDSAdress(groupThreadId, int2(1, 1))]);
+
+    // We have a different behavior if this is a border pixel
+    float borderPixel = currentCoords.x == 0 || currentCoords.y == 0 || ((int)currentCoords.x) == (_ShadowCookieResolution - 1) || ((int)currentCoords.y) == (_ShadowCookieResolution - 1) ? 1.0 : 0.0;
+
+    // Normalize and return the result
+    _VolumetricCloudsShadowRW[currentCoords.xy] = lerp(filteredShadow * 0.1111111, centerShadow, borderPixel);
 }

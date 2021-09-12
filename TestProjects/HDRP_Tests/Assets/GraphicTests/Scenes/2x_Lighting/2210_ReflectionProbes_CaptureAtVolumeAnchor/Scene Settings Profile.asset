@@ -29,13 +29,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   skyType:
     m_OverrideState: 1
     m_Value: 2
-  skyAmbientMode:
+  cloudType:
     m_OverrideState: 0
     m_Value: 0
+  skyAmbientMode:
+    m_OverrideState: 1
+    m_Value: 0
+  windOrientation:
+    m_OverrideState: 0
+    m_Value: 0
+  windSpeed:
+    m_OverrideState: 0
+    m_Value: 100
   fogType:
     m_OverrideState: 1
     m_Value: 2
@@ -52,16 +60,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   maxShadowDistance:
     m_OverrideState: 1
     m_Value: 500
-    min: 0
+  directionalTransmissionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
   cascadeShadowSplitCount:
     m_OverrideState: 1
     m_Value: 4
-    min: 1
-    max: 4
   cascadeShadowSplit0:
     m_OverrideState: 1
     m_Value: 0.05
@@ -96,12 +103,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   rotation:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
-    max: 360
   skyIntensityMode:
     m_OverrideState: 1
     m_Value: 0
@@ -111,11 +115,12 @@ MonoBehaviour:
   multiplier:
     m_OverrideState: 1
     m_Value: 1
-    min: 0
   upperHemisphereLuxValue:
     m_OverrideState: 1
     m_Value: 1
-    min: 0
+  upperHemisphereLuxColor:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 0, z: 0}
   desiredLuxValue:
     m_OverrideState: 1
     m_Value: 20000
@@ -125,37 +130,24 @@ MonoBehaviour:
   updatePeriod:
     m_OverrideState: 1
     m_Value: 0
-    min: 0
   includeSunInBaking:
     m_OverrideState: 1
     m_Value: 0
   sunSize:
     m_OverrideState: 1
     m_Value: 0.04
-    min: 0
-    max: 1
   sunSizeConvergence:
     m_OverrideState: 1
     m_Value: 5
-    min: 1
-    max: 10
   atmosphereThickness:
     m_OverrideState: 1
     m_Value: 1
-    min: 0
-    max: 5
   skyTint:
     m_OverrideState: 1
     m_Value: {r: 0, g: 1, b: 0.09278011, a: 1}
-    hdr: 0
-    showAlpha: 1
-    showEyeDropper: 1
   groundColor:
     m_OverrideState: 1
     m_Value: {r: 0.88122773, g: 1, b: 0, a: 1}
-    hdr: 0
-    showAlpha: 1
-    showEyeDropper: 1
   enableSunDisk:
     m_OverrideState: 1
     m_Value: 1
