@@ -22,6 +22,8 @@ TEXTURE2D(_MaskMap);
 SAMPLER(sampler_MaskMap);
 TEXTURE2D(_BentNormalMap); // Reuse sampler from normal map
 SAMPLER(sampler_BentNormalMap);
+TEXTURE2D(_BentNormalMapOS);
+SAMPLER(sampler_BentNormalMapOS);
 
 TEXTURE2D(_NormalMap);
 SAMPLER(sampler_NormalMap);
