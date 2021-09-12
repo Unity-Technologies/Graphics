@@ -25,6 +25,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed EmissiveLighting Debug Light mode not managing correctly emissive for unlit
 - Fixed remove of the Additional Light Data when removing the Light Component.
 - Fixed remove of the Additional Camera Data when removing the Camera Component.
+- Fixed remove of the Additional Light Data when removing the Light Component.
+- Fixed remove of the Additional Camera Data when removing the Camera Component.
+- Fixed a null ref exception when no opaque objects are rendered.
+- Fixed issue with depth slope scale depth bias when a material uses depth offset.
+- Fixed shadow sampling artifact when using the spot light shadow option 'custom spot angle'
+- Fixed issue with fading in SSR applying fade factor twice, resulting in darkening of the image in the transition areas.
+- Fixed path traced subsurface scattering for transmissive surfaces (case 1329403)
+- Fixed missing context menu for “Post Anti-Aliasing” in Camera (1357283)
+- Fixed error when disabling opaque objects on a camera with MSAA.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
