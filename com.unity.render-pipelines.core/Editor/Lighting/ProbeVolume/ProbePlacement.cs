@@ -277,7 +277,7 @@ namespace UnityEngine.Experimental.Rendering
                         // In case there is at least one brick in the sub-cell, we need to spawn the parent brick.
                         if (brickCount != brickSet.Count)
                         {
-                            float minBrickSize = subdivisionCtx.refVolume.profile.minBrickSize;
+                            float minBrickSize = subdivisionCtx.profile.minBrickSize;
                             Vector3 cellID = (cellAABB.center - cellAABB.extents) / minBrickSize;
                             float parentSubdivLevel = 3.0f;
                             for (int i = k_MaxSubdivisionInSubCell; i < ctx.maxSubdivisionLevel; i++)
@@ -350,7 +350,7 @@ namespace UnityEngine.Experimental.Rendering
             List<(Terrain terrain, ProbeReferenceVolume.Volume volume)> terrains, HashSet<Brick> brickSet)
         {
             var cellAABB = cellVolume.CalculateAABB();
-            float minBrickSize = subdivisionCtx.refVolume.profile.minBrickSize;
+            float minBrickSize = subdivisionCtx.profile.minBrickSize;
 
             cellVolume.CalculateCenterAndSize(out var center, out var _);
             var cmd = CommandBufferPool.Get($"Subdivide (Sub)Cell {center}");
@@ -377,7 +377,7 @@ namespace UnityEngine.Experimental.Rendering
             VoxelizeProbeVolumeData(cmd, cellAABB, probeVolumes, ctx);
 
             // Find the maximum subdivision level we can have in this cell (avoid extra work if not needed)
-            int startSubdivisionLevel = ctx.maxSubdivisionLevelInSubCell - GetMaxSubdivision(ctx, probeVolumes.Max(p => p.component.maxSubdivisionMultiplier));
+            int startSubdivisionLevel = ctx.maxSubdivisionLevelInSubCell - GetMaxSubdivision(ctx, probeVolumes.Max(p => p.component.GetMaxSubdivMultiplier()));
             for (int subdivisionLevel = startSubdivisionLevel; subdivisionLevel <= ctx.maxSubdivisionLevelInSubCell; subdivisionLevel++)
             {
                 // Add the bricks from the probe volume min subdivision level:
@@ -596,8 +596,8 @@ namespace UnityEngine.Experimental.Rendering
                 // Prepare list of GPU probe volumes
                 foreach (var kp in probeVolumes)
                 {
-                    int minSubdiv = GetMaxSubdivision(ctx, kp.component.minSubdivisionMultiplier);
-                    int maxSubdiv = GetMaxSubdivision(ctx, kp.component.maxSubdivisionMultiplier);
+                    int minSubdiv = GetMaxSubdivision(ctx, kp.component.GetMinSubdivMultiplier());
+                    int maxSubdiv = GetMaxSubdivision(ctx, kp.component.GetMaxSubdivMultiplier());
 
                     // Constrain the probe volume AABB inside the cell
                     var pvAABB = kp.volume.CalculateAABB();
