@@ -19,3 +19,6 @@ Ray traced subsurface scattering uses the [Volume](Volumes.md) framework, so to 
 | Property       | Description                                                  |
 | -------------- | ------------------------------------------------------------ |
 | **Sample Count**  | Defines the number of samples that are cast per pixel to evaluate the subsurface scattering lighting. |
+
+## Limitations
+* Emissive surfaces are incompatible with ray traced sub-surface scattering.
