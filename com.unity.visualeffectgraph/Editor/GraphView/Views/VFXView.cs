@@ -2153,11 +2153,12 @@ namespace UnityEditor.VFX.UI
                 var currentRect = context.GetPosition();
                 var aboveRect = previousContext.GetPosition();
                 var distanceToContextAbove = currentRect.yMin - aboveRect.yMax - globalOffset;
-                if (distanceToContextAbove < 5 && (currentRect.xMin <= aboveRect.xMax && currentRect.xMax >= aboveRect.xMin))
+                bool isOnTheSide = currentRect.xMin > aboveRect.xMax || currentRect.xMax < aboveRect.xMin;
+                bool isBelow = distanceToContextAbove < 5 && currentRect.yMax > aboveRect.yMax + globalOffset;
+                if (isBelow && !isOnTheSide)
                 {
-                    var offset = 5 - distanceToContextAbove;
-                    globalOffset += offset;
-                    context.controller.position = new Vector2(currentRect.x, currentRect.y + offset);
+                    globalOffset = -distanceToContextAbove;
+                    context.controller.position = new Vector2(currentRect.x, currentRect.y - distanceToContextAbove);
                     previousContext = context;
                 }
             }
