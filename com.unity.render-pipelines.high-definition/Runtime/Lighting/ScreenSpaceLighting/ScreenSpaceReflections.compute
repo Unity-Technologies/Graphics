@@ -5,15 +5,23 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-#pragma kernel ScreenSpaceReflectionsTracing                                            SSR_TRACE
-#pragma kernel ScreenSpaceReflectionsReprojection                                       SSR_REPROJECT
-#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejection                    SSR_ACCUMULATE MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejection
-#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth          SSR_ACCUMULATE WORLD_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1
-#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly    SSR_ACCUMULATE WORLD_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0
-#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly    SSR_ACCUMULATE WORLD_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1
-#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth                 SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1
-#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly           SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0
-#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly           SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsTracing                                                SSR_TRACE
+#pragma kernel ScreenSpaceReflectionsReprojection                                           SSR_REPROJECT
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejection                        SSR_ACCUMULATE MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejection
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth              SSR_ACCUMULATE WORLD_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly        SSR_ACCUMULATE WORLD_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly        SSR_ACCUMULATE WORLD_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth                     SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly               SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly               SSR_ACCUMULATE WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1
+
+#pragma kernel ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionDebug                   SSR_ACCUMULATE REJECT_DEBUG_COLOR MAIN_ACC=ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionDebug
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBothDebug         SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBothDebug USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnlyDebug   SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnlyDebug USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0
+#pragma kernel ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnlyDebug   SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnlyDebug USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBothDebug                SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBothDebug USE_SPEED_SURFACE=1 USE_SPEED_TARGET=1
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug          SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug USE_SPEED_SURFACE=1 USE_SPEED_TARGET=0
+#pragma kernel ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug          SSR_ACCUMULATE REJECT_DEBUG_COLOR WORLD_SPEED_REJECTION SSR_SMOOTH_SPEED_REJECTION MAIN_ACC=ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug USE_SPEED_SURFACE=0 USE_SPEED_TARGET=1
 
 #pragma multi_compile _ DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
 #pragma multi_compile _ SSR_APPROX
@@ -781,8 +789,6 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 
     float4 result = lerp(previous, original, coefExpAvg);
-
-#define REJECT_DEBUG_COLOR
 
 #ifdef WORLD_SPEED_REJECTION
 #ifdef REJECT_DEBUG_COLOR
