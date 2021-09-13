@@ -63,7 +63,9 @@ namespace UnityEngine.Rendering.Universal
         CopyDepthPass m_PrimedDepthCopyPass;
         MotionVectorRenderPass m_MotionVectorPass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
+        FakeMainLightShadowCasterPass m_FakeMainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
+        FakeAdditionalLightsShadowCasterPass m_FakeAdditionalLightsShadowCasterPass;
         GBufferPass m_GBufferPass;
         CopyDepthPass m_GBufferCopyDepthPass;
         TileDepthRangePass m_TileDepthRangePass;
@@ -182,7 +184,9 @@ namespace UnityEngine.Rendering.Universal
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            m_FakeMainLightShadowCasterPass = new FakeMainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+            m_FakeAdditionalLightsShadowCasterPass = new FakeAdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
             // Schedule XR copydepth right after m_FinalBlitPass(AfterRendering + 1)
@@ -594,9 +598,18 @@ namespace UnityEngine.Rendering.Universal
 
             if (mainLightShadows)
                 EnqueuePass(m_MainLightShadowCasterPass);
+            else if (UniversalRenderPipeline.asset.supportsMainLightShadows)
+            {
+                EnqueuePass(m_FakeMainLightShadowCasterPass);
+            }
 
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
+            else if (UniversalRenderPipeline.asset.supportsAdditionalLightShadows)
+            {
+                m_FakeAdditionalLightsShadowCasterPass.Setup(ref renderingData);
+                EnqueuePass(m_FakeAdditionalLightsShadowCasterPass);
+            }
 
             if (requiresDepthPrepass)
             {
