@@ -27,6 +27,7 @@ namespace UnityEngine.Experimental.Rendering
         public int maxSubdivToVisualize = ProbeBrickIndex.kMaxSubdivisionLevels;
         public float exposureCompensation;
         public int loadingTestCellIndex;
+        public bool freezeStreaming;
     }
 
     public partial class ProbeReferenceVolume
@@ -177,8 +178,12 @@ namespace UnityEngine.Experimental.Rendering
                 });
             }
 
+            var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
+            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", getter = () => debugDisplay.freezeStreaming, setter = value => debugDisplay.freezeStreaming = value });
+
             widgetList.Add(subdivContainer);
             widgetList.Add(probeContainer);
+            widgetList.Add(streamingContainer);
 
             m_DebugItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel("Probe Volume", true);
