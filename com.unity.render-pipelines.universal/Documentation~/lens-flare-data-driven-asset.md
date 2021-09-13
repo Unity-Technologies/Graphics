@@ -49,7 +49,7 @@ The Lens Flare Element asset has the following properties:
 | ------------ | ------------------------------------------------------------ |
 | Gradient     | Controls the offset of the circular flare's gradient. This value ranges from 0 to 1. |
 | Falloff      | Controls the falloff of the circular flare's gradient. This value ranges from 0 to 1, where 0 has no falloff between the tones and 1 creates a falloff that is spread evenly across the circle. |
-| Inverse      | Enable this property to reverse the direction of the gradient. |
+| Invert       | Enable this property to reverse the direction of the gradient. |
 
 <a name="Polygon"></a>
 
@@ -63,7 +63,7 @@ The Lens Flare Element asset has the following properties:
 | Falloff      | Controls the falloff of the polygon flare's gradient. This value ranges from 0 to 1, where 0 has no falloff between the tones and 1 creates a falloff that is spread evenly across the polygon. |
 | Side Count   | Determines how many sides the polygon flare has.             |
 | Roundness    | Defines how smooth the edges of the polygon flare are. This value ranges from 0 to 1, where 0 is a sharp polygon and 1 is a circle. |
-| Inverse      | Enable this property to reverse the direction of the gradient |
+| Invert       | Enable this property to reverse the direction of the gradient |
 
 <a name="Color"></a>
 
@@ -89,8 +89,8 @@ The Lens Flare Element asset has the following properties:
 | Position Offset   | Defines the offset of the lens flare's position in screen space, relative to its source. |
 | Auto Rotate             | Enable this property to automatically rotate the Lens Flare Texture relative to its angle on the screen. Unity uses the **Auto Rotate** angle to override the **Rotation** parameter. <br/><br/> To ensure the Lens Flare can rotate, assign a value greater than 0 to the [**Starting Position**](#AxisTransform)  property. |
 | Rotation                | Rotates the lens flare. This value operates in degrees of rotation. |
-| Size                    | Use this to adjust the scale of this lens flare element. <br/><br/> This property is not available when the [Type](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Type) is set to [Image](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Image) and **Preserve Aspect Ratio** is enabled. |
-| Scale                   | The size of this lens flare element in world space.          |
+| Scale                | The per-axis scale to apply to this lens flare element. <br/><br/> This property is not available when the [Type](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Type) is set to [Image](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Image) and **Preserve Aspect Ratio** is enabled. |
+| Uniform Scale          | The axis-independent scale to apply to this lens flare element. |
 
 
 <a name="AxisTransform"></a>
