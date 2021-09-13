@@ -664,6 +664,15 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // When we want to update the volumes every frame...
+
+            // We destroy the volumeStack in the additional camera data, if present, to make sure
+            // it gets recreated and initialized if the update mode gets later changed to ViaScripting...
+            if (additionalCameraData && additionalCameraData.volumeStack != null)
+            {
+                camera.DestroyVolumeStack(additionalCameraData);
+            }
+
+            // Get the mask + trigger and update the stack
             camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out LayerMask layerMask, out Transform trigger);
             VolumeManager.instance.ResetMainStack();
             VolumeManager.instance.Update(trigger, layerMask);
