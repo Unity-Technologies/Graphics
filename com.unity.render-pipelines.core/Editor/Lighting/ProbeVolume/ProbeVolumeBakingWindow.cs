@@ -145,6 +145,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added new baking set");
                 sceneData.CreateNewBakingSet("New Baking Set");
+                m_SerializedObject.Update();
                 OnBakingSetSelected(list);
             };
 
