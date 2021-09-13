@@ -193,7 +193,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         #region Includes
         static class UnlitIncludes
         {
-            const string kUnlitPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
+            const string kUnlitPass = "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
 
             public static IncludeCollection Unlit = new IncludeCollection
             {
