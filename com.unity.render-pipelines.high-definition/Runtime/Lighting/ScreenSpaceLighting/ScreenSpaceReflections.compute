@@ -790,8 +790,8 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float4 result = lerp(previous, original, coefExpAvg);
 
-#ifdef WORLD_SPEED_REJECTION
 #ifdef REJECT_DEBUG_COLOR
+#ifdef WORLD_SPEED_REJECTION
     #ifdef SSR_SMOOTH_SPEED_REJECTION
          result.rgb *= HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(usedSpeed * _SsrPBRSpeedRejection)));
          result.rgb /= max(result.r, max(result.g, result.b));
@@ -802,9 +802,9 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
             result.rgb *= float3(0.0f, 1.0f, 0.0f);
         result.rgb /= max(result.r, max(result.g, result.b));
     #endif
-#endif
 #else
     result.rgb = HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), speed));
+#endif
 #endif
 
     uint3 intCol = asuint(result.rgb);
