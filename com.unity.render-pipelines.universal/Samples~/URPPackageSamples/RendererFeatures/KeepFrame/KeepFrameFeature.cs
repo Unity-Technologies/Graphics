@@ -3,9 +3,12 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
+//This renderer feature will replicate a "don't clear" behaviour by injection two passes into the pipeline:
+//One pass that copies color at the end of a frame
+//Another pass that draws the content of the copied texture at the beginning of a new frame
 public class KeepFrameFeature : ScriptableRendererFeature
 {
-    //This pass is responsible for copying color to the specified destination
+    //This pass is responsible for copying color to a specified destination
     class CopyFramePass : ScriptableRenderPass
     {
         private RenderTargetIdentifier source { get; set; }
@@ -40,7 +43,8 @@ public class KeepFrameFeature : ScriptableRendererFeature
             }
         }
     }
-
+    
+    //This pass is responsible for drawing the old color to a full screen quad
     class DrawOldFramePass : ScriptableRenderPass
     {
         private Material m_DrawOldFrameMaterial;
@@ -82,7 +86,7 @@ public class KeepFrameFeature : ScriptableRendererFeature
     {
         [Tooltip("The material that is used when the old frame is redrawn at the start of the new frame (before opaques).")]
         public Material displayMaterial;
-        [Tooltip("The name of the texture used for referencing the copied frame. (_FrameCopyTex if empty)")]
+        [Tooltip("The name of the texture used for referencing the copied frame. (Defaults to _FrameCopyTex if empty)")]
         public string textureName;
     }
 
@@ -93,13 +97,14 @@ public class KeepFrameFeature : ScriptableRendererFeature
 
     public Settings settings = new Settings();
 
+    //In this function the passes are created and their point of injection is set
     public override void Create()
     {
         m_CopyFrame = new CopyFramePass();
-        m_CopyFrame.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
+        m_CopyFrame.renderPassEvent = RenderPassEvent.AfterRenderingTransparents; //Frame color is copied late in the frame
 
         m_DrawOldFame = new DrawOldFramePass();
-        m_DrawOldFame.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
+        m_DrawOldFame.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques; //Old frame is drawn early in the frame
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
