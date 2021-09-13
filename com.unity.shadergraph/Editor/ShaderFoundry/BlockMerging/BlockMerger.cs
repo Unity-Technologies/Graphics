@@ -71,6 +71,10 @@ namespace UnityEditor.ShaderFoundry
                 // Mark this resolution on the matching field's owner (the owner has a match for the field)
                 matchingField.Owner.AddResolvedField(matchingField.ReferenceName, matchLink);
             }
+            foreach(var prop in block.Properties)
+            {
+                mergedBlockLinkInstance.AddProperty(BlockVariableLinkInstance.Construct(prop, blockInputInstance, prop.Attributes));
+            }
 
             foreach (var output in blockOutputInstance.Fields)
             {

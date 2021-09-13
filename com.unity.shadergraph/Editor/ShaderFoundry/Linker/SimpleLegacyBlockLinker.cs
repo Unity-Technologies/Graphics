@@ -30,10 +30,24 @@ namespace UnityEditor.ShaderFoundry
             internal List<BlockGroup> BlockGroups;
         }
 
-        class BlockVariableMatch
+
+        internal class VariableInstance
         {
-            internal BlockVariable Source;
-            internal BlockVariable Destination;
+            internal string Name = null;
+            internal BlockVariable Variable = BlockVariable.Invalid;
+            internal VariableInstance Parent = null;
+        }
+
+        internal class VariableInstanceWithFields : VariableInstance
+        {
+            internal VariableInstance Instance;
+            internal List<BlockVariableMatch> Fields = new List<BlockVariableMatch>();
+        }
+
+        internal class BlockVariableMatch
+        {
+            internal VariableInstance Source;
+            internal VariableInstance Destination;
         }
 
         internal SimpleLegacyBlockLinker(ShaderContainer container)
@@ -184,24 +198,33 @@ namespace UnityEditor.ShaderFoundry
 
         Block BuildLegacyBlock(LegacyBlockBuildingContext buildingContext)
         {
+            var block = buildingContext.BlockDescriptor.Block;
+            var entryPointFn = block.EntryPointFunction;
+            entryPointFn.GetInOutTypes(out var subBlockInputType, out var subBlockOutputType);
+            
             var inputs = new List<BlockVariableMatch>();
             var outputs = new List<BlockVariableMatch>();
-            var properties = new List<BlockVariableMatch>();
-            CollectLegacyVariables(buildingContext, inputs, outputs, properties);
-            return BuildBlock(buildingContext, inputs, outputs, properties);
+            var properties = new List<BlockVariable>();
+            var inputsInstance = new VariableInstanceWithFields { Instance = new VariableInstance { Name = buildingContext.InputTypeName.ToLower() }};
+            var outputsInstance = new VariableInstanceWithFields { Instance = new VariableInstance { Name = buildingContext.OutputTypeName.ToLower() }};
+            var blockInputInstance = new VariableInstance { Name = subBlockInputType.Name.ToLower() };
+            var blockOutputInstance = new VariableInstance { Name = subBlockOutputType.Name.ToLower() };
+            CollectLegacyVariables(buildingContext, inputsInstance, outputsInstance, properties, blockInputInstance, blockOutputInstance);
+            return BuildBlock(buildingContext, inputsInstance, outputsInstance, properties, blockInputInstance, blockOutputInstance);
         }
 
-        void CollectLegacyVariables(LegacyBlockBuildingContext buildingContext, List<BlockVariableMatch> inputs, List<BlockVariableMatch> outputs, List<BlockVariableMatch> properties)
+        void CollectLegacyVariables(LegacyBlockBuildingContext buildingContext, VariableInstanceWithFields inputsInstance, VariableInstanceWithFields outputsInstance,
+            List<BlockVariable> properties, VariableInstance blockInputInstance, VariableInstance blockOutputInstance)
         {
             var blockDescriptor = buildingContext.BlockDescriptor;
             var block = blockDescriptor.Block;
 
-            var allowedInputs = new HashSet<string>();
+            var allowedInputInstances = new Dictionary<string, VariableInstance>();
+            var allowedOutputInstances = new Dictionary<string, VariableInstance>();
             foreach (var input in buildingContext.Inputs)
-                allowedInputs.Add(input.ReferenceName);
-            var allowedOutputs = new HashSet<string>();
+                allowedInputInstances.Add(input.ReferenceName, new VariableInstance { Variable = input, Parent = inputsInstance.Instance });
             foreach (var output in buildingContext.Outputs)
-                allowedOutputs.Add(output.ReferenceName);
+                allowedOutputInstances.Add(output.ReferenceName, new VariableInstance { Variable = output, Parent = outputsInstance.Instance });
 
             var inputOverrides = new Dictionary<string, BlockVariableNameOverride>();
             foreach (var varOverride in blockDescriptor.InputOverrides)
@@ -223,66 +246,92 @@ namespace UnityEditor.ShaderFoundry
                 }
             }
 
+            var propertyVariableMap = new Dictionary<string, BlockVariable>();
+            // Collect all properties from the sub-block. Also track what properties there
+            // are by name so we can try to match inputs to these properties.
+            foreach (var prop in block.Properties)
+            {
+                var propName = prop.ReferenceName;
+                // Find the original property name. When block properties are merged, they may get mangled
+                // so each input is unique. These overrides track the original reference name.
+                if (inputOverrides.TryGetValue(prop.ReferenceName, out var varOverride))
+                    propName = varOverride.SourceName;
+
+                var source = prop.Clone(Container, propName);
+                // Handle a property being declared multiple times. Only one per referenceName
+                if (!propertyVariableMap.ContainsKey(propName))
+                    propertyVariableMap.Add(propName, source);
+
+                properties.Add(source);
+            }
+
             // Copy all inputs into the sub-block struct
             foreach (var input in block.Inputs)
             {
-                // This is a bit of a hack. Currently the generated block from the block linker has properties both as inputs and properties.
-                // They're inputs because they're in the input struct, but that means we need to filter these out of the "Inputs" struct for legacy.
-                // Do this currently based upon the attributes.
-                if (input.Attributes.IsProperty())
-                    continue;
-
                 // We don't want to always copy this input, we have to match it against the legacy interface.
                 // The allowed types are either the legacy API variables or stage varyings.
                 // Legacy is a little tricky though, as a specific block may have been referenced (e.g. the pre-block)
                 // in which case we have to handle and re-route that.
-                string name = null;
-                
-                if (allowedInputs.Contains(input.ReferenceName))
-                    name = input.ReferenceName;
+                VariableInstance sourceInstance = null;
+                string name = input.ReferenceName;
 
                 // Check if there's a name override, if so there's some extra searching to do
                 if (inputOverrides.TryGetValue(input.ReferenceName, out var varOverride))
                 {
+                    // Always update the source name based upon an override
+                    name = varOverride.SourceName;
+
                     // Check if this is matching against a template specific block
                     if (!string.IsNullOrEmpty(varOverride.SourceNamespace) && inputBlocks.TryGetValue(varOverride.SourceNamespace, out var matchingBlock))
                     {
                         foreach (var output in matchingBlock.Block.Outputs)
                         {
+                            // We found an output match, create a new match (redirect to the inputs instance since these template blocks just define the input interface).
                             if (output.ReferenceName == varOverride.SourceName)
                             {
                                 name = output.ReferenceName;
+                                sourceInstance = new VariableInstance { Variable = output, Parent = inputsInstance.Instance };
                                 break;
                             }
                         }
                     }
+                    // If the scope name is the stage then force this to match to the inputs instance
                     else if (varOverride.SourceNamespace == NamespaceScopes.StageScopeName)
+                    {
                         name = varOverride.SourceName;
+                        var stageInput = input.Clone(Container, name);
+                        sourceInstance = new VariableInstance { Variable = stageInput, Parent = inputsInstance.Instance };
+                    }
                 }
 
-                if (name == null)
+                // Search for a property by the given source name, if so then connect to a global variable for the property
+                if (sourceInstance == null && propertyVariableMap.TryGetValue(name, out var propMatch))
+                {
+                    var newInput = input.Clone(Container, name);
+                    sourceInstance = new VariableInstance { Variable = newInput, Parent = null };
+                }
+
+                // Try the provided inputs
+                if (sourceInstance == null && allowedInputInstances.TryGetValue(input.ReferenceName, out var instanceMatch))
+                {
+                    name = input.ReferenceName;
+                    sourceInstance = instanceMatch;
+                }
+
+                // No match, can't connect this to anything
+                if (sourceInstance == null)
                     continue;
 
-                var newInput = input.Clone(Container, name);
-                inputs.Add(new BlockVariableMatch { Source = newInput, Destination = input });
+                var destInstance = new VariableInstance { Variable = input, Parent = blockInputInstance };
+                inputsInstance.Fields.Add(new BlockVariableMatch { Source = sourceInstance, Destination = destInstance });
             }
-            // Copy all properties into the sub-block struct
-            foreach (var prop in block.Properties)
-            {
-                var propName = prop.ReferenceName;
-                // Get the override name for the property if it exists
-                if (inputOverrides.TryGetValue(prop.ReferenceName, out var varOverride))
-                    propName = varOverride.SourceName;
 
-                var source = prop.Clone(Container, propName);
-                properties.Add(new BlockVariableMatch { Source = source, Destination = prop });
-            }
             foreach (var output in block.Outputs)
             {
                 string name = output.ReferenceName;
                 // If the variable is either an allowed output or it's from the stage scope
                 // then add the copy line and make it an output, otherwise skip it
-                if (!allowedOutputs.Contains(output.ReferenceName))
+                if (!allowedOutputInstances.ContainsKey(output.ReferenceName))
                 {
                     if (outputOverrides.TryGetValue(output.ReferenceName, out var varOverride) && varOverride.DestinationNamespace == NamespaceScopes.StageScopeName)
                         name = varOverride.DestinationName;
@@ -290,16 +339,20 @@ namespace UnityEditor.ShaderFoundry
                         continue;
                 }
 
-                var newOutput = output.Clone(Container, name);
-                outputs.Add(new BlockVariableMatch { Source = output, Destination = newOutput });
+                var sourceInstance = new VariableInstance {Variable = output, Parent = blockOutputInstance };
+                var destVariable = output.Clone(Container, name);
+                var destinationInstance = new VariableInstance { Variable = destVariable, Parent = outputsInstance.Instance };
+                outputsInstance.Fields.Add(new BlockVariableMatch { Source = sourceInstance, Destination = destinationInstance });
             }
         }
 
-        Block BuildBlock(LegacyBlockBuildingContext buildingContext, List<BlockVariableMatch> inputs, List<BlockVariableMatch> outputs, List<BlockVariableMatch> properties)
+        Block BuildBlock(LegacyBlockBuildingContext buildingContext, VariableInstanceWithFields inputsInstance, VariableInstanceWithFields outputsInstance,
+            List<BlockVariable> properties, VariableInstance blockInputInstance, VariableInstance blockOutputInstance)
         {
             var blockDescriptor = buildingContext.BlockDescriptor;
             var block = blockDescriptor.Block;
             var subEntryPointFn = block.EntryPointFunction;
+            subEntryPointFn.GetInOutTypes(out var subBlockInputType, out var subBlockOutputType);
 
             var blockBuilder = new Block.Builder(Container, buildingContext.FunctionName);
             // Copy over all of the base block data
@@ -309,55 +362,66 @@ namespace UnityEditor.ShaderFoundry
             // Do not put these types in the block's context, these need to be in the global namespace due to legacy reasons.
             var inputBuilder = new ShaderType.StructBuilder(Container, buildingContext.InputTypeName);
             inputBuilder.DeclaredExternally();
-            foreach (var input in inputs)
-                inputBuilder.AddField(input.Source.Type, input.Source.ReferenceName);
+            foreach (var input in inputsInstance.Fields)
+                inputBuilder.AddField(input.Source.Variable.Type, input.Source.Variable.ReferenceName);
             var inputType = inputBuilder.Build();
             blockBuilder.AddType(inputType);
-            var inputInstanceName = buildingContext.InputTypeName.ToLower();
 
             var outputBuilder = new ShaderType.StructBuilder(Container, buildingContext.OutputTypeName);
-            foreach (var output in outputs)
-                outputBuilder.AddField(output.Destination.Type, output.Destination.ReferenceName);
+            foreach (var output in outputsInstance.Fields)
+                outputBuilder.AddField(output.Destination.Variable.Type, output.Destination.Variable.ReferenceName);
             var outputType = outputBuilder.Build();
             blockBuilder.AddType(outputType);
-            var outputInstanceName = buildingContext.OutputTypeName.ToLower();
-
-            subEntryPointFn.GetInOutTypes(out var subBlockInputType, out var subBlockOutputType);
-            var subBlockInputInstanceName = subBlockInputType.Name.ToLower();
-            var subBlockOutputInstanceName = subBlockOutputType.Name.ToLower();
 
             // Build up the actual description functions
             var fnBuilder = new ShaderFunction.Builder(Container, buildingContext.FunctionName, outputType);
-            fnBuilder.AddInput(inputType, inputInstanceName);
+            fnBuilder.AddInput(inputType, inputsInstance.Instance.Name);
 
-            subBlockInputType.AddVariableDeclarationStatement(fnBuilder, subBlockInputInstanceName);
+            var allowedInputs = new HashSet<string>();
+            foreach (var input in buildingContext.Inputs)
+                allowedInputs.Add(input.ReferenceName);
+            
+            BlockVariableLinkInstance subBlockInputInstance = new BlockVariableLinkInstance { ReferenceName = blockInputInstance.Name };
+            void DeclareMatch(ShaderBuilder builder, BlockVariableMatch match)
+            {
+                var source = match.Source;
+                var dest = match.Destination;
+
+                if(source.Parent == null)
+                {
+                    var propData = dest.Variable;
+                    var owningVar = BlockVariableLinkInstance.Construct(propData, subBlockInputInstance, null);
+                    source.Variable.CopyPassPassProperty(fnBuilder, owningVar);
+                }
+                else
+                    builder.AddLine($"{dest.Parent.Name}.{dest.Variable.ReferenceName} = {source.Parent.Name}.{source.Variable.ReferenceName};");
+            }
+
+
+            subBlockInputType.AddVariableDeclarationStatement(fnBuilder, blockInputInstance.Name);
             var visitedInputs = new HashSet<string>();
             // Copy all inputs into the sub-block struct
-            foreach (var inputData in inputs)
+            foreach (var inputData in inputsInstance.Fields)
             {
-                fnBuilder.AddLine($"{subBlockInputInstanceName}.{inputData.Destination.ReferenceName} = {inputInstanceName}.{inputData.Source.ReferenceName};");
-                blockBuilder.AddInput(inputData.Source);
+                DeclareMatch(fnBuilder, inputData);
+                blockBuilder.AddInput(inputData.Source.Variable);
             }
             // Copy all properties into the sub-block struct
-            BlockVariableLinkInstance subBlockInputInstance = new BlockVariableLinkInstance { ReferenceName = subBlockInputInstanceName };
             foreach (var propData in properties)
-            {
-                var dest = BlockVariableLinkInstance.Construct(propData.Destination, subBlockInputInstance, null);
-                propData.Source.CopyPassPassProperty(fnBuilder, dest);
-                blockBuilder.AddProperty(propData.Source);
-            }
+                blockBuilder.AddProperty(propData);
+
             // Call the sub-block entry point
-            subEntryPointFn.AddCallStatementWithNewReturn(fnBuilder, subBlockOutputInstanceName, subBlockInputInstanceName);
+            subEntryPointFn.AddCallStatementWithNewReturn(fnBuilder, blockOutputInstance.Name, blockInputInstance.Name);
 
             // Copy all outputs into the legacy description type
-            outputType.AddVariableDeclarationStatement(fnBuilder, outputInstanceName);
-            foreach (var outputData in outputs)
+            outputType.AddVariableDeclarationStatement(fnBuilder, outputsInstance.Instance.Name);
+            foreach (var outputData in outputsInstance.Fields)
             {
-                blockBuilder.AddOutput(outputData.Destination);
-                fnBuilder.AddLine($"{outputInstanceName}.{outputData.Destination.ReferenceName} = {subBlockOutputInstanceName}.{outputData.Source.ReferenceName};");
+                blockBuilder.AddOutput(outputData.Destination.Variable);
+                DeclareMatch(fnBuilder, outputData);
             }
 
-            fnBuilder.AddLine($"return {outputInstanceName};");
+            fnBuilder.AddLine($"return {outputsInstance.Instance.Name};");
             var entryPointFn = fnBuilder.Build();
             blockBuilder.SetEntryPointFunction(entryPointFn);
 
