@@ -126,8 +126,12 @@ namespace UnityEditor.Experimental.Rendering
                 return;
             }
 
+            ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
+
+            bool hasProfile = (ProbeReferenceVolume.instance.sceneData?.GetProfileForScene(pv.gameObject.scene) != null);
+
             EditorGUI.BeginChangeCheck();
-            if ((serialized.serializedObject.targetObject as ProbeVolume).mightNeedRebaking)
+            if (pv.mightNeedRebaking)
             {
                 var helpBoxRect = GUILayoutUtility.GetRect(new GUIContent(Styles.s_ProbeVolumeChangedMessage, EditorGUIUtility.IconContent("Warning@2x").image), EditorStyles.helpBox);
                 EditorGUI.HelpBox(helpBoxRect, Styles.s_ProbeVolumeChangedMessage, MessageType.Warning);
@@ -136,6 +140,13 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(serialized.globalVolume, Styles.s_GlobalVolume);
             if (!serialized.globalVolume.boolValue)
                 EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
+
+            if (!hasProfile)
+            {
+                EditorGUILayout.HelpBox("No profile information is set for the scene that owns this probe volume so no subdivision information can be retrieved.", MessageType.Warning);
+            }
+
+            EditorGUI.BeginDisabledGroup(!hasProfile);
 
             var rect = EditorGUILayout.GetControlRect(true);
             EditorGUI.BeginProperty(rect, Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride);
@@ -148,8 +159,6 @@ namespace UnityEditor.Experimental.Rendering
             {
                 if (ProbeReferenceVolume.instance.sceneData != null)
                 {
-                    ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
-
                     var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(pv.gameObject.scene);
 
                     if (profile != null)
@@ -182,7 +191,10 @@ namespace UnityEditor.Experimental.Rendering
             int maxSubdivInVolume = serialized.highestSubdivisionLevelOverride.intValue;
             EditorGUI.indentLevel--;
 
-            EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - maxSubdivInVolume)}m and {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - minSubdivInVolume)}m", MessageType.Info);
+            if (hasProfile)
+                EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - maxSubdivInVolume)}m and {ProbeReferenceVolume.instance.GetDistanceBetweenProbes(maxSubdiv - minSubdivInVolume)}m", MessageType.Info);
+
+            EditorGUI.EndDisabledGroup();
 
             if (EditorGUI.EndChangeCheck())
             {
