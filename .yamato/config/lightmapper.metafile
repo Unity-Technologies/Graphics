@@ -91,7 +91,6 @@ jobs:
         color_space: Linear
         test_platforms:
           - editmode
-          - Standalone
       #- platform: OSX
       #  api: Metal
       #  build_config: mono
