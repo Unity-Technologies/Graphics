@@ -23,15 +23,15 @@ ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
-      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
+      -  choco install python3 && refreshenv
       -  |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
@@ -96,10 +96,6 @@ ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_trunk:
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  choco install python3 && refreshenv
       -  |5-
@@ -204,15 +200,15 @@ ShaderGraph_ref_Win_DX11_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
-      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
+      -  choco install python3 && refreshenv
       -  |5-
-                git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                set /p GIT_REVISIONDATE=<revdate.tmp
-                echo %GIT_REVISIONDATE%
-                del revdate.tmp
-                python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  python .yamato/tooling/wrap_utr.py TestProjects/ShaderGraph --artifacts_path=TestProjects/ShaderGraph/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
     artifacts:
         logs:
@@ -277,10 +273,6 @@ ShaderGraph_ref_Win_DX11_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
     commands:
       -  command: NetSh Advfirewall set allprofiles state off
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-         retries: 2
-      -  command: choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-         retries: 2
-      -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
       -  choco install python3 && refreshenv
       -  |5-
