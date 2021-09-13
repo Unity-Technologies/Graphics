@@ -3,7 +3,7 @@
 	{
 		"IgnoreFilenames":
 		[
-			"Editor/Generation/Enumerations/Platform.cs"
+			"Editor/Current/Generation/Enumerations/Platform.cs"
 		]
 	}
 }
