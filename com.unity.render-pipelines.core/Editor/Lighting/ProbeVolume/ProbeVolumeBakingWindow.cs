@@ -385,7 +385,14 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     EditorUtility.DisplayDialog("Missing Probe Volume Profile Asset!", $"We couldn't find the asset profile associated with the Baking Set '{set.name}'.\nDo you want to create a new one?", "Yes");
                     set.profile = ScriptableObject.CreateInstance<ProbeReferenceVolumeProfile>();
-                    ProjectWindowUtil.CreateAsset(set.profile, set.name + ".asset");
+
+                    // Delay asset creation, workaround to avoid creating assets while importing another one (SRP can be called from asset import).
+                    EditorApplication.update += DelayCreateAsset;
+                    void DelayCreateAsset()
+                    {
+                        EditorApplication.update -= DelayCreateAsset;
+                        ProjectWindowUtil.CreateAsset(set.profile, set.name + ".asset");
+                    }
                 }
                 if (m_ProbeVolumeProfileEditor == null)
                     m_ProbeVolumeProfileEditor = Editor.CreateEditor(set.profile);
