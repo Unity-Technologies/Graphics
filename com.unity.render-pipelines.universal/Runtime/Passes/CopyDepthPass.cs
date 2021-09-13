@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
-        internal bool AllocateRT  { get; set; }
+        internal bool AllocateRT { get; set; }
         internal int MssaSamples { get; set; }
         Material m_CopyDepthMaterial;
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
+            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), descriptor.depthStencilFormat, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
             ConfigureClear(ClearFlag.None, Color.black);
         }
 

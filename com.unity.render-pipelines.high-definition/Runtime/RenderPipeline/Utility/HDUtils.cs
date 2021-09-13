@@ -99,24 +99,36 @@ namespace UnityEngine.Rendering.HighDefinition
             var baseType = typeof(RenderPipelineMaterial);
             var assembly = baseType.Assembly;
 
-            var types = assembly.GetTypes()
+            try
+            {
+                var types = assembly.GetTypes()
                 .Where(t => t.IsSubclassOf(baseType))
                 .Select(Activator.CreateInstance)
                 .Cast<RenderPipelineMaterial>()
                 .ToList();
 
-            // Note: If there is a need for an optimization in the future of this function, user can
-            // simply fill the materialList manually by commenting the code abode and returning a
-            // custom list of materials they use in their game.
-            //
-            // return new List<RenderPipelineMaterial>
-            // {
-            //    new Lit(),
-            //    new Unlit(),
-            //    ...
-            // };
+                // Note: If there is a need for an optimization in the future of this function, user can
+                // simply fill the materialList manually by commenting the code abode and returning a
+                // custom list of materials they use in their game.
+                //
+                // return new List<RenderPipelineMaterial>
+                // {
+                //    new Lit(),
+                //    new Unlit(),
+                //    ...
+                // };
 
-            return types;
+                return types;
+            }
+            catch (System.Reflection.ReflectionTypeLoadException exception)
+            {
+                foreach (TypeLoadException loaderException in exception.LoaderExceptions)
+                {
+                    Debug.LogError($"Encountered an exception while attempting to reflect the HDRP assembly to extract all RenderPipelineMaterial types.\nThis exception must be fixed in order to fully initialize HDRP correctly.\n{loaderException.Message}\n{loaderException.TypeName}");
+                }
+
+                return null;
+            }
         }
 
         internal static int GetRuntimeDebugPanelWidth(HDCamera hdCamera)
@@ -130,7 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="matrix"></param>
         /// <returns></returns>
         internal static float ProjectionMatrixAspect(in Matrix4x4 matrix)
-            => - matrix.m11 / matrix.m00;
+            => -matrix.m11 / matrix.m00;
 
         /// <summary>
         /// Determine if a projection matrix is off-center (asymmetric).
@@ -642,7 +654,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 while ((mipSize.x > 1) || (mipSize.y > 1));
 
-                textureSize = new Vector2Int((int)((float)hardwareTextureSize.x * textureScale.x), (int)((float)hardwareTextureSize.y * textureScale.y));
+                textureSize = new Vector2Int(
+                    (int)Mathf.Ceil((float)hardwareTextureSize.x * textureScale.x), (int)Mathf.Ceil((float)hardwareTextureSize.y * textureScale.y));
 
                 mipLevelCount = mipLevel + 1;
                 m_OffsetBufferWillNeedUpdate = true;
@@ -897,15 +910,15 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static Vector4 ConvertGUIDToVector4(string guid)
         {
             Vector4 vector;
-            byte[]  bytes = new byte[16];
+            byte[] bytes = new byte[16];
 
             for (int i = 0; i < 16; i++)
                 bytes[i] = byte.Parse(guid.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber);
 
             unsafe
             {
-                fixed(byte * b = bytes)
-                vector = *(Vector4 *)b;
+                fixed (byte* b = bytes)
+                    vector = *(Vector4*)b;
             }
 
             return vector;
@@ -916,7 +929,7 @@ namespace UnityEngine.Rendering.HighDefinition
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             unsafe
             {
-                byte * v = (byte *)&vector;
+                byte* v = (byte*)&vector;
                 for (int i = 0; i < 16; i++)
                     sb.Append(v[i].ToString("x2"));
                 var guidBytes = new byte[16];
@@ -1036,7 +1049,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (camera.scene.IsValid())
                 return EditorSceneManager.GetSceneCullingMask(camera.scene);
 
-            #if UNITY_2020_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
             switch (camera.cameraType)
             {
                 case CameraType.SceneView:
@@ -1044,9 +1057,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 default:
                     return SceneCullingMasks.GameViewObjects;
             }
-            #else
+#else
             return 0;
-            #endif
+#endif
 #else
             return 0;
 #endif

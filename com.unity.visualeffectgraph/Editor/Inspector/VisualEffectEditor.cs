@@ -10,12 +10,8 @@ using UnityEngine.Rendering;
 using UnityEngine.VFX;
 
 using UnityEditor.Overlays;
-using UnityEditor.Experimental;
-using UnityEditor.SceneManagement;
-
-using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
-using EditMode = UnityEditorInternal.EditMode;
+
 using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
@@ -64,7 +60,6 @@ namespace UnityEditor.VFX
         const string kPropertyFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Properties";
 
         bool showGeneralCategory;
-
         bool showRendererCategory;
         bool showPropertyCategory;
 
@@ -79,9 +74,9 @@ namespace UnityEditor.VFX
 
         static SerializedObject s_FakeObjectSerializedCache;
 
-        static List<VisualEffectEditor> s_AllEditors = new List<VisualEffectEditor>();
+        static readonly List<VisualEffectEditor> s_AllEditors = new List<VisualEffectEditor>();
 
-        static public void RepaintAllEditors()
+        public static void RepaintAllEditors()
         {
             foreach (var ed in s_AllEditors)
             {
@@ -99,14 +94,7 @@ namespace UnityEditor.VFX
             showRendererCategory = EditorPrefs.GetBool(kRendererFoldoutStatePreferenceName, true);
             showGeneralCategory = EditorPrefs.GetBool(kGeneralFoldoutStatePreferenceName, true);
 
-            if (targets.Length > 1)
-            {
-                m_OtherSerializedObjects = new SerializedObject[targets.Length - 1];
-                for (int i = 1; i < targets.Length; ++i)
-                {
-                    m_OtherSerializedObjects[i - 1] = new SerializedObject(targets[i]);
-                }
-            }
+            m_OtherSerializedObjects = targets.Skip(1).Select(x => new SerializedObject(x)).ToArray();
             s_AllEditors.Add(this);
             m_RandomSeed = serializedObject.FindProperty("m_StartSeed");
             m_ReseedOnPlay = serializedObject.FindProperty("m_ResetSeedOnPlay");
@@ -124,12 +112,6 @@ namespace UnityEditor.VFX
 
         protected void OnDisable()
         {
-            VisualEffect effect = ((VisualEffect)targets[0]);
-            if (effect != null)
-            {
-                effect.pause = false;
-                effect.playRate = 1.0f;
-            }
             OnDisableWithoutResetting();
             if (s_EffectUi == this)
                 s_EffectUi = null;
@@ -144,7 +126,7 @@ namespace UnityEditor.VFX
 
         protected const float overrideWidth = 16;
 
-        static private bool GenerateMultipleField(ref VFXParameterInfo parameter, SerializedProperty property)
+        private static bool GenerateMultipleField(ref VFXParameterInfo parameter, SerializedProperty property)
         {
             if (property.propertyType == SerializedPropertyType.Vector4 && parameter.realType != typeof(Color).Name)
             {
@@ -161,7 +143,7 @@ namespace UnityEditor.VFX
         bool DisplayProperty(ref VFXParameterInfo parameter, GUIContent nameContent, SerializedProperty overridenProperty, SerializedProperty valueProperty, bool overrideMixed, bool valueMixed, out bool overriddenChanged)
         {
             if (parameter.realType == typeof(Matrix4x4).Name
-                ||  parameter.realType == typeof(GraphicsBuffer).Name)
+                || parameter.realType == typeof(GraphicsBuffer).Name)
             {
                 overriddenChanged = false;
                 return false;
@@ -405,7 +387,7 @@ namespace UnityEditor.VFX
             return changed;
         }
 
-        static Gradient s_DefaultGradient = new Gradient();
+        static readonly Gradient s_DefaultGradient = new Gradient();
 
         protected static object GetObjectValue(SerializedProperty prop)
         {
@@ -475,48 +457,60 @@ namespace UnityEditor.VFX
 
         protected virtual void SceneViewGUICallback()
         {
-            VisualEffect effect = ((VisualEffect)targets[0]);
-            if (effect == null)
+            var effects = targets
+                .OfType<VisualEffect>()
+                .Where(x => x != null)
+                .ToList();
+            if (effects.Count == 0)
                 return;
 
             var buttonWidth = GUILayout.Width(52);
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Stop), buttonWidth))
             {
-                effect.ControlStop();
+                effects.ForEach(x => x.ControlStop());
             }
-            if (effect.pause)
+            if (effects.All(x => x.pause))
             {
                 if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Play), buttonWidth))
                 {
-                    effect.ControlPlayPause();
+                    effects.ForEach(x => x.ControlPlayPause());
                 }
             }
             else
             {
                 if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Pause), buttonWidth))
                 {
-                    effect.ControlPlayPause();
+                    effects.ForEach(x => x.ControlPlayPause());
                 }
             }
 
 
             if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Step), buttonWidth))
             {
-                effect.ControlStep();
+                effects.ForEach(x => x.ControlStep());
             }
             if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Restart), buttonWidth))
             {
-                effect.ControlRestart();
+                effects.ForEach(x => x.ControlRestart());
             }
             GUILayout.EndHorizontal();
 
-            float playRate = effect.playRate * VisualEffectControl.playRateToValue;
+
+            var playRates = effects.Select(x => x.playRate).Distinct().ToArray();
+            float playRate = playRates[0];
+
+            float playRateValue = playRate * VisualEffectControl.playRateToValue;
 
             GUILayout.BeginHorizontal();
             GUILayout.Label(Contents.playRate, GUILayout.Width(46));
-            playRate = EditorGUILayout.PowerSlider("", playRate, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
-            effect.playRate = playRate * VisualEffectControl.valueToPlayRate;
+            EditorGUI.showMixedValue = playRates.Length > 1;
+            var newPlayRateVal = EditorGUILayout.PowerSlider("", (float)Math.Round(playRateValue), VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
+            EditorGUI.showMixedValue = false;
+            if (playRate >= 0 && GUI.changed)
+            {
+                effects.ForEach(x => x.playRate = newPlayRateVal * VisualEffectControl.valueToPlayRate);
+            }
 
             var eventType = Event.current.type;
             if (EditorGUILayout.DropdownButton(Contents.setPlayRate, FocusType.Passive, GUILayout.Width(40)))
@@ -546,17 +540,19 @@ namespace UnityEditor.VFX
 
             GUILayout.BeginHorizontal();
             if (GUILayout.Button(new GUIContent("Play()")))
-                effect.Play();
+                effects.ForEach(x => x.Play());
             if (GUILayout.Button(new GUIContent("Stop()")))
-                effect.Stop();
+                effects.ForEach(x => x.Stop());
             GUILayout.EndHorizontal();
         }
 
         void SetPlayRate(object value)
         {
-            float rate = (float)((int)value)  * VisualEffectControl.valueToPlayRate;
-            VisualEffect effect = ((VisualEffect)targets[0]);
-            effect.playRate = rate;
+            float rate = (int)value * VisualEffectControl.valueToPlayRate;
+            foreach (var visualEffect in targets.OfType<VisualEffect>())
+            {
+                visualEffect.playRate = rate;
+            }
         }
 
         static VisualEffectEditor s_EffectUi;
@@ -642,7 +638,6 @@ namespace UnityEditor.VFX
             if (displayFoldout)
             {
                 rect.x += 14;
-                rect.y += 2;
                 rect.width -= 2;
                 result = EditorGUI.Toggle(rect, foldoutState, Styles.foldoutStyle);
             }
@@ -806,7 +801,7 @@ namespace UnityEditor.VFX
             EditorGUI.indentLevel = 0;
             if (serializedObject.ApplyModifiedProperties())
             {
-                var window = EditorWindow.GetWindow<VFXViewWindow>();
+                var window = WindowLayout.FindEditorWindowOfType(typeof(VFXViewWindow)) as VFXViewWindow;
                 if (window != null)
                     window.OnVisualEffectComponentChanged(targets.Cast<VisualEffect>());
             }
@@ -1153,7 +1148,7 @@ namespace UnityEditor.VFX
             GUILayout.Space(1); // Space for the line if the last category is closed.
         }
 
-        protected virtual void PropertyOverrideChanged() {}
+        protected virtual void PropertyOverrideChanged() { }
 
         private void DrawRendererProperties()
         {
@@ -1209,11 +1204,11 @@ namespace UnityEditor.VFX
             public static readonly string[] s_DefaultRenderingLayerNames = GetDefaultRenderingLayerNames();
             private static string[] GetDefaultRenderingLayerNames()
             {
-                //Find UnityEditor.RendererEditorBase.defaultRenderingLayerNames by reflection to avoid any breakage due to an API change
+                //Find UnityEditor.RendererEditorBase.defaultPrefixedRenderingLayerNames by reflection to avoid any breakage due to an API change
                 var type = Type.GetType("UnityEditor.RendererEditorBase, UnityEditor");
                 if (type != null)
                 {
-                    var property = type.GetProperty("defaultRenderingLayerNames", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic | BindingFlags.Public);
+                    var property = type.GetProperty("defaultPrefixedRenderingLayerNames", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic | BindingFlags.Public);
                     if (property != null)
                     {
                         var invokeResult = property.GetMethod.Invoke(null, null);
@@ -1240,7 +1235,7 @@ namespace UnityEditor.VFX
                         && parameters[2].ParameterType == typeof(GUIStyle)
                         && parameters[3].ParameterType == typeof(GUIStyle))
                     {
-                        return delegate(GUIContent label, SerializedProperty layerID, GUIStyle style, GUIStyle labelStyle)
+                        return delegate (GUIContent label, SerializedProperty layerID, GUIStyle style, GUIStyle labelStyle)
                         {
                             function.Invoke(null, new object[] { label, layerID, style, labelStyle });
                         };
@@ -1265,6 +1260,10 @@ namespace UnityEditor.VFX
             {
                 m_SerializedRenderers.Update();
 
+                EditorGUI.indentLevel += 1;
+                // Ugly hack to indent the header group because "indentLevel" is not taken into account
+                var x = EditorStyles.inspectorDefaultMargins.padding.left;
+                EditorStyles.inspectorDefaultMargins.padding.left -= 24;
                 bool showProbesCategory = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShowProbesCategory, Contents.probeSettings);
                 if (showProbesCategory != m_ShowProbesCategory)
                 {
@@ -1334,9 +1333,9 @@ namespace UnityEditor.VFX
                     if (m_RenderingLayerMask != null)
                     {
                         string[] layerNames = null;
-                        var srpAsset = QualitySettings.renderPipeline ?? GraphicsSettings.currentRenderPipeline;
+                        var srpAsset = GraphicsSettings.currentRenderPipeline;
                         if (srpAsset != null)
-                            layerNames = srpAsset.renderingLayerMaskNames;
+                            layerNames = srpAsset.prefixedRenderingLayerMaskNames;
 
                         if (layerNames == null)
                             layerNames = s_DefaultRenderingLayerNames;
@@ -1383,48 +1382,50 @@ namespace UnityEditor.VFX
                     }
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
+                EditorStyles.inspectorDefaultMargins.padding.left = x;
+                EditorGUI.indentLevel -= 1;
 
                 m_SerializedRenderers.ApplyModifiedProperties();
             }
 
             private static class Contents
             {
-                public static readonly GUIContent renderingLayerMaskStyle =         EditorGUIUtility.TrTextContent("Rendering Layer Mask", "Mask that can be used with SRP DrawRenderers command to filter renderers outside of the normal layering system.");
-                public static readonly GUIContent rendererPriorityStyle =           EditorGUIUtility.TrTextContent("Priority", "Priority used for sorting objects on top of material render queue.");
-                public static readonly GUIContent lightProbeUsageStyle =            EditorGUIUtility.TrTextContent("Light Probes", "Specifies how Light Probes will handle the interpolation of lighting and occlusion.");
-                public static readonly GUIContent reflectionProbeUsageStyle =       EditorGUIUtility.TrTextContent("Reflection Probes", "Specifies if or how the object is affected by reflections in the Scene.  This property cannot be disabled in deferred rendering modes.");
-                public static readonly GUIContent lightProbeVolumeOverrideStyle =   EditorGUIUtility.TrTextContent("Proxy Volume Override", "If set, the Renderer will use the Light Probe Proxy Volume component from another GameObject.");
-                public static readonly GUIContent lightProbeAnchorStyle =           EditorGUIUtility.TrTextContent("Anchor Override", "Specifies the Transform position that will be used for sampling the light probes and reflection probes.");
+                public static readonly GUIContent renderingLayerMaskStyle = EditorGUIUtility.TrTextContent("Rendering Layer Mask", "Mask that can be used with SRP DrawRenderers command to filter renderers outside of the normal layering system.");
+                public static readonly GUIContent rendererPriorityStyle = EditorGUIUtility.TrTextContent("Priority", "Priority used for sorting objects on top of material render queue.");
+                public static readonly GUIContent lightProbeUsageStyle = EditorGUIUtility.TrTextContent("Light Probes", "Specifies how Light Probes will handle the interpolation of lighting and occlusion.");
+                public static readonly GUIContent reflectionProbeUsageStyle = EditorGUIUtility.TrTextContent("Reflection Probes", "Specifies if or how the object is affected by reflections in the Scene.  This property cannot be disabled in deferred rendering modes.");
+                public static readonly GUIContent lightProbeVolumeOverrideStyle = EditorGUIUtility.TrTextContent("Proxy Volume Override", "If set, the Renderer will use the Light Probe Proxy Volume component from another GameObject.");
+                public static readonly GUIContent lightProbeAnchorStyle = EditorGUIUtility.TrTextContent("Anchor Override", "Specifies the Transform position that will be used for sampling the light probes and reflection probes.");
                 public static readonly GUIContent lightProbeVolumeUnsupportedNote = EditorGUIUtility.TrTextContent("The Light Probe Proxy Volume feature is unsupported by the current graphics hardware or API configuration. Simple 'Blend Probes' mode will be used instead.");
 
-                public static readonly GUIContent probeSettings =                   EditorGUIUtility.TrTextContent("Probes");
-                public static readonly GUIContent otherSettings =                   EditorGUIUtility.TrTextContent("Additional Settings");
+                public static readonly GUIContent probeSettings = EditorGUIUtility.TrTextContent("Probes");
+                public static readonly GUIContent otherSettings = EditorGUIUtility.TrTextContent("Additional Settings");
 
-                public static readonly GUIContent sortingLayerStyle =               EditorGUIUtility.TrTextContent("Sorting Layer", "Name of the Renderer's sorting layer");
-                public static readonly GUIContent sortingOrderStyle =               EditorGUIUtility.TrTextContent("Order in Layer", "Renderer's order within a sorting layer");
+                public static readonly GUIContent sortingLayerStyle = EditorGUIUtility.TrTextContent("Sorting Layer", "Name of the Renderer's sorting layer");
+                public static readonly GUIContent sortingOrderStyle = EditorGUIUtility.TrTextContent("Order in Layer", "Renderer's order within a sorting layer");
 
-                public static readonly GUIStyle boldPopupStyle =                    new GUIStyle(EditorStyles.popup) { fontStyle = FontStyle.Bold };
+                public static readonly GUIStyle boldPopupStyle = new GUIStyle(EditorStyles.popup) { fontStyle = FontStyle.Bold };
             }
         }
 
         protected static class Contents
         {
-            public static readonly GUIContent headerPlayControls =  EditorGUIUtility.TrTextContent("Play Controls");
-            public static readonly GUIContent headerGeneral =       EditorGUIUtility.TrTextContent("General");
-            public static readonly GUIContent headerProperties =    EditorGUIUtility.TrTextContent("Properties");
-            public static readonly GUIContent headerRenderer =      EditorGUIUtility.TrTextContent("Renderer");
+            public static readonly GUIContent headerPlayControls = EditorGUIUtility.TrTextContent("Play Controls");
+            public static readonly GUIContent headerGeneral = EditorGUIUtility.TrTextContent("General");
+            public static readonly GUIContent headerProperties = EditorGUIUtility.TrTextContent("Properties");
+            public static readonly GUIContent headerRenderer = EditorGUIUtility.TrTextContent("Renderer");
 
-            public static readonly GUIContent assetPath =           EditorGUIUtility.TrTextContent("Asset Template", "Sets the Visual Effect Graph asset to be used in this component.");
-            public static readonly GUIContent randomSeed =          EditorGUIUtility.TrTextContent("Random Seed", "Sets the value used when determining the randomness of the graph. Using the same seed will make the Visual Effect play identically each time.");
-            public static readonly GUIContent reseedOnPlay =        EditorGUIUtility.TrTextContent("Reseed on play", "When enabled, a new random seed value will be used each time the effect is played. Enable to randomize the look of this Visual Effect.");
-            public static readonly GUIContent openEditor =          EditorGUIUtility.TrTextContent("Edit", "Opens the currently assigned template for editing within the Visual Effect Graph window.");
-            public static readonly GUIContent createAsset =         EditorGUIUtility.TrTextContent("New", "Creates a new Visual Effect Graph and opens it for editing within the Visual Effect Graph window.");
-            public static readonly GUIContent setRandomSeed =       EditorGUIUtility.TrTextContent("Reseed", "When clicked, if ‘Reseed on play’ is disabled a new random seed will be generated.");
-            public static readonly GUIContent resetInitialEvent =   EditorGUIUtility.TrTextContent("Default");
-            public static readonly GUIContent setPlayRate =         EditorGUIUtility.TrTextContent("Set");
-            public static readonly GUIContent playRate =            EditorGUIUtility.TrTextContent("Rate");
+            public static readonly GUIContent assetPath = EditorGUIUtility.TrTextContent("Asset Template", "Sets the Visual Effect Graph asset to be used in this component.");
+            public static readonly GUIContent randomSeed = EditorGUIUtility.TrTextContent("Random Seed", "Sets the value used when determining the randomness of the graph. Using the same seed will make the Visual Effect play identically each time.");
+            public static readonly GUIContent reseedOnPlay = EditorGUIUtility.TrTextContent("Reseed on play", "When enabled, a new random seed value will be used each time the effect is played. Enable to randomize the look of this Visual Effect.");
+            public static readonly GUIContent openEditor = EditorGUIUtility.TrTextContent("Edit", "Opens the currently assigned template for editing within the Visual Effect Graph window.");
+            public static readonly GUIContent createAsset = EditorGUIUtility.TrTextContent("New", "Creates a new Visual Effect Graph and opens it for editing within the Visual Effect Graph window.");
+            public static readonly GUIContent setRandomSeed = EditorGUIUtility.TrTextContent("Reseed", "When clicked, if ‘Reseed on play’ is disabled a new random seed will be generated.");
+            public static readonly GUIContent resetInitialEvent = EditorGUIUtility.TrTextContent("Default");
+            public static readonly GUIContent setPlayRate = EditorGUIUtility.TrTextContent("Set");
+            public static readonly GUIContent playRate = EditorGUIUtility.TrTextContent("Rate");
 
-            public static readonly GUIContent graphInBundle =       EditorGUIUtility.TrTextContent("Exposed properties are hidden in the Inspector when Visual Effect Assets are stored in Asset Bundles.");
+            public static readonly GUIContent graphInBundle = EditorGUIUtility.TrTextContent("Exposed properties are hidden in the Inspector when Visual Effect Assets are stored in Asset Bundles.");
 
             static readonly GUIContent[] m_Icons;
 

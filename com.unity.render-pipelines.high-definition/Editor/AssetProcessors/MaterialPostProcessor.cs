@@ -363,67 +363,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     continue;
 
 
-                void AddDiffusionProfileToSettings(string propName)
-                {
-                    if (Application.isBatchMode || HDRenderPipelineGlobalSettings.instance == null
-                        || HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList == null) return;
-
-                    bool diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Length < 15;
-                    DiffusionProfileSettings diffusionProfile = null;
-
-                    if (material.HasProperty(propName))
-                    {
-                        var diffusionProfileAsset = material.GetVector(propName);
-                        string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset);
-                        diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
-
-                        if (diffusionProfile != null && !HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
-                        {
-                            string materialName = material.name;
-                            string diffusionProfileName = diffusionProfile.name;
-
-                            if (!diffusionProfileCanBeAdded)
-                                Debug.LogWarning("There is no space in the global settings to add the diffusion profile " + diffusionProfileName);
-                            else if ((!Application.isBatchMode) &&
-                                     (EditorUtility.DisplayDialog("Diffusion Profile Import",
-                                         "A Material (" + materialName + ") is being imported with a diffusion profile (" + diffusionProfileName + ") not already added to the HDRP Global Settings.\n If the Diffusion Profile is not referenced in the global settings, HDRP cannot use it.\nDo you want to add the diffusion profile to the HDRP Global Settings asset?", "Yes", "No")))
-                            {
-                                diffusionProfileCanBeAdded = HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(diffusionProfile);
-                            }
-                        }
-                    }
-                }
-
-                AddDiffusionProfileToSettings("_DiffusionProfileAsset");
-
-                // Special Eye case that uses a node with diffusion profiles.
-                if (material.shader.IsShaderGraphAsset())
-                {
-                    var matProperties = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { material });
-                    for (int propIdx = 0; propIdx < matProperties.Length; ++propIdx)
-                    {
-                        var attributes = material.shader.GetPropertyAttributes(propIdx);
-                        bool hasDiffusionProfileAttribute = false;
-                        foreach (var attribute in attributes)
-                        {
-                            if (attribute == "DiffusionProfile")
-                            {
-                                propIdx++;
-                                hasDiffusionProfileAttribute = true;
-                                break;
-                            }
-                        }
-
-                        var propName = ShaderUtil.GetPropertyName(material.shader, propIdx);
-                        var type = ShaderUtil.GetPropertyType(material.shader, propIdx);
-                        if (hasDiffusionProfileAttribute &&
-                            type == ShaderUtil.ShaderPropertyType.Vector)
-                        {
-                            AddDiffusionProfileToSettings(propName);
-                        }
-                    }
-                }
-
                 (HDShaderUtils.ShaderID id, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromShader(material.shader);
                 var latestVersion = k_Migrations.Length;
 
@@ -585,9 +524,6 @@ namespace UnityEditor.Rendering.HighDefinition
         #endregion
         static void RenderQueueUpgrade(Material material, HDShaderUtils.ShaderID id)
         {
-            // In order for the ray tracing keyword to be taken into account, we need to make it dirty so that the parameter is created first
-            HDShaderUtils.ResetMaterialKeywords(material);
-
             // Replace previous ray tracing render queue for opaque to regular opaque with raytracing
             if (material.renderQueue == ((int)UnityEngine.Rendering.RenderQueue.GeometryLast + 20))
             {
@@ -600,6 +536,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.renderQueue = (int)HDRenderQueue.Priority.Transparent;
                 material.SetFloat(kRayTracing, 1.0f);
             }
+
+            // In order for the ray tracing keyword to be taken into account, we need to make it dirty so that the parameter is created first
+            HDShaderUtils.ResetMaterialKeywords(material);
 
             // For shader graphs, there is an additional pass we need to do
             if (material.HasProperty("_RenderQueueType"))
@@ -982,6 +921,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        // This function below is not used anymore - the code have been removed - however we must maintain the function to keep already converted Material coherent
+        // As it doesn't do anything special, there is no problem to let it
         static void ForceForwardEmissiveForDeferred(Material material, HDShaderUtils.ShaderID id)
         {
             // Force Forward emissive for deferred pass is only setup for Lit shader

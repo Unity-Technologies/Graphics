@@ -226,9 +226,9 @@ namespace UnityEditor.VFX
         {
             return Path.GetFullPath(path)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                #if !UNITY_EDITOR_LINUX
+#if !UNITY_EDITOR_LINUX
                 .ToLowerInvariant()
-                #endif
+#endif
                 ;
         }
 
@@ -263,7 +263,7 @@ namespace UnityEditor.VFX
 
                 if (groups.Count > 3 && !String.IsNullOrEmpty(groups[2].Value))
                 {
-                    var allDefines = groups[3].Value.Split(new char[] {',', ' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
+                    var allDefines = groups[3].Value.Split(new char[] { ',', ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
                     var neededDefines = allDefines.Where(d => d[0] != '!');
                     var forbiddenDefines = allDefines.Except(neededDefines).Select(d => d.Substring(1));
                     if (!neededDefines.All(d => defines.Contains(d)) || forbiddenDefines.Any(d => defines.Contains(d)))
@@ -362,10 +362,16 @@ namespace UnityEditor.VFX
             blockCallFunctionContent = blockCallFunction.builder.ToString();
         }
 
-        internal static void BuildParameterBuffer(VFXContextCompiledData contextData, out string parameterBufferContent)
+        internal static void BuildParameterBuffer(VFXContextCompiledData contextData, IEnumerable<string> filteredOutTextures, out string parameterBufferContent)
         {
             var parameterBuffer = new VFXShaderWriter();
             parameterBuffer.WriteCBuffer(contextData.uniformMapper, "parameters");
+            parameterBuffer.WriteLine();
+            parameterBuffer.WriteBufferTypeDeclaration(contextData.graphicsBufferUsage.Values.Distinct());
+            parameterBuffer.WriteLine();
+            parameterBuffer.WriteBuffer(contextData.uniformMapper, contextData.graphicsBufferUsage);
+            parameterBuffer.WriteLine();
+            parameterBuffer.WriteTexture(contextData.uniformMapper, filteredOutTextures);
             parameterBufferContent = parameterBuffer.ToString();
         }
 
@@ -416,6 +422,8 @@ namespace UnityEditor.VFX
             foreach (string vertexParameter in context.vertexParameters)
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => vertexParameter == o.name);
+                if (filteredNamedExpression.exp == null)
+                    throw new InvalidOperationException(string.Format("Cannot find vertex property : {0}", vertexParameter));
 
                 // If the parameter is in the global scope, read from the cbuffer directly (no suffix).
                 if (!(expressionToName.ContainsKey(filteredNamedExpression.exp) && expressionToName[filteredNamedExpression.exp] == filteredNamedExpression.name))
@@ -480,6 +488,9 @@ namespace UnityEditor.VFX
             foreach (string fragmentParameter in context.fragmentParameters)
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
+                if (filteredNamedExpression.exp == null)
+                    throw new InvalidOperationException("FragInputs generation failed to find expected parameter: " + fragmentParameter);
+
                 var isInterpolant = !(expressionToName.ContainsKey(filteredNamedExpression.exp) && expressionToName[filteredNamedExpression.exp] == filteredNamedExpression.name);
 
                 fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"output.vfx.{filteredNamedExpression.name}", $"{(isInterpolant ? "input." : string.Empty)}{filteredNamedExpression.name}");
@@ -732,7 +743,8 @@ namespace UnityEditor.VFX
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             var graph = new GraphData
             {
-                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+                messageManager = new MessageManager(),
+                assetGuid = AssetDatabase.AssetPathToGUID(path)
             };
             MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();

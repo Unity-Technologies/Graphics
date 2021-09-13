@@ -12,7 +12,7 @@ using System.Text;
 using UnityEditor.Graphs;
 using UnityEditor.SceneManagement;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     class VFXBoundsRecorderField : VisualElement, ISelectable
     {
@@ -30,7 +30,7 @@ namespace  UnityEditor.VFX.UI
         private bool m_Selected = false;
 
         public class VFXBoundsRecorderFieldUIFactory : UxmlFactory<VFXBoundsRecorderField>
-        {}
+        { }
 
         IVisualElementScheduledItem m_UpdateItem;
 

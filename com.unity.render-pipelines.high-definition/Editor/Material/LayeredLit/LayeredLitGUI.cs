@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
             new LayerListUIBlock(MaterialUIBlock.ExpandableBit.MaterialReferences),
             new LayersUIBlock(),
             new EmissionUIBlock(MaterialUIBlock.ExpandableBit.Emissive, features: emissionFeatures),
-            new LitAdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -83,7 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Blend mask
             UVBaseMapping UVBlendMaskMapping = (UVBaseMapping)material.GetFloat(kUVBlendMask);
             CoreUtils.SetKeyword(material, "_LAYER_MAPPING_PLANAR_BLENDMASK", UVBlendMaskMapping == UVBaseMapping.Planar);
-            CoreUtils.SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK",  UVBlendMaskMapping == UVBaseMapping.Triplanar);
+            CoreUtils.SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK", UVBlendMaskMapping == UVBaseMapping.Triplanar);
 
             int numLayer = (int)material.GetFloat(kLayerCount);
 

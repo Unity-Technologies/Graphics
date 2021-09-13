@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.RendererUtils;
 
 namespace UnityEngine.Rendering
 {
@@ -246,7 +245,8 @@ namespace UnityEngine.Rendering
         // Unfortunately, for cubemaps, passing -1 does not work for faces other than the first one, so we fall back to 0 in this case.
         private static int FixupDepthSlice(int depthSlice, RTHandle buffer)
         {
-            if (depthSlice == -1 && buffer.rt.dimension == TextureDimension.Cube)
+            // buffer.rt can be null in case the RTHandle is constructed from a RenderTextureIdentifier.
+            if (depthSlice == -1 && buffer.rt?.dimension == TextureDimension.Cube)
                 depthSlice = 0;
 
             return depthSlice;
@@ -1024,7 +1024,7 @@ namespace UnityEngine.Rendering
                         {
                             innerTypes = t.GetTypes();
                         }
-                        catch {}
+                        catch { }
                         return innerTypes;
                     });
             }
@@ -1107,7 +1107,7 @@ namespace UnityEngine.Rendering
         {
             bool enabled = true;
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             if (camera.cameraType == CameraType.SceneView)
             {
                 enabled = false;
@@ -1127,7 +1127,7 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
-        #endif
+#endif
 
             return enabled;
         }
@@ -1141,7 +1141,7 @@ namespace UnityEngine.Rendering
         {
             bool animateMaterials = true;
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             animateMaterials = Application.isPlaying; // For Game and VR views; Reflection views pass the parent camera
 
             if (camera.cameraType == CameraType.SceneView)
@@ -1152,11 +1152,11 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
                 {
                     var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-            #if UNITY_2020_2_OR_NEWER
+#if UNITY_2020_2_OR_NEWER
                     if (sv.camera == camera && sv.sceneViewState.alwaysRefreshEnabled)
-            #else
+#else
                     if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)
-            #endif
+#endif
                     {
                         animateMaterials = true;
                         break;
@@ -1186,7 +1186,7 @@ namespace UnityEngine.Rendering
             // which simply amounts to a recursive call, and then the story repeats itself.
             //
             // TLDR: we need to know the caller and its status/properties to make decisions.
-        #endif
+#endif
 
             return animateMaterials;
         }
@@ -1309,7 +1309,32 @@ namespace UnityEngine.Rendering
         /// <param name="renderContext">Current Scriptable Render Context.</param>
         /// <param name="cmd">Command Buffer used for rendering.</param>
         /// <param name="rendererList">Renderer List to render.</param>
-        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
+        [Obsolete("Use the updated RendererList API in the UnityEngine.Rendering.RendererUtils namespace.")]
+        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, Experimental.Rendering.RendererList rendererList)
+        {
+            if (!rendererList.isValid)
+                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+
+            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders or things will be executed out of order
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+            if (rendererList.stateBlock == null)
+                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings);
+            else
+            {
+                var renderStateBlock = rendererList.stateBlock.Value;
+                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
+            }
+        }
+
+        /// <summary>
+        /// Draw a renderer list.
+        /// </summary>
+        /// <param name="renderContext">Current Scriptable Render Context.</param>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="rendererList">Renderer List to render.</param>
+        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererUtils.RendererList rendererList)
         {
             if (!rendererList.isValid)
                 throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
@@ -1339,6 +1364,7 @@ namespace UnityEngine.Rendering
                 hash = 23 * hash + texture.filterMode.GetHashCode();
                 hash = 23 * hash + texture.anisoLevel.GetHashCode();
                 hash = 23 * hash + texture.mipmapCount.GetHashCode();
+                hash = 23 * hash + texture.updateCount.GetHashCode();
             }
 
             return hash;
@@ -1370,6 +1396,9 @@ namespace UnityEngine.Rendering
         /// <returns>Last value of the enum</returns>
         public static T GetLastEnumValue<T>() where T : Enum
             => typeof(T).GetEnumValues().Cast<T>().Last();
+
+        internal static string GetCorePath()
+            => "Packages/com.unity.render-pipelines.core/";
 
 #if UNITY_EDITOR
         // This is required in Runtime assembly between #if UNITY_EDITOR
