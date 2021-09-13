@@ -6,6 +6,8 @@ using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
