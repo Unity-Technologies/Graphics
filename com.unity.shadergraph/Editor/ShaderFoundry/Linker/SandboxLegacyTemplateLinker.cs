@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderFoundry
                 builder.AppendLine("\"ShaderGraphShader\"=\"true\"");
             }
         }
-        
+
         void GenerateShaderPass(Template template, TemplatePass pass, IEnumerable<CustomizationPointDescriptor> customizationPointDescriptors, ShaderBuilder builder)
         {
             UnityEditor.ShaderGraph.PassDescriptor legacyPass = new UnityEditor.ShaderGraph.PassDescriptor();
@@ -126,7 +126,7 @@ namespace UnityEditor.ShaderFoundry
                 }
             }
             return passCustomizationPointDescriptors;
-        }        
+        }
 
         void BuildLegacyActiveFields(UnityEditor.ShaderGraph.PassDescriptor legacyPass, LegacyEntryPoints legacyEntryPoints, out ActiveFields targetActiveFields, out ActiveFields shaderGraphActiveFields)
         {
@@ -243,7 +243,7 @@ namespace UnityEditor.ShaderFoundry
             {
                 if (!visitedRegistry.TryVisit(function))
                     continue;
-            
+
                 function.AddDeclarationString(builder);
             }
         }
@@ -252,7 +252,7 @@ namespace UnityEditor.ShaderFoundry
         {
             foreach (var commandDesc in descriptors)
             {
-                builder.AppendIndentation();
+                builder.TryAppendIndentation();
                 builder.Append(commandDesc.Name);
                 foreach (var op in commandDesc.Ops)
                     builder.Append($" {op}");
@@ -283,7 +283,7 @@ namespace UnityEditor.ShaderFoundry
         {
             foreach (var keywordDesc in descriptors)
             {
-                builder.AppendIndentation();
+                builder.TryAppendIndentation();
                 builder.Append("#pragma ");
                 builder.Append(keywordDesc.Definition);
                 if (!string.IsNullOrEmpty(keywordDesc.Scope))
@@ -302,7 +302,7 @@ namespace UnityEditor.ShaderFoundry
         {
             foreach (var pragmaDesc in descriptors)
             {
-                builder.AppendIndentation();
+                builder.TryAppendIndentation();
                 builder.Append($"#pragma {pragmaDesc.Name}");
                 foreach (var op in pragmaDesc.Ops)
                     builder.Append($" {op}");
@@ -336,7 +336,7 @@ namespace UnityEditor.ShaderFoundry
             var shaderIncludes = Enumerable.Empty<UnityEditor.ShaderFoundry.IncludeDescriptor>();
             var shaderKeywords = Enumerable.Empty<UnityEditor.ShaderFoundry.KeywordDescriptor>();
             var shaderPragmas = Enumerable.Empty<UnityEditor.ShaderFoundry.PragmaDescriptor>();
-            
+
             void ProcessBlockDescriptor(BlockDescriptor blockDescriptor, VisitedRegistry visitedRegistry, string entryPointOutputName, ref string code)
             {
                 if (blockDescriptor.IsValid)
@@ -571,7 +571,7 @@ namespace UnityEditor.ShaderFoundry
                         foreach (var instance in blockActiveFields.allPermutations.instances)
                         {
                             var instanceGenerator = new ShaderStringBuilder();
-                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, instance, out instanceGenerator);
+                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, instance, true, out instanceGenerator);
                             var key = instanceGenerator.ToCodeBlock();
                             if (generatedPackedTypes.TryGetValue(key, out var value))
                                 value.Item2.Add(instance.permutationIndex);
@@ -599,7 +599,7 @@ namespace UnityEditor.ShaderFoundry
                     else
                     {
                         ShaderStringBuilder localInterpolatorBuilder; // GenerateInterpolatorFunctions do the allocation
-                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, blockActiveFields.baseInstance, out localInterpolatorBuilder);
+                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, blockActiveFields.baseInstance, true, out localInterpolatorBuilder);
                         interpolatorBuilder.Concat(localInterpolatorBuilder);
                     }
                     //using interp index from functions, generate packed struct descriptor
@@ -621,7 +621,7 @@ namespace UnityEditor.ShaderFoundry
                 var structBuilder = new ShaderStringBuilder();
                 foreach (StructDescriptor shaderStruct in passStructs)
                 {
-                    GenerationUtils.GenerateShaderStruct(shaderStruct, blockActiveFields, out structBuilder);
+                    GenerationUtils.GenerateShaderStruct(shaderStruct, blockActiveFields, true, out structBuilder);
                     structBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString()); //hard code structs to float, TODO: proper handle precision
                     passStructBuilder.Concat(structBuilder);
                 }
@@ -850,7 +850,7 @@ namespace UnityEditor.ShaderFoundry
             foreach (var field in targetActiveFields.baseInstance.fields)
                 blockActiveFields.baseInstance.Add(field);
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(blockActiveFields, spliceCommands,
-                    isDebug, sharedTemplateDirectories, m_assetCollection);
+                    isDebug, sharedTemplateDirectories, m_assetCollection, true);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             subPassBuilder.Add(templatePreprocessor.GetShaderCode().ToString());
 

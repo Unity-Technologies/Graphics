@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph.Generation
 {
     public static class Interpreter
     {
-        
+
         public static Shader GetshaderForNode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
         {
             void GetBlock(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointDescriptor vertexCPDesc, out CustomizationPointDescriptor surfaceCPDesc)
@@ -17,11 +17,11 @@ namespace UnityEditor.ShaderGraph.Generation
                 var block = EvaluateGraphAndPopulateDescriptors(node, graph, container, registry);
                 vertexCPDesc = CustomizationPointDescriptor.Invalid;
 
-                var surfaceDescBuilder = new CustomizationPointDescriptor.Builder(surfaceCP);
-                var blockDescBuilder = new BlockDescriptor.Builder(block);
-                var blockDesc = blockDescBuilder.Build(container);
+                var surfaceDescBuilder = new CustomizationPointDescriptor.Builder(container, surfaceCP);
+                var blockDescBuilder = new BlockDescriptor.Builder(container, block);
+                var blockDesc = blockDescBuilder.Build();
                 surfaceDescBuilder.BlockDescriptors.Add(blockDesc);
-                surfaceCPDesc = surfaceDescBuilder.Build(container);
+                surfaceCPDesc = surfaceDescBuilder.Build();
             }
 
             var builder = new ShaderBuilder();
@@ -32,19 +32,19 @@ namespace UnityEditor.ShaderGraph.Generation
         internal static Block EvaluateGraphAndPopulateDescriptors(INodeReader rootNode, IGraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
         {
             const string BlockName = "ShaderGraphBlock";
-            var blockBuilder = new Block.Builder(BlockName);
+            var blockBuilder = new Block.Builder(container, BlockName);
 
             var inputVariables = new List<BlockVariable>();
             var outputVariables = new List<BlockVariable>();
 
-            var colorOutBuilder = new BlockVariable.Builder();
+            var colorOutBuilder = new BlockVariable.Builder(container);
             colorOutBuilder.ReferenceName = "BaseColor";
             colorOutBuilder.Type = container._float3;
-            var colorOut = colorOutBuilder.Build(container);
+            var colorOut = colorOutBuilder.Build();
             outputVariables.Add(colorOut);
 
             var outputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Output", outputVariables);
-            var mainBodyFunctionBuilder = new ShaderFunction.Builder($"{rootNode.GetName()}Main", outputType);
+            var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"{rootNode.GetName()}Main", outputType);
 
             foreach(var node in GatherTreeLeafFirst(rootNode))
             {
@@ -81,8 +81,8 @@ namespace UnityEditor.ShaderGraph.Generation
             blockBuilder.AddType(inputType);
             blockBuilder.AddType(outputType);
             mainBodyFunctionBuilder.AddInput(inputType, "In");
-            blockBuilder.SetEntryPointFunction(mainBodyFunctionBuilder.Build(container));
-            return blockBuilder.Build(container);
+            blockBuilder.SetEntryPointFunction(mainBodyFunctionBuilder.Build());
+            return blockBuilder.Build();
         }
 
         private static void ProcessNode(INodeReader node, ref ShaderContainer container, ref List<BlockVariable> inputVariables, ref List<BlockVariable> outputVariables, ref Block.Builder blockBuilder, ref ShaderFunction.Builder mainBodyFunctionBuilder, Registry.Registry registry)

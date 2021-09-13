@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph.Registry
 
                 string funcName = $"{OpName}{count}_{shaderType.Name}";
 
-                var builder = new ShaderFoundry.ShaderFunction.Builder(funcName);
+                var builder = new ShaderFoundry.ShaderFunction.Builder(container, funcName);
                 string body = "";
                 foreach (var port in data.GetPorts())
                 {
@@ -114,7 +114,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 body += ";";
 
                 builder.AddLine(body);
-                return builder.Build(container);
+                return builder.Build();
             }
         }
 
@@ -257,7 +257,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 var dstType = registry.GetTypeBuilder(dst.GetRegistryKey()).GetShaderType(dst, container, registry);
 
                 string castName = $"Cast{srcType.Name}_{dstType.Name}";
-                var builder = new ShaderFoundry.ShaderFunction.Builder(castName);
+                var builder = new ShaderFoundry.ShaderFunction.Builder(container, castName);
                 builder.AddInput(srcType, "In");
                 builder.AddOutput(dstType, "Out");
 
@@ -280,7 +280,7 @@ namespace UnityEditor.ShaderGraph.Registry
                 body += " };";
 
                 builder.AddLine(body);
-                return builder.Build(container);
+                return builder.Build();
             }
         }
     }

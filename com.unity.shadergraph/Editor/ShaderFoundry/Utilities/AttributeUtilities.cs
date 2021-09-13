@@ -49,10 +49,10 @@ namespace UnityEditor.ShaderFoundry
                 return attribute;
 
             // Otherwise we have to copy this into the current container
-            var builder = new ShaderAttribute.Builder(attribute.Name);
+            var builder = new ShaderAttribute.Builder(container, attribute.Name);
             foreach (var param in attribute.Parameters)
                 builder.Param(param.Name, param.Value);
-            return builder.Build(container);
+            return builder.Build();
         }
 
         internal static List<ShaderAttribute> Clone(this IEnumerable<ShaderAttribute> attributes, ShaderContainer container)
@@ -165,7 +165,7 @@ namespace UnityEditor.ShaderFoundry
             return result;
         }
     }
-    
+
     internal class PropertyTypeAttribute
     {
         internal string PropertyType { get; set; }
