@@ -70,6 +70,12 @@ namespace UnityEngine.Rendering.HighDefinition
         ScreenSpaceReflections,
         /// <summary>Display the Transparent Screen Space Reflections buffer.</summary>
         TransparentScreenSpaceReflections,
+        /// <summary>Display Screen Space Reflections buffer of the previous frame accumulated.</summary>
+        ScreenSpaceReflectionsPrev,
+        /// <summary>Display Screen Space Reflections buffer of the current frame hit.</summary>
+        ScreenSpaceReflectionsAccum,
+        /// <summary>Display Screen Space Reflections rejection used for PBR Accumulation algorithm.</summary>
+        ScreenSpaceReflectionSpeedRejection,
         /// <summary>Display Contact Shadows buffer.</summary>
         ContactShadows,
         /// <summary>Display Contact Shadows fade.</summary>
@@ -135,17 +141,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ValidateSpecularColor,
         /// <summary>Maximum Full Screen Material debug mode value (used internally).</summary>
         MaxMaterialFullScreenDebug,
-        // TODO: Move before count for 11.0
-        /// <summary>Display Screen Space Reflections buffer of the previous frame accumulated.</summary>
-        ScreenSpaceReflectionsPrev,
-        /// <summary>Display Screen Space Reflections buffer of the current frame hit.</summary>
-        ScreenSpaceReflectionsAccum,
 
         /// <summary>Display the world space position.</summary>
         WorldSpacePosition,
-
-        /// <summary>Display Screen Space Reflections rejection used for PBR Accumulation algorithm.</summary>
-        ScreenSpaceReflectionSpeedRejection,
     }
 
     /// <summary>
