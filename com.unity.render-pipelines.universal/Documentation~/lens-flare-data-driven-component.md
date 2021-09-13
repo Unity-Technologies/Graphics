@@ -1,4 +1,4 @@
-[comment]: # "If you modify this file make sure you modify the copy/paste file: com.unity.render-pipelines.high-definition and com.unity.render-pipelines.core\Documentation~\Common\lens-flare-data-driven-component.md"
+[comment]: # "If you modify this file make sure you modify the copy/paste file: com.unity.render-pipelines.high-definition and com.unity.render-pipelines.core\Documentation~\Common\lens-flare-component.md"
 
 # Lens Flare (SRP) component
 
@@ -8,9 +8,9 @@ Unity’s Scriptable Render Pipeline (SRP) includes the Lens Flare (SRP) compone
 
 ![](images/lighting/lens-flare-comp.png)
 
-## Using lens flares in SRP
+## Creating lens flares in SRP
 
-The Lens Flare (SRP) component controls where the lens flare is as well as properties such as attenuation and whether the lens flare considers occlusion. For properties that define how the lens flare looks, SRP uses the [Lens Flare (SRP) Data](lens-flare-data-driven-asset.md) asset. Each Lens Flare (SRP) component must reference a Lens Flare (SRP) data asset to display a lens flare on-screen.
+The Lens Flare (SRP) component controls where the lens flare is as well as properties such as attenuation and whether the lens flare considers occlusion. For properties that define how the lens flare looks, SRP uses the [Lens Flare (SRP) Data](lens-flare-asset.md) asset. Each Lens Flare (SRP) component must reference a Lens Flare (SRP) data asset to display a lens flare on-screen.
 
 To create a lens flare in a scene:
 
@@ -19,7 +19,7 @@ To create a lens flare in a scene:
 3. Select **Rendering** > **Lens Flare (SRP)**. Currently, the lens flare doesn't render in the scene because the component doesn't reference a Lens Flare (SRP) Data asset in its **Lens Flare Data** property.
 4. Create a new Lens Flare (SRP) Data asset (menu: **Assets** > **Create** > **Lens Flare (SRP)**).
 5. In the Lens Flare (SRP) component Inspector, assign the new Lens Flare (SRP) Data asset to the **Lens Flare Data** property.
-6. Select the Lens Flare (SRP) Data asset and, in the Inspector, add a new element to the **Elements** list. A default white lens flare now renders at the position of the Lens Flare (SRP) component. For information on how to customize how the lens flare looks, see [Lens Flare (SRP) Data asset](lens-flare-data-driven-asset.md).
+6. Select the Lens Flare (SRP) Data asset and, in the Inspector, add a new element to the **Elements** list. A default white lens flare now renders at the position of the Lens Flare (SRP) component. For information on how to customize how the lens flare looks, see [Lens Flare (SRP) Data](lens-flare-asset.md).
 
 ## Properties
 
@@ -27,7 +27,7 @@ To create a lens flare in a scene:
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
-| Lens Flare Data | Select the [Lens Flare (SRP) Asset](lens-flare-data-driven-asset.md) asset this component controls. |
+| Lens Flare Data | Select the [Lens Flare (SRP) Data](lens-flare-asset.md) asset this component controls. |
 | Intensity     | Multiplies the intensity of the lens flare. |
 | Scale         | Multiplies the scale of the lens flare. |
 | Attenuation by Light Shape | Enable this property to automatically change the appearance of the lens flare based on the type of light you attached this component to.<br/>For example, if this component is attached to a spot light and the camera is looking at this light from behind, the lens flare will not be visible. <br/>This property is only available when this component is attached to a light. |
