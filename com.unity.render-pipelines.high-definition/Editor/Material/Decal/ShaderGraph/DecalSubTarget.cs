@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static readonly GUID kSubTargetSourceCodeGuid = new GUID("3ec927dfcb5d60e4883b2c224857b6c2");  // DecalSubTarget.cs
 
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
-        protected override string[] templateMaterialDirectories =>  new string[]
+        protected override string[] templateMaterialDirectories => new string[]
         {
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
         };
@@ -79,26 +79,26 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public static FieldDescriptor AffectsAlbedo =           new FieldDescriptor(kMaterial, "AffectsAlbedo", "");
-        public static FieldDescriptor AffectsNormal =           new FieldDescriptor(kMaterial, "AffectsNormal", "");
-        public static FieldDescriptor AffectsEmission =         new FieldDescriptor(kMaterial, "AffectsEmission", "");
-        public static FieldDescriptor AffectsMetal =            new FieldDescriptor(kMaterial, "AffectsMetal", "");
-        public static FieldDescriptor AffectsAO =               new FieldDescriptor(kMaterial, "AffectsAO", "");
-        public static FieldDescriptor AffectsSmoothness =       new FieldDescriptor(kMaterial, "AffectsSmoothness", "");
-        public static FieldDescriptor AffectsMaskMap =          new FieldDescriptor(kMaterial, "AffectsMaskMap", "");
-        public static FieldDescriptor DecalDefault =            new FieldDescriptor(kMaterial, "DecalDefault", "");
+        public static FieldDescriptor AffectsAlbedo = new FieldDescriptor(kMaterial, "AffectsAlbedo", "");
+        public static FieldDescriptor AffectsNormal = new FieldDescriptor(kMaterial, "AffectsNormal", "");
+        public static FieldDescriptor AffectsEmission = new FieldDescriptor(kMaterial, "AffectsEmission", "");
+        public static FieldDescriptor AffectsMetal = new FieldDescriptor(kMaterial, "AffectsMetal", "");
+        public static FieldDescriptor AffectsAO = new FieldDescriptor(kMaterial, "AffectsAO", "");
+        public static FieldDescriptor AffectsSmoothness = new FieldDescriptor(kMaterial, "AffectsSmoothness", "");
+        public static FieldDescriptor AffectsMaskMap = new FieldDescriptor(kMaterial, "AffectsMaskMap", "");
+        public static FieldDescriptor DecalDefault = new FieldDescriptor(kMaterial, "DecalDefault", "");
 
         public override void GetFields(ref TargetFieldContext context)
         {
             // Decal properties
-            context.AddField(AffectsAlbedo,        decalData.affectsAlbedo);
-            context.AddField(AffectsNormal,        decalData.affectsNormal);
-            context.AddField(AffectsEmission,      decalData.affectsEmission);
-            context.AddField(AffectsMetal,         decalData.affectsMetal);
-            context.AddField(AffectsAO,            decalData.affectsAO);
-            context.AddField(AffectsSmoothness,    decalData.affectsSmoothness);
-            context.AddField(AffectsMaskMap,       decalData.affectsMaskmap);
-            context.AddField(DecalDefault,         decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
+            context.AddField(AffectsAlbedo, decalData.affectsAlbedo);
+            context.AddField(AffectsNormal, decalData.affectsNormal);
+            context.AddField(AffectsEmission, decalData.affectsEmission);
+            context.AddField(AffectsMetal, decalData.affectsMetal);
+            context.AddField(AffectsAO, decalData.affectsAO);
+            context.AddField(AffectsSmoothness, decalData.affectsSmoothness);
+            context.AddField(AffectsMaskMap, decalData.affectsMaskmap);
+            context.AddField(DecalDefault, decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
                 decalData.affectsAO || decalData.affectsSmoothness);
             context.AddField(Fields.LodCrossFade, decalData.supportLodCrossFade);
         }
@@ -143,7 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 floatType = FloatType.Enum,
                 value = (int)DecalMeshDepthBiasType.DepthBias,
                 enumNames = { "Depth Bias", "View Bias" },
-                enumValues = { (int)DecalMeshDepthBiasType.DepthBias, (int)DecalMeshDepthBiasType.ViewBias},
+                enumValues = { (int)DecalMeshDepthBiasType.DepthBias, (int)DecalMeshDepthBiasType.ViewBias },
                 hidden = true
             });
 
@@ -557,7 +557,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static KeywordCollection Maskmap = new KeywordCollection { { Descriptors.AffectsMaskmap, new FieldCondition(AffectsMaskMap, true) } };
             public static DefineCollection Emission = new DefineCollection { { Descriptors.AffectsEmission, 1 } };
 
-            public static KeywordCollection Decals = new KeywordCollection { { Descriptors.Decals } , { CoreKeywordDescriptors.DecalSurfaceGradient } };
+            public static KeywordCollection Decals = new KeywordCollection { { Descriptors.Decals }, { CoreKeywordDescriptors.DecalSurfaceGradient } };
         }
         #endregion
 

@@ -10,6 +10,7 @@ namespace UnityEditor.ShaderGraph
         public EyeIndexNode()
         {
             name = "Eye Index";
+            synonyms = new string[] { "stereo", "3d" };
         }
 
         protected override MethodInfo GetFunctionToConvert()

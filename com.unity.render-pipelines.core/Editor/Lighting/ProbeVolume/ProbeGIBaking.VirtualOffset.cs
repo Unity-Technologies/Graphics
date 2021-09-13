@@ -17,6 +17,9 @@ namespace UnityEngine.Experimental.Rendering
             for (int sceneIndex = 0; sceneIndex < UnityEngine.SceneManagement.SceneManager.sceneCount; ++sceneIndex)
             {
                 UnityEngine.SceneManagement.Scene scene = UnityEngine.SceneManagement.SceneManager.GetSceneAt(sceneIndex);
+                if (!scene.isLoaded)
+                    continue;
+
                 GameObject[] gameObjects = scene.GetRootGameObjects();
                 foreach (GameObject gameObject in gameObjects)
                 {

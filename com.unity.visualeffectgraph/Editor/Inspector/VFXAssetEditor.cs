@@ -651,7 +651,7 @@ class VisualEffectAssetEditor : Editor
 
             m_ReorderableList.DoLayoutList();
 
-            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"),  false, false);
+            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), false, false);
 
             string assetPath = AssetDatabase.GetAssetPath(asset);
             UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);

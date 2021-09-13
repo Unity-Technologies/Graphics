@@ -429,12 +429,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetPostprocessOutputHandle(renderGraph, name, false, GetPostprocessTextureFormat(), false);
         }
 
-        TextureHandle RenderPostProcess(RenderGraph     renderGraph,
-            in PrepassOutput    prepassOutput,
-            TextureHandle       inputColor,
-            TextureHandle       backBuffer,
-            CullingResults      cullResults,
-            HDCamera            hdCamera)
+        TextureHandle RenderPostProcess(RenderGraph renderGraph,
+            in PrepassOutput prepassOutput,
+            TextureHandle inputColor,
+            TextureHandle backBuffer,
+            CullingResults cullResults,
+            HDCamera hdCamera)
         {
             bool postPRocessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera);
             TextureHandle afterPostProcessBuffer = RenderAfterPostProcessObjects(renderGraph, hdCamera, cullResults, prepassOutput);
@@ -655,7 +655,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
                         clearBuffer = true,
-                        clearColor = Color.black, name = "DLSS Color Mask"
+                        clearColor = Color.black,
+                        name = "DLSS Color Mask"
                     }), 0);
                 builder.UseDepthBuffer(inputDepth, DepthAccess.Read);
 
@@ -743,7 +744,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.copyAlphaKernel = passData.copyAlphaCS.FindKernel("KMain");
                     passData.source = builder.ReadTexture(source);
                     passData.outputAlpha = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                        { name = "Alpha Channel Copy", colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true }));
+                    { name = "Alpha Channel Copy", colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true }));
 
                     builder.SetRenderFunc(
                         (AlphaCopyPassData data, RenderGraphContext ctx) =>
@@ -1287,9 +1288,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                     {
                         passData.tmpTarget1024 = builder.CreateTransientTexture(new TextureDesc(1024, 1024, false, false)
-                            { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 1024" });
+                        { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 1024" });
                         passData.tmpTarget32 = builder.CreateTransientTexture(new TextureDesc(32, 32, false, false)
-                            { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 32" });
+                        { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 32" });
 
                         builder.SetRenderFunc(
                             (DynamicExposureData data, RenderGraphContext ctx) =>
@@ -1363,6 +1364,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle motionVecTexture;
             public HDCamera hdCamera;
             public CustomPostProcessVolumeComponent customPostProcess;
+            public Vector4 postProcessScales;
+            public Vector2Int postProcessViewportSize;
         }
 
         bool DoCustomPostProcess(RenderGraph renderGraph, HDCamera hdCamera, ref TextureHandle source, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, List<string> postProcessList)
@@ -1397,19 +1400,39 @@ namespace UnityEngine.Rendering.HighDefinition
                                 passData.motionVecTexture = builder.ReadTexture(motionVectors);
 
                                 passData.source = builder.ReadTexture(source);
-                                passData.destination = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                                    { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "CustomPostProcesDestination" }), 0);
+                                passData.destination = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, IsDynamicResUpscaleTargetEnabled(), true)
+                                { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "CustomPostProcesDestination" }), 0);
                                 passData.hdCamera = hdCamera;
                                 passData.customPostProcess = customPP;
+                                passData.postProcessScales = new Vector4(hdCamera.postProcessRTScales.x, hdCamera.postProcessRTScales.y, hdCamera.postProcessRTScalesHistory.x, hdCamera.postProcessRTScalesHistory.y);
+                                passData.postProcessViewportSize = postProcessViewportSize;
                                 builder.SetRenderFunc(
                                     (CustomPostProcessData data, RenderGraphContext ctx) =>
                                     {
+                                        var srcRt = (RTHandle)data.source;
+                                        var dstRt = (RTHandle)data.destination;
+
+                                        // HACK FIX: for custom post process, we want the user to transparently be able to use color target regardless of the scaling occured. For example, if the user uses any of the HDUtil blit methods
+                                        // which require the rtHandleProperties to set the viewport and sample scales.
+                                        // In the case of DLSS and TAAU, the post process viewport and size for the color target have changed, thus we override them here.
+                                        // When these upscalers arent set, behaviour is still the same (since the post process scale is the same as the global rt handle scale). So for simplicity, we always take this code path for custom post process color.
+                                        var newProps = srcRt.rtHandleProperties;
+                                        newProps.rtHandleScale = data.postProcessScales;
+                                        newProps.currentRenderTargetSize = data.postProcessViewportSize;
+                                        newProps.previousRenderTargetSize = data.postProcessViewportSize;
+                                        newProps.currentViewportSize = data.postProcessViewportSize;
+                                        srcRt.SetCustomHandleProperties(newProps);
+                                        dstRt.SetCustomHandleProperties(newProps);
+
                                         // Temporary: see comment above
                                         ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
                                         ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                                         ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
 
                                         data.customPostProcess.Render(ctx.cmd, data.hdCamera, data.source, data.destination);
+
+                                        srcRt.ClearCustomHandleProperties();
+                                        dstRt.ClearCustomHandleProperties();
                                     });
 
                                 customPostProcessExecuted = true;
@@ -1835,12 +1858,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.source = builder.ReadTexture(source);
                 passData.depthBuffer = builder.ReadWriteTexture(depthBuffer);
                 passData.smaaEdgeTex = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, clearBuffer = true, name = "SMAA Edge Texture" });
+                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, clearBuffer = true, name = "SMAA Edge Texture" });
                 passData.smaaBlendTex = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, clearBuffer = true, name = "SMAA Blend Texture" });
+                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, clearBuffer = true, name = "SMAA Blend Texture" });
 
                 TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "SMAA Destination");
-                passData.destination = builder.WriteTexture(dest);;
+                passData.destination = builder.WriteTexture(dest); ;
 
                 builder.SetRenderFunc(
                     (SMAAData data, RenderGraphContext ctx) =>
@@ -2654,7 +2677,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var scale = dofParameters.viewportSize / new Vector2(1920f, 1080f);
             float resolutionScale = Mathf.Min(scale.x, scale.y) * 2f;
 
-            float farMaxBlur  = resolutionScale * dofParameters.farMaxBlur;
+            float farMaxBlur = resolutionScale * dofParameters.farMaxBlur;
             float nearMaxBlur = resolutionScale * dofParameters.nearMaxBlur;
 
             // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes, [0, 16] --> [0, 64]
@@ -2731,8 +2754,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip3, sourcePyramid, 3);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip4, sourcePyramid, 4);
 
-                    int tx = ((dofParameters.viewportSize.x  >> 1) + 7) / 8;
-                    int ty = ((dofParameters.viewportSize.y  >> 1) + 7) / 8;
+                    int tx = ((dofParameters.viewportSize.x >> 1) + 7) / 8;
+                    int ty = ((dofParameters.viewportSize.y >> 1) + 7) / 8;
                     cmd.DispatchCompute(cs, kernel, tx, ty, dofParameters.camera.viewCount);
                 }
             }
@@ -2873,19 +2896,19 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (passData.parameters.nearLayerActive)
                         {
                             passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "Ping Near RGB" });
+                            { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "Ping Near RGB" });
 
                             passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "Pong Near RGB" });
+                            { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "Pong Near RGB" });
 
                             passData.nearCoC = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Near CoC" });
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Near CoC" });
 
                             passData.nearAlpha = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Near Alpha" });
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Near Alpha" });
 
                             passData.dilatedNearCoC = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Dilated Near CoC" });
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Dilated Near CoC" });
                         }
                         else
                         {
@@ -2899,13 +2922,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (passData.parameters.farLayerActive)
                         {
                             passData.pingFarRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = GetPostprocessTextureFormat(), useMipMap = true, enableRandomWrite = true, name = "Ping Far RGB" });
+                            { colorFormat = GetPostprocessTextureFormat(), useMipMap = true, enableRandomWrite = true, name = "Ping Far RGB" });
 
                             passData.pongFarRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "Pong Far RGB" });
+                            { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "Pong Far RGB" });
 
                             passData.farCoC = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = k_CoCFormat, useMipMap = true, enableRandomWrite = true, name = "Far CoC" });
+                            { colorFormat = k_CoCFormat, useMipMap = true, enableRandomWrite = true, name = "Far CoC" });
                         }
                         else
                         {
@@ -2915,7 +2938,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         passData.fullresCoC = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, IsDynamicResUpscaleTargetEnabled(), true)
-                            { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Full res CoC" }));
+                        { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Full res CoC" }));
 
                         var debugCocTexture = passData.fullresCoC;
                         var debugCocTextureScales = hdCamera.postProcessRTScales;
@@ -2932,7 +2955,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (passCount > 1)
                         {
                             passData.dilationPingPongRT = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
-                                { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Dilation ping pong CoC" });
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Dilation ping pong CoC" });
                         }
 
                         var mipScale = scale;
@@ -2993,10 +3016,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         float scaleFactor = 1.0f / passData.parameters.minMaxCoCTileSize;
                         passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, IsDynamicResUpscaleTargetEnabled(), true)
-                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
+                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
 
                         passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, IsDynamicResUpscaleTargetEnabled(), true)
-                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
+                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
 
                         builder.SetRenderFunc(
                             (DepthofFieldData data, RenderGraphContext ctx) =>
@@ -3039,6 +3062,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public LensFlareParameters parameters;
             public TextureHandle source;
             public HDCamera hdCamera;
+            public Vector2Int viewport;
         }
 
         TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
@@ -3049,14 +3073,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.source = builder.WriteTexture(source);
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
+                    passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
-                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Lens Flare Destination");
+                    TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Lens Flare Destination");
 
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
-                            float width = (float)data.hdCamera.actualWidth;
-                            float height = (float)data.hdCamera.actualHeight;
+                            float width = (float)data.viewport.x;
+                            float height = (float)data.viewport.y;
 
                             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
                                 data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, width, height,
@@ -3298,13 +3323,13 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector2 tileTexScale = new Vector2((float)data.tileTargetSize.x / (float)postProcessViewportSize.x, (float)data.tileTargetSize.y / (float)postProcessViewportSize.y);
 
             data.preppedMotionVec = builder.CreateTransientTexture(new TextureDesc(Vector2.one, IsDynamicResUpscaleTargetEnabled(), true)
-                { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Prepped Motion Vectors" });
+            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Prepped Motion Vectors" });
 
             data.minMaxTileVel = builder.CreateTransientTexture(new TextureDesc(tileTexScale, IsDynamicResUpscaleTargetEnabled(), true)
-                { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "MinMax Tile Motion Vectors" });
+            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "MinMax Tile Motion Vectors" });
 
             data.maxTileNeigbourhood = builder.CreateTransientTexture(new TextureDesc(tileTexScale, IsDynamicResUpscaleTargetEnabled(), true)
-                { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Max Neighborhood Tile" });
+            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Max Neighborhood Tile" });
 
             data.tileToScatterMax = TextureHandle.nullHandle;
             data.tileToScatterMin = TextureHandle.nullHandle;
@@ -3312,10 +3337,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (data.motionblurSupportScattering)
             {
                 data.tileToScatterMax = builder.CreateTransientTexture(new TextureDesc(tileTexScale, IsDynamicResUpscaleTargetEnabled(), true)
-                    { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "Tile to Scatter Max" });
+                { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "Tile to Scatter Max" });
 
                 data.tileToScatterMin = builder.CreateTransientTexture(new TextureDesc(tileTexScale, IsDynamicResUpscaleTargetEnabled(), true)
-                    { colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true, name = "Tile to Scatter Min" });
+                { colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true, name = "Tile to Scatter Min" });
             }
 
             data.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "Motion Blur Destination"));
@@ -3726,12 +3751,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.bloomMipInfo[i] = new Vector4(pw, ph, sw, sh);
                 passData.mipsDown[i] = builder.CreateTransientTexture(new TextureDesc(scale, IsDynamicResUpscaleTargetEnabled(), true)
-                    { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "BloomMipDown" });
+                { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "BloomMipDown" });
 
                 if (i != 0)
                 {
                     passData.mipsUp[i] = builder.CreateTransientTexture(new TextureDesc(scale, IsDynamicResUpscaleTargetEnabled(), true)
-                        { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "BloomMipUp" });
+                    { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "BloomMipUp" });
                 }
             }
 
@@ -4492,7 +4517,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.viewCount = hdCamera.viewCount;
 
                     passData.source = builder.ReadTexture(source);
-                    passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "FXAA Destination"));;
+                    passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "FXAA Destination")); ;
 
                     passData.fxaaCS.shaderKeywords = null;
                     if (PostProcessEnableAlpha())
@@ -4548,7 +4573,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.outputWidth = Mathf.RoundToInt(hdCamera.finalViewport.width);
                     passData.outputHeight = Mathf.RoundToInt(hdCamera.finalViewport.height);
                     passData.source = builder.ReadTexture(source);
-                    passData.destination = builder.WriteTexture(GetPostprocessUpsampledOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination"));;
+                    passData.destination = builder.WriteTexture(GetPostprocessUpsampledOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination")); ;
                     passData.casParametersBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
 
                     builder.SetRenderFunc(
@@ -4692,7 +4717,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 inputTextureSize = new Vector4(maxScaledSz.x, maxScaledSz.y);
                             }
                             ctx.cmd.SetComputeTextureParam(data.easuCS, data.mainKernel, HDShaderIDs._InputTexture, data.source);
-                            ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._EASUViewportSize,   new Vector4(data.inputWidth, data.inputHeight));
+                            ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._EASUViewportSize, new Vector4(data.inputWidth, data.inputHeight));
                             ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._EASUInputImageSize, inputTextureSize);
                             ctx.cmd.SetComputeTextureParam(data.easuCS, data.mainKernel, HDShaderIDs._OutputTexture, data.destination);
                             ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._EASUOutputSize, new Vector4(data.outputWidth, data.outputHeight, 1.0f / data.outputWidth, 1.0f / data.outputHeight));
@@ -4700,7 +4725,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetComputeBufferParam(data.easuCS, data.mainKernel, HDShaderIDs._EASUParameters, data.easuParameterBuffer);
                             ctx.cmd.DispatchCompute(data.easuCS, data.initKernel, 1, 1, 1);
 
-                            int dispatchX = HDUtils.DivRoundUp(data.outputWidth,  8);
+                            int dispatchX = HDUtils.DivRoundUp(data.outputWidth, 8);
                             int dispatchY = HDUtils.DivRoundUp(data.outputHeight, 8);
 
                             ctx.cmd.DispatchCompute(data.easuCS, data.mainKernel, dispatchX, dispatchY, data.viewCount);

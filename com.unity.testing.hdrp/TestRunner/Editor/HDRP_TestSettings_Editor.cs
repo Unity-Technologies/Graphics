@@ -97,7 +97,7 @@ public class HDRP_TestSettings_Editor : Editor
             var gvsType = typeof(Editor).Assembly.GetType("UnityEditor.GameViewSize");
             Type gvstType = typeof(Editor).Assembly.GetType("UnityEditor.GameViewSizeType");
             var ctor = gvsType.GetConstructor(new System.Type[] { gvstType, typeof(int), typeof(int), typeof(string) });
-            var newSize = ctor.Invoke(new object[] { (int)viewSizeType , width, height, text });
+            var newSize = ctor.Invoke(new object[] { (int)viewSizeType, width, height, text });
             addCustomSize.Invoke(group, new object[] { newSize });
         }
 

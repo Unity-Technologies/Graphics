@@ -53,10 +53,8 @@ class Renderer2DTests
             return;
 
         Assert.IsFalse(baseRenderer.createColorTexture);
-        Assert.AreEqual(RenderTargetHandle.CameraTarget.Identifier(), baseRenderer.cameraColorTarget);
 
         Assert.IsFalse(baseRenderer.createDepthTexture);
-        Assert.AreEqual(RenderTargetHandle.CameraTarget.Identifier(), baseRenderer.cameraDepthTarget);
     }
 
     [Test]
@@ -69,10 +67,8 @@ class Renderer2DTests
         Renderer2D baseRenderer = m_BaseCameraData.scriptableRenderer as Renderer2D;
 
         Assert.IsTrue(baseRenderer.createColorTexture);
-        Assert.AreNotEqual(RenderTargetHandle.CameraTarget.Identifier(), baseRenderer.cameraColorTarget);
 
         Assert.IsTrue(baseRenderer.createDepthTexture);
-        Assert.AreNotEqual(RenderTargetHandle.CameraTarget.Identifier(), baseRenderer.cameraDepthTarget);
     }
 
     [Test]
@@ -85,10 +81,8 @@ class Renderer2DTests
         Renderer2D baseRenderer = m_BaseCameraData.scriptableRenderer as Renderer2D;
 
         Assert.IsTrue(baseRenderer.createColorTexture);
-        Assert.AreNotEqual(RenderTargetHandle.CameraTarget.Identifier(), baseRenderer.cameraColorTarget);
 
         Assert.IsFalse(baseRenderer.createDepthTexture);
-        Assert.AreEqual(baseRenderer.cameraColorTarget, baseRenderer.cameraDepthTarget);
     }
 
     [Test]
@@ -100,9 +94,6 @@ class Renderer2DTests
 
         Renderer2D baseRenderer = m_BaseCameraData.scriptableRenderer as Renderer2D;
         Renderer2D overlayRenderer = m_OverlayCameraData.scriptableRenderer as Renderer2D;
-
-        Assert.AreEqual(baseRenderer.cameraColorTarget, overlayRenderer.cameraColorTarget);
-        Assert.AreEqual(baseRenderer.cameraDepthTarget, overlayRenderer.cameraDepthTarget);
     }
 
     [Test]

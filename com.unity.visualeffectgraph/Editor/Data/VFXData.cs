@@ -69,7 +69,7 @@ namespace UnityEditor.VFX
                 case VFXDataType.OutputEvent:
                     newVFXData = ScriptableObject.CreateInstance<VFXDataOutputEvent>();
                     break;
-                default:                        return null;
+                default: return null;
             }
             newVFXData.m_Parent = graph;
             return newVFXData;
@@ -159,23 +159,23 @@ namespace UnityEditor.VFX
                 throw new ArgumentException(string.Format("{0} is not in the owner list of {1}", context, this));
         }
 
-        public bool IsCurrentAttributeRead(VFXAttribute attrib)                        { return (GetAttributeMode(attrib) & VFXAttributeMode.Read) != 0; }
-        public bool IsCurrentAttributeWritten(VFXAttribute attrib)                     { return (GetAttributeMode(attrib) & VFXAttributeMode.Write) != 0; }
+        public bool IsCurrentAttributeRead(VFXAttribute attrib) { return (GetAttributeMode(attrib) & VFXAttributeMode.Read) != 0; }
+        public bool IsCurrentAttributeWritten(VFXAttribute attrib) { return (GetAttributeMode(attrib) & VFXAttributeMode.Write) != 0; }
 
-        public bool IsCurrentAttributeRead(VFXAttribute attrib, VFXContext context)     { return (GetAttributeMode(attrib, context) & VFXAttributeMode.Read) != 0; }
+        public bool IsCurrentAttributeRead(VFXAttribute attrib, VFXContext context) { return (GetAttributeMode(attrib, context) & VFXAttributeMode.Read) != 0; }
         public bool IsCurrentAttributeWritten(VFXAttribute attrib, VFXContext context) { return (GetAttributeMode(attrib, context) & VFXAttributeMode.Write) != 0; }
 
-        public bool IsAttributeUsed(VFXAttribute attrib)                                { return GetAttributeMode(attrib) != VFXAttributeMode.None; }
-        public bool IsAttributeUsed(VFXAttribute attrib, VFXContext context)            { return GetAttributeMode(attrib, context) != VFXAttributeMode.None; }
+        public bool IsAttributeUsed(VFXAttribute attrib) { return GetAttributeMode(attrib) != VFXAttributeMode.None; }
+        public bool IsAttributeUsed(VFXAttribute attrib, VFXContext context) { return GetAttributeMode(attrib, context) != VFXAttributeMode.None; }
 
-        public bool IsCurrentAttributeUsed(VFXAttribute attrib)                         { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadWrite) != 0; }
-        public bool IsCurrentAttributeUsed(VFXAttribute attrib, VFXContext context)     { return (GetAttributeMode(attrib, context) & VFXAttributeMode.ReadWrite) != 0; }
+        public bool IsCurrentAttributeUsed(VFXAttribute attrib) { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadWrite) != 0; }
+        public bool IsCurrentAttributeUsed(VFXAttribute attrib, VFXContext context) { return (GetAttributeMode(attrib, context) & VFXAttributeMode.ReadWrite) != 0; }
 
-        public bool IsSourceAttributeUsed(VFXAttribute attrib)                          { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadSource) != 0; }
-        public bool IsSourceAttributeUsed(VFXAttribute attrib, VFXContext context)      { return (GetAttributeMode(attrib, context) & VFXAttributeMode.ReadSource) != 0; }
+        public bool IsSourceAttributeUsed(VFXAttribute attrib) { return (GetAttributeMode(attrib) & VFXAttributeMode.ReadSource) != 0; }
+        public bool IsSourceAttributeUsed(VFXAttribute attrib, VFXContext context) { return (GetAttributeMode(attrib, context) & VFXAttributeMode.ReadSource) != 0; }
 
-        public bool IsAttributeLocal(VFXAttribute attrib)                               { return m_LocalCurrentAttributes.Contains(attrib); }
-        public bool IsAttributeStored(VFXAttribute attrib)                              { return m_StoredCurrentAttributes.ContainsKey(attrib); }
+        public bool IsAttributeLocal(VFXAttribute attrib) { return m_LocalCurrentAttributes.Contains(attrib); }
+        public bool IsAttributeStored(VFXAttribute attrib) { return m_StoredCurrentAttributes.ContainsKey(attrib); }
 
         public VFXAttributeMode GetAttributeMode(VFXAttribute attrib, VFXContext context)
         {
@@ -418,7 +418,7 @@ namespace UnityEditor.VFX
                 {
                     var context = kvp2.Key;
                     if (context.contextType == VFXContextType.Init
-                        &&  (kvp2.Value & VFXAttributeMode.ReadSource) != 0)
+                        && (kvp2.Value & VFXAttributeMode.ReadSource) != 0)
                     {
                         readSourceInInit = true;
                     }

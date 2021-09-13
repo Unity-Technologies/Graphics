@@ -1,0 +1,120 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
+  m_Name: WhiteBalance_02
+  m_EditorClassIdentifier: 
+  m_Paragraphs:
+    m_Items:
+    - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
+      m_Tutorial: {fileID: 0}
+      m_Image: {fileID: 2800000, guid: 018b4b726c31d0445bd4594a032b5a51, type: 3}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: Tune the White Balance
+      Text:
+        m_Untranslated: "Explore the scene to see how white balancing is utilized
+          in this template.\r\n\r\n1. In the <i>Hierarchy,</i> select <b>Lighting</b>
+          > <b>Volumes</b> > <b>Volume Room 3 Sitting.</b>\r\n\n2. Toggle the <b>White
+          Balance</b> volume override on and off.\n\nNotice that the White Balance
+          in this scenario applies a light blue color filter to the image, to counterbalance
+          the strong orange color cast from the lamps above the chairs.\r\n\r\n3.
+          Experiment with the <b>Temperature</b> slider to increase the level of
+          blue or red in the image.\n\r\n4. Undo this change.\r\n\n\n<b>Expert Tips</b>\n\r\n\u2022
+          Artificial lighting often falls on the warm side of the color temperature
+          range, and white balance is a way to adjust the perception of the color
+          White in a Scene.\r\n\r\n\u2022 The opposite effect can be applied to an
+          outdoor Scene with a blue Sky, which tends to have a bluer color cast,
+          and therefore requires warmer <b>White Balance</b> settings.\r"
+      m_Tutorial: {fileID: 0}
+      m_Image: {fileID: 0}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+  m_CameraSettings:
+    m_CameraMode: 1
+    m_FocusMode: 0
+    m_Orthographic: 0
+    m_Size: 25.69533
+    m_Pivot: {x: 47.96254, y: 6.042383, z: -48.742954}
+    m_Rotation: {x: -0.005041083, y: -0.9876071, z: -0.0322924, w: 0.15355155}
+    m_FrameObject:
+      m_SceneGuid: 
+      m_GameObjectGuid: 
+      m_SerializedComponentType:
+        m_TypeName: 
+      m_ComponentIndex: 0
+      m_AssetObject: {fileID: 0}
+      m_Prefab: {fileID: 0}
+    m_Enabled: 1
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_CompletedSound: {fileID: 0}
+  m_AutoAdvance: 0
+  Showing:
+    m_PersistentCalls:
+      m_Calls: []
+  Shown:
+    m_PersistentCalls:
+      m_Calls: []
+  Staying:
+    m_PersistentCalls:
+      m_Calls: []
+  CriteriaValidated:
+    m_PersistentCalls:
+      m_Calls: []
+  MaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  NonMaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforePageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_NextButton: 
+  m_DoneButton: 
