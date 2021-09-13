@@ -31,14 +31,16 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
 #ifdef _MATERIAL_AFFECTS_EMISSION
     surfaceData.emissive = _EmissiveColor.rgb * fadeFactor;
     #ifdef _EMISSIVEMAP
-    float2 emissiveColorMapSize;
-    float emissiveColorMapLODs;
+    float2 emissiveColorMapSize = float2(0.0f, 0.0f);
+    float emissiveColorMapLODs = 0.0f;
+#if defined(MIP_COUNT_SUPPORTED)
     _EmissiveColorMap.GetDimensions(0, emissiveColorMapSize.x, emissiveColorMapSize.y, emissiveColorMapLODs);
+#endif
     float2 uvdx = ddx(texCoords * emissiveColorMapSize), uvdy = ddy(texCoords * emissiveColorMapSize);
 //    float lod = 0.5f * log2(dot(uvdx, uvdx) + dot(uvdy, uvdy)) - 1.0f;
     float lod = 0.5f * log2(max(dot(uvdx, uvdx), dot(uvdy, uvdy))) - 1.0f;
     float lddx = ddx(posInput.linearDepth), lddy  = ddy(posInput.linearDepth);
-    float ldd = dot(lddx, lddx) + dot(lddy, lddy);
+    float ldd = max(dot(lddx, lddx), dot(lddy, lddy));
     float maxlod = emissiveColorMapLODs * (1.0f - saturate(8.0f * ldd));
     surfaceData.emissive *= SAMPLE_TEXTURE2D_LOD(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords, min(lod, maxlod)).rgb;
 //    surfaceData.emissive *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords).rgb;
