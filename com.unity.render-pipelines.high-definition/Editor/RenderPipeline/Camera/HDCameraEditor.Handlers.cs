@@ -84,5 +84,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 null
             });
         }
+
+        static readonly Type k_SceneViewCameraOverlay = Type.GetType("UnityEditor.SceneViewCameraOverlay,UnityEditor");
+        static readonly FieldInfo k_ScenveViewCameraOverlay_ForceDisable = k_SceneViewCameraOverlay.GetField("forceDisable", BindingFlags.Static | BindingFlags.NonPublic);
+        static HDCameraEditor()
+        {
+            // Disable builtin camera overlay
+            k_ScenveViewCameraOverlay_ForceDisable.SetValue(null, true);
+        }
+
     }
 }
