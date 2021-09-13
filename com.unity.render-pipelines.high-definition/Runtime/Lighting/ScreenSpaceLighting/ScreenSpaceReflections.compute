@@ -797,9 +797,7 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 #ifdef SSR_SMOOTH_SPEED_REJECTION
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, saturate(usedSpeed * _SsrPBRSpeedRejection));
 #else
-
     float coefExpAvg = usedSpeed >= _SsrPBRSpeedRejection ? 1.0f : _SsrAccumulationAmount;
-
 #endif
 #else
 
@@ -828,7 +826,7 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 #ifdef REJECT_DEBUG_COLOR
 #ifdef WORLD_SPEED_REJECTION
     #ifdef SSR_SMOOTH_SPEED_REJECTION
-        result.rgb = Colorize(result.rgb, HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(usedSpeed * _SsrPBRSpeedRejection))));
+        result.rgb = Colorize(result.rgb, HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(coefExpAvg))));
     #else
         if (usedSpeed >= _SsrPBRSpeedRejection)
             result.rgb = Colorize(result.rgb, float3(1.0f, 0.0f, 0.0f));
@@ -836,7 +834,7 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
             result.rgb = Colorize(result.rgb, float3(0.0f, 1.0f, 0.0f));
     #endif
 #else
-    result.rgb = Colorize(result.rgb, HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(speed))));
+    result.rgb = Colorize(result.rgb, HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(coefExpAvg))));
 #endif
 #endif
 

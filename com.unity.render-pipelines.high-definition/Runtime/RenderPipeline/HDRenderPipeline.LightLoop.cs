@@ -1140,7 +1140,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(0.0f, -7.0f, settings.accumulationFactor.value));
             }
 
-            if (settings.speedSmoothReject.value)
+            if (settings.enableWorldSpeedRejection.value && !settings.speedSmoothReject.value)
                 cb._SsrPBRSpeedRejection = Mathf.Clamp01(1.0f - settings.speedRejectionParam.value);
             else
                 cb._SsrPBRSpeedRejection = Mathf.Clamp01(settings.speedRejectionParam.value);

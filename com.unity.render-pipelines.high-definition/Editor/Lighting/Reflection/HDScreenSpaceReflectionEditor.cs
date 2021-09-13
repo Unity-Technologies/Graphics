@@ -282,7 +282,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (BeginAdditionalPropertiesScope())
                     {
                         PropertyField(m_SpeedRejectionFactor, k_SpeedRejectionFactorText);
-                        PropertyField(m_SpeedRejectionScalerFactor, k_SpeedRejectionScalerFactorText);
+                        if (m_EnableWorldSpeedRejection.value.boolValue)
+                        {
+                            PropertyField(m_SpeedRejectionScalerFactor, k_SpeedRejectionScalerFactorText);
+                        }
                         if (!m_SpeedSurfaceOnly.value.boolValue && !m_SpeedTargetOnly.value.boolValue)
                             m_SpeedSurfaceOnly.value.boolValue = true;
                         PropertyField(m_SpeedSurfaceOnly, k_SpeedSurfaceOnlyText);
