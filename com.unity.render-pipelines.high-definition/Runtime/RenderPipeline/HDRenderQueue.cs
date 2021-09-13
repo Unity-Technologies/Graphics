@@ -107,8 +107,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static int Clamps(this RenderQueueRange range, int value) => Math.Max(range.lowerBound, Math.Min(value, range.upperBound));
 
-        public const int sortingPriortyRange = 50;
-        public static int ClampsTransparentRangePriority(int value) => Math.Max(-sortingPriortyRange, Math.Min(value, sortingPriortyRange));
+        public const int sortingPriorityRange = 50;
+        public static int ClampsTransparentRangePriority(int value) => Math.Max(-sortingPriorityRange, Math.Min(value, sortingPriorityRange));
 
         public static RenderQueueType GetTypeByRenderQueueValue(int renderQueue)
         {

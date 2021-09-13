@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.HDRP
                 shaderGraphOutput.GetOrRefreshShaderGraphObject().generatesWithShaderGraph;
         }
 
-        public override bool supportsMaterialOffset
+        public override bool supportsSortingPriority
         {
             get
             {
@@ -155,7 +155,7 @@ namespace UnityEditor.VFX.HDRP
 
         private int GetMaterialOffset()
         {
-            if (supportsMaterialOffset)
+            if (supportsSortingPriority)
             {
                 int rawMaterialOffset = owner.GetMaterialOffset();
                 return ClampsTransparentRangePriority(rawMaterialOffset);

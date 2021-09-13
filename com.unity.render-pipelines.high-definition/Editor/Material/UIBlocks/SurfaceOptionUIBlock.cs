@@ -587,7 +587,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 if (transparentSortPriority != null)
-                    materialEditor.IntSliderShaderProperty(transparentSortPriority, -HDRenderQueue.sortingPriortyRange, HDRenderQueue.sortingPriortyRange, Styles.transparentSortPriorityText);
+                    materialEditor.IntSliderShaderProperty(transparentSortPriority, -HDRenderQueue.sortingPriorityRange, HDRenderQueue.sortingPriorityRange, Styles.transparentSortPriorityText);
 
                 if (enableFogOnTransparent != null)
                     materialEditor.ShaderProperty(enableFogOnTransparent, Styles.enableTransparentFogText);
