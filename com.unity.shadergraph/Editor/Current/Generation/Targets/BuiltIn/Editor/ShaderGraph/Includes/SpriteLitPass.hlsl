@@ -14,7 +14,7 @@ SHAPE_LIGHT(2)
 SHAPE_LIGHT(3)
 #endif
 
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Shaders/2D/Include/CombinedShapeLightShared.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/Shaders/2D/Include/CombinedShapeLightShared.hlsl"
 
 PackedVaryings vert(Attributes input)
 {

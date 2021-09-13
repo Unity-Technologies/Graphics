@@ -6,10 +6,10 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl"
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Deprecated.hlsl"
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/SurfaceData.hlsl"
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/Deprecated.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/SurfaceData.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/Shadows.hlsl"
 
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU

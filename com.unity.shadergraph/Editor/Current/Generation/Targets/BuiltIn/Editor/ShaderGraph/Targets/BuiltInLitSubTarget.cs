@@ -588,14 +588,14 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         #region Includes
         static class LitIncludes
         {
-            const string kShadows = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shadows.hlsl";
-            const string kMetaInput = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/MetaInput.hlsl";
-            const string kForwardPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl";
-            const string kForwardAddPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRForwardAddPass.hlsl";
-            const string kDeferredPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRDeferredPass.hlsl";
-            const string kGBuffer = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/UnityGBuffer.hlsl";
-            const string kPBRGBufferPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl";
-            const string kLightingMetaPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
+            const string kShadows = "Packages/com.unity.shadergraph/Current/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shadows.hlsl";
+            const string kMetaInput = "Packages/com.unity.shadergraph/Current/Editor/Generation/Targets/BuiltIn/ShaderLibrary/MetaInput.hlsl";
+            const string kForwardPass = "Packages/com.unity.shadergraph/Current/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl";
+            const string kForwardAddPass = "Packages/com.unity.shadergraph/Current/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRForwardAddPass.hlsl";
+            const string kDeferredPass = "Packages/com.unity.shadergraph/Current/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRDeferredPass.hlsl";
+            const string kGBuffer = "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/UnityGBuffer.hlsl";
+            const string kPBRGBufferPass = "Packages/com.unity.shadergraph/Current/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl";
+            const string kLightingMetaPass = "Packages/com.unity.shadergraph/Current/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
 
             public static readonly IncludeCollection Forward = new IncludeCollection
             {

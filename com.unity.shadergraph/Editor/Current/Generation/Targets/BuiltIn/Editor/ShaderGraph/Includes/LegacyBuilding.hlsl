@@ -1,7 +1,7 @@
 #ifndef UNITY_LEGACY_BUILDING_INCLUDED
 #define UNITY_LEGACY_BUILDING_INCLUDED
 
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/SurfaceData.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/SurfaceData.hlsl"
 
 SurfaceData SurfaceDescriptionToSurfaceData(SurfaceDescription surfaceDescription)
 {

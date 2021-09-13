@@ -2,7 +2,7 @@
 #define SG_LIT_META_INCLUDED
 
 #include "UnityMetaPass.cginc"
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/SurfaceData.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Current/Generation/Targets/BuiltIn/ShaderLibrary/SurfaceData.hlsl"
 
 SurfaceData SurfaceDescriptionToSurfaceData(SurfaceDescription surfaceDescription)
 {
