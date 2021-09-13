@@ -387,10 +387,9 @@ namespace UnityEditor.VFX.Block
                 if (SampleMode == CurveSampleMode.BySpeed)
                 {
                     var speedRangeComponents = VFXOperatorUtility.ExtractComponents(speedRange).ToArray();
-                    // speedRange.y = 1 / (sign(speedRange.y - speedRange.y) * max(epsilon, abs(speedRange.y - speedRange.y))
+                    // speedRange.y = 1 / (speedRange.y - speedRange.x)
                     var speedRangeDelta = speedRangeComponents[1] - speedRangeComponents[0];
-                    var denom = new VFXExpressionSign(speedRangeDelta) * new VFXExpressionMax(VFXOperatorUtility.EpsilonExpression[VFXValueType.Float], new VFXExpressionAbs(speedRangeDelta));
-                    speedRangeComponents[1] = VFXOperatorUtility.OneExpression[VFXValueType.Float] / denom;
+                    speedRangeComponents[1] = VFXOperatorUtility.OneExpression[VFXValueType.Float] / speedRangeDelta;
                     yield return new VFXNamedExpression(new VFXExpressionCombine(speedRangeComponents), "SpeedRange");
                 }
             }
