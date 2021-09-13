@@ -630,8 +630,8 @@ void ApplyScreenSpaceReflectionWeight(inout float4 ssrLighting)
 {
     // Note: RGB is already premultiplied by A for SSR
     // TODO: check why it isn't consistent between SSR and RTR
-    float weight = _EnableRayTracedReflections ? 1.0 : ssrLighting.a;
-    ssrLighting.rgb *= ssrLighting.a;
+    float weight = _EnableRayTracedReflections ? ssrLighting.a : 1.0;
+    ssrLighting.rgb *= weight;
 }
 #endif
 
