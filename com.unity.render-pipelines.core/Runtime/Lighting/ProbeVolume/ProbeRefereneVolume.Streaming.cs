@@ -16,9 +16,9 @@ namespace UnityEngine.Experimental.Rendering
         {
             public int Compare(CellInfo x, CellInfo y)
             {
-                if (x.distanceToCamera > y.distanceToCamera)
+                if (x.streamingScore > y.streamingScore)
                     return 1;
-                else if (x.distanceToCamera < y.distanceToCamera)
+                else if (x.streamingScore < y.streamingScore)
                     return -1;
                 else
                     return 0;
@@ -38,18 +38,21 @@ namespace UnityEngine.Experimental.Rendering
         {
             foreach (var cellInfo in cells)
             {
-                cellInfo.distanceToCamera = Vector3.Distance(cameraPosition, cellInfo.cell.position);
+                // For now streaming score is only distance based.
+                cellInfo.streamingScore = Vector3.Distance(cameraPosition, cellInfo.cell.position);
             }
         }
 
         public void UpdateCellStreaming(Camera camera)
         {
+            var cameraPosition = camera.transform.position;
             if (!debugDisplay.freezeStreaming)
             {
-                m_FrozenCameraPosition = camera.transform.position;
+                m_FrozenCameraPosition = cameraPosition;
             }
 
-            var cameraPositionCellSpace = (m_FrozenCameraPosition - m_Transform.posWS) / MaxBrickSize();
+            // Cell position in cell space is the top left corner. So we need to shift the camera position by half a cell to make things comparable.
+            var cameraPositionCellSpace = (m_FrozenCameraPosition - m_Transform.posWS) / MaxBrickSize() - Vector3.one * 0.5f;
 
             ComputeCellCameraDistance(cameraPositionCellSpace, m_UnloadedCells);
             ComputeCellCameraDistance(cameraPositionCellSpace, m_LoadedCells);

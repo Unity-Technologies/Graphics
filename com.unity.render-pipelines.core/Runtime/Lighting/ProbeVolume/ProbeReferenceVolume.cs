@@ -310,7 +310,7 @@ namespace UnityEngine.Experimental.Rendering
             public bool loaded = false;
             public ProbeBrickIndex.CellIndexUpdateInfo updateInfo;
             public int sourceAssetInstanceID;
-            public float distanceToCamera;
+            public float streamingScore;
         }
 
         internal struct Volume : IEquatable<Volume>
