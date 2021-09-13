@@ -379,7 +379,8 @@ namespace UnityEngine.Rendering.Universal
 
         private void CallOnBeforeRender(Camera camera, ILight2DCullResult cullResult)
         {
-            Matrix4x4 cameraLightFrustum = CalculateCameraLightFrustum(camera, cullResult);
+            //Matrix4x4 cameraLightFrustum = CalculateCameraLightFrustum(camera, cullResult);
+            Matrix4x4 cameraLightFrustum = camera.projectionMatrix;
 
             List<ShadowCasterGroup2D> groups = ShadowCasterGroup2DManager.shadowCasterGroups;
             for(int groupIndex=0; groupIndex < groups.Count; groupIndex++)
