@@ -1,8 +1,10 @@
-[comment]: # (If you modify this file make sure you modify the copy/paste file: com.unity.render-pipelines.high-definition and com.unity.render-pipelines.core\Documentation~\Common\lens-flare-data-driven-asset.md)
+[comment]: # "If you modify this file make sure you modify the copy/paste file: com.unity.render-pipelines.universal and com.unity.render-pipelines.core\Documentation~\Common\lens-flare-data-driven-asset.md"
 
-# Lens Flare (SRP) Asset
+# Lens Flare (SRP) Data Asset
 
-Unity’s [Scriptable Render Pipeline (SRP)](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html) includes the **Lens Flare Element** asset. You can use this asset to create lens flares in your scene and control their appearance. <br/>To create a Lens Flare Element asset, navigate to **Assets > Create > SRP Lens Flare**. To use this asset, assign it to the **Lens Flare Data** property of an [SRP Lens Flare Override Component](srp-lens-flare-component.md).
+Unity’s [Scriptable Render Pipeline (SRP)](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html) includes the **Lens Flare Data** asset. You can use this asset to control the appearance of [Lens Flares](lens-flare-data-driven-component.md) in your scene. This is the SRP equivalent of the Built-in Render Pipeline's [Flare](https://docs.unity3d.com/Manual/class-Flare.html) asset, which is incompatible with SRPs.
+
+To create a Lens Flare Data asset, select **Assets > Create > Lens Flare (SRP)**. To use this asset, assign it to the **Lens Flare Data** property of a [Lens Flare (SRP) component](lens-flare-data-driven-component.md).
 
 ## Properties
 
@@ -32,7 +34,7 @@ The Lens Flare Element asset has the following properties:
 
 #### Image
 
-![](images/lighting/LensFlareShapeImage.png)
+![](images/lighting/lens-flare-shape-image.png)
 
 | **Property**          | **Description**                                              |
 | --------------------- | ------------------------------------------------------------ |
@@ -43,19 +45,19 @@ The Lens Flare Element asset has the following properties:
 
 #### Circle
 
-![](images/lighting/LensFlareShapeCircle.png)
+![](images/lighting/lens-flare-shape-circle.png)
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
 | Gradient     | Controls the offset of the circular flare's gradient. This value ranges from 0 to 1. |
 | Falloff      | Controls the falloff of the circular flare's gradient. This value ranges from 0 to 1, where 0 has no falloff between the tones and 1 creates a falloff that is spread evenly across the circle. |
-| Invert       | Enable this property to reverse the direction of the gradient. |
+| Inverse      | Enable this property to reverse the direction of the gradient. |
 
 <a name="Polygon"></a>
 
 #### Polygon
 
-![](images/lighting/LensFlareShapePolygon.png)
+![](images/lighting/lens-flare-shape-polygon.png)
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
@@ -63,13 +65,13 @@ The Lens Flare Element asset has the following properties:
 | Falloff      | Controls the falloff of the polygon flare's gradient. This value ranges from 0 to 1, where 0 has no falloff between the tones and 1 creates a falloff that is spread evenly across the polygon. |
 | Side Count   | Determines how many sides the polygon flare has.             |
 | Roundness    | Defines how smooth the edges of the polygon flare are. This value ranges from 0 to 1, where 0 is a sharp polygon and 1 is a circle. |
-| Invert       | Enable this property to reverse the direction of the gradient |
+| Inverse      | Enable this property to reverse the direction of the gradient |
 
 <a name="Color"></a>
 
 ## Color
 
-![](images/lighting/LensFlareColor.png)
+![](images/lighting/lens-flare-Color.png)
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
@@ -82,22 +84,22 @@ The Lens Flare Element asset has the following properties:
 
 ## Transform
 
-![](images/lighting/LensFlareTransform.png)
+![](images/lighting/lens-flare-Transform.png)
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
 | Position Offset   | Defines the offset of the lens flare's position in screen space, relative to its source. |
 | Auto Rotate             | Enable this property to automatically rotate the Lens Flare Texture relative to its angle on the screen. Unity uses the **Auto Rotate** angle to override the **Rotation** parameter. <br/><br/> To ensure the Lens Flare can rotate, assign a value greater than 0 to the [**Starting Position**](#AxisTransform)  property. |
 | Rotation                | Rotates the lens flare. This value operates in degrees of rotation. |
-| Scale                | The per-axis scale to apply to this lens flare element. <br/><br/> This property is not available when the [Type](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Type) is set to [Image](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Image) and **Preserve Aspect Ratio** is enabled. |
-| Uniform Scale          | The axis-independent scale to apply to this lens flare element. |
+| Size                    | Use this to adjust the scale of this lens flare element. <br/><br/> This property is not available when the [Type](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Type) is set to [Image](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Image) and **Preserve Aspect Ratio** is enabled. |
+| Scale                   | The size of this lens flare element in world space.          |
 
 
 <a name="AxisTransform"></a>
 
 ## AxisTransform
 
-![](images/lighting/LensFlareAxisTransform.png)
+![](images/lighting/lens-flare-axis-transform.png)
 
 | **Property**      | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
@@ -109,7 +111,7 @@ The Lens Flare Element asset has the following properties:
 
 ## Distortion
 
-![](images/lighting/LensFlareRadialDistortion.png)
+![](images/lighting/lens-flare-radial-distortion.png)
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
@@ -131,7 +133,7 @@ The Lens Flare Element asset has the following properties:
 | Relative To Center | If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position. |
 
 ### Uniform
-![](images/lighting/LensFlareMultileElementUniform.png)
+![](images/lighting/lens-flare-multiple-elements-uniform.png)
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
@@ -142,20 +144,20 @@ The Lens Flare Element asset has the following properties:
 
 ### Curve
 
-![](images/lighting/LensFlareMultileElementCurve.png)
+![](images/lighting/lens-flare-multiple-elements-curve.png)
 
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |
 | Colors           | The range of colors that this asset applies to the lens flares. You can use the **Position Spacing** curve to determine how this range affects each lens flare. |
 | Position Variation | Adjust this curve to change the placement of the lens flare elements in the **Lens Spread**. |
-| Rotation | The uniform angle of rotation (in degrees) applied to each element distributed along the curve. This value ranges from -180° to 180 |
+| Rotation | The uniform angle of rotation (in degrees) applied to each element distributed along the curve. This value ranges from -180° to 180°. |
 | Scale | Adjust this curve to control the size range of the lens flare elements. |
 
 <a name="Random"></a>
 
 ### Random
 
-![](images/lighting/LensFlareMultileElementRandom.png)
+![](images/lighting/lens-flare-multiple-elements-random.png)
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |
