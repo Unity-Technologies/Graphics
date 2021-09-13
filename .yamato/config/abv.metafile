@@ -20,6 +20,7 @@ jobs:
       - .yamato/all-vfx.yml#Nightly_VFX_<TRACK>
       - .yamato/all-urp.yml#Nightly_URP_<TRACK>
       - .yamato/all-shadergraph.yml#Nightly_ShaderGraph_<TRACK>
+      - .yamato/_templates.yml#all_template_ci_<TRACK>
       - <PROJECT_ALL_YML_FILE>#General_Checks_<TRACK>
     triggers:
         recurring:
