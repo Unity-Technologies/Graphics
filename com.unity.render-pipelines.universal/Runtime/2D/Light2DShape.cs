@@ -49,9 +49,13 @@ namespace UnityEngine.Rendering.Universal
             internal set { m_ShapePath = value; }
         }
 
-        internal void SetShapePath(Vector3[] path)
+        /// <summary>
+        /// Set the path that represents the shape light. Values are in object space.
+        /// </summary>
+        public void SetShapePath(Vector3[] path)
         {
             m_ShapePath = path;
+            UpdateMesh(true);
         }
     }
 }
