@@ -1,12 +1,6 @@
 # Building your Project for consoles
 
-To build a Project for the **PlayStation 4**, **PlayStation 5**, **Xbox Series**, **Game Core Xbox One** or **Xbox One**, you need to install an additional package for each platform you want to support. The packages for each platform are:
-
-- **PlayStation 4**: com.unity.render-pipelines.ps4
-- **PlayStation 5**: com.unity.render-pipelines.ps5
-- **Xbox One**: com.unity.render-pipelines.xboxone
-- **Game Core Xbox Series**: com.unity.render-pipelines.gamecore
-- **Game Core Xbox One**: com.unity.render-pipelines.gamecore
+If you have a license to develop games for Closed platforms that require you to meet the confidentiality and legal agreements of the platform provider, then see the relevant developer forums for a link to the console specific render pipeline package.
 
 ## Platform package installation
 
