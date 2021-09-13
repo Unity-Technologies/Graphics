@@ -90,6 +90,7 @@ The version number for this package has increased due to a version update of a r
 - Added a parameter to control the vertical shape offset of the volumetric clouds (case 1358528).
 - Added an option to render screen space global illumination in half resolution to achieve real-time compatible performance in high resolutions (case 1353727).
 - Added a built-in custom pass to draw object IDs.
+- Added Expose SSR parameters to control speed rejection from Motion Vector including computing Motion Vector in World Space.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
