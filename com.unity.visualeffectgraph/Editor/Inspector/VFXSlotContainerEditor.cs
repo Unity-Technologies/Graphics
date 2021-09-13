@@ -109,6 +109,20 @@ class VFXSlotContainerEditor : Editor
 
                 EditorGUILayout.IntPopup(prop.Value, enumNames, enumValues);
             }
+            else if (fieldInfo.FieldType == typeof(int)
+                        && fieldInfo.GetCustomAttributes(typeof(RangeAttribute), false).Length != 0
+                        && fieldInfo.GetCustomAttributes(typeof(DelayedAttribute), false).Length != 0)
+            {
+                //N.B.: Range & Delayed attribute are incompatible, avoid slider usage
+                var newValue = EditorGUILayout.DelayedIntField(ObjectNames.NicifyVariableName(prop.Value.name), prop.Value.intValue);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    var delay = (RangeAttribute)fieldInfo.GetCustomAttributes(typeof(RangeAttribute), false).First();
+                    newValue = Mathf.Clamp(newValue, (int)delay.min, (int)delay.max);
+                    prop.Value.intValue = newValue;
+                    modifiedSetting = prop.Value;
+                }
+            }
             else
             {
                 bool visibleChildren = EditorGUILayout.PropertyField(prop.Value);
