@@ -1105,7 +1105,7 @@ namespace UnityEditor.ShaderGraph
 
         internal static string GetDefaultTemplatePath(string templateName)
         {
-            var basePath = "Packages/com.unity.shadergraph/Editor/Generation/Templates/";
+            var basePath = "Packages/com.unity.shadergraph/Editor/Current/Generation/Templates/";
             string templatePath = Path.Combine(basePath, templateName);
 
             if (File.Exists(templatePath))
@@ -1116,7 +1116,7 @@ namespace UnityEditor.ShaderGraph
 
         internal static string[] defaultDefaultSharedTemplateDirectories = new string[]
         {
-            "Packages/com.unity.shadergraph/Editor/Generation/Templates"
+            "Packages/com.unity.shadergraph/Editor/Current/Generation/Templates"
         };
 
         internal static string[] GetDefaultSharedTemplateDirectories()
