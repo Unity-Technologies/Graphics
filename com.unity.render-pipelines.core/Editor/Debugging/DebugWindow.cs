@@ -562,6 +562,8 @@ namespace UnityEditor.Rendering
             public readonly GUIStyle sectionHeader = new GUIStyle(EditorStyles.largeLabel);
             public readonly Color skinBackgroundColor;
 
+            public static int foldoutColumnWidth = 70;
+
             public Styles()
             {
                 Color textColorDarkSkin = new Color32(210, 210, 210, 255);

@@ -48,14 +48,13 @@ namespace UnityEditor.Rendering
 
             // Following layout should match DebugUIDrawerFoldout to make column labels align
             Rect drawRect = GUILayoutUtility.GetLastRect();
-            const int oneColumnWidth = 70;
             int indent = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0; //be at left of rects
             for (int i = 0; i < w.numElements; i++)
             {
                 var columnRect = drawRect;
-                columnRect.x += EditorGUIUtility.labelWidth + i * oneColumnWidth;
-                columnRect.width = oneColumnWidth;
+                columnRect.x += EditorGUIUtility.labelWidth + i * DebugWindow.Styles.foldoutColumnWidth;
+                columnRect.width = DebugWindow.Styles.foldoutColumnWidth;
                 var value = w.values[i].GetValue();
                 EditorGUI.LabelField(columnRect, w.values[i].FormatString(value));
             }
@@ -499,14 +498,13 @@ namespace UnityEditor.Rendering
             Rect drawRect = GUILayoutUtility.GetLastRect();
             if (w.columnLabels != null && value)
             {
-                const int oneColumnWidth = 70;
                 int indent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = 0; //be at left of rects
                 for (int i = 0; i < w.columnLabels.Length; i++)
                 {
                     var columnRect = drawRect;
-                    columnRect.x += EditorGUIUtility.labelWidth + i * oneColumnWidth;
-                    columnRect.width = oneColumnWidth;
+                    columnRect.x += EditorGUIUtility.labelWidth + i * DebugWindow.Styles.foldoutColumnWidth;
+                    columnRect.width = DebugWindow.Styles.foldoutColumnWidth;
                     string label = w.columnLabels[i] ?? "";
                     string tooltip = w.columnTooltips?.ElementAtOrDefault(i) ?? "";
                     EditorGUI.LabelField(columnRect, EditorGUIUtility.TrTextContent(label, tooltip), EditorStyles.miniBoldLabel);

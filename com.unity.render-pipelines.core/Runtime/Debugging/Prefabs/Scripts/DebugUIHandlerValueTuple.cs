@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.UI
 
         const float k_XOffset = 230f;
         float m_Timer;
-        static readonly Color k_ZeroColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+        static readonly Color k_ZeroColor = Color.gray;
 
         /// <summary>
         /// OnEnable implementation.

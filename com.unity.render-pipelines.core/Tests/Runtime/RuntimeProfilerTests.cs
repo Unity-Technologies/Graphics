@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.Tests
 
     // FIXME: Tests are disabled in player builds for now, since there's no API that tells whether frame timing is
     //        enabled or not. Re-enable if that changes.
-#if true//UNITY_EDITOR
+#if UNITY_EDITOR
     class RuntimeProfilerTests : RuntimeProfilerTestBase
     {
         [UnityTest]
