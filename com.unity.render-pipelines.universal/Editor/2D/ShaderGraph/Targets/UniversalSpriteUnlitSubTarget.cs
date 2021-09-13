@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Legacy;
-using UnityEditor.UIElements;
+
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, (evt) =>
+            context.AddProperty("Blending Mode", new UnityEngine.UIElements.EnumField(AlphaMode.Alpha) { value = target.alphaMode }, (evt) =>
             {
                 if (Equals(target.alphaMode, evt.newValue))
                     return;
@@ -108,9 +108,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passes = new PassCollection
                     {
                         { SpriteUnlitPasses.Unlit },
-                        { SpriteUnlitPasses.Forward },
                         { CorePasses._2DSceneSelection(target) },
                         { CorePasses._2DScenePicking(target) },
+                        // Currently this pass must be last for the game view for UI shaders to render
+                        // correctly. Verify [1352225] before changing this order.
+                        { SpriteUnlitPasses.Forward },
                     },
                 };
                 return result;

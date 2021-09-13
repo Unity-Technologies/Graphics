@@ -29,10 +29,11 @@ namespace UnityEngine.Rendering.HighDefinition
         private void BindAPVRuntimeResources(CommandBuffer cmdBuffer, HDCamera hdCamera)
         {
             bool needToBindNeutral = true;
+            var refVolume = ProbeReferenceVolume.instance;
+
             // Do this only if the framesetting is on, otherwise there is some hidden cost
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
             {
-                var refVolume = ProbeReferenceVolume.instance;
                 ProbeReferenceVolume.RuntimeResources rr = refVolume.GetRuntimeResources();
 
                 bool validResources = rr.index != null && rr.L0_L1rx != null && rr.L1_G_ry != null && rr.L1_B_rz != null;
@@ -40,12 +41,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (validResources)
                 {
                     cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResIndex, rr.index);
+                    cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResCellIndices, rr.cellIndices);
 
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0_L1Rx, rr.L0_L1rx);
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1G_L1Ry, rr.L1_G_ry);
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1B_L1Rz, rr.L1_B_rz);
 
-                    if (m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                    if (refVolume.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {
                         cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_0, rr.L2_0);
                         cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_1, rr.L2_1);
@@ -67,13 +69,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResIndex, m_EmptyIndexBuffer);
+                cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResCellIndices, m_EmptyIndexBuffer);
 
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0_L1Rx, TextureXR.GetBlackTexture3D());
 
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1G_L1Ry, TextureXR.GetBlackTexture3D());
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1B_L1Rz, TextureXR.GetBlackTexture3D());
 
-                if (m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                if (refVolume.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 {
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_0, TextureXR.GetBlackTexture3D());
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_1, TextureXR.GetBlackTexture3D());

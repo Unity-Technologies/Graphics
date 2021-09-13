@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
         static class VFXFields
         {
             public const string kTag = "OutputType";
-            public static FieldDescriptor ParticleMesh            = new FieldDescriptor(kTag, "Mesh",            "VFX_PARTICLE_MESH 1");
+            public static FieldDescriptor ParticleMesh = new FieldDescriptor(kTag, "Mesh", "VFX_PARTICLE_MESH 1");
             public static FieldDescriptor ParticlePlanarPrimitive = new FieldDescriptor(kTag, "PlanarPrimitive", "VFX_PARTICLE_PLANAR_PRIMITIVE 1");
         }
 

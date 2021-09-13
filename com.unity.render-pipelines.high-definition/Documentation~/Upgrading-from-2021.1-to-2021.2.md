@@ -6,21 +6,6 @@ In the High Definition Render Pipeline (HDRP), some features work differently be
 
 The following shader code behaviour has changed slightly for HDRP version 12.x
 
-### Ambient occlusion for probe volume global illumination
-
-From HDRP2021.2, when you apply ambient occlusion (AO) on a deferred Material to probe volume global illumination (GI) you need to define the following in the Material script:
-
-* A `HAS_PAYLOAD_WITH_UNINIT_GI` constant
-* A `float GetUninitializedGIPayload(SurfaceData surfaceData)` function that returns the AO factor that you want to apply.
-
-You don't need to do anything differently for forward only Materials.
-
-### New shader pass
-
-HDRP 2021.2 includes the `ForwardEmissiveForDeferred` shader pass and the associated `SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED` define for Materials that have a GBuffer pass. You can see this new pass in `Lit.shader`.
-
-When you use the Deferred Lit shader mode, Unity uses `ForwardEmissiveForDeferred` to render the emissive contribution of a Material in a separate forward pass. Otherwise, Unity ignores `ForwardEmissiveForDeferred`.
-
 ### Decals
 
 Decals in HDRP have changed in the following ways:
@@ -39,6 +24,11 @@ HDRP 2021.2 has various tessellation shader code to enable tessellation support 
 * HDRP has improved support of motion vectors for tessellation. Only `previousPositionRWS` is part of the varyings. HDRP also added the `MotionVectorTessellation()` function. For more information, see the `MotionVectorVertexShaderCommon.hlsl` file.
 * HDRP now evaluates the `tessellationFactor` in the vertex shader and passes it to the hull shader as an interpolator. For more information, see the `VaryingMesh.hlsl` and `VertMesh.hlsl` files.
 
+### Specular Occlusion
+
+The algorithm for computing specular occlusion from bent normals and ambient occlusion has been changed to improve visual results.
+To use the old algorithm, function calls to `GetSpecularOcclusionFromBentAO` should be replaced by calls to `GetSpecularOcclusionFromBentAO_ConeCone`
+
 ## Density Volumes
 
 Density Volumes are now known as **Local Volumetric Fog**.
@@ -52,6 +42,11 @@ However, if you reference a **Density Volume** through a C# script, a warning ap
 HDRP 2021.2 includes the new `ClearFlag.Stencil` function. Use this to clear all flags from a stencil.
 
 From HDRP 2021.2,  `ClearFlag.Depth` does not clear stencils.
+
+### Remove of Receive SSGI flags
+
+From HDRP2021.2, it is no longer required to use the receive SSGI flags to have Emissive compatible with Screen Space Global Illumination and related.
+For this reasons the receive SSGI flags have been removed and is no longer available.
 
 ## HDRP Global Settings
 
@@ -84,3 +79,7 @@ From 2021.2, HDRP includes an updated `RendererList` API in the `UnityEngine.Ren
 The previous version of the API in the `UnityEngine.Experimental.Rendering` namespace is still available for compatibility purposes but is now deprecated.
 
 When the **Dynamic Render Pass Culling** option is enabled in the HDRP Global Settings, HDRP will use the new API to dynamically skip certain drawing passes based on the type of currently visible objects. For example if no objects with distortion are drawn, the Render Graph passes that draw the distortion effect (and their dependencies - like the color pyramid generation) will be skipped.
+
+## Dynamic Resolution
+
+From 2021.2, Bilinear and Lanczos upscale filters have been removed as they are mostly redundant with other better options. A project using Bilinear filter will migrate to use Catmull-Rom, if using Lanczos it will migrate to Contrast Adaptive Sharpening (CAS).  If your project was relying on those filters also consider the newly added filters TAA Upscale and FidelityFX Super Resolution 1.0.
