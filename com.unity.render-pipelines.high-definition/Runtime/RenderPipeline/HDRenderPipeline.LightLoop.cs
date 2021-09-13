@@ -1054,7 +1054,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader ssrCS;
             public int tracingKernel;
             public int reprojectionKernel;
-            public int accumulateNoWorldSpeedRejectionKernel;
+            public int accumulateNoWorldSpeedRejectionBothKernel;
+            public int accumulateNoWorldSpeedRejectionSurfaceKernel;
+            public int accumulateNoWorldSpeedRejectionHitKernel;
             public int accumulateHardThresholdSpeedRejectionBothKernel;
             public int accumulateHardThresholdSpeedRejectionSurfaceKernel;
             public int accumulateHardThresholdSpeedRejectionHitKernel;
@@ -1062,7 +1064,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public int accumulateSmoothSpeedRejectionSurfaceKernel;
             public int accumulateSmoothSpeedRejectionHitKernel;
 
-            public int accumulateNoWorldSpeedRejectionDebugKernel;
+            public int accumulateNoWorldSpeedRejectionBothDebugKernel;
+            public int accumulateNoWorldSpeedRejectionSurfaceDebugKernel;
+            public int accumulateNoWorldSpeedRejectionHitDebugKernel;
             public int accumulateHardThresholdSpeedRejectionBothDebugKernel;
             public int accumulateHardThresholdSpeedRejectionSurfaceDebugKernel;
             public int accumulateHardThresholdSpeedRejectionHitDebugKernel;
@@ -1194,7 +1198,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.ssrCS = m_ScreenSpaceReflectionsCS;
                     passData.tracingKernel = m_SsrTracingKernel;
                     passData.reprojectionKernel = m_SsrReprojectionKernel;
-                    passData.accumulateNoWorldSpeedRejectionKernel = m_SsrAccumulateNoWorldSpeedRejectionKernel;
+                    passData.accumulateNoWorldSpeedRejectionBothKernel = m_SsrAccumulateNoWorldSpeedRejectionBothKernel;
+                    passData.accumulateNoWorldSpeedRejectionSurfaceKernel = m_SsrAccumulateNoWorldSpeedRejectionSurfaceKernel;
+                    passData.accumulateNoWorldSpeedRejectionHitKernel = m_SsrAccumulateNoWorldSpeedRejectionHitKernel;
                     passData.accumulateHardThresholdSpeedRejectionBothKernel = m_SsrAccumulateHardThresholdSpeedRejectionBothKernel;
                     passData.accumulateHardThresholdSpeedRejectionSurfaceKernel = m_SsrAccumulateHardThresholdSpeedRejectionSurfaceKernel;
                     passData.accumulateHardThresholdSpeedRejectionHitKernel = m_SsrAccumulateHardThresholdSpeedRejectionHitKernel;
@@ -1202,7 +1208,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.accumulateSmoothSpeedRejectionSurfaceKernel = m_SsrAccumulateSmoothSpeedRejectionSurfaceKernel;
                     passData.accumulateSmoothSpeedRejectionHitKernel = m_SsrAccumulateSmoothSpeedRejectionHitKernel;
 
-                    passData.accumulateNoWorldSpeedRejectionDebugKernel = m_SsrAccumulateNoWorldSpeedRejectionDebugKernel;
+                    passData.accumulateNoWorldSpeedRejectionBothDebugKernel = m_SsrAccumulateNoWorldSpeedRejectionBothDebugKernel;
+                    passData.accumulateNoWorldSpeedRejectionSurfaceDebugKernel = m_SsrAccumulateNoWorldSpeedRejectionSurfaceDebugKernel;
+                    passData.accumulateNoWorldSpeedRejectionHitDebugKernel = m_SsrAccumulateNoWorldSpeedRejectionHitDebugKernel;
                     passData.accumulateHardThresholdSpeedRejectionBothDebugKernel = m_SsrAccumulateHardThresholdSpeedRejectionBothDebugKernel;
                     passData.accumulateHardThresholdSpeedRejectionSurfaceDebugKernel = m_SsrAccumulateHardThresholdSpeedRejectionSurfaceDebugKernel;
                     passData.accumulateHardThresholdSpeedRejectionHitDebugKernel = m_SsrAccumulateHardThresholdSpeedRejectionHitDebugKernel;
@@ -1343,7 +1351,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                         {
                                             if (!data.enableWorldSmoothRejection)
                                             {
-                                                pass = data.accumulateNoWorldSpeedRejectionDebugKernel;
+                                                if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                    pass = data.accumulateNoWorldSpeedRejectionBothDebugKernel;
+                                                else if (data.motionVectorFromHit)
+                                                    pass = data.accumulateNoWorldSpeedRejectionHitDebugKernel;
+                                                else
+                                                    pass = data.accumulateNoWorldSpeedRejectionSurfaceDebugKernel;
                                             }
                                             else
                                             {
@@ -1371,7 +1384,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                         {
                                             if (!data.enableWorldSmoothRejection)
                                             {
-                                                pass = data.accumulateNoWorldSpeedRejectionKernel;
+                                                if (data.motionVectorFromSurface && data.motionVectorFromHit)
+                                                    pass = data.accumulateNoWorldSpeedRejectionBothKernel;
+                                                else if (data.motionVectorFromHit)
+                                                    pass = data.accumulateNoWorldSpeedRejectionHitKernel;
+                                                else
+                                                    pass = data.accumulateNoWorldSpeedRejectionSurfaceKernel;
                                             }
                                             else
                                             {

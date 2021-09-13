@@ -122,23 +122,41 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter accumulationFactor = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
 
         /// <summary>
+        /// For PBR: Controls the bias of accumulation (0 no bias, 1 bias ssr)
+        /// </summary>
+        [AdditionalProperty]
+        public ClampedFloatParameter biasFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Controls the likelihood history will be rejected based on the previous frame motion vectors of both the surface and the hit object in world space.
+        /// </summary>
+        // If change this value, must change on ScreenSpaceReflections.compute on 'float speed = saturate((speedDst + speedSrc) * 128.0f / (...)'
+        [AdditionalProperty]
+        public FloatParameter speedRejectionParam = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        /// <summary>
         /// Controls the upper range of speed. The faster the objects or camera are moving, the higher this number should be.
         /// </summary>
+        // If change this value, must change on ScreenSpaceReflections.compute on 'float speed = saturate((speedDst + speedSrc) * 128.0f / (...)'
+        [AdditionalProperty]
         public ClampedFloatParameter speedRejectionScalerFactor = new ClampedFloatParameter(0.2f, 0.001f, 1f);
 
         /// <summary>
         /// When enabled, history can be partially rejected for moving objects which gives a smoother transition. When disabled, history is either kept or totally rejected.
         /// </summary>
+        [AdditionalProperty]
         public BoolParameter speedSmoothReject = new BoolParameter(false);
 
         /// <summary>
         /// When enabled, speed rejection used world space motion of the reflecting surface.
         /// </summary>
+        [AdditionalProperty]
         public BoolParameter speedSurfaceOnly = new BoolParameter(true);
 
         /// <summary>
         /// When enabled, speed rejection used world space motion of the hit surface by the SSR.
         /// </summary>
+        [AdditionalProperty]
         public BoolParameter speedTargetOnly = new BoolParameter(true);
 
         /// <summary>
@@ -178,18 +196,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [AdditionalProperty]
         public RayTracingFallbackHierachyParameter lastBounceFallbackHierarchy = new RayTracingFallbackHierachyParameter(RayTracingFallbackHierachy.ReflectionProbesAndSky);
-
-        /// <summary>
-        /// For PBR: Controls the bias of accumulation (0 no bias, 1 bias ssr)
-        /// </summary>
-        [AdditionalProperty]
-        public ClampedFloatParameter biasFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
-
-        /// <summary>
-        /// Controls the likelihood history will be rejected based on the previous frame motion vectors of both the surface and the hit object in world space.
-        /// </summary>
-        [AdditionalProperty]
-        public FloatParameter speedRejectionParam = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
         /// Layer mask used to include the objects for screen space reflection.

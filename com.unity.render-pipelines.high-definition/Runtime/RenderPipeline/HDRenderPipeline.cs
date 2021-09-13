@@ -104,7 +104,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader m_ScreenSpaceReflectionsCS { get { return defaultResources.shaders.screenSpaceReflectionsCS; } }
         int m_SsrTracingKernel = -1;
         int m_SsrReprojectionKernel = -1;
-        int m_SsrAccumulateNoWorldSpeedRejectionKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionBothKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionSurfaceKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionHitKernel = -1;
         int m_SsrAccumulateHardThresholdSpeedRejectionBothKernel = -1;
         int m_SsrAccumulateHardThresholdSpeedRejectionSurfaceKernel = -1;
         int m_SsrAccumulateHardThresholdSpeedRejectionHitKernel = -1;
@@ -112,7 +114,9 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_SsrAccumulateSmoothSpeedRejectionSurfaceKernel = -1;
         int m_SsrAccumulateSmoothSpeedRejectionHitKernel = -1;
 
-        int m_SsrAccumulateNoWorldSpeedRejectionDebugKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionBothDebugKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionSurfaceDebugKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionHitDebugKernel = -1;
         int m_SsrAccumulateHardThresholdSpeedRejectionBothDebugKernel = -1;
         int m_SsrAccumulateHardThresholdSpeedRejectionSurfaceDebugKernel = -1;
         int m_SsrAccumulateHardThresholdSpeedRejectionHitDebugKernel = -1;
@@ -355,7 +359,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Initialize various compute shader resources
             m_SsrTracingKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
             m_SsrReprojectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsReprojection");
-            m_SsrAccumulateNoWorldSpeedRejectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejection");
+            m_SsrAccumulateNoWorldSpeedRejectionBothKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth");
+            m_SsrAccumulateNoWorldSpeedRejectionSurfaceKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly");
+            m_SsrAccumulateNoWorldSpeedRejectionHitKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly");
             m_SsrAccumulateHardThresholdSpeedRejectionBothKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth");
             m_SsrAccumulateHardThresholdSpeedRejectionSurfaceKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly");
             m_SsrAccumulateHardThresholdSpeedRejectionHitKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly");
@@ -363,7 +369,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SsrAccumulateSmoothSpeedRejectionSurfaceKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly");
             m_SsrAccumulateSmoothSpeedRejectionHitKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly");
 
-            m_SsrAccumulateNoWorldSpeedRejectionDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionDebug");
+            m_SsrAccumulateNoWorldSpeedRejectionBothDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBothDebug");
+            m_SsrAccumulateNoWorldSpeedRejectionSurfaceDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnlyDebug");
+            m_SsrAccumulateNoWorldSpeedRejectionHitDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnlyDebug");
             m_SsrAccumulateHardThresholdSpeedRejectionBothDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBothDebug");
             m_SsrAccumulateHardThresholdSpeedRejectionSurfaceDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnlyDebug");
             m_SsrAccumulateHardThresholdSpeedRejectionHitDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnlyDebug");
