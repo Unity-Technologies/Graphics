@@ -1,6 +1,5 @@
 {
   "disableProjectUpdate": false,
-  "registry": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
   "dependencies": {
     "com.unity.ext.nunit": "1.0.6",
     "com.unity.formats.usd": "1.0.2-preview.1",
