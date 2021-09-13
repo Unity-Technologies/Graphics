@@ -53,6 +53,11 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 | **Speed Smooth Rejection**        | When enabled, history can be partially rejected for moving objects which gives a smoother transition. When disabled, history is either kept or totally rejected.<br/>This property only appears if you enable **World Space Speed Rejection**. |
 | **Roughness Bias**            | Controls the relative roughness offset. A low value means material roughness stays the same, a high value means smoother reflections.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
 
+To simplify the parametrization of 'Speed Rejection' (**Speed Rejection**, **Speed Rejection Scaler Factor**, **Speed From Reflecting Surface**, **Speed From Reflected Surface**, **Speed Smooth Rejection**) we provide a **Fullscreen Debug Mode**: 'ScreenSpaceReflectionSpeedRejection':
+With a color scale from Green to Red, Green means the sample will be accumulated according to **Accumulation Factor** and Red means this sample will be rejected.
+
+![](Images/ScreenSpaceReflectionPBR_SpeedRejectionSmooth.png)
+
 ### Ray-traced
 
 ![](Images/Override-ScreenSpaceReflection2.png)
