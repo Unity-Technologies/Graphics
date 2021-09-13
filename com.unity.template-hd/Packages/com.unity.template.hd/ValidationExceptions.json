@@ -3,7 +3,7 @@
     {
       "ValidationTest": "Primed Library Validation",
       "ExceptionMessage": "Template is missing primed library path at ProjectData~/Library/ArtifactDB. It should have been added automatically in the CI packing process. Read more about this error and potential solutions at https://docs.unity3d.com/Packages/com.unity.package-validation-suite@latest/index.html?preview=1&subfolder=/manual/primed_library_validation_error.html#template-is-missing-primed-library-path",
-      "PackageVersion": "12.0.0"
+      "PackageVersion": "12.2.0"
     }
   ],
   "WarningExceptions": []
