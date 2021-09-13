@@ -1102,6 +1102,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDCamera hdCamera;
             public float frameIndex;
             public float roughnessBiasFactor;
+            public float speedRejection;
             public float speedRejectionFactor;
             public bool debugDisplaySpeed;
             public bool enableWorldSmoothRejection;
@@ -1247,7 +1248,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     passData.roughnessBiasFactor = volumeSettings.biasFactor.value;
                     passData.debugDisplaySpeed = debugDisplaySpeed;
-                    passData.speedRejectionFactor = volumeSettings.speedRejectionParam.value * volumeSettings.speedRejectionScalerFactor.value;
+                    passData.speedRejection = volumeSettings.speedRejectionParam.value;
+                    passData.speedRejectionFactor = volumeSettings.speedRejectionScalerFactor.value;
                     passData.enableWorldSmoothRejection = volumeSettings.enableWorldSpeedRejection.value;
                     passData.smoothSpeedRejection = volumeSettings.speedSmoothReject.value;
                     passData.motionVectorFromSurface = volumeSettings.speedSurfaceOnly.value;
@@ -1425,7 +1427,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                         ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._SsrClearCoatMaskTexture, data.clearCoatMask);
                                         ctx.cmd.SetComputeTextureParam(cs, pass, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorsBuffer);
                                         ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrFrameIndex, data.frameIndex);
-                                        ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRSpeedRejection, data.speedRejectionFactor);
+                                        ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRSpeedRejection, data.speedRejection);
+                                        ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPRBSpeedRejectionScalerFactor, data.speedRejectionFactor);
 
                                         ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
 

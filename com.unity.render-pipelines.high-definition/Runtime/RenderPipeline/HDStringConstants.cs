@@ -395,6 +395,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SsrHitPointTexture = Shader.PropertyToID("_SsrHitPointTexture");
         public static readonly int _SsrPBRBias = Shader.PropertyToID("_SsrPBRBias");
         public static readonly int _SsrPBRSpeedRejection = Shader.PropertyToID("_SsrPBRSpeedRejection");
+        public static readonly int _SsrPRBSpeedRejectionScalerFactor = Shader.PropertyToID("_SsrPRBSpeedRejectionScalerFactor");
         public static readonly int _SsrClearCoatMaskTexture = Shader.PropertyToID("_SsrClearCoatMaskTexture");
         public static readonly int _DepthPyramidMipLevelOffsets = Shader.PropertyToID("_DepthPyramidMipLevelOffsets");
         public static readonly int _DepthPyramidFirstMipLevelOffset = Shader.PropertyToID("_DepthPyramidFirstMipLevelOffset");
