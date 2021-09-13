@@ -11,14 +11,9 @@
 
 #SGBlackboard {
     position:absolute;
-    border-left-width: 1px;
-    border-top-width: 1px;
-    border-right-width: 1px;
-    border-bottom-width: 1px;
-    border-radius: 5px;
     flex-direction: column;
-    background-color: #2b2b2b;
-    border-color: #191919;
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
     min-width: 100px;
     min-height: 100px;
     width: 200px;
@@ -47,6 +42,14 @@
 }
 
 #SGBlackboard > .mainContainer {
+    border-left-width: 1px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-radius: 5px;
+    background-color: #2b2b2b;
+    border-color: #191919;
+    margin: 6px;
     flex-direction: column;
     align-items: stretch;
 }
@@ -177,6 +180,14 @@
     padding-right: 0;
     padding-bottom: 0;
     padding-top: 0;
+}
+
+#SGBlackboard.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--horizontal {
+    background-color: #393939;
+}
+
+#SGBlackboard.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--vertical {
+    background-color: #393939;
 }
 
 .blackboardSection  > .mainContainer > #sectionHeader {

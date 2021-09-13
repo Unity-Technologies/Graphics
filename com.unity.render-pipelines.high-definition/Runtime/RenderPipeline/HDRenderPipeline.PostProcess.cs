@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             var motionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) ? prepassOutput.resolvedMotionVectorsBuffer : renderGraph.defaultResources.blackTextureXR;
+            var depthValuesMSAA = hdCamera.msaaSamples != MSAASamples.None ? prepassOutput.depthValuesMSAA : TextureHandle.nullHandle;
             m_PostProcessSystem.Render(
                 renderGraph,
                 parameters.hdCamera,
@@ -61,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 prepassOutput.depthPyramidTexture,
                 prepassOutput.resolvedNormalBuffer,
                 motionVectors,
+                depthValuesMSAA,
                 dest,
                 parameters.flipYInPostProcess
             );

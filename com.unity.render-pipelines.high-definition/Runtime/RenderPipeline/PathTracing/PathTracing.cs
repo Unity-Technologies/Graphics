@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Defines the maximum number of paths cast within each pixel, over time (one per frame).
         /// </summary>
         [Tooltip("Defines the maximum number of paths cast within each pixel, over time (one per frame).")]
-        public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 4096);
+        public ClampedIntParameter maximumSamples = new ClampedIntParameter(256, 1, 16384);
 
         /// <summary>
         /// Defines the minimum number of bounces for each path, in [1, 10].
@@ -143,14 +143,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void CheckDirtiness(HDCamera hdCamera)
         {
-            if (m_SubFrameManager.isRecording)
-            {
-                return;
-            }
-
             // Grab the cached data for the current camera
             int camID = hdCamera.camera.GetInstanceID();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
+
+            if (m_SubFrameManager.isRecording)
+            {
+                // If we are recording, we still want to know whether sky rendering is enabled or not
+                camData.skyEnabled = (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky);
+                m_SubFrameManager.SetCameraData(camID, camData);
+                return;
+            }
 
             // Check camera resolution dirtiness
             if (hdCamera.actualWidth != camData.width || hdCamera.actualHeight != camData.height)

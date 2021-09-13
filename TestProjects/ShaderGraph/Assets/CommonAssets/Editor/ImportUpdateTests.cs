@@ -68,7 +68,17 @@ namespace UnityEditor.ShaderGraph.UnitTests
             string dirName = Path.GetFileName(sourceDir);
 
             string targetDir = Application.dataPath + "/Testing/ImportTests/" + dirName;
-            DirectoryCopy(sourceDir, targetDir, true, true);
+            try
+            {
+                // pause asset database, until everything is copied
+                AssetDatabase.StartAssetEditing();
+                DirectoryCopy(sourceDir, targetDir, true, true);
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+            }
+            AssetDatabase.Refresh();
 
             foreach (var assetFullPath in Directory.GetFiles(targetDir, "*.shader*", SearchOption.TopDirectoryOnly))
             {
@@ -101,7 +111,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             graphData.ValidateGraph();
 
             string fileExtension = Path.GetExtension(fullPath).ToLower();
-            bool isSubgraph = (fileExtension == "shadersubgraph");
+            bool isSubgraph = (fileExtension.Contains("shadersubgraph"));
             if (isSubgraph)
             {
                 // check that the SubGraphAsset is the same after versioning twice
@@ -133,6 +143,32 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 string shader2 = generator2.generatedShader;
 
                 Assert.AreEqual(shader, shader2, $"Importing the graph {unityLocalPath} twice resulted in different generated shaders.");
+
+                // compile all of the passes
+                Shader shaderAsset = AssetDatabase.LoadAssetAtPath<Shader>(unityLocalPath);
+                if (shaderAsset == null)
+                {
+                    // it's ok if the shader couldn't be loaded -- probably an HDRP shader
+                    Debug.Log("Could not load Shader");
+                }
+                else
+                {
+                    // this one doesn't compile on OpenGLCore -- too many texture samplers
+                    if ((SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.OpenGLCore) && unityLocalPath.Contains("TextureTest.shadergraph"))
+                    {
+                        Debug.Log("Skipping Compile (GLCore)");
+                        return;
+                    }
+
+                    // if it was loaded though, check there are no compilation errors
+                    var mat = new Material(shaderAsset) { hideFlags = HideFlags.HideAndDontSave };
+                    int materialPassCount = mat.passCount;
+                    for (var i = 0; i < materialPassCount; i++)
+                    {
+                        ShaderUtil.CompilePass(mat, i, true);
+                    }
+                    Object.DestroyImmediate(mat);
+                }
             }
         }
 

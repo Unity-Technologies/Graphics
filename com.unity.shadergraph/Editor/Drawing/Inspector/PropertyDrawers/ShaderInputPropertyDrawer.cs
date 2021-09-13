@@ -112,9 +112,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         void BuildPropertyNameLabel(PropertySheet propertySheet)
         {
             if (shaderInput is ShaderKeyword)
-                propertySheet.Add(PropertyDrawerUtils.CreateLabel($"Keyword: {shaderInput.displayName}", 0, FontStyle.Bold));
+                propertySheet.headerContainer.Add(PropertyDrawerUtils.CreateLabel($"Keyword: {shaderInput.displayName}", 0, FontStyle.Bold));
             else
-                propertySheet.Add(PropertyDrawerUtils.CreateLabel($"Property: {shaderInput.displayName}", 0, FontStyle.Bold));
+                propertySheet.headerContainer.Add(PropertyDrawerUtils.CreateLabel($"Property: {shaderInput.displayName}", 0, FontStyle.Bold));
         }
 
         void BuildExposedField(PropertySheet propertySheet)
@@ -187,7 +187,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 m_ReferenceNameDrawer = new TextPropertyDrawer();
                 propertySheet.Add(m_ReferenceNameDrawer.CreateGUI(
                     null,
-                    (string)shaderInput.referenceName,
+                    (string)shaderInput.referenceNameForEditing,
                     "Reference"));
 
                 m_ReferenceNameField = m_ReferenceNameDrawer.textField;
@@ -218,7 +218,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     m_ReferenceNameDrawer.textField.AddToClassList("modified");
                     m_ReferenceNameDrawer.label.AddToClassList("modified");
                 }
-                m_ReferenceNameDrawer.textField.SetEnabled(shaderInput.isRenamable);
+                m_ReferenceNameDrawer.textField.SetEnabled(shaderInput.isReferenceRenamable);
 
                 // add the right click context menu to the label
                 IManipulator contextMenuManipulator = new ContextualMenuManipulator((evt) => AddShaderInputOptionsToContextMenu(shaderInput, evt));

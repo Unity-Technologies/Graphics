@@ -15,10 +15,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly GUIContent clearModeContent = EditorGUIUtility.TrTextContent("Background Type", "Specifies the type of background the Camera applies when it clears the screen before rendering a frame. Be aware that when setting this to None, the background is never cleared and since HDRP shares render texture between cameras, you may end up with garbage from previous rendering.");
         static readonly GUIContent backgroundColorContent = EditorGUIUtility.TrTextContent("Background Color", "The Background Color used to clear the screen when selecting Background Color before rendering.");
-        static readonly GUIContent cullingMaskContent = EditorGUIUtility.TrTextContent("Culling Mask");
+        static readonly GUIContent cullingMaskContent = EditorGUIUtility.TrTextContent("Culling Mask", "Specifies the list of layers the camera should render.");
         static readonly GUIContent volumeLayerMaskContent = EditorGUIUtility.TrTextContent("Volume Layer Mask");
         static readonly GUIContent volumeAnchorOverrideContent = EditorGUIUtility.TrTextContent("Volume Anchor Override");
-        static readonly GUIContent occlusionCullingContent = EditorGUIUtility.TrTextContent("Occlusion Culling");
+        static readonly GUIContent occlusionCullingContent = EditorGUIUtility.TrTextContent("Occlusion Culling", "When enabled, the camera does not render objects that are being obscured by other geometry.");
 
         static readonly GUIContent exposureTargetContent = EditorGUIUtility.TrTextContent("Exposure Target", "The object used as a target for centering the Exposure's Procedural Mask metering mode when target object option is set (See Exposure Volume Component).");
 

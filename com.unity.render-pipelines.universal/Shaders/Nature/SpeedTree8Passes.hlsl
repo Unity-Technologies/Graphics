@@ -414,13 +414,23 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
         occlusion = input.interpolated.color.r;
     #endif
 
-    // subsurface (hijack emissive)
-    #ifdef EFFECT_SUBSURFACE
-        emission = tex2D(_SubsurfaceTex, uv).rgb * _SubsurfaceColor.rgb;
-    #endif
-
     InputData inputData;
     InitializeInputData(input, normalTs, inputData);
+
+    // subsurface (hijack emissive)
+    #ifdef EFFECT_SUBSURFACE
+        Light mainLight = GetMainLight();
+    half fSubsurfaceRough = 0.7 - smoothness * 0.5;
+    half fSubsurface = D_GGX(clamp(-dot(mainLight.direction.xyz, inputData.viewDirectionWS.xyz), 0, 1), fSubsurfaceRough);
+
+    float4 shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+    half realtimeShadow = MainLightRealtimeShadow(shadowCoord);
+    float3 tintedSubsurface = tex2D(_SubsurfaceTex, uv).rgb * _SubsurfaceColor.rgb;
+        float3 directSubsurface = tintedSubsurface.rgb * mainLight.color.rgb * fSubsurface * realtimeShadow;
+    float3 indirectSubsurface = tintedSubsurface.rgb * inputData.bakedGI.rgb * _SubsurfaceIndirect;
+    emission = directSubsurface + indirectSubsurface;
+    #endif
+
 
 #ifdef GBUFFER
     // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR
