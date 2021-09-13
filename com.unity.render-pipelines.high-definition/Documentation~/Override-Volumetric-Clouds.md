@@ -128,6 +128,7 @@ When importing these two map Textures, disable **sRGB**. For best results, do no
 | **Property**                   | **Description**                                              |
 | ------------------------------ | ------------------------------------------------------------ |
 | **Ambient Light Probe Dimmer** | Controls the influence of light probes on the cloud volume. A lower value suppresses the ambient light and produces darker clouds overall. |
+| **Sun Light Dimmer**           | Controls the influence of the sun light on the cloud volume. A lower value suppresses the sun light and produces darker clouds overall. |
 | **Erosion Occlusion**          | Controls how much Erosion Factor is taken into account when computing ambient occlusion. The Erosion Factor parameter is editable in the custom preset, Advanced and Manual Modes. |
 | **Scattering Tint**            | The color to tint the clouds.                                |
 | **Powder Effect Intensity**    | Controls the amount of local scattering in the clouds. When clouds have a lot of local details due to erosion, a value of **1** provides a more powdery aspect. |
