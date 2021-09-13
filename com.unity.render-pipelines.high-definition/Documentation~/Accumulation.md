@@ -117,7 +117,7 @@ In this example, you can see that the slow open profile creates a motion trail a
 
 
 ## High Quality Anti-aliasing wiht Accumulation
-You can also use the accumulation API to get a high quality antialiased frame by jittering the projection matrix of each rendered subframe. This is equivalent to rendering a higher resolution image, then downscaling to the final resolution, a process that is often called **SuperSampling**. The accumulation API uses fewer memory resources in the GPU than rendering at higher resolutions. The following example shows how to perform high quality antialiasing with the accumulation API from a script:
+You can also use the accumulation API to jitter the projection matrix of each rendered subframe and get a high quality antialiased frame. This is equivalent to rendering a higher resolution image, then downscaling to the final resolution, a process that is often called **SuperSampling**. The accumulation API uses fewer memory resources in the GPU than rendering at higher resolutions. The following example shows how to perform high quality antialiasing with the accumulation API from a script:
 
 ```C#
 public class SuperSampling : MonoBehaviour
