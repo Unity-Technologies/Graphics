@@ -191,7 +191,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     transformString = string.Format(conversionType == ConversionType.Direction ?
                         "mul(UNITY_MATRIX_I_V, $precision4({0}, 0)).xyz" :
-                        "mul(UNITY_MATRIX_I_V, $precision4({0}, 1)).xyz", inputValue) ;
+                        "mul(UNITY_MATRIX_I_V, $precision4({0}, 1)).xyz", inputValue);
                 }
                 else if (conversion.to == CoordinateSpace.Object)
                 {
