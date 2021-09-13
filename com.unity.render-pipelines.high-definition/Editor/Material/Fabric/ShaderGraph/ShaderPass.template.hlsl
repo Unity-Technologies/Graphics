@@ -44,6 +44,9 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     #ifdef _MATERIAL_FEATURE_COTTON_WOOL
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL;
         $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      lerp(0.0, 0.6, surfaceDescription.Smoothness);
+    #else
+        // Initialize the normal to something non-zero to avoid div-zero warnings for anisotropy.
+        surfaceData.normalWS = float3(0, 1, 0);
     #endif
 
     #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING

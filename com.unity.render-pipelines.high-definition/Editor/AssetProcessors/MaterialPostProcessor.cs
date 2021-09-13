@@ -194,6 +194,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        public void OnPostprocessSpeedTree(GameObject speedtree)
+        {
+            SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;            
+            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedtree, stImporter, HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);	
+        }
+
         // Note: It is not possible to separate migration step by kind of shader
         // used. This is due that user can change shader that material reflect.
         // And when user do this, the material is not reimported and we have no
@@ -257,9 +263,6 @@ namespace UnityEditor.Rendering.HighDefinition
         #endregion
         static void RenderQueueUpgrade(Material material, HDShaderUtils.ShaderID id)
         {
-            // In order for the ray tracing keyword to be taken into account, we need to make it dirty so that the parameter is created first
-            HDShaderUtils.ResetMaterialKeywords(material);
-
             // Replace previous ray tracing render queue for opaque to regular opaque with raytracing
             if (material.renderQueue == ((int)UnityEngine.Rendering.RenderQueue.GeometryLast + 20))
             {
@@ -272,6 +275,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.renderQueue = (int)HDRenderQueue.Priority.Transparent;
                 material.SetFloat(kRayTracing, 1.0f);
             }
+
+            // In order for the ray tracing keyword to be taken into account, we need to make it dirty so that the parameter is created first
+            HDShaderUtils.ResetMaterialKeywords(material);
 
             // For shader graphs, there is an additional pass we need to do
             if (material.HasProperty("_RenderQueueType"))

@@ -630,7 +630,7 @@ half3 xyY_2_XYZ(half3 xyY)
 
 static const half DIM_SURROUND_GAMMA = 0.9811;
 
-half3 darkSurround_to_dimSurround(half3 linearCV)
+float3 darkSurround_to_dimSurround(float3 linearCV)
 {
     half3 XYZ = mul(AP1_2_XYZ_MAT, linearCV);
 

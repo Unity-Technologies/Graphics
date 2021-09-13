@@ -4,6 +4,19 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.7.0] - 2021-07-02
+
+### Fixed
+- Fixed Volume Gizmo size when rescaling parent GameObject
+
+## [10.6.0] - 2021-04-29
+
+### Fixed
+- Fixed ACES filter artefact due to half floating point error on some mobile platforms.
+- Fixed Explicit half precision not working even when Unified Shader Precision Model is enabled.
+- Fixed memory leak when changing SRP pipeline settings, and having the player in pause mode.
+- Skip wind calculations for Speed Tree 8 when wind vector is zero (case 1343002)
+
 ## [10.5.0] - 2021-04-19
 
 Version Updated
@@ -15,6 +28,7 @@ The version number for this package has increased due to a version update of a r
 - Support for the XboxSeries platform has been added.
 - New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
 - New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
+- Added SpeedTree8MaterialUpgrader, which provides utilities for upgrading and importing SpeedTree 8 assets to scriptable render pipelines.
 
 ### Fixed
 - Fixed parameters order on inspectors for Volume Components without custom editor

@@ -207,6 +207,28 @@ namespace UnityEditor.ShaderGraph.Internal
             this.customDeclaration = null;
         }
 
+        public bool ValueEquals(HLSLProperty other)
+        {
+            if ((name != other.name) ||
+                (type != other.type) ||
+                (precision != other.precision) ||
+                (declaration != other.declaration) ||
+                ((customDeclaration == null) != (other.customDeclaration == null)))
+            {
+                return false;
+            }
+            else if (customDeclaration != null)
+            {
+                var ssb = new ShaderStringBuilder();
+                var ssbother = new ShaderStringBuilder();
+                customDeclaration(ssb);
+                other.customDeclaration(ssbother);
+                if (ssb.ToCodeBlock() != ssbother.ToCodeBlock())
+                    return false;
+            }
+            return true;
+        }
+
         static string[,] kValueTypeStrings = new string[(int)HLSLType.FirstObjectType, 2]
         {
                 {"float", "half"},

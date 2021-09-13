@@ -209,7 +209,8 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     if (builtinData.opacity < 1.0)
     {
         RayDesc rayDescriptor;
-        rayDescriptor.Origin = GetAbsolutePositionWS(fragInput.positionRWS) - fragInput.tangentToWorld[2] * _RaytracingRayBias;
+        float bias = dot(WorldRayDirection(), fragInput.tangentToWorld[2]) > 0.0 ? _RaytracingRayBias : -_RaytracingRayBias;
+        rayDescriptor.Origin = fragInput.positionRWS + bias * fragInput.tangentToWorld[2];
         rayDescriptor.Direction = WorldRayDirection();
         rayDescriptor.TMin = 0.0;
         rayDescriptor.TMax = FLT_INF;

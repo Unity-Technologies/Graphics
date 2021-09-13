@@ -34,12 +34,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         protected override bool canCutSelection
         {
-            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCutNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
+            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCutNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any() || selection.OfType<StickyNote>().Any(); }
         }
 
         protected override bool canCopySelection
         {
-            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCopyNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
+            get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCopyNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any() || selection.OfType<StickyNote>().Any(); }
         }
 
         public MaterialGraphView(GraphData graph, Action previewUpdateDelegate) : this()
@@ -342,6 +342,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
                 evt.menu.AppendAction("Duplicate %d", (e) => DuplicateSelection(), (a) => canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+            }
+
+            // Sticky notes aren't given these context menus in GraphView because it checks for specific types.
+            // We can manually add them back in here (although the context menu ordering is different).
+            if (evt.target is StickyNote)
+            {
+                evt.menu.AppendAction("Copy %d", (e) => CopySelectionCallback(), (a) => canCopySelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                evt.menu.AppendAction("Cut %d", (e) => CutSelectionCallback(), (a) => canCutSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                evt.menu.AppendAction("Duplicate %d", (e) => DuplicateSelectionCallback(), (a) => canDuplicateSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
 
             // Contextual menu
@@ -1314,7 +1323,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var remappedEdges = remappedEdgesDisposable.value;
                     var nodeList = copyGraph.GetNodes<AbstractMaterialNode>();
 
-                    ClampNodesWithinView(graphView, nodeList);
+                    ClampNodesWithinView(graphView, new List<IRectInterface>().Union(nodeList).Union(copyGraph.stickyNotes));
 
                     graphView.graph.PasteGraph(copyGraph, remappedNodes, remappedEdges);
 
@@ -1344,22 +1353,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             return copy;
         }
 
-        private static void ClampNodesWithinView(MaterialGraphView graphView, IEnumerable<AbstractMaterialNode> nodeList)
+        private static void ClampNodesWithinView(MaterialGraphView graphView, IEnumerable<IRectInterface> rectList)
         {
-            // Compute the centroid of the copied nodes at their original positions
-            var nodePositions = nodeList.Select(n => n.drawState.position.position);
-            var centroid = UIUtilities.CalculateCentroid(nodePositions);
+            // Compute the centroid of the copied elements at their original positions
+            var positions = rectList.Select(n => n.rect.position);
+            var centroid = UIUtilities.CalculateCentroid(positions);
 
             /* Ensure nodes get pasted at cursor */
             var graphMousePosition = graphView.contentViewContainer.WorldToLocal(graphView.cachedMousePosition);
             var copiedNodesOrigin = graphMousePosition;
             float xMin = float.MaxValue, xMax = float.MinValue, yMin = float.MaxValue, yMax = float.MinValue;
 
-            // Calculate bounding rectangle min and max coordinates for these nodes, to use in clamping later
-            foreach (var node in nodeList)
+            // Calculate bounding rectangle min and max coordinates for these elements, to use in clamping later
+            foreach (var element in rectList)
             {
-                var drawState = node.drawState;
-                var position = drawState.position;
+                var position = element.rect.position;
                 xMin = Mathf.Min(xMin, position.x);
                 yMin = Mathf.Min(yMin, position.y);
                 xMax = Mathf.Max(xMax, position.x);
@@ -1380,7 +1388,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if ((Mathf.Abs(mouseOffset.x) + widthThreshold > graphViewScaledHalfWidth ||
                  (Mathf.Abs(mouseOffset.y) + heightThreshold > graphViewScaledHalfHeight)))
             {
-                // Out of bounds - Adjust taking into account the size of the bounding box around nodes and the current graph zoom level
+                // Out of bounds - Adjust taking into account the size of the bounding box around elements and the current graph zoom level
                 var adjustedPositionX = (xMax - xMin) + widthThreshold * zoomAdjustedViewScale;
                 var adjustedPositionY = (yMax - yMin) + heightThreshold * zoomAdjustedViewScale;
                 adjustedPositionY *= -1.0f * Mathf.Sign(copiedNodesOrigin.y);
@@ -1389,18 +1397,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 copiedNodesOrigin.y += adjustedPositionY;
             }
 
-            foreach (var node in nodeList)
+            foreach (var element in rectList)
             {
-                var drawState = node.drawState;
-                var position = drawState.position;
+                var rect = element.rect;
 
                 // Get the relative offset from the calculated centroid
-                var relativeOffsetFromCentroid = position.position - centroid;
-                // Reapply that offset to ensure node positions are consistent when multiple nodes are copied
-                position.x = copiedNodesOrigin.x + relativeOffsetFromCentroid.x;
-                position.y = copiedNodesOrigin.y + relativeOffsetFromCentroid.y;
-                drawState.position = position;
-                node.drawState = drawState;
+                var relativeOffsetFromCentroid = rect.position - centroid;
+                // Reapply that offset to ensure element positions are consistent when multiple elements are copied
+                rect.x = copiedNodesOrigin.x + relativeOffsetFromCentroid.x;
+                rect.y = copiedNodesOrigin.y + relativeOffsetFromCentroid.y;
+                element.rect = rect;
             }
         }
     }

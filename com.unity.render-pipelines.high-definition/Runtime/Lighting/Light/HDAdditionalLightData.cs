@@ -2246,7 +2246,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, updateType);
 
-                if (needToUpdateCachedContent)
+                if (needToUpdateCachedContent && (lightType != HDLightType.Directional ||
+                                                  hdCamera.camera.cameraType != CameraType.Reflection))
                 {
                     // Handshake with the cached shadow manager to notify about the rendering.
                     // Technically the rendering has not happened yet, but it is scheduled.
@@ -2452,6 +2453,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
         void LateUpdate()
         {
+            // Prevent any unwanted sync when not in HDRP (case 1217575)
+            if (HDRenderPipeline.currentPipeline == null)
+                return;
+
             // We force the animation in the editor and in play mode when there is an animator component attached to the light
 #if !UNITY_EDITOR
             if (!m_Animated)

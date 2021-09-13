@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             Light light = go.GetComponent<Light>();
             HDAdditionalLightData lightAdditionalData = go.GetComponent<HDAdditionalLightData>();
+			HDLightType lightType = lightAdditionalData.type;
 
             Assert.IsNotNull(light);
             Assert.IsNotNull(lightAdditionalData);
@@ -36,6 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // To avoid duplicating init code we copy default settings to Reset additional data
             // Note: we can't call this code inside the HDAdditionalLightData, thus why we don't wrap it in a Reset() function
             HDUtils.s_DefaultHDAdditionalLightData.CopyTo(lightAdditionalData);
+			lightAdditionalData.type = lightType;
         }
     }
 }

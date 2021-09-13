@@ -196,7 +196,7 @@ namespace UnityEditor.VFX
         public virtual void EndCompilation() {}
 
 
-        public void RefreshInputFlowSlots()
+        public void DetachAllInputFlowSlots(bool notify = true)
         {
             //Unlink all existing links. It is up to the user of this method to backup and restore links.
             if (m_InputFlowSlot != null)
@@ -206,7 +206,7 @@ namespace UnityEditor.VFX
                     while (m_InputFlowSlot[slot].link.Count > 0)
                     {
                         var clean = m_InputFlowSlot[slot].link.Last();
-                        InnerUnlink(clean.context, this, clean.slotIndex, slot);
+                        InnerUnlink(clean.context, this, clean.slotIndex, slot, notify);
                     }
                 }
             }
@@ -335,7 +335,7 @@ namespace UnityEditor.VFX
             return true;
         }
 
-        private static void InnerLink(VFXContext from, VFXContext to, int fromIndex, int toIndex, bool notify = true)
+        protected static void InnerLink(VFXContext from, VFXContext to, int fromIndex, int toIndex, bool notify = true)
         {
             if (!CanLink(from, to, fromIndex, toIndex))
                 throw new ArgumentException(string.Format("Cannot link contexts {0} and {1}", from, to));

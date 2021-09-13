@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(111, Extension, -902)]
+    [ScriptedImporter(115, Extension, -902)]
 #else
-    [ScriptedImporter(43, Extension, -902)]
+    [ScriptedImporter(47, Extension, -902)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -512,7 +512,17 @@ Shader ""Hidden/GraphErrorShader2""
                 codeSnippets.Add($"// Property: {property.displayName}{nl}{builder.ToCodeBlock()}{nl}{nl}");
             }
 
+            foreach (var prop in shaderProperties.properties)
+            {
+                if (!graph.properties.Contains(prop) && (prop is SamplerStateShaderProperty))
+                {
+                    sharedCodeIndices.Add(codeSnippets.Count);
+                    ShaderStringBuilder builder = new ShaderStringBuilder();
+                    prop.ForeachHLSLProperty(h => h.AppendTo(builder));
 
+                    codeSnippets.Add($"// Property: {prop.displayName}{nl}{builder.ToCodeBlock()}{nl}{nl}");
+                }
+            }
 
             var inputStructName = $"SG_Input_{assetGuid}";
             var outputStructName = $"SG_Output_{assetGuid}";
