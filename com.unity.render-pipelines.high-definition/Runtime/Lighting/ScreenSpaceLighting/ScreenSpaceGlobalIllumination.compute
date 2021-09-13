@@ -25,8 +25,6 @@
 #pragma kernel TraceGlobalIlluminationHalf      TRACE_GLOBAL_ILLUMINATION=TraceGlobalIlluminationHalf GI_TRACE HALF_RES
 #pragma kernel ReprojectGlobalIllumination      REPROJECT_GLOBAL_ILLUMINATION=ReprojectGlobalIllumination GI_REPROJECT
 #pragma kernel ReprojectGlobalIlluminationHalf  REPROJECT_GLOBAL_ILLUMINATION=ReprojectGlobalIlluminationHalf GI_REPROJECT HALF_RES
-#pragma kernel ConvertSSGI                      CONVERT_SSGI=ConvertSSGI
-#pragma kernel ConvertSSGIHalf                  CONVERT_SSGI=ConvertSSGIHalf HALF_RES
 
 #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
@@ -37,9 +35,6 @@
 #define SSGI_MIP_OFFSET 1
 
 #define SSGI_CLAMP_VALUE 7.0f
-
-// Disabled for now
-//#define PERCEPTUAL_SPACE
 
 // Input depth pyramid texture
 TEXTURE2D_X(_DepthTexture);
@@ -264,16 +259,14 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     {
         BuiltinData apvBuiltinData;
         ZERO_INITIALIZE(BuiltinData, apvBuiltinData);
-        SetAsUninitializedGI(apvBuiltinData.bakeDiffuseLighting);
-        SetAsUninitializedGI(apvBuiltinData.backBakeDiffuseLighting);
 
         EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
                                     normalData.normalWS,
-                                    -normalData.normalWS,
+                                    -normalData.normalWS, // Not used
                                     GetWorldSpaceNormalizeViewDir(posInput.positionWS),
                                     posInput.positionSS,
                                     apvBuiltinData.bakeDiffuseLighting,
-                                    apvBuiltinData.backBakeDiffuseLighting);
+                                    apvBuiltinData.backBakeDiffuseLighting); // Not used
         color = apvBuiltinData.bakeDiffuseLighting * GetCurrentExposureMultiplier();
         invalid = false;
     }
@@ -305,56 +298,8 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     // Convert back to HSV space
     color = HsvToRgb(color);
 
-    // We tone map the signal. Due to the very small budget for denoising, we need to compress the range of the signal before denoising
-    #ifdef PERCEPTUAL_SPACE
-    color *= rcp(1.0 + color);
-    #endif
-
     // We are simply interested to know if the intersected pixel was moving, so we multiply it by a big number
     // TODO: make this process not binary
     // Write the output to the target pixel
     _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(color, 1.0f);
-}
-
-
-[numthreads(INDIRECT_DIFFUSE_TILE_SIZE, INDIRECT_DIFFUSE_TILE_SIZE, 1)]
-void CONVERT_SSGI(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    // Fetch the current pixel coordinate
-    uint2 currentCoord = dispatchThreadId.xy;
-
-    // If the depth of this pixel is the depth of the background, we can end the process right away
-#if HALF_RES
-    currentCoord = currentCoord * 2;
-#endif
-
-    // Fetch the depth of the current pixel
-    float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
-
-    if (deviceDepth == UNITY_RAW_FAR_CLIP_VALUE)
-    {
-        _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(0.0, 0.0, 0.0, 0.0);
-        return;
-    }
-
-    // Grab the color value
-    float3 color = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, dispatchThreadId.xy).xyz;
-
-    // We invert the tonemap
-    #ifdef PERCEPTUAL_SPACE
-    color *= rcp(1.0 - color);
-    #endif
-
-    // In the future mixing this with light probes should increase significantly the image quality.
-    float validityMask = 1.0f;
-
-    // Does this pixel recieve SSGI?
-    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
-    if ((stencilValue & _SsrStencilBit) == 0)
-        validityMask = 0.0;
-
-    // Output the color as well as the blend factor
-    _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(color, validityMask);
 }
