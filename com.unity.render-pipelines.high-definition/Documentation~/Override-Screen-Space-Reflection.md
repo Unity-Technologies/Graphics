@@ -56,7 +56,9 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 To simplify the parametrization of 'Speed Rejection' (**Speed Rejection**, **Speed Rejection Scaler Factor**, **Speed From Reflecting Surface**, **Speed From Reflected Surface**, **Speed Smooth Rejection**) we provide a **Fullscreen Debug Mode**: 'ScreenSpaceReflectionSpeedRejection':
 With a color scale from Green to Red, Green means the sample will be accumulated according to **Accumulation Factor** and Red means this sample will be rejected.
 
-![](Images/ScreenSpaceReflectionPBR_SpeedRejectionSmooth.png)
+One the following example the car is centered on the camera, so the relative motion is null. Here by using **Speed From Reflected Surface** we can accumulate sample from the car and less the one from the sky. 
+
+![](Images/ScreenSpaceReflectionPBR_SpeedRejectionSmooth.gif)
 
 ### Ray-traced
 
