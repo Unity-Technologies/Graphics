@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // If this is the right debug mode and the index we are asking for is in the range
             if (!rayTracingSupported || (m_ScreenSpaceShadowChannelSlot <= m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex))
-                return m_RenderGraph.defaultResources.blackTextureXR;
+                return renderGraph.defaultResources.blackTextureXR;
 
             using (var builder = renderGraph.AddRenderPass<ScreenSpaceShadowDebugPassData>("Screen Space Shadows Debug", out var passData, ProfilingSampler.Get(HDProfileId.ScreenSpaceShadowsDebug)))
             {
@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // If screen space shadows are not supported for this camera, we are done
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) || !RequestedScreenSpaceShadows())
-                return m_RenderGraph.defaultResources.blackTextureArrayXR;
+                return renderGraph.defaultResources.blackTextureArrayXR;
 
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.ScreenSpaceShadows)))
             {
@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We render the debug view, if the texture is not used, it is not evaluated anyway
                 TextureHandle screenSpaceShadowDebug = EvaluateShadowDebugView(renderGraph, hdCamera, screenSpaceShadowTexture);
-                PushFullScreenDebugTexture(m_RenderGraph, screenSpaceShadowDebug, FullScreenDebugMode.ScreenSpaceShadows);
+                PushFullScreenDebugTexture(renderGraph, screenSpaceShadowDebug, FullScreenDebugMode.ScreenSpaceShadows);
 
                 return screenSpaceShadowTexture;
             }

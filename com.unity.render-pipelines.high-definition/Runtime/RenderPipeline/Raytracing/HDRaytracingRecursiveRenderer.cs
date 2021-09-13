@@ -205,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ExecuteRecursiveRendering(ctx.cmd, data.parameters, rrResources);
                 });
 
-                PushFullScreenDebugTexture(m_RenderGraph, passData.debugBuffer, FullScreenDebugMode.RecursiveRayTracing);
+                PushFullScreenDebugTexture(renderGraph, passData.debugBuffer, FullScreenDebugMode.RecursiveRayTracing);
 
                 return passData.outputBuffer;
             }

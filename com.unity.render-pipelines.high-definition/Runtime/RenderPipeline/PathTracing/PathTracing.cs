@@ -406,10 +406,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (parameters.cameraData.currentIteration < m_SubFrameManager.subFrameCount)
             {
-                RenderPathTracing(m_RenderGraph, parameters, radianceTexture);
+                RenderPathTracing(renderGraph, parameters, radianceTexture);
             }
 
-            RenderAccumulation(m_RenderGraph, hdCamera, radianceTexture, outputTexture, true);
+            RenderAccumulation(renderGraph, hdCamera, radianceTexture, outputTexture, true);
 
             return outputTexture;
         }

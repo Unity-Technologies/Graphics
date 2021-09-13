@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 BuildGPULightListOutput probeVolumeListOutput = new BuildGPULightListOutput();
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
                 {
-                    probeVolumeListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_ProbeVolumeClusterData, m_ProbeVolumeCount, ref m_ShaderVariablesProbeVolumeLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
+                    probeVolumeListOutput = BuildGPULightList(renderGraph, hdCamera, m_ProbeVolumeClusterData, m_ProbeVolumeCount, ref m_ShaderVariablesProbeVolumeLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
                 }
 
                 bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result, out var decalBuffer);
