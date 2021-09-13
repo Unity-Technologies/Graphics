@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering.Universal
         public bool pointOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Point; } }
         public bool dirOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Directional; } }
         public bool areaOptionsValue { get { return typeIsSame && (lightProperty.type == LightType.Rectangle || lightProperty.type == LightType.Disc); } }
-        public bool shadowResolutionOptionsValue  { get { return spotOptionsValue || pointOptionsValue; } } // Currently only additional punctual lights can specify per-light shadow resolution
+        public bool shadowResolutionOptionsValue { get { return spotOptionsValue || pointOptionsValue; } } // Currently only additional punctual lights can specify per-light shadow resolution
 
         //  Area light shadows not supported
         public bool runtimeOptionsValue { get { return typeIsSame && (lightProperty.type != LightType.Rectangle && !settings.isCompletelyBaked); } }
@@ -134,11 +134,11 @@ namespace UnityEditor.Rendering.Universal
             // we want the fade group to stay hidden.
             using (var group = new EditorGUILayout.FadeGroupScope(1.0f - m_AnimDirOptions.faded))
                 if (group.visible)
-                #if UNITY_2020_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
                     settings.DrawRange();
-                #else
+#else
                     settings.DrawRange(m_AnimAreaOptions.target);
-                #endif
+#endif
 
             // Spot angle
             using (var group = new EditorGUILayout.FadeGroupScope(m_AnimSpotOptions.faded))

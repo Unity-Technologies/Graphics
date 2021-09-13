@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private Vector3 m_CachedDirectionalAngles;
 
         // Helper array used to check what has been tmp filled.
-        private (int, int)[] m_TempFilled = new(int, int)[6];
+        private (int, int)[] m_TempFilled = new (int, int)[6];
 
         // Cached atlas
         internal HDCachedShadowAtlas punctualShadowAtlas;

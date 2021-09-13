@@ -9,40 +9,66 @@
 ---
 
 PR_HDRP_Hybrid_2021.1:
-    name: HDRP_Hybrid PR Job - 2021.1
+    name: PR HDRP_Hybrid on 2021.1
+    variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_mono_Linear_2021.1
          rerun: on_new_revision
+Extra_HDRP_Hybrid_2021.1:
+    name: Extra HDRP_Hybrid on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_HDRP_Hybrid_2021.1:
-    name: Nightly HDRP_Hybrid - 2021.1
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_XR_mono_Linear_2021.1
          rerun: on_new_revision
-      -  path: .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_2021.1
-         rerun: on_new_revision
+HDRP_Hybrid_2021.1:
+    name: HDRP_Hybrid on 2021.1
     variables:
+        CUSTOM_REVISION: '{{2021_1.changeset.id}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_2021.1
+         rerun: on_new_revision
+      -  path: .yamato/all-hdrp_hybrid.yml#Extra_HDRP_Hybrid_2021.1
+         rerun: on_new_revision
 PR_HDRP_Hybrid_CUSTOM-REVISION:
-    name: HDRP_Hybrid PR Job - CUSTOM-REVISION
+    name: PR HDRP_Hybrid on CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
+Extra_HDRP_Hybrid_CUSTOM-REVISION:
+    name: Extra HDRP_Hybrid on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_HDRP_Hybrid_CUSTOM-REVISION:
-    name: Nightly HDRP_Hybrid - CUSTOM-REVISION
+        CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/hdrp_hybrid-win-dx11.yml#HDRP_Hybrid_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-      -  path: .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_CUSTOM-REVISION
-         rerun: on_new_revision
+HDRP_Hybrid_CUSTOM-REVISION:
+    name: HDRP_Hybrid on CUSTOM-REVISION
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        CACHE_ARGS: '{{cache.flags}}'
+    dependencies:
+      -  path: .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-hdrp_hybrid.yml#Extra_HDRP_Hybrid_CUSTOM-REVISION
+         rerun: on_new_revision

@@ -186,13 +186,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return subShaderDescriptor;
         }
 
-        protected virtual void CollectPassKeywords(ref PassDescriptor pass) {}
+        protected virtual void CollectPassKeywords(ref PassDescriptor pass) { }
 
         public override void GetFields(ref TargetFieldContext context)
         {
             // Common properties between all HD master nodes
             // Dots
-            context.AddField(HDFields.DotsInstancing,      systemData.dotsInstancing);
+            context.AddField(HDFields.DotsInstancing, systemData.dotsInstancing);
         }
 
         protected abstract IEnumerable<SubShaderDescriptor> EnumerateSubShaders();

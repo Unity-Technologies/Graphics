@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get => value == LevelCount ? ((int)Level.Low, true) : (value, false);
             set
             {
-                var(level, useOverride) = value;
+                var (level, useOverride) = value;
                 this.value = GetScalableSettingLevelParameterValue(level, useOverride);
             }
         }
@@ -114,34 +114,34 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /*  Depth of field */
         /// <summary>Depth of field near blur sample count for each quality level.</summary>
-        public int[] NearBlurSampleCount                = new int[s_QualitySettingCount];
+        public int[] NearBlurSampleCount = new int[s_QualitySettingCount];
         /// <summary>Depth of field near blur maximum radius for each quality level.</summary>
-        public float[] NearBlurMaxRadius                = new float[s_QualitySettingCount];
+        public float[] NearBlurMaxRadius = new float[s_QualitySettingCount];
         /// <summary>Depth of field far blur sample count for each quality level.</summary>
-        public int[] FarBlurSampleCount                 = new int[s_QualitySettingCount];
+        public int[] FarBlurSampleCount = new int[s_QualitySettingCount];
         /// <summary>Depth of field far blur maximum radius for each quality level.</summary>
-        public float[] FarBlurMaxRadius                 = new float[s_QualitySettingCount];
+        public float[] FarBlurMaxRadius = new float[s_QualitySettingCount];
         /// <summary>Depth of field resolution for each quality level.</summary>
-        public DepthOfFieldResolution[] DoFResolution   = new DepthOfFieldResolution[s_QualitySettingCount];
+        public DepthOfFieldResolution[] DoFResolution = new DepthOfFieldResolution[s_QualitySettingCount];
         /// <summary>Use Depth of field high quality filtering for each quality level.</summary>
-        public bool[] DoFHighQualityFiltering           = new bool[s_QualitySettingCount];
+        public bool[] DoFHighQualityFiltering = new bool[s_QualitySettingCount];
         /// <summary>Use Depth of field high physically based setting for each quality level.</summary>
-        public bool[] DoFPhysicallyBased                = new bool[s_QualitySettingCount];
+        public bool[] DoFPhysicallyBased = new bool[s_QualitySettingCount];
 
         /* Motion Blur */
         /// <summary>Motion Blur sample count for each quality level.</summary>
-        public int[] MotionBlurSampleCount              = new int[s_QualitySettingCount];
+        public int[] MotionBlurSampleCount = new int[s_QualitySettingCount];
 
         /* Bloom */
         /// <summary>Bloom resolution for each quality level.</summary>
-        public BloomResolution[] BloomRes               = new BloomResolution[s_QualitySettingCount];
+        public BloomResolution[] BloomRes = new BloomResolution[s_QualitySettingCount];
         /// <summary>Bloom high quality filtering for each quality level.</summary>
-        public bool[] BloomHighQualityFiltering         = new bool[s_QualitySettingCount];
+        public bool[] BloomHighQualityFiltering = new bool[s_QualitySettingCount];
         /// <summary>Bloom high quality prefiltering for each quality level.</summary>
-        public bool[] BloomHighQualityPrefiltering         = new bool[s_QualitySettingCount];
+        public bool[] BloomHighQualityPrefiltering = new bool[s_QualitySettingCount];
 
         /* Chromatic Aberration */
         /// <summary>Chromatic aberration maximum sample count for each quality level.</summary>
-        public int[] ChromaticAberrationMaxSamples      = new int[s_QualitySettingCount];
+        public int[] ChromaticAberrationMaxSamples = new int[s_QualitySettingCount];
     }
 }

@@ -154,9 +154,9 @@ namespace UnityEditor.ShaderGraph
                     using (sb.IndentScope())
                     {
 #if HYBRID_RENDERER_0_6_0_OR_NEWER
-                        sb.AppendLine("$precision3x4 skinMatrix = _SkinMatrices[indices[i] + asint(_SkinMatrixIndex)];");
+                        sb.AppendLine("$precision3x4 skinMatrix = _SkinMatrices[indices[i] + asint(UNITY_ACCESS_HYBRID_INSTANCED_PROP(_SkinMatrixIndex,float))];");
 #else
-                        sb.AppendLine("$precision3x4 skinMatrix = _SkinMatrices[indices[i] + (int)_SkinMatricesOffset];");
+                        sb.AppendLine("$precision3x4 skinMatrix = _SkinMatrices[indices[i] + (int)UNITY_ACCESS_HYBRID_INSTANCED_PROP(_SkinMatricesOffset,float)];");
 #endif
                         sb.AppendLine("$precision3 vtransformed = mul(skinMatrix, $precision4(positionIn, 1));");
                         sb.AppendLine("$precision3 ntransformed = mul(skinMatrix, $precision4(normalIn, 0));");

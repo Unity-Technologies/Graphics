@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(23, Extension, -905)]
+    [ScriptedImporter(24, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -66,7 +66,9 @@ namespace UnityEditor.ShaderGraph
             var messageManager = new MessageManager();
             var graphData = new GraphData
             {
-                isSubGraph = true, assetGuid = subGraphGuid, messageManager = messageManager
+                isSubGraph = true,
+                assetGuid = subGraphGuid,
+                messageManager = messageManager
             };
             MultiJson.Deserialize(graphData, textGraph);
 
@@ -224,7 +226,7 @@ namespace UnityEditor.ShaderGraph
             if (anyErrors)
             {
                 asset.isValid = false;
-                registry.ProvideFunction(asset.functionName, sb => {});
+                registry.ProvideFunction(asset.functionName, sb => { });
                 return;
             }
 

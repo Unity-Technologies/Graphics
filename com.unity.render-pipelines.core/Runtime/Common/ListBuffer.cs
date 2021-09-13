@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering
         /// <param name="copyCount">The number of item to copy.</param>
         public unsafe void CopyTo(T* dstBuffer, int startDstIndex, int copyCount)
         {
-            UnsafeUtility.MemCpy(dstBuffer + startDstIndex,  m_BufferPtr,
+            UnsafeUtility.MemCpy(dstBuffer + startDstIndex, m_BufferPtr,
                 UnsafeUtility.SizeOf<T>() * copyCount);
         }
 

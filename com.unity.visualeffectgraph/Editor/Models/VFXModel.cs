@@ -54,8 +54,8 @@ namespace UnityEditor.VFX
             kEnableChanged,         // Node has been enabled/disabled
         }
 
-        public new virtual string name  { get { return string.Empty; } }
-        public virtual string libraryName  { get { return name; } }
+        public new virtual string name { get { return string.Empty; } }
+        public virtual string libraryName { get { return name; } }
 
         public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
 
@@ -78,9 +78,9 @@ namespace UnityEditor.VFX
             }
         }
 
-        public virtual void Sanitize(int version) {}
+        public virtual void Sanitize(int version) { }
 
-        public virtual void CheckGraphBeforeImport() {}
+        public virtual void CheckGraphBeforeImport() { }
 
         public virtual void OnUnknownChange()
         {
@@ -145,8 +145,8 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected virtual void OnAdded() {}
-        protected virtual void OnRemoved() {}
+        protected virtual void OnAdded() { }
+        protected virtual void OnRemoved() { }
 
         public virtual bool AcceptChild(VFXModel model, int index = -1)
         {
@@ -339,7 +339,7 @@ namespace UnityEditor.VFX
 
         // Override this method to update other settings based on a setting modification
         // Use OnIvalidate with KSettingChanged and not this method to handle other side effects
-        public virtual void OnSettingModified(VFXSetting setting) {}
+        public virtual void OnSettingModified(VFXSetting setting) { }
         public virtual IEnumerable<int> GetFilteredOutEnumerators(string name) { return null; }
 
         public virtual VFXSetting GetSetting(string name)

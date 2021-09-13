@@ -38,8 +38,8 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty useMainLayerInfluence = null;
         const string kkUseMainLayerInfluence = "_UseMainLayerInfluence";
 
-        ExpandableBit  m_ExpandableBit;
-        int         m_LayerIndex;
+        ExpandableBit m_ExpandableBit;
+        int m_LayerIndex;
 
         // Density/opacity mode
         MaterialProperty[] opacityAsDensity = new MaterialProperty[kMaxLayerCount];

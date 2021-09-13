@@ -12,14 +12,14 @@ namespace UnityEditor.Rendering.HighDefinition
     public abstract class MaterialUIBlock
     {
         /// <summary>The current material editor.</summary>
-        protected MaterialEditor        materialEditor;
+        protected MaterialEditor materialEditor;
         /// <summary>The list of selected materials to edit.</summary>
-        protected Material[]            materials;
+        protected Material[] materials;
         /// <summary>The list of available properties in the selected materials.</summary>
-        protected MaterialProperty[]    properties;
+        protected MaterialProperty[] properties;
 
         /// <summary>Parent of the UI block.</summary>
-        protected MaterialUIBlockList   parent;
+        protected MaterialUIBlockList parent;
 
         /// <summary>Bit index used to store a foldout state in the editor preferences.</summary>
         [Flags]
@@ -133,7 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
             User19 = 1 << 30,
         }
 
-        internal void         Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
+        internal void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
         {
             this.materialEditor = materialEditor;
             this.parent = parent;
@@ -143,7 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.InitExpandableState();
         }
 
-        internal void         UpdateMaterialProperties(MaterialProperty[] properties)
+        internal void UpdateMaterialProperties(MaterialProperty[] properties)
         {
             this.properties = properties;
             LoadMaterialProperties();
@@ -183,7 +183,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // If the layerCount is 1, then it means that the property we're fetching is not from a layered material
             // thus it doesn't have a prefix
-            string[] prefixes = (layerCount > 1) ? new[] {"0", "1", "2", "3"} : new[] {""};
+            string[] prefixes = (layerCount > 1) ? new[] { "0", "1", "2", "3" } : new[] { "" };
 
             for (int i = 0; i < layerCount; i++)
             {

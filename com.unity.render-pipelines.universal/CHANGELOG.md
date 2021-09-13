@@ -107,6 +107,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where changing camera's position in the BeginCameraRendering do not apply properly. [case 1318629] (https://issuetracker.unity3d.com/issues/camera-doesnt-move-when-changing-its-position-in-the-begincamerarendering-and-the-endcamerarendering-methods)
 - Fixed a performance issue in Hololens when using renderer with custom render passes.
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1331780]
+- Fixed SRP batcher not working on OpenGL.
+- Fixed an error where multisampled texture being bound to a non-multisampled sampler in XR.
+- Fixed terrain hole shadowing [case 1349305]
+- Fixed soft shadows shader variants not set to multi_compile_fragment on some shaders (gbuffer pass, speedtree shaders, WavingGrass shader).
+- Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
+- VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
+- VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
 - Fixed Opacity as Density blending artifacts on Terrain that that caused Terrain to have modified splat weights of zero in some areas and greater than one in others.
 
 ## [10.2.0] - 2020-10-19

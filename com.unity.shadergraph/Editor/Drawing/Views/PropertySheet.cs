@@ -20,12 +20,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public VisualElement headerContainer
         {
-            get { return m_HeaderContainer.Children().FirstOrDefault(); }
+            get => m_HeaderContainer;
             set
             {
                 var first = m_HeaderContainer.Children().FirstOrDefault();
-                if (first != null)
-                    first.RemoveFromHierarchy();
+                first?.RemoveFromHierarchy();
 
                 m_HeaderContainer.Add(value);
             }
@@ -36,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertySheet"));
             m_ContentContainer = new VisualElement { name = "content" };
             m_HeaderContainer = new VisualElement { name = "header" };
-            m_WarningContainer = new VisualElement {name = "error"};
+            m_WarningContainer = new VisualElement { name = "error" };
             m_WarningContainer.Add(new Label(""));
             if (header != null)
                 m_HeaderContainer.Add(header);

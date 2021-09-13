@@ -8,7 +8,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderAnalysis
 {
     /// <summary>Derives from this class to make new report jobs.</summary>
-    public abstract  class BuildReportJobAsync : AsyncBuildReportJob
+    public abstract class BuildReportJobAsync : AsyncBuildReportJob
     {
         bool m_HasReport;
         IEnumerator m_Enumerator;

@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent supportLodCrossFadeText = new GUIContent("Support LOD CrossFade", "When enabled, this decal material supports LOD Cross fade if use on a Mesh.");
         }
 
-        ExpandableBit  m_ExpandableBit;
+        ExpandableBit m_ExpandableBit;
 
         MaterialProperty affectsAlbedo = new MaterialProperty();
         MaterialProperty affectsNormal = new MaterialProperty();

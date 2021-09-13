@@ -24,7 +24,8 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Controls when the render pass executes.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RenderPassEvent
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public enum RenderPassEvent
     {
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> before rendering any other passes in the pipeline.
@@ -110,7 +111,8 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend Universal RP renderer.
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract partial class ScriptableRenderPass
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public abstract partial class ScriptableRenderPass
     {
         public RenderPassEvent renderPassEvent { get; set; }
 
@@ -153,7 +155,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
-        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
+        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] { BuiltinRenderTextureType.CameraTarget };
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
@@ -162,7 +164,7 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
+            m_ColorAttachments = new RenderTargetIdentifier[] { BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0 };
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
@@ -263,7 +265,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ConfigureTarget"/>
         /// <seealso cref="ConfigureClear"/>
         public virtual void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {}
+        { }
 
         /// <summary>
         /// This method is called by the renderer before executing the render pass.
@@ -276,7 +278,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ConfigureTarget"/>
         /// <seealso cref="ConfigureClear"/>
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-        {}
+        { }
 
 
         /// <summary>
@@ -299,7 +301,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void OnFinishCameraStackRendering(CommandBuffer cmd)
-        {}
+        { }
 
         /// <summary>
         /// Execute the pass. This is where custom rendering occurs. Specific details are left to the implementation
@@ -371,12 +373,12 @@ namespace UnityEngine.Rendering.Universal
             return settings;
         }
 
-        public static bool operator<(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
+        public static bool operator <(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent < rhs.renderPassEvent;
         }
 
-        public static bool operator>(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
+        public static bool operator >(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent > rhs.renderPassEvent;
         }

@@ -7,19 +7,19 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         class AfterPostProcessPassData
         {
-            public PostProcessParameters    parameters;
-            public TextureHandle            afterPostProcessBuffer;
-            public TextureHandle            depthStencilBuffer;
-            public RendererListHandle       opaqueAfterPostprocessRL;
-            public RendererListHandle       transparentAfterPostprocessRL;
+            public PostProcessParameters parameters;
+            public TextureHandle afterPostProcessBuffer;
+            public TextureHandle depthStencilBuffer;
+            public RendererListHandle opaqueAfterPostprocessRL;
+            public RendererListHandle transparentAfterPostprocessRL;
         }
 
-        TextureHandle RenderPostProcess(RenderGraph     renderGraph,
-            PrepassOutput   prepassOutput,
-            TextureHandle   inputColor,
-            TextureHandle   backBuffer,
-            CullingResults  cullResults,
-            HDCamera        hdCamera)
+        TextureHandle RenderPostProcess(RenderGraph renderGraph,
+            PrepassOutput prepassOutput,
+            TextureHandle inputColor,
+            TextureHandle backBuffer,
+            CullingResults cullResults,
+            HDCamera hdCamera)
         {
             PostProcessParameters parameters = PreparePostProcess(cullResults, hdCamera);
 
@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             var motionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) ? prepassOutput.resolvedMotionVectorsBuffer : renderGraph.defaultResources.blackTextureXR;
+            var depthValuesMSAA = hdCamera.msaaSamples != MSAASamples.None ? prepassOutput.depthValuesMSAA : TextureHandle.nullHandle;
             m_PostProcessSystem.Render(
                 renderGraph,
                 parameters.hdCamera,
@@ -61,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 prepassOutput.depthPyramidTexture,
                 prepassOutput.resolvedNormalBuffer,
                 motionVectors,
+                depthValuesMSAA,
                 dest,
                 parameters.flipYInPostProcess
             );

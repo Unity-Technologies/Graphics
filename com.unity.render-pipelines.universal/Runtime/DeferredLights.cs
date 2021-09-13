@@ -30,11 +30,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             get
             {
-                #if !UNITY_EDITOR && UNITY_SWITCH
+#if !UNITY_EDITOR && UNITY_SWITCH
                 return false;
-                #else
+#else
                 return IsOpenGL;
-                #endif
+#endif
             }
         }
 
@@ -42,11 +42,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             get
             {
-                #if !UNITY_EDITOR && UNITY_SWITCH
+#if !UNITY_EDITOR && UNITY_SWITCH
                 return false;
-                #else
+#else
                 return IsOpenGL;
-                #endif
+#endif
             }
         }
 
@@ -62,11 +62,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             get
             {
-                #if !UNITY_EDITOR && UNITY_SWITCH
+#if !UNITY_EDITOR && UNITY_SWITCH
                 return false;
-                #else
+#else
                 return IsOpenGL;
-                #endif
+#endif
             }
         }
 
@@ -185,11 +185,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         struct CullLightsJob : IJob
         {
             public DeferredTiler tiler;
-            [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
+            [ReadOnly]
+            [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
             public NativeArray<DeferredTiler.PrePunctualLight> prePunctualLights;
-            [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
+            [ReadOnly]
+            [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
             public NativeArray<ushort> coarseTiles;
-            [ReadOnly][Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
+            [ReadOnly]
+            [Unity.Collections.LowLevel.Unsafe.NativeDisableContainerSafetyRestriction]
             public NativeArray<uint> coarseTileHeaders;
             public int coarseHeaderOffset;
             public int istart;
@@ -328,7 +331,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // This is an overlay camera being rendered.
         internal bool IsOverlay { get; set; }
         // Not all platforms support R8G8B8A8_SNorm, so we need to check for the support and force accurate GBuffer normals and relevant shader variants
-        private  bool m_AccurateGbufferNormals;
+        private bool m_AccurateGbufferNormals;
         internal bool AccurateGbufferNormals
         {
             get { return m_AccurateGbufferNormals; }
@@ -1410,7 +1413,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         // Add light list for the tile.
                         for (int l = 0; l < tileLightCount; ++l)
                         {
-                            ushort visLightIndex    = tiles[tileOffset                  + l];
+                            ushort visLightIndex = tiles[tileOffset + l];
                             ushort relLightBitRange = tiles[tileOffset + tileLightCount + l];
                             ushort relLightIndex = visLightToRelLights[visLightIndex];
                             relLightList[relLightIndices++] = (uint)relLightIndex | (uint)(relLightBitRange << 16);
@@ -1750,7 +1753,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // tileDeferred might render a lot of point lights in the same draw call.
             // point light shadows require generating cube shadow maps in real-time, requiring extra CPU/GPU resources ; which can become expensive quickly
             return (visibleLight.lightType == LightType.Point && (visibleLight.light == null || visibleLight.light.shadows == LightShadows.None))
-                || (visibleLight.lightType  == LightType.Spot && (visibleLight.light == null || visibleLight.light.shadows == LightShadows.None));
+                || (visibleLight.lightType == LightType.Spot && (visibleLight.light == null || visibleLight.light.shadows == LightShadows.None));
         }
 
         static Mesh CreateSphereMesh()
