@@ -338,7 +338,7 @@ float GetReflectionProbeNormalizationFactor(float3 sampleDirectionWS, float4 ref
     shALuminance.xyz *= directionality;
     outFactor = SHEvalLinearL0L1Luminance(sampleDirectionWS, shALuminance);
 
-#else PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
     // SHEvalLinearL0L1() expects coefficients in real4 shAr, real4 shAg, real4 shAb vectors whos channels are laid out {x, y, z, DC}
     float4 shALuminance = float4(reflProbeSHL0L1.w, reflProbeSHL0L1.y, reflProbeSHL0L1.z, reflProbeSHL0L1.x);
     float4 shBLuminance = reflProbeSHL2_1;
