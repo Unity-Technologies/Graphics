@@ -526,7 +526,7 @@ void GetMarschnerAngle(float3 T, float3 V, float3 L,
     // Projection onto the normal plane, and since phi is the relative angle, we take the cosine in this projection.
     float3 LProj = L - sinThetaI * T;
     float3 VProj = V - sinThetaR * T;
-    cosPhi = dot(LProj, VProj) * rsqrt(dot(LProj, LProj) * dot(VProj, VProj));
+    cosPhi = dot(LProj, VProj) * rsqrt(dot(LProj, LProj) * dot(VProj, VProj) + 0.0001); // Small epsilon to combat potential nans
 }
 
 CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfData)
