@@ -13,20 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Needed only because of custom pass. See comment at ResolveMSAAColor.
         TextureHandle m_NonMSAAColorBuffer;
 
-        void ExecuteWithRenderGraph(RenderRequest           renderRequest,
-            AOVRequestData          aovRequest,
-            List<RTHandle>          aovBuffers,
-            List<RTHandle>          aovCustomPassBuffers,
-            ScriptableRenderContext renderContext,
-            CommandBuffer           commandBuffer)
+        private void BeginRenderGraph(ScriptableRenderContext renderContext, CommandBuffer commandBuffer)
         {
-            var hdCamera = renderRequest.hdCamera;
-            var camera = hdCamera.camera;
-            var cullingResults = renderRequest.cullingResults.cullingResults;
-            var customPassCullingResults = renderRequest.cullingResults.customPassCullingResults ?? cullingResults;
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            var target = renderRequest.target;
-
             var renderGraphParams = new RenderGraphParameters()
             {
                 scriptableRenderContext = renderContext,
@@ -35,6 +23,19 @@ namespace UnityEngine.Rendering.HighDefinition
             };
 
             m_RenderGraph.Begin(renderGraphParams);
+        }
+
+        void ExecuteWithRenderGraph(RenderRequest           renderRequest,
+            AOVRequestData          aovRequest,
+            List<RTHandle>          aovBuffers,
+            List<RTHandle>          aovCustomPassBuffers)
+        {
+            var hdCamera = renderRequest.hdCamera;
+            var camera = hdCamera.camera;
+            var cullingResults = renderRequest.cullingResults.cullingResults;
+            var customPassCullingResults = renderRequest.cullingResults.customPassCullingResults ?? cullingResults;
+            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            var target = renderRequest.target;
 
             // We need to initalize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
             // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
@@ -283,7 +284,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest);
 
-            ResetCameraSizeForAfterPostProcess(m_RenderGraph, hdCamera, commandBuffer);
+            ResetCameraSizeForAfterPostProcess(m_RenderGraph, hdCamera);
 
             RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovCustomPassBuffers);
 
@@ -338,15 +339,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PostImageEffects);
 
             m_RenderGraph.Execute();
-
-            if (aovRequest.isValid)
-            {
-                // aovRequest.Execute don't go through render graph for now
-                using (new ProfilingScope(commandBuffer, ProfilingSampler.Get(HDProfileId.AOVExecute)))
-                {
-                    aovRequest.Execute(commandBuffer, aovBuffers, aovCustomPassBuffers, RenderOutputProperties.From(hdCamera));
-                }
-            }
         }
 
         class FinalBlitPassData
@@ -947,7 +939,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO RENDERGRAPH: Remove this when we properly convert custom passes to full render graph with explicit color buffer reads.
             // To allow users to fetch the current color buffer, we temporarily bind the camera color buffer
             SetGlobalColorForCustomPass(renderGraph, colorBuffer);
-            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.BeforePreRefraction, aovRequest, aovCustomPassBuffers);
+            RenderCustomPass(renderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.BeforePreRefraction, aovRequest, aovCustomPassBuffers);
             SetGlobalColorForCustomPass(renderGraph, currentColorPyramid);
 
             // Render pre-refraction objects
@@ -960,7 +952,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // We don't have access to the color pyramid with transparent if rough refraction is disabled
-            RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovCustomPassBuffers);
+            RenderCustomPass(renderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovCustomPassBuffers);
 
             // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
             RenderForwardTransparent(renderGraph, hdCamera, colorBuffer, normalBuffer, prepassOutput, vtFeedbackBuffer, volumetricLighting, ssrLightingBuffer, currentColorPyramid, lightLists, shadowResult, cullingResults, false);
@@ -1581,7 +1573,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesGlobal shaderVariablesGlobal;
         }
 
-        void ResetCameraSizeForAfterPostProcess(RenderGraph renderGraph, HDCamera hdCamera, CommandBuffer commandBuffer)
+        void ResetCameraSizeForAfterPostProcess(RenderGraph renderGraph, HDCamera hdCamera)
         {
             if (DynamicResolutionHandler.instance.DynamicResolutionEnabled())
             {
