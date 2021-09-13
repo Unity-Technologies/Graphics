@@ -695,6 +695,22 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
 
 #elif defined(SSR_ACCUMULATE)
 
+//#define __PLAIN_COLOR
+//#define __MULTIPLY_COLOR
+#define __CHROMINANCE
+
+float3 Colorize(float3 current, float3 color)
+{
+#ifdef __PLAIN_COLOR
+    return color;
+#elif defined(__MULTIPLY_COLOR)
+    return color * current;
+#else // __CHROMINANCE
+    float3 tmp = color * current;
+    return tmp / max(tmp.r, max(tmp.g, tmp.b));
+#endif
+}
+
 [numthreads(8, 8, 1)]
 void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -793,17 +809,21 @@ void MAIN_ACC(uint3 dispatchThreadId : SV_DispatchThreadID)
 #ifdef REJECT_DEBUG_COLOR
 #ifdef WORLD_SPEED_REJECTION
     #ifdef SSR_SMOOTH_SPEED_REJECTION
-         result.rgb *= HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(usedSpeed * _SsrPBRSpeedRejection)));
-         result.rgb /= max(result.r, max(result.g, result.b));
+         //result.rgb *= HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(usedSpeed * _SsrPBRSpeedRejection)));
+         //result.rgb /= max(result.r, max(result.g, result.b));
+        result.rgb = Colorize(result.rgb, HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), saturate(usedSpeed * _SsrPBRSpeedRejection))));
     #else
         if (usedSpeed >= _SsrPBRSpeedRejection)
-            result.rgb *= float3(1.0f, 0.0f, 0.0f);
+            //result.rgb *= float3(1.0f, 0.0f, 0.0f);
+            result.rgb = Colorize(result.rgb, float3(1.0f, 0.0f, 0.0f));
         else
-            result.rgb *= float3(0.0f, 1.0f, 0.0f);
-        result.rgb /= max(result.r, max(result.g, result.b));
+            //result.rgb *= float3(0.0f, 1.0f, 0.0f);
+            result.rgb = Colorize(result.rgb, float3(0.0f, 1.0f, 0.0f));
+        //result.rgb /= max(result.r, max(result.g, result.b));
     #endif
 #else
-    result.rgb = HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), speed));
+    //result.rgb = HsvToRgb(lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), speed));
+    result.rgb = Colorize(result.rgb, lerp(float3(0.33333333333333333333333333f, 1.0f, 1.0f), float3(0.0f, 1.0f, 1.0f), speed));
 #endif
 #endif
 
