@@ -232,7 +232,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Settings.", MessageType.Warning, wide: true);
+                EditorGUILayout.HelpBox("The probe volumes feature is disabled. The feature needs to be enabled in the HDRP Global Settings.", MessageType.Warning, wide: true);
             }
         }
 

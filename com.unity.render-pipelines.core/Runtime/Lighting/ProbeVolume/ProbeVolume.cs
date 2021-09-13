@@ -21,14 +21,16 @@ namespace UnityEngine.Experimental.Rendering
     {
         public bool globalVolume = false;
         public Vector3 size = new Vector3(10, 10, 10);
-        [HideInInspector]
-        public float maxSubdivisionMultiplier = 1;
-        [HideInInspector]
-        public float minSubdivisionMultiplier = 0;
         [HideInInspector, Range(0f, 2f)]
         public float geometryDistanceOffset = 0.2f;
 
         public LayerMask objectLayerMask = -1;
+
+
+        [HideInInspector]
+        public int lowestSubdivLevelOverride = 0;
+        [HideInInspector]
+        public int highestSubdivLevelOverride = -1;
 
         [SerializeField] internal bool mightNeedRebaking = false;
 
@@ -112,8 +114,8 @@ namespace UnityEngine.Experimental.Rendering
             unchecked
             {
                 hash = hash * 23 + size.GetHashCode();
-                hash = hash * 23 + maxSubdivisionMultiplier.GetHashCode();
-                hash = hash * 23 + minSubdivisionMultiplier.GetHashCode();
+                hash = hash * 23 + highestSubdivLevelOverride.GetHashCode();
+                hash = hash * 23 + lowestSubdivLevelOverride.GetHashCode();
                 hash = hash * 23 + geometryDistanceOffset.GetHashCode();
                 hash = hash * 23 + objectLayerMask.GetHashCode();
             }
@@ -122,6 +124,18 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #endif
+
+        internal float GetMinSubdivMultiplier()
+        {
+            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+            return Mathf.Max(0.0f, lowestSubdivLevelOverride / maxSubdiv);
+        }
+
+        internal float GetMaxSubdivMultiplier()
+        {
+            float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+            return Mathf.Max(0.0f, highestSubdivLevelOverride / maxSubdiv);
+        }
 
         // Momentarily moving the gizmo rendering for bricks and cells to Probe Volume itself,
         // only the first probe volume in the scene will render them. The reason is that we dont have any
