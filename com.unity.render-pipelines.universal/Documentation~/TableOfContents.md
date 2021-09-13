@@ -38,6 +38,7 @@
   * [The Universal Additional Light Data component](universal-additional-light-data.md)
   * [Shadows in the Universal Render Pipeline](Shadows-in-URP.md)
   * [Reflection probes](lighting/reflection-probes.md)
+  * [Lens Flare asset](lens-flare-data-driven-asset.md)
 * [Cameras](cameras.md)
   * [The Universal Additional Camera Data component](universal-additional-camera-data.md)
   * [Render Type](camera-types-and-render-type.md)
@@ -71,7 +72,7 @@
     * [Tonemapping](post-processing-tonemapping.md)
     * [Vignette](post-processing-vignette.md)
     * [White Balance](Post-Processing-White-Balance.md)
-    * [Lens Flare Data Driven](lens-flare-data-driven-component.md)
+    * [Lens Flare](lens-flare-data-driven-component.md)
 
 * [Shaders and Materials](shaders-in-universalrp.md)
   * [Shading Models](shading-model.md)
