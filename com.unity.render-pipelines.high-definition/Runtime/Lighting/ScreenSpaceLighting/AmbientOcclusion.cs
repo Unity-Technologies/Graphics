@@ -282,7 +282,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
             AllocRT(scaleFactor);
 
-            if (HDRenderPipeline.GatherRayTracingSupport(m_Settings))
+            if (HDRenderPipeline.PipelineSupportsRayTracing(m_Settings))
             {
                 m_RaytracingAmbientOcclusion.InitializeNonRenderGraphResources();
             }
@@ -292,7 +292,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ReleaseRT();
 
-            if (HDRenderPipeline.GatherRayTracingSupport(m_Settings))
+            if (HDRenderPipeline.PipelineSupportsRayTracing(m_Settings))
             {
                 m_RaytracingAmbientOcclusion.CleanupNonRenderGraphResources();
             }
