@@ -135,6 +135,7 @@ namespace UnityEditor.ShaderFoundry
             builder.Add(" = ");
             function.AddCallString(builder, arguments);
             builder.Add(";");
+            builder.NewLine();
         }
     }
 
