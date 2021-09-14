@@ -49,8 +49,8 @@ float4 _FlareData4; // x: SDF Roundness, y: Poly Radius, z: PolyParam0, w: PolyP
 #ifdef FLARE_PREVIEW
 float4 _FlarePreviewData;
 
-#define _ScreenSize     _FlarePreviewData.xy;
-#define _ScreenRatio    _FlarePreviewData.z;
+#define _ScreenSize         _FlarePreviewData.xy;
+#define _FlareScreenRatio   _FlarePreviewData.z;
 #endif
 
 #define _FlareColor             _FlareColorValue
@@ -62,7 +62,9 @@ float4 _FlarePreviewData;
 #define _OcclusionRadius        _FlareData1.x
 #define _OcclusionSampleCount   _FlareData1.y
 #define _ScreenPosZ             _FlareData1.z
-#define _ScreenRatio            _FlareData1.w
+#ifndef _FlareScreenRatio
+#define _FlareScreenRatio       _FlareData1.w
+#endif
 
 #define _ScreenPos              _FlareData2.xy
 #define _FlareSize              _FlareData2.zw
@@ -143,7 +145,7 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
 #endif
 
 #if defined(HDRP_FLARE) || defined(FLARE_PREVIEW)
-    float screenRatio = _ScreenRatio;
+    float screenRatio = _FlareScreenRatio;
 #else
     float2 screenParam = GetScaledScreenParams().xy;
     float screenRatio = screenParam.y / screenParam.x;
