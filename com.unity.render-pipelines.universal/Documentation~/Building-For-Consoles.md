@@ -1,4 +1,4 @@
-# Building your Project for Close platforms
+# Building your Project for Closed platforms
 
 If you have a license to develop games for Closed platforms that require you to meet the confidentiality and legal agreements of the platform provider, then see the relevant developer forums for a link to the console specific render pipeline package.
 
