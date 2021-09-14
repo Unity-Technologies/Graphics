@@ -21,6 +21,8 @@
 
 #define VFX_FLT_MIN 1.175494351e-38
 #define VFX_EPSILON 1e-5
+#define VFX_INFINITY  (1.0f/0.0f)
+#define VFX_NAN       asfloat(~0u)
 
 #pragma warning(disable : 3557) // disable warning for auto unrolling of single iteration loop
 
@@ -34,6 +36,14 @@
 #define UNITY_INV_FOUR_PI   0.07957747155f
 #define UNITY_HALF_PI       1.57079632679f
 #define UNITY_INV_HALF_PI   0.636619772367f
+#endif
+
+// SHADER_AVAILABLE_XXX defines are not yet passed to compute shader atm
+// So we define it manually for compute atm.
+// It won't compile for devices that don't have cubemap array support but this is acceptable by now
+// TODO Remove this once SHADER_AVAILABLE_XXX are passed to compute shaders
+#ifdef SHADER_STAGE_COMPUTE
+#define SHADER_AVAILABLE_CUBEARRAY 1
 #endif
 
 struct VFXSampler2D
@@ -60,11 +70,13 @@ struct VFXSamplerCube
     SamplerState s;
 };
 
+#if SHADER_AVAILABLE_CUBEARRAY
 struct VFXSamplerCubeArray
 {
     TextureCubeArray t;
     SamplerState s;
 };
+#endif
 
 #if !VFX_WORLD_SPACE && !VFX_LOCAL_SPACE
 #error VFXCommon.hlsl should be included after space defines
@@ -118,10 +130,12 @@ float4 SampleTexture(VFXSamplerCube s, float3 coords, float level = 0.0f)
     return s.t.SampleLevel(s.s, coords, level);
 }
 
+#if SHADER_AVAILABLE_CUBEARRAY
 float4 SampleTexture(VFXSamplerCubeArray s, float3 coords, float slice, float level = 0.0f)
 {
     return s.t.SampleLevel(s.s, float4(coords, slice), level);
 }
+#endif
 
 float4 LoadTexture(VFXSampler2D s, int3 pixelCoords)
 {
@@ -236,6 +250,7 @@ VFXSamplerCube GetVFXSampler(TextureCube t, SamplerState s)
     return vfxSampler;
 }
 
+#if SHADER_AVAILABLE_CUBEARRAY
 VFXSamplerCubeArray GetVFXSampler(TextureCubeArray t, SamplerState s)
 {
     VFXSamplerCubeArray vfxSampler;
@@ -243,6 +258,7 @@ VFXSamplerCubeArray GetVFXSampler(TextureCubeArray t, SamplerState s)
     vfxSampler.s = s;
     return vfxSampler;
 }
+#endif
 
 uint ConvertFloatToSortableUint(float f)
 {

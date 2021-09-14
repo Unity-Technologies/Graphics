@@ -141,7 +141,7 @@ The `eventNameOrId` parameter can be one of the following types:
 
 The optional `eventAttribute` parameter attaches an **Event Attribute Payload** to the Event. They payload provides data that the Graph processes with the Event.
 
-**Note**: When you send an Event, the Visual Effect component processes it in its next Update(), which happens during the next frame.
+**Note**: When you send an [Event](https://docs.unity3d.com/ScriptReference/VFX.VisualEffect.SendEvent.html) (or use the [`.Simulate`](https://docs.unity3d.com/ScriptReference/VFX.VisualEffect.Simulate.html)method) the Visual Effect component processes all pushed commands in its next `VisualEffect.Update` which happens after the [`LateUpdate`](https://docs.unity3d.com/Manual/ExecutionOrder.html).
 
 ### Event Attributes
 

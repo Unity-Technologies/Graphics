@@ -34,6 +34,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Additional Velocity for Alembic not taking correctly into account vertex animation
 - Fixed wrong LUT initialization in Wireframe mode.
 - Fixed case where the SceneView don't refresh when using LightExplorer with a running and Paused game (1354129)
+- Fixed a null ref exception when no opaque objects are rendered.
+- Fixed issue with depth slope scale depth bias when a material uses depth offset.
+- Fixed shadow sampling artifact when using the spot light shadow option 'custom spot angle'
+- Fixed issue with fading in SSR applying fade factor twice, resulting in darkening of the image in the transition areas.
+- Fixed error when disabling opaque objects on a camera with MSAA.
 
 ## [10.6.0] - 2021-04-29
 
@@ -240,6 +245,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ResourceReloader that was not call anymore at pipeline construction
 - Fixed undo of some properties on light editor.
 - Fixed an issue where auto baking of ambient and reflection probe done for builtin renderer would cause wrong baking in HDRP.
+- Fixed error when disabling opaque objects on a camera with MSAA.
 
 ### Changed
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
