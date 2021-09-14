@@ -40,7 +40,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
     float lod = 0.5f * log2(max(dot(uvdx, uvdx), dot(uvdy, uvdy))) - 1.0f;
     float lddx = ddx(posInput.linearDepth), lddy  = ddy(posInput.linearDepth);
     float ldd = max(dot(lddx, lddx), dot(lddy, lddy));
-    float maxlod = emissiveColorMapLODs * (1.0f - saturate(8.0f * ldd));
+    float maxlod = emissiveColorMapLODs * (1.0f - 4.0f * ldd);
     surfaceData.emissive *= SAMPLE_TEXTURE2D_LOD(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords, min(lod, maxlod)).rgb;
 #else
     surfaceData.emissive *= SAMPLE_TEXTURE2D_LOD(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords, 0.0f).rgb;
