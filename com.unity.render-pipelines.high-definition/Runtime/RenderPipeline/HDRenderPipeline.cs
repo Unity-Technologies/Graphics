@@ -2417,6 +2417,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     ref filteringSettings,
                     ref renderState);
             }
+
+            CommandBufferPool.Release(cmd);
         }
 
         static void OverrideCullingForRayTracing(HDCamera hdCamera, Camera camera, ref ScriptableCullingParameters cullingParams)

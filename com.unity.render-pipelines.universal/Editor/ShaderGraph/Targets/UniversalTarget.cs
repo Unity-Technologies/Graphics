@@ -863,7 +863,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.ScenePicking(target),
                 pragmas = CorePragmas.Instanced,
-                defines = new DefineCollection { CoreDefines.ScenePicking, { CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
+                defines = new DefineCollection
+                {
+                    CoreDefines.ScenePicking, { CoreKeywordDescriptors.AlphaClipThreshold, 1 }
+                },
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.ScenePicking,
 
@@ -875,6 +878,178 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             return result;
         }
+
+        public static readonly BlockFieldDescriptor[] DataExtractionBlockFields = new BlockFieldDescriptor[]
+        {
+            BlockFields.VertexDescription.Position,
+            BlockFields.VertexDescription.Normal,
+            BlockFields.VertexDescription.Tangent,
+            BlockFields.SurfaceDescription.BaseColor,
+            BlockFields.SurfaceDescription.NormalTS,
+            BlockFields.SurfaceDescription.Emission,
+            BlockFields.SurfaceDescription.Smoothness,
+            BlockFields.SurfaceDescription.Occlusion,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
+        };
+
+        public static readonly FieldCollection DataExtractionFields = new FieldCollection()
+        {
+            StructFields.Attributes.uv1,
+            StructFields.Attributes.uv2,
+            StructFields.Varyings.instanceID,
+            StructFields.Varyings.positionWS,
+            StructFields.Varyings.normalWS,
+            StructFields.Varyings.tangentWS,                        // needed for vertex lighting
+            StructFields.Varyings.viewDirectionWS,
+            UniversalStructFields.Varyings.staticLightmapUV,
+            UniversalStructFields.Varyings.dynamicLightmapUV,
+            UniversalStructFields.Varyings.sh,
+            UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
+            UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+        };
+
+        public static PassDescriptor DataExtraction(UniversalTarget target)
+        {
+            BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
+            {
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.NormalOS,
+                BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.Emission,
+                BlockFields.SurfaceDescription.Metallic,
+                BlockFields.SurfaceDescription.Specular,
+                BlockFields.SurfaceDescription.Smoothness,
+                BlockFields.SurfaceDescription.Occlusion,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+            };
+
+            FieldCollection Forward = new FieldCollection()
+            {
+                StructFields.Attributes.uv1,
+                StructFields.Attributes.uv2,
+                StructFields.Varyings.positionWS,
+                StructFields.Varyings.normalWS,
+                StructFields.Varyings.tangentWS,                        // needed for vertex lighting
+                StructFields.Varyings.viewDirectionWS,
+                UniversalStructFields.Varyings.staticLightmapUV,
+                UniversalStructFields.Varyings.dynamicLightmapUV,
+                UniversalStructFields.Varyings.sh,
+                UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
+                UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+            };
+
+            KeywordCollection ForwardKW = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.StaticLightmap },
+                { CoreKeywordDescriptors.DynamicLightmap },
+                { CoreKeywordDescriptors.DirectionalLightmapCombined },
+                { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.AdditionalLights },
+                { CoreKeywordDescriptors.AdditionalLightShadows },
+                { CoreKeywordDescriptors.ReflectionProbeBlending },
+                { CoreKeywordDescriptors.ReflectionProbeBoxProjection },
+                { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.LightmapShadowMixing },
+                { CoreKeywordDescriptors.ShadowsShadowmask },
+                { CoreKeywordDescriptors.DBuffer },
+                { CoreKeywordDescriptors.LightLayers },
+                { CoreKeywordDescriptors.DebugDisplay },
+                { CoreKeywordDescriptors.LightCookies },
+                { CoreKeywordDescriptors.ClusteredRendering },
+            };
+
+            const string kShadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
+            const string kMetaInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl";
+            const string kForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl";
+
+            IncludeCollection ForwardI = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { kShadows, IncludeLocation.Pregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+                { CoreIncludes.DBufferPregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kForwardPass, IncludeLocation.Postgraph },
+            };
+            #if true
+            var result = new PassDescriptor()
+            {
+                // Definition
+                displayName = "Data Extraction",
+                referenceName = "SHADERPASS_DEPTHONLY",
+                lightMode = "DataExtraction",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                //passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = FragmentLit,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                requiredFields = DataExtractionFields,
+
+                // Conditional State
+                renderStates = CoreRenderStates.ScenePicking(target),
+                pragmas = CorePragmas.Instanced,
+                defines = new DefineCollection { { CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
+                keywords = new KeywordCollection(),
+                includes = CoreIncludes.DataExtraction,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+#else
+
+            var result = new PassDescriptor()
+            {
+                // Definition
+                displayName = "Data Extraction",
+                referenceName = "SHADERPASS_DEPTHONLY",
+                lightMode = "DataExtraction",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = FragmentLit,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = Forward,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.UberSwitchedRenderState(target),
+                pragmas = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
+                defines = new DefineCollection() { CoreDefines.UseFragmentFog },
+                keywords = new KeywordCollection() { ForwardKW },
+                includes = CoreIncludes.DataExtraction,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+#endif
+
+            AddAlphaClipControlToPass(ref result, target);
+
+            return result;
+        }
+
 
         public static PassDescriptor _2DSceneSelection(UniversalTarget target)
         {
@@ -1306,6 +1481,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
         const string kDBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl";
         const string kSelectionPickingPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SelectionPickingPass.hlsl";
+        const string kDataExtractionPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DataExtractionPass.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -1385,6 +1561,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Post-graph
             { CorePostgraph },
             { kSelectionPickingPass, IncludeLocation.Postgraph },
+        };
+
+        public static readonly IncludeCollection DataExtraction = new IncludeCollection
+        {
+            // Pre-graph
+            { CorePregraph },
+            { ShaderGraphPregraph },
+
+            // Post-graph
+            { CorePostgraph },
+            { kDataExtractionPass, IncludeLocation.Postgraph },
         };
     }
     #endregion

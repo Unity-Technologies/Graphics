@@ -303,6 +303,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.DOTSDefault));
                 result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DOTSDefault));
                 result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(CorePasses.DataExtraction(target), CorePragmas.DOTSDefault));
 
                 return result;
             }
@@ -344,6 +345,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.passes.Add(LitPasses._2D(target));
                 result.passes.Add(CorePasses.SceneSelection(target));
                 result.passes.Add(CorePasses.ScenePicking(target));
+                result.passes.Add(CorePasses.DataExtraction(target));
 
                 return result;
             }

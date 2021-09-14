@@ -660,6 +660,7 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 RenderWithMode(renderContext, camera, renderRequest);
             }
+            renderContext.Submit();
 
             EndCameraRendering(renderContext, camera);
             EndFrameRendering(renderContext, cameras);

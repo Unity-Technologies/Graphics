@@ -153,6 +153,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.passes.Add(UnlitPasses.DepthNormalOnly(target));
                 result.passes.Add(CorePasses.SceneSelection(target));
                 result.passes.Add(CorePasses.ScenePicking(target));
+                result.passes.Add(CorePasses.DataExtraction(target));
 
                 return result;
             }
@@ -182,6 +183,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.passes.Add(UnlitPasses.DepthNormalOnly(target));
                 result.passes.Add(CorePasses.SceneSelection(target));
                 result.passes.Add(CorePasses.ScenePicking(target));
+                result.passes.Add(CorePasses.DataExtraction(target));
 
                 return result;
             }
