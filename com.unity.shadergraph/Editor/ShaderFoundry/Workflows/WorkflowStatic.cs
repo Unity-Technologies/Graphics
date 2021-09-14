@@ -42,11 +42,11 @@ namespace UnityEditor.ShaderFoundry
                 if (type.IsAbstract || type.IsGenericType || !type.IsClass)
                     continue;
 
-                if (/*type.Name != "BuiltInTarget" && */type.Name != "UniversalTarget")
+                if (!(type.Name == "BuiltInTarget" || type.Name == "UniversalTarget" || type.Name == "HDTarget"))
                     continue;
 
                 var target = (Target)Activator.CreateInstance(type);
-                if (!target.isHidden)
+                if (!target.isHidden && target.WorksWithSRP(UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline))
                 {
                     targets.Add(target);
                 }
