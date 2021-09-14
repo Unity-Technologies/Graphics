@@ -136,6 +136,7 @@ Shader "HDRP/Decal"
 
 			HLSLPROGRAM
 
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile DECALS_3RT DECALS_4RT
 			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -170,6 +171,7 @@ Shader "HDRP/Decal"
 
             HLSLPROGRAM
 
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #define _MATERIAL_AFFECTS_EMISSION
             #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_PROJECTOR
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"

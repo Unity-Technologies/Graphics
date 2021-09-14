@@ -933,6 +933,7 @@ Shader "HDRP/Lit"
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // enable dithering LOD crossfade
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_CONSTANT
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -962,6 +963,7 @@ Shader "HDRP/Lit"
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // enable dithering LOD crossfade
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -998,6 +1000,7 @@ Shader "HDRP/Lit"
 
             // multi compile that allows us to strip the recursive code
             #pragma multi_compile _ MULTI_BOUNCE_INDIRECT
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             // We use the low shadow maps for raytracing
             #define SHADOW_LOW
@@ -1037,6 +1040,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ DEBUG_DISPLAY
             //#pragma multi_compile _ LIGHTMAP_ON
             //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
 
@@ -1079,6 +1083,7 @@ Shader "HDRP/Lit"
             //#pragma multi_compile _ LIGHTMAP_ON
             //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ MINIMAL_GBUFFER
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
 
@@ -1113,6 +1118,7 @@ Shader "HDRP/Lit"
 
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
             #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
@@ -1143,6 +1149,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ DEBUG_DISPLAY
             //#pragma multi_compile _ LIGHTMAP_ON
             //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_SUB_SURFACE
 
@@ -1173,6 +1180,7 @@ Shader "HDRP/Lit"
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 

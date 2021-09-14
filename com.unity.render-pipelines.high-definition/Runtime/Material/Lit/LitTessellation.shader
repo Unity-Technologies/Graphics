@@ -1016,7 +1016,8 @@ Shader "HDRP/LitTessellation"
 
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            // #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
