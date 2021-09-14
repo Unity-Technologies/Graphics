@@ -51,22 +51,39 @@ namespace UnityEngine.Experimental.Rendering
             public int flattenedIdx;
         }
 
-        struct VoxelMeta
+        class VoxelMeta
         {
             public Cell cell;
-            public List<ushort> brickIndices;
+            public List<ushort> brickIndices = new List<ushort>();
+
+            public void Clear()
+            {
+                cell = null;
+                brickIndices.Clear();
+            }
         }
 
-        struct BrickMeta
+        class BrickMeta
         {
-            public HashSet<Vector3Int> voxels;
-            public List<ReservedBrick> bricks;
+            public HashSet<Vector3Int> voxels = new HashSet<Vector3Int>();
+            public List<ReservedBrick> bricks = new List<ReservedBrick>();
+
+            public void Clear()
+            {
+                voxels.Clear();
+                bricks.Clear();
+            }
         }
 
         Vector3Int m_CenterRS;   // the anchor in ref space, around which the index is defined. [IMPORTANT NOTE! For now we always have it at 0, so is not passed to the shader, but is kept here until development is active in case we find it useful]
 
         Dictionary<Vector3Int, List<VoxelMeta>> m_VoxelToBricks;
         Dictionary<Cell, BrickMeta> m_BricksToVoxels;
+
+        // Various pools for data re-usage
+        ObjectPool<BrickMeta> m_BrickMetaPool = new ObjectPool<BrickMeta>(x => x.Clear(), null, false);
+        ObjectPool<List<VoxelMeta>> m_VoxelMetaListPool = new ObjectPool<List<VoxelMeta>>(x => x.Clear(), null, false);
+        ObjectPool<VoxelMeta> m_VoxelMetaPool = new ObjectPool<VoxelMeta>(x => x.Clear(), null, false);
 
         int m_VoxelSubdivLevel = 3;
 
@@ -141,8 +158,18 @@ namespace UnityEngine.Experimental.Rendering
             m_NextFreeChunk = 0;
             m_IndexChunks.SetAll(false);
 
+            foreach (var value in m_VoxelToBricks.Values)
+            {
+                foreach (var voxel in value)
+                    m_VoxelMetaPool.Release(voxel);
+                m_VoxelMetaListPool.Release(value);
+            }
             m_VoxelToBricks.Clear();
+
+            foreach (var value in m_BricksToVoxels.Values)
+                m_BrickMetaPool.Release(value);
             m_BricksToVoxels.Clear();
+
             Profiler.EndSample();
         }
 
@@ -272,9 +299,7 @@ namespace UnityEngine.Experimental.Rendering
             g_Cell = cell;
 
             // create a new copy
-            BrickMeta bm = new BrickMeta();
-            bm.voxels = new HashSet<Vector3Int>();
-            bm.bricks = new List<ReservedBrick>(bricks.Count);
+            BrickMeta bm = m_BrickMetaPool.Get();
             m_BricksToVoxels.Add(cell, bm);
 
             int brick_idx = 0;
@@ -303,16 +328,16 @@ namespace UnityEngine.Experimental.Rendering
                         List<VoxelMeta> vm_list;
                         if (!m_VoxelToBricks.TryGetValue(v, out vm_list)) // first time the voxel is touched
                         {
-                            vm_list = new List<VoxelMeta>(1);
+                            vm_list = m_VoxelMetaListPool.Get();
                             m_VoxelToBricks.Add(v, vm_list);
                         }
 
-                        VoxelMeta vm;
+                        VoxelMeta vm = null;
                         int vm_idx = vm_list.FindIndex((VoxelMeta lhs) => lhs.cell == g_Cell);
                         if (vm_idx == -1) // first time a brick from this id has touched this voxel
                         {
+                            vm = m_VoxelMetaPool.Get();
                             vm.cell = cell;
-                            vm.brickIndices = new List<ushort>(4);
                             vm_list.Add(vm);
                         }
                         else
@@ -348,6 +373,7 @@ namespace UnityEngine.Experimental.Rendering
                 int idx = vm_list.FindIndex((VoxelMeta lhs) => lhs.cell == g_Cell);
                 if (idx >= 0)
                 {
+                    m_VoxelMetaPool.Release(vm_list[idx]);
                     vm_list.RemoveAt(idx);
                     if (vm_list.Count > 0)
                     {
@@ -356,10 +382,12 @@ namespace UnityEngine.Experimental.Rendering
                     else
                     {
                         ClearVoxel(v, cellUpdateInfo);
+                        m_VoxelMetaListPool.Release(vm_list);
                         m_VoxelToBricks.Remove(v);
                     }
                 }
             }
+            m_BrickMetaPool.Release(bm);
             m_BricksToVoxels.Remove(cellInfo.cell);
 
             // Clear allocated chunks
