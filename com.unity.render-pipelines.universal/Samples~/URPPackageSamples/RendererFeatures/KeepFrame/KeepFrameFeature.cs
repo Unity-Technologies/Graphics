@@ -43,7 +43,7 @@ public class KeepFrameFeature : ScriptableRendererFeature
             }
         }
     }
-    
+
     //This pass is responsible for drawing the old color to a full screen quad
     class DrawOldFramePass : ScriptableRenderPass
     {
