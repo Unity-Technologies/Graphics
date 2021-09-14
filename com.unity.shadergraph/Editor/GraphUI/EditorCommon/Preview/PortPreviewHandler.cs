@@ -48,16 +48,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
         {
             // TODO: How to get the actual type of a port?
             // Explore once Esme finishes merging in types
-            return null;
+            return typeof(Vector4);
         }
 
         object Mock_GetMaterialPropertyValueOfPort(IPortReader portReader)
         {
             // TODO: How to get the actual value of a port?
             // Esme/Liz will add generic object getters, we just need type to cast down to concrete types
-            object portValueFromReader = null;
-            PortConstantValue = portValueFromReader;
-            return null;
+            //object portValueFromReader = null;
+            //PortConstantValue = portValueFromReader;
+            return PortConstantValue;
         }
 
         DefaultTextureType Mock_GetDefaultTextureType(IPortReader portReader)
@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
                 var colorValue = value is Color colorVal ? colorVal : default;
                 mat.SetColor(Name, colorValue);
             }
-            else if (type == typeof(Vector2) || type == typeof(Vector3) || type == typeof(Vector3))
+            else if (type == typeof(Vector2) || type == typeof(Vector3) || type == typeof(Vector4))
             {
                 var vector4Value = value is Vector4 vector4Val ? vector4Val : default;
                 mat.SetVector(Name, vector4Value);

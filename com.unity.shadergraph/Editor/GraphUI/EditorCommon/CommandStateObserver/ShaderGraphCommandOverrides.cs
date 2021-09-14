@@ -180,7 +180,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 {
                     if (renameElementCommand.Model is IVariableDeclarationModel variableDeclarationModel)
                     {
-                        previewUpdater.MarkElementNeedingRecompile(variableDeclarationModel.Guid.ToString());
+                        previewUpdater.MarkNodeNeedingRecompile(variableDeclarationModel.Guid.ToString(), null);
 
                         // TODO: Handle this in a similar way to HandleUpdateConstantValue, but also accounting for recompiles
 
@@ -190,7 +190,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                         {
                             if (graphNode is IVariableNodeModel variableNodeModel && Equals(variableNodeModel.VariableDeclarationModel, variableDeclarationModel))
                             {
-                                previewUpdater.MarkElementNeedingRecompile(variableNodeModel.Guid.ToString());
+                                previewUpdater.MarkNodeNeedingRecompile(variableNodeModel.Guid.ToString(), null);
                                 previewUpdater.UpdateVariableConstantValue(variableDeclarationModel.InitializationModel.ObjectValue, variableNodeModel);
                             }
                         }

@@ -5,6 +5,7 @@ using Editor.GraphUI.Utilities;
 using Unity.Profiling;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI.Utilities;
 using UnityEditor.ShaderGraph.Registry;
@@ -28,6 +29,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         //       then, (at least) the following features are broken as a result: reloading assembly, saving, loading.
         public IGraphHandler GraphHandler => m_GraphHandler ??= GraphUtil.CreateGraph();
 
+        public Registry.Registry RegistryInstance => ((ShaderGraphStencil)Stencil).GetRegistry();
+
         /// <summary>
         /// Tests the connection between two GraphData ports at the data level.
         /// </summary>
@@ -38,7 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         {
             return GraphHandler.TestConnection(dst.graphDataNodeModel.graphDataName,
                 dst.graphDataName, src.graphDataNodeModel.graphDataName,
-                src.graphDataName, ((ShaderGraphStencil) Stencil).GetRegistry());
+                src.graphDataName, RegistryInstance);
         }
 
         /// <summary>
@@ -52,7 +55,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             return GraphHandler.TryConnect(
                 dst.graphDataNodeModel.graphDataName, dst.graphDataName,
                 src.graphDataNodeModel.graphDataName, src.graphDataName,
-                ((ShaderGraphStencil) Stencil).GetRegistry());
+                RegistryInstance);
         }
 
         static bool PortsFormCycle(IPortModel fromPort, IPortModel toPort)
@@ -123,6 +126,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             var nodeInstanceReader = m_GraphHandler.GetNodeReader(nodeModel.Guid.ToString());
             var nodeInstanceInputPorts = nodeInstanceReader.GetInputPorts();
             return nodeInstanceInputPorts;
+        }
+
+        public Shader GetShaderObject(GraphDataNodeModel nodeModel)
+        {
+            var nodeInstanceReader = m_GraphHandler.GetNodeReader(nodeModel.Guid.ToString());
+            return Interpreter.GetShaderForNode(nodeInstanceReader, m_GraphHandler, RegistryInstance);
         }
 
         public void GetTimeDependentNodesOnGraph(PooledHashSet<GraphDataNodeModel> timeDependentNodes)
@@ -285,8 +294,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         {
             try
             {
-                var registry = ((ShaderGraphStencil)shaderGraphModel.Stencil).GetRegistry();
-                var nodeBuilder = registry.GetNodeBuilder(elementRegistryKey);
+                var nodeBuilder = shaderGraphModel.RegistryInstance.GetNodeBuilder(elementRegistryKey);
                 var registryFlags = nodeBuilder.GetRegistryFlags();
                 // commented out that bit cause it throws an exception for some elements at the moment
                 return registryFlags.HasFlag(RegistryFlags.Func) /*|| registry.GetDefaultTopology(elementRegistryKey) == null*/;

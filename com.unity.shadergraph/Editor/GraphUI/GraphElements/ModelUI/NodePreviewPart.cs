@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
             m_PreviewImage = m_Root.Q<Image>("preview");
             if (m_PreviewImage != null)
             {
-                m_PreviewImage.image = Texture2D.whiteTexture;
+                m_PreviewImage.image = Texture2D.blackTexture;
             }
 
             m_CollapseButton = m_Root.Q<VisualElement>("collapse");
@@ -62,9 +62,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
         {
             HandlePreviewExpansionStateChanged(m_GraphDataNodeModel.IsPreviewVisible);
 
-            // TODO: Also notify the NodePreviewPart that we're currently compiling the shaders and it should replace it with a black texture
+            // TODO: When shader compilation is complete and we have updated texture, need to notify NodePreviewPart so image tint can be changed
+            HandlePreviewShaderCurrentlyCompiling(m_GraphDataNodeModel.PreviewShaderIsCompiling);
 
-            // TODO: Also notify the NodePreviewPart that we need to replace preview image with an error texture
+            HandlePreviewTextureUpdated(m_GraphDataNodeModel.PreviewTexture);
         }
 
         void OnCollapseButtonClicked(MouseDownEvent mouseDownEvent)
@@ -97,6 +98,21 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
                     m_PreviewContainer.Add(m_ExpandButton);
                 }
             }
+        }
+
+        void HandlePreviewShaderCurrentlyCompiling(bool isPreviewShaderCompiling)
+        {
+            if(isPreviewShaderCompiling)
+                m_PreviewImage.image = Texture2D.blackTexture;
+            m_PreviewImage.tintColor = isPreviewShaderCompiling ? new Color(1.0f, 1.0f, 1.0f, 0.3f) : Color.white;
+        }
+
+        void HandlePreviewTextureUpdated(Texture newPreviewTexture)
+        {
+            if(newPreviewTexture != m_PreviewImage.image && newPreviewTexture != null)
+                m_PreviewImage.image = newPreviewTexture;
+            else
+                m_PreviewImage.MarkDirtyRepaint();
         }
     }
 }

@@ -47,9 +47,9 @@ namespace UnityEditor.ShaderGraph.GraphUI
             if (RegistryInstance == null)
             {
                 RegistryInstance = new Registry.Registry();
-                RegistryInstance.Register<Registry.Types.AddNode>();
                 RegistryInstance.Register<Registry.Types.GraphType>();
                 RegistryInstance.Register<Registry.Types.GraphTypeAssignment>();
+                RegistryInstance.Register<Registry.Types.AddNode>();
             }
             return RegistryInstance;
         }

@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Controllers
                 {
                     if (command.PortModel.NodeModel is GraphDataNodeModel graphDataNodeModel)
                     {
-                        previewUpdater.UpdateNodePortConstantValue(command.PortModel.ToString(), null, graphDataNodeModel);
+                        previewUpdater.UpdateNodePortConstantValue(command.PortModel.Guid.ToString(), command.NewValue, graphDataNodeModel);
                     }
                 }
             }

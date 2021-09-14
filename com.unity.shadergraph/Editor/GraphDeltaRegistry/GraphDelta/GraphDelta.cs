@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.Remoting.Contexts;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.Registry.Defs;
 
@@ -35,9 +36,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         public INodeWriter AddNode(RegistryKey key, string name, Registry.Registry registry)
         {
-            var nodeWriter = AddNodeToLayer(GraphStorage.k_user, name);
             var builder = registry.GetNodeBuilder(key);
+            if (builder is ContextBuilder cb)
+            {
+                return AddContextNode(key, registry);
+            }
 
+            var nodeWriter = AddNodeToLayer(GraphStorage.k_user, name);
             nodeWriter.TryAddField<RegistryKey>(kRegistryKeyName, out var fieldWriter);
             fieldWriter.TryWriteData(key);
 

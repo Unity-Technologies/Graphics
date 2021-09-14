@@ -42,6 +42,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
         public RenderTexture renderTexture;
         public Texture texture;
         public PreviewMode previewMode;
+        public Action<Texture> OnPreviewTextureUpdated;
+        public Action OnPreviewShaderCompiling;
+
     }
 
     // TODO: Respond to CreateEdgeCommand and DeleteEdgeCommand
@@ -140,14 +143,34 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 }
             }
 
-            // TODO: Supply node/variable being affected so we can iterate through all the affected nodes as well to mark for recompile
-            public void MarkElementNeedingRecompile(string elementNeedingRecompileGuid)
+            public void MarkNodeNeedingRecompile(string elementNeedingRecompileGuid, GraphDataNodeModel changedNodeModel)
             {
-                // TODO: Also iterate through all linked nodes
                 if(m_State.KeyToPreviewDataMap.TryGetValue(elementNeedingRecompileGuid, out var previewRenderData))
                 {
+                    m_State.m_ElementsRequiringPreviewUpdate.Add(elementNeedingRecompileGuid);
+
+                    // Generate shader object for node and also create material
+                    var shaderObject = m_State.m_ShaderGraphModel.GetShaderObject(changedNodeModel);
+                    previewRenderData.shaderData.shader = shaderObject;
+                    previewRenderData.shaderData.mat = new Material(shaderObject) { hideFlags = HideFlags.HideAndDontSave };
+
+                    // nodes with shader changes cause all downstream nodes to need recompilation
+                    // (since they presumably include the code for these nodes)
+                    foreach (var downStreamNode in m_State.m_ShaderGraphModel.GetNodesInHierarchyFromSources(new [] {changedNodeModel}, PropagationDirection.Downstream))
+                    {
+                        m_State.m_ElementsRequiringPreviewUpdate.Add(downStreamNode.graphDataName);
+                        // Do the same for all downstream nodes
+                        if (m_State.KeyToPreviewDataMap.TryGetValue(elementNeedingRecompileGuid, out var downStreamNodeRenderData))
+                        {
+                            var downStreamShaderObject = m_State.m_ShaderGraphModel.GetShaderObject(changedNodeModel);
+                            downStreamNodeRenderData.shaderData.shader = downStreamShaderObject;
+                            downStreamNodeRenderData.shaderData.mat = new Material(downStreamShaderObject) { hideFlags = HideFlags.HideAndDontSave };
+                        }
+                    }
+
                     // Update value of flag
                     previewRenderData.shaderData.isOutOfDate = true;
+                    previewRenderData.OnPreviewShaderCompiling();
                     m_State.SetUpdateType(UpdateType.Partial);
                 }
             }
@@ -158,13 +181,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 {
                     // Update value of port constant
                     portPreviewHandler.PortConstantValue = newPortConstantValue;
-                    // Marking this element as requiring re-drawing this frame
-                    m_State.m_ElementsRequiringPreviewUpdate.Add(changedElementGuid);
+                    // Marking this node as requiring re-drawing this frame
+                    m_State.m_ElementsRequiringPreviewUpdate.Add(changedNodeModel.Guid.ToString());
                     // Also, all nodes downstream of a changed property must be redrawn (to display the updated the property value)
                     foreach (var downStreamNode in m_State.m_ShaderGraphModel.GetNodesInHierarchyFromSources(new[] { changedNodeModel }, PropagationDirection.Downstream))
                     {
                         m_State.m_ElementsRequiringPreviewUpdate.Add(downStreamNode.graphDataName);
                     }
+
+                    // TODO: Currently need to recompile even for constant value changes
+                    MarkNodeNeedingRecompile(changedNodeModel.Guid.ToString(), changedNodeModel);
 
                     // Then set preview property in MPB from that
                     m_State.UpdatePortPreviewPropertyBlock(portPreviewHandler);
@@ -217,6 +243,24 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             portPreviewHandler.SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock);
         }
 
+        void UpdateShaders()
+        {
+            // TODO: Consider async shader compilation, maybe we provide Material reference to the interpreter so it can populate shader object on its own
+            // We'd need to wait till that material has its shader
+
+            // Currently we need to recompile for every change made as we don't have shader constants specified as properties
+            foreach (var element in m_ElementsRequiringPreviewUpdate)
+            {
+                var previewData = KeyToPreviewDataMap[element];
+                Assert.IsNotNull(previewData);
+
+                // Skip any previews that are currently collapsed
+                if (previewData.isPreviewExpanded == false)
+                    continue;
+
+            }
+        }
+
         void Tick()
         {
             using (var renderList2D = PooledList<PreviewRenderData>.Get())
@@ -240,6 +284,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 // always update properties from temporary blocks created by master node preview generation
                 //m_NodesPropertyChanged.UnionWith(m_MasterNodeTempBlocks);
 
+                UpdateShaders();
+
                 var nonMPBProperties = new List<IConstant>();
                 ProcessGraphProperties(nonMPBProperties);
 
@@ -259,14 +305,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                     if (previewData.shaderData.shader == null || previewData.shaderData.mat == null)
                     {
                         previewData.texture = null;
+                        // Also notify the NodePreviewPart that we're currently compiling the shaders and it should replace it with a black texture
+                        previewData.OnPreviewShaderCompiling();
                         continue;
-                        // TODO: Also notify the NodePreviewPart that we're currently compiling the shaders and it should replace it with a black texture
                     }
 
                     if (previewData.shaderData.hasError)
                     {
                         previewData.texture = m_ErrorTexture;
-                        // TODO: Also notify the NodePreviewPart that we need to replace preview image with an error texture
+                        // Also notify the NodePreviewPart that we need to replace preview image with an error texture
+                        previewData.OnPreviewTextureUpdated(m_ErrorTexture);
                     }
 
                     // we want to render this thing, now categorize what kind of render it is
@@ -313,7 +361,44 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 
                 m_SceneResources.light0.enabled = false;
                 m_SceneResources.light1.enabled = false;
+
+                foreach (var renderData in renderList3D)
+                    RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity, nonMPBProperties);
+
+                // TODO: Render master preview
+                /*if (renderMasterPreview)
+                {
+                    if (m_NewMasterPreviewSize.HasValue)
+                    {
+                        if (masterRenderData.renderTexture != null)
+                            Object.DestroyImmediate(masterRenderData.renderTexture, true);
+                        masterRenderData.renderTexture = new RenderTexture((int)m_NewMasterPreviewSize.Value.x, (int)m_NewMasterPreviewSize.Value.y, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
+                        masterRenderData.renderTexture.Create();
+                        masterRenderData.texture = masterRenderData.renderTexture;
+                        m_NewMasterPreviewSize = null;
+                    }
+                    var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh : m_SceneResources.sphere;
+                    var previewTransform = Matrix4x4.Rotate(m_Graph.previewData.rotation);
+                    var scale = m_Graph.previewData.scale;
+                    previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
+                    previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
+
+                    RenderPreview(masterRenderData, mesh, previewTransform, perMaterialPreviewProperties);
+                }*/
+
+                m_SceneResources.light0.enabled = false;
+                m_SceneResources.light1.enabled = false;
+
+                foreach (var renderData in renderList2D)
+                    renderData.OnPreviewTextureUpdated(renderData.texture);
+                foreach (var renderData in renderList3D)
+                    renderData.OnPreviewTextureUpdated(renderData.texture);
+                /*if (renderMasterPreview)
+                    masterRenderData.NotifyPreviewChanged();*/
             }
+
+            // Empty the list every frame after updating the elements
+            m_ElementsRequiringPreviewUpdate.Clear();
         }
 
         void UpdateTopology()
@@ -453,6 +538,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 {
                     hideFlags = HideFlags.HideAndDontSave
                 },
+                OnPreviewTextureUpdated = nodeModel.OnPreviewTextureUpdated,
+                OnPreviewShaderCompiling = nodeModel.OnPreviewShaderCompiling,
+                isPreviewExpanded = true
             };
 
             var shaderData = new PreviewShaderData
@@ -464,6 +552,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             };
 
             renderData.shaderData = shaderData;
+
+            bool upstream3DNode = false;
+            foreach (var upstreamNode in m_ShaderGraphModel.GetNodesInHierarchyFromSources(new [] {nodeModel}, PropagationDirection.Upstream))
+            {
+                if (upstreamNode.NodePreviewMode == PreviewMode.Preview3D)
+                    upstream3DNode = true;
+            }
+
+            if (upstream3DNode)
+                renderData.previewMode = PreviewMode.Preview3D;
+            else
+                renderData.previewMode = PreviewMode.Preview2D;
 
             CollectPreviewPropertiesFromGraphDataNode(nodeModel, ref renderData);
 
