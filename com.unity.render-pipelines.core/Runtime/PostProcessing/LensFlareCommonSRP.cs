@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering
 
         static Vector3 WorldToViewport(Camera camera, bool isLocalLight, bool isCameraRelative, Matrix4x4 viewProjMatrix, Vector3 positionWS)
         {
-            if (isLocalLight && isCameraRelative)
+            if (isLocalLight)
             {
                 return WorldToViewportLocal(isCameraRelative, viewProjMatrix, camera.transform.position, positionWS);
             }
