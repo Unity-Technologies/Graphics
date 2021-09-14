@@ -15,7 +15,7 @@ VikingVillage_BuiltIn_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         VV_BUILTIN_BRANCH: testing/built-in-perf-fixes
-        VV_BUILTIN_REVISION: cd40903c079e5a7c9b5f60dab2ed6367b9ae5d18
+        VV_BUILTIN_REVISION: 430c8a3b433e2d8352c2444fea373a08880b3d96
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/vikingvillage_builtin-win-dx11.yml#VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_trunk
@@ -45,7 +45,7 @@ VikingVillage_BuiltIn_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         VV_BUILTIN_BRANCH: testing/built-in-perf-fixes
-        VV_BUILTIN_REVISION: cd40903c079e5a7c9b5f60dab2ed6367b9ae5d18
+        VV_BUILTIN_REVISION: 430c8a3b433e2d8352c2444fea373a08880b3d96
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/vikingvillage_builtin-win-dx11.yml#VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION

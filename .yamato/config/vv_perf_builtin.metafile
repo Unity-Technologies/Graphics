@@ -3,7 +3,7 @@ project:
   folder: Viking-Village-Perf
   variables:
     VV_BUILTIN_BRANCH: testing/built-in-perf-fixes
-    VV_BUILTIN_REVISION: cd40903c079e5a7c9b5f60dab2ed6367b9ae5d18
+    VV_BUILTIN_REVISION: 430c8a3b433e2d8352c2444fea373a08880b3d96
 
 reuse_blocks:
   unity_config:
@@ -32,7 +32,7 @@ reuse_blocks:
     - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
     - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
     - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.29 --project-path .
     - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
     - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
     - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
