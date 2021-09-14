@@ -111,5 +111,11 @@ namespace UnityEngine.Rendering
                 return ref m_Array[index];
             }
         }
+
+        /// <summary>
+        /// Implicit conversion to regular array.
+        /// </summary>
+        /// <param name="array">Input DynamicArray.</param>
+        public static implicit operator T[](DynamicArray<T> array) => array.m_Array;
     }
 }
