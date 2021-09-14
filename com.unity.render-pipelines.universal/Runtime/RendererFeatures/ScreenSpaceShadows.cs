@@ -50,16 +50,16 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool allowMainLightShadows = renderingData.shadowData.supportsMainLightShadows && renderingData.lightData.mainLightIndex != -1;
-            bool shouldEnqueue = allowMainLightShadows && m_SSShadowsPass.Setup(m_Settings, m_Material);
+            bool shouldEnqueue = allowMainLightShadows && m_SSShadowsPass.Setup(m_Settings, renderer, m_Material);
+
+            if (renderer.useRenderPassEnabled)
+            {
+                shouldEnqueue = false;
+                Debug.LogWarning("Screen Space Shadows Feature doesn't support for Native RenderPass.");
+            }
 
             if (shouldEnqueue)
             {
-                bool isDeferredRenderingMode = renderer is UniversalRenderer && ((UniversalRenderer)renderer).renderingMode == RenderingMode.Deferred;
-
-                m_SSShadowsPass.renderPassEvent = isDeferredRenderingMode
-                    ? RenderPassEvent.AfterRenderingGbuffer
-                    : RenderPassEvent.AfterRenderingPrePasses;
-
                 renderer.EnqueuePass(m_SSShadowsPass);
                 renderer.EnqueuePass(m_SSShadowsPostPass);
             }
@@ -98,6 +98,10 @@ namespace UnityEngine.Rendering.Universal
             private static string m_ProfilerTag = "ScreenSpaceShadows";
             private static ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
+            // Properties
+            private ScriptableRenderer m_Renderer = null;
+            private bool isRendererDeferred => m_Renderer != null && m_Renderer is UniversalRenderer && ((UniversalRenderer)m_Renderer).renderingMode == RenderingMode.Deferred;
+
             // Private Variables
             private Material m_Material;
             private ScreenSpaceShadowsSettings m_CurrentSettings;
@@ -113,11 +117,21 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderTarget.Init(k_SSShadowsTextureName);
             }
 
-            internal bool Setup(ScreenSpaceShadowsSettings featureSettings, Material material)
+            internal bool Setup(ScreenSpaceShadowsSettings featureSettings, ScriptableRenderer renderer, Material material)
             {
                 m_CurrentSettings = featureSettings;
+                m_Renderer = renderer;
                 m_Material = material;
-                ConfigureInput(ScriptableRenderPassInput.Depth);
+
+                if (isRendererDeferred)
+                {
+                    renderPassEvent = RenderPassEvent.AfterRenderingGbuffer;
+                }
+                else
+                {
+                    renderPassEvent = RenderPassEvent.AfterRenderingPrePasses;
+                    ConfigureInput(ScriptableRenderPassInput.Depth);
+                }
 
                 return m_Material != null;
             }
@@ -192,11 +206,6 @@ namespace UnityEngine.Rendering.Universal
             // Profiling tag
             private static string m_ProfilerTag = "ScreenSpaceShadows Post";
             private static ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
-
-            public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
-            {
-                ConfigureTarget(BuiltinRenderTextureType.CurrentActive);
-            }
 
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
