@@ -18,6 +18,7 @@ namespace UnityEditor.ShaderFoundry
         internal const string UniformDeclaration = "UniformDeclaration";
         internal const string PropertyType = "PropertyType";
         internal const string DefaultValue = "DefaultValue";
+        internal const string MaterialPropertyDefault = "MaterialPropertyDefault";
         internal const string Varying = "Varying";
     }
 
@@ -208,17 +209,21 @@ namespace UnityEditor.ShaderFoundry
         internal static UniformDeclarationAttribute Find(IEnumerable<ShaderAttribute> attributes)
         {
             var attribute = attributes.FindFirst(CommonShaderAttributes.UniformDeclaration);
-            if(attribute.IsValid)
-            {
-                var nameParam = attribute.Parameters.FindAttributeParam("name");
-                if(nameParam.IsValid)
-                {
-                    var declarationParam = attribute.Parameters.FindAttributeParam("declaration");
-                    string declaration =  declarationParam.IsValid ? declarationParam.Value : null;
-                    return new UniformDeclarationAttribute { Name = nameParam.Value, Declaration = declaration };
-                }
-            }
-            return null;
+            return Build(attribute);
+        }
+
+        internal static UniformDeclarationAttribute Build(ShaderAttribute attribute)
+        {
+            if (!attribute.IsValid || attribute.Name != CommonShaderAttributes.UniformDeclaration)
+                return null;
+
+            var nameParam = attribute.Parameters.FindAttributeParam("name");
+            if (!nameParam.IsValid)
+                return null;
+
+            var declarationParam = attribute.Parameters.FindAttributeParam("declaration");
+            string declaration =  declarationParam.IsValid ? declarationParam.Value : null;
+            return new UniformDeclarationAttribute { Name = nameParam.Value, Declaration = declaration };
         }
 
         internal string BuildVariableNameString(string referenceName)
@@ -273,6 +278,30 @@ namespace UnityEditor.ShaderFoundry
                 var param = attribute.Parameters.GetAttributeParam(0);
                 if (param.IsValid)
                     return new DefaultValueAttribute { DefaultValue = param.Value };
+            }
+            return null;
+        }
+    }
+
+    internal class MaterialPropertyDefaultAttribute
+    {
+        internal string PropertyDefaultExpression { get; set; }
+        internal static MaterialPropertyDefaultAttribute Find(IEnumerable<ShaderAttribute> attributes)
+        {
+            var defaultExpression = attributes.FindFirstAttributeParamValue(CommonShaderAttributes.MaterialPropertyDefault, 0);
+            if (defaultExpression != null)
+                return new MaterialPropertyDefaultAttribute { PropertyDefaultExpression = defaultExpression };
+            return null;
+        }
+
+        internal static MaterialPropertyDefaultAttribute Find(IEnumerable<ShaderAttribute> attributes, string variableName)
+        {
+            var attribute = attributes.FindFirst(CommonShaderAttributes.MaterialPropertyDefault, variableName);
+            if (attribute.IsValid)
+            {
+                var param = attribute.Parameters.GetAttributeParam(0);
+                if (param.IsValid)
+                    return new MaterialPropertyDefaultAttribute { PropertyDefaultExpression = param.Value };
             }
             return null;
         }

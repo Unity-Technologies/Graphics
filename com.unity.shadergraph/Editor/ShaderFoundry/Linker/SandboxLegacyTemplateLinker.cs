@@ -735,8 +735,11 @@ namespace UnityEditor.ShaderFoundry
 
             {
                 var propertyBuilder = new ShaderBuilder();
-                var perMaterialBuilder = new ShaderBuilder();
-                var globalBuilder = new ShaderBuilder();
+                UniformDeclarationContext context = new UniformDeclarationContext
+                {
+                    PerMaterialBuilder = new ShaderBuilder(),
+                    GlobalBuilder = new ShaderBuilder(),
+                };
 
                 var visitedProperties = new HashSet<string>();
                 foreach (var prop in shaderProperties)
@@ -744,7 +747,7 @@ namespace UnityEditor.ShaderFoundry
                     if (visitedProperties.Contains(prop.ReferenceName))
                         continue;
                     visitedProperties.Add(prop.ReferenceName);
-                    prop.DeclarePassProperty(perMaterialBuilder, globalBuilder);
+                    prop.DeclarePassProperty(context);
                 }
 
                 //if (m_Mode == GenerationMode.VFX)
@@ -763,9 +766,9 @@ namespace UnityEditor.ShaderFoundry
 
 
                 propertyBuilder.AppendLine("CBUFFER_START(UnityPerMaterial)");
-                propertyBuilder.Append(perMaterialBuilder.ToString());
+                propertyBuilder.Append(context.PerMaterialBuilder.ToString());
                 propertyBuilder.AppendLine("CBUFFER_END");
-                propertyBuilder.Append(globalBuilder.ToString());
+                propertyBuilder.Append(context.GlobalBuilder.ToString());
 
                 var propertiesStr = propertyBuilder.ToString();
                 if (string.IsNullOrEmpty(propertiesStr))
