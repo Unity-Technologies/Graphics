@@ -63,7 +63,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly(TargetsVFX(), systemData.tessellation));
             descriptor.passes.Add(HDShaderPasses.GenerateGBuffer(TargetsVFX(), systemData.tessellation));
             descriptor.passes.Add(HDShaderPasses.GenerateLitForward(TargetsVFX(), systemData.tessellation));
-            descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass(TargetsVFX(), systemData.tessellation), new FieldCondition(HDFields.EmissionOverriden, true));
             if (!systemData.tessellation) // Raytracing don't support tessellation neither VFX
                 descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
 
@@ -136,18 +135,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(SpecularAA, lightingData.specularAA &&
                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
-
-            // We need to grab the emission block to check if it is connected, or the default value is non null.
-            // If it is connected then we will generate an ForwardEmissiveForDeferred pass
-            bool emissionEnabled = false;
-            if (!context.connectedBlocks.Contains(BlockFields.SurfaceDescription.Emission))
-                emissionEnabled = !context.blocks.Contains((BlockFields.SurfaceDescription.Emission, true));
-            else
-                emissionEnabled = true;
-
-            // Note: both case are required to be compliant with the ShaderGraph framework
-            litData.emissionOverriden = emissionEnabled;
-            context.AddField(HDFields.EmissionOverriden, emissionEnabled);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -211,25 +198,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 enumNames = Enum.GetNames(typeof(ScreenSpaceRefraction.RefractionModel)).ToList(),
                 overrideReferenceName = kRefractionModel,
             });
-
-            // Note: Due to the shader graph framework it is not possible to rely on litData.emissionOverriden
-            // to decide to add the ForceForwardEmissive property or not. The emissionOverriden setup is done after
-            // the call to AddShaderProperty
-            collector.AddShaderProperty(new BooleanShaderProperty
-            {
-                value = litData.forceForwardEmissive,
-                hidden = true,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = kForceForwardEmissive,
-            });
         }
 
         protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
             base.CollectPassKeywords(ref pass);
             pass.keywords.Add(RefractionKeyword);
-            pass.keywords.Add(CoreKeywordDescriptors.ForceForwardEmissive);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
@@ -237,7 +211,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(litData));
             if (systemData.surfaceType == SurfaceType.Transparent)
                 blockList.AddPropertyBlock(new DistortionPropertyBlock());
-            blockList.AddPropertyBlock(new LitAdvancedOptionsPropertyBlock(litData));
+            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
         }
 
         protected override int ComputeMaterialNeedsUpdateHash()
@@ -248,7 +222,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 bool subsurfaceScattering = litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
                 hash = hash * 23 + subsurfaceScattering.GetHashCode();
-                hash = hash * 23 + litData.emissionOverriden.GetHashCode();
             }
 
             return hash;
