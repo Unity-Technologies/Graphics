@@ -18,8 +18,8 @@ VikingVillage_BuiltIn_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        VV_BUILTIN_BRANCH: testing/built-in-performance
-        VV_BUILTIN_REVISION: 45df1b7643b3ccf366e908bbbf9641f558080fed
+        VV_BUILTIN_BRANCH: testing/built-in-perf-fixes
+        VV_BUILTIN_REVISION: cd40903c079e5a7c9b5f60dab2ed6367b9ae5d18
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -52,8 +52,8 @@ Build_VikingVillage_BuiltIn_Win_Vulkan_performance_playmode_runtime_mono_Linear_
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        VV_BUILTIN_BRANCH: testing/built-in-performance
-        VV_BUILTIN_REVISION: 45df1b7643b3ccf366e908bbbf9641f558080fed
+        VV_BUILTIN_BRANCH: testing/built-in-perf-fixes
+        VV_BUILTIN_REVISION: cd40903c079e5a7c9b5f60dab2ed6367b9ae5d18
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -112,8 +112,8 @@ VikingVillage_BuiltIn_Win_Vulkan_performance_build_editmode_mono_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
-        VV_BUILTIN_BRANCH: testing/built-in-performance
-        VV_BUILTIN_REVISION: 45df1b7643b3ccf366e908bbbf9641f558080fed
+        VV_BUILTIN_BRANCH: testing/built-in-perf-fixes
+        VV_BUILTIN_REVISION: cd40903c079e5a7c9b5f60dab2ed6367b9ae5d18
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -170,8 +170,8 @@ VikingVillage_BuiltIn_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        VV_BUILTIN_BRANCH: testing/built-in-performance
-        VV_BUILTIN_REVISION: 45df1b7643b3ccf366e908bbbf9641f558080fed
+        VV_BUILTIN_BRANCH: testing/built-in-perf-fixes
+        VV_BUILTIN_REVISION: cd40903c079e5a7c9b5f60dab2ed6367b9ae5d18
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -204,8 +204,8 @@ Build_VikingVillage_BuiltIn_Win_Vulkan_performance_playmode_runtime_mono_Linear_
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        VV_BUILTIN_BRANCH: testing/built-in-performance
-        VV_BUILTIN_REVISION: 45df1b7643b3ccf366e908bbbf9641f558080fed
+        VV_BUILTIN_BRANCH: testing/built-in-perf-fixes
+        VV_BUILTIN_REVISION: cd40903c079e5a7c9b5f60dab2ed6367b9ae5d18
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -264,8 +264,8 @@ VikingVillage_BuiltIn_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-R
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        VV_BUILTIN_BRANCH: testing/built-in-performance
-        VV_BUILTIN_REVISION: 45df1b7643b3ccf366e908bbbf9641f558080fed
+        VV_BUILTIN_BRANCH: testing/built-in-perf-fixes
+        VV_BUILTIN_REVISION: cd40903c079e5a7c9b5f60dab2ed6367b9ae5d18
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*

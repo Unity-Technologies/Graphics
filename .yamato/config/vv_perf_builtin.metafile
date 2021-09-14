@@ -2,8 +2,8 @@ project:
   name: VikingVillage_BuiltIn
   folder: Viking-Village-Perf
   variables:
-    VV_BUILTIN_BRANCH: testing/built-in-performance
-    VV_BUILTIN_REVISION: 45df1b7643b3ccf366e908bbbf9641f558080fed
+    VV_BUILTIN_BRANCH: testing/built-in-perf-fixes
+    VV_BUILTIN_REVISION: cd40903c079e5a7c9b5f60dab2ed6367b9ae5d18
 
 reuse_blocks:
   unity_config:
