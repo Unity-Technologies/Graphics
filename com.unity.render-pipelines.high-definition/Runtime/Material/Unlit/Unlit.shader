@@ -457,6 +457,7 @@ Shader "HDRP/Unlit"
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -486,6 +487,7 @@ Shader "HDRP/Unlit"
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
 
@@ -516,6 +518,7 @@ Shader "HDRP/Unlit"
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
 
@@ -543,6 +546,8 @@ Shader "HDRP/Unlit"
 
             #pragma only_renderers d3d11
             #pragma raytracing surface_shader
+
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
 
@@ -576,6 +581,7 @@ Shader "HDRP/Unlit"
             #pragma raytracing surface_shader
 
             #define SHADOW_LOW
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
 
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
@@ -605,6 +611,8 @@ Shader "HDRP/Unlit"
 
             #pragma only_renderers d3d11
             #pragma raytracing surface_shader
+
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
