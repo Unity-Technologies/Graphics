@@ -87,12 +87,17 @@ namespace UnityEditor.VFX
 
             set
             {
+                var invalidateCause = InvalidationCause.kParamChanged;
+
                 if (m_Min == null || m_Min.type != type)
+                {
                     m_Min = new VFXSerializableObject(type, value);
+                    invalidateCause = InvalidationCause.kSettingChanged;
+                }
                 else
                     m_Min.Set(value);
 
-                Invalidate(InvalidationCause.kSettingChanged);
+                Invalidate(invalidateCause);
             }
         }
         public object max
@@ -101,11 +106,17 @@ namespace UnityEditor.VFX
 
             set
             {
+                var invalidateCause = InvalidationCause.kParamChanged;
+
                 if (m_Max == null || m_Max.type != type)
+                {
                     m_Max = new VFXSerializableObject(type, value);
+                    invalidateCause = InvalidationCause.kSettingChanged;
+                }
                 else
                     m_Max.Set(value);
-                Invalidate(InvalidationCause.kSettingChanged);
+
+                Invalidate(invalidateCause);
             }
         }
 
@@ -374,6 +385,20 @@ namespace UnityEditor.VFX
         public Node GetNode(int id)
         {
             return m_Nodes.FirstOrDefault(t => t.id == id);
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+
+            var type = this.type;
+            if (Deprecated.s_Types.Contains(type))
+            {
+                manager.RegisterError(
+                    "DeprecatedTypeParameter",
+                    VFXErrorType.Warning,
+                    string.Format("The structure of the '{0}' has changed, the position property has been moved to a transform type. You should consider to recreate this parameter.", type.Name));
+            }
         }
 
         protected sealed override void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -659,23 +684,29 @@ namespace UnityEditor.VFX
                     }
                 }
                 // if there are some links in the output slots that are in not found in the infos, find or create a node for them.
-                if (links.Count > 0)
+                foreach (var link in links)
                 {
                     Node newInfos = null;
-
-                    if (nodes.Count > 0)
+                    if (nodes.Any())
                     {
-                        newInfos = nodes[0];
+                        //There are already some nodes, choose the closest one to restore the link
+                        var refPosition = Vector2.zero;
+                        object refOwner = link.inputSlot.owner;
+                        while (refOwner is VFXModel model && refPosition == Vector2.zero)
+                        {
+                            refPosition = model is VFXBlock ? Vector2.zero : model.position;
+                            refOwner = model.GetParent();
+                        }
+                        newInfos = nodes.OrderBy(o => (refPosition - o.position).SqrMagnitude()).First();
                     }
                     else
                     {
                         newInfos = NewNode();
                         m_Nodes.Add(newInfos);
                     }
-                    newInfos.position = Vector2.zero;
                     if (newInfos.linkedSlots == null)
                         newInfos.linkedSlots = new List<NodeLinkedSlot>();
-                    newInfos.linkedSlots.AddRange(links);
+                    newInfos.linkedSlots.Add(link);
                     newInfos.expandedSlots = new List<VFXSlot>();
                 }
             }

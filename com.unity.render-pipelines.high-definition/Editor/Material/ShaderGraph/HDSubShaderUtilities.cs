@@ -169,8 +169,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 overrideReferenceName = kTransparentCullMode,
                 floatType = FloatType.Enum,
                 value = (int)transparentCullMode,
-                enumNames = {"Front", "Back"},
-                enumValues = {(int)TransparentCullMode.Front, (int)TransparentCullMode.Back},
+                enumNames = { "Front", "Back" },
+                enumValues = { (int)TransparentCullMode.Front, (int)TransparentCullMode.Back },
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
@@ -241,7 +241,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty("_DoubleSidedEnable", mode != DoubleSidedMode.Disabled);
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
-                enumNames = {"Flip", "Mirror", "None"}, // values will be 0, 1 and 2
+                enumNames = { "Flip", "Mirror", "None" }, // values will be 0, 1 and 2
                 floatType = FloatType.Enum,
                 overrideReferenceName = "_DoubleSidedNormalMode",
                 hidden = true,

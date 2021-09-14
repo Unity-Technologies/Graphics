@@ -99,7 +99,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
         [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterOpaques;  // TODO: the new default should be CopyDepthMode.AfterTransparents.
         [SerializeField] bool m_AccurateGbufferNormals = false;
-        //[SerializeField] bool m_TiledDeferredShading = false;
         [SerializeField] bool m_ClusteredRendering = false;
         const TileSize k_DefaultTileSize = TileSize._32;
         [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
@@ -214,18 +213,6 @@ namespace UnityEngine.Rendering.Universal
                 m_AccurateGbufferNormals = value;
             }
         }
-
-        /*
-        public bool tiledDeferredShading
-        {
-            get => m_TiledDeferredShading;
-            set
-            {
-                SetDirty();
-                m_TiledDeferredShading = value;
-            }
-        }
-        */
 
         internal bool clusteredRendering
         {

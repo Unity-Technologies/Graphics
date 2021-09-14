@@ -7,7 +7,7 @@ using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEngine.UIElements;
 using UnityEngine;
 
-namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
+namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(SubGraphOutputNode))]
     public class SubGraphOutputNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData

@@ -30,7 +30,6 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent OverridesSectionLabel = EditorGUIUtility.TrTextContent("Overrides", "This section contains Render Pipeline properties that this Renderer overrides.");
 
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "Normals in G-buffer use octahedron encoding/decoding. This improves visual quality but might reduce performance.");
-            //public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
             public static readonly GUIContent defaultStencilStateLabel = EditorGUIUtility.TrTextContent("Default Stencil State", "Configure the stencil state for the opaque and transparent render passes.");
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: When using the deferred rendering path, the Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
@@ -43,7 +42,6 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_DepthPrimingMode;
         SerializedProperty m_CopyDepthMode;
         SerializedProperty m_AccurateGbufferNormals;
-        //SerializedProperty m_TiledDeferredShading;
         SerializedProperty m_ClusteredRendering;
         SerializedProperty m_TileSize;
         SerializedProperty m_UseNativeRenderPass;
@@ -66,8 +64,6 @@ namespace UnityEditor.Rendering.Universal
             m_DepthPrimingMode = serializedObject.FindProperty("m_DepthPrimingMode");
             m_CopyDepthMode = serializedObject.FindProperty("m_CopyDepthMode");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
-            // Not exposed yet.
-            //m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
             m_ClusteredRendering = serializedObject.FindProperty("m_ClusteredRendering");
             m_TileSize = serializedObject.FindProperty("m_TileSize");
             m_UseNativeRenderPass = serializedObject.FindProperty("m_UseNativeRenderPass");
@@ -97,7 +93,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_AccurateGbufferNormals, Styles.accurateGbufferNormalsLabel, true);
-                //EditorGUILayout.PropertyField(m_TiledDeferredShading, Styles.tiledDeferredShadingLabel, true);
                 EditorGUI.indentLevel--;
             }
 
