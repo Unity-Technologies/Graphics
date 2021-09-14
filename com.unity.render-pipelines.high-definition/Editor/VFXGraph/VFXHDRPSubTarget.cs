@@ -285,8 +285,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             defineSpaceDescriptor = new AdditionalCommandDescriptor("VFXDefineSpace", defineSpaceDescriptorContent);
 
+            //Texture used as input of the shaderGraph will be declared by the shaderGraph generation
+            //However, if we are sampling a texture (or a mesh), we have to declare them before the VFX code generation.
+            //Thus, remove texture used in SG from VFX declaration and let the remainder.
+            var filteredTextureInSG = context.inputSlots.Where(o =>
+            {
+                return VFXExpression.IsTexture(o.property.type);
+            }).Select(o => o.property.name);
+
             // Parameter Cbuffer
-            VFXCodeGenerator.BuildParameterBuffer(contextData, out var parameterBuffer);
+            VFXCodeGenerator.BuildParameterBuffer(contextData, filteredTextureInSG, out var parameterBuffer);
             parameterBufferDescriptor = new AdditionalCommandDescriptor("VFXParameterBuffer", parameterBuffer);
 
             // Defines & Headers - Not all are necessary, however some important ones are mixed in like indirect draw, strips, flipbook, particle strip info...
