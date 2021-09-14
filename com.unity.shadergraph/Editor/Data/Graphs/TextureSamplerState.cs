@@ -21,6 +21,15 @@ namespace UnityEditor.ShaderGraph
             MirrorOnce
         }
 
+        public enum Anisotropic
+        {
+            None,
+            Aniso2,
+            Aniso4,
+            Aniso8,
+            Aniso16
+        }
+
         [SerializeField] private FilterMode m_filter = FilterMode.Linear;
 
         public FilterMode filter
@@ -49,6 +58,28 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public string defaultPropertyName => $"SamplerState_{filter}_{wrap}";
+        [SerializeField] private Anisotropic m_anisotropic = Anisotropic.None;
+
+        public Anisotropic anisotropic
+        {
+            get { return m_anisotropic; }
+            set
+            {
+                if (m_anisotropic == value)
+                    return;
+
+                m_anisotropic = value;
+            }
+        }
+
+        public static string BuildSamplerStateName(FilterMode filter, WrapMode wrap, Anisotropic aniso)
+        {
+            var anisoMode = (aniso == Anisotropic.None) ?
+                string.Empty :
+                ("_" + aniso.ToString());
+            return $"SamplerState_{filter}_{wrap}{anisoMode}";
+        }
+
+        public string defaultPropertyName => BuildSamplerStateName(filter, wrap, anisotropic);
     }
 }
