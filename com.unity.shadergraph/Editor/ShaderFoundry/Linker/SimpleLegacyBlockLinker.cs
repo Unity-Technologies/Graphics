@@ -36,6 +36,7 @@ namespace UnityEditor.ShaderFoundry
             internal string Name = null;
             internal BlockVariable Variable = BlockVariable.Invalid;
             internal VariableInstance Parent = null;
+            internal string DefaultExpression = null;
         }
 
         internal class VariableInstanceWithFields : VariableInstance
@@ -318,6 +319,12 @@ namespace UnityEditor.ShaderFoundry
                     sourceInstance = instanceMatch;
                 }
 
+                // If no source variable was found but there is a default expression, use that as the source
+                if(sourceInstance == null && !string.IsNullOrEmpty(input.DefaultExpression))
+                {
+                    sourceInstance = new VariableInstance { DefaultExpression = input.DefaultExpression };
+                }
+
                 // No match, can't connect this to anything
                 if (sourceInstance == null)
                     continue;
@@ -387,14 +394,26 @@ namespace UnityEditor.ShaderFoundry
                 var source = match.Source;
                 var dest = match.Destination;
 
-                if(source.Parent == null)
+                // If the source is another block (e.g. the parent isn't null)
+                if (source.Parent != null)
                 {
-                    var propData = dest.Variable;
-                    var owningVar = BlockVariableLinkInstance.Construct(propData, subBlockInputInstance, null);
-                    source.Variable.CopyPassPassProperty(fnBuilder, owningVar);
+                    builder.AddLine($"{dest.Parent.Name}.{dest.Variable.ReferenceName} = {source.Parent.Name}.{source.Variable.ReferenceName};");
                 }
                 else
-                    builder.AddLine($"{dest.Parent.Name}.{dest.Variable.ReferenceName} = {source.Parent.Name}.{source.Variable.ReferenceName};");
+                {
+                    // This has a default expression, use that to initialize the variable
+                    if(source.DefaultExpression != null)
+                    {
+                        builder.AddLine($"{dest.Parent.Name}.{dest.Variable.ReferenceName} = {source.DefaultExpression};");
+                    }
+                    // This should fall back to trying to initialize from a uniform
+                    else
+                    {
+                        var propData = dest.Variable;
+                        var owningVar = BlockVariableLinkInstance.Construct(propData, subBlockInputInstance, null);
+                        source.Variable.CopyPassPassProperty(fnBuilder, owningVar);
+                    }
+                }
             }
 
 

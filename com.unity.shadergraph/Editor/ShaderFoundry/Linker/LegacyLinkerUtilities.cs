@@ -65,25 +65,31 @@ namespace UnityEditor.ShaderFoundry
 
         static string GetDefaultExpression(string defaultExpression, IEnumerable<ShaderAttribute> attributes, string varName = null)
         {
-            DefaultValueAttribute attribute;
+            MaterialPropertyDefaultAttribute attribute;
             if(varName == null)
-                attribute = DefaultValueAttribute.Find(attributes);
+                attribute = MaterialPropertyDefaultAttribute.Find(attributes);
             else
-                attribute = DefaultValueAttribute.Find(attributes, varName);
+                attribute = MaterialPropertyDefaultAttribute.Find(attributes, varName);
 
             if (attribute != null)
-                return attribute.DefaultValue;
+                return attribute.PropertyDefaultExpression;
             return defaultExpression;
         }
+    }
+
+    internal class UniformDeclarationContext
+    {
+        internal ShaderBuilder PerMaterialBuilder;
+        internal ShaderBuilder GlobalBuilder;
     }
 
     internal class PassPropertyInfo
     {
         internal string uniformDeclaration;
-        internal string variableName;
         internal BlockVariableLinkInstance variable;
         internal HLSLDeclaration declarationType;
         internal bool isSubField = false;
+        internal string assignmentExpression;
 
         internal static void Extract(BlockVariable property, List<PassPropertyInfo> results)
         {
@@ -106,19 +112,17 @@ namespace UnityEditor.ShaderFoundry
             {
                 foreach (var field in propType.StructFields)
                 {
-                    ExtractPropertyVariable(field.Type, field.Name, field.Attributes, referenceName, attributes, propertyInstance, results);
-                    ExtractUniformDeclaration(field.Type, field.Name, field.Attributes, referenceName, attributes, propertyInstance, results);
+                    ExtractField(field.Type, field.Name, field.Attributes, referenceName, attributes, propertyInstance, results);
                 }
             }
             else
             {
-                bool extracted = ExtractPropertyVariable(propType, referenceName, attributes, referenceName, attributes, null, results);
-                extracted |= ExtractUniformDeclaration(propType, referenceName, attributes, referenceName, attributes, null, results);
+                bool extracted = ExtractField(propType, referenceName, attributes, referenceName, attributes, null, results);
                 if(!extracted)
                 {
                     var info = new PassPropertyInfo();
                     info.uniformDeclaration = $"{propType.Name} {referenceName}";
-                    info.variableName = referenceName;
+                    info.assignmentExpression = $"# = {referenceName}";
                     info.declarationType = attributes.GetDeclaration();
                     info.variable = propertyInstance;
                     results.Add(info);
@@ -127,65 +131,79 @@ namespace UnityEditor.ShaderFoundry
             return results;
         }
 
-        static bool ExtractUniformDeclaration(ShaderType variableType, string variableName, IEnumerable<ShaderAttribute> variableAttributes,
+        static bool ExtractField(ShaderType variableType, string variableName, IEnumerable<ShaderAttribute> variableAttributes,
             string propReferenceName, IEnumerable<ShaderAttribute> propInstanceAttributes, BlockVariableLinkInstance owner, List<PassPropertyInfo> results)
         {
-            var uniformDeclarationAtt = UniformDeclarationAttribute.Find(variableAttributes);
-            if (uniformDeclarationAtt == null)
-                return false;
-
-            var info = new PassPropertyInfo();
-            info.uniformDeclaration = uniformDeclarationAtt.BuildDeclarationString(variableType, propReferenceName);
-            info.variableName = uniformDeclarationAtt.BuildVariableNameString(propReferenceName);
-            info.declarationType = propInstanceAttributes.GetDeclaration();
-            info.variable = BlockVariableLinkInstance.Construct(variableType, variableName, variableName, owner, null);
-            info.isSubField = owner != null;
-            results.Add(info);
-            return true;
-        }
-
-        static bool ExtractPropertyVariable(ShaderType variableType, string variableName, IEnumerable<ShaderAttribute> variableAttributes,
-            string propReferenceName, IEnumerable<ShaderAttribute> propInstanceAttributes, BlockVariableLinkInstance owner, List<PassPropertyInfo> results)
-        {
+            PassPropertyInfo info = null;
             var propVariableAtt = PropertyVariableAttribute.Find(variableAttributes);
-            if (propVariableAtt == null)
-                return false;
+            if (propVariableAtt != null)
+            {
+                if(info == null)
+                    info = new PassPropertyInfo();
 
-            var info = new PassPropertyInfo();
-            info.uniformDeclaration = propVariableAtt.BuildDeclarationString(variableType, propReferenceName);
-            info.variableName = propVariableAtt.BuildVariableNameString(propReferenceName);
-            info.declarationType = propInstanceAttributes.GetDeclaration();
-            info.variable = BlockVariableLinkInstance.Construct(variableType, variableName, variableName, owner, null);
-            info.isSubField = owner != null;
-            results.Add(info);
-            return true;
+                info.uniformDeclaration = propVariableAtt.BuildDeclarationString(variableType, propReferenceName);
+                var rhsVariableName = propVariableAtt.BuildVariableNameString(propReferenceName);
+                info.assignmentExpression = $"# = {rhsVariableName}";
+            }
+
+            var uniformDeclAttribute = UniformDeclarationAttribute.Find(variableAttributes);
+            if (uniformDeclAttribute != null)
+            {
+                if (info == null)
+                    info = new PassPropertyInfo();
+
+                info.uniformDeclaration = uniformDeclAttribute.BuildDeclarationString(variableType, propReferenceName);
+                var rhsVariableName = uniformDeclAttribute.BuildVariableNameString(propReferenceName);
+                info.assignmentExpression = $"# = {rhsVariableName}";
+            }
+
+            var defaultValueAtt = DefaultValueAttribute.Find(propInstanceAttributes, variableName);
+            if (defaultValueAtt != null)
+            {
+                if (info == null)
+                    info = new PassPropertyInfo();
+
+                info.assignmentExpression = defaultValueAtt.DefaultValue;
+            }
+
+            if(info != null)
+            {
+                info.declarationType = propInstanceAttributes.GetDeclaration();
+                info.variable = BlockVariableLinkInstance.Construct(variableType, variableName, variableName, null, owner, null);
+                info.isSubField = owner != null;
+                results.Add(info);
+            }
+
+            return info != null;
         }
 
         internal void Copy(ShaderFunction.Builder builder, BlockVariableLinkInstance owningVariable)
         {
+            string variableDeclaration = null;
             if(isSubField)
             {
                 variable.Owner = owningVariable;
-                var stringBuilder = new ShaderBuilder();
-                variable.Declare(stringBuilder);
-                builder.AddLine($"{stringBuilder} = {variableName};");
+                variableDeclaration = variable.GetDeclarationString();
             }
             else
             {
-                var stringBuilder = new ShaderBuilder();
-                owningVariable.Declare(stringBuilder);
-                builder.AddLine($"{stringBuilder} = {variableName};");
+                variableDeclaration = owningVariable.GetDeclarationString();
+            }
+            if(!string.IsNullOrEmpty(this.assignmentExpression))
+            {
+                var defaultExpression = this.assignmentExpression.Replace("#", variableDeclaration);
+                builder.AddLine($"{defaultExpression};");
             }
         }
 
-        internal void Declare(ShaderBuilder perMaterialBuilder, ShaderBuilder globalBuilder, string propertyName)
+        internal void Declare(UniformDeclarationContext context)
         {
             if (declarationType == HLSLDeclaration.DoNotDeclare)
                 return;
 
-            var builder = perMaterialBuilder;
+            var builder = context.PerMaterialBuilder;
             if (declarationType == HLSLDeclaration.Global)
-                builder = globalBuilder;
+                builder = context.GlobalBuilder;
 
             builder.AddLine($"{uniformDeclaration};");
         }

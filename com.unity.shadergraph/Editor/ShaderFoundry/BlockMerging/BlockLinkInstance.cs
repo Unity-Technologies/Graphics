@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderFoundry
         BlockVariableLinkInstance CreateVariableInstance(ShaderType type, IEnumerable<BlockVariable> variables)
         {
             string name = type.Name;
-            var instance = BlockVariableLinkInstance.Construct(type, name.ToLower(), name, null);
+            var instance = BlockVariableLinkInstance.Construct(type, name.ToLower(), name, null, null);
             // Extract all of the variables into instances
             foreach (var variable in variables)
             {

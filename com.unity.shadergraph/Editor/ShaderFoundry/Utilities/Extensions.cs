@@ -196,12 +196,12 @@ namespace UnityEditor.ShaderFoundry
 
     internal static class BlockVariableExtensions
     {
-        internal static void DeclarePassProperty(this BlockProperty prop, ShaderBuilder perMaterialBuilder, ShaderBuilder globalBuilder)
+        internal static void DeclarePassProperty(this BlockProperty prop, UniformDeclarationContext context)
         {
             var passProps = PassPropertyInfo.Extract(prop);
             foreach (var passProp in passProps)
             {
-                passProp.Declare(perMaterialBuilder, globalBuilder, prop.ReferenceName);
+                passProp.Declare(context);
             }
         }
 
@@ -256,6 +256,13 @@ namespace UnityEditor.ShaderFoundry
                 builder.Add(".");
             }
             builder.Add(varInstance.ReferenceName);
+        }
+
+        internal static string GetDeclarationString(this BlockVariableLinkInstance varInstance)
+        {
+            ShaderBuilder builder = new ShaderBuilder();
+            varInstance.Declare(builder);
+            return builder.ToString();
         }
     }
 
