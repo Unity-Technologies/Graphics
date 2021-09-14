@@ -15,7 +15,7 @@ VikingVillage_URP_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         VV_URP_BRANCH: testing/urp-performance
-        VV_URP_REVISION: 5cd45790068a89de864d1072d5ed06d84b3bebb4
+        VV_URP_REVISION: 93cf8f2abaabfd8482c6239278a6436948d265ea
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/vikingvillage_urp-win-dx11.yml#VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_trunk
@@ -45,7 +45,7 @@ VikingVillage_URP_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         VV_URP_BRANCH: testing/urp-performance
-        VV_URP_REVISION: 5cd45790068a89de864d1072d5ed06d84b3bebb4
+        VV_URP_REVISION: 93cf8f2abaabfd8482c6239278a6436948d265ea
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/vikingvillage_urp-win-dx11.yml#VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION

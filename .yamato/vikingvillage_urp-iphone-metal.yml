@@ -18,7 +18,7 @@ VikingVillage_URP_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_URP_BRANCH: testing/urp-performance
-        VV_URP_REVISION: 5cd45790068a89de864d1072d5ed06d84b3bebb4
+        VV_URP_REVISION: 93cf8f2abaabfd8482c6239278a6436948d265ea
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -52,7 +52,7 @@ Build_VikingVillage_URP_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_URP_BRANCH: testing/urp-performance
-        VV_URP_REVISION: 5cd45790068a89de864d1072d5ed06d84b3bebb4
+        VV_URP_REVISION: 93cf8f2abaabfd8482c6239278a6436948d265ea
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -112,7 +112,7 @@ VikingVillage_URP_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{trunk.changeset.id}}'
         VV_URP_BRANCH: testing/urp-performance
-        VV_URP_REVISION: 5cd45790068a89de864d1072d5ed06d84b3bebb4
+        VV_URP_REVISION: 93cf8f2abaabfd8482c6239278a6436948d265ea
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -171,7 +171,7 @@ VikingVillage_URP_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         VV_URP_BRANCH: testing/urp-performance
-        VV_URP_REVISION: 5cd45790068a89de864d1072d5ed06d84b3bebb4
+        VV_URP_REVISION: 93cf8f2abaabfd8482c6239278a6436948d265ea
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -205,7 +205,7 @@ Build_VikingVillage_URP_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         VV_URP_BRANCH: testing/urp-performance
-        VV_URP_REVISION: 5cd45790068a89de864d1072d5ed06d84b3bebb4
+        VV_URP_REVISION: 93cf8f2abaabfd8482c6239278a6436948d265ea
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -265,7 +265,7 @@ VikingVillage_URP_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUSTOM-R
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
         VV_URP_BRANCH: testing/urp-performance
-        VV_URP_REVISION: 5cd45790068a89de864d1072d5ed06d84b3bebb4
+        VV_URP_REVISION: 93cf8f2abaabfd8482c6239278a6436948d265ea
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
