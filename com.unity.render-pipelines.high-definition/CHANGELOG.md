@@ -414,6 +414,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
 - Fixed ThreadMapDetail to saturate AO & smoothness strength inputs to prevent out-of-bounds values set by users (1357740)
 - Allow negative wind speed parameter.
+- Fixed silhouette issue with emissive decals
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
