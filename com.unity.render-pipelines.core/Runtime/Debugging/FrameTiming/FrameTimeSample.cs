@@ -42,40 +42,40 @@ namespace UnityEngine.Rendering
             m_Samples.Add(sample);
         }
 
+        // Helper functions
+
+        static Func<float, float, float> s_SampleValueAdd = (float value, float other) =>
+        {
+            return value + other;
+        };
+
+        static Func<float, float, float> s_SampleValueMin = (float value, float other) =>
+        {
+            return other > 0 ? Mathf.Min(value, other) : value;
+        };
+
+        static Func<float, float, float> s_SampleValueMax = (float value, float other) =>
+        {
+            return Mathf.Max(value, other);
+        };
+
+        static Func<float, float, float> s_SampleValueCountValid = (float value, float other) =>
+        {
+            return other > 0 ? value + 1 : value;
+        };
+
+        static Func<float, float, float> s_SampleValueEnsureValid = (float value, float other) =>
+        {
+            return other > 0 ? value : 0;
+        };
+
+        static Func<float, float, float> s_SampleValueDivide = (float value, float other) =>
+        {
+            return other > 0 ? value / other : 0;
+        };
+
         internal void ComputeAggregateValues()
         {
-            // Helper functions
-
-            float SampleValueAdd(float value, float other)
-            {
-                return value + other;
-            };
-
-            float SampleValueMin(float value, float other)
-            {
-                return other > 0 ? Mathf.Min(value, other) : value;
-            };
-
-            float SampleValueMax(float value, float other)
-            {
-                return Mathf.Max(value, other);
-            };
-
-            float SampleValueCountValid(float value, float other)
-            {
-                return other > 0 ? value + 1 : value;
-            };
-
-            float SampleValueEnsureValid(float value, float other)
-            {
-                return other > 0 ? value : 0;
-            };
-
-            float SampleValueDivide(float value, float other)
-            {
-                return other > 0 ? value / other : 0;
-            };
-
             void ForEachSampleMember(ref FrameTimeSample aggregate, FrameTimeSample sample, Func<float, float, float> func)
             {
                 aggregate.FramesPerSecond = func(aggregate.FramesPerSecond, sample.FramesPerSecond);
@@ -95,15 +95,15 @@ namespace UnityEngine.Rendering
             {
                 var s = m_Samples[i];
 
-                ForEachSampleMember(ref min, s, SampleValueMin);
-                ForEachSampleMember(ref max, s, SampleValueMax);
-                ForEachSampleMember(ref average, s, SampleValueAdd);
-                ForEachSampleMember(ref numValidSamples, s, SampleValueCountValid);
+                ForEachSampleMember(ref min, s, s_SampleValueMin);
+                ForEachSampleMember(ref max, s, s_SampleValueMax);
+                ForEachSampleMember(ref average, s, s_SampleValueAdd);
+                ForEachSampleMember(ref numValidSamples, s, s_SampleValueCountValid);
             }
 
-            ForEachSampleMember(ref min, numValidSamples, SampleValueEnsureValid);
-            ForEachSampleMember(ref max, numValidSamples, SampleValueEnsureValid);
-            ForEachSampleMember(ref average, numValidSamples, SampleValueDivide);
+            ForEachSampleMember(ref min, numValidSamples, s_SampleValueEnsureValid);
+            ForEachSampleMember(ref max, numValidSamples, s_SampleValueEnsureValid);
+            ForEachSampleMember(ref average, numValidSamples, s_SampleValueDivide);
 
             SampleAverage = average;
             SampleMin = min;

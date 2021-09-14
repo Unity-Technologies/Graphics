@@ -263,12 +263,14 @@ namespace UnityEngine.Rendering
             var touchCount = touches.Count;
             InputSystem.TouchPhase? expectedTouchPhase = null;
 #else
-            var touches = Input.touches;
             var touchCount = Input.touchCount;
             TouchPhase? expectedTouchPhase = TouchPhase.Began;
 #endif
             if (touchCount == 3)
             {
+#if !USE_INPUT_SYSTEM
+                var touches = Input.touches; // Causes an allocation, which is why this is inside the condition
+#endif
                 foreach (var touch in touches)
                 {
                     // Gesture: 3-finger double-tap

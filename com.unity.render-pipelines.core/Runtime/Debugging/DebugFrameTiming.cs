@@ -26,29 +26,31 @@ namespace UnityEngine.Rendering
         /// </summary>
         public int sampleHistorySize { get; set; } = 30;
 
+        FrameTiming[] m_Timing = new FrameTiming[1];
+        FrameTimeSample m_Sample = new FrameTimeSample();
+
         /// <summary>
         /// Update timing data from profiling counters.
         /// </summary>
         public void UpdateFrameTiming()
         {
-            FrameTiming[] timing = new FrameTiming[1];
+            m_Timing[0] = default;
+            m_Sample = default;
             FrameTimingManager.CaptureFrameTimings();
-            FrameTimingManager.GetLatestTimings(1, timing);
+            FrameTimingManager.GetLatestTimings(1, m_Timing);
 
-            FrameTimeSample sample = new FrameTimeSample();
-
-            if (timing.Length > 0)
+            if (m_Timing.Length > 0)
             {
-                sample.FullFrameTime = (float)timing.First().cpuFrameTime;
-                sample.FramesPerSecond = sample.FullFrameTime > 0f ? 1000f / sample.FullFrameTime : 0f;
-                sample.MainThreadCPUFrameTime = (float)timing.First().cpuMainThreadFrameTime;
-                sample.MainThreadCPUPresentWaitTime = (float)timing.First().cpuMainThreadPresentWaitTime;
-                sample.RenderThreadCPUFrameTime = (float)timing.First().cpuRenderThreadFrameTime;
-                sample.GPUFrameTime = (float)timing.First().gpuFrameTime;
+                m_Sample.FullFrameTime = (float)m_Timing.First().cpuFrameTime;
+                m_Sample.FramesPerSecond = m_Sample.FullFrameTime > 0f ? 1000f / m_Sample.FullFrameTime : 0f;
+                m_Sample.MainThreadCPUFrameTime = (float)m_Timing.First().cpuMainThreadFrameTime;
+                m_Sample.MainThreadCPUPresentWaitTime = (float)m_Timing.First().cpuMainThreadPresentWaitTime;
+                m_Sample.RenderThreadCPUFrameTime = (float)m_Timing.First().cpuRenderThreadFrameTime;
+                m_Sample.GPUFrameTime = (float)m_Timing.First().gpuFrameTime;
             }
 
             m_FrameHistory.DiscardOldSamples(sampleHistorySize);
-            m_FrameHistory.Add(sample);
+            m_FrameHistory.Add(m_Sample);
             m_FrameHistory.ComputeAggregateValues();
 
             m_BottleneckHistory.DiscardOldSamples(bottleneckHistorySize);
