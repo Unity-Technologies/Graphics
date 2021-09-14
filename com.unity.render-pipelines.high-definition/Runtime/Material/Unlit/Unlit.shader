@@ -169,6 +169,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             // Note: Require _ObjectId and _PassValue variables
 
@@ -213,6 +214,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             // Note: Only shader graph support Shadow Matte, so we do'nt need normal buffer here
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
@@ -259,6 +261,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             // Note: Only shader graph support Shadow Matte, so we do'nt need normal buffer here
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
@@ -307,6 +310,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #pragma multi_compile _ DEBUG_DISPLAY
 
@@ -343,6 +347,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
@@ -381,6 +386,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -420,6 +426,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #define SHADERPASS SHADERPASS_DISTORTION
 

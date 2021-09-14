@@ -692,6 +692,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
             { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
+            { Pragma.HighDefinitionExtensionsEnabled },
         };
 
         public static PragmaCollection InstancedRenderingLayer = new PragmaCollection
@@ -798,7 +799,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { CoreKeywordDescriptors.TransparentColorShadow },
         };
-        
     }
 #endregion
 

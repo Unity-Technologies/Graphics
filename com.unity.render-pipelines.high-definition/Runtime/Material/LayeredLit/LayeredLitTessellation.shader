@@ -573,6 +573,7 @@ Shader "HDRP/LayeredLitTessellation"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -612,6 +613,7 @@ Shader "HDRP/LayeredLitTessellation"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -658,10 +660,11 @@ Shader "HDRP/LayeredLitTessellation"
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ DOTS_INSTANCING_ON            
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #pragma multi_compile _ DEBUG_DISPLAY
             //#pragma multi_compile _ LIGHTMAP_ON
@@ -721,6 +724,7 @@ Shader "HDRP/LayeredLitTessellation"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
             
@@ -768,6 +772,7 @@ Shader "HDRP/LayeredLitTessellation"
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_DECAL_BUFFER
@@ -813,6 +818,7 @@ Shader "HDRP/LayeredLitTessellation"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -859,6 +865,7 @@ Shader "HDRP/LayeredLitTessellation"
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
@@ -915,6 +922,7 @@ Shader "HDRP/LayeredLitTessellation"
             #pragma instancing_options renderinglayer
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
 
             #pragma multi_compile _ DEBUG_DISPLAY
             //#pragma multi_compile _ LIGHTMAP_ON
