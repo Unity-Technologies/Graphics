@@ -354,6 +354,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             //#pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION            
             // enable dithering LOD crossfade
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -393,6 +394,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             //#pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -441,6 +443,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -493,6 +496,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             //#pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -534,6 +538,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             //#pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -577,6 +582,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -631,6 +637,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -680,6 +687,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -726,6 +734,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -802,6 +811,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -872,6 +882,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
             //#pragma multi_compile _ LOD_FADE_CROSSFADE

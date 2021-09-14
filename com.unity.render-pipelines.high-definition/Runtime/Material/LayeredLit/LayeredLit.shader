@@ -552,6 +552,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -588,6 +589,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -633,6 +635,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -683,6 +686,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -728,6 +732,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -772,6 +777,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -813,6 +819,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -867,6 +874,7 @@ Shader "HDRP/LayeredLit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ HIGH_DEFINITION_EXTENSIONS_ENABLED
             #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             #pragma instancing_options renderinglayer
             //#pragma multi_compile _ LOD_FADE_CROSSFADE

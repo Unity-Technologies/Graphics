@@ -101,6 +101,13 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_UseRenderGraph = value;
         }
 
+        [SerializeField] private bool m_HighDefinitionExtensionsEnabled = false;
+        internal bool highDefinitionExtensionsEnabled
+        {
+            get => m_HighDefinitionExtensionsEnabled;
+            set => m_HighDefinitionExtensionsEnabled = value;
+        }
+
 #if UNITY_EDITOR
         [SerializeField] private VolumeProfile m_DefaultLookDevProfile;
 

@@ -1598,6 +1598,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Raise or remove the depth msaa flag based on the frame setting
             CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+
+            CoreUtils.SetKeyword(cmd, "HIGH_DEFINITION_EXTENSIONS_ENABLED", m_Asset.highDefinitionExtensionsEnabled);
         }
 
         struct RenderRequest
