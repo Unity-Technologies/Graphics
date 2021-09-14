@@ -117,8 +117,24 @@ void Frag(PackedVaryingsToPS packedInput,
     bsdfData.color *= GetScreenSpaceAmbientOcclusion(input.positionSS.xy);
 #endif
 
+#ifdef DEBUG_DISPLAY
+    // Handle debug lighting mode here as there is no lightloop for unlit.
+    // For unlit we let all unlit object appear
+    if (_DebugLightingMode >= DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING && _DebugLightingMode <= DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+    {
+        if (_DebugLightingMode != DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+        {
+            builtinData.emissiveColor = 0.0;
+        }
+        else
+        {
+            bsdfData.color = 0.0;
+        }
+    }
+#endif
+
     // Note: we must not access bsdfData in shader pass, but for unlit we make an exception and assume it should have a color field
-    float4 outResult = ApplyBlendMode(bsdfData.color*GetDeExposureMultiplier() + builtinData.emissiveColor * GetCurrentExposureMultiplier(), builtinData.opacity);
+    float4 outResult = ApplyBlendMode(bsdfData.color * GetDeExposureMultiplier() + builtinData.emissiveColor * GetCurrentExposureMultiplier(), builtinData.opacity);
     outResult = EvaluateAtmosphericScattering(posInput, V, outResult);
 
 #ifdef DEBUG_DISPLAY
