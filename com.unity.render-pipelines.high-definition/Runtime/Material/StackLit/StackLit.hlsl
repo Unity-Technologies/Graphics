@@ -2630,6 +2630,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     PreLightData_SetupNormals(bsdfData, preLightData, V, N, NdotV);
 
     preLightData.diffuseEnergy = float3(1.0, 1.0, 1.0);
+    preLightData.clearCoatIndirectSpec = 1.0;
 
     // For eval IBL lights, we need:
     //
@@ -2666,7 +2667,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         // accordingly and are accessed by COAT|BASE_NORMAL_IDX
 
         preLightData.coatIeta = 1.0 / GetCoatEta(bsdfData);
-        preLightData.clearCoatIndirectSpec = 1.0;
 
         // First thing we need is compute the energy coefficients and new roughnesses.
         // Even if configured to do it also per analytical light, we need it for IBLs too.
@@ -4403,7 +4403,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         L *= preLightData.hemiSpecularOcclusion[i];
 
         // If we are going to process the clear coat, we need to take into account the coat indirect spec factor
-        L = (i == COAT_LOBE_IDX && COAT_NB_LOBES == 1) ? preLightData.clearCoatIndirectSpec : 1.0;
+        L *= (i == COAT_LOBE_IDX && COAT_NB_LOBES == 1) ? preLightData.clearCoatIndirectSpec : 1.0;
         envLighting += L;
     }
 
