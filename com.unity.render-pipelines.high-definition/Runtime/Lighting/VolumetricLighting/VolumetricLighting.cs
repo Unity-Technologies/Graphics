@@ -481,8 +481,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
             cmd.SetComputeFloatParam(cs, HDShaderIDs._DilationWidth, parameters.dilationWidth);
 
-            int finalMaskW = maskW / 2;
-            int finalMaskH = maskH / 2;
+            int finalMaskW = Mathf.CeilToInt(maskW / 2.0f);
+            int finalMaskH = Mathf.CeilToInt(maskH / 2.0f);
 
             dispatchX = HDUtils.DivRoundUp(finalMaskW, 8);
             dispatchY = HDUtils.DivRoundUp(finalMaskH, 8);

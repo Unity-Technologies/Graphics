@@ -6,17 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.7.0] - 2021-07-02
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
 ### Added
+- Added support for controlling Volume Framework Update Frequency in UI on Cameras and URP Asset as well as through scripting.
 - XR: Added Late Latching support to reduce VR latency (Quest).
 
 ### Fixed
 - Fixed terrain hole shadowing [case 1349305]
-
-### Fixed
 - Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
+- Fixed an issue where the scene view would turn black when bloom was enabled. [case 1298790](https://issuetracker.unity3d.com/issues/urp-bloom-and-tonemapping-causes-the-screen-to-go-black-in-scene-mode), [case 1340848](https://issuetracker.unity3d.com/issues/urp-bloom-produces-visual-artifacts-when-color-slash-emission-are-not-clamped)
+- Fixed a case where camera dimension can be zero. [case 1321168](https://issuetracker.unity3d.com/issues/urp-attempting-to-get-camera-relative-temporary-rendertexture-is-thrown-when-tweening-the-viewport-rect-values-of-a-camera)
+- VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
+- VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
 
 ## [10.6.0] - 2021-04-29
 

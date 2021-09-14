@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             m_MessageManager = messageManager;
             previewManager = new PreviewManager(graph, messageManager);
-            previewManager.RenderPreviews(false);
+            previewManager.RenderPreviews(m_EditorWindow, false);
 
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
 
@@ -649,7 +649,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ColorManager.UpdateNodeViews(nodeList);
             }
 
-            previewManager.RenderPreviews();
+            previewManager.RenderPreviews(m_EditorWindow);
             m_BlackboardProvider.HandleGraphChanges(wasUndoRedoPerformed);
             if (wasUndoRedoPerformed)
                 m_InspectorView.Update(InspectorUpdateSource.GraphChanges);

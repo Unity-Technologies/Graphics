@@ -871,6 +871,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            camera.didResetPostProcessingHistoryInLastFrame = camera.resetPostProcessingHistory;
+
             camera.resetPostProcessingHistory = false;
         }
 
@@ -1297,8 +1299,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public RTHandle GetPreviousExposureTexture(HDCamera camera)
         {
+            // If the history was reset in the previous frame, then the history buffers were actually rendered with a neutral EV100 exposure multiplier
+            var rt = (camera.didResetPostProcessingHistoryInLastFrame && !IsExposureFixed(camera)) ?
+                m_EmptyExposureTexture : camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Exposure);
+
             // See GetExposureTexture
-            var rt = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Exposure);
             return rt ?? m_EmptyExposureTexture;
         }
 
