@@ -304,8 +304,7 @@ namespace UnityEngine.Experimental.Rendering
         internal class CellInfo
         {
             public Cell cell;
-            public List<Chunk> chunkList;
-            public RegId regId;
+            public List<Chunk> chunkList = new List<Chunk>();
             public int flatIdxInCellIndices = -1;
             public bool loaded = false;
             public ProbeBrickIndex.CellIndexUpdateInfo updateInfo;
@@ -460,33 +459,7 @@ namespace UnityEngine.Experimental.Rendering
             public Texture3D L2_3;
         }
 
-        [DebuggerDisplay("{id}")]
-        internal struct RegId
-        {
-            internal int id;
-
-            public bool IsValid() => id != 0;
-            public void Invalidate() => id = 0;
-            public static bool operator ==(RegId lhs, RegId rhs) => lhs.id == rhs.id;
-            public static bool operator !=(RegId lhs, RegId rhs) => lhs.id != rhs.id;
-            public override bool Equals(object obj)
-            {
-                if ((obj == null) || !this.GetType().Equals(obj.GetType()))
-                {
-                    return false;
-                }
-                else
-                {
-                    RegId p = (RegId)obj;
-                    return p == this;
-                }
-            }
-
-            public override int GetHashCode() => id;
-        }
-
         bool m_IsInitialized = false;
-        int m_ID = 0;
         RefVolTransform m_Transform;
         int m_MaxSubdivision;
         ProbeBrickPool m_Pool;
@@ -494,7 +467,6 @@ namespace UnityEngine.Experimental.Rendering
         ProbeCellIndices m_CellIndices;
         List<Chunk> m_TmpSrcChunks = new List<Chunk>();
         float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
-        Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
         Bounds m_CurrGlobalBounds = new Bounds();
 
         internal Dictionary<int, CellInfo> cells = new Dictionary<int, CellInfo>();
@@ -1057,11 +1029,12 @@ namespace UnityEngine.Experimental.Rendering
             var bricks = cell.bricks;
 
             // calculate the number of chunks necessary
-            int ch_size = ProbeBrickPool.GetChunkSize();
-            var ch_list = new List<Chunk>((bricks.Count + ch_size - 1) / ch_size);
+            int chunkSize = ProbeBrickPool.GetChunkSize();
+            int brickChunksCount = (bricks.Count + chunkSize - 1) / chunkSize;
+            cellInfo.chunkList.Clear();
 
             // Try to allocate texture space
-            if (!m_Pool.Allocate(ch_list.Capacity, ch_list))
+            if (!m_Pool.Allocate(brickChunksCount, cellInfo.chunkList))
                 return false;
 
             // Create temporary allocation to copy SH data over to main atlas.
@@ -1070,17 +1043,16 @@ namespace UnityEngine.Experimental.Rendering
 
             // copy chunks into pool
             m_TmpSrcChunks.Clear();
-            m_TmpSrcChunks.Capacity = ch_list.Count;
             Chunk c;
             c.x = 0;
             c.y = 0;
             c.z = 0;
 
             // currently this code assumes that the texture width is a multiple of the allocation chunk size
-            for (int i = 0; i < ch_list.Count; i++)
+            for (int i = 0; i < cellInfo.chunkList.Count; i++)
             {
                 m_TmpSrcChunks.Add(c);
-                c.x += ch_size * ProbeBrickPool.kBrickProbeCountPerDim;
+                c.x += chunkSize * ProbeBrickPool.kBrickProbeCountPerDim;
                 if (c.x >= dataloc.width)
                 {
                     c.x = 0;
@@ -1094,25 +1066,17 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
-            m_Pool.Update(dataloc, m_TmpSrcChunks, ch_list, m_SHBands);
+            m_Pool.Update(dataloc, m_TmpSrcChunks, cellInfo.chunkList, m_SHBands);
 
             dataloc.Cleanup();
 
             m_BricksLoaded = true;
 
-            // create a registry entry for this request
-            RegId id;
-            m_ID++;
-            id.id = m_ID;
-            m_Registry.Add(id, ch_list);
-
             // Build index
-            m_Index.AddBricks(id, bricks, ch_list, ProbeBrickPool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);
+            m_Index.AddBricks(cellInfo.cell, bricks, cellInfo.chunkList, ProbeBrickPool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);
 
             // Update CellInfo
-            cellInfo.regId = id;
             cellInfo.updateInfo = cellUpdateInfo;
-            cellInfo.chunkList = ch_list;
             cellInfo.loaded = true;
 
             // Update indirection buffer
@@ -1127,22 +1091,19 @@ namespace UnityEngine.Experimental.Rendering
 
         void ReleaseBricks(CellInfo cellInfo)
         {
-            List<Chunk> ch_list;
-            if (!m_Registry.TryGetValue(cellInfo.regId, out ch_list))
+            if (cellInfo.chunkList.Count == 0)
             {
-                Debug.Log("Tried to release bricks with id=" + cellInfo.regId.id + " but no bricks were registered under this id.");
+                Debug.Log("Tried to release bricks from an empty Cell.");
                 return;
             }
 
             // clean up the index
-            m_Index.RemoveBricks(cellInfo.regId, cellInfo.updateInfo);
+            m_Index.RemoveBricks(cellInfo);
 
             // clean up the pool
-            m_Pool.Deallocate(ch_list);
-            m_Registry.Remove(cellInfo.regId);
+            m_Pool.Deallocate(cellInfo.chunkList);
 
-            cellInfo.regId = new RegId();
-            cellInfo.chunkList = null;
+            cellInfo.chunkList.Clear();
         }
 
         /// <summary>
