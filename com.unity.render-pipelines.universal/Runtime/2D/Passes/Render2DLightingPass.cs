@@ -390,14 +390,17 @@ namespace UnityEngine.Rendering.Universal
                     ShadowCasterGroup2D group = groups[groupIndex];
 
                     List<ShadowCaster2D> shadowCasters = group.GetShadowCasters();
-                    for (int shadowCasterIndex = 0; shadowCasterIndex < shadowCasters.Count; shadowCasterIndex++)
+                    if (shadowCasters != null)
                     {
-                        ShadowCaster2D shadowCaster = shadowCasters[shadowCasterIndex];
-
-                        if (shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider)
+                        for (int shadowCasterIndex = 0; shadowCasterIndex < shadowCasters.Count; shadowCasterIndex++)
                         {
-                            IShadowShape2DProvider provider = shadowCaster.shadowShape2DProvider;
-                            provider.OnBeforeRender(shadowCaster.m_ShadowMesh, cameraLightFrustum);
+                            ShadowCaster2D shadowCaster = shadowCasters[shadowCasterIndex];
+                            if (shadowCaster != null && shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider)
+                            {
+                                IShadowShape2DProvider provider = shadowCaster.shadowShape2DProvider;
+                                if(provider != null)
+                                    provider.OnBeforeRender(shadowCaster.m_ShadowMesh, cameraLightFrustum);
+                            }
                         }
                     }
                 }
