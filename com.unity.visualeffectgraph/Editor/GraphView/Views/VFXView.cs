@@ -2141,26 +2141,59 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
         }
 
+        private bool TryGetOverlappingContextAbove(VFXContextUI context, out VFXContextUI overlappingContext, out float distance)
+        {
+            var rect = context.GetPosition();
+            var posY = context.controller.model.position.y;
+
+            var overlappingContexts = new Dictionary<VFXContextUI, float>();
+            foreach (var ctx in GetAllContexts())
+            {
+                if (ctx == context)
+                {
+                    continue;
+                }
+
+                var ctxRect = ctx.GetPosition();
+                var ctxPosY = ctx.controller.model.position.y;
+
+                // Skip contexts that are side by side
+                if (rect.xMin - ctxRect.xMax > -5 || rect.xMax - ctxRect.xMin < 5)
+                {
+                    continue;
+                }
+
+                distance = posY - ctxPosY - ctxRect.height;
+                if (distance < 0 && posY > ctxRect.yMin)
+                {
+                    overlappingContexts[ctx] = -distance;
+                }
+            }
+
+            if (overlappingContexts.Any())
+            {
+                var keyPair = overlappingContexts.OrderByDescending(x => x.Value).First();
+                overlappingContext = keyPair.Key;
+                distance = keyPair.Value;
+                return true;
+            }
+
+            distance = 0f;
+            overlappingContext = null;
+            return false;
+        }
+
         public void PushUnderContext(VFXContextUI context, float size)
         {
             if (size < 5) return;
 
             foreach (var edge in edges.OfType<VFXFlowEdge>().SkipWhile(x => x.output.GetFirstAncestorOfType<VFXContextUI>() != context))
             {
-                var previousContext = edge.output.GetFirstAncestorOfType<VFXContextUI>();
                 context = edge.input.GetFirstAncestorOfType<VFXContextUI>();
-                var currentRect = context.GetPosition();
-                var aboveRect = previousContext.GetPosition();
-                var currentY = context.controller.model.position.y;
-                var aboveY = previousContext.controller.model.position.y;
-                var aboveYmax = aboveY + aboveRect.height;
-                var distanceToContextAbove = currentY - aboveYmax;
-
-                bool isOnTheSide = currentRect.xMin > aboveRect.xMax || currentRect.xMax < aboveRect.xMin;
-                bool isBelow = distanceToContextAbove < 5 && currentY > aboveRect.yMin; // Compare with yMin because it's the value before potential shift from previous iteration
-                if (isBelow && !isOnTheSide)
+                if (TryGetOverlappingContextAbove(context, out var aboveContext, out var distance))
                 {
-                    context.controller.position = new Vector2(currentRect.x, currentRect.y - distanceToContextAbove);
+                    var rect = context.GetPosition();
+                    context.controller.position = new Vector2(rect.x, rect.y + distance);
                 }
             }
         }
