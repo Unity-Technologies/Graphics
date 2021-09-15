@@ -44,15 +44,27 @@ namespace UnityEditor.ShaderFoundry
             return FindLastVariableOverride(varInstance.ReferenceName);
         }
 
-        internal VariableNameOverride FindLastVariableOverride(string referenceName)
+        internal bool FindLastVariableOverride(string referenceName, out VariableNameOverride varOverride)
         {
             if (overrides.TryGetValue(referenceName, out var varOverrides))
             {
                 if (varOverrides.Count != 0)
-                    return varOverrides[varOverrides.Count - 1];
+                {
+                    varOverride = varOverrides[varOverrides.Count - 1];
+                    return true;
+                }
             }
 
+            varOverride = null;
+            return false;
+        }
+
+        internal VariableNameOverride FindLastVariableOverride(string referenceName)
+        {
             VariableNameOverride varOverride;
+            if(FindLastVariableOverride(referenceName, out varOverride))
+                return varOverride;
+            
             varOverride = new VariableNameOverride { Name = referenceName };
             return varOverride;
         }

@@ -34,9 +34,8 @@ namespace UnityEditor.ShaderFoundry
         internal class VariableInstance
         {
             internal string Name = null;
-            internal BlockVariable Variable = BlockVariable.Invalid;
             internal VariableInstance Parent = null;
-            internal string DefaultExpression = null;
+            internal BlockVariable Variable = BlockVariable.Invalid;
         }
 
         internal class VariableInstanceWithFields : VariableInstance
@@ -49,6 +48,8 @@ namespace UnityEditor.ShaderFoundry
         {
             internal VariableInstance Source;
             internal VariableInstance Destination;
+            // The default expression to initialize the destination to if the source is null
+            internal string DefaultExpression = null;
         }
 
         internal SimpleLegacyBlockLinker(ShaderContainer container)
@@ -187,8 +188,10 @@ namespace UnityEditor.ShaderFoundry
             // Find if any input/output have matching names. If so then mark them as varyings
             foreach (var output in outputTypeInstance.ResolvedFields)
             {
-                var varOverride = outputTypeInstance.FindLastVariableOverride(output.ReferenceName);
-                availableOutputs[varOverride.Name] = output;
+                // Make sure to check all name output overrides
+                var overrides = outputTypeInstance.FindVariableOverrides(output.ReferenceName);
+                foreach(var varOverride in overrides)
+                    availableOutputs[varOverride.Name] = output;
             }
             foreach (var input in inputTypeInstance.ResolvedFields)
             {
@@ -241,12 +244,12 @@ namespace UnityEditor.ShaderFoundry
             foreach (var output in buildingContext.Outputs)
                 allowedOutputInstances.Add(output.ReferenceName, new VariableInstance { Variable = output, Parent = outputsInstance.Instance });
 
-            var inputOverrides = new Dictionary<string, BlockVariableNameOverride>();
+            var inputOverrides = new VariableOverrideSet();
             foreach (var varOverride in blockDescriptor.InputOverrides)
-                inputOverrides[varOverride.DestinationName] = varOverride;
-            var outputOverrides = new Dictionary<string, BlockVariableNameOverride>();
+                inputOverrides.Add(varOverride.DestinationName, varOverride.SourceNamespace, varOverride.SourceName, varOverride.SourceSwizzle);
+            var outputOverrides = new VariableOverrideSet();
             foreach (var varOverride in blockDescriptor.OutputOverrides)
-                outputOverrides[varOverride.SourceName] = varOverride;
+                outputOverrides.Add(varOverride.SourceName, varOverride.DestinationNamespace, varOverride.DestinationName, varOverride.DestinationSwizzle);
 
             var inputBlocks = new Dictionary<string, BlockDescriptor>();
             if (buildingContext.CPIndex != -1 && buildingContext.BlockGroups != null)
@@ -269,8 +272,8 @@ namespace UnityEditor.ShaderFoundry
                 var propName = prop.ReferenceName;
                 // Find the original property name. When block properties are merged, they may get mangled
                 // so each input is unique. These overrides track the original reference name.
-                if (inputOverrides.TryGetValue(prop.ReferenceName, out var varOverride))
-                    propName = varOverride.SourceName;
+                if (inputOverrides.FindLastVariableOverride(prop.ReferenceName, out var varOverride))
+                    propName = varOverride.Name;
 
                 var source = prop.Clone(Container, propName);
                 // Handle a property being declared multiple times. Only one per referenceName
@@ -290,19 +293,20 @@ namespace UnityEditor.ShaderFoundry
                 VariableInstance sourceInstance = null;
                 string name = input.ReferenceName;
 
-                // Check if there's a name override, if so there's some extra searching to do
-                if (inputOverrides.TryGetValue(input.ReferenceName, out var varOverride))
+                // Check if there's a name override, if so there's some extra searching to do.
+                // Should this not take the last, but the last matching?
+                if (inputOverrides.FindLastVariableOverride(input.ReferenceName, out var varOverride))
                 {
                     // Always update the source name based upon an override
-                    name = varOverride.SourceName;
+                    name = varOverride.Name;
 
                     // Check if this is matching against a template specific block
-                    if (!string.IsNullOrEmpty(varOverride.SourceNamespace) && inputBlocks.TryGetValue(varOverride.SourceNamespace, out var matchingBlock))
+                    if (!string.IsNullOrEmpty(varOverride.Namespace) && inputBlocks.TryGetValue(varOverride.Namespace, out var matchingBlock))
                     {
                         foreach (var output in matchingBlock.Block.Outputs)
                         {
                             // We found an output match, create a new match (redirect to the inputs instance since these template blocks just define the input interface).
-                            if (output.ReferenceName == varOverride.SourceName)
+                            if (output.ReferenceName == varOverride.Name)
                             {
                                 name = output.ReferenceName;
                                 sourceInstance = new VariableInstance { Variable = output, Parent = inputsInstance.Instance };
@@ -311,9 +315,9 @@ namespace UnityEditor.ShaderFoundry
                         }
                     }
                     // If the scope name is the stage then force this to match to the inputs instance
-                    else if (varOverride.SourceNamespace == NamespaceScopes.StageScopeName)
+                    else if (varOverride.Namespace == NamespaceScopes.StageScopeName)
                     {
-                        name = varOverride.SourceName;
+                        name = varOverride.Name;
                         var stageInput = input.Clone(Container, name);
                         sourceInstance = new VariableInstance { Variable = stageInput, Parent = inputsInstance.Instance };
                     }
@@ -333,37 +337,49 @@ namespace UnityEditor.ShaderFoundry
                     sourceInstance = instanceMatch;
                 }
 
-                // If no source variable was found but there is a default expression, use that as the source
+                // If no source variable was found but there is a default expression
+                string defaultExpression = null;
                 if(sourceInstance == null && !string.IsNullOrEmpty(input.DefaultExpression))
                 {
-                    sourceInstance = new VariableInstance { DefaultExpression = input.DefaultExpression };
+                    defaultExpression = input.DefaultExpression;
                 }
 
-                // No match, can't connect this to anything
-                if (sourceInstance == null)
+                // If there's no match and no default expression, this can't be connected to anything.
+                // Should this zero-out the value if it's not an opaque type?
+                if (sourceInstance == null && defaultExpression == null)
                     continue;
 
                 var destInstance = new VariableInstance { Variable = input, Parent = blockInputInstance };
-                inputsInstance.Fields.Add(new BlockVariableMatch { Source = sourceInstance, Destination = destInstance });
+                var match = new BlockVariableMatch { Source = sourceInstance, Destination = destInstance, DefaultExpression = defaultExpression };
+                inputsInstance.Fields.Add(match);
             }
 
+            var outputSourcesByDestinationName = new Dictionary<string, VariableInstance>();
             foreach (var output in block.Outputs)
             {
-                string name = output.ReferenceName;
-                // If the variable is either an allowed output or it's from the stage scope
-                // then add the copy line and make it an output, otherwise skip it
-                if (!allowedOutputInstances.ContainsKey(output.ReferenceName))
+                // Walk all overrides (a single out can have multiple names that can be matched against)
+                var overrides = outputOverrides.FindVariableOverrides(output.ReferenceName);
+                foreach (var varOverride in overrides)
                 {
-                    if (outputOverrides.TryGetValue(output.ReferenceName, out var varOverride) && varOverride.DestinationNamespace == NamespaceScopes.StageScopeName)
-                        name = varOverride.DestinationName;
-                    else
+                    string name = varOverride.Name;
+                    // Only write to allowed outputs or stage variables
+                    if (!allowedOutputInstances.ContainsKey(name) && varOverride.Namespace != NamespaceScopes.StageScopeName)
                         continue;
-                }
 
-                var sourceInstance = new VariableInstance {Variable = output, Parent = blockOutputInstance };
-                var destVariable = output.Clone(Container, name);
-                var destinationInstance = new VariableInstance { Variable = destVariable, Parent = outputsInstance.Instance };
-                outputsInstance.Fields.Add(new BlockVariableMatch { Source = sourceInstance, Destination = destinationInstance });
+                    // Check if we've already created an output, if so then replace the source's variable to now point at this block output
+                    if(outputSourcesByDestinationName.TryGetValue(name, out var oldInstance))
+                    {
+                        oldInstance.Variable = output;
+                        continue;
+                    }
+
+                    // Otherwise this is a new match. Create a new variable as the destination and then hook up instances for a match
+                    var destVariable = output.Clone(Container, name);
+                    var sourceInstance = new VariableInstance {Variable = output, Parent = blockOutputInstance };
+                    var destinationInstance = new VariableInstance { Variable = destVariable, Parent = outputsInstance.Instance };
+                    outputsInstance.Fields.Add(new BlockVariableMatch { Source = sourceInstance, Destination = destinationInstance });
+                    outputSourcesByDestinationName[name] = sourceInstance;
+                }
             }
         }
 
@@ -382,17 +398,36 @@ namespace UnityEditor.ShaderFoundry
             // Build the input/output types from the collected inputs and outputs.
             // Do not put these types in the block's context, these need to be in the global namespace due to legacy reasons.
             var inputBuilder = new ShaderType.StructBuilder(Container, buildingContext.InputTypeName);
+            // Mark the input as externally declared. This is currently built in the legacy linker
+            // and does some special logic that we don't want to replicate here yet.
             inputBuilder.DeclaredExternally();
             foreach (var input in inputsInstance.Fields)
+            {
+                // Inputs without a source aren't promoted to the block's inputs.
+                // They might still initialize a sub-block input though.
+                if (input.Source == null)
+                    continue;
                 inputBuilder.AddField(input.Source.Variable.Type, input.Source.Variable.ReferenceName);
+                blockBuilder.AddInput(input.Source.Variable);
+            }
             var inputType = inputBuilder.Build();
             blockBuilder.AddType(inputType);
 
             var outputBuilder = new ShaderType.StructBuilder(Container, buildingContext.OutputTypeName);
             foreach (var output in outputsInstance.Fields)
+            {
+                // Outputs without a destination aren't promoted to the block's outputs.
+                if (output.Destination == null)
+                    continue;
                 outputBuilder.AddField(output.Destination.Variable.Type, output.Destination.Variable.ReferenceName);
+                blockBuilder.AddOutput(output.Destination.Variable);
+            }
             var outputType = outputBuilder.Build();
             blockBuilder.AddType(outputType);
+
+            // Copy all properties into the sub-block struct
+            foreach (var propData in properties)
+                blockBuilder.AddProperty(propData);
 
             // Build up the actual description functions
             var fnBuilder = new ShaderFunction.Builder(Container, buildingContext.FunctionName, outputType);
@@ -408,19 +443,15 @@ namespace UnityEditor.ShaderFoundry
                 var source = match.Source;
                 var dest = match.Destination;
 
-                // If the source is another block (e.g. the parent isn't null)
-                if (source.Parent != null)
+                // If the block has a source then initialize it from the source
+                if(source != null)
                 {
-                    builder.AddLine($"{dest.Parent.Name}.{dest.Variable.ReferenceName} = {source.Parent.Name}.{source.Variable.ReferenceName};");
-                }
-                else
-                {
-                    // This has a default expression, use that to initialize the variable
-                    if(source.DefaultExpression != null)
+                    // If the source is another block (i.e. the parent is valid)
+                    if (source.Parent != null)
                     {
-                        builder.AddLine($"{dest.Parent.Name}.{dest.Variable.ReferenceName} = {source.DefaultExpression};");
+                        builder.AddLine($"{dest.Parent.Name}.{dest.Variable.ReferenceName} = {source.Parent.Name}.{source.Variable.ReferenceName};");
                     }
-                    // This should fall back to trying to initialize from a uniform
+                    // If the source's parent is null, then this connects to some globals
                     else
                     {
                         var propData = dest.Variable;
@@ -428,20 +459,18 @@ namespace UnityEditor.ShaderFoundry
                         source.Variable.CopyPassPassProperty(fnBuilder, owningVar);
                     }
                 }
+                // If there's no source but there is a default expression
+                else if(match.DefaultExpression != null)
+                {
+                    builder.AddLine($"{dest.Parent.Name}.{dest.Variable.ReferenceName} = {match.DefaultExpression};");
+                }
             }
 
 
             subBlockInputType.AddVariableDeclarationStatement(fnBuilder, blockInputInstance.Name);
-            var visitedInputs = new HashSet<string>();
             // Copy all inputs into the sub-block struct
             foreach (var inputData in inputsInstance.Fields)
-            {
                 DeclareMatch(fnBuilder, inputData);
-                blockBuilder.AddInput(inputData.Source.Variable);
-            }
-            // Copy all properties into the sub-block struct
-            foreach (var propData in properties)
-                blockBuilder.AddProperty(propData);
 
             // Call the sub-block entry point
             subEntryPointFn.AddCallStatementWithNewReturn(fnBuilder, blockOutputInstance.Name, blockInputInstance.Name);
@@ -449,10 +478,7 @@ namespace UnityEditor.ShaderFoundry
             // Copy all outputs into the legacy description type
             outputType.AddVariableDeclarationStatement(fnBuilder, outputsInstance.Instance.Name);
             foreach (var outputData in outputsInstance.Fields)
-            {
-                blockBuilder.AddOutput(outputData.Destination.Variable);
                 DeclareMatch(fnBuilder, outputData);
-            }
 
             fnBuilder.AddLine($"return {outputsInstance.Instance.Name};");
             var entryPointFn = fnBuilder.Build();
