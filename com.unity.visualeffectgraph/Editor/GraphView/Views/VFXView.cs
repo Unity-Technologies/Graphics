@@ -2145,21 +2145,22 @@ namespace UnityEditor.VFX.UI
         {
             if (size < 5) return;
 
-            VFXContextUI previousContext = context;
-            var globalOffset = 0f; // Keep track of offset because new position is not applied immediately
             foreach (var edge in edges.OfType<VFXFlowEdge>().SkipWhile(x => x.output.GetFirstAncestorOfType<VFXContextUI>() != context))
             {
+                var previousContext = edge.output.GetFirstAncestorOfType<VFXContextUI>();
                 context = edge.input.GetFirstAncestorOfType<VFXContextUI>();
                 var currentRect = context.GetPosition();
                 var aboveRect = previousContext.GetPosition();
-                var distanceToContextAbove = currentRect.yMin - aboveRect.yMax - globalOffset;
+                var currentY = context.controller.model.position.y;
+                var aboveY = previousContext.controller.model.position.y;
+                var aboveYmax = aboveY + aboveRect.height;
+                var distanceToContextAbove = currentY - aboveYmax;
+
                 bool isOnTheSide = currentRect.xMin > aboveRect.xMax || currentRect.xMax < aboveRect.xMin;
-                bool isBelow = distanceToContextAbove < 5 && currentRect.yMax > aboveRect.yMax + globalOffset;
+                bool isBelow = distanceToContextAbove < 5 && currentY > aboveRect.yMin; // Compare with yMin because it's the value before potential shift from previous iteration
                 if (isBelow && !isOnTheSide)
                 {
-                    globalOffset = -distanceToContextAbove;
                     context.controller.position = new Vector2(currentRect.x, currentRect.y - distanceToContextAbove);
-                    previousContext = context;
                 }
             }
         }
