@@ -17,5 +17,5 @@ Note that the reference camera used to adjust the light rotation is the Main Cam
 | Roll | Use the right icon to control the Rollof the light. This tool becomes gray when you move the icon. This is especially useful if the light has an IES or a Cookie. |
 | Distance | Controls the distance between the light and its anchor in world space. |
 | Up Direction | Defines the space of the up direction of the anchor. When this value is set to Local, the Up Direction is relative to the camera. |
-| Anchor Position Override | Allows to use a Gameobject's [Transform](https://docs.unity3d.com/ScriptReference/Transform.html) as anchor position instead of the LightAnchor's Transform. When this property is assigned, the Light Anchor will update it's Transform if the Transform in **Anchor Position Override** changes. |
+| Anchor Position Override | Allows you to use a GameObject's [Transform](https://docs.unity3d.com/ScriptReference/Transform.html) as anchor position instead of the LightAnchor's Transform. When the Transform of the GameObject you assigned to this property changes, the Light Anchor's Transform also changes. |
 | Common | Assigns a preset to the light component based on the behaviour of studio lights. |
