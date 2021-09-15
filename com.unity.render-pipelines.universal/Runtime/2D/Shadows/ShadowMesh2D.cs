@@ -14,7 +14,6 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] Mesh m_Mesh;
         [SerializeField] BoundingSphere m_BoundingSphere;
-        [SerializeField] bool m_AllowContraction;
 
         public  Mesh mesh { get => m_Mesh; }
         public  BoundingSphere boundingSphere { get => m_BoundingSphere; }
@@ -24,38 +23,31 @@ namespace UnityEngine.Rendering.Universal
         {
             NativeArray<ShadowEdge> edges;
             NativeArray<int> shapeStartingIndices;
-
-            m_AllowContraction = allowContraction;
+            NativeArray<bool> shapeIsClosedArray;
 
             if (m_Mesh == null)
                 m_Mesh = new Mesh();
 
             if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Triangles)
             {
-                ShadowUtility.CalculateEdgesFromTriangles(vertices, indices, out edges, out shapeStartingIndices);
-                //FixWindingOrder(vertices, shapeStartingIndices, edges);
-
-                m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, vertices, edges, shapeStartingIndices);
-                edges.Dispose();
-                shapeStartingIndices.Dispose();
+                ShadowUtility.CalculateEdgesFromTriangles(vertices, indices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
             }
             else if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Lines)
             {
-                
-
+                ShadowUtility.CalculateEdgesFromLines(indices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
             }
-            else if (outlineTopology == IShadowShape2DProvider.OutlineTopology.LineStrip)
+            else //if (outlineTopology == IShadowShape2DProvider.OutlineTopology.LineStrip)
             {
+                // Line strips should be removed as its impossible to tell if the strip is closed and to find seperate shapes
                 if (indices.Length == 0)
-                    ShadowUtility.CalculateEdgesForSimpleLineStrip(vertices.Length, out edges, out shapeStartingIndices);
+                    ShadowUtility.CalculateEdgesForSimpleLineStrip(vertices.Length, out edges, out shapeStartingIndices, out shapeIsClosedArray);
                 else
-                    ShadowUtility.CalculateEdgesFromLineStrip(indices, out edges, out shapeStartingIndices);
-
-                ShadowUtility.FixWindingOrder(vertices, shapeStartingIndices, edges);
-                m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, vertices, edges, shapeStartingIndices);
-                edges.Dispose();
-                shapeStartingIndices.Dispose();
+                    ShadowUtility.CalculateEdgesFromLineStrip(indices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
             }
+
+            m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, vertices, edges, shapeStartingIndices, shapeIsClosedArray, allowContraction);
+            edges.Dispose();
+            shapeStartingIndices.Dispose();
         }
 
         public override void UpdateVertices(NativeArray<Vector3> vertices)
