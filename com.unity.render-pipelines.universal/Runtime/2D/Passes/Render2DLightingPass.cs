@@ -379,23 +379,26 @@ namespace UnityEngine.Rendering.Universal
 
         private void CallOnBeforeRender(Camera camera, ILight2DCullResult cullResult)
         {
-            //Matrix4x4 cameraLightFrustum = CalculateCameraLightFrustum(camera, cullResult);
-            Matrix4x4 cameraLightFrustum = camera.projectionMatrix;
-
-            List<ShadowCasterGroup2D> groups = ShadowCasterGroup2DManager.shadowCasterGroups;
-            for(int groupIndex=0; groupIndex < groups.Count; groupIndex++)
+            if (ShadowCasterGroup2DManager.shadowCasterGroups != null)
             {
-                ShadowCasterGroup2D group = groups[groupIndex];
+                //Matrix4x4 cameraLightFrustum = CalculateCameraLightFrustum(camera, cullResult);
+                Matrix4x4 cameraLightFrustum = camera.projectionMatrix;
 
-                List<ShadowCaster2D> shadowCasters = group.GetShadowCasters();
-                for (int shadowCasterIndex = 0; shadowCasterIndex < shadowCasters.Count; shadowCasterIndex++)
+                List<ShadowCasterGroup2D> groups = ShadowCasterGroup2DManager.shadowCasterGroups;
+                for (int groupIndex = 0; groupIndex < groups.Count; groupIndex++)
                 {
-                    ShadowCaster2D shadowCaster = shadowCasters[shadowCasterIndex];
+                    ShadowCasterGroup2D group = groups[groupIndex];
 
-                    if(shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider)
+                    List<ShadowCaster2D> shadowCasters = group.GetShadowCasters();
+                    for (int shadowCasterIndex = 0; shadowCasterIndex < shadowCasters.Count; shadowCasterIndex++)
                     {
-                        IShadowShape2DProvider provider = shadowCaster.shadowShape2DProvider;
-                        provider.OnBeforeRender(shadowCaster.m_ShadowMesh, cameraLightFrustum);
+                        ShadowCaster2D shadowCaster = shadowCasters[shadowCasterIndex];
+
+                        if (shadowCaster.shadowCastingSource == ShadowCaster2D.ShadowCastingSources.ShapeProvider)
+                        {
+                            IShadowShape2DProvider provider = shadowCaster.shadowShape2DProvider;
+                            provider.OnBeforeRender(shadowCaster.m_ShadowMesh, cameraLightFrustum);
+                        }
                     }
                 }
             }
