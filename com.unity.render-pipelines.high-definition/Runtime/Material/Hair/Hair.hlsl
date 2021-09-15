@@ -26,7 +26,10 @@
 // #define HAIR_DISPLAY_REFERENCE_IBL
 
 #if _USE_ADVANCED_MULTIPLE_SCATTERING
+
+// Temporary until we introduce spline bias toward light.
 #define LIGHT_EVALUATION_NO_SHADOWS
+
 #endif
 
 // Extra material feature flag we utilize to compile different versions of BSDF evaluation (for pre-integration, etc.)
@@ -44,18 +47,10 @@
 // Longitudinal scattering as modeled by a normal distribution.
 // To be used as an approximation to d'Eon et al's Energy Conserving Longitudinal Scattering Function.
 // TODO: Move me to BSDF.hlsl
-real D_LongitudinalScatteringGaussian(real theta, real beta)
-{
-    real v = theta / beta;
-
-    const real sqrtTwoPi = 2.50662827463100050241;
-    return rcp(beta * sqrtTwoPi) * exp(-0.5 * v * v);
-}
 
 real3 D_LongitudinalScatteringGaussian(real3 theta, real3 beta)
 {
     real3 v = theta / beta;
-
     const real sqrtTwoPi = 2.50662827463100050241;
     return rcp(beta * sqrtTwoPi) * exp(-0.5 * v * v);
 }
@@ -245,13 +240,13 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
         const float cuticleAngle = radians(surfaceData.cuticleAngle);
         bsdfData.cuticleAngleR   = -cuticleAngle;
         bsdfData.cuticleAngleTT  =  cuticleAngle * 0.5;
-        bsdfData.cuticleAngleTRT =  cuticleAngle * 3.0 * 0.5;
+        bsdfData.cuticleAngleTRT =  cuticleAngle * 1.5;
 
         // Longitudinal Roughness
-        const float roughnessL = bsdfData.perceptualRoughness;
-        bsdfData.roughnessR   = PerceptualRoughnessToRoughness(roughnessL);
-        bsdfData.roughnessTT  = PerceptualRoughnessToRoughness(roughnessL * 0.5);
-        bsdfData.roughnessTRT = PerceptualRoughnessToRoughness(roughnessL * 2.0);
+        const float roughnessL = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+        bsdfData.roughnessR   = roughnessL;
+        bsdfData.roughnessTT  = roughnessL * 0.5;
+        bsdfData.roughnessTRT = roughnessL * 2.0;
 
         // Azimuthal Roughness
     #if _USE_ROUGHENED_AZIMUTHAL_SCATTERING

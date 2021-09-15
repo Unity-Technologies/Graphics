@@ -4,6 +4,8 @@
 // This define is required for invoking BSDF.
 #define HAS_LIGHTLOOP
 
+// #pragma enable_d3d11_debug_symbols
+
 // Instead of indirectly setting up the angles we inform the BSDF that we will be explicitly setting them.
 // #define HAIR_OVERRIDE_ANGLE_BSDF
 
@@ -44,7 +46,8 @@ SurfaceData ConfigureFiberSurface(float diffuseColor, float perceptualSmoothness
     surfaceData.perceptualSmoothness = perceptualSmoothness;
 
     // Radial Smoothness (Azimuthal Roughness).
-    surfaceData.perceptualRadialSmoothness = 0.3;
+    // TODO: Currently we don't support azimuthal roughness with dual scattering.
+    // surfaceData.perceptualRadialSmoothness = 0.3;
 
     // Cuticle Angle
     surfaceData.cuticleAngle = 3;
@@ -179,10 +182,9 @@ void PreIntegrateAzimuthalScattering (uint2 dispatchThreadID : SV_DispatchThread
     float3 V = float3(-1, 0, 0);
 
     float3 A = 0;
-    uint   C = 0;
 
     // Integrate over all incident phi.
-    for (float phi = -HALF_PI; phi < HALF_PI; phi += DPHI)
+    for (float phi = HALF_PI; phi < PI; phi += DPHI)
     {
        // Places a light on the back scattering hemisphere (due to the constriction of phi to the -pi/2 to pi/2 range).
        float3 L = SphericalToCartesian(phi, sinThetaI);
@@ -192,12 +194,10 @@ void PreIntegrateAzimuthalScattering (uint2 dispatchThreadID : SV_DispatchThread
        CBSDF cbsdfTT  = EvaluateBSDF(V, L, preLightData, bsdfDataTT);
        CBSDF cbsdfTRT = EvaluateBSDF(V, L, preLightData, bsdfDataTRT);
 
-       A +=  float3( cbsdfR.specR.x,
-                     cbsdfTT.specR.x,
-                     cbsdfTRT.specR.x );
-
-       C++;
+       A += float3( cbsdfR.specR.x,
+                    cbsdfTT.specR.x,
+                    cbsdfTRT.specR.x ) * DPHI;
     }
 
-    _PreIntegratedAverageHairFiberScatteringUAV[dispatchThreadID] = (2 / PI) * float4(A / float(C), 1);
+    _PreIntegratedAverageHairFiberScatteringUAV[dispatchThreadID] = (2 / PI) * float4(A, 1);
 }

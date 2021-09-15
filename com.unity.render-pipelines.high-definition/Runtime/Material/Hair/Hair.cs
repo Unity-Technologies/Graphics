@@ -83,7 +83,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Global Scattering
             [SurfaceDataAttributes("Strand Count Probe")]
             public Vector4 strandCountProbe;
-
         };
 
         //-----------------------------------------------------------------------------
