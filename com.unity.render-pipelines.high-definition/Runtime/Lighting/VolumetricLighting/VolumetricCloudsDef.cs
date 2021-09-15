@@ -149,6 +149,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // Flag that defines if the current camera is a planar reflection
         public int _IsPlanarReflection;
 
+        // Flag that allows us to know if the maxZMask texture is valid
+        public int _ValidMaxZMask;
+        // Padding
+        public int _Padding0;
+        public Vector2 _Padding1;
+
         [HLSLArray(3 * 4, typeof(Vector4))]
         public fixed float _DistanceBasedWeights[12 * 4];
     }

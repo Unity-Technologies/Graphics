@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderSubsurfaceScattering(m_RenderGraph, hdCamera, colorBuffer, historyValidationTexture, ref lightingBuffers, ref prepassOutput);
 
                     RenderSky(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, prepassOutput.depthBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture);
-                    RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting);
+                    RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting, maxZMask);
 
                     // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
                     SendGeometryGraphicsBuffers(m_RenderGraph, prepassOutput.normalBuffer, prepassOutput.depthPyramidTexture, hdCamera);
@@ -537,11 +537,16 @@ namespace UnityEngine.Rendering.HighDefinition
                             using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.CopyDepthInTargetTexture)))
                             {
                                 var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
-                                mpb.SetTexture(HDShaderIDs._InputDepth, data.depthBuffer);
-                                // When we are Main Game View we need to flip the depth buffer ourselves as we are after postprocess / blit that have already flipped the screen
-                                mpb.SetInt("_FlipY", data.flipY ? 1 : 0);
-                                mpb.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-                                CoreUtils.DrawFullScreen(ctx.cmd, data.copyDepthMaterial, mpb);
+                                RTHandle depth = data.depthBuffer;
+                                // Depth buffer can be invalid if no opaque has been rendered before.
+                                if (depth != null)
+                                {
+                                    mpb.SetTexture(HDShaderIDs._InputDepth, depth);
+                                    // When we are Main Game View we need to flip the depth buffer ourselves as we are after postprocess / blit that have already flipped the screen
+                                    mpb.SetInt("_FlipY", data.flipY ? 1 : 0);
+                                    mpb.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                                    CoreUtils.DrawFullScreen(ctx.cmd, data.copyDepthMaterial, mpb);
+                                }
                             }
                         }
                     });
