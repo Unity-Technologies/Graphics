@@ -9,8 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Added
+
+### Changed
+
 ### Fixed
-- Fixed noise nodes to use a deterministic integer hash, instead of platform dependent floating point hashes [1156544]
+ - Fixed an incorrect direction transform from view to world space [1362034] (https://issuetracker.unity3d.com/product/unity/issues/guid/1362034/)
+ - Fixed ShaderGraph HDRP master preview disappearing for a few seconds when graph is modified  [1330289] (https://issuetracker.unity3d.com/issues/shadergraph-hdrp-main-preview-is-invisible-until-moved)
+ - Fixed noise nodes to use a deterministic integer hash, instead of platform dependent floating point hashes [1156544]
 
 ## [12.0.0] - 2021-01-11
 

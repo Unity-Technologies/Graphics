@@ -93,54 +93,6 @@ namespace UnityEditor.Rendering.HighDefinition
             volume.sharedProfile = profile;
         }
 
-        [MenuItem("Edit/Rendering/Materials/Enable HDRP Force Forward Emissive on Selected Materials")]
-        internal static void ForceForwardEmissiveOnMaterialEnableInSelection()
-        {
-            var selection = UnityEditor.Selection.objects;
-
-            foreach (var obj in selection)
-            {
-                if (obj is Material material)
-                {
-                    if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
-                    {
-                        material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
-                        HDShaderUtils.ResetMaterialKeywords(material);
-                    }
-                }
-            }
-        }
-
-        [MenuItem("Edit/Rendering/Materials/Enable HDRP Force Forward Emissive on Scene Materials")]
-        internal static void ForceForwardEmissiveOnMaterialEnableInScene()
-        {
-            var materials = Resources.FindObjectsOfTypeAll<Material>();
-
-            foreach (var material in materials)
-            {
-                if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
-                {
-                    material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
-                    HDShaderUtils.ResetMaterialKeywords(material);
-                }
-            }
-        }
-
-        [MenuItem("Edit/Rendering/Materials/Disable HDRP Force Forward Emissive on Scene Materials")]
-        internal static void ForceForwardEmissiveOnMaterialDisableInScene()
-        {
-            var materials = Resources.FindObjectsOfTypeAll<Material>();
-
-            foreach (var material in materials)
-            {
-                if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
-                {
-                    material.SetInt(HDMaterialProperties.kForceForwardEmissive, 0);
-                    HDShaderUtils.ResetMaterialKeywords(material);
-                }
-            }
-        }
-
         [MenuItem("Edit/Rendering/Materials/Upgrade HDRP Materials to Latest Version", priority = CoreUtils.Priorities.editMenuPriority)]
         internal static void UpgradeMaterials()
         {
