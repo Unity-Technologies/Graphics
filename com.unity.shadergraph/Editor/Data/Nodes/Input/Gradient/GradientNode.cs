@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph
         public GradientNode()
         {
             name = "Gradient";
+            synonyms = new string[] { "ramp" };
             UpdateNodeAfterDeserialization();
         }
 

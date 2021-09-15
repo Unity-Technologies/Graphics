@@ -67,10 +67,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public SkySettings skySettings;
         /// <summary>Current cloud settings.</summary>
         public CloudSettings cloudSettings;
+        /// <summary>Current volumetric cloud settings.</summary>
+        public VolumetricClouds volumetricClouds;
         /// <summary>Current debug dsplay settings.</summary>
         public DebugDisplaySettings debugSettings;
         /// <summary>Null color buffer render target identifier.</summary>
         public static RenderTargetIdentifier nullRT = -1;
+        /// <summary>Index of the current cubemap face to render (Unknown for texture2D).</summary>
+        public CubemapFace cubemapFace = CubemapFace.Unknown;
     }
 
     /// <summary>
@@ -211,6 +215,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return null;
         }
 
+        internal static VolumetricClouds GetVolumetricClouds(VolumeStack stack)
+        {
+            return stack.GetComponent<VolumetricClouds>();
+        }
+
         static void UpdateSkyTypes()
         {
             if (m_SkyTypesDict == null)
@@ -297,6 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     m_BuiltinParameters.skySettings = hdCamera.lightingSky.skySettings;
                     m_BuiltinParameters.cloudSettings = hdCamera.lightingSky.cloudSettings;
+                    m_BuiltinParameters.volumetricClouds = hdCamera.lightingSky.volumetricClouds;
                     renderer.SetGlobalSkyData(cmd, m_BuiltinParameters);
                 }
             }
@@ -527,7 +537,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderSettings.ambientIntensity = 1.0f;
             RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
             RenderSettings.reflectionIntensity = 1.0f;
-            RenderSettings.customReflection = null;
+            RenderSettings.customReflectionTexture = null;
         }
 
         void BlitCubemap(CommandBuffer cmd, Cubemap source, RenderTexture dest)
@@ -547,6 +557,22 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.GenerateMips(dest);
         }
 
+        internal void RenderSkyOnlyToCubemap(CommandBuffer commandBuffer, RTHandle outputCubemap, bool includeSunInBaking, SkyRenderer skyRenderer)
+        {
+            for (int i = 0; i < 6; ++i)
+            {
+                m_BuiltinParameters.commandBuffer = commandBuffer;
+                m_BuiltinParameters.pixelCoordToViewDirMatrix = m_facePixelCoordToViewDirMatrices[i];
+                m_BuiltinParameters.viewMatrix = m_CameraRelativeViewMatrices[i];
+                m_BuiltinParameters.colorBuffer = outputCubemap;
+                m_BuiltinParameters.depthBuffer = null;
+                m_BuiltinParameters.cubemapFace = (CubemapFace)i;
+
+                CoreUtils.SetRenderTarget(m_BuiltinParameters.commandBuffer, outputCubemap, ClearFlag.None, 0, (CubemapFace)i);
+                skyRenderer.RenderSky(m_BuiltinParameters, true, includeSunInBaking);
+            }
+        }
+
         void RenderSkyToCubemap(SkyUpdateContext skyContext)
         {
             using (new ProfilingScope(m_BuiltinParameters.commandBuffer, ProfilingSampler.Get(HDProfileId.RenderSkyToCubemap)))
@@ -554,6 +580,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var renderingContext = m_CachedSkyContexts[skyContext.cachedSkyRenderingContextId].renderingContext;
                 var skyRenderer = skyContext.skyRenderer;
                 var cloudRenderer = skyContext.cloudRenderer;
+                var volumetricClouds = skyContext.volumetricClouds;
 
                 for (int i = 0; i < 6; ++i)
                 {
@@ -561,11 +588,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_BuiltinParameters.viewMatrix = m_CameraRelativeViewMatrices[i];
                     m_BuiltinParameters.colorBuffer = renderingContext.skyboxCubemapRT;
                     m_BuiltinParameters.depthBuffer = null;
+                    m_BuiltinParameters.cubemapFace = (CubemapFace)i;
 
                     CoreUtils.SetRenderTarget(m_BuiltinParameters.commandBuffer, renderingContext.skyboxCubemapRT, ClearFlag.None, 0, (CubemapFace)i);
                     skyRenderer.RenderSky(m_BuiltinParameters, true, skyContext.skySettings.includeSunInBaking.value);
                     if (cloudRenderer != null)
                         cloudRenderer.RenderClouds(m_BuiltinParameters, true);
+                }
+
+                // Render the volumetric clouds into the cubemap
+                if (volumetricClouds != null)
+                {
+                    // The volumetric clouds explicitly rely on the physically based sky. We need to make sure that the sun textures are properly bound.
+                    // Unfortunately, the global binding happens too late, so we need to bind it here.
+                    skyRenderer.SetGlobalSkyData(m_BuiltinParameters.commandBuffer, m_BuiltinParameters);
+                    HDRenderPipeline.currentPipeline.RenderVolumetricClouds_Sky(m_BuiltinParameters.commandBuffer, m_BuiltinParameters.hdCamera, m_facePixelCoordToViewDirMatrices,
+                        m_BuiltinParameters.volumetricClouds, (int)m_BuiltinParameters.screenSize.x, (int)m_BuiltinParameters.screenSize.y, renderingContext.skyboxCubemapRT);
                 }
 
                 // Generate mipmap for our cubemap
@@ -748,6 +786,11 @@ namespace UnityEngine.Rendering.HighDefinition
             int skyHash = sunHash * 23 + skyContext.skySettings.GetHashCode(cameraForHash);
             if (skyContext.HasClouds())
                 skyHash = skyHash * 23 + skyContext.cloudSettings.GetHashCode(cameraForHash);
+            if (skyContext.HasVolumetricClouds())
+            {
+                skyHash = skyHash * 23 + skyContext.volumetricClouds.GetHashCode();
+                skyHash = skyHash * 23 + camera.frameSettings.IsEnabled(FrameSettingsField.FullResolutionCloudsForSky).GetHashCode();
+            }
             skyHash = skyHash * 23 + (staticSky ? 1 : 0);
             skyHash = skyHash * 23 + (ambientMode == SkyAmbientMode.Static ? 1 : 0);
             return skyHash;
@@ -801,6 +844,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_BuiltinParameters.frameIndex = (int)hdCamera.GetCameraFrameCount();
                     m_BuiltinParameters.skySettings = skyContext.skySettings;
                     m_BuiltinParameters.cloudSettings = skyContext.cloudSettings;
+                    m_BuiltinParameters.volumetricClouds = skyContext.volumetricClouds;
 
                     // When update is not requested and the context is already valid (ie: already computed at least once),
                     // we need to early out in two cases:
@@ -916,6 +960,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_StaticLightingSky.skySettings = staticLightingSky != null ? staticLightingSky.skySettings : null;
                 m_StaticLightingSky.cloudSettings = staticLightingSky != null ? staticLightingSky.cloudSettings : null;
+                m_StaticLightingSky.volumetricClouds = staticLightingSky != null ? staticLightingSky.volumetricClouds : null;
                 UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired || m_UpdateRequired, true, true, SkyAmbientMode.Static, cmd);
                 m_StaticSkyUpdateRequired = false;
             }
@@ -943,6 +988,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BuiltinParameters.frameIndex = (int)hdCamera.GetCameraFrameCount();
             m_BuiltinParameters.skySettings = skyContext.skySettings;
             m_BuiltinParameters.cloudSettings = skyContext.cloudSettings;
+            m_BuiltinParameters.volumetricClouds = skyContext.volumetricClouds;
         }
 
         public bool TryGetCloudSettings(HDCamera hdCamera, out CloudSettings cloudSettings, out CloudRenderer cloudRenderer)
@@ -1208,7 +1254,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderSettings.ambientIntensity = 1.0f;
             RenderSettings.ambientMode = AmbientMode.Skybox; // Force skybox for our HDRI
             RenderSettings.reflectionIntensity = 1.0f;
-            RenderSettings.customReflection = null;
+            RenderSettings.customReflectionTexture = null;
 
             DynamicGI.UpdateEnvironment();
         }

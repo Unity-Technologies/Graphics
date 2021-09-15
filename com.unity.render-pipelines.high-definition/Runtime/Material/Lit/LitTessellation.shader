@@ -77,7 +77,7 @@ Shader "HDRP/LitTessellation"
 
         // Following options are for the GUI inspector and different from the input parameters above
         // These option below will cause different compilation flag.
-        [Enum(Off, 0, From Ambient Occlusion, 1, From Bent Normals, 2)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
+        [Enum(Off, 0, From Ambient Occlusion, 1, From AO and Bent Normals, 2)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
 
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         // Used only to serialize the LDR and HDR emissive color in the material UI,
@@ -212,7 +212,6 @@ Shader "HDRP/LitTessellation"
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _ReceivesSSRTransparent("Receives SSR Transparent", Float) = 0.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
-        [ToggleUI] _ForceForwardEmissive("ForceForwardEmissive", Float) = 0.0
 
         // Ray Tracing
         [ToggleUI] _RayTracing("Ray Tracing (Preview)", Float) = 0
@@ -324,10 +323,6 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_SPECULAR_COLOR
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
-
-    // not local as it is use in shader stripper to discard the pass if not needed
-    // not _fragment as it prevent the stripper to work
-    #pragma shader_feature _FORCE_FORWARD_EMISSIVE
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -944,53 +939,6 @@ Shader "HDRP/LitTessellation"
 
         Pass
         {
-            Name "ForwardEmissiveForDeferred"
-            Tags{ "LightMode" = "ForwardEmissiveForDeferred" } // This pass is solely used with deferred opaque Material that have emissive
-
-            Blend One One
-            // In case of forward we want to have depth equal for opaque mesh
-            ZTest [_ZTestDepthEqualForOpaque]
-            ZWrite [_ZWrite]
-            Cull [_CullModeForward]
-
-            HLSLPROGRAM
-
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-            //enable GPU instancing support
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-            // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
-
-            #pragma multi_compile _ DEBUG_DISPLAY // This pass is only for opaque
-
-            #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED
-            // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
-            // Don't do it with debug display mode as it is possible there is no depth prepass in this case
-            #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(DEBUG_DISPLAY)
-                #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
-            #endif
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-
-            #ifdef DEBUG_DISPLAY
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-            #endif
-
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardEmissiveForDeferred.hlsl"
-
-            #pragma vertex Vert
-            #pragma fragment Frag
-            #pragma hull Hull
-            #pragma domain Domain
-
-            ENDHLSL
-        }
-
-        Pass
-        {
             Name "TransparentDepthPostpass"
             Tags { "LightMode" = "TransparentDepthPostpass" }
 
@@ -1096,7 +1044,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
 
             #undef TESSELLATION_ON
@@ -1144,7 +1092,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
 
             #undef TESSELLATION_ON
@@ -1189,7 +1137,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
 
             #undef TESSELLATION_ON
@@ -1229,7 +1177,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
 
             #undef TESSELLATION_ON
@@ -1260,7 +1208,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
 
             #undef TESSELLATION_ON
@@ -1296,7 +1244,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11
+            #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
 
             #undef TESSELLATION_ON

@@ -369,6 +369,10 @@ namespace UnityEngine.Rendering.Universal
                 if (k_AssetPreviousVersion != k_AssetVersion)
                     return null;
 
+                if (m_RendererDataList[m_DefaultRendererIndex].GetType().ToString()
+                    .Contains("Universal.ForwardRendererData"))
+                    return null;
+
                 Debug.LogError(
                     $"Default Renderer is missing, make sure there is a Renderer assigned as the default on the current Universal RP asset:{UniversalRenderPipeline.asset.name}",
                     this);

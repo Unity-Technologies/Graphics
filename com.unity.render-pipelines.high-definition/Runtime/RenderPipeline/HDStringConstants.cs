@@ -32,8 +32,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         /// <summary>RayTracing Prepass pass name.</summary>
         public static readonly string s_RayTracingPrepassStr = "RayTracingPrepass";
-        /// <summary>Forward emissive pass name.</summary>
-        public static readonly string s_ForwardEmissiveForDeferredStr = "ForwardEmissiveForDeferred";
         /// <summary>Visibility DXR pass name.</summary>
         public static readonly string s_RayTracingVisibilityStr = "VisibilityDXR";
         /// <summary>PathTracing DXR pass name.</summary>
@@ -67,8 +65,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_DepthForwardOnlyName = new ShaderTagId(s_DepthForwardOnlyStr);
         /// <summary>Forward Only shader tag id.</summary>
         public static readonly ShaderTagId s_ForwardOnlyName = new ShaderTagId(s_ForwardOnlyStr);
-        /// <summary>Forward Emissive shader tag id.</summary>
-        public static readonly ShaderTagId s_ForwardEmissiveForDeferredName = new ShaderTagId(s_ForwardEmissiveForDeferredStr);
         /// <summary>GBuffer shader tag id.</summary>
         public static readonly ShaderTagId s_GBufferName = new ShaderTagId(s_GBufferStr);
         /// <summary>GBufferWithPrepass shader tag id.</summary>
@@ -481,6 +477,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CloudsAdditionalTextureRW = Shader.PropertyToID("_CloudsAdditionalTextureRW");
         public static readonly int _VolumetricCloudsTexture = Shader.PropertyToID("_VolumetricCloudsTexture");
         public static readonly int _VolumetricCloudsTextureRW = Shader.PropertyToID("_VolumetricCloudsTextureRW");
+        public static readonly int _VolumetricCloudsShadow = Shader.PropertyToID("_VolumetricCloudsShadow");
         public static readonly int _VolumetricCloudsShadowRW = Shader.PropertyToID("_VolumetricCloudsShadowRW");
         public static readonly int _VolumetricCloudsUpscaleTextureRW = Shader.PropertyToID("_VolumetricCloudsUpscaleTextureRW");
         public static readonly int _HistoryVolumetricClouds0Texture = Shader.PropertyToID("_HistoryVolumetricClouds0Texture");
@@ -498,6 +495,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CumulonimbusMapMultiplier = Shader.PropertyToID("_CumulonimbusMapMultiplier");
         public static readonly int _RainMap = Shader.PropertyToID("_RainMap");
         public static readonly int _CloudMapResolution = Shader.PropertyToID("_CloudMapResolution");
+        public static readonly int _CloudsPixelCoordToViewDirWS = Shader.PropertyToID("_CloudsPixelCoordToViewDirWS");
 
         public static readonly int _Flowmap = Shader.PropertyToID("_Flowmap");
         public static readonly int _FlowmapParam = Shader.PropertyToID("_FlowmapParam");
@@ -1145,7 +1143,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kRefractionModel = "_RefractionModel";
 
         // Emission
-        internal const string kForceForwardEmissive = "_ForceForwardEmissive";
         internal const string kEmissiveColorMap = "_EmissiveColorMap";
 
         // Tessellation
