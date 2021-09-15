@@ -21,9 +21,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed artifacts in volumetric cloud shadows.
 - Fixed the missing parameter to control the sun light dimmer (case 1364152).
 - Fixed regression in the clouds presets.
+- Fixed the way we are handling emissive for SSGI/RTGI/Mixed and APV and remove ForceForwardEmissive code
+- Fixed EmissiveLighting Debug Light mode not managing correctly emissive for unlit
+- Fixed remove of the Additional Light Data when removing the Light Component.
+- Fixed remove of the Additional Camera Data when removing the Camera Component.
+- Fixed remove of the Additional Light Data when removing the Light Component.
+- Fixed remove of the Additional Camera Data when removing the Camera Component.
+- Fixed a null ref exception when no opaque objects are rendered.
+- Fixed issue with depth slope scale depth bias when a material uses depth offset.
+- Fixed shadow sampling artifact when using the spot light shadow option 'custom spot angle'
+- Fixed issue with fading in SSR applying fade factor twice, resulting in darkening of the image in the transition areas.
+- Fixed path traced subsurface scattering for transmissive surfaces (case 1329403)
+- Fixed missing context menu for “Post Anti-Aliasing” in Camera (1357283)
+- Fixed error when disabling opaque objects on a camera with MSAA.
+- Fixed double camera preview.
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
+- Surface ReflectionTypeLoadExceptions in HDUtils.GetRenderPipelineMaterialList(). Without surfacing these exceptions, developers cannot act on any underlying reflection errors in the HDRP assembly.
 
 ## [12.0.0] - 2021-01-11
 
@@ -106,6 +121,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a parameter to control the vertical shape offset of the volumetric clouds (case 1358528).
 - Added an option to render screen space global illumination in half resolution to achieve real-time compatible performance in high resolutions (case 1353727).
 - Added a built-in custom pass to draw object IDs.
+- Added an example in the documentation that shows how to use the accumulation API for high quality antialiasing (supersampling).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -400,8 +416,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong ordering in FrameSettings (Normalize Reflection Probes)
 - Fixed ThreadMapDetail to saturate AO & smoothness strength inputs to prevent out-of-bounds values set by users (1357740)
 - Allow negative wind speed parameter.
-- Fixed remove of the Additional Light Data when removing the Light Component.
-- Fixed remove of the Additional Camera Data when removing the Camera Component.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
