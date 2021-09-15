@@ -29,9 +29,9 @@ namespace UnityEditor.ShaderGraph
         private const int kUVsSlotId = 6;
         private const string kUVsSlotName = "UVs";
         private const int kLodSlotId = 7;
-        private const string kLodSlotName = "Lod";
+        private const string kLodSlotName = "LOD";
         private const int kLodThresholdSlotId = 8;
-        private const string kLodThresholdSlotName = "LodThreshold";
+        private const string kLodThresholdSlotName = "LODThreshold";
         private const int kTilingSlotId = 10;
         private const string kTilingSlotName = "Tiling";
         private const int kOffsetSlotId = 11;
