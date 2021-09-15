@@ -111,6 +111,29 @@ half AngleAttenuation(half3 spotDirection, half3 lightDirection, half2 spotAtten
 //                      Light Abstraction                                    //
 ///////////////////////////////////////////////////////////////////////////////
 
+float GetCurrentExposureMultiplier()
+{
+    return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x;
+}
+
+float GetPreviousExposureMultiplier()
+{
+    // _ProbeExposureScale is a scale used to perform range compression to avoid saturation of the content of the probes. It is 1.0 if we are not rendering probes.
+    return LOAD_TEXTURE2D(_PrevExposureTexture, int2(0, 0)).x;// * _ProbeExposureScale;
+}
+
+float GetInverseCurrentExposureMultiplier()
+{
+    float exposure = GetCurrentExposureMultiplier();
+    return rcp(exposure + (exposure == 0.0)); // zero-div guard
+}
+
+float GetInversePreviousExposureMultiplier()
+{
+    float exposure = GetPreviousExposureMultiplier();
+    return rcp(exposure + (exposure == 0.0)); // zero-div guard
+}
+
 Light GetMainLight()
 {
     Light light;
@@ -122,6 +145,8 @@ Light GetMainLight()
 #endif
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
+
+    light.color.rgb *= GetCurrentExposureMultiplier();
 
 #ifdef _LIGHT_LAYERS
     light.layerMask = _MainLightLayerMask;
@@ -201,6 +226,8 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
 
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
     half attenuation = half(DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy) * AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw));
+
+    color.rgb *= GetCurrentExposureMultiplier();
 
     Light light;
     light.direction = lightDirection;

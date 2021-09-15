@@ -359,6 +359,8 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
+            Shader.SetGlobalFloat("_Exposure", Mathf.Clamp(cameraData.exposure, 0, float.MaxValue));
+
             DebugHandler?.Setup(context, ref cameraData);
 
             if (cameraData.cameraType != CameraType.Game)

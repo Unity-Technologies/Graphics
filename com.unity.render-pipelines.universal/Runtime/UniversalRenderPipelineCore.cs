@@ -111,6 +111,7 @@ namespace UnityEngine.Rendering.Universal
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+        public float exposure;
 
         /// <summary>
         /// Returns true if post processing passes require depth texture.
@@ -144,6 +145,7 @@ namespace UnityEngine.Rendering.Universal
         public bool isPreviewCamera => cameraType == CameraType.Preview;
 
         internal bool isRenderPassSupportedCamera => (cameraType == CameraType.Game || cameraType == CameraType.Reflection);
+
 
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering

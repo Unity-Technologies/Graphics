@@ -90,6 +90,10 @@ half4 _MainLightColor;
 half4 _MainLightOcclusionProbes;
 uint _MainLightLayerMask;
 
+// Exposure texture - 1x1 RG16F (r: exposure mult, g: exposure EV100)
+TEXTURE2D(_ExposureTexture);
+TEXTURE2D(_PrevExposureTexture);
+
 // xyz are currently unused
 // w: directLightStrength
 half4 _AmbientOcclusionParam;

@@ -140,8 +140,18 @@ namespace UnityEngine.Rendering.Universal
     [ExcludeFromPreset]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
+
+        [Serializable, ReloadGroup]
+        public sealed class ShaderResources
+        {
+            [Reload("Shaders/PostProcessing/Exposure.compute")]
+            public ComputeShader exposureCS;
+        }
+
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
+
+        public ShaderResources shaders;
 
         // Default values set when a new UniversalRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = 9;
