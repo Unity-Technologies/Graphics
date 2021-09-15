@@ -116,6 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Dual Scattering Inputs (Global Scattering)
                 // Right now these inputs are provided by the demo team hair package.
                 context.AddBlock(HDBlockFields.SurfaceDescription.StrandCountProbe, useAdvancedMultipleScattering);
+                context.AddBlock(HDBlockFields.SurfaceDescription.SplineShadowBias, useAdvancedMultipleScattering);
             }
         }
 

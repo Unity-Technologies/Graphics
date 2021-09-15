@@ -27,7 +27,7 @@ float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
     return float4(lerp(bsdfData.diffuseColor, bsdfData.fresnel0, weight * replace), weight);
 }
 
-float3 GetNormalForShadowBias(BSDFData bsdfData)
+float3 GetNormalForShadowBias(float3 L, BSDFData bsdfData)
 {
     // In forward we can used geometric normal for shadow bias which improve quality
 #if (SHADERPASS == SHADERPASS_FORWARD)

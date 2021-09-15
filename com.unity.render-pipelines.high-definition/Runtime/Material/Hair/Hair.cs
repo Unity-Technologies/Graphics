@@ -83,6 +83,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Global Scattering
             [SurfaceDataAttributes("Strand Count Probe")]
             public Vector4 strandCountProbe;
+            [SurfaceDataAttributes("Spline Shadow Bias")]
+            public float splineShadowBias;
         };
 
         //-----------------------------------------------------------------------------
@@ -151,6 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Global Scattering
             public Vector4 strandCountProbe;
+            public float splineShadowBias;
         };
 
 

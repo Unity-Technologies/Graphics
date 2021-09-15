@@ -26,10 +26,7 @@
 // #define HAIR_DISPLAY_REFERENCE_IBL
 
 #if _USE_ADVANCED_MULTIPLE_SCATTERING
-
-// Temporary until we introduce spline bias toward light.
-#define LIGHT_EVALUATION_NO_SHADOWS
-
+#define LIGHT_EVALUATION_SHADOW_BIAS_SPLINE
 #endif
 
 // Extra material feature flag we utilize to compile different versions of BSDF evaluation (for pre-integration, etc.)
@@ -86,11 +83,10 @@ float4 GetDiffuseOrDefaultColor(BSDFData bsdfData, float replace)
     return float4(bsdfData.diffuseColor, 0.0);
 }
 
-float3 GetNormalForShadowBias(BSDFData bsdfData)
+float3 GetNormalForShadowBias(float3 L, BSDFData bsdfData)
 {
-#if _USE_LIGHT_FACING_NORMAL
-    // TODO: should probably bias towards the light for splines...
-    return bsdfData.geomNormalWS;
+#ifdef LIGHT_EVALUATION_SHADOW_BIAS_SPLINE
+    return L * bsdfData.splineShadowBias;
 #else
     return bsdfData.geomNormalWS;
 #endif
@@ -262,6 +258,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     #if _USE_ADVANCED_MULTIPLE_SCATTERING
         bsdfData.strandCountProbe = surfaceData.strandCountProbe;
+        bsdfData.splineShadowBias = surfaceData.splineShadowBias * 100;
     #endif
     }
 
