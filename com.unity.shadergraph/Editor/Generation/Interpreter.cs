@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph.Generation
             outputVariables.Add(colorOut);
 
             var outputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Output", outputVariables);
-            var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"{rootNode.GetName()}Main", outputType);
+            var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.GetName()}Main", outputType);
 
             foreach(var node in GatherTreeLeafFirst(rootNode))
             {
@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph.Generation
 
 
             mainBodyFunctionBuilder.AddLine($"{outputType.Name} output;");
-            mainBodyFunctionBuilder.AddLine($"output.{colorOut.ReferenceName} = {rootNode.GetName()}_{rootNode.GetOutputPorts().First().GetName()};");
+            mainBodyFunctionBuilder.AddLine($"output.{colorOut.ReferenceName} = SYNTAX_{rootNode.GetName()}_{rootNode.GetOutputPorts().First().GetName()};");
             mainBodyFunctionBuilder.AddLine("return output;");
 
 
@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph.Generation
                         if (connectedPort != null) // connected input port-
                         {
                             var connectedNode = connectedPort.GetNode();
-                            argument = $"{connectedNode.GetName()}_{connectedPort.GetName()}";
+                            argument = $"SYNTAX_{connectedNode.GetName()}_{connectedPort.GetName()}";
                         }
                         else // not connected.
                         {
@@ -113,7 +113,7 @@ namespace UnityEditor.ShaderGraph.Generation
                     }
                     else // this is an output port.
                     {
-                        argument = $"{node.GetName()}_{port.GetName()}"; // add to the arguments for the function call.
+                        argument = $"SYNTAX_{node.GetName()}_{port.GetName()}"; // add to the arguments for the function call.
                         // default initialize this before our function call.
                         var initValue = registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry);
                         mainBodyFunctionBuilder.AddLine($"{param.Type.Name} {argument} = {initValue};");

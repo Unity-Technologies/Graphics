@@ -460,7 +460,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 if (renderData != m_MainPreviewRenderData /*|| !m_Graph.isOnlyVFXTarget*/)
                 {
                     m_SceneResources.camera.targetTexture = temp;
-                    Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, m_PreviewMaterialPropertyBlock, ShadowCastingMode.Off, false, null, false);
+                    Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera);
                 }
 
                 var previousUseSRP = Unsupported.useScriptableRenderPipeline;

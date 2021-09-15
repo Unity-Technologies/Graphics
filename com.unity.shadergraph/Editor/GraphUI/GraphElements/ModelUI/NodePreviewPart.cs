@@ -1,4 +1,4 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
 using UnityEditor.ShaderGraph.GraphUI.Utilities;
@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
             m_PreviewImage = m_Root.Q<Image>("preview");
             if (m_PreviewImage != null)
             {
-                m_PreviewImage.image = Texture2D.blackTexture;
+                m_PreviewImage.image = Texture2D.whiteTexture;
             }
 
             m_CollapseButton = m_Root.Q<VisualElement>("collapse");
