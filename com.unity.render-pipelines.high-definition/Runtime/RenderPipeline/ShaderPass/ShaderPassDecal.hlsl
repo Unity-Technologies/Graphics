@@ -62,7 +62,10 @@ void Frag(  PackedVaryingsToPS packedInput,
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
 
-    float depth = max(0.00005f, LoadCameraDepth(input.positionSS.xy));
+    float depth = LoadCameraDepth(input.positionSS.xy);
+#if UNITY_REVERSED_Z
+    depth = max(0.0001f, depth);
+#endif
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
     // Decal layer mask accepted by the receiving material
