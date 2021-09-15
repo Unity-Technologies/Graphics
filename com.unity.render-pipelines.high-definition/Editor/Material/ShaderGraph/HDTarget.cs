@@ -794,14 +794,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 Pass = "Replace",
             }) },
         };
-
-        public static RenderStateCollection ForwardEmissiveForDeferred = new RenderStateCollection
-        {
-            { RenderState.Blend(Blend.One, Blend.One) },
-            { RenderState.Cull(Uniforms.cullModeForward) },
-            { RenderState.ZWrite(Uniforms.zWrite) },
-            { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
-        };
     }
     #endregion
 
@@ -958,12 +950,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
-        public static DefineCollection ForwardEmissiveForDeferred = new DefineCollection
-        {
-            { CoreKeywordDescriptors.HasLightloop, 0 },
-            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
-        };
-
         public static DefineCollection ForwardLit = new DefineCollection
         {
             { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
@@ -1062,7 +1048,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kPassMotionVectors = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl";
         public const string kDisortionVectors = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl";
         public const string kPassForward = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl";
-        public const string kPassForwardEmissiveForDeferred = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardEmissiveForDeferred.hlsl";
         public const string kStandardLit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl";
         public const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
         public const string kPassConstant = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassConstant.hlsl";
@@ -1512,16 +1497,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
-        };
-
-        public static KeywordDescriptor ForceForwardEmissive = new KeywordDescriptor
-        {
-            displayName = "Force Forward Emissive",
-            referenceName = "_FORCE_FORWARD_EMISSIVE",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Global, // not local as it is use in shader stripper to discard the pass if not needed
-            // stages = KeywordShaderStage.Fragment, // not _fragment as it prevent the stripper to work
         };
 
         public static KeywordDescriptor TransparentWritesMotionVector = new KeywordDescriptor
