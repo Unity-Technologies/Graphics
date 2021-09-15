@@ -1,4 +1,4 @@
-Shader "Universal Render Pipeline/Test/Zero Variant Color Texture Alpha"
+Shader "Universal Render Pipeline/Test/Zero Variant Color Texture Alpha Only"
 {
     Properties
     {
@@ -68,7 +68,6 @@ Shader "Universal Render Pipeline/Test/Zero Variant Color Texture Alpha"
             clip(alpha - _Cutoff);
             half4 finalColor = half4(color, alpha);
             return finalColor;
-            //return half4(alpha.xxx, 1);
         }
 
     ENDHLSL
@@ -91,33 +90,6 @@ Shader "Universal Render Pipeline/Test/Zero Variant Color Texture Alpha"
                 #pragma fragment Frag
             ENDHLSL
         }
-
-        /*Pass
-        {
-            Name "DepthOnly"
-            Tags{"LightMode" = "DepthOnly"}
-
-            ZWrite On
-            ColorMask 0
-
-            HLSLPROGRAM
-            #pragma vertex Vert
-            #pragma fragment Frag
-            ENDHLSL
-        }*/
-
-        /*Pass
-        {
-            Name "DepthNormalsOnly"
-            Tags{"LightMode" = "DepthNormalsOnly"}
-
-            ZWrite On
-
-            HLSLPROGRAM
-                #pragma vertex Vert
-                #pragma fragment Frag
-            ENDHLSL
-        }*/
     }
 
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
