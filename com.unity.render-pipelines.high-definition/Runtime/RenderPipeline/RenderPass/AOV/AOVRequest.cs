@@ -54,6 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaterialProperty = MaterialSharedProperty.None,
             m_LightingProperty = LightingProperty.None,
             m_DebugFullScreen = DebugFullScreen.None,
+            m_RequestMode = Camera.RenderRequestMode.None,
             m_LightFilterProperty = DebugLightFilterMode.None,
             m_OverrideRenderFormat = false
         };
@@ -61,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialSharedProperty m_MaterialProperty;
         LightingProperty m_LightingProperty;
         DebugLightFilterMode m_LightFilterProperty;
+        Camera.RenderRequestMode m_RequestMode;
         DebugFullScreen m_DebugFullScreen;
 
         // When this variable is true, HDRP will render internally with the graphics format of teh user provided AOV output buffer
@@ -84,6 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaterialProperty = other.m_MaterialProperty;
             m_LightingProperty = other.m_LightingProperty;
             m_DebugFullScreen = other.m_DebugFullScreen;
+            m_RequestMode = other.m_RequestMode;
             m_LightFilterProperty = other.m_LightFilterProperty;
             m_OverrideRenderFormat = other.m_OverrideRenderFormat;
         }
@@ -130,6 +133,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public ref AOVRequest SetOverrideRenderFormat(bool flag)
         {
             m_OverrideRenderFormat = flag;
+            return ref *thisPtr;
+        }
+
+        /// <summary>State the property to render. In case of several SetRenderRequestMode chained call, only last will be used.</summary>
+        /// <param name="requestMode">The property to render.</param>
+        /// <returns>A ref return to chain calls.</returns>
+        public ref AOVRequest SetRenderRequestMode(Camera.RenderRequestMode requestMode)
+        {
+            m_RequestMode = requestMode;
             return ref *thisPtr;
         }
 
@@ -195,6 +207,48 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 default:
                     throw new ArgumentException("Unknown DebugFullScreen");
+            }
+
+            if (m_RequestMode != Camera.RenderRequestMode.None)
+            {
+                switch (m_RequestMode)
+                {
+                    case Camera.RenderRequestMode.Depth:
+                        debug.SetFullScreenDebugMode(FullScreenDebugMode.DepthPyramid);
+                        break;
+                    case Camera.RenderRequestMode.VertexNormal:
+                        debug.SetDebugViewVarying(DebugViewVarying.VertexNormalWS);
+                        break;
+                    case Camera.RenderRequestMode.WorldPosition:
+                        debug.SetFullScreenDebugMode(FullScreenDebugMode.WorldSpacePosition);
+                        break;
+                    case Camera.RenderRequestMode.BaseColor:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Albedo);
+                        break;
+                    case Camera.RenderRequestMode.SpecularColor:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Specular);
+                        break;
+                    case Camera.RenderRequestMode.Metallic:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Metal);
+                        break;
+                    case Camera.RenderRequestMode.Emission:
+                        debug.SetDebugLightingMode(DebugLightingMode.EmissiveLighting);
+                        break;
+                    case Camera.RenderRequestMode.Normal:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Normal);
+                        break;
+                    case Camera.RenderRequestMode.Smoothness:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Smoothness);
+                        break;
+                    case Camera.RenderRequestMode.Occlusion:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.AmbientOcclusion);
+                        break;
+                    case Camera.RenderRequestMode.DiffuseColor:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.Albedo);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(m_RequestMode), m_RequestMode, null);
+                }
             }
         }
 

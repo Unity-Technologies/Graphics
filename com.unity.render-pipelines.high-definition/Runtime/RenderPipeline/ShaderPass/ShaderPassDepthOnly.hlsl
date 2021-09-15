@@ -3,6 +3,8 @@
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DataExtraction.hlsl"
+
 #if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 #endif
@@ -102,7 +104,19 @@ void Frag(  PackedVaryingsToPS packedInput
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
     outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
 #elif defined(SCENEPICKINGPASS)
-    outColor = _SelectionID;
+    #ifdef UNITY_DOTS_INSTANCING_ENABLED
+    // When rendering EntityIds, GameObjects output EntityId = 0
+    if (_SelectionID.x == RENDER_ENTITY_ID)
+        outColor = ComputeEntityPickingValue(unity_EntityId.x);
+    else
+        outColor = float4(0, 0, 0, 0);
+    #else
+    // When rendering ObjectIds, Entities output ObjectId = 0
+    if (_SelectionID.x == RENDER_OBJECT_ID)
+        outColor = PackId32ToRGBA8888(asuint(unity_LODFade.z));
+    else
+        outColor = float4(0, 0, 0, 0);
+    #endif
 #else
 
     // Depth and Alpha to coverage

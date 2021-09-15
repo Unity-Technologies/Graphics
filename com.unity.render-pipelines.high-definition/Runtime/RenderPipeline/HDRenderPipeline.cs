@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.HighDefinition.Attributes;
 using UnityEngine.Rendering.RendererUtils;
 
 #if UNITY_EDITOR
@@ -2252,10 +2253,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected override void ProcessRenderRequests(ScriptableRenderContext renderContext, Camera camera, List<Camera.RenderRequest> renderRequests)
         {
-            #if false
             var previousRT = RenderTexture.active;
             RenderTexture.active = null;
 
+#if false
             if (m_IntermediateAfterPostProcessBufferFloat == null)
                 m_IntermediateAfterPostProcessBufferFloat = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, useDynamicScale: true, name: "AfterPostProcessFloat");
 
@@ -2295,12 +2296,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                #if false
                 bool haveAOVRequests = false;
                 var requests = new AOVRequestBuilder();
                 foreach (var request in renderRequests)
                 {
-                    if (IsSceneSelectionRequest(request))
+                    if (IsSceneSelectionRequest(request) || request.mode == Camera.RenderRequestMode.None)
                         continue;
 
                     var aovRequest = AOVRequest.NewDefault().SetRenderRequestMode(request.mode);
@@ -2317,33 +2317,31 @@ namespace UnityEngine.Rendering.HighDefinition
                         new[] {aovBuffers},
                         (cmd, textures, properties) =>
                         {
-                            //if (request.result != null)
-                            //    cmd.Blit(textures[0], request.result);
                         });
+
                     haveAOVRequests = true;
                 }
 
                 if (haveAOVRequests)
                 {
-                    var additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
-                    if (additionaCameraData == null)
+                    var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                    if (additionalCameraData == null)
                     {
                         camera.gameObject.AddComponent<HDAdditionalCameraData>();
-                        additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                        additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
                     }
 
-                    additionaCameraData.SetAOVRequests(requests.Build());
+                    additionalCameraData.SetAOVRequests(requests.Build());
 
                     Render(renderContext, new[] {camera});
 
-                    additionaCameraData.SetAOVRequests(null);
+                    additionalCameraData.SetAOVRequests(null);
                 }
-#endif
             }
             finally
             {
                 // m_IntermediateAfterPostProcessBuffer = previousPostprocessBuffer;
-                //RenderTexture.active = previousRT;
+                RenderTexture.active = previousRT;
             }
         }
 
