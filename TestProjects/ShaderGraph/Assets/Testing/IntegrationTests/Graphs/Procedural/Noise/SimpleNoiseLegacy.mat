@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SimpleNoise
-  m_Shader: {fileID: -6465566751694194690, guid: 84dd2a0c06a5ef7439cfc34945736b26,
+  m_Name: SimpleNoiseLegacy
+  m_Shader: {fileID: -6465566751694194690, guid: 7c9fded5521ed43469e52bd4a6286604,
     type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4

@@ -7,16 +7,18 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SimpleNoise
-  m_Shader: {fileID: -6465566751694194690, guid: 84dd2a0c06a5ef7439cfc34945736b26,
+  m_Name: VoronoiLegacy
+  m_Shader: {fileID: -6465566751694194690, guid: b3452c9b2f7775f42bef08c27cc4b7bb,
     type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
+  stringTagMap:
+    MotionVector: User
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -34,12 +36,13 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - Vector1_4789D2C8: 175
+    - Vector1_4789D2C8: 2
+    - Vector1_C011EF11: 8
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors: []
   m_BuildTextureStacks: []
---- !u!114 &7816165448951020941
+--- !u!114 &6220380539752857763
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
