@@ -682,7 +682,7 @@ namespace UnityEngine.Rendering.Universal
                     if (!(copyColorPass && isCopyDepthAfterTransparent))
                     {
                         if (opaquePassDepthStoreAction == RenderBufferStoreAction.Store)
-                            opaquePassDepthStoreAction = isCopyDepthAfterTransparent ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.StoreAndResolve; // TODO: we shouldn't need to set Resolve here. Waiting for a Metal backend fix to land
+                            opaquePassDepthStoreAction = RenderBufferStoreAction.StoreAndResolve;
                         else if (opaquePassDepthStoreAction == RenderBufferStoreAction.DontCare)
                             opaquePassDepthStoreAction = RenderBufferStoreAction.Resolve;
                     }
