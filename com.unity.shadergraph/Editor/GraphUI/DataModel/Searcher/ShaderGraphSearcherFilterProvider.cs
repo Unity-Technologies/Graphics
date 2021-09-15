@@ -19,5 +19,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         public SearcherFilter GetInputToGraphSearcherFilter(IPortModel portModel) => k_NoOpFilter;
 
         public SearcherFilter GetEdgeSearcherFilter(IEdgeModel edgeModel) => k_NoOpFilter;
+
+        public SearcherFilter GetContextSearcherFilter(IContextNodeModel contextNodeModel) => k_NoOpFilter;
     }
 }
