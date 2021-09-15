@@ -160,8 +160,18 @@ namespace UnityEngine.Rendering.Universal
             if (m_ShadowCastingSource == ShadowCastingSources.ShapeEditor)
             {
                 NativeArray<Vector3> nativePath = new NativeArray<Vector3>(m_ShapePath, Allocator.Temp);
-                NativeArray<int> nativeIndices = new NativeArray<int>(0, Allocator.Temp);
-                m_ShadowMesh.SetShape(nativePath, nativeIndices, IShadowShape2DProvider.OutlineTopology.LineStrip);
+                NativeArray<int> nativeIndices = new NativeArray<int>(2 * m_ShapePath.Length, Allocator.Temp);
+
+                int lastIndex = m_ShapePath.Length - 1;
+                for (int i=0;i<m_ShapePath.Length;i++)
+                {
+                    int startingIndex = i << 1;
+                    nativeIndices[startingIndex] = lastIndex;
+                    nativeIndices[startingIndex + 1] = i;
+                    lastIndex = i;
+                }
+
+                m_ShadowMesh.SetShape(nativePath, nativeIndices, IShadowShape2DProvider.OutlineTopology.Lines);
                 nativePath.Dispose();
                 nativeIndices.Dispose();
             }

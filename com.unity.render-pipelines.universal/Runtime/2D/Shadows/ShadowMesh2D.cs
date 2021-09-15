@@ -32,20 +32,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 ShadowUtility.CalculateEdgesFromTriangles(vertices, indices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
             }
-            else if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Lines)
+            else // if (outlineTopology == IShadowShape2DProvider.OutlineTopology.Lines)
             {
                 ShadowUtility.CalculateEdgesFromLines(indices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
             }
-            else //if (outlineTopology == IShadowShape2DProvider.OutlineTopology.LineStrip)
-            {
-                // Line strips should be removed as its impossible to tell if the strip is closed and to find seperate shapes
-                if (indices.Length == 0)
-                    ShadowUtility.CalculateEdgesForSimpleLineStrip(vertices.Length, out edges, out shapeStartingIndices, out shapeIsClosedArray);
-                else
-                    ShadowUtility.CalculateEdgesFromLineStrip(indices, out edges, out shapeStartingIndices, out shapeIsClosedArray);
-            }
 
-            m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, vertices, edges, shapeStartingIndices, shapeIsClosedArray, allowContraction);
+            m_BoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, vertices, edges, shapeStartingIndices, shapeIsClosedArray, allowContraction, outlineTopology);
             edges.Dispose();
             shapeStartingIndices.Dispose();
         }

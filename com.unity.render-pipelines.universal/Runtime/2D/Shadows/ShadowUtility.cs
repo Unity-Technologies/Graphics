@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using System.Collections.Generic;
-
+using UnityEngine.U2D;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static void CalculateContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeContractionAllowed,  ref NativeArray<Vector3> outContractionDirection)
+        static void CalculateContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeIsClosedArray, bool allowContraction, ref NativeArray<Vector3> outContractionDirection)
         {
             for (int shapeIndex = 0; shapeIndex < inShapeStartingIndices.Length; shapeIndex++)
             {
@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
                     return;
 
                 int nextStartingIndex = -1;
-                if(shapeIndex + 1 < inShapeStartingIndices.Length)
+                if (shapeIndex + 1 < inShapeStartingIndices.Length)
                     nextStartingIndex = inShapeStartingIndices[shapeIndex + 1];
 
                 int numEdgesInCurShape = nextStartingIndex >= 0 ? nextStartingIndex - startingIndex : inEdges.Length - startingIndex;
@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
                 int edgeIndex = startingIndex;
                 for (int i = 0; i < numEdgesInCurShape; i++)
                 {
-                    if (inShapeContractionAllowed[shapeIndex])
+                    if (inShapeIsClosedArray[shapeIndex] && allowContraction)
                     {
                         int curEdge = startingIndex + i;
                         int nextEdge = i + 1 < numEdgesInCurShape ? startingIndex + i + 1 : startingIndex;
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.Universal
 
         static void ApplyContraction(NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<Vector3> inContractionDirection, float inContractionDistance, ref NativeArray<Vector3> outVertices)
         {
-            for(int i=0;i<inEdges.Length;i++)
+            for (int i = 0; i < inEdges.Length; i++)
             {
                 int index = inEdges[i].v0;
                 outVertices[i] = inVertices[index];
@@ -241,8 +241,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
+
         // inEdges is expected to be contiguous
-        static public void GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<Vector3> inContractionDirection)
+        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeIsClosedArray, bool allowContraction, IShadowShape2DProvider.OutlineTopology topology)
         {
             Debug.AssertFormat(inEdges.Length >= k_MinimumEdges, "Shadow shape path must have 3 or more edges");
 
@@ -254,9 +255,10 @@ namespace UnityEngine.Rendering.Universal
             NativeArray<Vector4> meshTangents = new NativeArray<Vector4>(meshVertexCount, Allocator.Temp);
             NativeArray<int> meshIndices = new NativeArray<int>(meshIndexCount, Allocator.Temp);
             NativeArray<ShadowMeshVertex> meshFinalVertices = new NativeArray<ShadowMeshVertex>(meshVertexCount, Allocator.Temp);
+            NativeArray<Vector3> contractionDirection = new NativeArray<Vector3>(inVertices.Length, Allocator.Temp);
 
-
-            CalculateTangents(inVertices, inEdges, inContractionDirection, ref meshTangents);                            // meshVertices contain a normal component
+            CalculateContraction(inVertices, inEdges, inShapeStartingIndices, inShapeIsClosedArray, allowContraction, ref contractionDirection);
+            CalculateTangents(inVertices, inEdges, contractionDirection, ref meshTangents);                            // meshVertices contain a normal component
             CalculateVertices(inVertices, inEdges, meshTangents, ref meshFinalVertices);
             CalculateTriangles(inVertices, inEdges, inShapeStartingIndices, ref meshIndices);
 
@@ -268,35 +270,15 @@ namespace UnityEngine.Rendering.Universal
 
             mesh.subMeshCount = 1;
             mesh.SetSubMesh(0, new SubMeshDescriptor(0, meshIndexCount));
-
+            
             meshTangents.Dispose();
             meshIndices.Dispose();
             meshFinalVertices.Dispose();
-        }
-
-        static public BoundingSphere GenerateShadowMesh(Mesh mesh, NativeArray<Vector3> inVertices, NativeArray<ShadowEdge> inEdges, NativeArray<int> inShapeStartingIndices, NativeArray<bool> inShapeContractionAllowed, bool inAllowContraction)
-        {
-            NativeArray<Vector3> contractionDirection = new NativeArray<Vector3>(inVertices.Length, Allocator.Temp);
-
-            // Get vertex reduction directions
-            if (inAllowContraction)
-            {
-                CalculateContraction(inVertices, inEdges, inShapeStartingIndices, inShapeContractionAllowed, ref contractionDirection);
-            }
-            else
-            {
-                for (int i = 0; i < contractionDirection.Length; i++)
-                    contractionDirection[i] = Vector3.zero;
-            }
-
-            GenerateShadowMesh(mesh, inVertices, inEdges, inShapeStartingIndices, contractionDirection);
-
             contractionDirection.Dispose();
 
             BoundingSphere retBoundingSphere = CalculateBoundingSphere(inVertices);
             return retBoundingSphere;
         }
-
 
 
         static public void UpdateShadowMeshVertices(Mesh mesh, NativeArray<Vector3> inVertices)
@@ -399,6 +381,7 @@ namespace UnityEngine.Rendering.Universal
                 if(closedShapeFound)
                 {
                     shapeStart = indices[i];
+                    tempShapeIsClosedArray[shapeCount] = true;
                     tempShapeStartIndices[shapeCount++] = i;
                     closedShapeFound = false;
                 }
@@ -412,23 +395,22 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 if(shapeStart == indices[i+1])
-                {
-                    tempShapeIsClosedArray[shapeCount] = true;
                     closedShapeFound = true;
-                }
 
                 lastIndex = indices[i + 1];
             }
 
-            tempShapeIsClosedArray[shapeCount - 1] = closedShapeFound; 
+            tempShapeIsClosedArray[shapeCount++] = closedShapeFound; 
 
             // Copy the our data to a smaller array
             outShapeStartingIndices = new NativeArray<int>(shapeCount, Allocator.Temp);
-            outShapeStartingIndices.CopyFrom(tempShapeStartIndices);
-            tempShapeStartIndices.Dispose();
-
             outShapeIsClosedArray = new NativeArray<bool>(shapeCount, Allocator.Temp);
-            outShapeIsClosedArray.CopyFrom(tempShapeIsClosedArray);
+            for (int i = 0; i < shapeCount; i++)
+            {
+                outShapeStartingIndices[i] = tempShapeStartIndices[i];
+                outShapeIsClosedArray[i] = tempShapeIsClosedArray[i];
+            }
+            tempShapeStartIndices.Dispose();
             tempShapeIsClosedArray.Dispose();
 
             // Add edges
@@ -520,8 +502,6 @@ namespace UnityEngine.Rendering.Universal
 
             return outsideEdges;
         }
-
-
 
         static public void RemapEdges(NativeArray<ShadowEdge> edges, NativeArray<int> map)
         {
