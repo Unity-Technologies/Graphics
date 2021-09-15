@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error when disabling opaque objects on a camera with MSAA.
 - Fixed double camera preview.
 - Fixed the volumetric clouds cloud map not being centered over the world origin (case 1364465).
+- Fixed Dof, would sometimes get corrupted when DLSS was on caused by TAA logic accidentally being on for DOF (1357722)
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
