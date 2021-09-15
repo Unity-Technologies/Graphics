@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderFoundry
 
         class BlockGroup
         {
-            internal string CustomizationPointName = null;
+            internal CustomizationPoint CustomizationPoint = CustomizationPoint.Invalid;
             internal List<BlockDescriptor> BlockDescriptors = new List<BlockDescriptor>();
             internal BlockLinkInstance LinkingData;
             internal List<BlockLinkInstance> BlocksLinkingData = new List<BlockLinkInstance>();
@@ -63,28 +63,41 @@ namespace UnityEditor.ShaderFoundry
             return GenerateMergerLegacyEntryPoints(template, templatePass, vertexGroups, fragmentGroups);
         }
 
-        List<BlockGroup> BuildBlockGroups(Template template, TemplatePass templatePass, IEnumerable<BlockDescriptor> passBlocksDescriptors, List<CustomizationPointDescriptor> customizationPointDescriptors)
+        List<BlockGroup> BuildBlockGroups(Template template, TemplatePass templatePass, IEnumerable<BlockDescriptor> passBlocksDescriptors, IEnumerable<CustomizationPointDescriptor> customizationPointDescriptors)
         {
+            // The blocks for a pass are in two different places: the pass defaults and the
+            // customization point descriptors. For block merging, we'll need to know what blocks to merge together.
+            // To do this, first group neighboring blocks together if they share a customization point.
             var results = new List<BlockGroup>();
             BlockGroup currentGroup = null;
             foreach (var templateBlockDesc in passBlocksDescriptors)
             {
-                // Add the template block's data to the correct group based on the customization point
                 var customizationPoint = templatePass.GetCustomizationPointForBlock(templateBlockDesc);
                 // If the customization point has changed then the group changes (or if we didn't already have a group)
-                if (currentGroup == null || currentGroup.CustomizationPointName != customizationPoint.Name)
+                if (currentGroup == null || currentGroup.CustomizationPoint != customizationPoint)
                 {
-                    currentGroup = new BlockGroup { CustomizationPointName = customizationPoint.Name };
+                    currentGroup = new BlockGroup { CustomizationPoint = customizationPoint };
                     results.Add(currentGroup);
                 }
-
-                // Add all blocks that correspond to this customization point
                 currentGroup.BlockDescriptors.Add(templateBlockDesc);
-                var cpDesc = customizationPointDescriptors.Find((cpd) => (cpd.CustomizationPoint == customizationPoint));
-                if (cpDesc.IsValid)
+            }
+
+            // Once pass blocks are merged, we can append each group with the CustomizationPointDescriptor's blocks
+            foreach(var group in results)
+            {
+                if (group.CustomizationPoint.IsValid == false)
+                    continue;
+
+                // Find the CustomizationPointDescriptor matching the group's CustomizationPoint and append all of it's block descriptors
+                foreach(var cpDesc in customizationPointDescriptors)
                 {
+                    if (cpDesc.CustomizationPoint != group.CustomizationPoint)
+                        continue;
+
                     foreach (var blockDesc in cpDesc.BlockDescriptors)
-                        currentGroup.BlockDescriptors.Add(blockDesc);
+                        group.BlockDescriptors.Add(blockDesc);
+                    // Should this break? Does it make sense for a user to have two CustomizationPointDescriptors with the same CustomizationPoint?
+                    break;
                 }
             }
 
@@ -97,8 +110,8 @@ namespace UnityEditor.ShaderFoundry
             // changing how the values are passed around and would currently require setting them into globals.
 
             var merger = new BlockMerger(Container);
-            var vertexCPIndex = vertexGroups.FindIndex((g) => (g.CustomizationPointName == LegacyCustomizationPoints.VertexDescriptionCPName));
-            var fragmentCPIndex = fragmentGroups.FindIndex((g) => (g.CustomizationPointName == LegacyCustomizationPoints.SurfaceDescriptionCPName));
+            var vertexCPIndex = vertexGroups.FindIndex((g) => (g.CustomizationPoint.Name == LegacyCustomizationPoints.VertexDescriptionCPName));
+            var fragmentCPIndex = fragmentGroups.FindIndex((g) => (g.CustomizationPoint.Name == LegacyCustomizationPoints.SurfaceDescriptionCPName));
 
             var vertexGroup = vertexGroups[vertexCPIndex];
             var fragmentGroup = fragmentGroups[fragmentCPIndex];
@@ -151,13 +164,14 @@ namespace UnityEditor.ShaderFoundry
 
         BlockMerger.Context BuilderMergerContext(Template template, TemplatePass templatePass, BlockGroup group, UnityEditor.Rendering.ShaderType stageType)
         {
-            var customizationPoint = templatePass.FindCustomizationPoint(template, group.CustomizationPointName);
+            var customizationPointName = group.CustomizationPoint.Name;
+            var customizationPoint = templatePass.FindCustomizationPoint(template, customizationPointName);
             return new BlockMerger.Context
             {
-                ScopeName = group.CustomizationPointName,
-                Name = $"{group.CustomizationPointName}CPFunction",
-                InputTypeName = $"{group.CustomizationPointName}CPInput",
-                OutputTypeName = $"{group.CustomizationPointName}CPOutput",
+                ScopeName = customizationPointName,
+                Name = $"{customizationPointName}CPFunction",
+                InputTypeName = $"{customizationPointName}CPInput",
+                OutputTypeName = $"{customizationPointName}CPOutput",
                 Inputs = customizationPoint.Inputs,
                 Outputs = customizationPoint.Outputs,
                 blockDescriptors = group.BlockDescriptors,
