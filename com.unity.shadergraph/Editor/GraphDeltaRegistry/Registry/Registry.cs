@@ -3,6 +3,7 @@ using System.Runtime.Serialization;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
+using UnityEditor.ShaderGraph.Registry.Defs;
 
 namespace UnityEditor.ShaderGraph.Registry
 {
@@ -71,7 +72,7 @@ namespace UnityEditor.ShaderGraph.Registry
     public class Registry
     {
         Dictionary<RegistryKey, Defs.IRegistryEntry> builders = new Dictionary<RegistryKey, Defs.IRegistryEntry>();
-        GraphDelta.IGraphHandler defaultTopologies = GraphUtil.CreateGraph();
+        public GraphDelta.IGraphHandler defaultTopologies = GraphUtil.CreateGraph();
 
         public Registry()
         {
@@ -88,13 +89,24 @@ namespace UnityEditor.ShaderGraph.Registry
         {
             var builder = Activator.CreateInstance<T>();
             var key = builder.GetRegistryKey();
-            if (builders.ContainsKey(key)) return false;
-            if (typeof(T) is Defs.INodeDefinitionBuilder) defaultTopologies.AddNode(key, key.ToString(), this);
+            if (builders.ContainsKey(key))
+                return false;
             builders.Add(key, builder);
+            if(builder is INodeDefinitionBuilder && builder.GetRegistryFlags() == RegistryFlags.Func)
+                defaultTopologies.AddNode(key, key.ToString(),this);
             return true;
         }
 
-        public Defs.IContextDescriptor GetContextDescriptor(RegistryKey key) => (Defs.IContextDescriptor)GetBuilder(key);
+        public Defs.IContextDescriptor GetContextDescriptor(RegistryKey key)
+        {
+            var contextNodeBuilder = GetBuilder(key);
+            var registryFlags = contextNodeBuilder.GetRegistryFlags();
+            if(registryFlags == RegistryFlags.Base)
+                return (Defs.IContextDescriptor)contextNodeBuilder;
+
+            return null;
+        }
+
         public Defs.INodeDefinitionBuilder GetNodeBuilder(RegistryKey key) => (Defs.INodeDefinitionBuilder)GetBuilder(key);
         public Defs.ITypeDefinitionBuilder GetTypeBuilder(RegistryKey key) => (Defs.ITypeDefinitionBuilder)GetBuilder(key);
         public Defs.ICastDefinitionBuilder GetCastBuilder(RegistryKey key) => (Defs.ICastDefinitionBuilder)GetBuilder(key);

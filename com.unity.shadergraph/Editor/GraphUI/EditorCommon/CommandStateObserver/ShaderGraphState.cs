@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             commandDispatcher.RegisterCommandHandler<BypassNodesCommand>(ShaderGraphCommandOverrides.HandleBypassNodes);
             commandDispatcher.RegisterCommandHandler<RenameElementCommand>(ShaderGraphCommandOverrides.HandleGraphElementRenamed);
             commandDispatcher.RegisterCommandHandler<ChangeNodeStateCommand>(ShaderGraphCommandOverrides.HandleNodeStateChanged);
-
+            commandDispatcher.RegisterCommandHandler<UpdateConstantValueCommand>(ShaderGraphCommandOverrides.HandleUpdateConstantValue);
         }
     }
 }

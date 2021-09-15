@@ -2,13 +2,12 @@
 using Editor.GraphUI.Utilities;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEngine;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 
 namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
 {
-    public enum DefaultTextureType { White, Black, NormalMap }
-
-    public class PortPreviewHandler
+    public class VariablePreviewHandler
     {
         string m_Name;
 
@@ -18,49 +17,48 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
             private set => m_Name = value;
         }
 
-        IPortReader m_PortReader;
+        public IConstant m_VariableConstant;
 
-        object m_PortConstantValue;
+        object m_VariableValue = null;
 
-        public object PortConstantValue
+        public object VariableValue
         {
-            get => m_PortConstantValue;
-            set => m_PortConstantValue = value;
+            get => m_VariableValue;
+            set => m_VariableValue = value;
         }
 
-        public PortPreviewHandler(IPortReader portReader)
+        public VariablePreviewHandler(IConstant variableConstant)
         {
-            Name = Mock_GetHLSLParameterName(portReader);
-            m_PortReader = portReader;
+            Name = Mock_GetHLSLParameterName(variableConstant);
+            m_VariableConstant = variableConstant;
         }
 
         const string k_SetErrorMessage = "Cannot set a {0} property on a PreviewProperty with type {1}.";
         const string k_GetErrorMessage = "Cannot get a {0} property on a PreviewProperty with type {1}.";
 
-        string Mock_GetHLSLParameterName(IPortReader portReader)
+        string Mock_GetHLSLParameterName(IConstant variableConstant)
         {
             // TODO: How to get the actual type of a port?
             // Explore once Esme finishes merging in types
             return String.Empty;
         }
 
-        Type Mock_GetMaterialPropertyTypeOfPort(IPortReader portReader)
+        Type Mock_GetMaterialPropertyTypeOfPort(IConstant variableConstant)
         {
             // TODO: How to get the actual type of a port?
             // Explore once Esme finishes merging in types
-            return typeof(Vector4);
+            return null;
         }
 
-        object Mock_GetMaterialPropertyValueOfPort(IPortReader portReader)
+        object Mock_GetMaterialPropertyValueOfPort(IConstant variableConstant)
         {
             // TODO: How to get the actual value of a port?
             // Esme/Liz will add generic object getters, we just need type to cast down to concrete types
-            //object portValueFromReader = null;
-            //PortConstantValue = portValueFromReader;
-            return PortConstantValue;
+            VariableValue = variableConstant.ObjectValue;
+            return null;
         }
 
-        DefaultTextureType Mock_GetDefaultTextureType(IPortReader portReader)
+        DefaultTextureType Mock_GetDefaultTextureType(IConstant variableConstant)
         {
             // TODO: How to get the actual value of a default texture type?
             // Will probably be a field on the port/node
@@ -69,8 +67,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
 
         public void SetValueOnMaterialPropertyBlock(MaterialPropertyBlock mat)
         {
-            var type = Mock_GetMaterialPropertyTypeOfPort(m_PortReader);
-            var value = Mock_GetMaterialPropertyValueOfPort(m_PortReader);
+            var type = Mock_GetMaterialPropertyTypeOfPort(m_VariableConstant);
+            var value = Mock_GetMaterialPropertyValueOfPort(m_VariableConstant);
 
             if ((type == typeof(Texture2D) /*|| propertyType == PropertyType.Texture2DArray*/ || type == typeof(Texture3D)))
             {
@@ -81,7 +79,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
                     // so instead we set the value to what we know the default will be
                     // (all textures in ShaderGraph default to white)
 
-                    DefaultTextureType defaultTextureType = Mock_GetDefaultTextureType(m_PortReader);
+                    DefaultTextureType defaultTextureType = Mock_GetDefaultTextureType(m_VariableConstant);
 
                     switch (defaultTextureType)
                     {
@@ -120,7 +118,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview
                 var colorValue = value is Color colorVal ? colorVal : default;
                 mat.SetColor(Name, colorValue);
             }
-            else if (type == typeof(Vector2) || type == typeof(Vector3) || type == typeof(Vector4))
+            else if (type == typeof(Vector2) || type == typeof(Vector3) || type == typeof(Vector3))
             {
                 var vector4Value = value is Vector4 vector4Val ? vector4Val : default;
                 mat.SetVector(Name, vector4Value);

@@ -29,8 +29,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             if (previewObservation.UpdateType != UpdateType.None)
             {
                 Debug.Log("Observed a change: " + previewObservation);
-                // TODO: React to preview state being changed (PreviewMode, preview expand/collapse etc)
-
             }
 
             using var graphViewObservation = this.ObserveState(state.GraphViewState);

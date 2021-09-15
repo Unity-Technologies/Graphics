@@ -180,7 +180,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 {
                     if (renameElementCommand.Model is IVariableDeclarationModel variableDeclarationModel)
                     {
-                        previewUpdater.MarkElementNeedingRecompile(variableDeclarationModel.Guid.ToString());
+                        previewUpdater.MarkNodeNeedingRecompile(variableDeclarationModel.Guid.ToString(), null);
+
+                        // TODO: Handle this in a similar way to HandleUpdateConstantValue, but also accounting for recompiles
 
                         // React to property being renamed by finding all linked property nodes and marking them as requiring recompile and also needing constant value update
                         var graphNodes = graphToolState.GraphViewState.GraphModel.NodeModels;
@@ -188,9 +190,28 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                         {
                             if (graphNode is IVariableNodeModel variableNodeModel && Equals(variableNodeModel.VariableDeclarationModel, variableDeclarationModel))
                             {
-                                previewUpdater.MarkElementNeedingRecompile(variableNodeModel.Guid.ToString());
-                                previewUpdater.UpdateVariableConstantValue(variableNodeModel.Guid.ToString(), variableDeclarationModel.InitializationModel.ObjectValue);
+                                previewUpdater.MarkNodeNeedingRecompile(variableNodeModel.Guid.ToString(), null);
+                                previewUpdater.UpdateVariableConstantValue(variableDeclarationModel.InitializationModel.ObjectValue, variableNodeModel);
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void HandleUpdateConstantValue(GraphToolState graphToolState, UpdateConstantValueCommand updateConstantValueCommand)
+        {
+            if (graphToolState is ShaderGraphState shaderGraphState)
+            {
+                using var previewUpdater = shaderGraphState.GraphPreviewState.UpdateScope;
+                {
+                    // Find all property nodes backed by this constant
+                    var graphNodes = graphToolState.GraphViewState.GraphModel.NodeModels;
+                    foreach (var graphNode in graphNodes)
+                    {
+                        if (graphNode is IVariableNodeModel variableNodeModel && Equals(variableNodeModel.VariableDeclarationModel.InitializationModel, updateConstantValueCommand.Constant))
+                        {
+                            previewUpdater.UpdateVariableConstantValue(updateConstantValueCommand.Value, variableNodeModel);
                         }
                     }
                 }

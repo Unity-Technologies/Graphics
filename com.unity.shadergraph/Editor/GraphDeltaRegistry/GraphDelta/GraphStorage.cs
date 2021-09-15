@@ -682,15 +682,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         }
         private GraphReader GetReader(string id)
         {
-            Element element = m_flatStructureLookup[id];
-            if (element == null)
-            {
-                return null;
-            }
-            else
+            if (m_flatStructureLookup.TryGetValue(id, out var element))
             {
                 return new GraphReader(element, this);
             }
+
+            return null;
         }
 
         private Element GetElementFromLayer(string layerName, string id)

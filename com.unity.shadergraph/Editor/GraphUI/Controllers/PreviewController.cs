@@ -1,4 +1,5 @@
 ﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 using UnityEngine;
@@ -29,13 +30,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.Controllers
             {
                 using var previewUpdater = shaderGraphState.GraphPreviewState.UpdateScope;
                 {
-                    previewUpdater.UpdatePortConstantValue(command.PortModel.ToString(), null);
+                    if (command.PortModel.NodeModel is GraphDataNodeModel graphDataNodeModel)
+                    {
+                        previewUpdater.UpdateNodePortConstantValue(command.PortModel.Guid.ToString(), command.NewValue, graphDataNodeModel);
+                    }
                 }
             }
-
-            Debug.Log("Command issued: " + command);
-
-
         }
     }
 }
