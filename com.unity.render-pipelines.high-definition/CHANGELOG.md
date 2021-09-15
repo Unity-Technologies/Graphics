@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing context menu for “Post Anti-Aliasing” in Camera (1357283)
 - Fixed error when disabling opaque objects on a camera with MSAA.
 - Fixed double camera preview.
+- Fixed the volumetric clouds cloud map not being centered over the world origin (case 1364465).
 
 ### Changed
 - Visual Environment ambient mode is now Dynamic by default.
