@@ -13,7 +13,7 @@ When you assign the same Texture2D to a POM node and a Sample Texture 2D node, y
 | Name | **Direction** | Type | Description |
 | --- | --- | --- | --- |
 | **Heightmap** | Input | Texture2D | The Texture that specifies the depth of the displacement. |
-| **Heightmap Sampler** | Input | Sampler State | The Sampler to sample Heightmap with. |
+| **Heightmap Sampler** | Input | Sampler State | The Sampler to sample **Heightmap** with. |
 | **Amplitude** | Input | Float | A multiplier to apply to the height of the Heightmap (in centimeters). |
 | **Steps** | Input | Float | The number of steps that the linear search of the algorithm performs. |
 | **UVs** | Input | Vector2 | The UVs that the sampler uses to sample the Texture. |
