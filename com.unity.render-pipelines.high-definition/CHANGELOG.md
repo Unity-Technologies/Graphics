@@ -403,6 +403,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed path traced subsurface scattering for transmissive surfaces (case 1329403)
 - Fixed missing context menu for “Post Anti-Aliasing” in Camera (1357283)
 - Fixed error when disabling opaque objects on a camera with MSAA.
+- Fixed the volumetric clouds cloud map not being centered over the world origin (case 1364465).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
