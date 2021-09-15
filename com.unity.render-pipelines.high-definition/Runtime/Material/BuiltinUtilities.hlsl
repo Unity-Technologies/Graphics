@@ -55,6 +55,10 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
     SampleBakedGI(  posInput, normalWS, backNormalWS, builtinData.renderingLayers, texCoord1.xy, texCoord2.xy,
                     builtinData.bakeDiffuseLighting, builtinData.backBakeDiffuseLighting);
 
+    // The lighting in SH or lightmap is assume to contain bounced light only (i.e no direct lighting),
+    // and is divide by PI (i.e Lambert is apply), so multiply by PI here to get back the illuminance
+    builtinData.bakeIlluminance = Luminance(builtinData.bakeDiffuseLighting) * PI;
+
     builtinData.isLightmap =
 #if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
         1;
@@ -82,16 +86,7 @@ void ApplyDebugToBuiltinData(inout BuiltinData builtinData)
     {
         float3 overrideEmissiveColor = _DebugLightingEmissiveColor.yzw;
         builtinData.emissiveColor = overrideEmissiveColor;
-
     }
-
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // The lighting in SH or lightmap is assume to contain bounced light only (i.e no direct lighting),
-        // and is divide by PI (i.e Lambert is apply), so multiply by PI here to get back the illuminance
-        builtinData.bakeDiffuseLighting *= PI; // don't take into account backBakeDiffuseLighting
-    }
-
 #endif
 }
 
@@ -114,13 +109,7 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
     // ModifyBakedDiffuseLighting, GetIndirectDiffuseMultiplier and ApplyDebugToBuiltinData will be done in lightloop for those cases
 
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
-
-#ifdef DEBUG_DISPLAY
-    // When the lux meter is enabled, we don't want the albedo of the material to modify the diffuse baked lighting
-    if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER)
-#endif
-        ModifyBakedDiffuseLighting(V, posInput, surfaceData, builtinData);
-
+    ModifyBakedDiffuseLighting(V, posInput, surfaceData, builtinData);
 #endif
 
     // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive
@@ -128,6 +117,7 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
     // This is applied only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
     float multiplier = GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
     builtinData.bakeDiffuseLighting *= multiplier;
+    builtinData.bakeIlluminance *= multiplier;
 
     ApplyDebugToBuiltinData(builtinData);
 }

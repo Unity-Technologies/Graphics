@@ -4468,6 +4468,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 
+    lightLoopOutput.illuminance = lighting.direct.illuminance + builtinData.bakeIlluminance;
+
 #ifdef DEBUG_DISPLAY
     // For specularOcclusion we display red to indicate there's not one value possible here.
     AmbientOcclusionFactor aoFactor;

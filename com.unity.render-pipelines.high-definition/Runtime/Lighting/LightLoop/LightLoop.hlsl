@@ -99,13 +99,7 @@ bool UseScreenSpaceShadow(DirectionalLightData light, float3 normalWS)
 void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdfData, inout LightLoopOutput lightLoopOutput)
 {
 #ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-        // Take the luminance
-        lightLoopOutput.diffuseLighting = Luminance(lightLoopOutput.diffuseLighting).xxx;
-    }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_VISUALIZE_CASCADE)
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_VISUALIZE_CASCADE)
     {
         lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0);
 
@@ -490,11 +484,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             }
 
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
-#ifdef DEBUG_DISPLAY
-            // When the lux meter is enabled, we don't want the albedo of the material to modify the diffuse baked lighting
-            if (_DebugLightingMode != DEBUGLIGHTINGMODE_LUX_METER)
-#endif
-                ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, tempBuiltinData);
+            ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, tempBuiltinData);
 #endif
             // This is applied only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
             tempBuiltinData.bakeDiffuseLighting *= GetIndirectDiffuseMultiplier(builtinData.renderingLayers);

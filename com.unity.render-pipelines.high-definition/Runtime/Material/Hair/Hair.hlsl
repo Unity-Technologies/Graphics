@@ -1190,6 +1190,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
     lightLoopOutput.diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
     lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+    lightLoopOutput.illuminance = lighting.direct.illuminance + builtinData.bakeIlluminance;
 
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, lightLoopOutput);

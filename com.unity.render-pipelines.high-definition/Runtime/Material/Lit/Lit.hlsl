@@ -1559,15 +1559,10 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
         lighting.diffuse *= lightData.color;
         lighting.specular *= lightData.color;
 
-    #ifdef DEBUG_DISPLAY
-        if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-        {
-            // Only lighting, not BSDF
-            // Apply area light on lambert then multiply by PI to cancel Lambert
-            lighting.diffuse = LTCEvaluate(P1, P2, B, k_identity3x3);
-            lighting.diffuse *= PI * lightData.diffuseDimmer;
-        }
-    #endif
+        // Only lighting, no BSDF. Used by lux meter and auto exposure
+        // Apply area light on lambert then multiply by PI to cancel Lambert
+        lighting.illuminance = LTCEvaluate(P1, P2, B, k_identity3x3);
+        lighting.illuminance *= PI * lightData.diffuseDimmer;
     }
 
     #endif // LIT_DISPLAY_REFERENCE_AREA
@@ -1768,15 +1763,10 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             lighting.diffuse *= lightData.color;
             lighting.specular *= lightData.color;
 
-        #ifdef DEBUG_DISPLAY
-            if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-            {
-                // Only lighting, not BSDF
-                // Apply area light on lambert then multiply by PI to cancel Lambert
-                lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
-                lighting.diffuse *= PI * lightData.diffuseDimmer;
-            }
-        #endif
+            // Only lighting, no BSDF. Used by lux meter and auto exposure
+            // Apply area light on lambert then multiply by PI to cancel Lambert
+            lighting.illuminance = PolygonIrradiance(mul(lightVerts, k_identity3x3));
+            lighting.illuminance *= PI * lightData.diffuseDimmer;
         }
     }
 
@@ -2096,6 +2086,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
     // Rescale the GGX to account for the multiple scattering.
     lightLoopOutput.specularLighting *= 1.0 + bsdfData.fresnel0 * preLightData.energyCompensation;
+
+    lightLoopOutput.illuminance = lighting.direct.illuminance + builtinData.bakeIlluminance;
 
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, lightLoopOutput);

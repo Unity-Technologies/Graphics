@@ -456,6 +456,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 
+    lightLoopOutput.illuminance = lighting.direct.illuminance + builtinData.bakeIlluminance;
+
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, lightLoopOutput);
 #endif

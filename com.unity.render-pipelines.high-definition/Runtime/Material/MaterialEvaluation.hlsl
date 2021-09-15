@@ -10,6 +10,7 @@ struct DirectLighting
 {
     real3 diffuse;
     real3 specular;
+    real illuminance;
 };
 
 struct IndirectLighting
@@ -28,6 +29,7 @@ void AccumulateDirectLighting(DirectLighting src, inout AggregateLighting dst)
 {
     dst.direct.diffuse += src.diffuse;
     dst.direct.specular += src.specular;
+    dst.direct.illuminance += src.illuminance;
 }
 
 void AccumulateIndirectLighting(IndirectLighting src, inout AggregateLighting dst)
@@ -148,7 +150,7 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
         {
         case DEBUGLIGHTINGMODE_LUX_METER:
             // Note: We don't include emissive here (and in deferred it is correct as lux calculation of bakeDiffuseLighting don't consider emissive)
-            lightLoopOutput.diffuseLighting = lighting.direct.diffuse + builtinData.bakeDiffuseLighting;
+            lightLoopOutput.diffuseLighting = lightLoopOutput.illuminance;
 
             //Compress lighting values for color picker if enabled
             if (_ColorPickerMode != COLORPICKERDEBUGMODE_NONE)

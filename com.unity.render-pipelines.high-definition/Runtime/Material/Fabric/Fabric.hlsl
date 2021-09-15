@@ -868,6 +868,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
     lightLoopOutput.diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
     lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+    lightLoopOutput.illuminance = lighting.direct.illuminance + builtinData.bakeIlluminance;
 
     // TODO: Multiscattering for cloth?
 

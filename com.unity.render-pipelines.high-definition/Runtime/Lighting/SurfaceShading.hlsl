@@ -49,15 +49,10 @@ DirectLighting ShadeSurface_Infinitesimal(PreLightData preLightData, BSDFData bs
         // the preprocessor.
         lighting.diffuse  = (cbsdf.diffR + cbsdf.diffT * transmittance) * lightColor * diffuseDimmer;
         lighting.specular = (cbsdf.specR + cbsdf.specT * transmittance) * lightColor * specularDimmer;
-    }
 
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // Only lighting, no BSDF.
-        lighting.diffuse = lightColor * saturate(dot(bsdfData.normalWS, L));
+        // Only lighting, no BSDF. Used by lux meter and auto exposure
+        lighting.illuminance = Luminance(lightColor * saturate(dot(bsdfData.normalWS, L)));
     }
-#endif
 
     return lighting;
 }

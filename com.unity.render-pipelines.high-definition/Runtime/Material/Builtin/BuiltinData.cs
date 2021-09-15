@@ -32,6 +32,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 bakeDiffuseLighting; // This is the result of sampling lightmap/lightprobe/proxyvolume
             [SurfaceDataAttributes("Back Baked Diffuse Lighting", false, true, FieldPrecision.Real)]
             public Vector3 backBakeDiffuseLighting; // This is the result of sampling lightmap/lightprobe/proxyvolume from the back for transmission
+            [SurfaceDataAttributes("Baked Illuminance", precision = FieldPrecision.Real)]
+            public float bakeIlluminance;
 
             // Use for float instead of vector4 to ease the debug (no performance impact)
             // Note: We have no way to remove these value automatically based on either SHADEROPTIONS_BAKED_SHADOW_MASK_ENABLE or s_BakedShadowMaskEnable here. Unless we make two structure... For now always keep this value

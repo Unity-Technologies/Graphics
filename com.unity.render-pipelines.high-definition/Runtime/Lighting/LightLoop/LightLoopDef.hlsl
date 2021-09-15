@@ -32,6 +32,7 @@ struct LightLoopOutput
 {
     float3 diffuseLighting;
     float3 specularLighting;
+    float illuminance;
 };
 
 //-----------------------------------------------------------------------------

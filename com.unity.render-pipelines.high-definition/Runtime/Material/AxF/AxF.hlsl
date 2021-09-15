@@ -2814,6 +2814,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     lightLoopOutput.diffuseLighting = 10 * float3(1, 0.3, 0.01);
 #endif
 
+    lightLoopOutput.illuminance = lighting.direct.illuminance + builtinData.bakeIlluminance;
+
 #ifdef DEBUG_DISPLAY
     PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, lightLoopOutput);
 #endif
