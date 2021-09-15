@@ -238,6 +238,64 @@ namespace UnityEngine.Rendering
             }
         }
 
+        static int Partition(T[] data, int left, int right)
+        {
+            var pivot = data[left];
+
+            --left;
+            ++right;
+            while (true)
+            {
+                var c = 0;
+                var lvalue = default(T);
+                do
+                {
+                    ++left;
+                    lvalue = data[left];
+                    c = lvalue.CompareTo(pivot);
+                }
+                while (c < 0);
+
+                var rvalue = default(T);
+                do
+                {
+                    --right;
+                    rvalue = data[right];
+                    c = rvalue.CompareTo(pivot);
+                }
+                while (c > 0);
+
+                if (left < right)
+                {
+                    data[right] = lvalue;
+                    data[left] = rvalue;
+                }
+                else
+                {
+                    return right;
+                }
+            }
+        }
+
+        void QuickSort(T[] data, int left, int right)
+        {
+            if (left < right)
+            {
+                int pivot = Partition(data, left, right);
+
+                if (pivot >= 1)
+                    QuickSort(data, left, pivot);
+
+                if (pivot + 1 < right)
+                    QuickSort(data, pivot + 1, right);
+            }
+        }
+
+        public void QuickSort()
+        {
+            QuickSort(m_Array, 0, size - 1);
+        }
+
         /// <summary>
         /// ref access to an element.
         /// </summary>
