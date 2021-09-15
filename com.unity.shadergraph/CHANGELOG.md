@@ -133,6 +133,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation problems on preview shader when using hybrid renderer v2 and property desc override Hybrid Per Instance
 - Fixed a serialization bug wrt PVT property flags when using subgraphs. This fixes SRP batcher compatibility.
 - Fixed an incorrect direction transform from view to world space [1365186]
+- Fixed ShaderGraph HDRP master preview disappearing for a few seconds when graph is modified  [1330289] (https://issuetracker.unity3d.com/issues/shadergraph-hdrp-main-preview-is-invisible-until-moved)
 
 ## [11.0.0] - 2020-10-21
 
