@@ -49,18 +49,17 @@ namespace UnityEditor.ShaderFoundry
                 {
                     // Make the new field name unique
                     var name = $"{input.ReferenceName}_{block.Name}";
-                    var availableInput = BlockVariableLinkInstance.Construct(input.Type, name, name, input.DefaultExpression, mergedInputInstance, input.Attributes);
-                    mergedInputInstance.AddField(availableInput);
-                    matchingField = availableInput;
+                    matchingField = BlockVariableLinkInstance.Construct(input, name, mergedInputInstance);
+                    mergedInputInstance.AddField(matchingField);
                     // Add the original name override so we can keep track of how to resolve this when linking later
-                    mergedInputInstance.AddOverride(availableInput.ReferenceName, inputNameData);
+                    mergedInputInstance.AddOverride(matchingField.ReferenceName, inputNameData);
 
                     // If this was a property, also mark this as a property on the block
-                    if (availableInput.Attributes.IsProperty())
-                        mergedBlockLinkInstance.AddProperty(availableInput);
+                    if (matchingField.Attributes.IsProperty())
+                        mergedBlockLinkInstance.AddProperty(matchingField);
                 }
 
-                // Add this as a resolved field
+                // Add this as a resolved field match
                 var matchLink = new ResolvedFieldMatch
                 {
                     Source = matchingField,
@@ -71,6 +70,8 @@ namespace UnityEditor.ShaderFoundry
                 // Mark this resolution on the matching field's owner (the owner has a match for the field)
                 matchingField.Owner.AddResolvedField(matchingField.ReferenceName, matchLink);
             }
+
+            // All properties get auto promoted to the merged block
             foreach(var prop in block.Properties)
             {
                 mergedBlockLinkInstance.AddProperty(BlockVariableLinkInstance.Construct(prop, blockInputInstance, prop.Attributes));
@@ -80,7 +81,7 @@ namespace UnityEditor.ShaderFoundry
             {
                 // Always create an output on the merged block since anyone could use the output later.
                 var name = $"{output.ReferenceName}_{block.Name}";
-                var availableOutput = BlockVariableLinkInstance.Construct(output.Type, name, name, output.DefaultExpression, mergedOutputInstance, output.Attributes);
+                var availableOutput = BlockVariableLinkInstance.Construct(output, name, mergedOutputInstance);
                 mergedOutputInstance.AddField(availableOutput);
 
                 // Link the new output to the block's output

@@ -28,6 +28,11 @@ namespace UnityEditor.ShaderFoundry
             return Construct(variable.Type, variable.ReferenceName, variable.DisplayName, variable.DefaultExpression, owner, attributes);
         }
 
+        internal static BlockVariableLinkInstance Construct(BlockVariableLinkInstance variable, string newName, BlockVariableLinkInstance owner)
+        {
+            return Construct(variable.Type, newName, newName, variable.DefaultExpression, owner, variable.Attributes);
+        }
+
         internal static BlockVariableLinkInstance Construct(ShaderType type, string referenceName, string displayName, string defaultExpression, BlockVariableLinkInstance owner, IEnumerable<ShaderAttribute> attributes = null)
         {
             var result = new BlockVariableLinkInstance
