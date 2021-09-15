@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             /// <summary>Texture used to render the clouds.</summary>
             [Tooltip("Specify the texture HDRP uses to render the clouds (in LatLong layout).")]
-            public TextureParameter cloudMap = new TextureParameter(CloudMap.s_DefaultTexture);
+            public Texture2DParameter cloudMap = new Texture2DParameter(CloudMap.s_DefaultTexture);
             /// <summary>Opacity multiplier for the red channel.</summary>
             [Tooltip("Opacity multiplier for the red channel.")]
             public ClampedFloatParameter opacityR = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public WindSpeedParameter scrollSpeed = new WindSpeedParameter();
             /// <summary>Texture used to distort the UVs for the cloud layer.</summary>
             [Tooltip("Specify the flowmap HDRP uses for cloud distortion (in LatLong layout).")]
-            public TextureParameter flowmap = new TextureParameter(null);
+            public Texture2DParameter flowmap = new Texture2DParameter(null);
 
             /// <summary>Simulates cloud self-shadowing using raymarching.</summary>
             [Tooltip("Simulates cloud self-shadowing using raymarching.")]
