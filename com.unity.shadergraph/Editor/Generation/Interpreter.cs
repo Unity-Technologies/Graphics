@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph.Generation
     public static class Interpreter
     {
 
-        public static Shader GetshaderForNode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
+        public static Shader GetShaderForNode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
         {
             void GetBlock(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointDescriptor vertexCPDesc, out CustomizationPointDescriptor surfaceCPDesc)
             {
