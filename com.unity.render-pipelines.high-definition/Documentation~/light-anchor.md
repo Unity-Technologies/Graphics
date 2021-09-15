@@ -2,11 +2,11 @@
 
 ![](Images/LightAnchor0.png)
 
-You can use a Light Anchor to light a scene in rendered Camera Space. You can also attach a transform to the Light Anchor through the **Anchor Position Override** field so the light will automatically move and rotate to match the selected lighting setup.
+You can use a Light Anchor to light a scene in rendered Camera Space. You can also make the Light move and rotate to match your lighting set up. To do this, attach a [Transform](https://docs.unity3d.com/ScriptReference/Transform.html) to the Light Anchor in the **Anchor Position Override** field.
 
 ![](Images/LightAnchorAnimation.gif)
 
-Note that the reference camera used to adjust the light rotation is the Main Camera. It means that using the Common presets may lead to a different result in the Scene View if you're view is not aligned with the Main Camera.
+**Note:** The reference Camera that adjusts the light rotation in the above example is the Main Camera. This means that the Common presets can create a different result in the Scene View if your view is not aligned with the Main Camera.
 
 ## Properties
 
