@@ -20,16 +20,19 @@ struct PathIntersection
     uint2 pixelCoord;
     // Max roughness encountered along the path
     float maxRoughness;
+
 // SensorSDK - Begin
-// Extra params for beam lighthing
 #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
+    // Extra params for beam lighthing
     float3 beamDirection;
     float3 beamOrigin;
 
     float beamRadius;
     float beamDepth;
+#endif
 
-//Extra parameters to debug (to be removed
+#if defined(SENSORSDK_DEBUG)
+    //Extra parameters to debug
     float3 lightPosition;
     float3 lightDirection;
     float3 lightOutgoing;
@@ -81,7 +84,7 @@ struct PathIntersection
 
     int lightCount;
     float customRefractance;
-#endif
+#endif // SENSORSDK_DEBUG
 //SensorSDK - End
 };
 

@@ -1127,10 +1127,9 @@ Shader "HDRP/Lit"
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
-
             #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE
-	    //#pragma enable_ray_tracing_shader_debug_symbols
-	    
+            #pragma multi_compile _ SENSORSDK_DEBUG
+
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
             // This is just because it needs to be defined, shadow maps are not used.
